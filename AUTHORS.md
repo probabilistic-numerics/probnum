@@ -1,4 +1,4 @@
-## ProbNum Contributors
+## ProbNum Team and Contributors
 
 The following people contributed to the ProbNum repository.
 
@@ -61,7 +61,7 @@ The following people contributed to the ProbNum repository.
 					<img class="avatar" alt="tskarvone" src="https://github.com/tskarvone.png?v=3&s=96" width="64" height="64" />
 					<p>Toni Karvonen</p>
 				</a>
-			</li>	
+			</li>
 			<li>
 				<a href="https://github.com/marvinpfoertner">
 					<img class="avatar" alt="marvinpfoertner" src="https://github.com/marvinpfoertner.png?v=3&s=96" width="64" height="64" />

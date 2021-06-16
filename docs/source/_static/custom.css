@@ -232,3 +232,17 @@ code {
     transition-duration: var(--pst-button-transition-duration);
     transition-timing-function: var(--pst-transition-timing-default);
 }
+
+/* Contributors */
+
+.authorlist ul li {
+    float: left;
+    list-style: none;
+    margin-left: 16px;
+    margin-bottom: 0px;
+}
+
+.avatar {
+    vertical-align: middle;
+    border-radius: 10%;
+  }
