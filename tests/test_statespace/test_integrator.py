@@ -184,11 +184,11 @@ def test_same_forward_outputs(both_transitions, diffusion):
     "both_transitions",
     [both_transitions_ibm(), both_transitions_ioup(), both_transitions_matern()],
 )
-def test_same_backward_outputs(both_transitions, diffusion):
+def test_same_backward_outputs(both_transitions, diffusion, rng):
     trans1, trans2 = both_transitions
     real = 1 + 0.1 * np.random.rand(trans1.dimension)
     real2 = 1 + 0.1 * np.random.rand(trans1.dimension)
-    cov = random_spd_matrix(trans1.dimension)
+    cov = random_spd_matrix(rng, dim=trans1.dimension)
     rv = randvars.Normal(real2, cov)
     out_1, info1 = trans1.backward_realization(
         real, rv, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion
@@ -232,8 +232,8 @@ def qh_22_ibm(dt):
 
 
 @pytest.fixture
-def spdmat3x3():
-    return random_spd_matrix(3)
+def spdmat3x3(rng):
+    return random_spd_matrix(rng, dim=3)
 
 
 @pytest.fixture
@@ -282,7 +282,7 @@ class TestIBMValues:
     def test_forward_realization_values(
         self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt
     ):
-        real = normal_rv3x3.sample()
+        real = normal_rv3x3.mean
         rv, _ = self.transition.forward_realization(
             real, t=0.0, dt=dt, _diffusion=diffusion
         )
