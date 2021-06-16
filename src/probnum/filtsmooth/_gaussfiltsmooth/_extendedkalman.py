@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-from probnum import problems, randvars, statespace
+from probnum import randvars, statespace
 
 
 class EKFComponent(abc.ABC):
