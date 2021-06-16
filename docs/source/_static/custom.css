@@ -30,6 +30,7 @@
     --pst-font-weight-base: var(--pst-font-weight-normal);
     /* Colors (defined in RGB: "red, green, blue" */
     --pst-color-primary: 22, 179, 173;
+    --pst-color-primary-light: 255, 255, 255;
     --pst-color-background: 252, 252, 252;
     --pst-color-background-dark: 19, 22, 27;
     --pst-color-success: 40, 167, 69;
@@ -153,13 +154,44 @@ body {
 
 /* Footer */
 
+.page-footer h4 {
+    color: rgba(var(--pst-color-primary), 1)
+}
 
-/* Landing Page Banner */
+.page-footer .nav-link {
+    font-size: 0.85rem;
+    color: rgba(var(--pst-color-navbar-link));
+}
+
+.page-footer .nav-link:hover {
+    color: rgba(var(--pst-color-navbar-link-hover));
+}
+
+.page-footer .nav-link:active {
+    color: rgba(var(--pst-color-navbar-link-active));
+}
+
+.page-footer [role=contentinfo] {
+    margin-bottom: 0rem;
+    padding-bottom: 0.1rem;
+}
+
+.page-footer [role=contentinfo] p {
+    color: rgba(var(--pst-color-primary-light), 0.5)
+}
+
+/* Landing Page */
 
 .hero-banner {
-    background: rgba(var(--pst-color-primary), 0.2);
+    background: rgba(var(--pst-color-primary), 0.25);
     padding-bottom: 20px;
     padding-top: 20px;
+}
+
+.feature-illustration {
+    max-height: 200px;
+    max-width: 200px;
+    width: 100%;
 }
 
 /* Code */
