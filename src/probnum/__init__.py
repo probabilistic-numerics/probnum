@@ -32,7 +32,9 @@ finite computational resources and stochastic input.
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from . import (  # diffeq,; filtsmooth,
+from . import (
+    diffeq,
+    filtsmooth,
     kernels,
     linalg,
     linops,
