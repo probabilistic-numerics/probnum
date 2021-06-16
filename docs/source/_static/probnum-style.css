@@ -6,8 +6,8 @@
   --pn-orange: #ff9933;
   --pn-darkred: #820000;
   --pn-darkgray: #333333;
-  --pn-lightgray: #f2f2f2;
-  --background-gray: #fcfcfc;
+  --pn-lightgray: rgb(242, 242, 242);
+  --background-gray: rgb(252, 252, 252);
 }
 
 
@@ -35,7 +35,8 @@ a:hover {
 	color: -var(--pn-green);
 }
 
-/* Code block */
+/* Code */
+
 .highlight {
 	background: var(--pn-lightgray);
 }

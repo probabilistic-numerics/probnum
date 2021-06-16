@@ -33,6 +33,7 @@
     --pst-color-primary-light: 255, 255, 255;
     --pst-color-background: 252, 252, 252;
     --pst-color-background-dark: 19, 22, 27;
+    --pst-color-background-lightgray: 242, 242, 242;
     --pst-color-success: 40, 167, 69;
     --pst-color-info: 0, 123, 255;
     --pst-color-warning: 255, 193, 7;
@@ -51,7 +52,7 @@
     --pst-color-headerlink-hover: 255, 255, 255;
     --pst-color-preformatted-text: 34, 34, 34;
     --pst-color-preformatted-background: 250, 250, 250;
-    --pst-color-inline-code: 232, 62, 140;
+    --pst-color-inline-code: var(--pst-color-primary);
     --pst-color-active-navigation: var(--pst-color-primary);
     --pst-color-navbar-link: 255, 255, 255;
     --pst-color-navbar-link-hover: var(--pst-color-active-navigation);
@@ -121,13 +122,17 @@
 
 body {
     padding-top: calc(var(--pst-header-height));
-    background-color: rgb(var(--pst-color-background));
+    background-color: rgba(var(--pst-color-background));
 }
 
 /* Background */
 
 .bg-dark {
-    background-color: rgb(var(--pst-color-background-dark)) !important;
+    background-color: rgba(var(--pst-color-background-dark)) !important;
+}
+
+.bg-lightgray {
+    background-color: rgba(var(--pst-color-background-lightgray))
 }
 
 /* Navigation bar */
@@ -194,11 +199,17 @@ body {
     width: 100%;
 }
 
+.landing-page-container {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
 /* Code */
 
 code {
     font-size: var(--pst-font-size-code);
     font-family: var(--pst-font-family-monospace);
+    color: rgba(var(--pst-color-inline-code));
 }
 
 .highlight {
@@ -245,4 +256,4 @@ code {
 .avatar {
     vertical-align: middle;
     border-radius: 10%;
-  }
+}
