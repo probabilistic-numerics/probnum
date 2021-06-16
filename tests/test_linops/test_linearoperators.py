@@ -14,11 +14,11 @@ class LinearOperatorArithmeticTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         """Resources for tests."""
         # Random Seed
-        np.random.seed(42)
+        rng = np.random.default_rng(42)
 
         # Scalars and arrays
         self.scalars = [0, int(1), 0.1, -4.2, np.nan, np.inf]
-        self.arrays = [np.random.normal(size=[5, 4]), np.array([[3, 4], [1, 5]])]
+        self.arrays = [rng.normal(size=[5, 4]), np.array([[3, 4], [1, 5]])]
 
     def test_scalar_mult(self):
         """Matrix linear operator multiplication with scalars."""
