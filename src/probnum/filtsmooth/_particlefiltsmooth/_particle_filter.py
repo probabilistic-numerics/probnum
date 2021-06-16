@@ -151,6 +151,7 @@ class ParticleFilter(BayesFiltSmooth):
         for t, data, measmod in regression_problem:
 
             dt = t - t_old
+            print(t_old, dt, t)
             new_particles = particles.copy()
             new_weights = weights.copy()
 
@@ -193,6 +194,7 @@ class ParticleFilter(BayesFiltSmooth):
                 if N < self.min_effective_num_of_particles:
                     new_rv = new_rv.resample()
             yield new_rv, {}
+            t_old = t
 
     def importance_rv_generator_initial_time(
         self,
@@ -222,6 +224,9 @@ class ParticleFilter(BayesFiltSmooth):
         dt,
         t,
     ):
+
+        if t_old == self.prior_process.initarg:
+            particles = self.prior_process.initrv.sample(size=(self.num_particles,))
 
         for p, w in zip(particles, weights):
             output = self.importance_distribution.generate_importance_rv(

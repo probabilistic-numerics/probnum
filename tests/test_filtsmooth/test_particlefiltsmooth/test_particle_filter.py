@@ -54,16 +54,17 @@ def particle_filter_setup(
     elif measmod_style == "ukf":
         importance_distribution = (
             filtsmooth.LinearizationImportanceDistribution.from_ekf(
-                statespace_components["dynamics_model"]
+                statespace_components["dynamics_model"],
             )
         )
     else:
         importance_distribution = filtsmooth.BootstrapImportanceDistribution(
             statespace_components["dynamics_model"]
         )
-
+    prior_process = statespace_components["prior_process"]
+    # prior_process.initarg = -10.0
     particle = filtsmooth.ParticleFilter(
-        statespace_components["prior_process"],
+        prior_process,
         importance_distribution=importance_distribution,
         num_particles=num_particles,
         resampling_percentage_threshold=resampling_percentage_threshold,
