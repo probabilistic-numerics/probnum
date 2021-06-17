@@ -43,8 +43,8 @@ extensions = [
     "sphinx_automodapi.automodapi",
     "sphinx_autodoc_typehints",
     "sphinx_gallery.load_style",
+    "myst_parser",
     "nbsphinx",
-    "m2r2",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -209,5 +209,5 @@ inheritance_graph_attrs = dict(size='""')  # resize graphs correctly
 
 # Sphinx gallery configuration
 sphinx_gallery_conf = {
-    "default_thumb_file": "img/probnum_logo.svg"  # default thumbnail image
+    "default_thumb_file": "img/probnum_logo.png",  # default thumbnail image
 }

@@ -11,4 +11,4 @@ sphinx-autodoc-typehints
 sphinx-gallery
 
 # Markdown conversion
-m2r2
+myst-parser
