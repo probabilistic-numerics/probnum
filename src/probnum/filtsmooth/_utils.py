@@ -72,7 +72,7 @@ def merge_regression_problems(
     >>> prob3, _ = filtsmooth_zoo.car_tracking(
     ...     measurement_variance=2.0, timespan=(0.35, 10.35), step=0.5
     ... )
-    >>> new_prob, _ = functools.reduce(
+    >>> new_prob = functools.reduce(
     ...     merge_regression_problems,
     ...     (prob1, prob2, prob3),
     ... )
