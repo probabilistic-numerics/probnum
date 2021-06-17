@@ -83,12 +83,8 @@ def car_tracking(
     -------
     regression_problem
         ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+    info
+        Dictionary containing additional information like the prior process.
 
     References
     ----------
@@ -204,12 +200,8 @@ def ornstein_uhlenbeck(
     -------
     regression_problem
         ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+    info
+        Dictionary containing additional information like the prior process.
 
 
     References
@@ -326,12 +318,8 @@ def pendulum(
     -------
     regression_problem
         ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+    info
+        Dictionary containing additional information like the prior process.
 
 
     References
@@ -455,12 +443,8 @@ def benes_daum(
     -------
     regression_problem
         ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+    info
+        Dictionary containing additional information like the prior process.
 
     Notes
     -----
@@ -563,14 +547,8 @@ def logistic_ode(
     -------
     regression_problem
         ``TimeSeriesRegressionProblem`` object with time points and zero-observations.
-
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
-        * The initial value problem based on the logistic ODE.
+    info
+        Dictionary containing additional information like the prior process.
 
     See Also
     --------

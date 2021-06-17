@@ -25,10 +25,6 @@ def merge_regression_problems(
 
     Raises
     ------
-    TypeError
-        If the lists of measurement models are not numpy arrays.
-        This is required (for the moment) in order to simplify the implementation.
-        More general merging (e.g. of lists or generators) is not supported currently.
     ValueError
         If the locations in both regression problems are not disjoint.
         Multiple observations at a single grid point are not supported currently.
@@ -88,19 +84,8 @@ def merge_regression_problems(
      9.35 9.5  9.75 9.85]
     """
 
-    measurement_models1 = regression_problem1.measurement_models
-    measurement_models2 = regression_problem2.measurement_models
-
-    # Check input types of measurement models: we explicitly want numpy arrays.
-    # More abstract merging (e.g. of lists or generators) is not supported currently.
-    errormsg_type_measmods = (
-        f"The measurement models are expected to be of type `{np.ndarray}'"
-        f"but type `{type(measurement_models1)}' was received."
-    )
-    if not isinstance(measurement_models1, np.ndarray):
-        raise TypeError(errormsg_type_measmods)
-    if not isinstance(measurement_models2, np.ndarray):
-        raise TypeError(errormsg_type_measmods)
+    measurement_models1 = np.asarray(regression_problem1.measurement_models)
+    measurement_models2 = np.asarray(regression_problem2.measurement_models)
 
     # Some shorthand improves readibility of the inserts below.
     locs1, data1, sol1 = (
