@@ -29,7 +29,9 @@
     --pst-font-weight-bold: 700;
     --pst-font-weight-base: var(--pst-font-weight-normal);
     /* Colors (defined in RGB: "red, green, blue" */
-    --pst-color-primary: 22, 179, 173;
+    --pst-color-pn-green: 40, 186, 180;
+    --pst-color-pn-blue: 41, 68, 165;
+    --pst-color-primary: var(--pst-color-pn-green);
     --pst-color-primary-light: 255, 255, 255;
     --pst-color-background: 252, 252, 252;
     --pst-color-background-dark: 19, 22, 27;
