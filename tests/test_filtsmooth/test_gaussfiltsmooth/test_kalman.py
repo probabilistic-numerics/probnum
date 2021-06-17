@@ -11,17 +11,17 @@ from probnum import filtsmooth
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
-    regression_problem, statespace_components = problem()
+    regression_problem, info = problem()
 
-    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
-    return kalman, regression_problem, statespace_components["measurement_model"]
+    kalman = filtsmooth.Kalman(info["prior_process"])
+    return kalman, regression_problem
 
 
 def test_rmse_filt_smooth(setup):
     """Assert that smoothing beats filtering beats nothing."""
 
     np.random.seed(12345)
-    kalman, regression_problem, measurement_model = setup
+    kalman, regression_problem = setup
     truth = regression_problem.solution
 
     posterior, _ = kalman.filtsmooth(regression_problem)
@@ -40,7 +40,7 @@ def test_info_dicts(setup):
     """Assert that smoothing beats filtering beats nothing."""
 
     np.random.seed(12345)
-    kalman, regression_problem, measurement_model = setup
+    kalman, regression_problem = setup
 
     posterior, info_dicts = kalman.filtsmooth(regression_problem)
 
@@ -55,7 +55,7 @@ def test_kalman_smoother_high_order_ibm():
     implementations in discrete_transition: for instance,
     solve_triangular() and cho_solve() must not be changed to inv()!
     """
-    regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
+    regression_problem, info = filtsmooth_zoo.car_tracking(
         model_ordint=11,
         timespan=(0.0, 1e-3),
         step=1e-5,
@@ -64,7 +64,7 @@ def test_kalman_smoother_high_order_ibm():
     )
     truth = regression_problem.solution
 
-    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
+    kalman = filtsmooth.Kalman(info["prior_process"])
 
     posterior, _ = kalman.filtsmooth(regression_problem)
 
@@ -79,7 +79,7 @@ def test_kalman_smoother_high_order_ibm():
 
 
 def test_kalman_multiple_measurement_models():
-    regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
+    regression_problem, info = filtsmooth_zoo.car_tracking(
         model_ordint=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
@@ -87,7 +87,7 @@ def test_kalman_multiple_measurement_models():
         backward_implementation="sqrt",
     )
     truth = regression_problem.solution
-    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
+    kalman = filtsmooth.Kalman(info["prior_process"])
 
     posterior, _ = kalman.filtsmooth(regression_problem)
 
@@ -102,14 +102,14 @@ def test_kalman_multiple_measurement_models():
 
 
 def test_kalman_value_error_repeating_timepoints():
-    regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
+    regression_problem, info = filtsmooth_zoo.car_tracking(
         model_ordint=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
+    kalman = filtsmooth.Kalman(info["prior_process"])
 
     # This should raise a ValueError
     regression_problem.locations[1] = regression_problem.locations[0]

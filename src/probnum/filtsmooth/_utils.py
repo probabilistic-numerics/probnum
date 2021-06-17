@@ -11,17 +11,17 @@ __all__ = ["merge_regression_problems"]
 
 
 def merge_regression_problems(
-    problem_and_likelihood1: Tuple[problems.TimeSeriesRegressionProblem, np.ndarray],
-    problem_and_likelihood2: Tuple[problems.TimeSeriesRegressionProblem, np.ndarray],
-) -> Tuple[problems.TimeSeriesRegressionProblem, np.ndarray]:
+    regression_problem1: problems.TimeSeriesRegressionProblem,
+    regression_problem2: problems.TimeSeriesRegressionProblem,
+) -> Tuple[problems.TimeSeriesRegressionProblem]:
     """Make a new regression problem out of two other regression problems.
 
     Parameters
     ----------
-    problem_and_likelihood1 :
-        Tuple of a TimeSeriesRegressionProblem and an array of Transitions.
-    problem_and_likelihood2 :
-        Tuple of a TimeSeriesRegressionProblem and an array of Transitions.
+    regression_problem1 :
+        Time series regression problem.
+    regression_problem2 :
+        Time series regression problem.
 
     Raises
     ------
@@ -35,8 +35,8 @@ def merge_regression_problems(
 
     Returns
     -------
-    merged_problem_and_likelihood : Tuple[problems.TimeSeriesRegressionProblem, np.ndarray]
-        Tuple of a TimeSeriesRegressionProblem and an array of Transitions that merges locations, data, and measmods of both problems. The output is sorted according to the locations.
+    problem : problems.TimeSeriesRegressionProblem
+        Time series regression problem.
 
     Note
     ----
@@ -48,27 +48,23 @@ def merge_regression_problems(
     Create two car-tracking problems with similar parameters and disjoint locations.
 
     >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-    >>> prob1, info1 = filtsmooth_zoo.car_tracking(
+    >>> prob1, _ = filtsmooth_zoo.car_tracking(
     ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
     ... )
-    >>> measmods1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
     >>> print(prob1.locations)
     [0.  0.5 1.  1.5 2.  2.5 3.  3.5 4.  4.5 5.  5.5 6.  6.5 7.  7.5 8.  8.5
      9.  9.5]
 
-    >>> prob2, info2 = filtsmooth_zoo.car_tracking(
+    >>> prob2, _ = filtsmooth_zoo.car_tracking(
     ...     measurement_variance=2.0, timespan=(0.25, 10.25), step=0.5
     ... )
-    >>> measmods2 = np.asarray([info2["measurement_model"]] * len(prob2.locations))
     >>> print(prob2.locations)
     [0.25 0.75 1.25 1.75 2.25 2.75 3.25 3.75 4.25 4.75 5.25 5.75 6.25 6.75
      7.25 7.75 8.25 8.75 9.25 9.75]
 
     Merge them with merge_regression_problems
 
-    >>> new_prob, new_models = merge_regression_problems(
-    ...     (prob1, measmods1), (prob2, measmods2)
-    ... )
+    >>> new_prob = merge_regression_problems(prob1, prob2)
     >>> print(new_prob.locations)
     [0.   0.25 0.5  0.75 1.   1.25 1.5  1.75 2.   2.25 2.5  2.75 3.   3.25
      3.5  3.75 4.   4.25 4.5  4.75 5.   5.25 5.5  5.75 6.   6.25 6.5  6.75
@@ -77,13 +73,12 @@ def merge_regression_problems(
     If you have more than two problems that you want to merge, do this with functools.reduce.
 
     >>> import functools
-    >>> prob3, info3 = filtsmooth_zoo.car_tracking(
+    >>> prob3, _ = filtsmooth_zoo.car_tracking(
     ...     measurement_variance=2.0, timespan=(0.35, 10.35), step=0.5
     ... )
-    >>> measmods3 = np.asarray([info3["measurement_model"]] * len(prob3.locations))
-    >>> new_prob, new_models = functools.reduce(
+    >>> new_prob, _ = functools.reduce(
     ...     merge_regression_problems,
-    ...     ((prob1, measmods1), (prob2, measmods2), (prob3, measmods3)),
+    ...     (prob1, prob2, prob3),
     ... )
     >>> print(new_prob.locations)
     [0.   0.25 0.35 0.5  0.75 0.85 1.   1.25 1.35 1.5  1.75 1.85 2.   2.25
@@ -93,8 +88,8 @@ def merge_regression_problems(
      9.35 9.5  9.75 9.85]
     """
 
-    regression_problem1, measurement_models1 = problem_and_likelihood1
-    regression_problem2, measurement_models2 = problem_and_likelihood2
+    measurement_models1 = regression_problem1.measurement_models
+    measurement_models2 = regression_problem2.measurement_models
 
     # Check input types of measurement models: we explicitly want numpy arrays.
     # More abstract merging (e.g. of lists or generators) is not supported currently.
@@ -159,4 +154,4 @@ def merge_regression_problems(
         measurement_models=new_measurement_models,
         solution=new_sol,
     )
-    return new_regression_problem, new_measurement_models
+    return new_regression_problem

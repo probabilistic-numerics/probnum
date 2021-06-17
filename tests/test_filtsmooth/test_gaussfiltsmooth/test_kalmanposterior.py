@@ -15,22 +15,18 @@ def problem():
 @pytest.fixture
 def setup(problem):
     """Filter and regression problem."""
-    regression_problem, statespace_components = problem
+    regression_problem, info = problem
     kalman = filtsmooth.Kalman(
-        statespace_components["prior_process"],
+        info["prior_process"],
     )
 
-    return (
-        kalman,
-        regression_problem,
-        statespace_components["measurement_model"],
-    )
+    return (kalman, regression_problem)
 
 
 @pytest.fixture
 def posterior(setup):
     """Kalman smoothing posterior."""
-    kalman, regression_problem, measurement_model = setup
+    kalman, regression_problem = setup
     posterior, _ = kalman.filtsmooth(regression_problem)
     return posterior
 
@@ -44,7 +40,7 @@ def test_len(posterior):
 
 def test_locations(posterior, setup):
     """Locations are stored correctly."""
-    _, regression_problem, _ = setup
+    _, regression_problem = setup
     times = regression_problem.locations
     np.testing.assert_allclose(posterior.locations, np.sort(posterior.locations))
     np.testing.assert_allclose(posterior.locations, times)

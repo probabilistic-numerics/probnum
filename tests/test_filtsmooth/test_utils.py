@@ -32,13 +32,8 @@ def car_tracking3():
 def test_merge_regression_problems(car_tracking1, car_tracking2):
     """Regression problems yield the correct shapes."""
     prob1, info1 = car_tracking1
-    measmod1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
-
     prob2, info2 = car_tracking2
-    measmod2 = np.asarray([info2["measurement_model"]] * len(prob2.locations))
-    new_prob, new_models = filtsmooth.merge_regression_problems(
-        (prob1, measmod1), (prob2, measmod2)
-    )
+    new_prob, new_models = filtsmooth.merge_regression_problems(prob1, prob2)
 
     N = len(prob1.locations) + len(prob2.locations)
     d1 = prob1.solution.shape[1:]

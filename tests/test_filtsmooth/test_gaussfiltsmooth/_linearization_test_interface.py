@@ -24,9 +24,9 @@ class InterfaceDiscreteLinearizationTest:
     def test_transition_rv(self):
         """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
-        _, statespace_components = filtsmooth_zoo.pendulum()
-        non_linear_model = statespace_components["dynamics_model"]
-        initrv = statespace_components["initrv"]
+        _, info = filtsmooth_zoo.pendulum()
+        non_linear_model = info["prior_process"].transition
+        initrv = info["prior_process"].initrv
         linearised_model = self.linearizing_component(non_linear_model)
 
         # Baseline: non-linear model should not work
@@ -40,9 +40,9 @@ class InterfaceDiscreteLinearizationTest:
     def test_exactness_linear_model(self):
         """Applied to a linear model, the results should be unchanged."""
         # pylint: disable=not-callable
-        regression_problem, statespace_components = filtsmooth_zoo.car_tracking()
-        linear_model = statespace_components["dynamics_model"]
-        initrv = statespace_components["initrv"]
+        regression_problem, info = filtsmooth_zoo.car_tracking()
+        linear_model = info["prior_process"].transition
+        initrv = info["prior_process"].initrv
         linearised_model = self.linearizing_component(linear_model)
 
         # Assert that the objects are different
@@ -65,14 +65,14 @@ class InterfaceDiscreteLinearizationTest:
         # If this measurement variance is not really small, the sampled
         # test data can contain an outlier every now and then which
         # breaks the test, even though it has not been touched.
-        regression_problem, statespace_components = filtsmooth_zoo.pendulum(
+        regression_problem, info = filtsmooth_zoo.pendulum(
             measurement_variance=0.0001, random_state=1
         )
+        prior_process = info["prior_process"]
+        measmods = regression_problem.measurement_models
 
-        ekf_dyna = self.linearizing_component(statespace_components["dynamics_model"])
-        ekf_meas = self.linearizing_component(
-            statespace_components["measurement_model"]
-        )
+        ekf_dyna = self.linearizing_component(prior_process.transition)
+        ekf_meas = [self.linearizing_component(mm) for mm in measmods]
 
         regression_problem = problems.TimeSeriesRegressionProblem(
             locations=regression_problem.locations,
@@ -81,7 +81,7 @@ class InterfaceDiscreteLinearizationTest:
             solution=regression_problem.solution,
         )
 
-        initrv = statespace_components["initrv"]
+        initrv = prior_process.initrv
         prior_process = randprocs.MarkovProcess(
             transition=ekf_dyna, initrv=initrv, initarg=regression_problem.locations[0]
         )
@@ -117,10 +117,10 @@ class InterfaceContinuousLinearizationTest:
     def test_transition_rv(self):
         """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
-        _, statespace_components = filtsmooth_zoo.benes_daum()
-        non_linear_model = statespace_components["dynamics_model"]
-
-        initrv = statespace_components["initrv"]
+        _, info = filtsmooth_zoo.benes_daum()
+        prior_process = info["prior_process"]
+        non_linear_model = prior_process.transition
+        initrv = prior_process.initrv
         linearized_model = self.linearizing_component(non_linear_model)
 
         # Baseline: non-linear model should not work
@@ -141,12 +141,12 @@ class InterfaceContinuousLinearizationTest:
         time_grid = np.arange(0.0, 5.0, step=0.1)
 
         random_state = utils.as_random_state(123)
-        regression_problem, statespace_components = filtsmooth_zoo.benes_daum(
+        regression_problem, info = filtsmooth_zoo.benes_daum(
             measurement_variance=1e-1, time_grid=time_grid, random_state=random_state
         )
-        ekf_dyna = self.linearizing_component(statespace_components["dynamics_model"])
-
-        initrv = statespace_components["initrv"]
+        prior_process = info["prior_process"]
+        ekf_dyna = self.linearizing_component(prior_process.transition)
+        initrv = prior_process.initrv
         prior_process = randprocs.MarkovProcess(
             transition=ekf_dyna, initrv=initrv, initarg=regression_problem.locations[0]
         )

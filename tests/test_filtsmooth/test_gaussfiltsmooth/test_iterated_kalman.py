@@ -9,23 +9,19 @@ from probnum import filtsmooth
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
-    regression_problem, statespace_components = problem()
+    regression_problem, info = problem()
 
     kalman = filtsmooth.Kalman(
-        statespace_components["prior_process"],
+        info["prior_process"],
     )
-    return (
-        kalman,
-        regression_problem,
-        statespace_components["measurement_model"],
-    )
+    return (kalman, regression_problem)
 
 
 def test_rmse_filt_smooth(setup):
     """Assert that iterated smoothing beats smoothing."""
 
     np.random.seed(12345)
-    kalman, regression_problem, measurement_model = setup
+    kalman, regression_problem = setup
     truth = regression_problem.solution
 
     stopcrit = filtsmooth.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)

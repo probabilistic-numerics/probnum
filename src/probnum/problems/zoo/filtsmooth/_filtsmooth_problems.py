@@ -147,13 +147,8 @@ def car_tracking(
     prior_process = randprocs.MarkovProcess(
         transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    statespace_components = dict(
-        dynamics_model=discrete_dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
-        prior_process=prior_process,
-    )
-    return regression_problem, statespace_components
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def ornstein_uhlenbeck(
@@ -264,13 +259,8 @@ def ornstein_uhlenbeck(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
-        prior_process=prior_process,
-    )
-    return regression_problem, statespace_components
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def pendulum(
@@ -422,13 +412,8 @@ def pendulum(
         transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
-        prior_process=prior_process,
-    )
-    return regression_problem, statespace_components
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def benes_daum(
@@ -529,13 +514,8 @@ def benes_daum(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
-        prior_process=prior_process,
-    )
-    return regression_problem, statespace_components
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def logistic_ode(
@@ -641,11 +621,8 @@ def logistic_ode(
     prior_process = randprocs.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    info = dict(
         ivp=logistic_ivp,
         prior_process=prior_process,
     )
-    return regression_problem, statespace_components
+    return regression_problem, info
