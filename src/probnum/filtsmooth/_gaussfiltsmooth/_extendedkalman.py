@@ -270,9 +270,9 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             input_dim=prior.dimension,
             output_dim=ode.dimension,
             state_trans_fun=dyna,
-            proc_noise_cov_fun=diff,
+            proc_noise_cov_mat_fun=diff,
             jacob_state_trans_fun=jaco,
-            proc_noise_cov_cholesky=diff_cholesky,
+            proc_noise_cov_cholesky_fun=diff_cholesky,
         )
         return cls(
             discrete_model,
