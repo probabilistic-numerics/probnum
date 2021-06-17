@@ -113,6 +113,7 @@
     /* Code */
     --pst-code-background: rgb(246, 247, 248);
     --pst-code-border-radius: var(--pst-global-radius);
+    --pst-code-max-width: 58.33333%;
     /* Other */
     --pst-global-border-width: 1px;
     --pst-global-radius: 0.4rem;
@@ -227,6 +228,9 @@ code {
 
 .highlight {
     background: var(--pst-code-background);
+    max-width: var(--pst-code-max-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Buttons */

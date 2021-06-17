@@ -17,22 +17,6 @@ intractable or incomplete numerical computation and from stochastic input using 
 vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical
 routine, which then can be propagated along the chain of computation.
 
-To get started install ProbNum using :code:`pip`.
-
-.. code-block:: shell
-
-   pip install probnum
-
-
-Alternatively, you can install the package from source.
-
-.. code-block:: shell
-
-   pip install git+https://github.com/probabilistic-numerics/probnum.git
-
-
-To learn how to use ProbNum check out the `quickstart guide <introduction/quickstart.html>`_ and the tutorials.
-
 .. toctree::
    :maxdepth: 3
    :hidden:

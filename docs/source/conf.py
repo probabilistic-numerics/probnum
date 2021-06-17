@@ -191,12 +191,7 @@ html_favicon = "img/favicons/favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static", "img"]
-
 html_css_files = ["custom.css"]
-
-# def setup(app):
-#     app.add_css_file("probnum-style.css")  # also can be a full URL
-#     # app.add_css_file("ANOTHER.css")
 
 # Additional pages generated from .html files
 html_additional_pages = {"index": "index.html"}
