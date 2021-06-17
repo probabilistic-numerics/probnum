@@ -24,7 +24,6 @@ from .steprule import AdaptiveSteps, ConstantSteps, StepRule, propose_firststep
 from .wrappedscipysolver import WrappedScipyRungeKutta
 
 # Public classes and functions. Order is reflected in documentation.
-
 __all__ = [
     "ODE",
     "IVP",

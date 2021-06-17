@@ -1,9 +1,4 @@
-"""ODE solver as proposed by Abdulle and Garegnani.
-
-References
-----------
-.. [1] https://arxiv.org/abs/1801.01340
-"""
+"""ODE solver as proposed by Abdulle and Garegnani."""
 from typing import Callable, Optional
 
 import numpy as np
@@ -14,8 +9,12 @@ from probnum.type import FloatArgType, RandomStateArgType
 
 
 class PerturbedStepSolver(diffeq.ODESolver):
+    """
+    References
+    ----------
+    .. [1] https://arxiv.org/abs/1801.01340
 
-    """ODE-Solver based on Abdulle and Garegnani [1]_.
+    ODE-Solver based on Abdulle and Garegnani [1]_.
 
     Perturbs the steps accordingly and projects the solution back to the originally
     proposed time points.
@@ -94,9 +93,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         return state_as_rv, error_estimation
 
     def method_callback(self, time, current_guess, current_error):
-        """Computes dense output after each step and stores it, stores the perturbed
-        timepoints at which the solution was evaluated and the original timepoints to
-        which the perturbed solution is projected."""
+        """Call dense output after each step and store the interpolants."""
         return self.solver.method_callback(time, current_guess, current_error)
 
     def rvlist_to_odesol(
