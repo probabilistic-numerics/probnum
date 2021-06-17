@@ -135,21 +135,24 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         non_linear_model,
         mde_atol=1e-5,
         mde_rtol=1e-5,
-        mde_solver="LSODA",
+        mde_solver="RK45",
+        forward_implementation="classic",
     ) -> None:
 
         statespace.SDE.__init__(
             self,
-            non_linear_model.driftfun,
-            non_linear_model.dispmatfun,
-            non_linear_model.jacobfun,
-            non_linear_model.dimension,
+            driftfun=non_linear_model.driftfun,
+            dispmatfun=non_linear_model.dispmatfun,
+            jacobfun=non_linear_model.jacobfun,
+            dimension=non_linear_model.dimension,
         )
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
         self.mde_atol = mde_atol
         self.mde_rtol = mde_rtol
         self.mde_solver = mde_solver
+
+        self.forward_implementation = forward_implementation
 
     def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
@@ -173,6 +176,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
             mde_atol=self.mde_atol,
             mde_rtol=self.mde_rtol,
             mde_solver=self.mde_solver,
+            forward_implementation=self.forward_implementation,
         )
 
 
