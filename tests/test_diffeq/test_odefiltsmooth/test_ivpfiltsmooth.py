@@ -118,5 +118,5 @@ def test_convergence_error(ivp, algo_order):
     # Non-strict rtol, bc this test is flaky by construction
     # As long as rtol < 1., this test seems meaningful.
     np.testing.assert_allclose(
-        err_small_step, expected_decay * err_large_step, rtol=1.0
+        err_small_step, expected_decay * err_large_step, rtol=0.95
     )

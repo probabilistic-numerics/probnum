@@ -5,7 +5,7 @@ from typing import Callable, Optional
 import numpy as np
 import scipy.linalg
 
-from probnum import filtsmooth, randvars, statespace, utils
+from probnum import filtsmooth, randprocs, randvars, statespace, utils
 
 from ..ode import IVP
 from ..odesolver import ODESolver
@@ -28,19 +28,15 @@ class GaussianIVPFilter(ODESolver):
     ----------
     ivp :
         Initial value problem to be solved.
-    dynamics_model :
-        Dynamics model.
-    measurement_model :
-        Linearized ODE measurement model. Must be a `DiscreteEKFComponent`.
-    with_smoothing :
+    prior_process
+        Prior Gauss-Markov process.
+    measurement_model
+        ODE measurement model.
+    with_smoothing
         To smooth after the solve or not to smooth after the solve.
     init_implementation :
         Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
         For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
-    initrv :
-        Initial random variable to be used by the filter. Optional. Default is `None`, which amounts to choosing a standard-normal initial RV.
-        As part of `GaussianIVPFilter.initialise()` (called in `GaussianIVPFilter.solve()`), this variable is improved upon with the help of the
-        initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
     diffusion_model :
         Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [1]_ for a survey.
     _reference_coordinates :
@@ -58,7 +54,7 @@ class GaussianIVPFilter(ODESolver):
     def __init__(
         self,
         ivp: IVP,
-        dynamics_model: statespace.Integrator,
+        prior_process: randprocs.MarkovProcess,
         measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
         init_implementation: Callable[
@@ -66,42 +62,24 @@ class GaussianIVPFilter(ODESolver):
                 Callable,
                 np.ndarray,
                 float,
-                statespace.Integrator,
-                randvars.Normal,
+                randprocs.MarkovProcess,
                 Optional[Callable],
             ],
             randvars.Normal,
         ],
-        initrv: Optional[randvars.Normal] = None,
-        diffusion_model: Optional[statespace.Diffusion] = None,
-        _reference_coordinates: Optional[int] = 0,
     ):
-
-        # Raise a comprehensible error if the wrong models are passed.
-        if not isinstance(measurement_model, filtsmooth.DiscreteEKFComponent):
-            raise TypeError(
-                "Please initialize a Gaussian ODE filter with an EKF component as a measurement model."
-            )
-        if not isinstance(dynamics_model, statespace.Integrator):
-            raise TypeError(
-                "Please initialize a Gaussian ODE filter with an Integrator as a dynamics_model"
+        if not isinstance(prior_process.transition, statespace.Integrator):
+            raise ValueError(
+                "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
             )
 
-        if initrv is None:
-            d = dynamics_model.dimension
-            scale = 1e6
-            initrv = randvars.Normal(
-                mean=np.zeros(d),
-                cov=scale * np.eye(d),
-                cov_cholesky=np.sqrt(scale) * np.eye(d),
-            )
-        self.dynamics_model = dynamics_model
+        self.prior_process = prior_process
         self.measurement_model = measurement_model
-        self.initrv = initrv
 
+        self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
-        super().__init__(ivp=ivp, order=dynamics_model.ordint)
+        super().__init__(ivp=ivp, order=prior_process.transition.ordint)
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
@@ -132,10 +110,9 @@ class GaussianIVPFilter(ODESolver):
     def construct_with_rk_init(
         cls,
         ivp,
-        dynamics_model,
+        prior_process,
         measurement_model,
         with_smoothing,
-        initrv=None,
         diffusion_model=None,
         _reference_coordinates=0,
         init_h0=0.01,
@@ -144,13 +121,12 @@ class GaussianIVPFilter(ODESolver):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_rk`."""
 
-        def init_implementation(f, y0, t0, dynamics_model, initrv, df=None):
+        def init_implementation(f, y0, t0, prior_process, df=None):
             return initialize_odefilter_with_rk(
                 f=f,
                 y0=y0,
                 t0=t0,
-                prior=dynamics_model,
-                initrv=initrv,
+                prior_process=prior_process,
                 df=df,
                 h0=init_h0,
                 method=init_method,
@@ -158,11 +134,10 @@ class GaussianIVPFilter(ODESolver):
 
         return cls(
             ivp,
-            dynamics_model,
+            prior_process,
             measurement_model,
             with_smoothing,
             init_implementation=init_implementation,
-            initrv=initrv,
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
         )
@@ -171,10 +146,9 @@ class GaussianIVPFilter(ODESolver):
     def construct_with_taylormode_init(
         cls,
         ivp,
-        dynamics_model,
+        prior_process,
         measurement_model,
         with_smoothing,
-        initrv=None,
         diffusion_model=None,
         _reference_coordinates=0,
     ):
@@ -182,11 +156,10 @@ class GaussianIVPFilter(ODESolver):
         :func:`initialize_odefilter_with_taylormode`."""
         return cls(
             ivp,
-            dynamics_model,
+            prior_process,
             measurement_model,
             with_smoothing,
             init_implementation=initialize_odefilter_with_taylormode,
-            initrv=initrv,
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
         )
@@ -196,8 +169,7 @@ class GaussianIVPFilter(ODESolver):
             self.ivp.rhs,
             self.ivp.initrv.mean,
             self.ivp.t0,
-            self.dynamics_model,
-            self.initrv,
+            self.prior_process,
             self.ivp._jac,
         )
 
@@ -255,7 +227,7 @@ class GaussianIVPFilter(ODESolver):
         # The system matrix H of the measurement model can be accessed after the first forward_*,
         # therefore we read it off further below.
         dt = t_new - t
-        discrete_dynamics = self.dynamics_model.discretise(dt)
+        discrete_dynamics = self.prior_process.transition.discretise(dt)
         Phi = discrete_dynamics.state_trans_mat
 
         # Split the current RV into a deterministic part and a noisy part.
@@ -268,7 +240,7 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # Compute the measurements for the error-free component
-        pred_rv_error_free, _ = self.dynamics_model.forward_realization(
+        pred_rv_error_free, _ = self.prior_process.transition.forward_realization(
             error_free_state, t=t, dt=dt
         )
         meas_rv_error_free, _ = self.measurement_model.forward_rv(
@@ -300,7 +272,9 @@ class GaussianIVPFilter(ODESolver):
         local_errors = np.sqrt(local_diffusion) * np.sqrt(
             np.diag(meas_rv_error_free.cov)
         )
-        proj = self.dynamics_model.proj2coord(coord=self._reference_coordinates)
+        proj = self.prior_process.transition.proj2coord(
+            coord=self._reference_coordinates
+        )
         reference_values = np.abs(proj @ current_rv.mean)
 
         # Overwrite the acceptance/rejection step here, because we need control over
@@ -371,7 +345,10 @@ class GaussianIVPFilter(ODESolver):
         """Create an ODESolution object."""
 
         kalman_posterior = filtsmooth.FilteringPosterior(
-            times, rvs, self.dynamics_model, diffusion_model=self.diffusion_model
+            times,
+            rvs,
+            self.prior_process.transition,
+            diffusion_model=self.diffusion_model,
         )
 
         return KalmanODESolution(kalman_posterior)
@@ -427,11 +404,6 @@ class GaussianIVPFilter(ODESolver):
         .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t))
 
         and user-specified measurement noise covariance :math:`R`. Almost always, the measurement noise covariance is zero.
-
-        Compute either type filter, each with a different interpretation of the Jacobian :math:`J_g`:
-
-        - EKF0 thinks :math:`J_g(m) = H_1`
-        - EKF1 thinks :math:`J_g(m) = H_1 - J_f(t, H_0 m(t)) H_0^\\top`
         """
         measurement_model_string = measurement_model_string.upper()
 

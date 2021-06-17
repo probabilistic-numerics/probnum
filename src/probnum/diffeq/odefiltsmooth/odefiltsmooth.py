@@ -10,7 +10,7 @@ References
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import randprocs, randvars, statespace
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 from .. import steprule
@@ -270,9 +270,18 @@ def probsolve_ivp(
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
+    initrv = randvars.Normal(
+        mean=np.zeros(prior.dimension),
+        cov=1e6 * np.eye(prior.dimension),
+        cov_cholesky=1e3 * np.eye(prior.dimension),
+    )
+    prior_process = randprocs.MarkovProcess(
+        transition=prior, initrv=initrv, initarg=ivp.t0
+    )
+
     if method.upper() not in ["EK0", "EK1"]:
         raise ValueError("Method is not supported.")
-    measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
+    measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior_process)
     solver = GaussianIVPFilter.construct_with_rk_init(
         ivp,
         prior,

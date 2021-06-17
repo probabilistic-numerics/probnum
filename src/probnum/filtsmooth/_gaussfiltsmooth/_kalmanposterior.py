@@ -12,9 +12,9 @@ from scipy import stats
 from probnum import _randomvariablelist, randvars, statespace, utils
 from probnum.type import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
 
-from ..timeseriesposterior import DenseOutputLocationArgType, TimeSeriesPosterior
-from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
-from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
+from .._timeseriesposterior import TimeSeriesPosterior
+from ._extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
+from ._unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
 
 GaussMarkovPriorTransitionArgType = Union[
     statespace.DiscreteLinearGaussian,
