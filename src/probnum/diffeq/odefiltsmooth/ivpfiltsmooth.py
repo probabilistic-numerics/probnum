@@ -29,7 +29,7 @@ class GaussianIVPFilter(ODESolver):
     ivp :
         Initial value problem to be solved.
     dynamics_model :
-        dynamics_model distribution.
+        Dynamics model.
     measurement_model :
         Linearized ODE measurement model. Must be a `DiscreteEKFComponent`.
     with_smoothing :
@@ -400,13 +400,6 @@ class GaussianIVPFilter(ODESolver):
         )
 
         if self.with_smoothing is True:
-
-            # if isinstance(self.diffusion_model, statespace.PiecewiseConstantDiffusion):
-            #     squared_diffusion_list = self.diffusion_model.diffusions
-            # else:
-            #     squared_diffusion_list = np.ones_like(locations)
-            #     if isinstance(self.diffusion_model, statespace.ConstantDiffusion):
-            #         squared_diffusion_list *= self.diffusion_model.diffusion
 
             squared_diffusion_list = self.diffusion_model(locations[1:])
             rv_list = self.dynamics_model.smooth_list(

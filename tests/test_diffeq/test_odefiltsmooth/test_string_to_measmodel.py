@@ -37,6 +37,11 @@ def test_output_type(string, expected_type, ivp, prior):
     assert isinstance(received, expected_type)
 
 
+def test_string_not_supported(ivp, prior):
+    with pytest.raises(ValueError):
+        diffeq.GaussianIVPFilter.string_to_measurement_model("abc", ivp, prior)
+
+
 @pytest.mark.parametrize(
     "string",
     ["EK0", "EK1"],

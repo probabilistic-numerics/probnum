@@ -258,7 +258,6 @@ class Transition(abc.ABC):
         _diffusion_list :
             List of diffusions that correspond to the intervals in the locations.
             If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
-            Optional.
         _previous_posterior :
             Specify a previous posterior to improve linearisation in approximate backward passes.
             Used in iterated smoothing based on posterior linearisation.
@@ -318,7 +317,6 @@ class Transition(abc.ABC):
         _diffusion_list :
             List of diffusions that correspond to the intervals in the locations.
             If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
-            Optional.
         _previous_posterior :
             Previous posterior. Used for iterative posterior linearisation.
 
@@ -386,7 +384,6 @@ class Transition(abc.ABC):
         _diffusion_list :
             List of diffusions that correspond to the intervals in the locations.
             If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
-            Optional.
         _previous_posterior :
             Previous posterior. Used for iterative posterior linearisation.
 
