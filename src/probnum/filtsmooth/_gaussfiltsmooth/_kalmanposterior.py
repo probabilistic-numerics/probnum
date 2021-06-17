@@ -10,7 +10,13 @@ import numpy as np
 from scipy import stats
 
 from probnum import _randomvariablelist, randvars, statespace, utils
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
+from probnum.type import (
+    DenseOutputLocationArgType,
+    FloatArgType,
+    IntArgType,
+    RandomStateArgType,
+    ShapeArgType,
+)
 
 from .._timeseriesposterior import TimeSeriesPosterior
 from ._extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent

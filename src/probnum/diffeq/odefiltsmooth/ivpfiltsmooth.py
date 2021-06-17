@@ -67,6 +67,8 @@ class GaussianIVPFilter(ODESolver):
             ],
             randvars.Normal,
         ],
+        diffusion_model: Optional[statespace.Diffusion] = None,
+        _reference_coordinates: Optional[int] = 0,
     ):
         if not isinstance(prior_process.transition, statespace.Integrator):
             raise ValueError(
@@ -372,20 +374,20 @@ class GaussianIVPFilter(ODESolver):
         kalman_posterior = filtsmooth.FilteringPosterior(
             locations,
             rv_list,
-            self.dynamics_model,
+            self.prior_process.transition,
             diffusion_model=self.diffusion_model,
         )
 
         if self.with_smoothing is True:
 
             squared_diffusion_list = self.diffusion_model(locations[1:])
-            rv_list = self.dynamics_model.smooth_list(
+            rv_list = self.prior_process.transition.smooth_list(
                 rv_list, locations, _diffusion_list=squared_diffusion_list
             )
             kalman_posterior = filtsmooth.SmoothingPosterior(
                 locations,
                 rv_list,
-                self.dynamics_model,
+                self.prior_process.transition,
                 filtering_posterior=kalman_posterior,
                 diffusion_model=self.diffusion_model,
             )
@@ -394,7 +396,7 @@ class GaussianIVPFilter(ODESolver):
 
     @staticmethod
     def string_to_measurement_model(
-        measurement_model_string, ivp, dynamics_model, measurement_noise_covariance=0.0
+        measurement_model_string, ivp, prior_process, measurement_noise_covariance=0.0
     ):
         """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
 
@@ -413,7 +415,7 @@ class GaussianIVPFilter(ODESolver):
         choose_meas_model = {
             "EK0": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
-                prior=dynamics_model,
+                prior=prior_process.transition,
                 ek0_or_ek1=0,
                 evlvar=measurement_noise_covariance,
                 forward_implementation="sqrt",
@@ -421,7 +423,7 @@ class GaussianIVPFilter(ODESolver):
             ),
             "EK1": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
-                prior=dynamics_model,
+                prior=prior_process.transition,
                 ek0_or_ek1=1,
                 evlvar=measurement_noise_covariance,
                 forward_implementation="sqrt",

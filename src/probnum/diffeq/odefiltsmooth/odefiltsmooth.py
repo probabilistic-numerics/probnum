@@ -284,7 +284,7 @@ def probsolve_ivp(
     measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior_process)
     solver = GaussianIVPFilter.construct_with_rk_init(
         ivp,
-        prior,
+        prior_process,
         measmod,
         with_smoothing=dense_output,
         diffusion_model=diffusion,

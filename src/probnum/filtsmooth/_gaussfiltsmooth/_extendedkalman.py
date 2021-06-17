@@ -266,14 +266,13 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             jaco = jaco_ek1
         else:
             raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
-
         discrete_model = statespace.DiscreteGaussian(
-            prior.dimension,
-            ode.dimension,
-            dyna,
-            diff,
-            jaco,
-            diff_cholesky,
+            input_dim=prior.dimension,
+            output_dim=ode.dimension,
+            state_trans_fun=dyna,
+            proc_noise_cov_fun=diff,
+            jacob_state_trans_fun=jaco,
+            proc_noise_cov_cholesky=diff_cholesky,
         )
         return cls(
             discrete_model,
