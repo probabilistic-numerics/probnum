@@ -1,11 +1,8 @@
-<p align="center">
+<div align="center">
     <a href="https://probnum.readthedocs.io"><img align="center" src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/img/probnum_logo_dark_txtbelow.svg" alt="probabilistic numerics" width="400" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics in Python"/>
-</a>
-    <h3 align="center">Learn to Approximate. Approximate to Learn.</h3>
-    <p align="center">
-        Probabilistic Numerics in Python.
-    </p>
-</p>
+    </a>
+    <h3>Learn to Approximate. Approximate to Learn.</h3>
+    <p>Probabilistic Numerics in Python.</p>
 
 [![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 [![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
@@ -13,6 +10,8 @@
 [![Tutorials](https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?&logo=Jupyter&logoColor=white)](https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials)
 [![Benchmarks](http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat&logo=swift&logoColor=white)](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/)
 [![PyPI](https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
+
+</div>
 
 ---
 
