@@ -14,7 +14,7 @@ SMALL_VALUE = 1e-28
 
 
 def initialize_odefilter_with_rk(
-    f, y0, t0, prior, initrv, df=None, h0=1e-2, method="DOP853"
+    f, y0, t0, prior_process, df=None, h0=1e-2, method="DOP853"
 ):
     r"""Initialize an ODE filter by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's RK.
 
@@ -40,10 +40,8 @@ def initialize_odefilter_with_rk(
         Initial value.
     t0
         Initial time point.
-    prior
-        Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
-    initrv
-        Initial random variable.
+    prior_process
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
     df
         Jacobian of the ODE vector field. Optional. If specified, more components of the result will be exact.
     h0
@@ -65,6 +63,7 @@ def initialize_odefilter_with_rk(
     >>> from probnum.randvars import Normal
     >>> from probnum.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
+    >>> from probnum.randprocs import MarkovProcess
 
     Compute the initial values of the van-der-Pol problem as follows
 
@@ -73,8 +72,9 @@ def initialize_odefilter_with_rk(
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior=prior, initrv=initrv, df=df)
-    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior_process=prior_process, df=df)
+    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(np.round(improved_initrv.mean, 1))
     [    2.      0.     -2.     58.2     0.     -2.     60.  -1745.7]
@@ -83,18 +83,7 @@ def initialize_odefilter_with_rk(
     """
     y0 = np.asarray(y0)
     ode_dim = y0.shape[0] if y0.ndim > 0 else 1
-    order = prior.ordint
-    proj_to_y = prior.proj2coord(0)
-    zeros_shift = np.zeros(ode_dim)
-    zeros_cov = np.zeros((ode_dim, ode_dim))
-    measmod = statespace.DiscreteLTIGaussian(
-        proj_to_y,
-        zeros_shift,
-        zeros_cov,
-        proc_noise_cov_cholesky=zeros_cov,
-        forward_implementation="sqrt",
-        backward_implementation="sqrt",
-    )
+    order = prior_process.transition.ordint
 
     # order + 1 would suffice in theory, 2*order + 1 is for good measure
     # (the "+1" is a safety factor for order=1)
@@ -110,36 +99,58 @@ def initialize_odefilter_with_rk(
         method=method,
     )
 
+    # Measurement model for SciPy observations
+    proj_to_y = prior_process.transition.proj2coord(coord=0)
+    zeros_shift = np.zeros(ode_dim)
+    zeros_cov = np.zeros((ode_dim, ode_dim))
+    measmod_scipy = statespace.DiscreteLTIGaussian(
+        proj_to_y,
+        zeros_shift,
+        zeros_cov,
+        proc_noise_cov_cholesky=zeros_cov,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+
+    # Measurement model for initial condition observations
+    proj_to_dy = prior_process.transition.proj2coord(coord=1)
+    if df is not None and order > 1:
+        proj_to_ddy = prior_process.transition.proj2coord(coord=2)
+        projmat_initial_conditions = np.vstack((proj_to_y, proj_to_dy, proj_to_ddy))
+        initial_data = np.hstack((y0, f(t0, y0), df(t0, y0) @ f(t0, y0)))
+    else:
+        projmat_initial_conditions = np.vstack((proj_to_y, proj_to_dy))
+        initial_data = np.hstack((y0, f(t0, y0)))
+    zeros_shift = np.zeros(len(projmat_initial_conditions))
+    zeros_cov = np.zeros(
+        (len(projmat_initial_conditions), len(projmat_initial_conditions))
+    )
+    measmod_initcond = statespace.DiscreteLTIGaussian(
+        projmat_initial_conditions,
+        zeros_shift,
+        zeros_cov,
+        proc_noise_cov_cholesky=zeros_cov,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+
+    # Create regression problem and measurement model list
     ts = sol.t[:num_steps]
-    ys = sol.y[:, :num_steps].T
+    ys = list(sol.y[:, :num_steps].T)
+    ys[0] = initial_data
+    measmod_list = [measmod_initcond] + [measmod_scipy] * (len(ts) - 1)
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=ys, locations=ts, measurement_models=measmod_list
+    )
 
-    initmean = initrv.mean.copy()
-    initmean[0 :: (order + 1)] = y0
-    initmean[1 :: (order + 1)] = f(t0, y0)
-
-    initcov_diag = np.diag(initrv.cov).copy()
-    initcov_diag[0 :: (order + 1)] = SMALL_VALUE
-    initcov_diag[1 :: (order + 1)] = SMALL_VALUE
-
-    if df is not None:
-        if order > 1:
-            initmean[2 :: (order + 1)] = df(t0, y0) @ f(t0, y0)
-            initcov_diag[2 :: (order + 1)] = SMALL_VALUE
-
-    initcov = np.diag(initcov_diag)
-    initcov_cholesky = np.diag(np.sqrt(initcov_diag))
-    initrv = randvars.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
-    kalman = filtsmooth.Kalman(prior, measmod, initrv)
-
-    regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
+    # Infer the solution
+    kalman = filtsmooth.Kalman(prior_process)
     out, _ = kalman.filtsmooth(regression_problem)
-
     estimated_initrv = out.states[0]
-
     return estimated_initrv
 
 
-def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
+def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     """Initialize an ODE filter with Taylor-mode automatic differentiation.
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
@@ -161,10 +172,8 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
         Initial value.
     t0
         Initial time point.
-    prior
-        Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
-    initrv
-        Initial random variable.
+    prior_process
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
 
     Returns
     -------
@@ -183,6 +192,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
     >>> from probnum.statespace import IBM
+    >>> from probnum.randprocs import MarkovProcess
 
     Compute the initial values of the restricted three-body problem as follows
 
@@ -192,8 +202,9 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
 
     >>> prior = IBM(ordint=3, spatialdim=4)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv)
-    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
+    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [ 0.994       0.          0.         -2.00158511]
     >>> print(improved_initrv.mean)
     [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
@@ -208,8 +219,9 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv)
-    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
+    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(improved_initrv.mean)
     [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
@@ -229,7 +241,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
             "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
         ) from err
 
-    order = prior.ordint
+    order = prior_process.transition.ordint
 
     def total_derivative(z_t):
         """Total derivative."""
