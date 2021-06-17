@@ -43,15 +43,15 @@ finite computational resources and stochastic input.
     :caption: API Documentation
     :hidden:
 
-    public_api/probnum
-    public_api/diffeq
-    public_api/filtsmooth
-    public_api/kernels
-    public_api/linalg
-    public_api/linops
-    public_api/problems
-    public_api/quad
-    public_api/randprocs
-    public_api/randvars
-    public_api/statespace
-    public_api/utils
+    api/probnum
+    api/diffeq
+    api/filtsmooth
+    api/kernels
+    api/linalg
+    api/linops
+    api/problems
+    api/quad
+    api/randprocs
+    api/randvars
+    api/statespace
+    api/utils

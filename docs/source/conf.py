@@ -58,7 +58,7 @@ napoleon_use_param = True
 numpydoc_show_class_members = True
 
 # Settings for automodapi
-automodapi_toctreedirnm = "automod"
+automodapi_toctreedirnm = "api/automod"
 automodapi_writereprocessed = False
 automodsumm_inherited_members = True
 

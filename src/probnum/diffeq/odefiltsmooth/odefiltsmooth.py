@@ -39,8 +39,8 @@ def probsolve_ivp(
     the initial value problem (IVP) based on a system of first order
     ordinary differential equations (ODEs)
 
-    .. math:: \\dot x(t) = f(t, x(t)), \\quad x(t_0) = x_0,
-        \\quad t \\in [t_0, T]
+    .. math:: \dot x(t) = f(t, x(t)), \quad x(t_0) = x_0,
+        \quad t \in [t_0, T]
 
     by regarding it as a (nonlinear) Gaussian filtering (and smoothing)
     problem [3]_. For some configurations it recovers certain multistep
