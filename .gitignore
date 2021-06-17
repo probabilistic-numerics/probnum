@@ -48,6 +48,7 @@ dist/*
 sdist/*
 docs/_rst/*
 docs/_build/*
+docs/source/automod/*
 docs/source/api/automod/*
 cover/*
 MANIFEST

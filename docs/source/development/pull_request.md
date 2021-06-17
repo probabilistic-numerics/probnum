@@ -1,10 +1,10 @@
 # Creating a Pull Request
 
 All code contributions to ProbNum should be made via pull requests (PR) to the
-[master branch](https://github.com/probabilistic-numerics/probnum/tree/master) on GitHub. 
+[master branch](https://github.com/probabilistic-numerics/probnum/tree/master) on GitHub.
 
-To ensure a smooth workflow, please keep PRs as compact as possible. 
-Each PR should only contain one enhancement at a time. 
+To ensure a smooth workflow, please keep PRs as compact as possible.
+Each PR should only contain one enhancement at a time.
 If you implemented multiple changes, split them into several PRs.
 
 
@@ -19,9 +19,9 @@ Code quality is an essential component in a collaborative open-source project.
 [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
 - Code follows the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
 - To make life more simple, code should be formatted with [*Black*](https://github.com/psf/black).
-  
 
-For more thorough Python code style guides please refer to [PEP 8](https://www.python.org/dev/peps/pep-0008/) 
+
+For more thorough Python code style guides please refer to [PEP 8](https://www.python.org/dev/peps/pep-0008/)
 and to [the Black code style](https://github.com/psf/black/blob/master/docs/the_black_code_style.md).
 For all the above, the existing ProbNum code is a good initial reference point.
 
@@ -36,18 +36,18 @@ Format a single Python file.
 ```shell
 $ black my-file.py
 ```
-Black takes care of most of the PEP8 formatting rules. 
-Formatting with Black can also be done via tox. 
+Black takes care of most of the PEP8 formatting rules.
+Formatting with Black can also be done via tox.
 
 ### Forking the Repo
 
-In order to do pull requests, begin by forking the repository on GitHub. 
+In order to do pull requests, begin by forking the repository on GitHub.
 Then, clone your fork to a local machine.
 
 ```shell
 $ git clone git@github.com:MyGithubAccount/probnum.git
 ```
-Any code changes should be done in your fork. Github as official guides on [how to fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) 
+Any code changes should be done in your fork. Github as official guides on [how to fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)
 and [how to create a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
 ### Multiple Remotes
@@ -73,7 +73,7 @@ origin	https://github.com/MyGithubAccount/probnum.git (push)
 upstream	https://github.com/probabilistic-numerics/probnum (fetch)
 upstream	https://github.com/probabilistic-numerics/probnum (push)
 ```
-Fetch and checkout the master branch of ProbNum. 
+Fetch and checkout the master branch of ProbNum.
 Since there exists already a local `master` branch tracking the master branch of your fork, we will name this one
 `probnum-master` which tracks the master branch of `upstream`.
 
@@ -83,14 +83,14 @@ $ git checkout -b probnum-master upstream/master
 ```
 
 ### Code Changes
-Next, create a new branch describing the feature you would like to implement. 
+Next, create a new branch describing the feature you would like to implement.
 ```shell
 $ git checkout -b my-new-feature
 ```
-You can now get started writing code in your new branch. 
+You can now get started writing code in your new branch.
 
-Commit your changes to this local branch. Make sure to keep the best practices regarding code quality in mind. 
-Next, set up a branch on your fork which is tracked by your local branch. 
+Commit your changes to this local branch. Make sure to keep the best practices regarding code quality in mind.
+Next, set up a branch on your fork which is tracked by your local branch.
 ```shell
 git push --set-upstream origin my-new-feature
 ```
@@ -114,10 +114,10 @@ If possible, please try running the test suite with tox or pytest before creatin
 
 ## Virtual Environments
 
-Virtual environments (venvs) help you to get a separate, clean installation of ProbNum. 
+Virtual environments (venvs) help you to get a separate, clean installation of ProbNum.
 Each venv uses a specific Python version.
 Venvs are useful as you may need different Python versions and dependencies for different projects.
-So, first make sure that you are using the correct Python version, and also that your pip 
+So, first make sure that you are using the correct Python version, and also that your pip
 installation is up to date.
 
 Install the [virtualenv](https://virtualenv.pypa.io/en/latest/) package.
@@ -125,9 +125,9 @@ Install the [virtualenv](https://virtualenv.pypa.io/en/latest/) package.
 $ pip install virtualenv
 ```
 
-Go to the probnum root directory. 
-Then, create a virtual environment with the name `venv_probnum`. 
-This uses the Python version the `python` alias is linked to. 
+Go to the probnum root directory.
+Then, create a virtual environment with the name `venv_probnum`.
+This uses the Python version the `python` alias is linked to.
 ```shell
 $ python -m venv venv_probnum
 ```
@@ -153,7 +153,7 @@ $ deactivate
 
 
 
-Install ProbNum in your environment (activate it first). 
+Install ProbNum in your environment (activate it first).
 ```shell
 $ pip install -e .
 ```
@@ -166,20 +166,20 @@ $ pip install -e .[test]
 Check your installation with `pip freeze`.
 
 
-It is possible to create virtual environments with most modern editors such as e.g., PyCharm. Alternatively, you can 
-add the venv you created above to your project in the editor. 
+It is possible to create virtual environments with most modern editors such as e.g., PyCharm. Alternatively, you can
+add the venv you created above to your project in the editor.
 
 ## Testing
-Tests are run with the [pytest package](https://docs.pytest.org/en/stable/). 
-Make sure ProbNum is installed including test requirements (`pip install -e .[test])`) in your virtual 
+Tests are run with the [pytest package](https://docs.pytest.org/en/stable/).
+Make sure ProbNum is installed including test requirements (`pip install -e .[test])`) in your virtual
 environment; installing ProbNum that way will already have installed pytest.
-(If you are unsure, use `pip freeze` to check the installation in your active venv). 
+(If you are unsure, use `pip freeze` to check the installation in your active venv).
 
 Run tests with the Python version in the venv.
 ```shell
 $ pytest
 ```
-This should normally be enough to catch the biggest bugs. If you want to run the whole testsuite for several Python 
+This should normally be enough to catch the biggest bugs. If you want to run the whole testsuite for several Python
 versions, the preferred way is to use tox.
 
 
@@ -199,7 +199,7 @@ Install tox from the Python Package Index (PyPI) via
 ```shell
 $ pip install -U tox
 ```
-Some commands, such as building the documentation locally, requires additional packages 
+Some commands, such as building the documentation locally, requires additional packages
 (e.g., for inheritance diagrams). These are
 `.github/workflows/CI-build.yml`. These packages are currently:
 - [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
@@ -237,7 +237,7 @@ Alternatively, you can run a single specific environment through `tox -e <env>`.
   ```shell
   $ tox -e docs
   ```
-  
+
 Code coverage of the tests is reported via [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master).
 
 
@@ -249,7 +249,7 @@ Code coverage of the tests is reported via [codecov](https://codecov.io/github/p
 
 ProbNum's documentation is created with [Sphinx](https://www.sphinx-doc.org/en/master/) and automatically built and
 hosted by [ReadTheDocs](https://readthedocs.org/projects/probnum/) for stable releases and the latest (`master` branch)
-version. 
+version.
 
 
 

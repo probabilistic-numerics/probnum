@@ -11,7 +11,7 @@ Development Team
 .. toctree::
    :maxdepth: 1
 
-   community/code_contributors
+   community/authors
 
 Meetings
 ********

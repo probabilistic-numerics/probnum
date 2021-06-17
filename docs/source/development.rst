@@ -9,7 +9,7 @@ Development
    :caption: Development
 
    development/contributing
-   development/contributing_code
+   development/pull_request
    development/developer_guides
    development/styleguide
    development/benchmarking
