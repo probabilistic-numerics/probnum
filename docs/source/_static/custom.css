@@ -185,6 +185,12 @@ body {
     color: rgba(var(--pst-color-primary-light), 0.5)
 }
 
+.watermark-footer {
+    max-width: 50px;
+    padding-bottom: 5px;
+    padding-top: 5px
+}
+
 /* Landing Page */
 
 .hero-banner {
@@ -194,6 +200,13 @@ body {
 }
 
 .feature-illustration {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-illustration-img {
     max-height: 200px;
     max-width: 200px;
     width: 100%;

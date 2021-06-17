@@ -58,13 +58,16 @@
 
   <div class="text-center" role="contentinfo">
     {%- block contentinfo %}
+    <div class="watermark">
+      <img src="{{ pathto('_static/probnum_logo_watermark.svg', 1) }}" class="watermark-footer" alt="ProbNum">
+    </div>
     <p>
       {%- if show_copyright %}
       {%- if hasdoc('copyright') %}
-      {%- trans path=pathto('copyright'), copyright=copyright|e %}&#169; <a href="{{ path }}">Copyright</a> {{ copyright
-      }}.{% endtrans %}
+      {%- trans path=pathto('copyright'), copyright=copyright|e %}<a href="{{ path }}">Copyright &#169;</a> {{ copyright
+      }} ProbNum Team.{% endtrans %}
       {%- else %}
-      {%- trans copyright=copyright|e %}&#169; Copyright {{ copyright }}.{% endtrans %}
+      {%- trans copyright=copyright|e %} Copyright &#169; {{ copyright }} ProbNum Team.{% endtrans %}
       {%- endif %}
       {%- endif %}
 
