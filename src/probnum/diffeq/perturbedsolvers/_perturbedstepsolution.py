@@ -8,7 +8,7 @@ from probnum.type import FloatArgType
 
 
 class PerturbedStepSolution(diffeq.ODESolution):
-    """Output of NoisyStepSolver."""
+    """Output of PerturbedStepSolver."""
 
     def __init__(
         self,

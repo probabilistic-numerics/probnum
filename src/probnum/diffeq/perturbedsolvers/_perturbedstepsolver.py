@@ -15,8 +15,10 @@ from probnum.type import FloatArgType, RandomStateArgType
 
 class PerturbedStepSolver(diffeq.ODESolver):
 
-    """ODE-Solver based on Abdulle and Garegnani [1]_. Perturbs the steps accordingly
-    and projects the solution back to the originally proposed time points.
+    """ODE-Solver based on Abdulle and Garegnani [1]_.
+
+    Perturbs the steps accordingly and projects the solution back to the originally
+    proposed time points.
 
     Parameters
     ----------
