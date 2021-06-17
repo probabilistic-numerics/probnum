@@ -138,6 +138,10 @@ body {
 
 /* Navigation bar */
 
+.navbar .container-xl {
+    padding-left: 10px;
+}
+
 .navbar-brand img {
     height: 80%
 }
