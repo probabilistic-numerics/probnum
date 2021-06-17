@@ -50,6 +50,9 @@ class Transition(abc.ABC):
         self.input_dim = input_dim
         self.output_dim = output_dim
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(input_dim={self.input_dim}, output_dim={self.output_dim})"
+
     @abc.abstractmethod
     def forward_rv(
         self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None

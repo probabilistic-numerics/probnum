@@ -3,6 +3,8 @@
 import numpy as np
 import scipy.stats
 
+from probnum import utils
+
 
 def generate_samples(dynmod, measmod, initrv, times, random_state=None):
     """Samples true states and observations at pre-determined timesteps "times" for a
@@ -30,7 +32,7 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
         Observations according to measurement model.
     """
     obs = np.zeros((len(times), measmod.output_dim))
-
+    random_state = utils.as_random_state(random_state)
     base_measure_realizations_latent_state = scipy.stats.norm.rvs(
         size=(times.shape + (measmod.input_dim,)), random_state=random_state
     )
@@ -44,5 +46,6 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
 
     for idx, (state, t) in enumerate(zip(latent_states, times)):
         measured_rv, _ = measmod.forward_realization(state, t=t)
+        measured_rv.random_state = random_state
         obs[idx] = measured_rv.sample()
     return latent_states, obs

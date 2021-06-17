@@ -135,16 +135,16 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         non_linear_model,
         mde_atol=1e-5,
         mde_rtol=1e-5,
-        mde_solver="LSODA",
+        mde_solver="RK45",
         forward_implementation="classic",
     ) -> None:
 
         statespace.SDE.__init__(
             self,
-            non_linear_model.driftfun,
-            non_linear_model.dispmatfun,
-            non_linear_model.jacobfun,
-            non_linear_model.dimension,
+            driftfun=non_linear_model.driftfun,
+            dispmatfun=non_linear_model.dispmatfun,
+            jacobfun=non_linear_model.jacobfun,
+            dimension=non_linear_model.dimension,
         )
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
