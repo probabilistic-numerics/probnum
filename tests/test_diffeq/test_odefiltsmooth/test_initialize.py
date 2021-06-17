@@ -1,10 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.diffeq as pnde
 import probnum.problems.zoo.diffeq as diffeq_zoo
-import probnum.statespace as pnss
-from probnum import randvars
+from probnum import diffeq, randprocs, randvars, statespace
 
 from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
 
@@ -37,14 +35,14 @@ def lv():
     y0 = randvars.Constant(np.array([20.0, 20.0]))
 
     # tmax is ignored anyway
-    return pnde.lotkavolterra([0.0, np.inf], y0)
+    return diffeq.lotkavolterra([0.0, np.inf], y0)
 
 
 @pytest.fixture
 def lv_inits(order):
     lv_dim = 2
     vals = LV_INITS[: lv_dim * (order + 1)]
-    return pnss.Integrator._convert_derivwise_to_coordwise(
+    return statespace.Integrator._convert_derivwise_to_coordwise(
         vals, ordint=order, spatialdim=lv_dim
     )
 
@@ -52,19 +50,25 @@ def lv_inits(order):
 def test_initialize_with_rk(lv, lv_inits, order):
     """Make sure that the values are close(ish) to the truth."""
     ode_dim = len(lv.initrv.mean)
-    prior = pnss.IBM(
+    prior = statespace.IBM(
         ordint=order,
         spatialdim=ode_dim,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
-    received_rv = pnde.initialize_odefilter_with_rk(
+    initrv = randvars.Normal(
+        np.zeros(prior.dimension),
+        np.eye(prior.dimension),
+        cov_cholesky=np.eye(prior.dimension),
+    )
+    prior_process = randprocs.MarkovProcess(
+        transition=prior, initrv=initrv, initarg=lv.t0
+    )
+    received_rv = diffeq.initialize_odefilter_with_rk(
         lv.rhs,
         lv.initrv.mean,
         lv.t0,
-        prior=prior,
-        initrv=initrv,
+        prior_process=prior_process,
         df=lv.jacobian,
         h0=1e-1,
         method="RK45",
@@ -84,13 +88,13 @@ def test_initialize_with_taylormode(any_order):
     """Make sure that the values are close(ish) to the truth."""
     r2b_jax = diffeq_zoo.threebody_jax()
     ode_dim = 4
-    expected = pnss.Integrator._convert_derivwise_to_coordwise(
+    expected = statespace.Integrator._convert_derivwise_to_coordwise(
         THREEBODY_INITS[: ode_dim * (any_order + 1)],
         ordint=any_order,
         spatialdim=ode_dim,
     )
 
-    prior = pnss.IBM(
+    prior = statespace.IBM(
         ordint=any_order,
         spatialdim=ode_dim,
         forward_implementation="sqrt",
@@ -98,9 +102,12 @@ def test_initialize_with_taylormode(any_order):
     )
 
     initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
+    prior_process = randprocs.MarkovProcess(
+        transition=prior, initrv=initrv, initarg=r2b_jax.t0
+    )
 
-    received_rv = pnde.initialize_odefilter_with_taylormode(
-        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior, initrv=initrv
+    received_rv = diffeq.initialize_odefilter_with_taylormode(
+        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior_process=prior_process
     )
 
     np.testing.assert_allclose(received_rv.mean, expected)

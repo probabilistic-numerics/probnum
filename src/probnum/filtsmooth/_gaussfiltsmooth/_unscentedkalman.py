@@ -12,7 +12,7 @@ import numpy as np
 from probnum import randvars, statespace
 from probnum.type import FloatArgType
 
-from .unscentedtransform import UnscentedTransform
+from ._unscentedtransform import UnscentedTransform
 
 
 class UKFComponent:

@@ -9,14 +9,12 @@ from probnum import filtsmooth
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
-    regression_problem, statespace_components = problem()
+    regression_problem, info = problem()
 
     kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["measurement_model"],
-        statespace_components["initrv"],
+        info["prior_process"],
     )
-    return kalman, regression_problem
+    return (kalman, regression_problem)
 
 
 def test_rmse_filt_smooth(setup):
