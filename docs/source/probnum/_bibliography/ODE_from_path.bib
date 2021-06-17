@@ -1,0 +1,99 @@
+
+@incollection{NIPS2008_3497,
+  title =	 {Accelerating Bayesian Inference over Nonlinear Differential
+                  Equations with Gaussian Processes},
+  author =	 {Ben Calderhead and Mark Girolami and Neil D. Lawrence},
+  booktitle =	 {Advances in Neural Information Processing Systems 21},
+  editor =	 {D. Koller and D. Schuurmans and Y. Bengio and L. Bottou},
+  pages =	 {217--224},
+  year =	 {2009},
+  publisher =	 {Curran Associates, Inc.},
+  link =
+                  {http://papers.nips.cc/paper/3497-accelerating-bayesian-inference-over-nonlinear-differential-equations-with-gaussian-processes},
+  file =
+                  {http://papers.nips.cc/paper/3497-accelerating-bayesian-inference-over-nonlinear-differential-equations-with-gaussian-processes.pdf}
+}
+
+@article{korostil2013adaptive,
+  title =	 {Adaptive Markov chain Monte Carlo forward projection for
+                  statistical analysis in epidemic modelling of human
+                  papillomavirus},
+  author =	 {Korostil, Igor A and Peters, Gareth W and Cornebise, Julien
+                  and Regan, David G},
+  journal =	 {Statistics in medicine},
+  volume =	 32,
+  number =	 11,
+  pages =	 {1917--1953},
+  year =	 2013,
+abstract={A Bayesian statistical model and estimation methodology based on
+                  forward projection adaptive Markov chain Monte Carlo is
+                  developed in order to perform the calibration of a
+                  high-dimensional nonlinear system of ordinary differential
+                  equations representing an epidemic model for human
+                  papillomavirus types 6 and 11 (HPV-6, HPV-11). The model is
+                  compartmental and involves stratification by age, gender and
+                  sexual-activity group. Developing this model and a means to
+                  calibrate it efficiently is relevant because HPV is a very
+                  multi-typed and common sexually transmitted infection with
+                  more than 100 types currently known. The two types studied in
+                  this paper, types 6 and 11, are causing about 90\% of
+                  anogenital warts. We extend the development of a sexual
+                  mixing matrix on the basis of a formulation first suggested
+                  by Garnett and Anderson, frequently used to model sexually
+                  transmitted infections. In particular, we consider a
+                  stochastic mixing matrix framework that allows us to jointly
+                  estimate unknown attributes and parameters of the mixing
+                  matrix along with the parameters involved in the calibration
+                  of the HPV epidemic model. This matrix describes the sexual
+                  interactions between members of the population under study
+                  and relies on several quantities that are a priori
+                  unknown. The Bayesian model developed allows one to estimate
+                  jointly the HPV-6 and HPV-11 epidemic model parameters as
+                  well as unknown sexual mixing matrix parameters related to
+                  assortativity. Finally, we explore the ability of an
+                  extension to the class of adaptive Markov chain Monte Carlo
+                  algorithms to incorporate a forward projection strategy for
+                  the ordinary differential equation state
+                  trajectories. Efficient exploration of the Bayesian posterior
+                  distribution developed for the ordinary differential equation
+                  parameters provides a challenge for any Markov chain sampling
+                  methodology, hence the interest in adaptive Markov chain
+                  methods. We conclude with simulation studies on synthetic and
+                  recent actual data.},
+link = {http://arxiv.org/abs/1108.3137},
+file = {http://arxiv.org/pdf/1108.3137v1.pdf}
+}
+
+@InProceedings{wang-barber-ICML-14,
+  author =	 {Yali Wang and David Barber},
+  title =	 {{G}aussian Processes for {B}ayesian Estimation in Ordinary
+                  Differential Equations},
+  booktitle =	 {International Conference on Machine Learning -- ICML},
+  year =	 2014,
+  file =
+                  {http://web4.cs.ucl.ac.uk/staff/d.barber/publications/gpodeICML2014.pdf},
+  abstract =	 {Bayesian parameter estimation in coupled ordinary
+                  differential equations (ODEs) is challenging due to the high
+                  computational cost of numerical integration. In gradient
+                  matching a separate data model is introduced with the
+                  property that its gradient may be calculated
+                  easily. Parameter estimation is then achieved by requiring
+                  consistency between the gradients computed from the data
+                  model and those specified by the ODE. We propose a Gaussian
+                  process model that directly links state derivative
+                  information with system observations, simplifying previous
+                  approaches and improving estimation accuracy.}
+}
+
+@incollection{NIPS2017_7066,
+  title = {Scalable Variational Inference for Dynamical Systems},
+  author = {Gorbach, Nico S and Bauer, Stefan and Buhmann, Joachim M},
+  booktitle = {Advances in Neural Information Processing Systems 30},
+  editor = {I. Guyon and U. V. Luxburg and S. Bengio and H. Wallach and R. Fergus and S. Vishwanathan and R. Garnett},
+  pages = {4809--4818},
+  year = {2017},
+  publisher = {Curran Associates, Inc.},
+  link = {http://papers.nips.cc/paper/7066-scalable-variational-inference-for-dynamical-systems},
+  file = {http://papers.nips.cc/paper/7066-scalable-variational-inference-for-dynamical-systems.pdf},
+  abstract = {Gradient matching is a promising tool for learning parameters and state dynamics of ordinary differential equations. It is a grid free inference approach, which, for fully observable systems is at times competitive with numerical integration. However, for many real-world applications, only sparse observations are available or even unobserved variables are included in the model description. In these cases most gradient matching methods are difficult to apply or simply do not provide satisfactory results. That is why, despite the high computational cost, numerical integration is still the gold standard in many applications. Using an existing gradient matching approach, we propose a scalable variational inference framework which can infer states and parameters simultaneously, offers computational speedups, improved accuracy and works well even under model misspecifications in a partially observable system.}
+}

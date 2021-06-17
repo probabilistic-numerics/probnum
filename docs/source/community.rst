@@ -4,8 +4,27 @@
 Community
 ===========
 
+
+Development Team
+****************
+
 .. toctree::
    :maxdepth: 1
-   :caption: Community
 
-   introduction/probabilistic_numerics
+   community/code_contributors
+
+Meetings
+********
+
+.. toctree::
+   :maxdepth: 1
+
+   community/meetings/index
+
+For Students
+************
+
+.. toctree::
+   :maxdepth: 1
+
+   community/for_students
