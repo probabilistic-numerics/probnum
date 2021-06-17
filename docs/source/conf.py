@@ -211,3 +211,7 @@ inheritance_graph_attrs = dict(size='""')  # resize graphs correctly
 sphinx_gallery_conf = {
     "default_thumb_file": "img/probnum_logo.png",  # default thumbnail image
 }
+
+# MyST configuration
+myst_update_mathjax = False  # needed for mathjax compatibility with nbsphinx
+myst_enable_extensions = ["dollarmath", "amsmath"]
