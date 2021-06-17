@@ -2,8 +2,8 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import diffeq, filtsmooth, problems, randvars, statespace
-from probnum.type import FloatArgType, IntArgType
+from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace
+from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
 __all__ = [
     "benes_daum",
@@ -23,6 +23,7 @@ def car_tracking(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
+    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
@@ -68,17 +69,22 @@ def car_tracking(
         Step size of the time grid.
     initrv
         Initial random variable.
+    forward_implementation
+        Implementation of the forward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    backward_implementation
+        Implementation of the backward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    random_state
+        Random state that is used to generate samples from the state space model.
+        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
     References
     ----------
@@ -125,17 +131,20 @@ def car_tracking(
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
+        random_state=random_state,
     )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
 
-    statespace_components = dict(
-        dynamics_model=discrete_dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    prior_process = randprocs.MarkovProcess(
+        transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    return regression_problem, statespace_components
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def ornstein_uhlenbeck(
@@ -146,6 +155,7 @@ def ornstein_uhlenbeck(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
+    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup based on an Ornstein Uhlenbeck process.
 
@@ -175,18 +185,23 @@ def ornstein_uhlenbeck(
         Time grid for the filtering/smoothing problem.
     initrv
         Initial random variable.
+    forward_implementation
+        Implementation of the forward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    backward_implementation
+        Implementation of the backward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    random_state
+        Random state that is used to generate samples from the state space model.
+        This argument is passed down to `filtsmooth.generate_samples`.
 
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
 
     References
@@ -219,18 +234,25 @@ def ornstein_uhlenbeck(
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
     states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
+        dynmod=dynamics_model,
+        measmod=measurement_model,
+        initrv=initrv,
+        times=time_grid,
+        random_state=random_state,
     )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    return regression_problem, statespace_components
+
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def pendulum(
@@ -238,6 +260,8 @@ def pendulum(
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
     step: FloatArgType = 0.0075,
     initrv: Optional[randvars.RandomVariable] = None,
+    initarg: Optional[float] = None,
+    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup for a (noisy) pendulum.
 
@@ -283,17 +307,19 @@ def pendulum(
         Step size of the time grid.
     initrv
         Initial random variable.
+    initarg
+        Initial time point of the prior process.
+        Optional. Default is the left boundary of timespan.
+    random_state
+        Random state that is used to generate samples from the state space model.
+        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
 
     References
@@ -355,17 +381,27 @@ def pendulum(
     # Generate data
     time_grid = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
-    )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
-    )
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
+        dynmod=dynamics_model,
+        measmod=measurement_model,
         initrv=initrv,
+        times=time_grid,
+        random_state=random_state,
     )
-    return regression_problem, statespace_components
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
+    )
+
+    if initarg is None:
+        initarg = time_grid[0]
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=initarg
+    )
+
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def benes_daum(
@@ -373,6 +409,7 @@ def benes_daum(
     process_diffusion: FloatArgType = 1.0,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
+    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup based on the Beneš SDE.
 
@@ -398,21 +435,20 @@ def benes_daum(
         Time grid for the filtering/smoothing problem.
     initrv
         Initial random variable.
+    random_state
+        Random state that is used to generate samples from the state space model.
+        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
     Notes
     -----
-    In order to generate observations for the returned ``RegressionProblem`` object,
+    In order to generate observations for the returned ``TimeSeriesRegressionProblem`` object,
     the non-linear Beneš SDE has to be linearized.
     Here, a ``ContinuousEKFComponent`` is used, which corresponds to a first-order
     linearization as used in the extended Kalman filter.
@@ -425,7 +461,7 @@ def benes_daum(
         return 1.0 - np.tanh(x) ** 2
 
     def l(t):
-        return process_diffusion * np.ones(1)
+        return process_diffusion * np.ones((1, 1))
 
     if initrv is None:
         initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
@@ -450,17 +486,20 @@ def benes_daum(
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
+        random_state=random_state,
     )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
+    )
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
-    )
-    return regression_problem, statespace_components
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def logistic_ode(
@@ -497,19 +536,19 @@ def logistic_ode(
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
     order
         Order of integration for the Integrated Brownian Motion prior of the solver.
+    forward_implementation
+        Implementation of the forward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    backward_implementation
+        Implementation of the backward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and zero-observations.
-
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
-        * The initial value problem based on the logistic ODE.
+        ``TimeSeriesRegressionProblem`` object with time points and zero-observations.
+    info
+        Dictionary containing additional information like the prior process.
 
     See Also
     --------
@@ -550,16 +589,18 @@ def logistic_ode(
     # Generate zero-data
     time_grid = np.arange(*timespan, step=step)
     solution = logistic_ivp.solution(time_grid)
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=np.zeros(shape=(time_grid.size, 1)),
         locations=time_grid,
+        measurement_models=measurement_model,
         solution=solution,
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
-        ivp=logistic_ivp,
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    return regression_problem, statespace_components
+    info = dict(
+        ivp=logistic_ivp,
+        prior_process=prior_process,
+    )
+    return regression_problem, info

@@ -2,7 +2,7 @@ import numpy as np
 
 from probnum import statespace
 
-from .stoppingcriterion import StoppingCriterion
+from ._stoppingcriterion import StoppingCriterion
 
 
 class IteratedDiscreteComponent(statespace.Transition):

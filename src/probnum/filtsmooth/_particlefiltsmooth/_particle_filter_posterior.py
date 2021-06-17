@@ -5,11 +5,14 @@ from typing import Optional
 import numpy as np
 
 from probnum import randvars
-from probnum.filtsmooth.timeseriesposterior import (
+from probnum.type import (
     DenseOutputLocationArgType,
-    TimeSeriesPosterior,
+    FloatArgType,
+    RandomStateArgType,
+    ShapeArgType,
 )
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+
+from .._timeseriesposterior import TimeSeriesPosterior
 
 
 class ParticleFilterPosterior(TimeSeriesPosterior):

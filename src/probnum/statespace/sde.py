@@ -138,7 +138,7 @@ class LinearSDE(SDE):
         dispmatfun: Callable[[FloatArgType], np.ndarray],
         mde_atol: Optional[FloatArgType] = 1e-6,
         mde_rtol: Optional[FloatArgType] = 1e-6,
-        mde_solver: Optional[str] = "LSODA",
+        mde_solver: Optional[str] = "RK45",
         forward_implementation: Optional[str] = "classic",
     ):
 

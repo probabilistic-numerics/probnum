@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, filtsmooth, problems, randvars, statespace, utils
+from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
 
 
@@ -164,10 +164,12 @@ def test_sampling_shapes_1d(locs, size):
         state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
-
-    kalman = filtsmooth.Kalman(prior, measmod, initrv)
-    regression_problem = problems.RegressionProblem(
-        observations=data, locations=locations
+    prior_process = randprocs.MarkovProcess(
+        transition=prior, initrv=initrv, initarg=locations[0]
+    )
+    kalman = filtsmooth.Kalman(prior_process)
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=data, locations=locations, measurement_models=measmod
     )
     posterior, _ = kalman.filtsmooth(regression_problem)
 
