@@ -9,12 +9,8 @@ from probnum.type import FloatArgType, RandomStateArgType
 
 
 class PerturbedStepSolver(diffeq.ODESolver):
-    """
-    References
-    ----------
-    .. [1] https://arxiv.org/abs/1801.01340
 
-    ODE-Solver based on Abdulle and Garegnani [1]_.
+    """ODE-Solver based on Abdulle and Garegnani [1]_.
 
     Perturbs the steps accordingly and projects the solution back to the originally
     proposed time points.
@@ -31,6 +27,10 @@ class PerturbedStepSolver(diffeq.ODESolver):
         input parameters step, solver_order, noise_scale, random_state and size.
     random_state :
         Random state (seed, generator) to be used for sampling base measure realizations.
+
+    References
+    ----------
+    .. [1] https://arxiv.org/abs/1801.01340
     """
 
     def __init__(
