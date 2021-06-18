@@ -21,6 +21,14 @@ Meetings
 
    community/meetings/index
 
+Literature
+**********
+
+.. toctree::
+   :maxdepth: 1
+
+   probnum/literature
+
 For Students
 ************
 

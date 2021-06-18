@@ -1,4 +1,4 @@
-# Probabilistic Numerics: Integrating Inference With Integration @ MCMSki 2016
+# Integrating Inference with Integration (MCMSki 2016)
 ## Lenzerheide, Thursday, 7th January 2016
 
 <td width="100%" style="position: relative;">

@@ -1,4 +1,4 @@
-# Probabilistic Numerics @ Data, Learning and Inference (DALI)
+# Probabilistic Numerics (DALI 2015)
 ## La Palma, Canary Islands, 10 - 12 April 2015
 
 <img src="{{ site.baseurl }}/assets/images/LaPalma.jpg" width="100%"/>

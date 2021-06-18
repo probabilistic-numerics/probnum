@@ -1,4 +1,4 @@
-# Probabilistic Numerics @ MCQMC 2016
+# Probabilistic Numerics (MCQMC 2016)
 
 ## Stanford University, Thursday, August 18, 2016
 

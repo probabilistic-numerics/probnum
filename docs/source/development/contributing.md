@@ -38,7 +38,7 @@ You implemented an additional feature, a tutorial, tests, or some other enhancem
 Please consider creating a pull request (PR) with the changes.
 
 If you do so, please check out the
-[developer guide](https://probnum.readthedocs.io/en/latest/development/contributing_code.html) first.
+[developer guide](pull_request) first.
 
 Before working on a pull request, please check existing open, and recently merged, pull requests to make sure
 someone else hasn't addressed the problem already.

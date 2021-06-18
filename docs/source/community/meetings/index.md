@@ -36,8 +36,12 @@ community.
   Organized by Philipp Hennig, George Em Karniadakis, Michael A Osborne, Houman Owhadi and Paris Perdikaris
 
 ## 2016
+* *9 December*
+  [Optimizing the Optimizers](NIPS2016) @ [NIPS 2016](https://nips.cc/Conferences/2016)
+  in Barcelona, Spain
+  organized by Maren Mahsereci, Alex Davies and Philipp Hennig
 * *18 August*
-  [Probabilistic Numerics ](MCQMC2016) @
+  [Probabilistic Numerics](MCQMC2016) @
   [MCQMC 2016](http://mcqmc2016.stanford.edu)
   at Stanford University, California
   organized by Mark Girolami and François-Xavier Briol
@@ -49,7 +53,7 @@ community.
 
 ## 2015
 * *11 December*
-  [Probabilistic Integration](NIPS2015) @  [NIPS 2015](https://nips.cc/Conferences/2015)
+  [Probabilistic Integration](NIPS2015) @ [NIPS 2015](https://nips.cc/Conferences/2015)
   in Montréal, Canada
   organized by Michael Osborne and Philipp Hennig
 
@@ -85,3 +89,18 @@ organised by Ben Calderhead
   [Advances in Neural Information Processing Systems 2012](http://nips.cc/Conferences/2012/),
   Lake Tahoe, Nevada, USA
   organized by Philipp Hennig, Michael A Osborne and John P Cunningham
+
+
+```{toctree}
+---
+maxdepth: 1
+hidden:
+---
+
+SIAMUQ2020
+NIPS2016
+MCQMC2016
+MCMSki2016
+NIPS2015
+LaPalma2015
+```

@@ -1,5 +1,6 @@
-<h1>Probabilistic Numerics @ SIAM Conference on Uncertainty Quantification</h1>
-<h2>Technical University Munich, Germany, 24 - 27 March 2020</h2>
+# Probabilistic Numerics (SIAM UQ 2020)
+
+## Technical University Munich, Germany, 24 - 27 March 2020
 
 <img src="{{ site.baseurl }}/assets/images/munich.jpg" width="100%"/>
 
