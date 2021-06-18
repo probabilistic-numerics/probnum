@@ -66,15 +66,15 @@ def test_step(solvers, start_point, stop_point, y):
     steps have to be performed.
     """
 
-    testsolver, perturbedsolver = solvers
+    _, perturbedsolver = solvers
     perturbedsolver.initialise()
-    first_step, first_error = perturbedsolver.step(start_point, stop_point, y)
-    perturbed_y_1, perturbed_error_estimation_1 = perturbedsolver.step(
+    first_step, _, _ = perturbedsolver.step(start_point, stop_point, y)
+    perturbed_y_1, perturbed_error_estimation_1, _ = perturbedsolver.step(
         stop_point, stop_point + start_point, y + first_step
     )
     perturbedsolver.initialise()
-    first_step, first_error = perturbedsolver.step(start_point, stop_point, y)
-    perturbed_y_2, perturbed_error_estimation_2 = perturbedsolver.step(
+    first_step, _, _ = perturbedsolver.step(start_point, stop_point, y)
+    perturbed_y_2, perturbed_error_estimation_2, _ = perturbedsolver.step(
         stop_point, stop_point + start_point, y + first_step
     )
     np.testing.assert_allclose(

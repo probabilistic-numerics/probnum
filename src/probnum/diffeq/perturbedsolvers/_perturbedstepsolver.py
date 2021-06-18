@@ -61,8 +61,8 @@ class PerturbedStepSolver(diffeq.ODESolver):
     def step(
         self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
     ):
-        """Perturb the original stopping point, perform one perturbed step and project
-        the solution back to the original stopping point [1]_.
+        """Perturb the original stopping point [1]_, perform one perturbed step and
+        project the solution back to the original stopping point.
 
         Parameters
         ----------
@@ -89,12 +89,12 @@ class PerturbedStepSolver(diffeq.ODESolver):
 
         dt = stop - start
         noisy_step = self.perturb_step(dt)
-        state_as_rv, error_estimation = self.solver.step(
+        state_as_rv, error_estimation, reference_state = self.solver.step(
             start, start + noisy_step, current
         )
         scale = noisy_step / dt
         self.scales.append(scale)
-        return state_as_rv, error_estimation
+        return state_as_rv, error_estimation, reference_state
 
     def method_callback(self, time, current_guess, current_error):
         """Call dense output after each step and store the interpolants."""
