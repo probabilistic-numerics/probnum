@@ -13,7 +13,23 @@ from probnum.type import ScalarArgType
 def _kernel_mean_matern_lebesgue(
     x: np.ndarray, kernel: Union[Matern, ProductMatern], measure: LebesgueMeasure
 ) -> np.ndarray:
+    """Kernel mean of a ProductMatern or 1D Matern kernel w.r.t. its first argument
+    against a Lebesgue measure.
 
+    Parameters
+    ----------
+    x :
+        *shape (n_eval, dim)* -- n_eval locations where to evaluate the kernel mean.
+    kernel :
+        Instance of a ProductMatern or 1D Matern kernel.
+    measure :
+        Instance of a LebesgueMeasure.
+
+    Returns
+    -------
+    k_mean :
+        *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
+    """
     kernel = _convert_to_product_matern(kernel)
 
     # Compute kernel mean via a product of one-dimensional kernel means
@@ -31,10 +47,25 @@ def _kernel_mean_matern_lebesgue(
 def _kernel_variance_matern_lebesgue(
     kernel: Union[Matern, ProductMatern], measure: LebesgueMeasure
 ) -> float:
+    """Kernel variance of a ProductMatern or 1D Matern kernel w.r.t. both arguments
+    against a Lebesgue measure.
+
+    Parameters
+    ----------
+    kernel :
+        Instance of a ProductMatern or 1D Matern kernel.
+    measure :
+        Instance of a LebesgueMeasure.
+
+    Returns
+    -------
+    k_var :
+        The kernel integrated w.r.t. both arguments.
+    """
 
     kernel = _convert_to_product_matern(kernel)
 
-    # Compute kernel mean via a product of one-dimensional kernel means
+    # Compute kernel mean via a product of one-dimensional kernel variances
     kernel_variance = 1.0
     for dim in range(kernel.input_dim):
         kernel_variance *= _kernel_variance_matern_1d_lebesgue(
@@ -46,6 +77,7 @@ def _kernel_variance_matern_lebesgue(
 
 
 def _convert_to_product_matern(kernel):
+    """Convert a 1D Matern kernel to a ProductMatern."""
     if isinstance(kernel, Matern):
         if kernel.input_dim > 1:
             raise NotImplementedError(
@@ -63,6 +95,10 @@ def _convert_to_product_matern(kernel):
 
 
 def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple):
+    """Kernel means for 1D Matern kernels.
+
+    Note that these are for unnormalized Lebesgue measure.
+    """
     (a, b) = domain
     ell = kernel.lengthscale
     if kernel.nu == 0.5:
@@ -122,6 +158,10 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
 
 
 def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
+    """Kernel variances for 1D Matern kernels.
+
+    Note that these are for unnormalized Lebesgue measure.
+    """
     (a, b) = domain
     r = b - a
     ell = kernel.lengthscale
@@ -157,7 +197,7 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
             / (105.0 * ell)
             * (
                 2.0
-                * np.exp(-r / ell)
+                * np.exp(-c / ell)
                 * (
                     7.0 * np.sqrt(7.0) * (b ** 3 - a ** 3)
                     + 84.0 * b ** 2 * ell
@@ -172,7 +212,7 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
                         + 19.0 * np.sqrt(7.0) * ell ** 2
                     )
                 )
-                - 6.0 * ell ** 2 * (16.0 * c + 35.0 * ell)
+                - 6.0 * ell ** 2 * (35.0 * ell - 16.0 * c)
             )
         )
     else:

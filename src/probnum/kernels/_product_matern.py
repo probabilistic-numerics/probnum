@@ -17,7 +17,24 @@ class ProductMatern(Kernel[_InputType]):
     """Product Matern kernel.
 
     Covariance function defined as a product of one-dimensional Matern
-    kernels.
+    kernels: :math:`k(x_0, x_1) = \prod_{i=1}^d k_i(x_{0,i}, x_{1,i}`,
+    where :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})`
+    and :math:`k_i` are one-dimensional Matern kernels.
+
+    Parameters
+    ----------
+    input_dim :
+        Input dimension of the kernel.
+    lengthscales :
+        Lengthscales of the one-dimensional Matern kernels. Describes the input scale on
+        which the process varies.
+    nus :
+        Hyperparameters controlling differentiability of the one-dimensional Matern
+        kernels.
+
+    See Also
+    --------
+    Matern : Stationary Matern kernel.
     """
 
     def __init__(

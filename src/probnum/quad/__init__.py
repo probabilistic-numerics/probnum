@@ -7,8 +7,10 @@ from .kernel_embeddings import (
     KernelEmbedding,
     _kernel_mean_expquad_gauss,
     _kernel_mean_expquad_lebesgue,
+    _kernel_mean_matern_lebesgue,
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
+    _kernel_variance_matern_lebesgue,
 )
 from .policies import sample_from_measure
 
