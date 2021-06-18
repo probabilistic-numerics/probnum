@@ -335,3 +335,7 @@ div[class*="highlight-"] {
 .rst-versions.rst-badge {
     display: none;
 }
+
+.rst-versions.rst-badge .rst-current-version {
+    display: none;
+}
