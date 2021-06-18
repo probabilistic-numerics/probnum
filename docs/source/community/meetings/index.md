@@ -1,4 +1,4 @@
-# Community Meetings and Events
+# Meetings and Events
 
 This page lists past and future meetings of the Probabilistic Numerics
 community.
