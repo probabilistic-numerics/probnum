@@ -14,16 +14,16 @@
     <ul id="navbar-main-elements" class="navbar-nav {{ navbar_align }}">
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-          aria-haspopup="true" aria-expanded="false">
+          aria-haspopup="true" aria-expanded="false"></a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown" id="version-menu">
           {% if READTHEDOCS %}
           {% for slug, url in versions %}
-          <a href="{{ url }}">{{ slug }}</a>
+          <a class="dropdown-item" href="{{ url }}">{{ slug }}</a>
           {% endfor %}
           {% else %}
           {{ VERSION }}
           {% endif %}
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown" id="version-menu"></div>
+        </div>
       </li>
     </ul>
   </div>
