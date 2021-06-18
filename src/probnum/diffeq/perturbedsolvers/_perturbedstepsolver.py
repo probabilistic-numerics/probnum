@@ -10,7 +10,6 @@ from probnum.type import FloatArgType, RandomStateArgType
 
 
 class PerturbedStepSolver(diffeq.ODESolver):
-
     """ODE-Solver based on Abdulle and Garegnani.
 
     Perturbs the steps accordingly and projects the solution back to the originally
@@ -61,8 +60,10 @@ class PerturbedStepSolver(diffeq.ODESolver):
     def step(
         self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
     ):
-        """Perturb the original stopping point, perform one perturbed step and project
-        the solution back to the original stopping point.
+        """Perturb the original stopping point [1]_.
+
+        Perform one perturbed step and project the solution back to the original
+        stopping point.
 
         Parameters
         ----------
@@ -79,6 +80,12 @@ class PerturbedStepSolver(diffeq.ODESolver):
             Estimated states of the discrete-time solution.
         error_estimation : float
             estimated error after having performed the step.
+
+        References
+        ----------
+        .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
+           uncertainty quantification in chaotic and geometric numerical integration.
+           Statistics and Computing, 1-26.
         """
 
         dt = stop - start
