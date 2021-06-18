@@ -160,7 +160,7 @@ html_context = {
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "img/logo/probnum_logo_light_txtright.svg"
+html_logo = "assets/img/logo/probnum_logo_light_txtright.svg"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further. For a list of options available for each theme, see the
@@ -185,12 +185,12 @@ html_theme_options = {
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = "img/favicons/favicon.ico"
+html_favicon = "assets/img/favicons/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static", "img", "assets"]
+html_static_path = ["_static", "assets"]
 html_css_files = ["custom.css"]
 
 # Additional pages generated from .html files
@@ -209,7 +209,7 @@ inheritance_graph_attrs = dict(size='""')  # resize graphs correctly
 
 # Sphinx gallery configuration
 sphinx_gallery_conf = {
-    "default_thumb_file": "img/probnum_logo.png",  # default thumbnail image
+    "default_thumb_file": "assets/img/probnum_logo.png",  # default thumbnail image
 }
 
 # MyST configuration
