@@ -8,7 +8,7 @@ Each PR should only contain one enhancement at a time.
 If you implemented multiple changes, split them into several PRs.
 
 
-### Code Quality
+## Code Quality
 
 Code quality is an essential component in a collaborative open-source project.
 
@@ -25,7 +25,7 @@ For more thorough Python code style guides please refer to [PEP 8](https://www.p
 and to [the Black code style](https://github.com/psf/black/blob/master/docs/the_black_code_style.md).
 For all the above, the existing ProbNum code is a good initial reference point.
 
-### Black
+## Black
 
 [Black](https://github.com/psf/black) is a simple code formatter. Install Black with `pip`.
 ```shell
@@ -39,7 +39,7 @@ $ black my-file.py
 Black takes care of most of the PEP8 formatting rules.
 Formatting with Black can also be done via tox.
 
-### Forking the Repo
+## Forking the Repo
 
 In order to do pull requests, begin by forking the repository on GitHub.
 Then, clone your fork to a local machine.
@@ -50,7 +50,7 @@ $ git clone git@github.com:MyGithubAccount/probnum.git
 Any code changes should be done in your fork. Github as official guides on [how to fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)
 and [how to create a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
-### Multiple Remotes
+## Multiple Remotes
 In order to keep your fork up-to-date with the main repository, one convenient
 way to do so is to set up [multiple remotes](https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes)
 for `git`.
@@ -82,7 +82,7 @@ $ git fetch upstream
 $ git checkout -b probnum-master upstream/master
 ```
 
-### Code Changes
+## Code Changes
 Next, create a new branch describing the feature you would like to implement.
 ```shell
 $ git checkout -b my-new-feature
@@ -101,7 +101,7 @@ $ git pull
 $ git checkout my-new-feature
 $ git merge probnum-master
 ```
-### Creating a Pull-Request
+## Creating a Pull-Request
 Once you are happy with your PR, make sure your branch is up-to-date with upstream `master`, and re-run all tests.
 Then, from your local branch, push the changes to your remote branch
 ```shell

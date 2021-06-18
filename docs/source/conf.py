@@ -160,7 +160,7 @@ html_context = {
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "img/probnum_logo_light_txtright.svg"
+html_logo = "img/logo/probnum_logo_light_txtright.svg"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further. For a list of options available for each theme, see the
@@ -190,7 +190,7 @@ html_favicon = "img/favicons/favicon.ico"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static", "img"]
+html_static_path = ["_static", "img", "assets"]
 html_css_files = ["custom.css"]
 
 # Additional pages generated from .html files

@@ -51,7 +51,7 @@ Nevertheless, many speakers provided a recording of their presentation. *Huge th
 <br/><br/>
 
 **Active Multi-Source Bayesian Quadrature for Expensive Simulations**
-[Maren Mahsereci (Amazon Research, UK)]()
+[Maren Mahsereci (Amazon Research, UK)](https://scholar.google.com/citations?user=krBt_aIAAAAJ&hl=en&oi=ao)
 <br/><br/>
 
 
@@ -94,7 +94,7 @@ Nevertheless, many speakers provided a recording of their presentation. *Huge th
 <br/><br/>
 
 **Probabilistic Solutions to Ordinary Differential Equations as Non-Linear Bayesian Filtering and Smoothing: Gaussian Approximation**
-[Filip Tronarp (University of Tübingen, Germany)]()
+[Filip Tronarp (University of Tübingen, Germany)](https://scholar.google.com/citations?user=q0rtB0EAAAAJ&hl=en&oi=ao)
 <iframe width="560" height="315" src="https://www.youtube.com/embed/qzrQArY-X-U" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <br/><br/>
 

@@ -8,5 +8,5 @@ Introduction
    :maxdepth: 1
    :caption: Introduction
 
-   introduction/probabilistic_numerics
+   probnum/probabilistic_numerics
    introduction/quickstart

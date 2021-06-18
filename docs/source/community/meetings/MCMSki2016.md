@@ -1,5 +1,5 @@
-<h1>Probabilistic Numerics: Integrating Inference With Integration @ MCMSki 2016</h1>
-<h2>Lenzerheide, Thursday, 7th January 2016</h2>
+# Probabilistic Numerics: Integrating Inference With Integration @ MCMSki 2016
+## Lenzerheide, Thursday, 7th January 2016
 
 <td width="100%" style="position: relative;">
     <img src="{{ site.baseurl }}/assets/images/Lenzerheide_Hochtal.jpg" width="100%">

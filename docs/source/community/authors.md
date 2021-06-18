@@ -1,4 +1,4 @@
-## ProbNum Team and Contributors
+# ProbNum Team and Contributors
 
 The following people contributed to the ProbNum repository.
 

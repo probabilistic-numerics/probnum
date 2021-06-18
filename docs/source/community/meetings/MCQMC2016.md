@@ -1,5 +1,6 @@
-<h1>Probabilistic Numerics @ MCQMC 2016</h1>
-<h2>Stanford University, Thursday, August 18, 2016</h2>
+# Probabilistic Numerics @ MCQMC 2016
+
+## Stanford University, Thursday, August 18, 2016
 
 <td width="100%" style="position: relative;">
     <img src="{{ site.baseurl }}/assets/images/Stanford_Oval_May_2011_panorama.jpg" width="100%">
@@ -23,7 +24,7 @@ Probabilistic Numerics (PN) is an emerging theme of research that straddles the 
 
 This mini-symposium seeks to bring the area of PN to the MCQMC research community, to present recent mathematical analysis which elucidates the relationship between PN schemes, functional regression and QMC.
 
-## Schedule
+### Schedule
 
 The workshop will be held on Thursday, 18 August 15:50-17:50, at Stanford University, Li Ka Shing Center.
 
