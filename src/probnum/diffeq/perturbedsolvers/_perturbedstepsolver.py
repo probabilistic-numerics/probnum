@@ -12,29 +12,22 @@ from probnum.type import FloatArgType, RandomStateArgType
 class PerturbedStepSolver(diffeq.ODESolver):
 
     """ODE-Solver based on Abdulle and Garegnani.
-    .
 
-        Perturbs the steps accordingly and projects the solution back to the originally
-        proposed time points [1]_.
+    Perturbs the steps accordingly and projects the solution back to the originally
+    proposed time points.
 
-        Parameters
-        ----------
-        solver :
-            Currently this has to be a Runge-Kutta method based on SciPy.
-        noise-scale :
-            Scales the amount of noise that is introduced.
-        perturb_function :
-            Defines how the stepsize is distributed. This can be either one of
-            perturb_lognormal() or perturb_uniform() or any other perturbation function with
-            input parameters step, solver_order, noise_scale, random_state and size.
-        random_state :
-            Random state (seed, generator) to be used for sampling base measure realizations.
-
-        References
-        ----------
-        .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
-           uncertainty quantification in chaotic and geometric numerical integration.
-           Statistics and Computing, 1-26.
+    Parameters
+    ----------
+    solver :
+        Currently this has to be a Runge-Kutta method based on SciPy.
+    noise-scale :
+        Scales the amount of noise that is introduced.
+    perturb_function :
+        Defines how the stepsize is distributed. This can be either one of
+        perturb_lognormal() or perturb_uniform() or any other perturbation function with
+        input parameters step, solver_order, noise_scale, random_state and size.
+    random_state :
+        Random state (seed, generator) to be used for sampling base measure realizations.
     """
 
     def __init__(
@@ -69,7 +62,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
     ):
         """Perturb the original stopping point, perform one perturbed step and project
-        the solution back to the original stopping point.
+        the solution back to the original stopping point [1]_.
 
         Parameters
         ----------
@@ -79,12 +72,19 @@ class PerturbedStepSolver(diffeq.ODESolver):
             stopping location of the step
         current : :obj:`list` of :obj:`RandomVariable`
             current state of the ODE.
+
         Returns
         -------
         random_var : randvars.RandomVariable
             Estimated states of the discrete-time solution.
         error_estimation : float
             estimated error after having performed the step.
+
+        References
+        ----------
+        .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
+           uncertainty quantification in chaotic and geometric numerical integration.
+           Statistics and Computing, 1-26.
         """
 
         dt = stop - start

@@ -1,9 +1,4 @@
-"""Perturbation functions to perturb the stepsize.
-
-References
-----------
-.. [1] https://arxiv.org/abs/1801.01340
-"""
+"""Perturbation functions to perturb the stepsize."""
 import numpy as np
 import scipy
 
@@ -23,6 +18,10 @@ def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=())
         scales the perturbation
     seed : RandomStateArgType
         seed for pseudo-random number generator.
+
+    References
+    ----------
+    .. [1] https://arxiv.org/abs/1801.01340
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
@@ -50,6 +49,10 @@ def perturb_lognormal(step, solver_order, noise_scale, random_state=None, size=(
         scales the perturbation
     seed : RandomStateArgType
         seed for pseudo-random number generator.
+
+    References
+    ----------
+    .. [1] https://arxiv.org/abs/1801.01340
     """
     shift = 0.5 * np.log(1 + noise_scale * (step ** (2 * solver_order)))
     mean = np.log(step) - shift
