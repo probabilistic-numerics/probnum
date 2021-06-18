@@ -209,7 +209,7 @@ inheritance_graph_attrs = dict(size='""')  # resize graphs correctly
 
 # Sphinx gallery configuration
 sphinx_gallery_conf = {
-    "default_thumb_file": "assets/img/probnum_logo.png",  # default thumbnail image
+    "default_thumb_file": "assets/img/logo/probnum_logo.png",  # default thumbnail image
 }
 
 # MyST configuration
