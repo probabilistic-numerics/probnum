@@ -112,9 +112,3 @@ div.sphx-glr-thumbcontainer:hover {
     vertical-align: middle;
     border-radius: 10%;
 }
-
-/* ReadTheDocs */
-
-.rst-versions.rst-badge {
-    display: none;
-}
