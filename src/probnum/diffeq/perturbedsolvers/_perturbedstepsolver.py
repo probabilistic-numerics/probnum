@@ -1,9 +1,5 @@
-"""ODE solver as proposed by Abdulle and Garegnani [1]_.
+"""ODE-Solver as proposed by Abdulle and Garegnani."""
 
-References
-----------
-.. [1] https://arxiv.org/abs/1801.01340
-"""
 from typing import Callable, Optional
 
 import numpy as np
@@ -15,23 +11,30 @@ from probnum.type import FloatArgType, RandomStateArgType
 
 class PerturbedStepSolver(diffeq.ODESolver):
 
-    """ODE-Solver based on Abdulle and Garegnani.
+    """ODE-Solver based on Abdulle and Garegnani [1]_.
+    .
 
-    Perturbs the steps accordingly and projects the solution back to the originally
-    proposed time points.
+        Perturbs the steps accordingly and projects the solution back to the originally
+        proposed time points.
 
-    Parameters
-    ----------
-    solver :
-        Currently this has to be a Runge-Kutta method based on SciPy.
-    noise-scale :
-        Scales the amount of noise that is introduced.
-    perturb_function :
-        Defines how the stepsize is distributed. This can be either one of
-        perturb_lognormal() or perturb_uniform() or any other perturbation function with
-        input parameters step, solver_order, noise_scale, random_state and size.
-    random_state :
-        Random state (seed, generator) to be used for sampling base measure realizations.
+        Parameters
+        ----------
+        solver :
+            Currently this has to be a Runge-Kutta method based on SciPy.
+        noise-scale :
+            Scales the amount of noise that is introduced.
+        perturb_function :
+            Defines how the stepsize is distributed. This can be either one of
+            perturb_lognormal() or perturb_uniform() or any other perturbation function with
+            input parameters step, solver_order, noise_scale, random_state and size.
+        random_state :
+            Random state (seed, generator) to be used for sampling base measure realizations.
+
+        References
+        ----------
+        .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
+           uncertainty quantification in chaotic and geometric numerical integration.
+           Statistics and Computing, 1-26.
     """
 
     def __init__(
