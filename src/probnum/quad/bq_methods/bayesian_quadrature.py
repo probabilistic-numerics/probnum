@@ -63,7 +63,7 @@ class BayesianQuadrature:
         kernel: Optional[Kernel] = None,
         measure: Optional[IntegrationMeasure] = None,
         domain: Optional[
-            Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
+            Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]]
         ] = None,
         policy: str = "bmc",
         max_nevals: Optional[IntArgType] = None,

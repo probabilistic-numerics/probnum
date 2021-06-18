@@ -21,14 +21,14 @@ class IntegrationMeasure(abc.ABC):
     input_dim :
         Dimension of the integration domain.
     domain :
-        Tuple which contains two arrays which define the start and end points,
-        respectively, of the rectangular integration domain.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
+         ``int`` or ``np.ndarray``.
     """
 
     def __init__(
         self,
         input_dim: IntArgType,
-        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
     ) -> None:
 
         self._set_dimension_domain(input_dim, domain)
@@ -78,68 +78,53 @@ class IntegrationMeasure(abc.ABC):
     def _set_dimension_domain(
         self,
         input_dim: IntArgType,
-        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
     ) -> None:
         """Sets the integration domain and input_dimension.
 
-        The following logic is used to set the domain and dimension:
-            1. If ``input_dim`` is not given (``input_dim == None``):
-                1a. If either ``domain[0]`` or ``domain[1]`` is a scalar, the dimension
-                    is set as the maximum of their lengths and the scalar is expanded to
-                    a constant vector.
-                1b. Otherwise, if the ``domain[0]`` and ``domain[1]`` are not of equal
-                    length, an error is raised.
-            2. If ``input_dim`` is given:
-                2a. If both ``domain[0]`` and ``domain[1]`` are scalars, they are
-                    expanded to constant vectors of length ``input_dim``.
-                2b. If only one of `domain[0]`` and ``domain[1]`` is a scalar and the
-                    length of the other equals ``input_dim``, the scalar one is expanded to a
-                    constant vector of length ``input_dim``.
-                2c. Otherwise, if neither of ``domain[0]`` and ``domain[1]`` is a
-                    scalar, error is raised if either of them has length which does not
-                    equal ``input_dim``.
+        If no ``input_dim`` is given, the dimension is inferred from the lengths of
+        domain limits ``domain[0]`` and ``domain[1]``. These must be either scalars
+        or arrays of equal length.
+
+        If ``input_dim`` is given, the domain limits must be either scalars or arrays.
+        If they are arrays, their lengths must equal ``input_dim``. If they are scalars,
+        the domain is taken to be the hypercube
+
+             [domain[0], domain[1]] x .... x [domain[0], domain[1]]
+
+        of dimension ``input_dim``.
         """
-        domain_a_dim = np.size(domain[0])
-        domain_b_dim = np.size(domain[1])
+        # Domain limits must have equal dimensions and input dimension must be positive
+        if np.size(domain[0]) != np.size(domain[1]):
+            raise ValueError(
+                "Domain limits must be given either as scalars or arrays "
+                "of equal dimension."
+            )
+        if input_dim is not None and input_dim < 1:
+            raise ValueError("If given, input dimension must be positive.")
 
-        # Check that given dimensions match and are positive
-        dim_mismatch = False
+        domain_dim = np.size(domain[0])
+
+        # If no input dimension has been given, infer this from the domain. Else,
+        # if necessary, expand domain limits if they are scalars
         if input_dim is None:
-            if domain_a_dim == domain_b_dim:
-                input_dim = domain_a_dim
-            elif domain_a_dim == 1 or domain_b_dim == 1:
-                input_dim = np.max([domain_a_dim, domain_b_dim])
-            else:
-                dim_mismatch = True
-        else:
-            if (domain_a_dim > 1 or domain_b_dim > 1) and input_dim != np.max(
-                [domain_a_dim, domain_b_dim]
-            ):
-                dim_mismatch = True
-
-        if dim_mismatch:
-            raise ValueError(
-                "Domain limits must have the same length or at least "
-                "one of them has to be one-dimensional."
-            )
-        if input_dim < 1:
-            raise ValueError(
-                f"Domain dimension input_dim = {input_dim} must be positive."
-            )
-
-        # Use same domain limit in all dimensions if only one limit is given
-        if domain_a_dim == 1:
+            input_dim = domain_dim
+            (domain_a, domain_b) = domain
+        elif input_dim is not None and domain_dim == 1:
             domain_a = np.full((input_dim,), domain[0])
-        else:
-            domain_a = domain[0]
-        if domain_b_dim == 1:
             domain_b = np.full((input_dim,), domain[1])
         else:
+            if input_dim != domain_dim:
+                raise ValueError(
+                    "If domain limits are not scalars, their lengths "
+                    "must match the input dimension."
+                )
+            domain_a = domain[0]
             domain_b = domain[1]
 
-        # Check that the domain is non-empty
+        # Make sure the domain is non-empty
         if not np.all(domain_a < domain_b):
-            raise ValueError("Domain must be non-empty.")
+            raise ValueError("Integration domain must be non-empty.")
 
         self.input_dim = input_dim
         self.domain = (domain_a, domain_b)
@@ -150,11 +135,11 @@ class LebesgueMeasure(IntegrationMeasure):
 
     Parameters
     ----------
-    input_dim :
-        Dimension of the integration domain
     domain :
-        Tuple which contains two arrays which define the start and end points,
-        respectively, of the rectangular integration domain.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
+         ``int`` or ``np.ndarray``.
+    input_dim :
+        Dimension of the integration domain. If not given, inferred from ``domain``.
     normalized :
          Boolean which controls whether or not the measure is normalized (i.e.,
          integral over the domain is one).
@@ -162,7 +147,7 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def __init__(
         self,
-        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
         input_dim: Optional[IntArgType] = None,
         normalized: Optional[bool] = False,
     ) -> None:
@@ -228,9 +213,6 @@ class GaussianMeasure(IntegrationMeasure):
 
         # Extend scalar mean and covariance to higher dimensions if input_dim has been
         # supplied by the user
-        # pylint: disable=fixme
-        # TODO: This needs to be modified to account for cases where only either the
-        #  mean or covariance is given in scalar form
         if (
             (np.isscalar(mean) or mean.size == 1)
             and (np.isscalar(cov) or cov.size == 1)
@@ -246,10 +228,12 @@ class GaussianMeasure(IntegrationMeasure):
             input_dim = mean.size
 
         # If cov has been given as a vector of variances, transform to diagonal matrix
+        # TODO: Get rid of squeezes
         if isinstance(cov, np.ndarray) and np.squeeze(cov).ndim == 1 and input_dim > 1:
             cov = np.diag(np.squeeze(cov))
 
         # Exploit random variables to carry out mean and covariance checks
+        # TODO: Get rid of squeezes. How does Normal handle this?
         self.random_variable = Normal(mean=np.squeeze(mean), cov=np.squeeze(cov))
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov

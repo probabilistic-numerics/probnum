@@ -26,7 +26,7 @@ def bayesquad(
     input_dim: int,
     kernel: Optional[Kernel] = None,
     domain: Optional[
-        Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
+        Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",

@@ -76,18 +76,19 @@ def test_gaussian_scalar():
 
 
 # Tests for Lebesgue measure
-@pytest.mark.parametrize("domain_a", [0, -1.0, np.array([1.0]), np.array([[-2.0]])])
-def test_lebesgue_dim_correct(input_dim: int, domain_a):
-    """Check that dimensions are handled correctly when one of the domain limits is a
-    scalar."""
-    domain_b1 = np.full((input_dim,), np.squeeze(domain_a) + 1)
-    domain_b2 = np.full((input_dim,), np.squeeze(domain_a) - 1)
-    domain1 = (domain_a, domain_b1)
-    domain2 = (domain_b2, domain_a)
-    measure1 = quad.LebesgueMeasure(domain=domain1)
-    measure2 = quad.LebesgueMeasure(domain=domain2)
-    assert measure1.input_dim == input_dim
-    assert measure2.input_dim == input_dim
+def test_lebesgue_dim_correct(input_dim: int):
+    """Check that dimensions are handled correctly."""
+    domain1 = (0.0, 1.87)
+    measure11 = quad.LebesgueMeasure(domain=domain1)
+    measure12 = quad.LebesgueMeasure(input_dim=input_dim, domain=domain1)
+    domain2 = (np.full((input_dim,), -0.1), np.full((input_dim,), 0.0))
+    measure21 = quad.LebesgueMeasure(domain=domain2)
+    measure22 = quad.LebesgueMeasure(input_dim=input_dim, domain=domain2)
+
+    assert measure11.input_dim == 1
+    assert measure12.input_dim == input_dim
+    assert measure21.input_dim == input_dim
+    assert measure22.input_dim == input_dim
 
 
 @pytest.mark.parametrize("domain_a", [0, np.full((3,), 0), np.full((13,), 0)])
