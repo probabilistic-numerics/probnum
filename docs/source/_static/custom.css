@@ -342,3 +342,7 @@ div[class*="highlight-"] {
 .rst-versions.rst-badge .rst-current-version {
     display: none;
 }
+
+#ethical-ad-placement {
+    display: none;
+}
