@@ -254,6 +254,14 @@ div[class*="highlight-"] {
     margin-right: auto;
 }
 
+/* ToC trees */
+
+.toctree-wrapper .caption {
+    margin-bottom: 0.5rem;
+    font-size: var(--pst-font-size-h3);
+    color: rgba(var(--pst-color-h3));
+}
+
 /* Buttons */
 
 .custom-button {
@@ -294,6 +302,32 @@ div[class*="highlight-"] {
 .avatar {
     vertical-align: middle;
     border-radius: 10%;
+}
+
+/* Sphinx Gallery */
+
+.sphx-glr-thumbcontainer {
+    background: rgba(var(--pst-color-background-lightgray));
+    min-height: 100px;
+    max-height: 200px;
+    float: none;
+    border: none;
+}
+
+.sphx-glr-thumbcontainer:hover {
+    border: none;
+    box-shadow: 0 0 5px rgba(159, 159, 159, 0.5);
+}
+
+.sphx-glr-thumbcontainer img {
+    vertical-align: middle;
+    max-height: 100px;
+    max-width: 120px;
+}
+
+.sphx-glr-thumbcontainer a.internal {
+    text-align: left;
+    padding: 10px 10px 10px 200px;
 }
 
 /* ReadTheDocs */
