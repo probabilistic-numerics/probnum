@@ -23,8 +23,8 @@ class PerturbedStepSolver(diffeq.ODESolver):
         Scales the amount of noise that is introduced.
     perturb_function :
         Defines how the stepsize is distributed. This can be either one of
-        perturb_lognormal() or perturb_uniform() or any other perturbation function with
-        input parameters step, solver_order, noise_scale, random_state and size.
+        ``perturb_lognormal()`` or ``perturb_uniform()`` or any other perturbation function with
+        input parameters step, ``solver_order``, ``noise_scale``, ``random_state`` and size.
     random_state :
         Random state (seed, generator) to be used for sampling base measure realizations.
     """
