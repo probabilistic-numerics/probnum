@@ -57,10 +57,6 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         super().__init__(locations=locations, states=states)
         self.transition = transition
 
-        # if isinstance(diffusion_model, statespace.PiecewiseConstantDiffusion):
-        #     self.diffusion_is_dynamic = True
-        # else:
-        #     self.diffusion_is_dynamic = False
         self.diffusion_model = diffusion_model
         self.diffusion_model_has_been_provided = diffusion_model is not None
 
@@ -298,7 +294,6 @@ class SmoothingPosterior(KalmanPosterior):
         # Find locations of the diffusions, which amounts to finding the locations
         # of the grid points in t (think: `all_locations`), which is done via np.searchsorted:
         diffusion_indices = np.searchsorted(self.locations[:-2], t[1:])
-        # diffusion_indices[diffusion_indices >= len(self.locations) - 1] = -1
         if self.diffusion_model_has_been_provided:
             squared_diffusion_list = self.diffusion_model[diffusion_indices]
         else:
