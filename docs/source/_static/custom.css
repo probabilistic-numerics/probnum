@@ -34,7 +34,7 @@
     --pst-color-primary: var(--pst-color-pn-green);
     --pst-color-primary-light: 255, 255, 255;
     --pst-color-background: 252, 252, 252;
-    --pst-color-background-dark: 19, 22, 27;
+    --pst-color-background-dark: 0, 43, 55;
     --pst-color-background-lightgray: 242, 242, 242;
     --pst-color-success: 40, 167, 69;
     --pst-color-info: 0, 123, 255;
@@ -50,7 +50,7 @@
     --pst-color-paragraph: var(--pst-color-text-base);
     --pst-color-link: var(--pst-color-pn-blue);
     --pst-color-link-hover: 0, 121, 168;
-    --pst-color-headerlink: 198, 15, 15;
+    --pst-color-headerlink: var(--pst-color-pn-blue);
     --pst-color-headerlink-hover: 255, 255, 255;
     --pst-color-preformatted-text: 34, 34, 34;
     --pst-color-preformatted-background: 250, 250, 250;
@@ -243,9 +243,6 @@ a>code {
     color: rgba(var(--pst-color-inline-code));
 }
 
-.highlight {
-    background: var(--pst-code-background);
-}
 
 .highlight-max-width {
     max-width: var(--pst-code-max-width);
@@ -255,6 +252,26 @@ div[class*="highlight-"] {
     margin: 1em 0;
     margin-left: auto;
     margin-right: auto;
+}
+
+div.nbinput.container div.prompt pre {
+    display: none;
+}
+
+div.nbinput.container {
+    padding-top: 5px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+pre {
+    background-color: unset;
+    color: unset;
+    border: none;
+}
+
+.output_area pre {
+    color: rgba(var(--pst-color-preformatted-text))
 }
 
 /* ToC trees */
