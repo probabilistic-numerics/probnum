@@ -19,6 +19,7 @@ class MockODESolver(ODESolver):
         return (
             Constant(xnew),
             np.nan,
+            xnew,
         )  # return nan as error estimate to ensure that it is not used
 
     def rvlist_to_odesol(self, times, rvs):
