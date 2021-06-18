@@ -2,16 +2,6 @@
 {%- extends "basic/layout.html" %}
 {%- import "static/webpack-macros.html" as _webpack with context %}
 
-<!--
-{# prev/next buttons #}
-{% macro prev_next(prev, next, prev_title='', next_title='') %}
- {%- if prev %}
-    <a class='left-prev' id="prev-link" href="{{ prev.link|e }}" title="{{ _('previous page')}}">{{ prev_title or prev.title }}</a>
- {%- endif %}
- {%- if next %}
-    <a class='right-next' id="next-link" href="{{ next.link|e }}" title="{{ _('next page')}}">{{ next_title or next.title }}</a>
- {%- endif %}
-{% endmacro %} -->
 
 {%- block css %}
     {{ _webpack.head_pre_bootstrap() }}
@@ -29,16 +19,16 @@
 <!-- Font Awesome -->
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <!-- favicons via realfavicongenerator.net -->
-<link rel="apple-touch-icon" sizes="180x180" href="_static/favicons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="_static/favicons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="_static/favicons/favicon-16x16.png">
-<link rel="manifest" href="_static/favicons/site.webmanifest">
-<link rel="mask-icon" href="_static/favicons/safari-pinned-tab.svg" color="#28bab4">
-<link rel="shortcut icon" href="_static/favicons/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="_static/img/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="_static/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="_static/img/favicons/favicon-16x16.png">
+<link rel="manifest" href="_static/img/favicons/site.webmanifest">
+<link rel="mask-icon" href="_static/img/favicons/safari-pinned-tab.svg" color="#28bab4">
+<link rel="shortcut icon" href="_static/img/favicons/favicon.ico">
 <meta name="apple-mobile-web-app-title" content="ProbNum">
 <meta name="application-name" content="ProbNum">
 <meta name="msapplication-TileColor" content="#28bab4">
-<meta name="msapplication-config" content="_static/favicons/browserconfig.xml">
+<meta name="msapplication-config" content="_static/img/favicons/browserconfig.xml">
 <meta name="theme-color" content="#ffffff">
 <!-- end favicons -->
 {% endblock %}
