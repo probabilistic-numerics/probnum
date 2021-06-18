@@ -164,6 +164,10 @@ body {
     font-size: 2rem;
 }
 
+.navbar-toggler {
+    margin: .5rem;
+}
+
 /* Footer */
 
 .page-footer h4 {
