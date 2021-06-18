@@ -21,7 +21,9 @@ def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=())
 
     References
     ----------
-    .. [1] https://arxiv.org/abs/1801.01340
+    .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
+       uncertainty quantification in chaotic and geometric numerical integration.
+       Statistics and Computing, 1-26.
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
