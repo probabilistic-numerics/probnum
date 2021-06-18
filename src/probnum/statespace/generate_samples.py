@@ -40,7 +40,7 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
             base_measure_realizations=base_measure_realizations_latent_state,
             t=times,
             initrv=initrv,
-            _diffusion_list=np.ones_like(times),
+            _diffusion_list=np.ones_like(times[:-1]),
         )
     )
 
