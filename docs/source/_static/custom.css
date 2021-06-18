@@ -198,6 +198,10 @@ body {
     padding-top: 5px
 }
 
+.commit code {
+    color: rgba(var(--pst-color-primary-light), 0.5)
+}
+
 /* Landing Page */
 
 .hero-banner {
