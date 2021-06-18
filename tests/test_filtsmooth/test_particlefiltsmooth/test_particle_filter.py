@@ -42,7 +42,7 @@ def num_particles():
 @pytest.fixture(params=[None, -10])
 def problem(request):
     initarg = request.param
-    return filtsmooth_zoo.pendulum(step=0.12, initarg=initarg)
+    return filtsmooth_zoo.pendulum(step=0.12, initarg=initarg, random_state=123)
 
 
 @pytest.fixture
@@ -130,4 +130,4 @@ def test_rmse_particlefilter(pf_output, regression_problem):
     ) / np.sqrt(true_states.size)
 
     # RMSE of PF.mode strictly better than RMSE of data
-    assert rmse_mode < rmse_data
+    assert rmse_mode < 0.99 * rmse_data
