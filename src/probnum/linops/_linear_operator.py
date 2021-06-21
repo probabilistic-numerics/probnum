@@ -955,7 +955,7 @@ class Matrix(LinearOperator):
 
     def _sparse_inv(self) -> "Matrix":
         try:
-            return Matrix(scipy.sparse.linalg.inv(self.A))
+            return Matrix(scipy.sparse.linalg.inv(self.A.tocsc()))
         except RuntimeError as err:
             raise np.linalg.LinAlgError(str(err)) from err
 
