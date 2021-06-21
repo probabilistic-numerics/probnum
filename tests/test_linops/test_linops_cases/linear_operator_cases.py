@@ -46,3 +46,14 @@ def case_sparse_matrix(
     matrix.setdiag(2)
 
     return pn.linops.Matrix(matrix), matrix.toarray()
+
+
+@pytest.mark.parametrize("rng", [np.random.default_rng(42)])
+def case_sparse_matrix_singular(
+    rng: np.random.Generator,
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    matrix = scipy.sparse.rand(
+        10, 10, density=0.01, format="csr", dtype=np.double, random_state=rng
+    )
+
+    return pn.linops.Matrix(matrix), matrix.toarray()
