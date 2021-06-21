@@ -13,7 +13,7 @@ Getting Started
 .. nbgallery::
    :caption: Getting Started
 
-   introduction/quickstart
+   tutorials/quickstart
    tutorials/pn_methods
 
 

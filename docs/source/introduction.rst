@@ -8,4 +8,4 @@ Introduction
    :maxdepth: 1
    :caption: Introduction
 
-   introduction/quickstart
+   tutorials/quickstart

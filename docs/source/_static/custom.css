@@ -175,7 +175,7 @@ body {
 }
 
 .page-footer .nav-link {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     color: rgba(var(--pst-color-navbar-link));
 }
 
@@ -307,6 +307,14 @@ pre {
     transition-property: color, background, border-color;
     transition-duration: var(--pst-button-transition-duration);
     transition-timing-function: var(--pst-transition-timing-default);
+}
+
+/* Blockquote */
+
+blockquote {
+    background: rgba(var(--pst-color-background-lightgray));
+    border-left: 10px solid #ccc;
+    padding: 0.5em 10px;
 }
 
 /* Contributors */
