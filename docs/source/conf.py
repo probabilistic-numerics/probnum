@@ -16,6 +16,7 @@
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 
 from pkg_resources import DistributionNotFound, get_distribution
 
@@ -42,6 +43,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_automodapi.automodapi",
     "sphinx_autodoc_typehints",
+    "sphinxcontrib.bibtex",
     "sphinx_gallery.load_style",
     "myst_parser",
     "nbsphinx",
@@ -215,3 +217,10 @@ sphinx_gallery_conf = {
 # MyST configuration
 myst_update_mathjax = False  # needed for mathjax compatibility with nbsphinx
 myst_enable_extensions = ["dollarmath", "amsmath"]
+
+# Sphinx Bibtex configuration
+bibtex_bibfiles = []
+for f in Path("research/bibliography").glob("*.bib"):
+    bibtex_bibfiles.append(str(f))
+bibtex_default_style = "plain"
+bibtex_encoding = "utf-8-sig"

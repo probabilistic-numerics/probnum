@@ -8,19 +8,40 @@ featured in this list, please open a pull request on GitHub.
 The following papers are often cited as early works on the
 idea of uncertainty over the result of deterministic computations. Some entries have a "notes" field providing further information about the relevance of the cited work, or pointers to specific results therein.
 
-{% bibliography --file general %}
+<!-- {% bibliography --file general %} -->
+```{bibliography} bibliography/general.bib
+---
+all:
+list: bullet
+---
+```
 
 ## Quadrature
 
-{% bibliography --file Quadrature %}
+```{bibliography} bibliography/Quadrature.bib
+---
+all:
+list: bullet
+---
+```
 
 ## Linear Algebra
 
-{% bibliography --file LinearAlgebra %}
+```{bibliography} bibliography/LinearAlgebra.bib
+---
+all:
+list: bullet
+---
+```
 
 ## Optimization
 
-{% bibliography --file Optimization %}
+```{bibliography} bibliography/Optimization.bib
+---
+all:
+list: bullet
+---
+```
 
 ## Ordinary Differential Equations
 
@@ -35,28 +56,49 @@ also found interest in machine learning: inferring a differential equation from
 ODE. Below, this is listed under "inferring ODEs".
 
 ### Solving ODEs
-{% bibliography --file ODEs %}
+
+```{bibliography} bibliography/ODEs.bib
+---
+all:
+list: bullet
+---
+```
 
 ### Inferring ODEs
-{% bibliography --file ODE_from_path %}
+
+```{bibliography} bibliography/ODE_from_path.bib
+---
+all:
+list: bullet
+---
+```
 
 ## Partial Differential Equations
 
-{% bibliography --file PDEs %}
+```{bibliography} bibliography/PDEs.bib
+---
+all:
+list: bullet
+---
+```
 
 <!--
 ## Approximate Bayesian Computation (ABC)
 
 coming soon
 
-{% bibliography --file ABC %}
 
 ## Applications
 
 coming soon
 
-{% bibliography --file Applications %}
 -->
+
 ## Other Related Research
 
-{% bibliography --file related %}
+```{bibliography} bibliography/related.bib
+---
+all:
+list: bullet
+---
+```

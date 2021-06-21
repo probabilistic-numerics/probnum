@@ -7,7 +7,7 @@ Site Map
 
     introduction
     tutorials
-    api_docs
+    api
     development
     research
 

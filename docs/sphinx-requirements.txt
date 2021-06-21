@@ -9,6 +9,7 @@ pydata-sphinx-theme>=0.6.0
 sphinx-automodapi
 sphinx-autodoc-typehints
 sphinx-gallery
+sphinxcontrib-bibtex
 
 # Markdown conversion
 myst-parser

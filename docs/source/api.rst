@@ -1,7 +1,5 @@
-.. _api_docs:
-
 =================
-API Documentation
+API Reference
 =================
 
 
@@ -40,7 +38,7 @@ finite computational resources and stochastic input.
 
 .. toctree::
     :maxdepth: 2
-    :caption: API Documentation
+    :caption: API Reference
     :hidden:
 
     api/probnum
