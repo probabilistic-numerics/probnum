@@ -3,6 +3,12 @@
 This page lists past and future meetings of the Probabilistic Numerics
 community.
 
+## 2021
+* *October 24 - 29*
+  [Dagstuhl Seminar](https://www.dagstuhl.de/en/program/calendar/semhp/?semnr=21432) **Probabilistic Numerical Methods - From Theory to Implementation** at Schloss Dagstuhl in Wadern, Germany. Organized by Philipp Hennig, Ilse Ipsen, Maren Mahsereci and Tim Sullivan supported by Jonathan Wenger.
+* *August 16 - 20*
+  special session **Probabilistic Numerical Methods** at [MCM 2021](https://www.uni-mannheim.de/mcm-2021/) in Mannheim, Germany. Organized by Jon Cockayne and Toni Karvonen
+
 ## 2020
 * *March 24 - 27*
   Four Minisymposia on **Probabilistic Numerical Methods** at [SIAM Conference on Uncertainty Quantification](https://siam-uq20.ma.tum.de/)

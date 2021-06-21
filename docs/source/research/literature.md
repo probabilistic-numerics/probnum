@@ -4,73 +4,59 @@ This page collects literature on all areas of probabilistic
 numerics, sorted by problem type. If you would like your publication to be
 featured in this list, please open a pull request on GitHub.
 
-**Quick-jump links:**
-
-* <a href="#General">General and Foundational</a>
-* <a href="#Quadrature">Quadrature</a>
-* <a href="#Linear">Linear Algebra</a>
-* <a href="#Optimization">Optimization</a>
-* <a href="#ODEs">Ordinary Differential Equations</a>
-* <a href="#PDEs">Partial Differential Equations</a>
-* <a href="#Related">Other Related Research</a>
-
-<!-- * <a href="#ABC">Approximate Bayesian Computation</a>
-* <a href="#Applications">Applications</a> -->
-
-
-<h2 id="General">General and Foundational</h2>
+## General and Foundational
 The following papers are often cited as early works on the
 idea of uncertainty over the result of deterministic computations. Some entries have a "notes" field providing further information about the relevance of the cited work, or pointers to specific results therein.
 
 {% bibliography --file general %}
 
-<h2 id="Quadrature">Quadrature</h2>
+## Quadrature
 
 {% bibliography --file Quadrature %}
 
-<h2 id="Linear">Linear Algebra</h2>
+## Linear Algebra
 
 {% bibliography --file LinearAlgebra %}
 
-<h2 id="Optimization">Optimization</h2>
+## Optimization
 
 {% bibliography --file Optimization %}
 
-<h2 id="ODEs">Ordinary Differential Equations</h2>
+## Ordinary Differential Equations
 
 To avoid a frequent initial confusion for new readers, it may be helpful to
 point out that there are two common ways in which probabilistic methods are
 used in combination with ordinary differential equations: The "classic" problem
 of numerics is to infer the solution to an initial value problem given access
-to the differential equation. Below, we term this problem <a
-href="#solvingODEs">"solving ODEs"</a>. The reverse problem, in some sense, has
+to the differential equation. Below, we term this problem "solving ODEs". The
+reverse problem, in some sense, has
 also found interest in machine learning: inferring a differential equation from
 (noisy) observations of trajectories that are assumed to be governed by this
-ODE. Below, this is listed under <a href="#inferringODEs">"inferring ODEs"</a>.
+ODE. Below, this is listed under "inferring ODEs".
 
-<h3 id="solvingODEs">Work regarding "solving ODEs"</h3>
+### Solving ODEs
 {% bibliography --file ODEs %}
 
-<h3 id="inferringODEs">Work regarding "inferring ODEs"</h3>
+### Inferring ODEs
 {% bibliography --file ODE_from_path %}
 
-<h2 id="PDEs">Partial Differential Equations</h2>
+## Partial Differential Equations
 
 {% bibliography --file PDEs %}
 
 <!--
-<h2 id="ABC">Approximate Bayesian Computation (ABC)</h2>
+## Approximate Bayesian Computation (ABC)
 
 coming soon
 
 {% bibliography --file ABC %}
 
-<h2 id="Applications">Applications</h2>
+## Applications
 
 coming soon
 
 {% bibliography --file Applications %}
 -->
-<h2 id="Related">Other Related Research</h2>
+## Other Related Research
 
 {% bibliography --file related %}

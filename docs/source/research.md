@@ -44,9 +44,12 @@ and finally it offers a principled approach of including numerical error in the 
 
 ## Meetings and Events
 
+Find information on [past and upcoming meetings](research/meetings/index) of the Probabilistic Numerics community.
+
 ```{toctree}
 ---
 maxdepth: 1
+hidden:
 ---
 
 research/meetings/index
@@ -54,9 +57,12 @@ research/meetings/index
 
 ## Literature
 
+Probabilistic Numerics is a constantly evolving and developing field. Nevertheless we provide an incomplete [list of foundational and recent research](research/literature).
+
 ```{toctree}
 ---
 maxdepth: 1
+hidden:
 ---
 
 research/literature
