@@ -904,7 +904,7 @@ class Matrix(LinearOperator):
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
             rmatmul = LinearOperator.broadcast_rmatmat(lambda x: x @ self.A)
             todense = self.A.toarray
-            inverse = lambda: Matrix(scipy.sparse.linalg.inv(self.A))
+            inverse = lambda: Matrix(scipy.sparse.linalg.inv(self.A.tocsc()))
             trace = lambda: self.A.diagonal().sum()
         else:
             self.A = np.asarray(A)
