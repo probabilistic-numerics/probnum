@@ -1,4 +1,54 @@
-# ProbNum Team and Contributors
+# Development
+
+```{toctree}
+---
+maxdepth: 1
+hidden:
+caption: Development
+---
+
+development/contributing
+development/pull_request
+development/developer_guides
+development/styleguide
+```
+
+
+## Getting Involved as a Student
+
+Are you a university student and have an interest in ProbNum?
+
+**University of Tübingen**: If you are interested in a thesis project or student job involving ProbNum, check the listings [here](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/methoden-des-maschinellen-lernens/stellen/bachelor-master-available-thesis-topics/) or contact us directly.
+
+
+**Other Universities**: For students at other universities, we do not offer thesis projects at this time. However, you can still contribute to ProbNum by checking out [open issues on GitHub](https://github.com/probabilistic-numerics/probnum/issues?q=is%3Aopen+is%3Aissue).
+
+
+# Benchmarking
+
+In ProbNum computational cost with regard to time and memory is measured via a [benchmark suite](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/).
+
+<div>
+	<iframe class="benchmark-preview" src="https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/" allowfullscreen>
+		<a href="https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/">ProbNum's Benchmarks</a>
+	</iframe>
+</div>
+
+Benchmarks are run by [airspeed velocity](https://asv.readthedocs.io/en/stable/) which tracks performance changes over time. You can add a new benchmark yourself by following [this tutorial](https://asv.readthedocs.io/en/stable/writing_benchmarks.html).
+
+
+```{toctree}
+---
+maxdepth: 1
+hidden:
+caption: Benchmarking
+---
+
+ProbNum's Benchmarks <https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/>
+```
+
+
+# ProbNum Team
 
 The following people contributed to the ProbNum repository.
 

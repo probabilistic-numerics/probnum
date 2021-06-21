@@ -11,6 +11,7 @@ Getting Started
 ***************
 
 .. nbgallery::
+   :caption: Getting Started
 
    introduction/quickstart
    tutorials/pn_methods
@@ -26,7 +27,7 @@ Random variables are the main objects in ProbNum. They represent uncertainty abo
 distribution. A probabilistic numerical method takes random variables as inputs and also outputs random variables.
 
 .. nbgallery::
-   :maxdepth: 2
+   :caption: Probability
 
    tutorials/probability/random_variables
 
@@ -39,7 +40,7 @@ Linear algebra is fundamental to arguably most of scientific computation. ProbNu
 operators in a memory-efficient manner and implements probabilistic numerical methods to solve linear systems.
 
 .. nbgallery::
-   :maxdepth: 2
+   :caption: Linear Algebra
 
    tutorials/linalg/linear_operators
    tutorials/linalg/linear_systems
@@ -55,6 +56,7 @@ the uncertainty introduced by discretization.
 
 
 .. nbgallery::
+   :caption: Differential Equations
 
    tutorials/odes/adaptive_steps_odefilter
    tutorials/odes/uncertainties_odefilters
@@ -69,7 +71,7 @@ For non-linear state space components, ProbNum provides linearization techniques
 Gaussian filtering and smoothing in more complex dynamical systems.
 
 .. nbgallery::
-   :maxdepth: 2
+   :caption: Bayesian Filtering and Smoothing
 
    tutorials/filtsmooth/linear_gaussian_filtering_smoothing
    tutorials/filtsmooth/nonlinear_gaussian_filtering_smoothing

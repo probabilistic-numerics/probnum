@@ -71,7 +71,7 @@ typehints_document_rtype = True
 source_suffix = [".rst", ".md", ".ipynb"]
 
 # The master toctree document.
-master_doc = "contents"
+master_doc = "sitemap"
 
 # General information about the project.
 project = "probnum"
