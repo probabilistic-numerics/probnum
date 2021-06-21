@@ -1,18 +1,28 @@
-import probnum.filtsmooth as pnfs
+"""Tests for extended Kalman filtering."""
 
-from .. import filtsmooth_testcases as cases
+import pytest
+
+from probnum import filtsmooth
+
+from ._linearization_test_interface import (
+    InterfaceContinuousLinearizationTest,
+    InterfaceDiscreteLinearizationTest,
+)
 
 
-class TestContinuousEKFComponent(cases.LinearisedContinuousTransitionTestCase):
-    """Implementation incomplete, hence check that an error is raised."""
+class TestDiscreteEKFComponent(InterfaceDiscreteLinearizationTest):
 
-    def setUp(self):
-        self.linearising_component_benes_daum = pnfs.ContinuousEKFComponent
-        self.visualise = False
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.linearizing_component = filtsmooth.DiscreteEKFComponent
 
 
-class TestDiscreteEKFComponent(cases.LinearisedDiscreteTransitionTestCase):
-    def setUp(self):
-        self.linearising_component_pendulum = pnfs.DiscreteEKFComponent
-        self.linearising_component_car = pnfs.DiscreteEKFComponent
-        self.visualise = False
+class TestContinuousEKFComponent(InterfaceContinuousLinearizationTest):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.linearizing_component = filtsmooth.ContinuousEKFComponent

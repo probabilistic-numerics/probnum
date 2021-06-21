@@ -10,11 +10,17 @@ import numpy as np
 from scipy import stats
 
 from probnum import _randomvariablelist, randvars, statespace, utils
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+from probnum.type import (
+    DenseOutputLocationArgType,
+    FloatArgType,
+    IntArgType,
+    RandomStateArgType,
+    ShapeArgType,
+)
 
-from ..timeseriesposterior import DenseOutputLocationArgType, TimeSeriesPosterior
-from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
-from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
+from .._timeseriesposterior import TimeSeriesPosterior
+from ._extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
+from ._unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
 
 GaussMarkovPriorTransitionArgType = Union[
     statespace.DiscreteLinearGaussian,
@@ -45,19 +51,21 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         locations: np.ndarray,
         states: _randomvariablelist._RandomVariableList,
         transition: GaussMarkovPriorTransitionArgType,
+        diffusion_model=None,
     ) -> None:
 
         super().__init__(locations=locations, states=states)
         self.transition = transition
 
+        self.diffusion_model = diffusion_model
+        self.diffusion_model_has_been_provided = diffusion_model is not None
+
     @abc.abstractmethod
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
         raise NotImplementedError
 
@@ -90,6 +98,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
             size=(size + all_locations.shape + single_rv_shape),
             random_state=random_state,
         )
+
         samples = self.transform_base_measure_realizations(
             base_measure_realizations=base_measure_realizations, t=all_locations
         )
@@ -153,29 +162,50 @@ class SmoothingPosterior(KalmanPosterior):
         states: _randomvariablelist._RandomVariableList,
         transition: GaussMarkovPriorTransitionArgType,
         filtering_posterior: TimeSeriesPosterior,
+        diffusion_model=None,
     ):
         self.filtering_posterior = filtering_posterior
-        super().__init__(locations, states, transition)
+        super().__init__(locations, states, transition, diffusion_model=diffusion_model)
 
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
         # Otherwise, there is no reference point that can be used for interpolation.
-        if previous_location is None and next_location is None:
+        if previous_index is None and next_index is None:
             raise ValueError
+
+        previous_location = (
+            self.locations[previous_index] if previous_index is not None else None
+        )
+        next_location = self.locations[next_index] if next_index is not None else None
+        previous_state = (
+            self.states[previous_index] if previous_index is not None else None
+        )
+        next_state = self.states[next_index] if next_index is not None else None
 
         # Corner case 1: point is on grid. In this case, don't compute anything.
         if t == previous_location:
             return previous_state
         if t == next_location:
             return next_state
+
+        # This block avoids calling self.diffusion_model, because we do not want
+        # to search the full index set -- we already know the index!
+        # This is the reason that `Diffusion` objects implement a __getitem__.
+        # The usual diffusion-index is the next index ('Diffusion's include the right-hand side gridpoint!),
+        # but if we are right of the domain, the previous_index matters.
+        diffusion_index = next_index if next_index is not None else previous_index
+        if diffusion_index >= len(self.locations) - 1:
+            diffusion_index = -1
+        if self.diffusion_model_has_been_provided:
+            squared_diffusion = self.diffusion_model[diffusion_index]
+        else:
+            squared_diffusion = 1.0
 
         # Corner case 2: are extrapolating to the left
         if previous_location is None:
@@ -188,7 +218,7 @@ class SmoothingPosterior(KalmanPosterior):
             # dt = t - next_location
             # assert dt < 0.0
             # extrapolated_rv_left, _ = self.transition.forward_rv(
-            #     next_state, t=next_location, dt=dt
+            #     next_state, t=next_location, dt=dt, _diffusion=squared_diffusion
             # )
             # return extrapolated_rv_left
             #
@@ -199,22 +229,31 @@ class SmoothingPosterior(KalmanPosterior):
             dt = t - previous_location
             assert dt > 0.0
             extrapolated_rv_right, _ = self.transition.forward_rv(
-                previous_state, t=previous_location, dt=dt
+                previous_state, t=previous_location, dt=dt, _diffusion=squared_diffusion
             )
             return extrapolated_rv_right
 
         # Final case: we are interpolating. Both locations are not None.
         # In this case, filter from the the left to the middle point;
         # And compute a smoothing update from the middle to the RHS point.
+        if np.abs(previous_index - next_index) > 1.1:
+            raise ValueError
         dt_left = t - previous_location
         dt_right = next_location - t
         assert dt_left > 0.0
         assert dt_right > 0.0
         filtered_rv, _ = self.transition.forward_rv(
-            rv=previous_state, t=previous_location, dt=dt_left
+            rv=previous_state,
+            t=previous_location,
+            dt=dt_left,
+            _diffusion=squared_diffusion,
         )
         smoothed_rv, _ = self.transition.backward_rv(
-            rv_obtained=next_state, rv=filtered_rv, t=t, dt=dt_right
+            rv_obtained=next_state,
+            rv=filtered_rv,
+            t=t,
+            dt=dt_right,
+            _diffusion=squared_diffusion,
         )
         return smoothed_rv
 
@@ -252,6 +291,14 @@ class SmoothingPosterior(KalmanPosterior):
         if not np.all(np.diff(t) >= 0.0):
             raise ValueError("Time-points have to be sorted.")
 
+        # Find locations of the diffusions, which amounts to finding the locations
+        # of the grid points in t (think: `all_locations`), which is done via np.searchsorted:
+        diffusion_indices = np.searchsorted(self.locations[:-2], t[1:])
+        if self.diffusion_model_has_been_provided:
+            squared_diffusion_list = self.diffusion_model[diffusion_indices]
+        else:
+            squared_diffusion_list = np.ones_like(t)
+
         # Split into interpolation and extrapolation samples.
         # For extrapolation, samples are propagated forwards.
         # Due to this distinction, we need to treat both cases differently.
@@ -277,6 +324,11 @@ class SmoothingPosterior(KalmanPosterior):
             -len(t_extra_right) :
         ]
 
+        squared_diffusion_list_inter = squared_diffusion_list[: len(t_inter)]
+        squared_diffusion_list_extra_right = squared_diffusion_list[
+            -len(t_extra_right) :
+        ]
+
         states = self.filtering_posterior(t)
         states_inter = states[: len(t_inter)]
         states_extra_right = states[-len(t_extra_right) :]
@@ -286,6 +338,7 @@ class SmoothingPosterior(KalmanPosterior):
                 base_measure_realizations=base_measure_reals_inter,
                 t=t_inter,
                 rv_list=states_inter,
+                _diffusion_list=squared_diffusion_list_inter,
             )
         )
         samples_extra = np.array(
@@ -293,6 +346,7 @@ class SmoothingPosterior(KalmanPosterior):
                 base_measure_realizations=base_measure_reals_extra_right,
                 t=t_extra_right,
                 initrv=states_extra_right[0],
+                _diffusion_list=squared_diffusion_list_extra_right,
             )
         )
         samples = np.concatenate((samples_inter[:-1], samples_extra), axis=0)
@@ -309,15 +363,23 @@ class FilteringPosterior(KalmanPosterior):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
-        if previous_location is None and next_location is None:
+        # Otherwise, there is no reference point that can be used for interpolation.
+        if previous_index is None and next_index is None:
             raise ValueError
+
+        previous_location = (
+            self.locations[previous_index] if previous_index is not None else None
+        )
+        next_location = self.locations[next_index] if next_index is not None else None
+        previous_state = (
+            self.states[previous_index] if previous_index is not None else None
+        )
+        next_state = self.states[next_index] if next_index is not None else None
 
         # Corner case 1: point is on grid
         if t == previous_location:
@@ -342,20 +404,21 @@ class FilteringPosterior(KalmanPosterior):
             #
             ############################################################
 
-        # Corner case 3: are extrapolating to the right
-        if next_location is None:
-            dt = t - previous_location
-            assert dt > 0.0
-            extrapolated_rv_right, _ = self.transition.forward_rv(
-                previous_state, t=previous_location, dt=dt
-            )
-            return extrapolated_rv_right
-
-        # Final case: we are interpolating. Both locations are not None.
+        # Final case: we are extrapolating to the right.
+        # This is also how the filter-posterior interpolates
+        # (by extrapolating from the leftmost point)
+        # previous_index is not None
+        if self.diffusion_model_has_been_provided:
+            diffusion_index = previous_index
+            if diffusion_index >= len(self.locations) - 1:
+                diffusion_index = -1
+            diffusion = self.diffusion_model[diffusion_index]
+        else:
+            diffusion = 1.0
         dt_left = t - previous_location
         assert dt_left > 0.0
         filtered_rv, _ = self.transition.forward_rv(
-            rv=previous_state, t=previous_location, dt=dt_left
+            rv=previous_state, t=previous_location, dt=dt_left, _diffusion=diffusion
         )
         return filtered_rv
 
