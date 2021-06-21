@@ -2,8 +2,6 @@
 
 :root {
     /* Page geometry */
-    --pst-container-width: 1140px;
-    --pst-container-width-xl: 1320px;
     --pst-header-height: 60px;
     /* Fonts */
     --pst-font-family-base-system: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -115,7 +113,7 @@
     /* Code */
     --pst-code-background: rgb(246, 247, 248);
     --pst-code-border-radius: var(--pst-global-radius);
-    --pst-code-max-width: 58.33333%;
+    --pst-code-max-width: 750px;
     /* Other */
     --pst-global-border-width: 1px;
     --pst-global-radius: 0.4rem;
@@ -245,6 +243,7 @@ a>code {
 
 .highlight-max-width {
     max-width: var(--pst-code-max-width);
+    width:100%;
 }
 
 div[class*="highlight-"] {
