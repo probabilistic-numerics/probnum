@@ -1,8 +1,9 @@
 # Integrating Inference with Integration (MCMSki 2016)
-## Lenzerheide, Thursday, 7th January 2016
+
+**Lenzerheide, Thursday, 7th January 2016**
 
 <td width="100%" style="position: relative;">
-    <img src="{{ site.baseurl }}/assets/images/Lenzerheide_Hochtal.jpg" width="100%">
+    <img src="../../_static/img/meetings/Lenzerheide_Hochtal.jpg" width="100%">
     <div>
         <small>
             Lenzerheide by
@@ -18,7 +19,7 @@
 
 This session will be hosted by [MCMSki](http://www.pages.drexel.edu/~mwl25/mcmskiV/index.html), the joint  meeting of the [Institute of Mathematical Statistics](http://www.imstat.org/) and the [International Society for Bayesian Analysis](http://www.bayesian.org/). The workshop is organised by Michael Osborne, [Chris Oates](http://oates.work/) and [François-Xavier Briol](http://www2.warwick.ac.uk/fac/sci/statistics/staff/research_students/briol/).
 
-### Schedule
+## Schedule
 
 The workshop will be held on Thursday, 7th January 2016; the room will be the Activityraum.
 
@@ -26,7 +27,7 @@ The workshop will be held on Thursday, 7th January 2016; the room will be the Ac
 * 10:10-10:40: [François-Xavier Briol](http://www2.warwick.ac.uk/fac/sci/statistics/staff/research_students/briol/)
 * 10:40-11:10: [Roman Garnett](http://cse.wustl.edu/people/Pages/faculty-bio.aspx?faculty=109)
 
-### Session Theme
+## Session Theme
 
 Numerical algorithms, such as methods for the numerical solution of integrals, as well as optimization algorithms, can be interpreted as estimation rules. They estimate the value of a latent, intractable quantity – the value of an integral, the solution of a differential equation, the location of an extremum – given the result of tractable computations (“observations”, such as function values of the integrand, evaluations of the differential equation, function values of the gradient of an objective). So these methods perform inference, and are accessible to the formal frameworks of probability theory. They are learning machines.
 

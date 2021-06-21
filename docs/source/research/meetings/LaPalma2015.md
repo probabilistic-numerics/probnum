@@ -1,7 +1,8 @@
 # Probabilistic Numerics (DALI 2015)
-## La Palma, Canary Islands, 10 - 12 April 2015
 
-<img src="{{ site.baseurl }}/assets/images/LaPalma.jpg" width="100%"/>
+**La Palma, Canary Islands, 10 - 12 April 2015**
+
+<img src="../../_static/img/meetings/LaPalma.jpg" width="100%"/>
 
 
 The first [DALI conference](http://isweb.is.tuebingen.mpg.de/dali/) will take
@@ -15,7 +16,7 @@ Probabilistic Numerics.
 
 *The workshop's schedule can now be found [here](https://docs.google.com/document/d/176OybEsMosSxGWDNqKjKCerlE3FlDef-NLQxYKFCLZw/edit?usp=sharing).*
 
-### Confirmed Speakers
+## Confirmed Speakers
 
 * [John P. Cunningham (Columbia U)](http://stat.columbia.edu/~cunningham/)
 * [Jes Frellsen (Cambridge)](http://mlg.eng.cam.ac.uk/frellsen/)
