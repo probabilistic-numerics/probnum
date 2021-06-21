@@ -905,7 +905,7 @@ class Matrix(LinearOperator):
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
             rmatmul = LinearOperator.broadcast_rmatmat(lambda x: x @ self.A)
             todense = self.A.toarray
-            inverse = lambda: Matrix(scipy.sparse.linalg.inv(self.A))
+            inverse = self._sparse_inv
             trace = lambda: self.A.diagonal().sum()
         else:
             self.A = np.asarray(A)
@@ -953,6 +953,12 @@ class Matrix(LinearOperator):
             return self
 
         return Matrix(A_astype)
+
+    def _sparse_inv(self) -> "Matrix":
+        try:
+            return Matrix(scipy.sparse.linalg.inv(self.A.tocsc()))
+        except RuntimeError as err:
+            raise np.linalg.LinAlgError(str(err)) from err
 
 
 class Identity(LinearOperator):
