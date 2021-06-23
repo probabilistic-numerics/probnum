@@ -6,7 +6,7 @@ function by iteratively building a probabilistic model and adaptively
 choosing points to evaluate the integrand based on said model.
 """
 
-from ._bayesquad import bayesquad, bayesquad_fixed
+from ._bayesquad import bayesquad, bayesquad_from_data
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 from .acquisitions import Acquisition
 from .bq_methods import (
@@ -34,7 +34,7 @@ from .stop_criteria import (
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "bayesquad",
-    "bayesquad_fixed",
+    "bayesquad_from_data",
     "BayesianQuadrature",
     "IntegrationMeasure",
     "KernelEmbedding",

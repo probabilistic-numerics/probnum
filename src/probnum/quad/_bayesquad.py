@@ -31,9 +31,7 @@ def bayesquad(
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
     max_evals: Optional[IntArgType] = None,
-    var_tol: Optional[
-        FloatArgType
-    ] = None,  # TODO: shall we set a default variance tolerance?
+    var_tol: Optional[FloatArgType] = None,
     rel_tol: Optional[FloatArgType] = None,
     batch_size: Optional[IntArgType] = 1,
 ) -> Tuple[Normal, Dict]:
@@ -150,7 +148,7 @@ def bayesquad(
     return integral_belief, bq_state.info
 
 
-def bayesquad_fixed(
+def bayesquad_from_data(
     nodes: np.ndarray,
     fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
@@ -195,7 +193,7 @@ def bayesquad_fixed(
     >>> domain = (0, 1)
     >>> nodes = np.linspace(0, 1, 15)
     >>> fun_evals = 3*nodes**2
-    >>> F, info = bayesquad_fixed(nodes=nodes, fun_evals=fun_evals, domain=domain)
+    >>> F, info = bayesquad_from_data(nodes=nodes, fun_evals=fun_evals, domain=domain)
     >>> print(F.mean)
     1.0001
     """

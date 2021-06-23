@@ -97,7 +97,7 @@ class BayesianQuadrature:
         if rel_tol is not None:
             _stopping_criteria.append(RelativeMeanChange(rel_tol))
 
-        # If no stopping criteria are given, use some default values
+        # If no stopping criteria are given, use some default values (these are arbitrary values)
         if not _stopping_criteria:
             _stopping_criteria.append(IntegralVarianceTolerance(var_tol=1e-6))
             _stopping_criteria.append(MaxNevals(max_evals=input_dim * 25))

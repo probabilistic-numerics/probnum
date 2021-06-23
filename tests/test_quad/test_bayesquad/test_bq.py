@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from scipy.integrate import quad
 
-from probnum.quad import bayesquad, bayesquad_fixed
+from probnum.quad import bayesquad, bayesquad_from_data
 from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
 from probnum.randvars import Normal
 
@@ -51,7 +51,7 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim):
         n_points=n_gh, input_dim=input_dim, mean=measure.mean, cov=measure.cov
     )
     fun_evals = fun(nodes)
-    bq_integral, _ = bayesquad_fixed(
+    bq_integral, _ = bayesquad_from_data(
         nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
@@ -76,7 +76,7 @@ def test_integral_values_sin_lebesgue(kernel, measure, input_dim):
         normalized=measure.normalized,
     )
     fun_evals = fun(nodes)
-    bq_integral, _ = bayesquad_fixed(
+    bq_integral, _ = bayesquad_from_data(
         nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
@@ -118,7 +118,7 @@ def test_domain_and_gaussian_measure_raises_error(measure, input_dim):
     nodes = np.linspace(0, 1, 3)
     fun_evals = fun(nodes)
     with pytest.raises(ValueError):
-        bayesquad_fixed(
+        bayesquad_from_data(
             nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
         )
 
@@ -134,7 +134,7 @@ def test_no_domain_or_measure_raises_error(input_dim):
         bayesquad(fun=fun, input_dim=input_dim)
 
     with pytest.raises(ValueError):
-        bayesquad_fixed(nodes=nodes, fun_evals=fun_evals)
+        bayesquad_from_data(nodes=nodes, fun_evals=fun_evals)
 
 
 @pytest.mark.parametrize("input_dim", [1])
@@ -152,7 +152,7 @@ def test_domain_ignored_if_lebesgue(input_dim, measure):
     # fixed nodes BQ
     nodes = np.linspace(0, 1, 3)
     fun_evals = fun(nodes)
-    bq_integral, _ = bayesquad_fixed(
+    bq_integral, _ = bayesquad_from_data(
         nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
     )
     assert isinstance(bq_integral, Normal)
