@@ -81,7 +81,7 @@ organised by Ben Calderhead
 ## 2014
 
 * *21/22 August*
-  [Roundtable on Probabilistic Numerics]({% post_url 2014-08-22-Roundtable-2014-in-Tuebingen %})
+  [Roundtable on Probabilistic Numerics](RoundtablePN2014)
   hosted by the
   [Max Planck Institute for Intelligent Systems](http://is.tuebingen.mpg.de) in
   Tübingen, Germany
