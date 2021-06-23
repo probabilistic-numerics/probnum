@@ -30,7 +30,7 @@ def bayesquad(
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
-    max_nevals: Optional[IntArgType] = None,
+    max_evals: Optional[IntArgType] = None,
     var_tol: Optional[
         FloatArgType
     ] = None,  # TODO: shall we set a default variance tolerance?
@@ -60,15 +60,15 @@ def bayesquad(
     ----------
     fun :
         Function to be integrated. It needs to accept a shape=(n_eval, input_dim) ``np.ndarray`` and return a
-        shape=(n_eval,) ``np.ndarray``
+        shape=(n_eval,) ``np.ndarray``.
     input_dim :
-        Input dimension of the integration problem
+        Input dimension of the integration problem.
     kernel :
-        the kernel used for the GP model
+        The kernel used for the GP model
     domain :
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as ``int`` or ``np.ndarray``.
     measure:
-        Integration measure, defaults to the Lebesgue measure.
+        Integration measure. Defaults to the Lebesgue measure.
     policy :
         Type of acquisition strategy to use. Options are
 
@@ -76,7 +76,7 @@ def bayesquad(
          Bayesian Monte Carlo [2]_  ``bmc``
         ==========================  =======
 
-    max_nevals :
+    max_evals :
         Maximum number of function evaluations.
     var_tol :
         Tolerance on the variance of the integral.
@@ -117,7 +117,7 @@ def bayesquad(
     0.5000
     """
 
-    # Error management
+    # Check input argument compatibility
     if domain is None and measure is None:
         raise ValueError(
             "You need to either specify an integration domain or an integration "
@@ -132,13 +132,13 @@ def bayesquad(
                 "Both domain and a LebesgueMeasure are specified. The domain information will be ignored."
             )
 
-    bq_method = BayesianQuadrature.from_bayesquad(
+    bq_method = BayesianQuadrature.from_problem(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
         domain=domain,
         policy=policy,
-        max_nevals=max_nevals,
+        max_evals=max_evals,
         var_tol=var_tol,
         rel_tol=rel_tol,
         batch_size=batch_size,
@@ -169,11 +169,11 @@ def bayesquad_fixed(
     fun_evals :
         *shape=(n_eval,)* -- function evaluations at ``nodes``.
     kernel :
-        the kernel used for the GP model
+        The kernel used for the GP model.
     domain :
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
     measure:
-        Integration measure, defaults to the Lebesgue measure.
+        Integration measure. Defaults to the Lebesgue measure.
 
     Returns
     -------
@@ -200,7 +200,7 @@ def bayesquad_fixed(
     1.0001
     """
 
-    # Error management
+    # Check input argument compatibility
     if domain is None and measure is None:
         raise ValueError(
             "You need to either specify an integration domain or an integration "
@@ -223,12 +223,12 @@ def bayesquad_fixed(
 
     nodes = nodes.reshape(n_evals, input_dim)
 
-    bq_method = BayesianQuadrature.from_bayesquad(
+    bq_method = BayesianQuadrature.from_problem(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
         domain=domain,
-        max_nevals=n_evals,
+        max_evals=n_evals,
         batch_size=n_evals,
     )
 

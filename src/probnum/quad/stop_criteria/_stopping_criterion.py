@@ -1,6 +1,5 @@
 """Stopping criteria for Bayesian quadrature."""
 
-from typing import Callable
 
 import numpy as np
 
@@ -10,16 +9,7 @@ from probnum.type import FloatArgType, IntArgType
 
 
 class StoppingCriterion:
-    """Base class for a stopping criterion.
-
-    Parameters
-    ----------
-    stopping_criterion :
-        A function that determines whether a convergence criterion is reached.
-    """
-
-    def __init__(self, stopping_criterion: Callable):
-        self._stopping_criterion = stopping_criterion
+    """Base class for a stopping criterion."""
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
         """Evaluate the stopping criterion.
@@ -36,7 +26,7 @@ class StoppingCriterion:
         has_converged:
             Boolean whether a stopping criterion has been reached
         """
-        return self._stopping_criterion(bq_state)
+        raise NotImplementedError
 
 
 class IntegralVarianceTolerance(StoppingCriterion):
@@ -50,7 +40,6 @@ class IntegralVarianceTolerance(StoppingCriterion):
 
     def __init__(self, var_tol: FloatArgType = None):
         self.var_tol = var_tol
-        super().__init__(stopping_criterion=self.__call__)
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
         return integral_belief.var <= self.var_tol
@@ -72,7 +61,6 @@ class RelativeMeanChange(StoppingCriterion):
 
     def __init__(self, rel_tol: FloatArgType = None):
         self.rel_tol = rel_tol
-        super().__init__(stopping_criterion=self.__call__)
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
         return (
@@ -89,13 +77,12 @@ class MaxNevals(StoppingCriterion):
 
     Parameters
     ----------
-    max_nevals:
+    max_evals:
         Maximum number of function evaluations.
     """
 
-    def __init__(self, max_nevals: IntArgType = None):
-        self.max_nevals = max_nevals
-        super().__init__(stopping_criterion=self.__call__)
+    def __init__(self, max_evals: IntArgType = None):
+        self.max_evals = max_evals
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
-        return bq_state.info.nevals >= self.max_nevals
+        return bq_state.info.nevals >= self.max_evals

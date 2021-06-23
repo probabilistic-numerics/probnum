@@ -23,7 +23,7 @@ class Policy(abc.ABC):
     def __call__(self, bq_state: BQState) -> np.ndarray:
         """Find nodes according to the acquisition policy.
 
-        The nodes found are the argmin of the given acquistion function
+        The nodes found are the :math:`\\argmax` of the given acquisition function.
 
         Returns
         -------
@@ -53,7 +53,7 @@ class OptimalPolicy(Policy):
     def __call__(self, bq_state: BQState) -> np.ndarray:
         """Find nodes according to the acquisition policy.
 
-        The nodes found are the argmin of the given acquistion function
+        The nodes found are the :math:`\\argmax` of the given acquisition function.
 
         Returns
         -------

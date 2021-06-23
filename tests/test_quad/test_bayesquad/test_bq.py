@@ -15,7 +15,7 @@ from ..util import gauss_hermite_tensor, gauss_legendre_tensor
 def test_type_1d(f1d, kernel, measure, input_dim):
     """Test that BQ outputs normal random variables for 1D integrands."""
     integral, _ = bayesquad(
-        fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_nevals=10
+        fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_evals=10
     )
     assert isinstance(integral, Normal)
 
@@ -31,7 +31,7 @@ def test_integral_values_1d(f1d, kernel, measure, input_dim):
 
     # pylint: disable=invalid-name
     bq_integral, _ = bayesquad(
-        fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_nevals=250
+        fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_evals=250
     )
     num_integral, _ = quad(integrand, measure.domain[0], measure.domain[1])
     np.testing.assert_almost_equal(bq_integral.mean, num_integral, decimal=2)
@@ -97,7 +97,7 @@ def test_integral_values_kernel_translate(kernel, measure, input_dim, x):
             kernel=kernel,
             measure=measure,
             var_tol=1e-8,
-            max_nevals=1000,
+            max_evals=1000,
             batch_size=50,
         )
         true_integral = kernel_embedding.kernel_mean(np.atleast_2d(translate_point))

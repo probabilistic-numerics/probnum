@@ -35,7 +35,7 @@ class BayesianQuadrature:
     measure :
         The integration measure.
     policy :
-        The policy for acquiring nodes for function evaluations.
+        The policy choosing nodes at which to evaluate the integrand.
     belief_update :
         The inference method.
     stopping_criteria :
@@ -57,7 +57,7 @@ class BayesianQuadrature:
         self.stopping_criteria = stopping_criteria
 
     @classmethod
-    def from_bayesquad(
+    def from_problem(
         cls,
         input_dim: int,
         kernel: Optional[Kernel] = None,
@@ -66,7 +66,7 @@ class BayesianQuadrature:
             Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]]
         ] = None,
         policy: str = "bmc",
-        max_nevals: Optional[IntArgType] = None,
+        max_evals: Optional[IntArgType] = None,
         var_tol: Optional[FloatArgType] = None,
         rel_tol: Optional[FloatArgType] = None,
         batch_size: Optional[IntArgType] = 1,
@@ -90,8 +90,8 @@ class BayesianQuadrature:
         # Set stopping criteria
         # If multiple stopping criteria are given, BQ stops once the first criterion is fulfilled.
         _stopping_criteria = []
-        if max_nevals is not None:
-            _stopping_criteria.append(MaxNevals(max_nevals))
+        if max_evals is not None:
+            _stopping_criteria.append(MaxNevals(max_evals))
         if var_tol is not None:
             _stopping_criteria.append(IntegralVarianceTolerance(var_tol))
         if rel_tol is not None:
@@ -100,7 +100,7 @@ class BayesianQuadrature:
         # If no stopping criteria are given, use some default values
         if not _stopping_criteria:
             _stopping_criteria.append(IntegralVarianceTolerance(var_tol=1e-6))
-            _stopping_criteria.append(MaxNevals(max_nevals=input_dim * 25))
+            _stopping_criteria.append(MaxNevals(max_evals=input_dim * 25))
 
         return cls(
             kernel=kernel,
