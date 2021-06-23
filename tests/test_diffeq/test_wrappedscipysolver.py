@@ -73,7 +73,7 @@ def test_step_execution(solvers):
     scipysolver.step()
 
     # perform step of the same size
-    random_var, error_est = testsolver.step(
+    random_var, error_est, _ = testsolver.step(
         scipysolver.t_old,
         scipysolver.t,
         randvars.Constant(scipysolver.y_old),
@@ -83,7 +83,7 @@ def test_step_execution(solvers):
 
 def test_step_variables(solvers, y, start_point, stop_point):
     testsolver, scipysolver = solvers
-    solver_y_new, solver_error_estimation = testsolver.step(
+    solver_y_new, solver_error_estimation, _ = testsolver.step(
         start_point, stop_point, randvars.Constant(y)
     )
     y_new, f_new = rk.rk_step(
