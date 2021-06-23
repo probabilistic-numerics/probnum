@@ -112,7 +112,7 @@
     --pst-transition-timing-default: cubic-bezier(0.08, 0.52, 0.52, 1);
     /* Code */
     --pst-code-background: rgb(246, 247, 248);
-    --pst-code-border-radius: var(--pst-global-radius);
+    --pst-code-border-radius: 5px;
     --pst-code-max-width: 750px;
     /* Other */
     --pst-global-border-width: 1px;
@@ -241,6 +241,10 @@ a>code {
     color: rgba(var(--pst-color-inline-code));
 }
 
+.highlight {
+    border-radius: var(--pst-code-border-radius);
+}
+
 .highlight-max-width {
     max-width: var(--pst-code-max-width);
     width: 100%;
@@ -250,10 +254,19 @@ div[class*="highlight-"] {
     margin: 1em 0;
     margin-left: auto;
     margin-right: auto;
+    border-radius: var(--pst-code-border-radius) !important;
 }
 
 div.nbinput.container div.prompt pre {
     display: none;
+}
+
+div.nboutput.container div.prompt pre {
+    display: none;
+}
+
+div.nbinput.container div.input_area {
+    border-radius: var(--pst-code-border-radius) !important;
 }
 
 div.nbinput.container div.prompt, div.nboutput.container div.prompt {
