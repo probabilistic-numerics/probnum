@@ -5,7 +5,7 @@ Site Map
 .. toctree::
     :maxdepth: 2
 
-    introduction
+    tutorials/quickstart
     tutorials
     api
     development

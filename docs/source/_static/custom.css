@@ -243,7 +243,7 @@ a>code {
 
 .highlight-max-width {
     max-width: var(--pst-code-max-width);
-    width:100%;
+    width: 100%;
 }
 
 div[class*="highlight-"] {
@@ -254,6 +254,11 @@ div[class*="highlight-"] {
 
 div.nbinput.container div.prompt pre {
     display: none;
+}
+
+div.nbinput.container div.prompt, div.nboutput.container div.prompt {
+    width: 0ex !important;
+    position: absolute !important;
 }
 
 div.nbinput.container {

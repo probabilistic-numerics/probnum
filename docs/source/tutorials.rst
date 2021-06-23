@@ -29,7 +29,7 @@ distribution. A probabilistic numerical method takes random variables as inputs 
 .. nbgallery::
    :caption: Probability
 
-   tutorials/probability/random_variables
+   tutorials/prob/random_variables
 
 
 
