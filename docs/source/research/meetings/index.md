@@ -91,10 +91,8 @@ organised by Ben Calderhead
 
 * *8 December*
   [Inaugural NIPS Workshop on Probabilistic Numerics](NIPS2012)
-  hosted by
-  [Advances in Neural Information Processing Systems 2012](http://nips.cc/Conferences/2012/),
-  Lake Tahoe, Nevada, USA
-  organized by Philipp Hennig, Michael A Osborne and John P Cunningham
+  hosted by [Advances in Neural Information Processing Systems 2012](http://nips.cc/Conferences/2012/),
+  Lake Tahoe, Nevada, USA organized by Philipp Hennig, Michael A Osborne and John P Cunningham
 
 
 ```{toctree}
