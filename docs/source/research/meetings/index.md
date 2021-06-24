@@ -90,7 +90,7 @@ organised by Ben Calderhead
 ## 2012
 
 * *8 December*
-  [Inaugural NIPS Workshop on Probabilistic Numerics](http://www.probabilistic-numerics.org/index_workshop.html)
+  [Inaugural NIPS Workshop on Probabilistic Numerics](NIPS2012)
   hosted by
   [Advances in Neural Information Processing Systems 2012](http://nips.cc/Conferences/2012/),
   Lake Tahoe, Nevada, USA
@@ -110,4 +110,5 @@ MCMSki2016
 NIPS2015
 LaPalma2015
 RoundtablePN2014
+NIPS2012
 ```
