@@ -87,9 +87,9 @@ def fixture_measure_params(
             mean = random_state.normal(0, 1)
             cov = random_state.uniform(0.5, 1.5)
         else:
-            mean = random_state.normal(0, 1, size=(input_dim, 1))
+            mean = random_state.normal(0, 1, size=(input_dim,))
             if cov_diagonal:
-                cov = random_state.uniform(0.5, 1.5, size=(input_dim, 1))
+                cov = np.diag(random_state.uniform(0.5, 1.5, size=(input_dim,)))
             else:
                 mat = random_state.normal(0, 1, size=(input_dim, input_dim))
                 cov = mat @ mat.T

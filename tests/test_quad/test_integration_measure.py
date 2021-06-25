@@ -30,7 +30,7 @@ def test_gaussian_non_diagonal_covariance(input_dim_non_diagonal):
 def test_gaussian_mean_shape_1d(mean, cov):
     """Test that different types of one-dimensional means and covariances yield one-
     dimensional Gaussian measures when no dimension is given."""
-    measure = quad.GaussianMeasure(mean, cov)
+    measure = quad.GaussianMeasure(mean=mean, cov=cov)
     assert measure.input_dim == 1
     assert measure.mean.size == 1
     assert measure.cov.size == 1
@@ -55,17 +55,6 @@ def test_gaussian_param_assignment(input_dim: int):
     else:
         assert np.array_equal(measure.mean, np.zeros(input_dim))
         assert np.array_equal(measure.cov, np.eye(input_dim))
-
-
-@pytest.mark.parametrize(
-    "cov_vector", [np.array([1, 1]), np.array([0.1, 1, 9.8]), np.full((98,), 0.2)]
-)
-def test_gaussian_vector_cov(cov_vector):
-    """Check that Gaussian with diagonal covariance inputted as a vector works."""
-    input_dim = cov_vector.size
-    mean = np.zeros(input_dim)
-    measure = quad.GaussianMeasure(mean, cov_vector)
-    assert measure.cov.shape == (input_dim, input_dim)
 
 
 def test_gaussian_scalar():
@@ -127,5 +116,5 @@ def test_lebesgue_unnormalized(input_dim: int):
 
 # Tests for all integration measures
 def test_density_call(x, measure):
-    actual_shape = () if x.shape[0] == 1 else (x.shape[0],)
-    assert measure(x).shape == actual_shape
+    expected_shape = (x.shape[0],)
+    assert measure(x).shape == expected_shape

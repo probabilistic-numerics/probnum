@@ -22,24 +22,24 @@ class IntegrationMeasure(abc.ABC):
         Dimension of the integration domain.
     domain :
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
-         ``int`` or ``np.ndarray``.
+         a scalar or ``np.ndarray``.
     """
 
     def __init__(
         self,
-        input_dim: IntArgType,
         domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
+        input_dim: IntArgType,
     ) -> None:
 
         self._set_dimension_domain(input_dim, domain)
 
-    def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
+    def __call__(self, points: Union[FloatArgType, np.ndarray]) -> np.ndarray:
         """Evaluate the density function of the integration measure.
 
         Parameters
         ----------
         points :
-            *shape=(n_points,) or (n_points, input_dim)* -- Input locations.
+            *shape=(n_points, input_dim)* -- Input locations.
 
         Returns
         -------
@@ -47,7 +47,7 @@ class IntegrationMeasure(abc.ABC):
             *shape=(n_points,)* -- Density evaluated at given locations.
         """
         # pylint: disable=no-member
-        return self.random_variable.pdf(points).squeeze()
+        return self.random_variable.pdf(points).reshape(-1)
 
     def sample(
         self,
@@ -66,7 +66,7 @@ class IntegrationMeasure(abc.ABC):
         Returns
         -------
         points :
-            *shape=(n_sample,) or (n_sample,input_dim)* -- Sampled points
+            *shape=(n_sample,input_dim)* -- Sampled points
         """
         # pylint: disable=no-member
         self.random_variable.random_state = random_state
@@ -97,11 +97,15 @@ class IntegrationMeasure(abc.ABC):
         # Domain limits must have equal dimensions and input dimension must be positive
         if np.size(domain[0]) != np.size(domain[1]):
             raise ValueError(
-                "Domain limits must be given either as scalars or arrays "
-                "of equal dimension."
+                f"Domain limits must be given either as scalars or arrays "
+                f"of equal dimension. Current sizes are ({np.size(domain[0])}) "
+                f"and ({np.size(domain[1])})."
             )
         if input_dim is not None and input_dim < 1:
-            raise ValueError("If given, input dimension must be positive.")
+            raise ValueError(
+                f"If given, input dimension must be positive. Current value "
+                f"is ({input_dim})."
+            )
 
         domain_dim = np.size(domain[0])
 
@@ -137,7 +141,7 @@ class LebesgueMeasure(IntegrationMeasure):
     ----------
     domain :
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
-         ``int`` or ``np.ndarray``.
+         scalars or ``np.ndarray``.
     input_dim :
         Dimension of the integration domain. If not given, inferred from ``domain``.
     normalized :
@@ -172,9 +176,9 @@ class LebesgueMeasure(IntegrationMeasure):
             loc=self.domain[0], scale=self.domain[1] - self.domain[0]
         )
 
-    def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
-        num_dat = np.atleast_1d(points).shape[0]
-        return np.full(() if num_dat == 1 else (num_dat,), self.normalization_constant)
+    def __call__(self, points: np.ndarray) -> np.ndarray:
+        num_dat = points.shape[0]
+        return np.full((num_dat,), self.normalization_constant)
 
     def sample(
         self,
@@ -190,8 +194,8 @@ class LebesgueMeasure(IntegrationMeasure):
 class GaussianMeasure(IntegrationMeasure):
     """Gaussian measure on Euclidean space with given mean and covariance.
 
-    If ``mean`` and ``cov`` are scalars but ``input_dim`` is larger than one, ``mean`` and
-    ``cov`` are extended to a constant vector and diagonal matrix, respectively,
+    If ``mean`` and ``cov`` are scalars but ``input_dim`` is larger than one, ``mean``
+    and ``cov`` are extended to a constant vector and diagonal matrix, respectively,
     of appropriate dimensions.
 
     Parameters
@@ -227,14 +231,20 @@ class GaussianMeasure(IntegrationMeasure):
         else:
             input_dim = mean.size
 
-        # If cov has been given as a vector of variances, transform to diagonal matrix
-        # TODO: Get rid of squeezes
-        if isinstance(cov, np.ndarray) and np.squeeze(cov).ndim == 1 and input_dim > 1:
-            cov = np.diag(np.squeeze(cov))
+        super().__init__(
+            input_dim=input_dim,
+            domain=(np.full((input_dim,), -np.Inf), np.full((input_dim,), np.Inf)),
+        )
+
+        # Transform the mean and covariance to scalars if in 1D. This is necessary to
+        # have Normal random variable work as intended working as intended.
+        if input_dim == 1:
+            mean = np.squeeze(mean)
+            cov = np.squeeze(cov)
 
         # Exploit random variables to carry out mean and covariance checks
-        # TODO: Get rid of squeezes. How does Normal handle this?
-        self.random_variable = Normal(mean=np.squeeze(mean), cov=np.squeeze(cov))
+        # pylint: disable=no-member
+        self.random_variable = Normal(mean=mean, cov=cov)
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov
 
@@ -245,8 +255,3 @@ class GaussianMeasure(IntegrationMeasure):
             self.diagonal_covariance = (
                 np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov))) == 0
             )
-
-        super().__init__(
-            input_dim=input_dim,
-            domain=(np.full((input_dim,), -np.Inf), np.full((input_dim,), np.Inf)),
-        )

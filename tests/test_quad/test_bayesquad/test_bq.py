@@ -27,7 +27,7 @@ def test_integral_values_1d(f1d, kernel, measure, input_dim):
     # numerical integral
     # pylint: disable=invalid-name
     def integrand(x):
-        return f1d(x) * measure(x)
+        return f1d(x) * measure(np.atleast_2d(x))
 
     # pylint: disable=invalid-name
     bq_integral, _ = bayesquad(
