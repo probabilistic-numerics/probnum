@@ -1,11 +1,11 @@
 """Product Matern kernel."""
 
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.type import IntArgType
+from probnum.type import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 from ._matern import Matern
@@ -17,7 +17,7 @@ class ProductMatern(Kernel[_InputType]):
     """Product Matern kernel.
 
     Covariance function defined as a product of one-dimensional Matern
-    kernels: :math:`k(x_0, x_1) = \\prod_{i=1}^d k_i(x_{0,i}, x_{1,i}`,
+    kernels: :math:`k(x_0, x_1) = \\prod_{i=1}^d k_i(x_{0,i}, x_{1,i})`,
     where :math:`x_0 = (x_{0,i}, \\ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \\ldots,
     x_{0,d})` and :math:`k_i` are one-dimensional Matern kernels.
 
@@ -36,6 +36,7 @@ class ProductMatern(Kernel[_InputType]):
     See Also
     --------
     Matern : Stationary Matern kernel.
+    ExpQuad : Exponentiated Quadratic / RBF kernel.
 
     Examples
     --------
@@ -53,7 +54,10 @@ class ProductMatern(Kernel[_InputType]):
     """
 
     def __init__(
-        self, input_dim: IntArgType, lengthscales: np.ndarray, nus: np.ndarray
+        self,
+        input_dim: IntArgType,
+        lengthscales: Union[np.ndarray, ScalarArgType],
+        nus: Union[np.ndarray, ScalarArgType],
     ):
         # If only single lengthcsale or nu is given, use this in every dimension
         if np.isscalar(lengthscales) or lengthscales.size == 1:
