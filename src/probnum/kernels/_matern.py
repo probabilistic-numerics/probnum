@@ -96,11 +96,12 @@ class Matern(Kernel[_InputType]):
             )
         elif self.nu == 3.5:
             scaled_pdists = np.sqrt(7) * pdists
+            # Horner's method is used to compute the polynomial part. This yields
+            # a substantial speed improvement over the naive implementation.
             kernmat = (
                 1.0
-                + scaled_pdists
-                + scaled_pdists ** 2 * 2.0 / 5.0
-                + scaled_pdists ** 3 / 15
+                + (1.0 + (2.0 / 5.0 + scaled_pdists / 15.0) * scaled_pdists)
+                * scaled_pdists
             ) * np.exp(-scaled_pdists)
         elif self.nu == np.inf:
             kernmat = np.exp(-(pdists ** 2) / 2.0)
