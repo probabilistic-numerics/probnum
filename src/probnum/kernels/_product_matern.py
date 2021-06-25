@@ -17,8 +17,8 @@ class ProductMatern(Kernel[_InputType]):
     """Product Matern kernel.
 
     Covariance function defined as a product of one-dimensional Matern
-    kernels: :math:`k(x_0, x_1) = \prod_{i=1}^d k_i(x_{0,i}, x_{1,i}`,
-    where :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \ldots,
+    kernels: :math:`k(x_0, x_1) = \\prod_{i=1}^d k_i(x_{0,i}, x_{1,i}`,
+    where :math:`x_0 = (x_{0,i}, \\ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \\ldots,
     x_{0,d})` and :math:`k_i` are one-dimensional Matern kernels.
 
     Parameters

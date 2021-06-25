@@ -61,7 +61,8 @@ class KernelEmbedding:
         Returns
         -------
         k_mean :
-            *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
+            *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
+                                 evaluated at locations x.
         """
         return self._kmean(x=x, kernel=self.kernel, measure=self.measure)
 

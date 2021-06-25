@@ -4,10 +4,8 @@ from typing import Tuple, Union
 
 import numpy as np
 
-import probnum.utils as _utils
 from probnum.kernels import Matern, ProductMatern
 from probnum.quad._integration_measures import LebesgueMeasure
-from probnum.type import ScalarArgType
 
 
 def _kernel_mean_matern_lebesgue(
@@ -28,7 +26,8 @@ def _kernel_mean_matern_lebesgue(
     Returns
     -------
     k_mean :
-        *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
+        *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
+                            evaluated at locations x.
     """
     kernel = _convert_to_product_matern(kernel)
 
@@ -77,7 +76,7 @@ def _kernel_variance_matern_lebesgue(
 
 
 def _convert_to_product_matern(kernel):
-    """Convert a 1D Matern kernel to a ProductMatern."""
+    """Convert a 1D Matern kernel to a ProductMatern for unified treatment."""
     if isinstance(kernel, Matern):
         if kernel.input_dim > 1:
             raise NotImplementedError(
@@ -85,12 +84,11 @@ def _convert_to_product_matern(kernel):
                 "product Matern kernels in dimensions higher than "
                 "one."
             )
-        else:
-            kernel = ProductMatern(
-                input_dim=kernel.input_dim,
-                lengthscales=kernel.lengthscale,
-                nus=kernel.nu,
-            )
+        kernel = ProductMatern(
+            input_dim=kernel.input_dim,
+            lengthscales=kernel.lengthscale,
+            nus=kernel.nu,
+        )
     return kernel
 
 
@@ -99,12 +97,13 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
 
     Note that these are for unnormalized Lebesgue measure.
     """
+    # pylint: disable="invalid-name"
     (a, b) = domain
     ell = kernel.lengthscale
     if kernel.nu == 0.5:
-        return ell * (2.0 - np.exp((a - x) / ell) - np.exp((x - b) / ell))
+        unnormalized_mean = ell * (2.0 - np.exp((a - x) / ell) - np.exp((x - b) / ell))
     elif kernel.nu == 1.5:
-        return (
+        unnormalized_mean = (
             4.0 * ell / np.sqrt(3.0)
             - np.exp(np.sqrt(3.0) * (x - b) / ell)
             / 3.0
@@ -113,8 +112,9 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
             / 3.0
             * (3.0 * x + 2.0 * np.sqrt(3.0) * ell - 3.0 * a)
         )
+
     elif kernel.nu == 2.5:
-        return (
+        unnormalized_mean = (
             16.0 * ell / (3.0 * np.sqrt(5.0))
             - np.exp(np.sqrt(5.0) * (x - b) / ell)
             / (15.0 * ell)
@@ -132,7 +132,7 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
             )
         )
     elif kernel.nu == 3.5:
-        return (
+        unnormalized_mean = (
             1.0
             / (105.0 * ell ** 2)
             * (
@@ -155,6 +155,7 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
         )
     else:
         raise NotImplementedError
+    return unnormalized_mean
 
 
 def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
@@ -162,19 +163,20 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
 
     Note that these are for unnormalized Lebesgue measure.
     """
+    # pylint: disable="invalid-name"
     (a, b) = domain
     r = b - a
     ell = kernel.lengthscale
     if kernel.nu == 0.5:
-        return 2.0 * ell * (r + ell * (np.exp(-r / ell) - 1.0))
+        unnormalized_variance = 2.0 * ell * (r + ell * (np.exp(-r / ell) - 1.0))
     elif kernel.nu == 1.5:
         c = np.sqrt(3.0) * r
-        return (
+        unnormalized_variance = (
             2.0 * ell / 3.0 * (2.0 * c - 3.0 * ell + np.exp(-c / ell) * (c + 3.0 * ell))
         )
     elif kernel.nu == 2.5:
         c = np.sqrt(5.0) * r
-        return (
+        unnormalized_variance = (
             1.0
             / 15.0
             * (
@@ -192,7 +194,7 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
         )
     elif kernel.nu == 3.5:
         c = np.sqrt(7.0) * r
-        return (
+        unnormalized_variance = (
             1.0
             / (105.0 * ell)
             * (
@@ -217,3 +219,4 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
         )
     else:
         raise NotImplementedError
+    return unnormalized_variance
