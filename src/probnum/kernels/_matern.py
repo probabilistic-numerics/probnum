@@ -94,6 +94,14 @@ class Matern(Kernel[_InputType]):
             kernmat = (1.0 + scaled_pdists + scaled_pdists ** 2 / 3.0) * np.exp(
                 -scaled_pdists
             )
+        elif self.nu == 3.5:
+            scaled_pdists = np.sqrt(7) * pdists
+            kernmat = (
+                1.0
+                + scaled_pdists
+                + scaled_pdists ** 2 * 2.0 / 5.0
+                + scaled_pdists ** 3 / 15
+            ) * np.exp(-scaled_pdists)
         elif self.nu == np.inf:
             kernmat = np.exp(-(pdists ** 2) / 2.0)
         else:

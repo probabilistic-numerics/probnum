@@ -10,12 +10,14 @@ from probnum.quad._integration_measures import (
     IntegrationMeasure,
     LebesgueMeasure,
 )
-from probnum.quad.kernel_embeddings import (
-    _kernel_mean_expquad_gauss,
+
+from ._expquad_gauss import _kernel_mean_expquad_gauss, _kernel_variance_expquad_gauss
+from ._expquad_lebesgue import (
     _kernel_mean_expquad_lebesgue,
-    _kernel_mean_matern_lebesgue,
-    _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
+)
+from ._matern_lebesgue import (
+    _kernel_mean_matern_lebesgue,
     _kernel_variance_matern_lebesgue,
 )
 
