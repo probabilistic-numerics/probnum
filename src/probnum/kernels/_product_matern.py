@@ -18,8 +18,8 @@ class ProductMatern(Kernel[_InputType]):
 
     Covariance function defined as a product of one-dimensional Matern
     kernels: :math:`k(x_0, x_1) = \prod_{i=1}^d k_i(x_{0,i}, x_{1,i}`,
-    where :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})`
-    and :math:`k_i` are one-dimensional Matern kernels.
+    where :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \ldots,
+    x_{0,d})` and :math:`k_i` are one-dimensional Matern kernels.
 
     Parameters
     ----------
@@ -27,14 +27,29 @@ class ProductMatern(Kernel[_InputType]):
         Input dimension of the kernel.
     lengthscales :
         Lengthscales of the one-dimensional Matern kernels. Describes the input scale on
-        which the process varies.
+        which the process varies. If a scalar, the same lengthscale is used in each
+        dimension.
     nus :
         Hyperparameters controlling differentiability of the one-dimensional Matern
-        kernels.
+        kernels. If a scalar, the same smoothness is used in each dimension.
 
     See Also
     --------
     Matern : Stationary Matern kernel.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum.kernels import ProductMatern
+    >>> input_dim = 2
+    >>> lengthscales = np.array([0.1, 1.2])
+    >>> nus = np.array([0.5, 3.5])
+    >>> K = ProductMatern(input_dim=2, lengthscales=lenthscales, nus=nus)
+    >>> points = np.array([[0.0, 0.5], [1.0, 1.0], [0.5, 0.2]])
+    >>> K(points)
+    array([[1.00000000e+00, 4.03712525e-05, 6.45332482e-03],
+           [4.03712525e-05, 1.00000000e+00, 5.05119251e-03],
+           [6.45332482e-03, 5.05119251e-03, 1.00000000e+00]])
     """
 
     def __init__(
