@@ -37,13 +37,15 @@ def sol(ivp, step):
         algo_order=1,
         adaptive=False,
         step=step,
+        diffusion_model="constant",
+        dense_output=False,
     )
 
 
 def test_first_iteration(ivp, sol):
     """Test whether first few means and covariances coincide with Proposition 1 in
     Schober et al., 2019."""
-    state_rvs = sol.kalman_posterior.filtering_posterior.states
+    state_rvs = sol.kalman_posterior.states
     ms, cs = state_rvs.mean, state_rvs.cov
 
     exp_mean = np.array([ivp.initrv.mean, ivp.rhs(0, ivp.initrv.mean)])
@@ -57,7 +59,8 @@ def test_second_iteration(ivp, sol, step):
     1 in Schober et al., 2019.
     """
 
-    state_rvs = sol.kalman_posterior.filtering_posterior.states
+    state_rvs = sol.kalman_posterior.states
+
     ms, cs = state_rvs.mean, state_rvs.cov
 
     y0 = ivp.initrv.mean
@@ -82,10 +85,24 @@ def test_convergence_error(ivp, algo_order):
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
     sol_small_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_small, algo_order=algo_order, adaptive=False
+        f,
+        t0,
+        tmax,
+        y0,
+        step=step_small,
+        algo_order=algo_order,
+        adaptive=False,
+        diffusion_model="dynamic",
     )
     sol_large_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_large, algo_order=algo_order, adaptive=False
+        f,
+        t0,
+        tmax,
+        y0,
+        step=step_large,
+        algo_order=algo_order,
+        adaptive=False,
+        diffusion_model="dynamic",
     )
 
     # Check that the final point is identical (sanity check)
@@ -101,5 +118,5 @@ def test_convergence_error(ivp, algo_order):
     # Non-strict rtol, bc this test is flaky by construction
     # As long as rtol < 1., this test seems meaningful.
     np.testing.assert_allclose(
-        err_small_step, expected_decay * err_large_step, rtol=0.9
+        err_small_step, expected_decay * err_large_step, rtol=0.95
     )

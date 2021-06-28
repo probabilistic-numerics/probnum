@@ -19,6 +19,7 @@ class ODESolver(ABC):
         steprule : :class:`StepRule`
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
+        self.steprule = steprule
         times, rvs = [], []
         for t, rv in self.solution_generator(steprule):
             times.append(t)
@@ -38,11 +39,10 @@ class ODESolver(ABC):
         while t < self.ivp.tmax:
 
             t_new = t + stepsize
-            proposed_rv, errorest = self.step(t, t_new, current_rv)
+            proposed_rv, errorest, reference_state = self.step(t, t_new, current_rv)
             internal_norm = steprule.errorest_to_norm(
                 errorest=errorest,
-                proposed_state=proposed_rv.mean,
-                current_state=current_rv.mean,
+                reference_state=reference_state,
             )
             if steprule.is_accepted(internal_norm):
                 self.num_steps += 1

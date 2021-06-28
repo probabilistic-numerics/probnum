@@ -1,17 +1,28 @@
 """Gaussian filtering and smoothing."""
 
 
-from typing import Optional
+from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import problems
-from probnum.filtsmooth.gaussfiltsmooth import stoppingcriterion
+from probnum import problems, statespace
 
-from ..bayesfiltsmooth import BayesFiltSmooth
-from ..timeseriesposterior import TimeSeriesPosterior
-from .kalmanposterior import FilteringPosterior, SmoothingPosterior
-from .stoppingcriterion import StoppingCriterion
+from .._bayesfiltsmooth import BayesFiltSmooth
+from .._timeseriesposterior import TimeSeriesPosterior
+from ._extendedkalman import DiscreteEKFComponent
+from ._kalmanposterior import FilteringPosterior, SmoothingPosterior
+from ._stoppingcriterion import StoppingCriterion
+from ._unscentedkalman import DiscreteUKFComponent
+
+# Measurement models for a Kalman filter can be all sorts of things:
+KalmanSingleMeasurementModelType = Union[
+    statespace.DiscreteLinearGaussian,
+    DiscreteEKFComponent,
+    DiscreteUKFComponent,
+]
+KalmanMeasurementModelArgType = Union[
+    KalmanSingleMeasurementModelType, Iterable[KalmanSingleMeasurementModelType]
+]
 
 
 class Kalman(BayesFiltSmooth):
@@ -19,24 +30,18 @@ class Kalman(BayesFiltSmooth):
 
     Parameters
     ----------
-    dynamics_model
-        Prior dynamics. Usually an LTISDE object or an Integrator, but LinearSDE, ContinuousEKFComponent,
+    prior_process
+        Prior Gauss-Markov process. Usually a :class:`MarkovProcess` with a :class:`Normal` initial random variable,
+        and an LTISDE transition or an Integrator transition, but LinearSDE, ContinuousEKFComponent,
         or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
-        If an integrator, `K=spatialdim(ordint+1)` for some spatialdim and ordint.
-    measurement_model
-        Measurement model. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
-        This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
-        For 2-dimensional observations, `L=2`.
-        If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
-    initrv
-        Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
+        If the transition is an integrator, `K=spatialdim*(ordint+1)` for some spatialdim and ordint.
     """
 
     def iterated_filtsmooth(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
-        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+        stopcrit: Optional[StoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -46,7 +51,8 @@ class Kalman(BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
         init_posterior
             Initial posterior to linearize at. If not specified, linearizes
             at the prediction random variable.
@@ -59,13 +65,13 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         smoothing_post = init_posterior
         info_dicts = None
         for smoothing_post, info_dicts in self.iterated_filtsmooth_posterior_generator(
-            regression_problem, smoothing_post, stopcrit
+            regression_problem, init_posterior, stopcrit
         ):
             pass
 
@@ -73,9 +79,9 @@ class Kalman(BayesFiltSmooth):
 
     def iterated_filtsmooth_posterior_generator(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
-        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+        stopcrit: Optional[StoppingCriterion] = None,
     ):
         """Compute iterated smoothing estimates with repeated posterior linearisation.
 
@@ -85,7 +91,8 @@ class Kalman(BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
         init_posterior
             Initial posterior to linearize at. Defaults to computing a (non-iterated)
             smoothing posterior, which amounts to linearizing at the prediction
@@ -101,7 +108,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         if stopcrit is None:
@@ -132,14 +139,15 @@ class Kalman(BayesFiltSmooth):
 
     def filtsmooth(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -153,7 +161,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
         filter_result = self.filter(
             regression_problem,
@@ -165,14 +173,15 @@ class Kalman(BayesFiltSmooth):
 
     def filter(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -186,7 +195,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         filtered_rvs = []
@@ -201,21 +210,22 @@ class Kalman(BayesFiltSmooth):
         posterior = FilteringPosterior(
             locations=regression_problem.locations,
             states=filtered_rvs,
-            transition=self.dynamics_model,
+            transition=self.prior_process.transition,
         )
 
         return posterior, info_dicts
 
     def filtered_states_generator(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -229,123 +239,45 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
-        dataset, times = regression_problem.observations, regression_problem.locations
 
-        _linearise_update_at = (
-            None if _previous_posterior is None else _previous_posterior(times[0])
-        )
-
-        info_dict = {"pred_rv": self.initrv, "info_pred": {}}
-        filtrv, info_dict["info_upd"] = self.update(
-            data=dataset[0],
-            rv=self.initrv,
-            time=times[0],
-            _linearise_at=_linearise_update_at,
-        )
-        yield filtrv, info_dict
-
-        for idx in range(1, len(times)):
-            _linearise_predict_at = (
-                None
-                if _previous_posterior is None
-                else _previous_posterior(times[idx - 1])
-            )
-            _linearise_update_at = (
-                None if _previous_posterior is None else _previous_posterior(times[idx])
+        # It is not clear at the moment how to implement this cleanly.
+        if not np.all(np.diff(regression_problem.locations) > 0):
+            raise ValueError(
+                "Gaussian filtering expects sorted, non-repeating time points."
             )
 
-            filtrv, info_dict = self.filter_step(
-                start=times[idx - 1],
-                stop=times[idx],
-                current_rv=filtrv,
-                data=dataset[idx],
-                _linearise_predict_at=_linearise_predict_at,
-                _linearise_update_at=_linearise_update_at,
+        # Initialise
+        t_old = self.prior_process.initarg
+        curr_rv = self.prior_process.initrv
+
+        # Iterate over data and measurement models
+        for t, data, measmod in regression_problem:
+
+            dt = t - t_old
+            info_dict = {}
+
+            # Predict if there is a time-increment
+            if dt > 0:
+                linearise_predict_at = (
+                    None if _previous_posterior is None else _previous_posterior(t_old)
+                )
+                output = self.prior_process.transition.forward_rv(
+                    curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
+                )
+                curr_rv, info_dict["predict_info"] = output
+
+            # Update (even if there is no increment)
+            linearise_update_at = (
+                None if _previous_posterior is None else _previous_posterior(t)
+            )
+            curr_rv, info_dict["update_info"] = measmod.backward_realization(
+                realization_obtained=data, rv=curr_rv, _linearise_at=linearise_update_at
             )
 
-            yield filtrv, info_dict
-
-    def filter_step(
-        self,
-        start,
-        stop,
-        current_rv,
-        data,
-        _linearise_predict_at=None,
-        _linearise_update_at=None,
-        _diffusion=1.0,
-    ):
-        """A single filter step.
-
-        Consists of a prediction step (t -> t+1) and an update step (at t+1).
-
-        Parameters
-        ----------
-        start : float
-            Predict FROM this time point.
-        stop : float
-            Predict TO this time point.
-        current_rv : RandomVariable
-            Predict based on this random variable. For instance, this can be the result
-            of a previous call to filter_step.
-        data : array_like
-            Compute the update based on this data.
-        _linearise_predict_at
-            Linearise the prediction step at this RV. Used for iterated filtering and smoothing.
-        _linearise_update_at
-            Linearise the update step at this RV. Used for iterated filtering and smoothing.
-        _diffusion
-            Custom diffusion for the underlying Wiener process. Used in calibration.
-
-        Returns
-        -------
-        RandomVariable
-            Resulting filter estimate after the single step.
-        dict
-            Additional information provided by predict() and update().
-            Contains keys `pred_rv`, `info_pred`, `meas_rv`, `info_upd`.
-        """
-        data = np.asarray(data)
-        info = {}
-        info["pred_rv"], info["info_pred"] = self.predict(
-            rv=current_rv,
-            start=start,
-            stop=stop,
-            _linearise_at=_linearise_predict_at,
-            _diffusion=_diffusion,
-        )
-
-        filtrv, info["info_upd"] = self.update(
-            rv=info["pred_rv"],
-            time=stop,
-            data=data,
-            _linearise_at=_linearise_update_at,
-        )
-        return filtrv, info
-
-    def predict(self, rv, start, stop, _linearise_at=None, _diffusion=1.0):
-        return self.dynamics_model.forward_rv(
-            rv,
-            t=start,
-            dt=stop - start,
-            _linearise_at=_linearise_at,
-            _diffusion=_diffusion,
-        )
-
-    # Only here for compatibility reasons, not actually used in filter().
-    def measure(self, rv, time, _linearise_at=None):
-        return self.measurement_model.forward_rv(
-            rv,
-            t=time,
-            _linearise_at=_linearise_at,
-        )
-
-    def update(self, rv, time, data, _linearise_at=None):
-        return self.measurement_model.backward_realization(
-            data, rv, t=time, _linearise_at=_linearise_at
-        )
+            yield curr_rv, info_dict
+            t_old = t
 
     def smooth(self, filter_posterior, _previous_posterior=None):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
@@ -360,14 +292,17 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
-
-        rv_list = self.dynamics_model.smooth_list(
-            filter_posterior.states, filter_posterior.locations
+        diffusion_list = np.ones_like(filter_posterior.locations[1:])
+        rv_list = self.prior_process.transition.smooth_list(
+            filter_posterior.states,
+            filter_posterior.locations,
+            _diffusion_list=diffusion_list,
         )
 
         return SmoothingPosterior(
             filter_posterior.locations,
             rv_list,
-            self.dynamics_model,
+            self.prior_process.transition,
             filtering_posterior=filter_posterior,
+            diffusion_model=filter_posterior.diffusion_model,
         )
