@@ -37,7 +37,7 @@ class BQInfo:
         self.has_converged = has_converged
         self.stopping_criterion = stopping_criterion
 
-    def update_iteration(self, batch_size):
+    def update_iteration(self, batch_size: int) -> None:
         """Update the quantities tracking iteration info.
 
         Parameters
