@@ -10,6 +10,7 @@ from probnum.type import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
     FloatArgType,
+    IntArgType,
     RandomStateArgType,
     ShapeArgType,
 )
@@ -74,9 +75,9 @@ class TimeSeriesPosterior(abc.ABC):
         # reshaped ("squeezed") accordingly.
         if np.isscalar(t):
             t = np.atleast_1d(t)
-            squeeze_eventually = True
+            t_has_been_promoted = True
         else:
-            squeeze_eventually = False
+            t_has_been_promoted = False
 
         if not np.all(np.diff(t) >= 0.0):
             raise ValueError("Time-points have to be sorted.")
@@ -88,50 +89,34 @@ class TimeSeriesPosterior(abc.ABC):
         t_inter = t[(t0 <= t) & (t <= tmax)]
 
         # Indices of t where they would be inserted
-        # into self.locations ("left": right-closest states)
+        # into self.locations ("left": right-closest states -- this is the default in searchsorted)
         indices = np.searchsorted(self.locations, t_inter, side="left")
         interpolated_values = [
             self.interpolate(
                 t=ti,
-                previous_location=prevloc,
-                previous_state=prevstate,
-                next_location=nextloc,
-                next_state=nextstate,
+                previous_index=previdx,
+                next_index=nextidx,
             )
-            for ti, prevloc, prevstate, nextloc, nextstate in zip(
+            for ti, previdx, nextidx in zip(
                 t_inter,
-                self.locations[indices - 1],
-                self._states_left_of_location[indices - 1],
-                self.locations[indices],
-                self._states_right_of_location[indices],
+                indices - 1,
+                indices,
             )
         ]
         extrapolated_values_left = [
-            self.interpolate(
-                t=ti,
-                previous_location=None,
-                previous_state=None,
-                next_location=t0,
-                next_state=self._states_right_of_location[0],
-            )
+            self.interpolate(t=ti, previous_index=None, next_index=0)
             for ti in t_extra_left
         ]
 
         extrapolated_values_right = [
-            self.interpolate(
-                t=ti,
-                previous_location=tmax,
-                previous_state=self._states_left_of_location[-1],
-                next_location=None,
-                next_state=None,
-            )
+            self.interpolate(t=ti, previous_index=-1, next_index=None)
             for ti in t_extra_right
         ]
         dense_output_values = extrapolated_values_left
         dense_output_values.extend(interpolated_values)
         dense_output_values.extend(extrapolated_values_right)
 
-        if squeeze_eventually:
+        if t_has_been_promoted:
             return dense_output_values[0]
         return _randomvariablelist._RandomVariableList(dense_output_values)
 
@@ -139,17 +124,10 @@ class TimeSeriesPosterior(abc.ABC):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
-
-        Parameters
-        ----------
-        t :
-            Location to evaluate at.
 
         Returns
         -------
@@ -219,29 +197,3 @@ class TimeSeriesPosterior(abc.ABC):
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."
         )
-
-    @property
-    def _states_left_of_location(self):
-        """Return the set of states that is used to find the LEFTMOST states of a given
-        time point in a way that supports slicing with the output of numpy.searchsorted.
-
-        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
-        because then the _RandomVariableList functionality would be lost.
-
-
-        Note: This exists as a property, because for the KalmanSmoothingPosterior, the leftmost states
-        are extracted from the filtering posterior, not the smoothing posterior, which can be overwritten here.
-        """
-        return np.asarray(self.states)
-
-    @property
-    def _states_right_of_location(self):
-        """Return the set of states that is used to find the RIGHTMOST states of a given
-        time point in a way that supports slicing with the output of numpy.searchsorted.
-
-        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
-        because then the _RandomVariableList functionality would be lost.
-
-        This exists as a property because the leftmost states exist as a property and who knows when we need it like that.
-        """
-        return np.asarray(self.states)
