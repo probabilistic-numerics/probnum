@@ -10,7 +10,8 @@
 
 ProbNum is a Python toolkit for solving numerical problems in linear algebra, optimization, quadrature and
 differential equations. ProbNum solvers not only estimate the solution of the numerical problem, but also its
-uncertainty (the error) which certainly arises from finite computational resources, discretization, and stochastic input.
+uncertainty (error) which arises from finite computational resources, discretization, and stochastic input.
+These uncertainties can be used in downstream decisions.
 
 Currently, available solvers are:
 
@@ -20,18 +21,18 @@ Currently, available solvers are:
 
 Lower level structure includes:
 
-- Some efficient **random variable arithmetics**, especially for Gaussian distributions.
-- Structure for efficient computation with **linear operators**.
-- Structure for **random processes** (especially Gauss-Markov processes).
-- **Filters and smothers** for probabilistic state space models, mostly variants of Kalman filters.  
-- Structure for **probabilistic state space models**.
+- **Random variables and random processes**, as well as arithmetic operations thereof.
+- Memory-efficient and lazy implementation of **linear operators**.
+- **Filtering and smoothing** for (probabilistic) state-space models, mostly variants of Kalman filters.
 
-The ProbNum library is related to [probabilistic numerics](http://probabilistic-numerics.org/) (PN) 
-which is a research field existing at the intersection of machine learning, and numerics.
+The research field underpinning the ProbNum library is called 
+`probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) at the intersection of machine 
+learning and numerics.
 PN aims to quantify uncertainty arising from intractable or incomplete numerical computation and from stochastic input 
 using the tools of probability theory. The general vision of probabilistic numerics is to provide well-calibrated 
 probability measures over the output of a numerical routine, which then can be propagated along the chain of 
 computation.
+
 
 ## Installation
 To get started install ProbNum using `pip`.
