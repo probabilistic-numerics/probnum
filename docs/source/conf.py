@@ -222,5 +222,6 @@ myst_enable_extensions = ["dollarmath", "amsmath"]
 bibtex_bibfiles = []
 for f in Path("research/bibliography").glob("*.bib"):
     bibtex_bibfiles.append(str(f))
-bibtex_default_style = "plain"
+bibtex_default_style = "unsrtalpha"
+bibtex_reference_style = "label"
 bibtex_encoding = "utf-8-sig"

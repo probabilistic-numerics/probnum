@@ -252,33 +252,6 @@ supplements = {http://www.probabilistic-numerics.org/22-supp.zip}
  abstract = {Shortest-path tractography (SPT) algorithms solve global optimization problems defined from local distance functions. As diffusion MRI data is inherently noisy, so are the voxelwise tensors from which local distances are derived. We extend Riemannian SPT by modeling the stochasticity of the diffusion tensor as a “random Riemannian metric”, where a geodesic is a distribution over tracts. We approximate this distribution with a Gaussian process and present a probabilistic numerics algorithm for computing the geodesic distribution. We demonstrate SPT improvements on data from the Human Connectome Project.}
 }
 
-
-@article{conrad_probability_2015,
-  title = {Probability {Measures} for {Numerical} {Solutions} of {Differential} {Equations}},
-  file = {http://arxiv.org/pdf/1506.04592v1.pdf},
-  link = {http://warwick.ac.uk/pints},
-  abstract = {In this paper, we present a formal quantification of epistemic uncertainty induced by numerical solutions of ordinary and partial differential equation models. Numerical solutions of differential equations contain inherent uncertainties due to the finite dimensional approximation of an unknown and implicitly defined function. When statistically analysing models based on differential equations describing physical, or other naturally occurring, phenomena, it is therefore important to explicitly account for the uncertainty introduced by the numerical method. This enables objective determination of its importance relative to other uncertainties, such as those caused by data contaminated with noise or model error induced by missing physical or inadequate descriptors. To this end we show that a wide variety of existing solvers can be randomised, inducing a probability measure over the solutions of such differential equations. These measures exhibit contraction to a Dirac measure around the true unknown solution, where the rates of convergence are consistent with the underlying deterministic numerical method. Ordinary differential equations and elliptic partial differential equations are used to illustrate the approach to quantifying uncertainty in both the statistical analysis of the forward and inverse problems.},
-  urldate = {2015-06-16},
-  journal = {arXiv:1506.04592 [stat]},
-  author = {Conrad, Patrick R. and Girolami, Mark and Särkkä, Simo and Stuart, Andrew and Zygalakis, Konstantinos},
-  month = jun,
-  year = {2015},
-  note = {arXiv: 1506.04592},
-  keywords = {Statistics - Methodology}
-}
-
-@article{raissi_machine_2017,
-  title = {Machine {Learning} of {Linear} {Differential} {Equations} using {Gaussian} {Processes}},
-  file = {https://arxiv.org/pdf/1701.02440.pdf},
-  abstract = {This work leverages recent advances in probabilistic machine learning to discover conservation laws expressed by parametric linear equations. Such equations involve, but are not limited to, ordinary and partial differential, integro-differential, and fractional order operators. Here, Gaussian process priors are modified according to the particular form of such operators and are employed to infer parameters of the linear equations from scarce and possibly noisy observations. Such observations may come from experiments or "black-box" computer simulations.},
-  journal = {arXiv:1701.02440 [cs, math, stat]},
-  author = {Raissi, Maziar and Karniadakis, George Em},
-  month = jan,
-  year = {2017},
-  note = {arXiv: 1701.02440},
-  keywords = {Computer Science - Learning, Mathematics - Numerical Analysis, Statistics - Machine Learning}
-}
-
 @inproceedings{KerstingHennigUAI2016,
   author = {Hans P. Kersting and Philipp Hennig},
   title  = {Active Uncertainty Calibration in {B}ayesian {ODE} Solvers},
@@ -303,24 +276,6 @@ supplements = {http://www.probabilistic-numerics.org/22-supp.zip}
     file = {https://arxiv.org/pdf/1610.05261.pdf}
 }
 
-
-@article{owhadi_gamblets_2017,
-  title = {Gamblets for opening the complexity-bottleneck of implicit schemes for hyperbolic and parabolic {ODEs}/{PDEs} with rough coefficients},
-  volume = {347},
-  issn = {00219991},
-  url = {http://arxiv.org/abs/1606.07686},
-  doi = {10.1016/j.jcp.2017.06.037},
-  abstract = {Implicit schemes are popular methods for the integration of time dependent PDEs such as hyperbolic and parabolic PDEs. However the necessity to solve corresponding linear systems at each time step constitutes a complexity bottleneck in their application to PDEs with rough coefficients. We present a generalization of gamblets introduced in {\textbackslash}cite\{OwhadiMultigrid:2015\} enabling the resolution of these implicit systems in near-linear complexity and provide rigorous a-priori error bounds on the resulting numerical approximations of hyperbolic and parabolic PDEs. These generalized gamblets induce a multiresolution decomposition of the solution space that is adapted to both the underlying (hyperbolic and parabolic) PDE (and the system of ODEs resulting from space discretization) and to the time-steps of the numerical scheme.},
-  urldate = {2017-09-10},
-  journal = {Journal of Computational Physics},
-  author = {Owhadi, Houman and Zhang, Lei},
-  month = oct,
-  year = {2017},
-  note = {arXiv: 1606.07686},
-  file = {https://arxiv.org/pdf/1606.07686.pdf},
-  keywords = {65T60, 65N55, 65N75, 62C99, 42C40, 62M86, Mathematics - Numerical Analysis, Statistics - Machine Learning},
-  pages = {99--128}
-}
 
 @ARTICLE{2018arXiv180101340A,
    author = {{Abdulle}, A. and {Garegnani}, G.},

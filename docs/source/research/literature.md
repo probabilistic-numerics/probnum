@@ -4,16 +4,15 @@ This page collects literature on all areas of probabilistic
 numerics, sorted by problem type. If you would like your publication to be
 featured in this list, please [open a pull request](https://github.com/probabilistic-numerics/probnum/pulls) on GitHub.
 
+
 ## General and Foundational
 The following papers are often cited as early works on the
 idea of uncertainty over the result of deterministic computations.
-Some entries have a "notes" field providing further information about the relevance of the cited work, or pointers to specific results therein.
 
 <!-- {% bibliography --file general %} -->
 ```{bibliography} bibliography/general.bib
 ---
 all:
-list: bullet
 ---
 ```
 
@@ -22,7 +21,6 @@ list: bullet
 ```{bibliography} bibliography/Quadrature.bib
 ---
 all:
-list: bullet
 ---
 ```
 
@@ -31,7 +29,6 @@ list: bullet
 ```{bibliography} bibliography/LinearAlgebra.bib
 ---
 all:
-list: bullet
 ---
 ```
 
@@ -40,7 +37,6 @@ list: bullet
 ```{bibliography} bibliography/Optimization.bib
 ---
 all:
-list: bullet
 ---
 ```
 
@@ -61,7 +57,6 @@ ODE. Below, this is listed under "inferring ODEs".
 ```{bibliography} bibliography/ODEs.bib
 ---
 all:
-list: bullet
 ---
 ```
 
@@ -70,7 +65,6 @@ list: bullet
 ```{bibliography} bibliography/ODE_from_path.bib
 ---
 all:
-list: bullet
 ---
 ```
 
@@ -79,7 +73,6 @@ list: bullet
 ```{bibliography} bibliography/PDEs.bib
 ---
 all:
-list: bullet
 ---
 ```
 
@@ -100,6 +93,5 @@ coming soon
 ```{bibliography} bibliography/related.bib
 ---
 all:
-list: bullet
 ---
 ```

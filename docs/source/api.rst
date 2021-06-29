@@ -2,12 +2,6 @@
 API Reference
 =================
 
-
-ProbNum implements probabilistic numerical methods in Python. Such methods solve
-numerical problems from linear algebra, optimization, quadrature and differential
-equations using probabilistic inference. This approach captures uncertainty arising from
-finite computational resources and stochastic input.
-
 .. table::
 
     +----------------------------------+--------------------------------------------------------------+
