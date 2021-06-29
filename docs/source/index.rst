@@ -17,7 +17,7 @@ Currently, available solvers are:
 
 - **ODE solvers:** Solve :math:`\dot{y}(t)= f(y(t), t)` for :math:`y`.
 
-- **Integral solvers (Quadrature):** Solve :math:`F = \int_{\Omega} f(x) p(x) dx` for :math:`F`.
+- **Integral solvers (quadrature):** Solve :math:`F = \int_{\Omega} f(x) p(x) dx` for :math:`F`.
 
 Lower level structure in ProbNum includes:
 

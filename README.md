@@ -17,7 +17,7 @@ Currently, available solvers are:
 
 - **Linear solvers:** Solve *Ax = b* for *x*.
 - **ODE solvers:** Solve *&#7823;(t) = f(&#8201;y(t), t&#8201;)* for *y*.
-- **Integral solvers (Quadrature):** Solve *F = &#x222b; f(x)&#8201;p(x)&#8201;dx* for *F*.
+- **Integral solvers (quadrature):** Solve *F = &#x222b; f(x)&#8201;p(x)&#8201;dx* for *F*.
 
 Lower level structure includes:
 
