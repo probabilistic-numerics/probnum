@@ -26,7 +26,7 @@ Lower level structure includes:
 - **Filtering and smoothing** for (probabilistic) state-space models, mostly variants of Kalman filters.
 
 The research field underpinning the ProbNum library is called 
-`probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) at the intersection of machine 
+[probabilistic numerics](http://probabilistic-numerics.org/) (PN) at the intersection of machine 
 learning and numerics.
 PN aims to quantify uncertainty arising from intractable or incomplete numerical computation and from stochastic input 
 using the tools of probability theory. The general vision of probabilistic numerics is to provide well-calibrated 
