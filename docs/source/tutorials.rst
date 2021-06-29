@@ -78,9 +78,6 @@ Gaussian filtering and smoothing in more complex dynamical systems.
    tutorials/filtsmooth/particle_filtering
 
 
-In Depth
-********
-
 
 .. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?&logo=Jupyter&logoColor=white
     :target: https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials
