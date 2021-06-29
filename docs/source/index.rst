@@ -8,7 +8,7 @@ ProbNum
 
 ProbNum is a Python toolkit for solving numerical problems in linear algebra, optimization, quadrature and
 differential equations. ProbNum solvers not only estimate the solution of the numerical problem, but also its
-uncertainty (error) which arises from finite computational resources, discretization, and stochastic input.
+uncertainty (numerical error) which arises from finite computational resources, discretization, and stochastic input.
 These uncertainties can be used in downstream decisions.
 
 Currently, available solvers are:
@@ -17,7 +17,7 @@ Currently, available solvers are:
 
 - **ODE solvers:** Solve :math:`\dot{y}(t)= f(y(t), t)` for :math:`y`.
 
-- **Quadrature solvers:** Solve :math:`F = \int_{\Omega} f(x) p(x) dx` for :math:`F`.
+- **Integral solvers (Quadrature):** Solve :math:`F = \int_{\Omega} f(x) p(x) dx` for :math:`F`.
 
 Lower level structure in ProbNum includes:
 
