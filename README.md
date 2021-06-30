@@ -4,18 +4,18 @@
     <h3>Learn to Approximate. Approximate to Learn.</h3>
     <p>Probabilistic Numerics in Python.</p>
 
-[![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
-[![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
-[![Documentation](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Documentation)](https://probnum.readthedocs.io)
-[![Tutorials](https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?&logo=Jupyter&logoColor=white)](https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials)
-[![Benchmarks](http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat&logo=swift&logoColor=white)](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/)
-[![PyPI](https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
+[![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?style=flat-square&logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
+[![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?style=flat-square&label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
+[![Documentation](https://img.shields.io/readthedocs/probnum.svg?style=flat-square&logo=read%20the%20docs&logoColor=white&label=Documentation)](https://probnum.readthedocs.io)
+[![Tutorials](https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?style=flat-square&logo=Jupyter&logoColor=white)](https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials)
+[![Benchmarks](http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat-square&logo=swift&logoColor=white)](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/)
+[![PyPI](https://img.shields.io/pypi/v/probnum?style=flat-square&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
 
 </div>
 
 ---
 
-ProbNum is a Python toolkit for solving numerical problems in linear algebra, optimization, quadrature and
+**ProbNum** is a Python toolkit for solving numerical problems in linear algebra, optimization, quadrature and
 differential equations. ProbNum solvers not only estimate the solution of the numerical problem, but also its uncertainty (numerical error) which arises from finite computational resources, discretization and stochastic input. This numerical uncertainty can be used in downstream decisions.
 
 Currently, available solvers are:

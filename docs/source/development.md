@@ -27,6 +27,8 @@ Some suggestions for contributions:
 If you would like to contribute but are unsure how, then writing tutorials, documentation or working on
 [open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start.
 
+We expect all community members to follow the [code of conduct](https://github.com/probabilistic-numerics/probnum/blob/ddada486a0b8bdca0bedfef131344ddd5dad9981/CODE_OF_CONDUCT.md).
+
 
 ## Reporting a Bug
 If you find a bug, please report it by opening an issue on the GitHub page, and tag it as a bug.
