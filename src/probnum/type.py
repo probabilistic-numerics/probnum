@@ -51,6 +51,10 @@ ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
 should always be converted into :class:`np.generic` using the function
 :func:`probnum.utils.as_scalar` before further internal processing."""
 
+MatrixArgType = Union[
+    np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator
+]
+
 ArrayLikeGetitemArgType = Union[
     int,
     slice,
@@ -66,6 +70,24 @@ RandomStateArgType = Union[None, int, np.random.RandomState, np.random.Generator
 type should always be converted into :class:`RandomStateType` using the function
 :func:`probnum.utils.as_random_state` before further internal processing."""
 
-MatrixArgType = Union[
-    np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator
-]
+
+########################################################################################
+# Other Types
+########################################################################################
+
+ToleranceDiffusionType = Union[FloatArgType, np.ndarray]
+r"""Type of a quantity that describes tolerances, errors, and diffusions.
+
+Used for absolute (atol) and relative tolerances (rtol), local error estimates, as well as
+(the diagonal entries of diagonal matrices representing) diffusion models.
+atol, rtol, and diffusion are usually floats, but can be generalized to arrays -- essentially,
+to every :math:`\tau` that allows arithmetic operations such as
+
+.. math:: \tau + tau * \text{vec}, \text{ or } L \otimes \text{diag}(\tau)
+
+respectively. Currently, the array-support for diffusions is experimental (at best).
+"""
+
+DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
+"""TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
+or an array of locations."""

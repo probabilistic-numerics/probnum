@@ -6,16 +6,35 @@ ProbNum
 
 ----
 
-**ProbNum implements probabilistic numerical methods in Python.** Such methods solve numerical problems from linear
-algebra, optimization, quadrature and differential equations using *probabilistic inference*. This approach captures
-uncertainty arising from *finite computational resources* and *stochastic input*.
+ProbNum is a Python toolkit for solving numerical problems in linear algebra, optimization, quadrature and
+differential equations. ProbNum solvers not only estimate the solution of the numerical problem, but also its
+uncertainty (numerical error) which arises from finite computational resources, discretization, and stochastic input.
+These uncertainties can be used in downstream decisions.
 
-----
+Currently, available solvers are:
 
-`Probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) aims to quantify uncertainty arising from
-intractable or incomplete numerical computation and from stochastic input using the tools of probability theory. The
-vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical
-routine, which then can be propagated along the chain of computation.
+- **Linear solvers:** Solve :math:`Ax=b` for :math:`x`.
+
+- **ODE solvers:** Solve :math:`\dot{y}(t)= f(y(t), t)` for :math:`y`.
+
+- **Integral solvers (quadrature):** Solve :math:`F = \int_{\Omega} f(x) p(x) dx` for :math:`F`.
+
+Lower level structure in ProbNum includes:
+
+- **Random variables and random processes**, as well as arithmetic operations thereof.
+
+- Memory-efficient and lazy implementation of **linear operators**.
+
+- **Filtering and smoothing** for (probabilistic) state-space models, mostly variants of Kalman filters.
+
+The research field underpinning the ProbNum library is called
+`probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) at the intersection of machine
+learning and numerics.
+PN aims to quantify uncertainty arising from intractable or incomplete numerical computation and from stochastic input
+using the tools of probability theory. The general vision of probabilistic numerics is to provide well-calibrated
+probability measures over the output of a numerical routine, which then can be propagated along the chain of
+computation.
+
 
 To get started install ProbNum using :code:`pip`.
 
@@ -67,11 +86,13 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    public_api/statespace
    public_api/utils
 
+
 .. toctree::
    :maxdepth: 1
-   :caption: Contributing to ProbNum
+   :caption: Development
 
    development/contributing
+   development/contributing_code
    development/developer_guides
    development/styleguide
    development/benchmarking

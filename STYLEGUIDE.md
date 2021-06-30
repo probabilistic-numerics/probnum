@@ -138,6 +138,9 @@ plus the respective `driftmatfun`, `driftfun`, `dispmatfun`, etc.
   the latter may collide with the built-in imaginary constant `j=sqrt(-1)`.
 - A function maps from its ``domain`` to its ``range``.
   The ``range`` of a random variable is the ``domain`` of its distribution.
+- Whenever a time-grid is searched for the nearest neighbour of a location (e.g. used in continuous-time evaluation of a Gauss-Markov posterior),
+consider using `np.searchsorted(..., side="left")` (which is the default configuration). This is how it is done everywhere in `statespace`, `filtsmooth`, and `diffeq`.
+
 
 ### Errors and Warnings
 - Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)

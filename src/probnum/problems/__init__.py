@@ -5,11 +5,11 @@ from ._problems import (
     LinearSystem,
     NoisyLinearSystem,
     QuadratureProblem,
-    RegressionProblem,
+    TimeSeriesRegressionProblem,
 )
 
 __all__ = [
-    "RegressionProblem",
+    "TimeSeriesRegressionProblem",
     "InitialValueProblem",
     "LinearSystem",
     "NoisyLinearSystem",
@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-RegressionProblem.__module__ = "probnum.problems"
+TimeSeriesRegressionProblem.__module__ = "probnum.problems"
 InitialValueProblem.__module__ = "probnum.problems"
 LinearSystem.__module__ = "probnum.problems"
 NoisyLinearSystem.__module__ = "probnum.problems"
