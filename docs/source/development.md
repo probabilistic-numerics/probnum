@@ -93,7 +93,7 @@ ProbNum's Benchmarks <https://probabilistic-numerics.github.io/probnum-benchmark
 > _Other Universities_: For students at other universities, we do not offer thesis projects at this time. However, you can still contribute to ProbNum by checking out [open issues on GitHub](https://github.com/probabilistic-numerics/probnum/issues?q=is%3Aopen+is%3Aissue).
 
 
-# Team Roles
+# ProbNum Team
 
 **Maintainers:** Main developers responsible for ProbNum and the management of the development process.
 
@@ -101,19 +101,19 @@ ProbNum's Benchmarks <https://probabilistic-numerics.github.io/probnum-benchmark
 	<ul>
 		<li>
 			<a href="https://github.com/jonathanwenger">
-				<img class="avatar" alt="jonathanwenger" src="https://github.com/jonathanwenger.png?v=3&s=96" width="64" height="64" />
+				<img class="avatar" alt="jonathanwenger" src="https://github.com/jonathanwenger.png?v=3&s=96" width="96" height="96" />
 				<p>Jonathan Wenger</p>
 			</a>
 		</li>
 		<li>
 			<a href="https://github.com/pnkraemer">
-				<img class="avatar" alt="pnkraemer" src="https://github.com/pnkraemer.png?v=3&s=96" width="64" height="64" />
+				<img class="avatar" alt="pnkraemer" src="https://github.com/pnkraemer.png?v=3&s=96" width="96" height="96" />
 				<p>Nicholas Krämer</p>
 			</a>
 		</li>
 		<li>
 			<a href="https://github.com/nathanaelbosch">
-				<img class="avatar" alt="nathanaelbosch" src="https://github.com/nathanaelbosch.png?v=3&s=96" width="64" height="64" />
+				<img class="avatar" alt="nathanaelbosch" src="https://github.com/nathanaelbosch.png?v=3&s=96" width="96" height="96" />
 				<p>Nathanael Bosch</p>
 			</a>
 		</li>
@@ -185,7 +185,7 @@ ProbNum's Benchmarks <https://probabilistic-numerics.github.io/probnum-benchmark
 
 <div>
 	<a href="https://github.com/philipphennig">
-		<img class="avatar" alt="philipphennig" src="https://github.com/philipphennig.png?v=3&s=96" width="28" height="28" />
+		<img class="avatar" alt="philipphennig" src="https://github.com/philipphennig.png?v=3&s=96" width="48" height="48" />
 		Philipp Hennig
 	</a>
 </div>
