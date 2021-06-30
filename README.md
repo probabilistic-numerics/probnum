@@ -9,12 +9,12 @@
 
 <div align="center">
 
-<h5 align="center">
+<h4 align="center">
   <a href="https://probnum.readthedocs.io">Home</a> |
   <a href="https://probnum.readthedocs.io/en/latest/tutorials.html">Tutorials</a> |  
   <a href="https://probnum.readthedocs.io/en/latest/api.html">API Reference</a> |
   <a href="https://probnum.readthedocs.io/en/latest/development.html">Contributing</a>
-</h5>
+</h4>
 
 [![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?style=flat-square&logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 [![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?style=flat-square&label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
