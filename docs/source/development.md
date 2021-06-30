@@ -86,12 +86,14 @@ ProbNum's Benchmarks <https://probabilistic-numerics.github.io/probnum-benchmark
 
 # For Students
 
-> **Are you a university student and have an interest in ProbNum?**
->
-> _University of Tübingen_: If you are interested in a thesis project or student job involving ProbNum, check the listings [here](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/methoden-des-maschinellen-lernens/stellen/bachelor-master-available-thesis-topics/) or contact us directly.
->
-> _Other Universities_: For students at other universities, we do not offer thesis projects at this time. However, you can still contribute to ProbNum by checking out [open issues on GitHub](https://github.com/probabilistic-numerics/probnum/issues?q=is%3Aopen+is%3Aissue).
+```{note}
+**Are you a university student and have an interest in ProbNum?**
 
+_University of Tübingen_: If you are interested in a thesis project or student job involving ProbNum, check the listings [here](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/methoden-des-maschinellen-lernens/stellen/bachelor-master-available-thesis-topics/) or contact us directly.
+
+_Other Universities_: For students at other universities, we do not offer thesis projects at this time. However, you can still contribute to ProbNum by checking out [open issues on GitHub](https://github.com/probabilistic-numerics/probnum/issues?q=is%3Aopen+is%3Aissue).
+
+```
 
 # ProbNum Team
 

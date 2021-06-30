@@ -1,9 +1,10 @@
 # Literature
 
-This page collects literature on all areas of probabilistic
-numerics, sorted by problem type. If you would like your publication to be
-featured in this list, please [open a pull request](https://github.com/probabilistic-numerics/probnum/pulls) on GitHub.
+This page contains a non-exhaustive list of probabilistic numerics research, sorted by problem type.
 
+```{note}
+If you would like your publication to be featured in this list, please [open a pull request](https://github.com/probabilistic-numerics/probnum/pulls) on GitHub with the corresponding `bibtex` entry.
+```
 
 ## General and Foundational
 The following papers are often cited as early works on the

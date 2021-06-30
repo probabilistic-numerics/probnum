@@ -194,6 +194,10 @@ body {
     padding-top: 5px
 }
 
+.page-footer [role=contentinfo] p a {
+    color: rgba(var(--pst-color-primary-light), 0.5)
+}
+
 .commit code {
     color: rgba(var(--pst-color-primary-light), 0.5)
 }
@@ -222,6 +226,16 @@ body {
 .landing-page-container {
     padding-top: 20px;
     padding-bottom: 20px;
+}
+
+.supporter-logo img {
+    max-width: 100%;
+    max-height: 100px;
+    margin: 5px;
+}
+
+.supporter-div {
+    color: rgba(var(--pst-color-background-dark), 0.5);
 }
 
 /* Code */
