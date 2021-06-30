@@ -3,6 +3,18 @@
     </a>
     <h3>Learn to Approximate. Approximate to Learn.</h3>
     <p>Probabilistic Numerics in Python.</p>
+</div>
+
+---
+
+<div align="center">
+
+<h5 align="center">
+  <a href="https://probnum.readthedocs.io">Home</a> |
+  <a href="https://probnum.readthedocs.io/tutorials">Tutorials</a> |  
+  <a href="https://probnum.readthedocs.io/api">API Reference</a> |
+  <a href="https://probnum.readthedocs.io/development">Contributing</a>
+</h5>
 
 [![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?style=flat-square&logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 [![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?style=flat-square&label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)

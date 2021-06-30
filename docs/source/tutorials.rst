@@ -79,6 +79,6 @@ Gaussian filtering and smoothing in more complex dynamical systems.
 
 
 
-.. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?&logo=Jupyter&logoColor=white
+.. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?style=flat-square&logo=Jupyter&logoColor=white
     :target: https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials
     :alt: ProbNum's Tutorials

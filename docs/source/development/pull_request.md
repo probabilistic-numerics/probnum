@@ -185,7 +185,7 @@ versions, the preferred way is to use tox.
 
 ## tox
 
-[![test coverage: latest](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
+[![test coverage: latest](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?style=flat-square&label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
 
 Probnum uses [tox](https://tox.readthedocs.io/en/latest/) in its [continuous integration (CI)](#continuous-integration)
 pipeline to run tests, build documentation, check code formatting and code quality. Under the hood, tox builds virtual
@@ -243,8 +243,8 @@ Code coverage of the tests is reported via [codecov](https://codecov.io/github/p
 
 ## Documentation
 
-[![docs: stable](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs:%20stable)](https://probnum.readthedocs.io/en/stable/)
-[![docs: latest](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs:%20latest)](https://probnum.readthedocs.io/en/latest/)
+[![docs: stable](https://img.shields.io/readthedocs/probnum.svg?style=flat-square&logo=read%20the%20docs&logoColor=white&label=Docs:%20stable)](https://probnum.readthedocs.io/en/stable/)
+[![docs: latest](https://img.shields.io/readthedocs/probnum.svg?style=flat-square&logo=read%20the%20docs&logoColor=white&label=Docs:%20latest)](https://probnum.readthedocs.io/en/latest/)
 
 
 ProbNum's documentation is created with [Sphinx](https://www.sphinx-doc.org/en/master/) and automatically built and
@@ -271,7 +271,7 @@ $ make html
 
 ### Continuous Integration
 
-[![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
+[![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?style=flat-square&logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 
 ProbNum uses [Github Actions](https://github.com/probabilistic-numerics/probnum/actions) for continuous integration.
 For every pull request and every commit the project is built, the test suite is run,
