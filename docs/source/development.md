@@ -93,7 +93,7 @@ ProbNum's Benchmarks <https://probabilistic-numerics.github.io/probnum-benchmark
 > _Other Universities_: For students at other universities, we do not offer thesis projects at this time. However, you can still contribute to ProbNum by checking out [open issues on GitHub](https://github.com/probabilistic-numerics/probnum/issues?q=is%3Aopen+is%3Aissue).
 
 
-# ProbNum Team
+# Development Team
 
 The following people contributed to the ProbNum repository.
 
