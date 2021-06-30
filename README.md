@@ -11,9 +11,9 @@
 
 <h5 align="center">
   <a href="https://probnum.readthedocs.io">Home</a> |
-  <a href="https://probnum.readthedocs.io/tutorials">Tutorials</a> |  
-  <a href="https://probnum.readthedocs.io/api">API Reference</a> |
-  <a href="https://probnum.readthedocs.io/development">Contributing</a>
+  <a href="https://probnum.readthedocs.io/en/latest/tutorials.html">Tutorials</a> |  
+  <a href="https://probnum.readthedocs.io/en/latest/api.html">API Reference</a> |
+  <a href="https://probnum.readthedocs.io/en/latest/development.html">Contributing</a>
 </h5>
 
 [![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?style=flat-square&logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
