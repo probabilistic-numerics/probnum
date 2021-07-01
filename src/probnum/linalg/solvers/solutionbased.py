@@ -10,6 +10,8 @@ import numpy as np
 
 from probnum.linalg.solvers.matrixbased import ProbabilisticLinearSolver
 
+# pylint: disable="too-many-branches,too-many-lines,too-complex,too-many-statements,redefined-builtin,arguments-differ,abstract-method"
+
 
 class SolutionBasedSolver(ProbabilisticLinearSolver):
     """Solver iteration of BayesCG.

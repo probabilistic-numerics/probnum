@@ -19,7 +19,7 @@ class Policy:
 
     def __call__(
         self,
-        solver_state: "probnum.linalg.solvers.LinearSolverState",
+        solver_state: "probnum.linalg.solvers.State",
     ) -> np.ndarray:
         """Return an action for a given solver state.
 
