@@ -368,10 +368,10 @@ class LinearOperator:
             return np.log(np.abs(self.det()))
 
     def trace(self) -> np.number:
-        """Trace of the linear operator.
+        r"""Trace of the linear operator.
 
-        Computes the trace of a square linear operator :math:`\\text{tr}(A) =
-        \\sum_{i-1}^n A_ii`.
+        Computes the trace of a square linear operator :math:`\text{tr}(A) =
+        \sum_{i-1}^n A_{ii}`.
 
         Returns
         -------
@@ -380,7 +380,8 @@ class LinearOperator:
 
         Raises
         ------
-        LinAlgError : If :meth:`trace` is called on a non-square matrix.
+        LinAlgError :
+            If :meth:`trace` is called on a non-square matrix.
         """
         if self.__trace_cache is None:
             if not self.is_square:

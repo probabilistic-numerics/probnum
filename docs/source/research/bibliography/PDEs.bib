@@ -1,0 +1,198 @@
+@article{PhysRevE87013308,
+  title = {Information field dynamics for simulation scheme construction},
+  author = {En\ss{}lin, Torsten A.},
+  journal = {Phys. Rev. E},
+  volume = {87},
+  issue = {1},
+  pages = {013308},
+  numpages = {17},
+  year = {2013},
+  month = {Jan},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevE.87.013308},
+  link = {https://link.aps.org/doi/10.1103/PhysRevE.87.013308},
+  abstract = {Information field dynamics (IFD) is introduced here as a framework to derive numerical schemes for the simulation of physical and other fields without assuming a particular subgrid structure as many schemes do. IFD constructs an ensemble of nonparametric subgrid field configurations from the combination of the data in computer memory, representing constraints on possible field configurations, and prior assumptions on the subgrid field statistics. Each of these field configurations can formally be evolved to a later moment since any differential operator of the dynamics can act on fields living in continuous space. However, these virtually evolved fields need again a representation by data in computer memory. The maximum entropy principle of information theory guides the construction of updated data sets via entropic matching, optimally representing these field configurations at the later time. The field dynamics thereby become represented by a finite set of evolution equations for the data that can be solved numerically. The subgrid dynamics is thereby treated within auxiliary analytic considerations. The resulting scheme acts solely on the data space. It should provide a more accurate description of the physical field dynamics than simulation schemes constructed ad hoc, due to the more rigorous accounting of subgrid physics and the space discretization process. Assimilation of measurement data into an IFD simulation is conceptually straightforward since measurement and simulation data can just be merged. The IFD approach is illustrated using the example of a coarsely discretized representation of a thermally excited classical Klein-Gordon field. This should pave the way towards the construction of schemes for more complex systems like turbulent hydrodynamics.}
+}
+
+
+@article{2014arXiv14071517B,
+  author =	 {{Bui-Thanh}, T. and {Girolami}, M.},
+  title =	 "{Solving Large-Scale PDE-constrained Bayesian Inverse
+                  Problems with Riemann Manifold Hamiltonian Monte Carlo}",
+  journal =	 {arXiv pre-print 1407.1517},
+  keywords =	 {Mathematics - Statistics Theory},
+  year =	 2014,
+  month =	 {July},
+  abstract =	 {We consider the Riemann manifold Hamiltonian Monte Carlo
+                  (RMHMC) method for solving statistical inverse problems
+                  governed by partial differential equations (PDEs). The power
+                  of the RMHMC method is that it exploits the geometric
+                  structure induced by the PDE constraints of the underlying
+                  inverse problem. Consequently, each RMHMC posterior sample is
+                  almost independent from the others providing statistically
+                  efficient Markov chain simulation. We reduce the cost of
+                  forming the Fisher information matrix by using a low rank
+                  approximation via a randomized singular value decomposition
+                  technique. This is efficient since a small number of
+                  Hessian-vector products are required. The Hessian-vector
+                  product in turn requires only two extra PDE solves using the
+                  adjoint technique. The results suggest RMHMC as a highly
+                  efficient simulation scheme for sampling from PDE induced
+                  posterior measures.},
+  link =	 {http://arxiv.org/abs/1407.1517}
+}
+
+@article{owhadi2015bayesian,
+  title={Bayesian Numerical Homogenization},
+  author={Owhadi, Houman},
+  journal={Multiscale Modeling \& Simulation},
+  volume={13},
+  number={3},
+  pages={812--828},
+  year={2015},
+  publisher={SIAM},
+  link = {http://arxiv.org/abs/1406.6668},
+  file = {http://arxiv.org/pdf/1406.6668v2.pdf},
+  abstract = {Numerical homogenization, i.e. the finite-dimensional approximation of solution spaces of PDEs with arbitrary rough coefficients, requires the identification of accurate basis elements. These basis elements are oftentimes found after a laborious process of scientific investigation and plain guesswork. Can this identification problem be facilitated? Is there a general recipe/decision framework for guiding the design of basis elements? We suggest that the answer to the above questions could be positive based on the reformulation of numerical homogenization as a Bayesian Inference problem in which a given PDE with rough coefficients (or multi-scale operator) is excited with noise (random right hand side/source term) and one tries to estimate the value of the solution at a given point based on a finite number of observations. We apply this reformulation to the identification of bases for the numerical homogenization of arbitrary integro-differential equations and show that these bases have optimal recovery properties. In particular we show how Rough Polyharmonic Splines can be re-discovered as the optimal solution of a Gaussian filtering problem.}
+}
+
+@article{conrad_probability_2015,
+  title = {Probability {Measures} for {Numerical} {Solutions} of {Differential} {Equations}},
+  file = {http://arxiv.org/pdf/1506.04592v1.pdf},
+  link = {http://warwick.ac.uk/pints},
+  abstract = {In this paper, we present a formal quantification of epistemic uncertainty induced by numerical solutions of ordinary and partial differential equation models. Numerical solutions of differential equations contain inherent uncertainties due to the finite dimensional approximation of an unknown and implicitly defined function. When statistically analysing models based on differential equations describing physical, or other naturally occurring, phenomena, it is therefore important to explicitly account for the uncertainty introduced by the numerical method. This enables objective determination of its importance relative to other uncertainties, such as those caused by data contaminated with noise or model error induced by missing physical or inadequate descriptors. To this end we show that a wide variety of existing solvers can be randomised, inducing a probability measure over the solutions of such differential equations. These measures exhibit contraction to a Dirac measure around the true unknown solution, where the rates of convergence are consistent with the underlying deterministic numerical method. Ordinary differential equations and elliptic partial differential equations are used to illustrate the approach to quantifying uncertainty in both the statistical analysis of the forward and inverse problems.},
+  urldate = {2015-06-16},
+  journal = {arXiv:1506.04592 [stat]},
+  author = {Conrad, Patrick R. and Girolami, Mark and Särkkä, Simo and Stuart, Andrew and Zygalakis, Konstantinos},
+  month = jun,
+  year = {2015},
+  note = {arXiv: 1506.04592},
+  keywords = {Statistics - Methodology}
+}
+
+@article{raissi_machine_2017,
+  title = {Machine {Learning} of {Linear} {Differential} {Equations} using {Gaussian} {Processes}},
+  file = {https://arxiv.org/pdf/1701.02440.pdf},
+  abstract = {This work leverages recent advances in probabilistic machine learning to discover conservation laws expressed by parametric linear equations. Such equations involve, but are not limited to, ordinary and partial differential, integro-differential, and fractional order operators. Here, Gaussian process priors are modified according to the particular form of such operators and are employed to infer parameters of the linear equations from scarce and possibly noisy observations. Such observations may come from experiments or "black-box" computer simulations.},
+  journal = {arXiv:1701.02440 [cs, math, stat]},
+  author = {Raissi, Maziar and Karniadakis, George Em},
+  month = jan,
+  year = {2017},
+  note = {arXiv: 1701.02440},
+  keywords = {Computer Science - Learning, Mathematics - Numerical Analysis, Statistics - Machine Learning}
+}
+
+
+@article{oates_bayesian_2017,
+  title = {Bayesian {Probabilistic} {Numerical} {Methods} for {Industrial} {Process} {Monitoring}},
+  url = {http://arxiv.org/abs/1707.06107},
+  abstract = {The use of high-power industrial equipment, such as large-scale mixing equipment or a hydrocyclone for separation of particles in liquid suspension, demands careful monitoring to ensure correct operation. The task of monitoring the liquid suspension can be posed as a time-evolving inverse problem and solved with Bayesian statistical methods. In this paper, we extend Bayesian methods to incorporate statistical models for the error that is incurred in the numerical solution of the physical governing equations. This enables full uncertainty quantification within a principled computation-precision trade-off, in contrast to the over-confident inferences that are obtained when numerical error is ignored. The method is cast with a sequential Monte Carlo framework and an optimised implementation is provided in Python.},
+  urldate = {2017-07-20},
+  journal = {arXiv:1707.06107 [stat]},
+  author = {Oates, Chris J. and Cockayne, Jon and Aykroyd, Robert G.},
+  month = jul,
+  year = {2017},
+  note = {arXiv: 1707.06107},
+  keywords = {Statistics - Applications},
+  file = {https://arxiv.org/pdf/1707.06107.pdf}
+}
+
+@article{2015arXiv150303467O,
+   author = {{Owhadi}, H.},
+    title = {Multigrid with rough coefficients and Multiresolution operator decomposition from Hierarchical Information Games},
+  journal = {ArXiv},
+  volume = {math.NA},
+   issue = {1503.03467},
+     year = 2015,
+    month = mar,
+    link = {http://arxiv.org/abs/1503.03467},
+    file = {http://arxiv.org/pdf/1503.03467v4.pdf},
+    abstract = {We introduce a near-linear complexity (geometric and meshless/algebraic) multigrid/multiresolution method for PDEs with rough ($L^\infty$) coefficients with rigorous a-priori accuracy and performance estimates. The method is discovered through a decision/game theory formulation of the problems of (1) identifying restriction and interpolation operators (2) recovering a signal from incomplete measurements based on norm constraints on its image under a linear operator (3) gambling on the value of the solution of the PDE based on a hierarchy of nested measurements of its solution or source term. The resulting elementary gambles form a hierarchy of (deterministic) basis functions of $H^1_0(\Omega)$ (gamblets) that (1) are orthogonal across subscales/subbands with respect to the scalar product induced by the energy norm of the PDE (2) enable sparse compression of the solution space in $H^1_0(\Omega)$ (3) induce an orthogonal multiresolution operator decomposition. The operating diagram of the multigrid method is that of an inverted pyramid in which gamblets are computed locally (by virtue of their exponential decay), hierarchically (from fine to coarse scales) and the PDE is decomposed into a hierarchy of independent linear systems with uniformly bounded condition numbers. The resulting algorithm is parallelizable both in space (via localization) and in bandwith/subscale (subscales can be computed independently from each other). Although the method is deterministic it has a natural Bayesian interpretation under the measure of probability emerging (as a mixed strategy) from the information game formulation and multiresolution approximations form a martingale with respect to the filtration induced by the hierarchy of nested measurements.}
+}
+
+@article{2016arXiv160507811C,
+   author = {{Cockayne}, J. and {Oates}, C. and {Sullivan}, T. and {Girolami}, M.},
+    title = {Probabilistic Meshless Methods for Partial Differential Equations and {B}ayesian Inverse Problems},
+  journal = {ArXiv},
+   issue = {1605.07811},
+     year = 2016,
+    month = {may},
+    link  = {http://arxiv.org/abs/1605.07811},
+    file  = {http://arxiv.org/pdf/1605.07811v1.pdf},
+    abstract = {This paper develops a class of meshless methods that are well-suited to statistical inverse problems involving partial differential equations (PDEs). The methods discussed in this paper view the forcing term in the PDE as a random field that induces a probability distribution over the residual error of a symmetric collocation method. This construction enables the solution of challenging inverse problems while accounting, in a rigorous way, for the impact of the discretisation of the forward problem. In particular, this confers robustness to failure of meshless methods, with statistical inferences driven to be more conservative in the presence of significant solver error. In addition, (i) a principled learning-theoretic approach to minimise the impact of solver error is developed, and (ii) the challenging setting of inverse problems with a non-linear forward model is considered. The method is applied to parameter inference problems in which non-negligible solver error must be accounted for in order to draw valid statistical conclusions.}
+}
+
+@article{2016arXiv160607686O,
+    author = {{Owhadi}, H. and {Zhang}, L.},
+    title = "{Gamblets for opening the complexity-bottleneck of implicit schemes for hyperbolic and parabolic ODEs/PDEs with rough coefficients}",
+    journal = {ArXiv e-prints},
+    issue = {math.NA 1606.07686},
+    year = 2016,
+    month = jun,
+    abstract = {Implicit schemes are popular methods for the integration of time dependent PDEs such as hyperbolic and parabolic PDEs. However the necessity to solve corresponding linear systems at each time step constitutes a complexity bottleneck in their application to PDEs with rough coefficients. We present a generalization of gamblets introduced in arXiv:1503.03467 enabling the resolution of these implicit systems in near-linear complexity and provide rigorous a-priori error bounds on the resulting numerical approximations of hyperbolic and parabolic PDEs. These generalized gamblets induce a multiresolution decomposition of the solution space that is adapted to both the underlying (hyperbolic and parabolic) PDE (and the system of ODEs resulting from space discretization) and to the time-steps of the numerical scheme.},
+    link = {http://arxiv.org/abs/1606.07686},
+    file = {http://arxiv.org/pdf/1606.07686v1.pdf}
+}
+
+
+@article{2017arXiv170310230,
+  author = {Maziar Raissi and Paris Perdikaris and George Em Karniadakis},
+  title = {Numerical {G}aussian Processes for Time-dependent and Non-linear Partial Differential Equations},
+  journal = {ArXiv e-prints},
+  issue = {stat.ML 1703.10230},
+  year = {2017},
+  month = mar,
+  abstract = {We introduce the concept of numerical Gaussian processes, which we define as Gaussian processes with covariance functions resulting from temporal discretization of time-dependent partial differential equations. Numerical Gaussian processes, by construction, are designed to deal with cases where: (1) all we observe are noisy data on black-box initial conditions, and (2) we are interested in quantifying the uncertainty associated with such noisy data in our solutions to time-dependent partial differential equations. Our method circumvents the need for spatial discretization of the differential operators by proper placement of Gaussian process priors. This is an attempt to construct structured and data-efficient learning machines, which are explicitly informed by the underlying physics that possibly generated the observed data. The effectiveness of the proposed approach is demonstrated through several benchmark problems involving linear and nonlinear time-dependent operators. In all examples, we are able to recover accurate approximations of the latent solutions, and consistently propagate uncertainty, even in cases involving very long time integration.},
+  link = {https://arxiv.org/abs/1703.10230},
+  file = {https://arxiv.org/pdf/1703.10230.pdf}
+}
+
+
+@article{owhadi_gamblets_2017,
+  title = {Gamblets for opening the complexity-bottleneck of implicit schemes for hyperbolic and parabolic {ODEs}/{PDEs} with rough coefficients},
+  volume = {347},
+  issn = {00219991},
+  url = {http://arxiv.org/abs/1606.07686},
+  doi = {10.1016/j.jcp.2017.06.037},
+  abstract = {Implicit schemes are popular methods for the integration of time dependent PDEs such as hyperbolic and parabolic PDEs. However the necessity to solve corresponding linear systems at each time step constitutes a complexity bottleneck in their application to PDEs with rough coefficients. We present a generalization of gamblets introduced in {\textbackslash}cite\{OwhadiMultigrid:2015\} enabling the resolution of these implicit systems in near-linear complexity and provide rigorous a-priori error bounds on the resulting numerical approximations of hyperbolic and parabolic PDEs. These generalized gamblets induce a multiresolution decomposition of the solution space that is adapted to both the underlying (hyperbolic and parabolic) PDE (and the system of ODEs resulting from space discretization) and to the time-steps of the numerical scheme.},
+  urldate = {2017-09-10},
+  journal = {Journal of Computational Physics},
+  author = {Owhadi, Houman and Zhang, Lei},
+  month = oct,
+  year = {2017},
+  note = {arXiv: 1606.07686},
+  file = {https://arxiv.org/pdf/1606.07686.pdf},
+  keywords = {65T60, 65N55, 65N75, 62C99, 42C40, 62M86, Mathematics - Numerical Analysis, Statistics - Machine Learning},
+  pages = {99--128}
+}
+
+@ARTICLE{2018arXiv180200971D,
+   author = {{Dupont}, M. and {En{\ss}lin}, T.},
+    title = {Consistency and convergence of simulation schemes in Information field dynamics},
+  journal = {ArXiv e-prints},
+  archivePrefix = "arXiv",
+   eprint = {1802.00971},
+  primaryClass = "astro-ph.IM",
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics},
+     year = 2018,
+    month = feb,
+    abstract = {We explore a new simulation scheme for partial differential equations (PDE's) called Information Field Dynamics (IFD). Information field dynamics attempts to improve on existing simulation schemes by incorporating Bayesian field inference, which seeks to preserve the maximum amount of information about the field being simulated. The field inference is truly Bayesian and thus depends on a notion of prior belief. Here, we analytically prove that a restricted subset of simulation schemes in IFD are consistent, and thus deliver valid predictions in the limit of high resolutions. This has not previously been done for any IFD schemes. This restricted subset is roughly analogous to traditional fixed-grid numerical PDE solvers, given the additional restriction of translational symmetry. Furthermore, given an arbitrary IFD scheme modelling a PDE, it is a-priori not obvious to what order the scheme is accurate in space and time. For this subset of models, we also derive an easy rule-of-thumb for determining the order of accuracy of the simulation. As with all analytic consistency analysis, an analysis for nontrivial systems is intractable, thus these results are intended as a general indicator of the validity of the approach, and it is hoped that the results will generalize.},
+    link = {https://arxiv.org/abs/1802.00971},
+    file = {https://arxiv.org/pdf/1802.00971}
+}
+
+@article{PhysRevE97033314,
+  title = {Towards information-optimal simulation of partial differential equations},
+  author = {Leike, Reimar H. and En\ss{}lin, Torsten A.},
+  journal = {Phys. Rev. E},
+  volume = {97},
+  issue = {3},
+  pages = {033314},
+  numpages = {8},
+  year = {2018},
+  month = {Mar},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevE.97.033314},
+  link = {https://link.aps.org/doi/10.1103/PhysRevE.97.033314},
+   abstract = {Most simulation schemes for partial differential equations (PDEs) focus on minimizing a simple error norm of a discretized version of a field. This paper takes a fundamentally different approach; the discretized field is interpreted as data providing information about a real physical field that is unknown. This information is sought to be conserved by the scheme as the field evolves in time. Such an information theoretic approach to simulation was pursued before by information field dynamics (IFD). In this paper we work out the theory of IFD for nonlinear PDEs in a noiseless Gaussian approximation. The result is an action that can be minimized to obtain an information-optimal simulation scheme. It can be brought into a closed form using field operators to calculate the appearing Gaussian integrals. The resulting simulation schemes are tested numerically in two instances for the Burgers equation. Their accuracy surpasses finite-difference schemes on the same resolution. The IFD scheme, however, has to be correctly informed on the subgrid correlation structure. In certain limiting cases we recover well-known simulation schemes like spectral Fourier-Galerkin methods. We discuss implications of the approximations made. }
+}

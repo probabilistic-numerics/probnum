@@ -1,0 +1,157 @@
+{% extends "layout.html" %}
+{% set title = _('ProbNum') %}
+
+{%- block content %}
+{# Added to support a banner with an alert #}
+<div class="container-fluid" id="banner"></div>
+
+{% block docs_navbar %}
+<nav class="navbar navbar-dark navbar-expand-lg bg-dark fixed-top bd-navbar" id="navbar-main">
+    {%- include "docs-navbar.html" %}
+</nav>
+{% endblock %}
+
+{# Hero banner #}
+<div class="container-fluid hero-banner">
+    <div class="container">
+        <div class="text-center">
+            <img src="{{ pathto('_static/img/logo/probnum_logo_dark_txtbelow.svg', 1) }}" alt="probabilistic numerics"
+                width="512" title="Probabilistic Numerics in Python" />
+            <h2>Learn to Approximate. Approximate to Learn.</h2>
+            <a href="{{ pathto('tutorials/quickstart') }}">
+                <div class="custom-button container">
+                    Get Started 🚀
+                </div>
+            </a>
+
+        </div>
+    </div>
+</div>
+
+{# ProbNum's features #}
+<div class="container-fluid landing-page-container">
+    <div class="container">
+        <div class="row" style="align-items:center">
+            <div class="text-center col-lg-4">
+                <div class="feature-illustration">
+                    <img class="feature-illustration-img"
+                        src="{{ pathto('_static/img/landing_page/dirichlet_problem.svg', 1) }}">
+                </div>
+                <div>
+                    <h3>Solve Numerical Problems</h3>
+                    Solve problems from linear algebra, optimization, quadrature and differential equations using
+                    probabilistic inference.
+                </div>
+            </div>
+            <div class="text-center col-lg-4">
+                <div class="feature-illustration">
+                    <img class="feature-illustration-img"
+                        src="{{ pathto('_static/img/landing_page/gaussian_process.svg', 1) }}">
+                </div>
+                <div>
+                    <h3>Quantify Uncertainty in Computation</h3>
+                    Quantify and propagate uncertainty from finite resources and stochastic input in computational
+                    pipelines.
+                </div>
+            </div>
+            <div class="text-center col-lg-4">
+                <div class="feature-illustration">
+                    <img class="feature-illustration-img"
+                        src="{{ pathto('_static/img/landing_page/quadratic_surface.svg', 1) }}">
+                </div>
+                <div>
+                    <h3>Compose Custom Numerical Methods</h3>
+                    Create problem-specific probabilistic numerical methods from predefined or your own custom
+                    components.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Installation #}
+<div class="container-fluid landing-page-container bg-lightgray">
+    <div class="container">
+        <div class="text-center">
+            <h1>Installation</h1>
+            To get started install ProbNum using <code>pip</code>.
+            <div class="highlight-bash notranslate">
+                <div class="highlight highlight-max-width">
+                    <pre><span></span>pip install probnum</pre>
+                </div>
+            </div>
+            <p>Then in a Python session simply import ProbNum.</p>
+            <div class="notranslate">
+                <div class="input_area highlight-ipython3 notranslate">
+                    <div class="highlight highlight-max-width">
+                        <pre><span></span><span class="kn">import</span> <span class="nn">probnum</span> <span class="k">as</span> <span class="nn">pn</span></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Citation #}
+<!-- <div class="container-fluid landing-page-container">
+    <div class="container">
+        <div class="text-center">
+            <h1>Citation</h1>
+            If you use ProbNum in your research, please cite:
+        </div>
+        <div class="highlight-bash notranslate">
+            <div class="highlight highlight-max-width">
+                <pre><span></span>@misc{probnum2021,
+    author    = {Wenger, Jonathan and Kr{\" a}mer, Nicholas and Bosch, Nathanael
+                 and Pf{\" o}rtner, Marvin and Schmidt, Jonathan and Effenberger, Nina
+                 and Mahsereci, Maren and Zenn, Johannes and Gl{\" a}{\ss}le, Thomas
+                 and Gessner, Alexandra and Karvonen, Toni and Hennig, Philipp
+                 and {ProbNum Contributors}},
+    title     = {ProbNum: Probabilistic Numerics in Python},
+    year      = {2021},
+    url       = {https://github.com/probabilistic-numerics/probnum},
+}</pre>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+{# Supported by #}
+
+<div class="container-fluid landing-page-container">
+    <div class="container">
+        <div class="text-center supporter-div">
+            ProbNum is first and foremost a community project. <!--affiliated with NumFOCOUS via a shared mission to develop scientifically-oriented open-source software in an inclusive environment.-->
+            It was originally conceived at the <a href="https://uni-tuebingen.de/en/160189">Chair for the Methods of Machine Learning</a>
+            at the University of Tübingen.
+            <a href="{{ pathto('development') }}#probnum-team">ProbNum's core development team</a> is supported by research grants of the European Research Council (ERC StG Action 757275 / PANAMA), the German Federal Ministry of Education and Research (BMBF) through both project ADIMEM (FKZ 01IS18052B) and the Tübingen AI Center (FKZ: 01IS18039A); by the German Research Union (DFG) through the DFG Cluster of Excellence “Machine Learning - New Perspectives for Science”, (EXC 2064/1, project number 390727645), and the Ministry of Science, Research and Arts of the State of Baden-Württemberg.
+            <br>
+            <div class="supporter-logo">
+                <!-- <img
+                    src="{{ pathto('_static/img/landing_page/supportedby/NumFOCUS.png', 1) }}"> -->
+                <img
+                    src="{{ pathto('_static/img/landing_page/supportedby/ERC.png', 1) }}">
+
+                <img
+                    src="{{ pathto('_static/img/landing_page/supportedby/BMBF.svg', 1) }}">
+
+                <img
+                    src="{{ pathto('_static/img/landing_page/supportedby/DFG.svg', 1) }}">
+
+                <img
+                    src="{{ pathto('_static/img/landing_page/supportedby/MWFK_BW.png', 1) }}">
+            </div>
+        </div>
+    </div>
+</div>
+
+{%- block scripts_end %}
+{{ _webpack.body_post() }}
+{{ generate_google_analytics_script(id=theme_google_analytics_id) }}
+{%- endblock %}
+
+{%- endblock %}
+
+{%- block footer %}
+{%- include "footer.html" %}
+{%- endblock %}

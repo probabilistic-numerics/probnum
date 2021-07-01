@@ -1,0 +1,97 @@
+<footer class="page-footer bg-dark p-0">
+
+  <div class="container-fluid p-0 links">
+    <div class="container">
+      <div class="row text-center">
+
+        <div class="col-lg-4 col-md-6 col-sm-4 links-item">
+          <h4>Probabilistic Numerics</h4>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ pathto('research') }}#probabilistic-numerics-in-a-nutshell">In a Nutshell</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ pathto('research/meetings/index') }}">Meetings and Events</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ pathto('research/literature') }}">Literature</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-lg-4 col-md-6 col-sm-4 links-item">
+          <h4>Documentation</h4>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ pathto('tutorials/quickstart') }}">Quickstart</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ pathto('tutorials') }}">Tutorials</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ pathto('api') }}">API Reference</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-lg-4 col-md-6 col-sm-4 links-item">
+          <h4>Development</h4>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/probabilistic-numerics/probnum">GitHub</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ pathto('development/pull_request') }}">Contributing Code</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/probabilistic-numerics/probnum/blob/ddada486a0b8bdca0bedfef131344ddd5dad9981/CODE_OF_CONDUCT.md">Code of Conduct</a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center" role="contentinfo">
+    {%- block contentinfo %}
+    <div class="watermark">
+      <img src="{{ pathto('_static/img/logo/probnum_logo_watermark.svg', 1) }}" class="watermark-footer" alt="ProbNum"
+        width="50">
+    </div>
+    <p>
+      {%- if show_copyright %}
+      {%- if hasdoc('copyright') %}
+      {%- trans path=pathto('copyright'), copyright=copyright|e %}
+      <a href="{{ path }}">Copyright &#169;</a> {{ copyright }}
+      {% endtrans %}
+      {%- else %}
+      {%- trans copyright=copyright|e %}
+      Copyright &#169; {{ copyright }}
+      {% endtrans %}
+      {%- endif %}
+      <a href="{{ pathto('development') }}#probnum-team">ProbNum Team</a>.
+      {%- endif %}
+
+      {%- if build_id and build_url %}
+      <span class="build">
+        {#- Translators: Build is a noun, not a verb -#}
+        {%- trans %}Build{% endtrans -%}
+        <a href="{{ build_url }}">{{ build_id }}</a>.
+      </span>
+      {%- elif commit %}
+      <span class="commit">
+        {#- Translators: the phrase "revision" comes from Git, referring to a commit #}
+        {%- trans %}Revision{% endtrans %} <code>{{ commit }}</code>.
+      </span>
+      {%- endif %}
+      {%- if last_updated %}
+      <span class="lastupdated">
+        {%- trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}
+      </span>
+      {%- endif -%}
+
+    </p>
+    {%- endblock %}
+  </div>
+</footer>
