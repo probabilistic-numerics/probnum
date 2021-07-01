@@ -185,10 +185,10 @@ _Other Universities_: For students at other universities, we do not offer thesis
 
 ---
 
-**Feedback and Scientific Direction:** People who give valuable feedback and input on the scientific direction.
+**Scientific Direction and Funding:** People who give input on the scientific direction or attract and provide funding for research on probabilistic numerics.
 
 <div>
-	<a href="https://github.com/philipphennig">
+	<a href="https://uni-tuebingen.de/de/134782">
 		<img class="avatar" alt="philipphennig" src="https://github.com/philipphennig.png?v=3&s=96" width="48" height="48" />
 		Philipp Hennig
 	</a>
