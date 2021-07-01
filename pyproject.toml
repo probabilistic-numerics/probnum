@@ -57,6 +57,7 @@ abstract-class-instantiated,
 too-many-locals,
 too-few-public-methods,
 too-many-arguments,
+unused-argument,
 missing-module-docstring,
 missing-function-docstring,
 duplicate-code,
@@ -67,8 +68,10 @@ too-many-instance-attributes,
 line-too-long,
 missing-class-docstring,
 unnecessary-pass,
+unused-variable,
 redefined-outer-name,
 function-redefined,
+import-error
 """
 # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 

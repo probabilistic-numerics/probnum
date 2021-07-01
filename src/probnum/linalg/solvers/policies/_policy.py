@@ -3,6 +3,8 @@ import abc
 
 import numpy as np
 
+import probnum  # pylint: disable="unused-import"
+
 
 class Policy(abc.ABC):
     r"""Policy of a (probabilistic) linear solver.
