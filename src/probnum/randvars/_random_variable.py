@@ -24,6 +24,8 @@ except ImportError:
 
 _ValueType = TypeVar("ValueType")
 
+# pylint: disable="too-many-lines"
+
 
 class RandomVariable(Generic[_ValueType]):
     """Random variables represent uncertainty about a value.

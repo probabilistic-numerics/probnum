@@ -7,6 +7,8 @@ from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
 
 from . import _linear_operator
 
+# pylint: disable="too-many-statements"
+
 
 class Scaling(_linear_operator.LinearOperator):
     def __init__(

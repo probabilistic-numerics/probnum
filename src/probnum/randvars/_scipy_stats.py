@@ -11,7 +11,7 @@ from . import _normal, _random_variable
 
 _ValueType = Union[np.generic, np.ndarray]
 
-# pylint: disable=protected-access
+# pylint: disable="protected-access,too-many-branches"
 
 
 class _SciPyRandomVariableMixin:
