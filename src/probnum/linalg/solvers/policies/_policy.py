@@ -1,10 +1,10 @@
 """Base class for policies of probabilistic linear solvers returning actions."""
+import abc
+
 import numpy as np
 
-import probnum  # pylint: disable="unused-import"
 
-
-class Policy:
+class Policy(abc.ABC):
     r"""Policy of a (probabilistic) linear solver.
 
     The policy :math:`\pi(s \mid \mathsf{A}, \mathsf{H}, \mathsf{x}, A, b)` of a

@@ -489,7 +489,7 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     x0_true = x0
 
                 # Matrix-based solver
-                smbs = linalg.MatrixBasedSolver(A=A, b=b, x0=x0)
+                smbs = linalg.solvers.MatrixBasedSolver(A=A, b=b, x0=x0)
                 A0_mean, Ainv0_mean = smbs._construct_symmetric_matrix_prior_means(
                     A=A, b=b, x0=x0
                 )
