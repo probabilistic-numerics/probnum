@@ -75,7 +75,10 @@ class LinearSolverBeliefUpdate(abc.ABC):
         x_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
         A_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
         Ainv_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
-        b_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
+        b_belief_update_type: Type[
+            LinearSolverQoIBeliefUpdate
+        ],  # TODO: remove types and make stateless (prior is separate)
+        # TODO: pass callables which define updates for all QoIs in belief (compositional pattern)
     ):
         self._prior = prior
         self.cache_type = cache_type

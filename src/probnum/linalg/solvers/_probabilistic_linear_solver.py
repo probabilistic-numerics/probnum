@@ -57,6 +57,7 @@ class ProbabilisticLinearSolver(
         Hyperparameter optimization method.
     belief_update :
         Belief update defining how to update the QoI beliefs given new observations.
+        # TODO: hyperparam_optim_method should be an argument of BeliefUpdate()
     stopping_criteria :
         Stopping criteria determining when the solver has converged.
 
@@ -114,7 +115,7 @@ class ProbabilisticLinearSolver(
 
     def __init__(
         self,
-        prior: beliefs.LinearSystemBelief,
+        prior: beliefs.LinearSystemBelief,  # TODO: move to solve method
         observation_op: observation_ops.ObservationOp,
         policy: Optional[policies.Policy] = None,
         hyperparam_optim_method: Optional[
@@ -470,8 +471,8 @@ class ProbabilisticLinearSolver(
     def solve_iterator(
         self,
         problem: LinearSystem,
-        belief: Optional[beliefs.LinearSystemBelief] = None,
-        solver_state: Optional[LinearSolverState] = None,
+        prior: Optional[beliefs.LinearSystemBelief] = None,
+        # solver_state: Optional[LinearSolverState] = None, # TODO: solver state should not be an argument here
     ) -> Generator[
         Tuple[
             beliefs.LinearSystemBelief,
@@ -533,7 +534,7 @@ class ProbabilisticLinearSolver(
             problem=problem, belief=belief, solver_state=solver_state
         )
 
-        yield belief, None, None, solver_state
+        yield belief, None, None, solver_state  # TODO: This does one unnecessary iteration in the loop, move into while loop instead.
 
         while True:
 
@@ -556,29 +557,31 @@ class ProbabilisticLinearSolver(
                 action=action, observation=observation, prev_state=solver_state
             )
 
-            # Optimize hyperparameters
-            if self.hyperparam_optim_method is not None:
+            # # Optimize hyperparameters
+            # if self.hyperparam_optim_method is not None:
 
-                hyperparams = self.hyperparam_optim_method(
-                    problem=solver_state.problem,
-                    belief=solver_state.belief,
-                    data=solver_state.data,
-                    solver_state=solver_state,
-                )
-            else:
-                hyperparams = self.prior.hyperparams
+            #     hyperparams = self.hyperparam_optim_method(
+            #         problem=solver_state.problem,  # TODO: All solver components should only take a SolverState, which always has a problem, belief and data, from which potentially cached properties are generated.
+            #         belief=solver_state.belief,
+            #         data=solver_state.data,
+            #         solver_state=solver_state,
+            #     )
+            # else:
+            #     hyperparams = self.prior.hyperparams
+            # TODO this just gets called automatically in .belief_update()
 
             # Update the belief over the quantities of interest
             belief, solver_state = self.belief_update(
-                problem=problem,
-                belief=belief,
-                action=action,
-                observation=observation,
-                hyperparams=hyperparams,
+                # problem=problem,
+                # belief=belief,
+                # action=action,
+                # observation=observation,
+                # hyperparams=hyperparams,
                 solver_state=solver_state,
             )
 
             solver_state.info.iteration += 1
+            # TODO: solver_state.next_step()
 
             # Evaluate stopping criteria
             _has_converged = self.has_converged(
@@ -595,6 +598,7 @@ class ProbabilisticLinearSolver(
     def solve(
         self,
         problem: LinearSystem,
+        # prior: Optional[LinearSystemBelief] = None, TODO: generate prior via LinearSystemBelief.from_problem(problem)
     ) -> Tuple[beliefs.LinearSystemBelief, LinearSolverState]:
         r"""Solve the linear system.
 

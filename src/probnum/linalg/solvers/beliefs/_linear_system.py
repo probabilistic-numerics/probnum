@@ -42,6 +42,8 @@ class LinearSystemBelief:
         Belief over the (pseudo-)inverse of the system matrix.
     b :
         Belief over the right hand side.
+    hyperparams :
+        Hyperparameters of the belief. # TODO: add this to the belief
 
     Examples
     --------

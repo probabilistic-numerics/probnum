@@ -10,7 +10,7 @@ from probnum.problems import LinearSystem
 __all__ = ["ObservationOp"]
 
 
-class ObservationOp:
+class ObservationOp:  # TODO: rename to ObservationModel in correspondence to Likelihood
     """Observation operator of probabilistic linear solvers.
 
     Defines the way observations about the linear system are collected for a given

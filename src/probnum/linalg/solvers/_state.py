@@ -1,7 +1,8 @@
 """State of a probabilistic linear solver."""
 
 import dataclasses
-from typing import Optional
+from collections import defaultdict
+from typing import Any, DefaultDict, List, Mapping, Optional, Tuple
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -156,105 +157,83 @@ class LinearSolverState:
     Parameters
     ----------
 
-    info
-        Information about the convergence of the linear solver.
     problem
         Linear system to be solved.
     prior
         Prior belief over the quantities of interest of the linear system.
-    data
-        Performed actions and collected observations of the linear system.
-    belief
-        (Updated) belief over the quantities of interest of the linear system.
-    cache
-        Miscellaneous (cached) quantities to efficiently select an action,
-        optimize hyperparameters and to update the belief.
     """
 
     def __init__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        prior: Optional["probnum.linalg.solvers.beliefs.LinearSystemBelief"] = None,
-        data: Optional[LinearSolverData] = None,
-        info: Optional[LinearSolverInfo] = None,
-        cache: Optional[LinearSolverCache] = None,
+        prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
     ):
         # pylint: disable="too-many-arguments"
 
+        self.step = 0
+        self.has_converged = False
+
         self.problem = problem
-        self.belief = belief
-        self.data = (
-            data if data is not None else LinearSolverData(actions=[], observations=[])
-        )
-        self.prior = prior if prior is not None else belief
-        self.info = (
-            info
-            if info is not None
-            else LinearSolverInfo(iteration=len(self.data.actions))
-        )
-        self.cache = (
-            cache
-            if cache is not None
-            else LinearSolverCache(
-                problem=problem, prior=self.prior, belief=belief, data=self.data
-            )
-        )
+        self.belief = self.prior
 
-    @classmethod
-    def from_new_data(
-        cls,
-        action: "probnum.linalg.solvers.LinearSolverAction",
-        observation: "probnum.linalg.solvers.LinearSolverObservation",
-        prev_state: "LinearSolverState",
-    ):
-        """Create a new solver state from a previous one and newly observed data.
+        self._actions: List[np.ndarray] = [None]
+        self._observations: List[Any] = [None]
+        self._residuals: List[np.ndarray] = [
+            self.problem.A @ self.belief.x.mean - self.problem.b
+        ]
 
-        Parameters
-        ----------
-        action :
-            Action taken by the solver given by its policy.
-        observation :
-            Observation of the linear system for the corresponding action.
-        prev_state :
-            Previous linear solver state prior to observing new data.
+        self._cache = defaultdict(list)
+
+    @property
+    def action(self) -> Optional[np.ndarray]:
+        """Most recent action of the solver."""
+        return self.actions[self.step]
+
+    @action.setter  # TODO: this should really be private
+    def action(self, value: np.ndarray) -> None:
+        assert self._actions[self.step] is None
+        self._actions[self.step] = value
+
+    @property
+    def observation(self) -> Optional[Any]:
+        """Most recent observation of the solver.
+
+        Is `None` at the beginning of a step, will be set by the
+        observation model for a given action.
         """
-        cache = type(prev_state.cache).from_new_data(
-            action=action, observation=observation, prev_cache=prev_state.cache
-        )
+        return self.observations[self.step]
 
-        return cls(
-            problem=prev_state.problem,
-            prior=prev_state.prior,
-            data=cache.data,
-            belief=prev_state.belief,
-            info=prev_state.info,
-            cache=cache,
-        )
+    @observation.setter  # TODO: this should really be private
+    def observation(self, value: Any) -> None:
+        assert self._observations[self.step] is None
+        self._observations[self.step] = value
 
-    @classmethod
-    def from_updated_belief(
-        cls,
-        updated_belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        prev_state: "LinearSolverState",
-    ):
-        """Create a new solver state from an updated belief.
+    @property
+    def actions(self) -> Tuple[np.ndarray, ...]:
+        """Actions taken by the solver."""
+        return tuple(self._actions[:-1])
 
-        Parameters
-        ----------
-        updated_belief :
-            Updated belief over the quantities of interest after observing data.
-        prev_state :
-            Previous linear solver state updated with new data, but prior to the
-            belief update.
-        """
-        prev_state.cache.belief = updated_belief
+    @property
+    def observations(self) -> Tuple[Any, ...]:
+        """Observations of the problem by the solver."""
+        return tuple(self._observations[:-1])
 
-        return cls(
-            problem=prev_state.problem,
-            prior=prev_state.prior,
-            data=prev_state.data,
-            belief=updated_belief,
-            info=prev_state.info,
-            cache=prev_state.cache,
-        )
+    @property
+    def residual(self) -> np.ndarray:
+        return self.residuals[self.step]
+
+    @property
+    def residuals(self) -> Tuple[np.ndarray, ...]:
+        return tuple(self._residuals[:-1])
+
+    @property
+    def cache(self) -> Mapping[str, Any]:
+        """Dynamic cache."""
+        return self._cache
+
+    def next_step(self):
+        """"""
+        self._actions.append(None)
+        self._observations.append(None)
+
+        self.step += 1
