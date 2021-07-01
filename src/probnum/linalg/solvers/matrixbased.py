@@ -11,7 +11,7 @@ import numpy as np
 import probnum
 from probnum import linops, randvars
 
-# pylint: disable="too-many-branches,too-many-lines,too-complex,too-many-statements,redefined-builtin,arguments-differ,abstract-method"
+# pylint: disable="too-many-branches,too-many-lines,too-complex,too-many-statements,redefined-builtin,arguments-differ,abstract-method,unused-argument"
 
 
 class ProbabilisticLinearSolver(abc.ABC):
