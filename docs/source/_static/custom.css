@@ -236,6 +236,7 @@ body {
 
 .supporter-div {
     color: rgba(var(--pst-color-background-dark), 0.5);
+    font-size: 0.8rem;
 }
 
 /* Code */

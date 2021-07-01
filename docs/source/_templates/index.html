@@ -15,8 +15,8 @@
 <div class="container-fluid hero-banner">
     <div class="container">
         <div class="text-center">
-            <img src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/logo/probnum_logo_dark_txtbelow.svg"
-                alt="probabilistic numerics" width="512" title="Probabilistic Numerics in Python" />
+            <img src="{{ pathto('_static/img/logo/probnum_logo_dark_txtbelow.svg', 1) }}" alt="probabilistic numerics"
+                width="512" title="Probabilistic Numerics in Python" />
             <h2>Learn to Approximate. Approximate to Learn.</h2>
             <a href="{{ pathto('tutorials/quickstart') }}">
                 <div class="custom-button container">
@@ -35,7 +35,7 @@
             <div class="text-center col-lg-4">
                 <div class="feature-illustration">
                     <img class="feature-illustration-img"
-                        src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/dirichlet_problem.svg">
+                        src="{{ pathto('_static/img/landing_page/dirichlet_problem.svg', 1) }}">
                 </div>
                 <div>
                     <h3>Solve Numerical Problems</h3>
@@ -46,7 +46,7 @@
             <div class="text-center col-lg-4">
                 <div class="feature-illustration">
                     <img class="feature-illustration-img"
-                        src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/gaussian_process.svg">
+                        src="{{ pathto('_static/img/landing_page/gaussian_process.svg', 1) }}">
                 </div>
                 <div>
                     <h3>Quantify Uncertainty in Computation</h3>
@@ -57,7 +57,7 @@
             <div class="text-center col-lg-4">
                 <div class="feature-illustration">
                     <img class="feature-illustration-img"
-                        src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/quadratic_surface.svg">
+                        src="{{ pathto('_static/img/landing_page/quadratic_surface.svg', 1) }}">
                 </div>
                 <div>
                     <h3>Compose Custom Numerical Methods</h3>
@@ -121,16 +121,25 @@
 <div class="container-fluid landing-page-container">
     <div class="container">
         <div class="text-center supporter-div">
-            ProbNum is supported by<br>
+            ProbNum’s development is generously supported by research grants of the European Research Council (ERC StG
+            Action 757275 / PANAMA), the German Federal Ministry of Education and Research (BMBF) through both project
+            ADIMEM (FKZ 01IS18052B) and the Tübingen AI Center (FKZ: 01IS18039A); by the German Research Union (DFG)
+            through the DFG Cluster of Excellence “Machine Learning - New Perspectives for Science”, (EXC 2064/1,
+            project number 390727645), and the Ministry of Science, Research and Arts of the State of Baden-Württemberg.
+            <!-- ProbNum is also affiliated with NumFOCUS via a shared mission to develop scientifically-oriented open-source software in an inclusive environment. -->
+            <br>
             <div class="supporter-logo">
                 <img
-                    src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/MWFK_BW.png">
+                    src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/supportedby/MWFK_BW.png">
 
                 <img
-                    src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/ERC.png">
+                    src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/supportedby/ERC.png">
+
+                <img
+                    src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/supportedby/ERC.png">
 
                 <!-- <img
-                    src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/NumFocus.png"> -->
+                    src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/assets/img/landing_page/supportedby/NumFocus.png"> -->
             </div>
         </div>
     </div>
