@@ -3,7 +3,7 @@ from typing import Callable, Iterable, Optional
 
 import numpy as np
 
-import probnum as pn
+import probnum  # pylint: disable="unused-import"
 from probnum import linops
 
 from . import _policy
@@ -30,7 +30,7 @@ class ConjugateGradient(_policy.Policy):
     ) -> None:
         self._reorthogonalization_fn = reorthogonalization_fn
 
-    def __call__(self, solver_state: "pn.linalg.solvers.State") -> np.ndarray:
+    def __call__(self, solver_state: "probnum.linalg.solvers.State") -> np.ndarray:
 
         action = solver_state.residual.copy()
 
