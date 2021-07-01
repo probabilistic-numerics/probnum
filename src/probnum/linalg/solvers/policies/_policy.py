@@ -19,7 +19,9 @@ class Policy(abc.ABC):
     ConjugateDirections : Policy returning :math:`A`-conjugate actions.
     """
 
-    def __call__(self, solver_state: "probnum.linalg.solvers.State") -> np.ndarray:
+    def __call__(
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+    ) -> np.ndarray:
         """Return an action for a given solver state.
 
         Parameters

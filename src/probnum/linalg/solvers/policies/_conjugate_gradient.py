@@ -30,11 +30,13 @@ class ConjugateGradient(_policy.Policy):
     ) -> None:
         self._reorthogonalization_fn = reorthogonalization_fn
 
-    def __call__(self, solver_state: "probnum.linalg.solvers.State") -> np.ndarray:
+    def __call__(
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+    ) -> np.ndarray:
 
         action = solver_state.residual.copy()
 
-        if solver_state.iteration > 0:
+        if solver_state.step > 0:
             # A-conjugate action (in exact arithmetic)
             beta = (
                 solver_state.residual_norm_squared

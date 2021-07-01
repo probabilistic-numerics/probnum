@@ -12,7 +12,9 @@ class StandardUnitVectors(_policy.Policy):
     Draw a standard unit vector :math:`e_i` at random and return it. This policy corresponds to selecting columns of the matrix as observations.
     """
 
-    def __call__(self, solver_state: "probnum.linalg.solvers.State") -> np.ndarray:
+    def __call__(
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+    ) -> np.ndarray:
 
         n = solver_state.problem.A.shape[1]
         idx = solver_state.rng.choice(n, 1)
