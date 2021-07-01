@@ -4,25 +4,19 @@ import dataclasses
 from collections import defaultdict
 from typing import Any, List, Mapping, Optional, Tuple
 
+import numpy as np
+
 import probnum  # pylint:disable="unused-import"
 from probnum import problems
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
-import numpy as np
 
 
 @dataclasses.dataclass
 class LinearSolverState:
-    r"""State of a probabilistic linear solver.
+    """State of a probabilistic linear solver.
 
     The solver state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities computed during an iteration
     of a probabilistic linear solver. The solver state is passed between the
-    different components of the solver and may be used to cache quantities which are used more than once.
+    different components of the solver and may be used internally to cache quantities which are used more than once.
 
     Parameters
     ----------
