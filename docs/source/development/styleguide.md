@@ -160,7 +160,7 @@ or https://docs.python.org/2/library/exceptions.html#exceptions.Warning.
 
 ### Modules and Folders
 - `low` (shortened lower caps) for modules/folders in the namespace, e.g. `probnum.linalg.linops`
-- `lower` for modules/folders not in the namespace, e.g. `probnum/linalg/linearsolvers`.
+- `lower` for modules/folders not in the namespace, e.g. `probnum/linalg/solvers`.
 *Rule of thumb:* the more low-level the module is, the longer
 (more descriptive) the file name can be, because the chances
 that access is provided through higher-level namespaces are rather high.

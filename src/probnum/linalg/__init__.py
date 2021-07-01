@@ -4,7 +4,8 @@ This package implements probabilistic numerical methods for the solution
 of problems arising in linear algebra, such as the solution of linear
 systems.
 """
-from probnum.linalg.linearsolvers import *
+from probnum.linalg._problinsolve import bayescg, problinsolve
+from probnum.linalg.solvers import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

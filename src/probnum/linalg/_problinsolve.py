@@ -13,12 +13,12 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, randvars, utils
-from probnum.linalg.linearsolvers.matrixbased import (
+from probnum.linalg.solvers.matrixbased import (
     AsymmetricMatrixBasedSolver,
     NoisySymmetricMatrixBasedSolver,
     SymmetricMatrixBasedSolver,
 )
-from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
+from probnum.linalg.solvers.solutionbased import SolutionBasedSolver
 
 # Type aliases
 SquareLinOp = Union[

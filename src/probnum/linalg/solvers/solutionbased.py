@@ -8,7 +8,7 @@ import warnings
 
 import numpy as np
 
-from probnum.linalg.linearsolvers.matrixbased import ProbabilisticLinearSolver
+from probnum.linalg.solvers.matrixbased import ProbabilisticLinearSolver
 
 
 class SolutionBasedSolver(ProbabilisticLinearSolver):
