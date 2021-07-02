@@ -1,7 +1,6 @@
 """Tests for the state of a probabilistic linear solver."""
 
 import pytest_cases
-from numpy.matrixlib.defmatrix import matrix
 
 from .cases_linalg.matrix_cases import *
 
