@@ -27,7 +27,7 @@ class LinearOperator:
     :class:`LinearOperator`, that defers linear operations to the original operators and
     combines the results.
 
-    To construct a concrete class:`LinearOperator`, either pass appropriate callables to
+    To construct a concrete :class:`LinearOperator`, either pass appropriate callables to
     the constructor of this class, or subclass it.
 
     A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and
@@ -157,18 +157,29 @@ class LinearOperator:
 
     @property
     def shape(self) -> Tuple[int, int]:
+        """Shape of the linear operator.
+
+        Defined as a tuple of the output and input dimension of
+        operator.
+        """
         return self.__shape
 
     @property
     def ndim(self) -> int:
+        """Number of linear operator dimensions.
+
+        Defined analogously to :attr:`numpy.ndarray.ndim`.
+        """
         return 2
 
     @property
     def dtype(self) -> np.dtype:
+        """Data type of the linear operator."""
         return self.__dtype
 
     @property
     def is_square(self) -> bool:
+        """Whether input dimension matches output dimension."""
         return self.shape[0] == self.shape[1]
 
     def __repr__(self) -> str:
@@ -213,6 +224,21 @@ class LinearOperator:
         subok: bool = True,
         copy: bool = True,
     ) -> "LinearOperator":
+        """Cast a linear operator to a different ``dtype``.
+
+        Parameters
+        ----------
+        dtype:
+            Data type to which the linear operator is cast.
+        order:
+            Memory layout order of the result.
+        casting:
+            Controls what kind of data casting may occur.
+        subok:
+            If True, then sub-classes will be passed-through (default). False is currently not supported for linear operators.
+        copy:
+            Whether to return a new linear operator, even if ``dtype`` is the same.
+        """
         dtype = np.dtype(dtype)
 
         if not np.can_cast(self.dtype, dtype, casting=casting):
@@ -422,6 +448,7 @@ class LinearOperator:
         return NegatedLinearOperator(self)
 
     def conjugate(self) -> "LinearOperator":
+        """Complex conjugate linear operator."""
         if np.issubdtype(self.dtype, np.complexfloating):
             if self.__conjugate is None:
                 return _ConjugateLinearOperator(self)
@@ -431,9 +458,11 @@ class LinearOperator:
         return self
 
     def conj(self) -> "LinearOperator":
+        """Complex conjugate linear operator."""
         return self.conjugate()
 
     def adjoint(self) -> "LinearOperator":
+        """Hermitian adjoint."""
         if self.__adjoint is None:
             return self._adjoint_fallback()
 
@@ -448,6 +477,7 @@ class LinearOperator:
 
     @property
     def H(self) -> "LinearOperator":
+        """Hermitian adjoint."""
         return self.adjoint()
 
     def transpose(self) -> "LinearOperator":
@@ -475,6 +505,7 @@ class LinearOperator:
 
     @property
     def T(self) -> "LinearOperator":
+        """Transposed linear operator."""
         return self.transpose()
 
     def inv(self) -> "LinearOperator":
@@ -616,6 +647,13 @@ class LinearOperator:
     def broadcast_matvec(
         cls, matvec: Callable[[np.ndarray], np.ndarray]
     ) -> Callable[[np.ndarray], np.ndarray]:
+        """Broadcasting for a (implicitly defined) matrix-vector product.
+
+        Convenience function / decorator to broadcast the definition of
+        a matrix-vector product. This can be used to easily construct a
+        new linear operator only from a matrix-vector product.
+        """
+
         def _matmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2 and x.shape[1] == 1:
                 return matvec(x[:, 0])[:, np.newaxis]
@@ -628,6 +666,14 @@ class LinearOperator:
     def broadcast_matmat(
         cls, matmat: Callable[[np.ndarray], np.ndarray]
     ) -> Callable[[np.ndarray], np.ndarray]:
+        """Broadcasting for a (implicitly defined) matrix-matrix product.
+
+        Convenience function / decorator to broadcast the definition of
+        a matrix-matrix product to vectors. This can be used to easily
+        construct a new linear operator only from a matrix-matrix
+        product.
+        """
+
         def _matmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2:
                 return matmat(x)

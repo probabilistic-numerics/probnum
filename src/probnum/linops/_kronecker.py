@@ -13,15 +13,16 @@ from . import _linear_operator, _utils
 
 
 class Symmetrize(_linear_operator.LinearOperator):
-    """Symmetrizes a vector in its matrix representation.
+    r"""Symmetrizes a vector in its matrix representation.
 
-    Given a vector x=vec(X) representing a square matrix X, this linear operator
-    computes y=vec(1/2(X + X^T)).
+    Given a vector :math:`x=\operatorname{vec}(X)` representing a square matrix :math:`X`, this linear operator computes :math:`y=\operatorname{vec}(\frac{1}{2}(X + X^\top))`.
 
     Parameters
     ----------
-    dim : int
+    n :
         Dimension of matrix X.
+    dtype :
+        Data type.
     """
 
     def __init__(self, n: int, dtype: DTypeArgType = np.double):
