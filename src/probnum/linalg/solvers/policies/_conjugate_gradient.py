@@ -9,7 +9,7 @@ from probnum import linops
 from . import _policy
 
 
-class ConjugateGradient(_policy.Policy):
+class ConjugateGradientPolicy(_policy.LinearSolverPolicy):
     r"""Policy returning :math:`A`-conjugate actions.
 
     Selects the negative gradient / residual as an initial action :math:`s_0 = A x_0 - b` and then successively generates :math:`A`-conjugate actions, i.e. the actions satisfy :math:`s_i^\top A s_j = 0` iff :math:`i \neq j`.

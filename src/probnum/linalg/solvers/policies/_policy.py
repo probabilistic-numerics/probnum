@@ -6,7 +6,7 @@ import numpy as np
 import probnum  # pylint: disable="unused-import"
 
 
-class Policy(abc.ABC):
+class LinearSolverPolicy(abc.ABC):
     r"""Policy of a (probabilistic) linear solver.
 
     The policy :math:`\pi(s \mid \mathsf{A}, \mathsf{H}, \mathsf{x}, A, b)` of a

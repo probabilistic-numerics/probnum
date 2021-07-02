@@ -6,7 +6,7 @@ import probnum  # pylint: disable="unused-import"
 from . import _policy
 
 
-class StandardUnitVectors(_policy.Policy):
+class RandomUnitVectorPolicy(_policy.LinearSolverPolicy):
     r"""Policy returning randomly drawn standard unit vectors.
 
     Draw a standard unit vector :math:`e_i` at random and return it. This policy corresponds to selecting columns of the matrix as observations.

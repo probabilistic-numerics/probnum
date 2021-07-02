@@ -1,13 +1,13 @@
 """Policies of probabilistic linear solvers returning actions."""
 
-from ._conjugate_gradient import ConjugateGradient
-from ._policy import Policy
-from ._standard_unit_vectors import StandardUnitVectors
+from ._conjugate_gradient import ConjugateGradientPolicy
+from ._policy import LinearSolverPolicy
+from ._standard_unit_vectors import RandomUnitVectorPolicy
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["Policy", "StandardUnitVectors", "ConjugateGradient"]
+__all__ = ["LinearSolverPolicy", "ConjugateGradientPolicy", "RandomUnitVectorPolicy"]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-Policy.__module__ = "probnum.linalg.solvers.policies"
-StandardUnitVectors.__module__ = "probnum.linalg.solvers.policies"
-ConjugateGradient.__module__ = "probnum.linalg.solvers.policies"
+LinearSolverPolicy.__module__ = "probnum.linalg.solvers.policies"
+RandomUnitVectorPolicy.__module__ = "probnum.linalg.solvers.policies"
+ConjugateGradientPolicy.__module__ = "probnum.linalg.solvers.policies"
