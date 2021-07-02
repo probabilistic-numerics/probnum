@@ -2,7 +2,7 @@
 
 from ._conjugate_gradient import ConjugateGradientPolicy
 from ._policy import LinearSolverPolicy
-from ._standard_unit_vectors import RandomUnitVectorPolicy
+from ._random_unit_vector import RandomUnitVectorPolicy
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["LinearSolverPolicy", "ConjugateGradientPolicy", "RandomUnitVectorPolicy"]
