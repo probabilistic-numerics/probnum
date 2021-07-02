@@ -1,0 +1,11 @@
+probnum.linalg.solvers
+======================
+
+.. automodapi:: probnum.linalg.solvers
+    :no-heading:
+    :headings: "-"
+
+.. toctree::
+    :hidden:
+
+    solvers.policies

@@ -19,8 +19,8 @@ from ._state import LinearSolverState
 __all__ = [
     "ProbabilisticLinearSolver",
     "LinearSolverState",
-    "AsymmetricMatrixBasedSolver",
     "MatrixBasedSolver",
+    "AsymmetricMatrixBasedSolver",
     "SymmetricMatrixBasedSolver",
     "SolutionBasedSolver",
 ]
