@@ -1,8 +1,4 @@
-"""Operators of Kronecker-type or related.
-
-This module implements operators of Kronecker-type or linked to
-Kronecker-type products.
-"""
+"""Operators of Kronecker-type or related."""
 from typing import Optional, Union
 
 import numpy as np

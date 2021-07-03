@@ -1,3 +1,4 @@
+"""Scaling linear operator."""
 from typing import Optional, Union
 
 import numpy as np
@@ -9,10 +10,9 @@ from . import _linear_operator
 
 
 class Scaling(_linear_operator.LinearOperator):
-    r"""
-    Scaling linear operator.
+    r"""Scaling linear operator.
 
-    Creates a diagonal linear operator which (non-uniformly) scales elements of vectors.
+    Creates a diagonal linear operator which (non-uniformly) scales elements of vectors, defined by
 
     .. math::
         v \mapsto \begin{bmatrix}
@@ -20,7 +20,7 @@ class Scaling(_linear_operator.LinearOperator):
             0   &  \alpha_2 &   & \vdots \\
             \vdots  &   &  \ddots  & 0 \\
             0 &  \dots  & 0 & \alpha_n
-        \end{bmatrix} v
+        \end{bmatrix} v.
 
     Parameters
     ----------

@@ -1,3 +1,4 @@
+"""Linear operator arithmetic."""
 import functools
 import operator
 from typing import Any, Callable, Dict, Optional, Tuple, Union
