@@ -7,7 +7,7 @@ import scipy.integrate
 import scipy.linalg
 
 from probnum import randvars
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import tril_to_positive_tril
 
 from . import discrete_transition, transition

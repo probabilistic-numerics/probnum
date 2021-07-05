@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import randvars
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
 from . import transition as trans

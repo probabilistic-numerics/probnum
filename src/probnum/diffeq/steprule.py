@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.type import FloatArgType, IntArgType, ToleranceDiffusionType
+from probnum.typing import FloatArgType, IntArgType, ToleranceDiffusionType
 
 
 def propose_firststep(ivp):

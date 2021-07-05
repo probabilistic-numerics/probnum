@@ -8,7 +8,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import randvars
-from probnum.type import (
+from probnum.typing import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
     FloatArgType,
