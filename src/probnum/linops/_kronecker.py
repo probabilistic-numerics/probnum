@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum.type import DTypeArgType
+from probnum.typing import DTypeArgType
 
 from . import _linear_operator, _utils
 

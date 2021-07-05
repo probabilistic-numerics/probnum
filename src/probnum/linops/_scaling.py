@@ -4,7 +4,7 @@ from typing import Optional, Union
 import numpy as np
 
 import probnum.utils
-from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
 
 from . import _linear_operator
 

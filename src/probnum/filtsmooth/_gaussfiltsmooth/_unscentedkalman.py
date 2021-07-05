@@ -10,7 +10,7 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 
 from probnum import randvars, statespace
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 from ._unscentedtransform import UnscentedTransform
 

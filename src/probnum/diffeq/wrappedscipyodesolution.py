@@ -4,7 +4,7 @@ from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import _randomvariablelist, diffeq, randvars
 from probnum.filtsmooth._timeseriesposterior import DenseOutputValueType
-from probnum.type import DenseOutputLocationArgType
+from probnum.typing import DenseOutputLocationArgType
 
 
 class WrappedScipyODESolution(diffeq.ODESolution):

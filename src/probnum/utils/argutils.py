@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import scipy._lib._util
 
-from probnum.type import (
+from probnum.typing import (
     DTypeArgType,
     RandomStateArgType,
     RandomStateType,

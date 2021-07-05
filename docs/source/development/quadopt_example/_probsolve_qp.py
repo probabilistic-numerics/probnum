@@ -6,7 +6,7 @@ import numpy as np
 import probnum as pn
 import probnum.utils as _utils
 from probnum import linops, randvars
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType, RandomStateArgType
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation

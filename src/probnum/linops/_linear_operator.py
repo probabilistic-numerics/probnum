@@ -7,7 +7,7 @@ import scipy.linalg
 import scipy.sparse.linalg
 
 import probnum.utils
-from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix

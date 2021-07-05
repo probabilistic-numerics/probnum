@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats
 
 from probnum.randvars import Normal
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType, RandomStateArgType
 
 
 class IntegrationMeasure(abc.ABC):

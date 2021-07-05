@@ -6,7 +6,7 @@ from typing import Generic, Optional, Tuple, TypeVar, Union
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.type import IntArgType, ShapeArgType, ShapeType
+from probnum.typing import IntArgType, ShapeArgType, ShapeType
 
 _InputType = TypeVar("InputType")
 

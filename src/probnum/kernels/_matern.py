@@ -7,7 +7,7 @@ import scipy.spatial.distance
 import scipy.special
 
 import probnum.utils as _utils
-from probnum.type import IntArgType, ScalarArgType
+from probnum.typing import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 

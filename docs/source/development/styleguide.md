@@ -37,11 +37,11 @@ paths are always acceptable.
 - `import probnum as pn`
 - `from probnum import randvars, linalg, diffeq, statespace`
 
-An exception from these rules are type-related modules, which include `typing` and `probnum.type`.
+An exception from these rules are type-related modules, which include `typing` and `probnum.typing`.
 Types are always imported directly.
 
 - `from typing import Optional, Callable`
-- `from probnum.type import FloatArgType`
+- `from probnum.typing import FloatArgType`
 
 Please do not abbreviate import paths unnecessarily. We do **not** use the following imports:
 - `import probnum.random_variables as pnrv` or `import probnum.filtsmooth as pnfs` (correct would be `from probnum import randvars, filtsmooth`)
@@ -64,7 +64,7 @@ Many types representing numeric values, shapes, dtypes, random states, etc. have
 possible representations. For example a shape could be specified in the following ways: `n, (n,), (n, 1), [n], [n, 1]`.
 
 For this reason most types should be standardized internally to a core set of types defined
-in `probnum.type`, e.g. for numeric types `np.generic`, `np.ndarray`. Methods for input
+in `probnum.typing`, e.g. for numeric types `np.generic`, `np.ndarray`. Methods for input
 argument standardization can be found in `probnum.utils.argutils`.
 
 ### Naming
