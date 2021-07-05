@@ -10,7 +10,7 @@ SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = probnum
 SOURCEDIR     = source
 BUILDDIR      = _build
-AUTOMODAPIDIR = source/automod
+AUTOMODAPIDIR = source/api/automod
 NOTEBOOKDIR   = source/notebooks
 
 # Internal variables.

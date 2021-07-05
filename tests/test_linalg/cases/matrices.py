@@ -11,28 +11,23 @@ import scipy
 from probnum import kernels, linops, problems
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
-mrows = [1, 2, 10, 100]
-ncols = [1, 2, 10, 100]
+m_rows = [1, 2, 10, 100]
+n_cols = [1, 2, 10, 100]
 
 
 class SPDMatrix:
-    @pytest.mark.parametrize("n", ncols)
+    """Symmetric positive definite matrices."""
+
+    @pytest.mark.parametrize("n", n_cols)
     def case_random_spd_matrix(self, n: int, rng: np.random.Generator) -> np.ndarray:
         return random_spd_matrix(dim=n, random_state=rng)
 
-    def case_random_sparse_spd_matrix(self, rng: np.random.Generator) -> np.ndarray:
-        return random_sparse_spd_matrix(dim=100, density=0.01, random_state=rng)
-
-    def case_random_sparse_matrix(
+    def case_random_sparse_spd_matrix(
         self, rng: np.random.Generator
-    ) -> scipy.sparse.csr_matrix:
-        matrix = scipy.sparse.rand(
-            1000, 1000, density=0.01, format="coo", dtype=np.double, random_state=rng
-        )
-        matrix.setdiag(2)
-        return matrix.tocsr()
+    ) -> scipy.sparse.spmatrix:
+        return random_sparse_spd_matrix(dim=1000, density=0.01, random_state=rng)
 
-    @pytest.mark.parametrize("n", ncols)
+    @pytest.mark.parametrize("n", n_cols)
     def case_kernel_matrix(self, n: int, rng: np.random.Generator) -> np.ndarray:
         x_min, x_max = (-4.0, 4.0)
         X = rng.uniform(x_min, x_max, (n, 1))
@@ -54,16 +49,4 @@ class SPDMatrix:
         return scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
 
     def case_scaling_linop(self) -> linops.Scaling:
-        return linops.Scaling(np.arange(10, 1))
-
-
-@pytest_cases.parametrize_with_cases("spd_matrix", cases=SPDMatrix)
-def case_spd_linsys(
-    spd_matrix: Union[np.ndarray, linops.LinearOperator], rng: np.random.Generator
-) -> problems.LinearSystem:
-    A = spd_matrix
-    if hasattr(spd_matrix, "valuegetter"):
-        A = spd_matrix.valuegetter()
-
-    solution = rng.normal(size=A.shape[1])
-    return problems.LinearSystem(A=A, b=A @ solution, solution=solution)
+        return linops.Scaling(np.arange(10))

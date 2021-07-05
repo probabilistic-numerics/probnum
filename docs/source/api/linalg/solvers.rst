@@ -8,4 +8,9 @@ probnum.linalg.solvers
 .. toctree::
     :hidden:
 
+    solvers.beliefs
+
+.. toctree::
+    :hidden:
+
     solvers.policies
