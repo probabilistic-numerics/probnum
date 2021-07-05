@@ -61,7 +61,9 @@ class SPDMatrix:
 def case_spd_linsys(
     spd_matrix: Union[np.ndarray, linops.LinearOperator], rng: np.random.Generator
 ) -> problems.LinearSystem:
-    solution = rng.normal(size=spd_matrix.shape[1])
-    return problems.LinearSystem(
-        A=spd_matrix, b=spd_matrix @ solution, solution=solution
-    )
+    A = spd_matrix
+    if hasattr(spd_matrix, "valuegetter"):
+        A = spd_matrix.valuegetter()
+
+    solution = rng.normal(size=A.shape[1])
+    return problems.LinearSystem(A=A, b=A @ solution, solution=solution)
