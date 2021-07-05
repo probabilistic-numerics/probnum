@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.type import RandomStateArgType
+from probnum.typing import RandomStateArgType
 
 from ._random_variable import DiscreteRandomVariable
 

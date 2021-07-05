@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import randvars
-from probnum.type import (
+from probnum.typing import (
     DenseOutputLocationArgType,
     FloatArgType,
     RandomStateArgType,

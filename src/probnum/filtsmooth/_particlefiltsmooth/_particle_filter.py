@@ -5,7 +5,7 @@ from typing import Iterable, Union
 import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 
 from .._bayesfiltsmooth import BayesFiltSmooth
 from ._importance_distributions import ImportanceDistribution

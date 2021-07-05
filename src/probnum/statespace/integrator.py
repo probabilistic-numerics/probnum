@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 import scipy.special
 
-import probnum.type as pntype
+import probnum.typing as pntype
 from probnum import randvars
 
 from . import discrete_transition, sde
