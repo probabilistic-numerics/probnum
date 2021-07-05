@@ -97,6 +97,7 @@ def random_sparse_spd_matrix(
     density: float,
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
+    format="csr",
     random_state: Optional[RandomStateArgType] = None,
 ) -> np.ndarray:
     """Random sparse symmetric positive definite matrix.
@@ -118,6 +119,8 @@ def random_sparse_spd_matrix(
         Lower bound on the entries of the Cholesky factor.
     chol_entry_max
         Upper bound on the entries of the Cholesky factor.
+    format
+        Sparse matrix format.
     random_state
         Random state of the random variable. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
@@ -131,33 +134,36 @@ def random_sparse_spd_matrix(
     --------
     >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
     >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=42)
-    >>> sparsemat
-    array([[1.        , 0.        , 0.        , 0.        , 0.        ],
-           [0.        , 1.        , 0.        , 0.        , 0.        ],
-           [0.        , 0.        , 1.        , 0.        , 0.24039507],
-           [0.        , 0.        , 0.        , 1.        , 0.        ],
-           [0.        , 0.        , 0.24039507, 0.        , 1.05778979]])
+    >>> sparsemat.todense()
+    matrix([[1.        , 0.        , 0.        , 0.        , 0.        ],
+            [0.        , 1.        , 0.        , 0.30424224, 0.        ],
+            [0.        , 0.        , 1.        , 0.        , 0.        ],
+            [0.        , 0.30424224, 0.        , 1.09256334, 0.        ],
+            [0.        , 0.        , 0.        , 0.        , 1.        ]])
     """
 
     # Initialization
     random_state = _utils.as_random_state(random_state)
     if not 0 <= density <= 1:
         raise ValueError(f"Density must be between 0 and 1, but is {density}.")
-    chol = np.eye(dim)
+    chol = scipy.sparse.eye(dim, format=format)
     num_off_diag_cholesky = int(0.5 * dim * (dim - 1))
     num_nonzero_entries = int(num_off_diag_cholesky * density)
 
     if num_nonzero_entries > 0:
-        # Draw entries of lower triangle (below diagonal) according to sparsity level
-        entry_ids = np.mask_indices(n=dim, mask_func=np.tril, k=-1)
-        idx_samples = random_state.choice(
-            a=num_off_diag_cholesky, size=num_nonzero_entries, replace=False
+        # Samples sparse (non-symmetric) (n, n) matrix
+        sparse_matrix = scipy.sparse.rand(
+            m=dim,
+            n=dim,
+            format=format,
+            density=0.5 * density,
+            random_state=random_state,
         )
-        nonzero_entry_ids = (entry_ids[0][idx_samples], entry_ids[1][idx_samples])
 
-        # Fill Cholesky factor
-        chol[nonzero_entry_ids] = random_state.uniform(
-            low=chol_entry_min, high=chol_entry_max, size=num_nonzero_entries
-        )
+        # Symmetrize sparse matrix
+        sparse_matrix += sparse_matrix.T
+
+        # Extract lower triangle
+        chol += scipy.sparse.tril(A=sparse_matrix, k=-1, format=format)
 
     return chol @ chol.T
