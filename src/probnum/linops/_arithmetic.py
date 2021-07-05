@@ -6,7 +6,7 @@ import numpy as np
 import scipy.sparse
 
 import probnum.utils
-from probnum.type import ScalarArgType, ShapeArgType
+from probnum.typing import ScalarArgType, ShapeArgType
 
 from ._linear_operator import (  # pylint: disable=cyclic-import
     BinaryOperandType,

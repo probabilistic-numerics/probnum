@@ -8,7 +8,7 @@ import scipy.stats
 
 from probnum import linops
 from probnum import utils as _utils
-from probnum.type import (
+from probnum.typing import (
     ArrayLikeGetitemArgType,
     FloatArgType,
     RandomStateArgType,

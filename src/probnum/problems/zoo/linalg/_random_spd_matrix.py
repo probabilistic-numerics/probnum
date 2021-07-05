@@ -6,7 +6,7 @@ import numpy as np
 import scipy.stats
 
 import probnum.utils as _utils
-from probnum.type import IntArgType, RandomStateArgType
+from probnum.typing import IntArgType, RandomStateArgType
 
 
 def random_spd_matrix(

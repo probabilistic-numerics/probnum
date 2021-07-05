@@ -10,7 +10,7 @@ import numpy as np
 from scipy import stats
 
 from probnum import _randomvariablelist, randvars, statespace, utils
-from probnum.type import (
+from probnum.typing import (
     DenseOutputLocationArgType,
     FloatArgType,
     IntArgType,
