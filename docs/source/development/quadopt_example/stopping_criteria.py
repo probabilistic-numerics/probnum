@@ -5,7 +5,7 @@ from typing import Callable, Tuple, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 
 
 def parameter_uncertainty(
