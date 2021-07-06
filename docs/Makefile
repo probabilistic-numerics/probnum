@@ -11,7 +11,7 @@ SPHINXPROJ    = probnum
 SOURCEDIR     = source
 BUILDDIR      = _build
 AUTOMODAPIDIR = source/api/automod
-NOTEBOOKDIR   = source/notebooks
+NOTEBOOKDIR   = source/**
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4

@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 import pytest_cases
 import scipy.sparse
-from scipy.sparse.csc import csc_matrix
 
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 

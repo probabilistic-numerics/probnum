@@ -22,8 +22,8 @@ __all__ = [
     "aslinop",
     "LinearOperator",
     "Matrix",
-    "Scaling",
     "Identity",
+    "Scaling",
     "Kronecker",
     "SymmetricKronecker",
     "Symmetrize",
@@ -31,12 +31,9 @@ __all__ = [
 
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearOperator.__module__ = "probnum.linops"
-
 Matrix.__module__ = "probnum.linops"
 Identity.__module__ = "probnum.linops"
-
 Scaling.__module__ = "probnum.linops"
-
 Kronecker.__module__ = "probnum.linops"
 SymmetricKronecker.__module__ = "probnum.linops"
 Symmetrize.__module__ = "probnum.linops"
