@@ -134,9 +134,9 @@ def random_sparse_spd_matrix(
     >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=42)
     >>> sparsemat.todense()
     matrix([[1.        , 0.        , 0.        , 0.        , 0.        ],
-            [0.        , 1.        , 0.        , 0.30424224, 0.        ],
+            [0.        , 1.        , 0.        , 0.37381802, 0.        ],
             [0.        , 0.        , 1.        , 0.        , 0.        ],
-            [0.        , 0.30424224, 0.        , 1.09256334, 0.        ],
+            [0.        , 0.37381802, 0.        , 1.13973991, 0.        ],
             [0.        , 0.        , 0.        , 0.        , 1.        ]])
     """
 
