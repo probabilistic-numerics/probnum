@@ -76,8 +76,9 @@ class LinearSystemBelief:
                 if not b.ndim > 1:
                     raise dim_mismatch_error(x, b, "x", "b")
 
-        if A.shape != Ainv.shape:
-            raise dim_mismatch_error(A, Ainv, "A", "Ainv")
+        if Ainv is not None:
+            if A.shape != Ainv.shape:
+                raise dim_mismatch_error(A, Ainv, "A", "Ainv")
 
         self._x = x
         self._A = A
