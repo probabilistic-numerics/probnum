@@ -97,16 +97,14 @@ def random_sparse_spd_matrix(
     density: float,
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
-    format="csr",
+    format="csr",  # pylint: disable="redefined-builtin"
     random_state: Optional[RandomStateArgType] = None,
 ) -> np.ndarray:
-    """Random sparse symmetric positive definite matrix.
+    r"""Random sparse symmetric positive definite matrix.
 
     Constructs a random sparse symmetric positive definite matrix for a given degree
     of sparsity. The matrix is constructed from its Cholesky factor :math:`L`. Its
-    diagonal is set to one and all other entries of the lower triangle are sampled
-    from a uniform distribution with bounds :code:`[chol_entry_min, chol_entry_max]`.
-    The resulting sparse matrix is then given by :math:`A=LL^\\top`.
+    diagonal is set to one and all other nonzero entries of the lower triangle are sampled from a uniform distribution with bounds :code:`[chol_entry_min, chol_entry_max]`. The resulting sparse matrix is then given by :math:`A=LL^\top`.
 
     Parameters
     ----------
@@ -146,24 +144,25 @@ def random_sparse_spd_matrix(
     random_state = _utils.as_random_state(random_state)
     if not 0 <= density <= 1:
         raise ValueError(f"Density must be between 0 and 1, but is {density}.")
-    chol = scipy.sparse.eye(dim, format=format)
+    chol = scipy.sparse.eye(dim, format="csr")
     num_off_diag_cholesky = int(0.5 * dim * (dim - 1))
     num_nonzero_entries = int(num_off_diag_cholesky * density)
 
     if num_nonzero_entries > 0:
-        # Samples sparse (non-symmetric) (n, n) matrix
+
         sparse_matrix = scipy.sparse.rand(
             m=dim,
             n=dim,
-            format=format,
-            density=0.5 * density,
+            format="csr",
+            density=density,
             random_state=random_state,
         )
 
-        # Symmetrize sparse matrix
-        sparse_matrix += sparse_matrix.T
+        # Rescale entries
+        sparse_matrix.data *= chol_entry_max - chol_entry_min
+        sparse_matrix.data += chol_entry_min
 
         # Extract lower triangle
         chol += scipy.sparse.tril(A=sparse_matrix, k=-1, format=format)
 
-    return chol @ chol.T
+    return (chol @ chol.T).asformat(format=format)

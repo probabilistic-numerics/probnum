@@ -4,7 +4,9 @@ from typing import Union
 
 import numpy as np
 import pytest
+import pytest_cases
 import scipy.sparse
+from scipy.sparse.csc import csc_matrix
 
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
@@ -59,6 +61,28 @@ def test_is_spmatrix(rnd_sparse_spd_mat: scipy.sparse.spmatrix):
     """Test whether :meth:`random_sparse_spd_matrix` returns a
     `scipy.sparse.spmatrix`."""
     assert isinstance(rnd_sparse_spd_mat, scipy.sparse.spmatrix)
+
+
+@pytest_cases.parametrize(
+    "spformat,sparse_matrix_class",
+    [
+        ("bsr", scipy.sparse.bsr_matrix),
+        ("coo", scipy.sparse.coo_matrix),
+        ("csc", scipy.sparse.csc_matrix),
+        ("csr", scipy.sparse.csr_matrix),
+        ("dia", scipy.sparse.dia_matrix),
+        ("dok", scipy.sparse.dok_matrix),
+        ("lil", scipy.sparse.lil_matrix),
+    ],
+)
+def test_sparse_formats(
+    spformat: str, sparse_matrix_class: scipy.sparse.spmatrix, rng: np.random.Generator
+):
+    """Test whether sparse matrices in different formats can be created."""
+    sparse_mat = random_sparse_spd_matrix(
+        dim=1000, density=10 ** -3, format=spformat, random_state=rng
+    )
+    assert isinstance(sparse_mat, sparse_matrix_class)
 
 
 def test_large_sparse_matrix(rng: np.random.Generator):
