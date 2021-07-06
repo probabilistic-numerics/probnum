@@ -162,9 +162,15 @@ class SmoothingPosterior(KalmanPosterior):
         transition: GaussMarkovPriorTransitionArgType,
         locations: Iterable[FloatArgType],
         states: Iterable[randvars.RandomVariable],
+        diffusion_model=None,
     ):
         self.filtering_posterior = filtering_posterior
-        super().__init__(transition=transition, locations=locations, states=states)
+        super().__init__(
+            transition=transition,
+            locations=locations,
+            states=states,
+            diffusion_model=diffusion_model,
+        )
 
     def interpolate(
         self,
