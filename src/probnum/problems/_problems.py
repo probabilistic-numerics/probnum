@@ -176,8 +176,8 @@ class LinearSystem:
     >>> import numpy as np
     >>> A = np.eye(3)
     >>> b = np.arange(3)
-    >>> lin_sys = LinearSystem(A, b)
-    >>> lin_sys
+    >>> linsys = LinearSystem(A, b)
+    >>> linsys
     LinearSystem(A=array([[1., 0., 0.],
            [0., 1., 0.],
            [0., 0., 1.]]), b=array([0, 1, 2]), solution=None)
