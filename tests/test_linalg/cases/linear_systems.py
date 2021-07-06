@@ -7,7 +7,7 @@ import pytest_cases
 
 from probnum import linops, problems
 
-from .matrices import *
+from .matrices import SPDMatrix
 
 
 @pytest_cases.parametrize_with_cases("spd_matrix", cases=SPDMatrix)

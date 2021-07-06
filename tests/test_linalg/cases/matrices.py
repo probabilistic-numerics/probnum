@@ -1,14 +1,12 @@
 """Test cases given by different matrices or linear operators."""
 
 import os
-from typing import Union
 
 import numpy as np
 import pytest
-import pytest_cases
 import scipy
 
-from probnum import kernels, linops, problems
+from probnum import kernels, linops
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
 m_rows = [1, 2, 10, 100]
@@ -29,6 +27,7 @@ class SPDMatrix:
 
     @pytest.mark.parametrize("n", n_cols)
     def case_kernel_matrix(self, n: int, rng: np.random.Generator) -> np.ndarray:
+        """Kernel Gram matrix."""
         x_min, x_max = (-4.0, 4.0)
         X = rng.uniform(x_min, x_max, (n, 1))
         kern = kernels.ExpQuad(input_dim=1, lengthscale=1)
