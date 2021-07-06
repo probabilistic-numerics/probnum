@@ -5,7 +5,7 @@ from typing import Optional, Type, Union
 import numpy as np
 
 from probnum import randvars, statespace
-from probnum.type import RandomStateArgType, ShapeArgType
+from probnum.typing import RandomStateArgType, ShapeArgType
 
 from . import _random_process
 

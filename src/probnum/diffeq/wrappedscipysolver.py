@@ -9,7 +9,7 @@ from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
 from probnum.diffeq import wrappedscipyodesolution
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 
 class WrappedScipyRungeKutta(diffeq.ODESolver):

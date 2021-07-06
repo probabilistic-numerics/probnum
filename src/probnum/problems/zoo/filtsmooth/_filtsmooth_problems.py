@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType, RandomStateArgType
 
 __all__ = [
     "benes_daum",

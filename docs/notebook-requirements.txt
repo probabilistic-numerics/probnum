@@ -2,7 +2,7 @@
 jupyter
 
 # Notebook conversion
-nbsphinx>=0.6.1
+nbsphinx>=0.8.6
 
 # Dependencies
 matplotlib

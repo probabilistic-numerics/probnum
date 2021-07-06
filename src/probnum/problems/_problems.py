@@ -8,7 +8,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, randvars
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 
 @dataclasses.dataclass

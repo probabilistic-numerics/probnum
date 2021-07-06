@@ -2,6 +2,7 @@ from typing import Tuple
 
 import numpy as np
 import pytest
+import scipy.sparse
 
 import probnum as pn
 
@@ -33,3 +34,27 @@ def case_matrix(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarra
 @pytest.mark.parametrize("n", [3, 4, 8, 12, 15])
 def case_identity(n: int) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
     return pn.linops.Identity(shape=n), np.eye(n)
+
+
+@pytest.mark.parametrize("rng", [np.random.default_rng(42)])
+def case_sparse_matrix(
+    rng: np.random.Generator,
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    matrix = scipy.sparse.rand(
+        10, 10, density=0.1, format="coo", dtype=np.double, random_state=rng
+    )
+    matrix.setdiag(2)
+    matrix = matrix.tocsr()
+
+    return pn.linops.Matrix(matrix), matrix.toarray()
+
+
+@pytest.mark.parametrize("rng", [np.random.default_rng(42)])
+def case_sparse_matrix_singular(
+    rng: np.random.Generator,
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    matrix = scipy.sparse.rand(
+        10, 10, density=0.01, format="csr", dtype=np.double, random_state=rng
+    )
+
+    return pn.linops.Matrix(matrix), matrix.toarray()

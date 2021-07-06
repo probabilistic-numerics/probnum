@@ -6,7 +6,7 @@ from typing import Optional, Union
 import numpy as np
 
 from probnum import _randomvariablelist, randvars
-from probnum.type import (
+from probnum.typing import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
     FloatArgType,

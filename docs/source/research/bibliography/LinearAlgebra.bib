@@ -1,0 +1,114 @@
+@article{PhysRevE85021134,
+  title = {Improving stochastic estimates with inference methods: Calculating matrix diagonals},
+  author = {Selig, Marco and Oppermann, Niels and En\ss{}lin, Torsten A.},
+  journal = {Phys. Rev. E},
+  volume = {85},
+  issue = {2},
+  pages = {021134},
+  numpages = {7},
+  year = {2012},
+  month = {Feb},
+  publisher = {American Physical Society},
+  link = {https://link.aps.org/doi/10.1103/PhysRevE.85.021134},
+  abstract = {Estimating the diagonal entries of a matrix, that is not directly accessible but only available as a linear operator in the form of a computer routine, is a common necessity in many computational applications, especially in image reconstruction and statistical inference. Here, methods of statistical inference are used to improve the accuracy or the computational costs of matrix probing methods to estimate matrix diagonals. In particular, the generalized Wiener filter methodology, as developed within information field theory, is shown to significantly improve estimates based on only a few sampling probes, in cases in which some form of continuity of the solution can be assumed. The strength, length scale, and precise functional form of the exploited autocorrelation function of the matrix diagonal is determined from the probes themselves. The developed algorithm is successfully applied to mock and real world problems. These performance tests show that, in situations where a matrix diagonal has to be calculated from only a small number of computationally expensive probes, a speedup by a factor of 2 to 10 is possible with the proposed method. },
+}
+
+@article{2014arXiv14022058H,
+  author =	 {P. {Hennig}},
+  journal =	 {SIAM J on Optimization},
+  month =	 Jan,
+  title =	 {{Probabilistic Interpretation of Linear Solvers}},
+  year =	 2015,
+  link =	 {http://epubs.siam.org/doi/abs/10.1137/140955501?journalCode=sjope8},
+  volume =	 25,
+  issue =	 1,
+  abstract =	 {This paper proposes a probabilistic framework for algorithms
+that iteratively solve unconstrained linear problems Bx = b with positive
+definite B for x. The goal is to replace the point estimates returned by
+existing methods with a Gaussian posterior belief over the elements of the
+inverse of B, which can be used to estimate errors. Recent probabilistic
+interpretations of the secant family of quasi-Newton optimization algorithms
+are extended. Combined with properties of the conjugate gradient algorithm,
+this leads to uncertainty-calibrated methods with very limited cost overhead
+over conjugate gradients, a self-contained novel interpretation of the
+quasi-Newton and conjugate gradient algorithms, and a foundation for new
+nonlinear optimization methods.},
+  file =	 {http://probabilistic-numerics.org/assets/pdf/HennigLinear2015.pdf}
+}
+
+@article{PhysRevE92013302,
+  title = {Stochastic determination of matrix determinants},
+  author = {Dorn, Sebastian and En\ss{}lin, Torsten A.},
+  journal = {Phys. Rev. E},
+  volume = {92},
+  issue = {1},
+  pages = {013302},
+  numpages = {8},
+  year = {2015},
+  month = {Jul},
+  publisher = {American Physical Society},
+  link = {https://link.aps.org/doi/10.1103/PhysRevE.92.013302},
+  abstract = {Matrix determinants play an important role in data analysis, in particular when Gaussian processes are involved. Due to currently exploding data volumes, linear operations---matrices---acting on the data are often not accessible directly but are only represented indirectly in form of a computer routine. Such a routine implements the transformation a data vector undergoes under matrix multiplication. While efficient probing routines to estimate a matrix's diagonal or trace, based solely on such computationally affordable matrix-vector multiplications, are well known and frequently used in signal inference, there is no stochastic estimate for its determinant. We introduce a probing method for the logarithm of a determinant of a linear operator. Our method rests upon a reformulation of the log-determinant by an integral representation and the transformation of the involved terms into stochastic expressions. This stochastic determinant determination enables large-size applications in Bayesian inference, in particular evidence calculations, model comparison, and posterior determination.}
+}
+
+
+@inproceedings{fitzsimons_bayesian_2017,
+  title = {Bayesian {Inference} of {Log} {Determinants}},
+  url = {https://arxiv.org/abs/1704.01445},
+  abstract = {The log-determinant of a kernel matrix appears in a variety of machine learning problems, ranging from determinantal point processes and generalized Markov random fields, through to the training of Gaussian processes. Exact calculation of this term is often intractable when the size of the kernel matrix exceeds a few thousand. In the spirit of probabilistic numerics, we reinterpret the problem of computing the log-determinant as a Bayesian inference problem. In particular, we combine prior knowledge in the form of bounds from matrix theory and evidence derived from stochastic trace estimation to obtain probabilistic estimates for the log-determinant and its associated uncertainty within a given computational budget. Beyond its novelty and theoretic appeal, the performance of our proposal is competitive with state-of-the-art approaches to approximating the log-determinant, while also quantifying the uncertainty due to budget-constrained evidence.},
+  urldate = {2017-06-21},
+  booktitle = {Uncertainty in {Artificial} {Intelligence}},
+  author = {Fitzsimons, Jack and Cutajar, Kurt and Osborne, Michael and Roberts, Stephen and Filippone, Maurizio},
+  year = {2017},
+  file = {http://probabilistic-numerics.org/assets/pdf/Fitzsimons et al. - 2017 - Bayesian Inference of Log Determinants.pdf}
+}
+
+@proceedings{BarHen16,
+  title = {Probabilistic Approximate Least-Squares},
+  author = {Bartels, S. and Hennig, P.},
+  booktitle = {Proceedings of the 19th International Conference on Artificial Intelligence and Statistics (AISTATS 2016)},
+  volume = {51},
+  pages = {676--684},
+  series = {JMLR Workshop and Conference Proceedings},
+  editors = {Gretton, A. and Robert, C. C. },
+  year = {2016},
+  link = {http://jmlr.org/proceedings/papers/v51/bartels16.html},
+  file = {http://jmlr.org/proceedings/papers/v51/bartels16.pdf},
+  abstract = {Least-squares and kernel-ridge / Gaussian process regression are among the foundational algorithms of statistics and machine learning. Famously, the worst-case cost of exact nonparametric regression grows cubically with the data-set size; but a growing number of approximations have been developed that estimate good solutions at lower cost. These algorithms typically return point estimators, without measures of uncertainty. Leveraging recent results casting elementary linear algebra operations as probabilistic inference, we propose a new approximate method for nonparametric least-squares that affords a probabilistic uncertainty estimate over the error between the approximate and exact least-squares solution (this is not the same as the posterior variance of the associated Gaussian process regressor). This allows estimating the error of the least-squares solution on a subset of the data relative to the full-data solution. The uncertainty can be used to control the computational effort invested in the approximation. Our algorithm has linear cost in the data-set size, and a simple formal form, so that it can be implemented with a few lines of code in programming languages with linear algebra functionality.}
+}
+
+
+@article{schafer_compression_2017,
+  title = {Compression, inversion, and approximate {PCA} of dense kernel matrices at near-linear computational complexity},
+  url = {http://arxiv.org/abs/1706.02205},
+  abstract = {Dense kernel matrices \${\textbackslash}Theta {\textbackslash}in {\textbackslash}mathbb\{R\}{\textasciicircum}\{N {\textbackslash}times N\}\$ obtained from point evaluations of a covariance function \$G\$ at locations \${\textbackslash}\{ x\_\{i\} {\textbackslash}\}\_\{1 {\textbackslash}leq i {\textbackslash}leq N\}\$ arise in statistics, machine learning, and numerical analysis. For covariance functions that are Green's functions elliptic boundary value problems and approximately equally spaced sampling points, we show how to identify a subset \$S {\textbackslash}subset {\textbackslash}\{ 1 , {\textbackslash}dots , N {\textbackslash}\} {\textbackslash}times {\textbackslash}\{ 1 , {\textbackslash}dots , N {\textbackslash}\}\$, with \${\textbackslash}\# S = O ( N {\textbackslash}log (N) {\textbackslash}log{\textasciicircum}\{d\} ( N / {\textbackslash}epsilon ) )\$, such that the zero fill-in block-incomplete Cholesky decomposition of \${\textbackslash}Theta\_\{i,j\} 1\_\{( i,j ) {\textbackslash}in S\}\$ is an \${\textbackslash}epsilon\$-approximation of \${\textbackslash}Theta\$. This block-factorisation can provably be obtained in \$O{\textbackslash}left(N {\textbackslash}log{\textasciicircum}\{2\} ( N ) {\textbackslash}left( {\textbackslash}log (1/{\textbackslash}epsilon ) + {\textbackslash}log{\textasciicircum}\{2\} ( N ) {\textbackslash}right){\textasciicircum}\{4d+1\} {\textbackslash}right)\$ complexity in time. Numerical evidence further suggests that element-wise Cholesky decomposition with the same ordering constitutes an \$O{\textbackslash}left( N {\textbackslash}log{\textasciicircum}\{2\} ( N ) {\textbackslash}log{\textasciicircum}\{2d\} ( N/{\textbackslash}epsilon ) {\textbackslash}right)\$ solver. The algorithm only needs to know the spatial configuration of the \$x\_\{i\}\$ and does not require an analytic representation of \$G\$. Furthermore, an approximate PCA with optimal rate of convergence in the operator norm can be easily read off from this decomposition. Hence, by using only subsampling and the incomplete Cholesky decomposition, we obtain at nearly linear complexity the compression, inversion and approximate PCA of a large class of covariance matrices. By inverting the order of the Cholesky decomposition we also obtain a near-linear-time solver for elliptic PDEs.},
+  urldate = {2017-09-10},
+  journal = {arXiv:1706.02205 [cs, math]},
+  author = {Schäfer, Florian and Sullivan, T. J. and Owhadi, Houman},
+  month = jun,
+  year = {2017},
+  note = {arXiv: 1706.02205},
+  keywords = {65F30, 42C40, 65F50, 65N55, 65N75, 60G42, 68Q25, 68W40, Computer Science - Computational Complexity, Computer Science - Data Structures and Algorithms, Mathematics - Numerical Analysis, Mathematics - Probability},
+  file = {https://arxiv.org/pdf/1706.02205.pdf}
+}
+
+@article{2018arXiv180105242X,
+   author = {Jon Cockayne and Chris Oates and Mark Girolami},
+    title = "{A {B}ayesian Conjugate Gradient Method}",
+  journal = {ArXiv e-prints},
+archivePrefix = "arXiv",
+   eprint = {1801.05242},
+ primaryClass = "stat.ME",
+     year = 2018,
+    month = jan,
+    link = {https://arxiv.org/abs/1801.05242},
+    file = {https://arxiv.org/pdf/1801.05242},
+    abstract = {A fundamental task in numerical computation is the solution of large linear systems. The conjugate gradient method is an iterative method which offers rapid convergence to the solution, particularly when an effective preconditioner is employed. However, for more challenging systems a substantial error can be present even after many iterations have been performed. The estimates obtained in this case are of little value unless further information can be provided about the numerical error. In this paper we propose a novel statistical model for this numerical error set in a Bayesian framework. Our approach is a strict generalisation of the conjugate gradient method, which is recovered as the posterior mean for a particular choice of prior. The estimates obtained are analysed with Krylov subspace methods and a contraction result for the posterior is presented. The method is then analysed in a simulation study as well as being applied to a challenging problem in medical imaging.}
+}
+
+@inproceedings{wenger2020problinsolve,
+  author        = {Jonathan Wenger and Philipp Hennig},
+  title         = {Probabilistic Linear Solvers for Machine Learning},
+  booktitle 	= {Advances in Neural Information Processing Systems (NeurIPS)},
+  year          = {2020},
+}

@@ -1,0 +1,115 @@
+@article{liberty2007randomized,
+  title =	 {Randomized algorithms for the low-rank approximation of
+                  matrices},
+  author =	 {Liberty, Edo and Woolfe, Franco and Martinsson, Per-Gunnar
+                  and Rokhlin, Vladimir and Tygert, Mark},
+  journal =	 {Proceedings of the National Academy of Sciences},
+  volume =	 104,
+  number =	 51,
+  pages =	 {20167--20172},
+  year =	 2007
+}
+
+@article{halko2011finding,
+  title =	 {Finding structure with randomness: Probabilistic algorithms
+                  for constructing approximate matrix decompositions},
+  author =	 {Halko, Nathan and Martinsson, Per-Gunnar and Tropp, Joel A},
+  journal =	 {SIAM review},
+  volume =	 53,
+  number =	 2,
+  pages =	 {217--288},
+  year =	 2011,
+  publisher =	 {SIAM}
+}
+
+@TechReport{ohagan13-polyn-chaos,
+  author =	 {Anthony O'Hagan},
+  title =	 {Polynomial Chaos: A Tutorial and Critique from a
+                  Statistician's Perspective},
+  institution =	 {University of Sheffield, UK},
+  year =	 2013,
+  month =	 {May}
+}
+
+@inproceedings{GarnettOH2013,
+  title =	 {Active Learning of Linear Embeddings for Gaussian Processes},
+  author =	 {Garnett, R. and Osborne, M. and Hennig, P.},
+  booktitle =	 {Proceedings of the 30th Conference on Uncertainty in
+                  Artificial Intelligence},
+  editor =	 {Zhang, NL and Tian, J},
+  publisher =	 {AUAI Press},
+  pages =	 {230-239},
+  year =	 2014,
+  url =		 {http://auai.org/uai2014/proceedings/individuals/152.pdf},
+  url2 =	 {https://github.com/rmgarnett/mgp},
+  department =	 {Department Sch{\"o}lkopf},
+  file =	 {http://auai.org/uai2014/proceedings/individuals/152.pdf},
+  code =	 {https://github.com/rmgarnett/mgp},
+  abstract = {We propose an active learning method for discovering
+                  low-dimensional structure in high-dimensional Gaussian
+                  process (GP) tasks. Such problems are increasingly frequent
+                  and important, but have hitherto presented severe practical
+                  difficulties. We further introduce a novel technique for
+                  approximately marginalizing GP hyperparameters, yielding
+                  marginal predictions robust to hyperparameter
+                  misspecification. Our method offers an efficient means of
+                  performing GP regression, quadrature, or Bayesian
+                  optimization in high-dimensional spaces.}
+}
+
+@article{HennigS2012,
+  title =	 {Entropy Search for Information-Efficient Global Optimization},
+  author =	 {Hennig, P. and Schuler, CJ.},
+  month =	 jun,
+  volume =	 13,
+  pages =	 {1809-1837},
+  abstract =	 {Contemporary global optimization algorithms are based on
+                  local measures of utility, rather than a probability measure
+                  over location and value of the optimum. They thus attempt to
+                  collect low function values, not to learn about the
+                  optimum. The reason for the absence of probabilistic global
+                  optimizers is that the corresponding inference problem is
+                  intractable in several ways. This paper develops desiderata
+                  for probabilistic optimization algorithms, then presents a
+                  concrete algorithm which addresses each of the computational
+                  intractabilities with a sequence of approximations and
+                  explicitly adresses the decision problem of maximizing
+                  information gain from each evaluation. },
+  journal =	 {Journal of Machine Learning Research},
+  year =	 2012,
+  file =
+                  {http://jmlr.csail.mit.edu/papers/volume13/hennig12a/hennig12a.pdf},
+  link =	 {http://jmlr.csail.mit.edu/papers/v13/hennig12a.html},
+  code = {http://probabilistic-optimization.org/Global.html}
+}
+
+
+@article{garrabrant,
+      author =   {Scott Garrabrant and Tsvi Benson-Tilsen and Andrew Critch and Nate Soares and Jessica Taylor},
+      title =  {Logical Induction},
+      journal =  {arXiv preprint 1609.03543v3},
+      year =   2016,
+      abstract =     {We present a computable algorithm that assigns probabilities to every logical statement in a given formal language, and refines those probabilities over time. For instance, if the language is Peano arithmetic, it assigns probabilities to all arithmetical statements, including claims about the twin prime conjecture, the outputs of long-running computations, and its own probabilities. We show that our algorithm, an instance of what we call a logical inductor, satisfies a number of intuitive desiderata, including: (1) it learns to predict patterns of truth and falsehood in logical statements, often long before having the resources to evaluate the statements, so long as the patterns can be written down in polynomial time; (2) it learns to use appropriate statistical summaries to predict sequences of statements whose truth values appear pseudorandom; and (3) it learns to have accurate beliefs about its own current beliefs, in a manner that avoids the standard paradoxes of self-reference. For example, if a given computer program only ever produces outputs in a certain range, a logical inductor learns this fact in a timely manner; and if late digits in the decimal expansion of π are difficult to predict, then a logical inductor learns to assign ≈10\% probability to "the nth digit of π is a 7" for large n. Logical inductors also learn to trust their future beliefs more than their current beliefs, and their beliefs are coherent in the limit (whenever ϕ⟹ψ, ℙ∞(ϕ)≤ℙ∞(ψ), and so on); and logical inductors strictly dominate the universal semimeasure in the limit.
+
+          These properties and many others all follow from a single logical induction criterion, which is motivated by a series of stock trading analogies. Roughly speaking, each logical sentence ϕ is associated with a stock that is worth \$1 per share if f φ is true and nothing otherwise, and we interpret the belief-state of a logically uncertain reasoner as a set of market prices, where Pn(φ) = 50\% means that on day n, shares of φ may be bought or sold from the reasoner for 50¢. The logical induction criterion says (very roughly) that there should not be any polynomial-time computable trading strategy with finite risk tolerance that earns unbounded profits in that market over time. This criterion bears strong resemblance to the “no Dutch book” criteria that support both expected utility theory (von Neumann and Morgenstern 1944) and Bayesian probability theory (Ramsey 1931; de Finetti 1937).},
+      link =          {https://intelligence.org/2016/09/12/new-paper-logical-induction/},
+      file =     {https://arxiv.org/pdf/1609.03543v3.pdf},
+      notes = {This monograph gives a strong theoretical optimality notion for using bounded computational resources to assign accurate probabilities to the outcomes of computations.}
+}
+
+@InProceedings{pmlr-v9-hennig10a,
+  title =    {Coherent Inference on Optimal Play in Game Trees},
+  author =   {Philipp Hennig and David Stern and Thore Graepel},
+  booktitle =    {Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics},
+  pages =    {326--333},
+  year =   {2010},
+  editor =   {Yee Whye Teh and Mike Titterington},
+  volume =   {9},
+  series =   {Proceedings of Machine Learning Research},
+  address =    {Chia Laguna Resort, Sardinia, Italy},
+  month =    {13--15 May},
+  publisher =    {PMLR},
+  file =    {http://proceedings.mlr.press/v9/hennig10a/hennig10a.pdf},
+  link =    {http://proceedings.mlr.press/v9/hennig10a.html},
+  abstract =   {Round-based games are an instance of discrete planning problems. Some of the best contemporary game tree search algorithms use random roll-outs as data. Relying on a good policy, they learn on-policy values by propagating information upwards in the tree, but not between sibling nodes. Here, we present a generative model and a corresponding approximate message passing scheme for inference on the optimal, off-policy value of nodes in smooth AND/OR trees, given random roll-outs. The crucial insight is that the distribution of values in game trees is not completely arbitrary. We define a generative model of the on-policy values using a latent score for each state, representing the value under the random roll-out policy. Inference on the values under the optimal policy separates into an inductive, pre-data step and a deductive, post-data part. Both can be solved approximately with Expectation Propagation, allowing off-policy value inference for any node in the (exponentially big) tree in linear time.}
+  }

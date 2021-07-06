@@ -1,5 +1,27 @@
 {# Import the theme's layout. #}
-{% extends "!layout.html" %}
+{%- extends "basic/layout.html" %}
+{%- import "static/webpack-macros.html" as _webpack with context %}
+
+
+{# prev/next buttons #}
+{% macro prev_next(prev, next, prev_title='', next_title='') %}
+ {%- if prev %}
+    <a class='left-prev' id="prev-link" href="{{ prev.link|e }}" title="{{ _('previous page')}}">{{ prev_title or prev.title }}</a>
+ {%- endif %}
+ {%- if next %}
+    <a class='right-next' id="next-link" href="{{ next.link|e }}" title="{{ _('next page')}}">{{ next_title or next.title }}</a>
+ {%- endif %}
+{% endmacro %}
+
+{%- block css %}
+    {{ _webpack.head_pre_bootstrap() }}
+    {{ _webpack.head_pre_icons() }}
+    {% block fonts %}
+      {{ _webpack.head_pre_fonts() }}
+    {% endblock %}
+    {{- css() }}
+    {{ _webpack.head_js_preload() }}
+{%- endblock %}
 
 {# Add some extra stuff before and use existing with 'super()' call. #}
 {%- block extrahead %}
@@ -7,16 +29,97 @@
 <!-- Font Awesome -->
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <!-- favicons via realfavicongenerator.net -->
-<link rel="apple-touch-icon" sizes="180x180" href="_static/favicons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="_static/favicons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="_static/favicons/favicon-16x16.png">
-<link rel="manifest" href="_static/favicons/site.webmanifest">
-<link rel="mask-icon" href="_static/favicons/safari-pinned-tab.svg" color="#107d79">
-<link rel="shortcut icon" href="_static/favicons/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="_static/img/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="_static/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="_static/img/favicons/favicon-16x16.png">
+<link rel="manifest" href="_static/img/favicons/site.webmanifest">
+<link rel="mask-icon" href="_static/img/favicons/safari-pinned-tab.svg" color="#28bab4">
+<link rel="shortcut icon" href="_static/img/favicons/favicon.ico">
 <meta name="apple-mobile-web-app-title" content="ProbNum">
 <meta name="application-name" content="ProbNum">
-<meta name="msapplication-TileColor" content="#00aba9">
-<meta name="msapplication-config" content="_static/favicons/browserconfig.xml">
+<meta name="msapplication-TileColor" content="#28bab4">
+<meta name="msapplication-config" content="_static/img/favicons/browserconfig.xml">
 <meta name="theme-color" content="#ffffff">
 <!-- end favicons -->
 {% endblock %}
+
+{# Silence the sidebar's, relbar's #}
+{% block header %}{% endblock %}
+{% block relbar1 %}{% endblock %}
+{% block relbar2 %}{% endblock %}
+{% block sidebarsourcelink %}{% endblock %}
+
+{% block body_tag %}
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+{%- endblock %}
+{%- block content %}
+    {# Added to support a banner with an alert #}
+    <div class="container-fluid" id="banner"></div>
+
+    {% block docs_navbar %}
+    <nav class="navbar navbar-dark navbar-expand-lg bg-dark fixed-top bd-navbar" id="navbar-main">
+      {%- include "docs-navbar.html" %}
+    </nav>
+    {% endblock %}
+
+    <div class="container-xl">
+      <div class="row">
+          {% block docs_sidebar %}
+            {% if sidebars %}
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+                {%- for sidebartemplate in sidebars %}
+                {%- include sidebartemplate %}
+                {%- endfor %}
+            </div>
+            {% else %}
+            <div class="col-12 col-md-1 col-xl-2 bd-sidebar no-sidebar"></div>
+            {% endif %}
+          {% endblock %}
+
+          {% block docs_toc %}
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            {% if meta is defined and not (meta is not none and 'notoc' in meta) %}
+              {% for toc_item in theme_page_sidebar_items %}
+              <div class="toc-item">
+                {% include toc_item %}
+              </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+          {% endblock %}
+
+          {% block docs_main %}
+          {% if sidebars %}
+            {% set content_col_class = "col-md-9 col-xl-7" %}
+          {% else %}
+            {% set content_col_class = "col-md-11 col-xl-8" %}
+          {% endif %}
+          <main class="col-12 {{ content_col_class }} py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              {% block docs_body %}
+              <div>
+                {% block body %} {% endblock %}
+              </div>
+              {% endblock %}
+              <!-- {% if theme_show_prev_next %}
+              <div class='prev-next-bottom'>
+                {{ prev_next(prev, next) }}
+              </div>
+              {% endif %} -->
+          </main>
+          {% endblock %}
+
+      </div>
+    </div>
+
+
+  {%- block scripts_end %}
+  {{ _webpack.body_post() }}
+  {{ generate_google_analytics_script(id=theme_google_analytics_id) }}
+  {%- endblock %}
+
+{%- endblock %}
+
+{%- block footer %}
+{%- include "footer.html" %}
+{%- endblock %}
