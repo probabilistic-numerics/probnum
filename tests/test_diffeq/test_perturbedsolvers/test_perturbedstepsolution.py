@@ -25,7 +25,6 @@ def test_states(perturbed_solution):
 
 
 def test_call(perturbed_solution):
-
     """Test for continuity of the dense output.
 
     Small changes of the locations should come with small changes of the
