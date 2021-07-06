@@ -1,10 +1,11 @@
 """Linear system belief.
 
-Base class defining a belief about the quantities of interest of a
-linear system such as its solution or the matrix inverse.
+Class defining a belief about the quantities of interest of a linear
+system such as its solution or the matrix inverse and any associated
+hyperparameters.
 """
 
-from typing import Optional
+from typing import Mapping, Optional
 
 from probnum import randvars
 
@@ -22,7 +23,7 @@ class LinearSystemBelief:
 
     Random variables :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
     modelling the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
-    :math:`H=A^{-1}` and the right hand side :math:`b` of a linear system :math:`Ax=b`.
+    :math:`H=A^{-1}` and the right hand side :math:`b` of a linear system :math:`Ax=b`, as well as any associated hyperparameters.
 
     Parameters
     ----------
@@ -43,25 +44,15 @@ class LinearSystemBelief:
         A: randvars.RandomVariable,
         Ainv: randvars.RandomVariable,
         b: randvars.RandomVariable,
-        x: Optional[randvars.RandomVariable] = None,
-        hyperparams: Optional[randvars.RandomVariable] = None,
+        x: randvars.RandomVariable,
+        hyperparams: Optional[Mapping[str, randvars.RandomVariable]] = None,
     ):
 
-        self._check_shape_mismatch(x=x, A=A, Ainv=Ainv, b=b)
-        self._x = x
-        self._A = A
-        self._Ainv = Ainv
-        self._b = b
-        self._hyperparams = hyperparams
-
-    @staticmethod
-    def _check_shape_mismatch(
-        x: randvars.RandomVariable,
-        A: randvars.RandomVariable,
-        Ainv: randvars.RandomVariable,
-        b: randvars.RandomVariable,
-    ) -> None:
-        """Check whether shapes of arguments match."""
+        # Check shapes
+        if A.ndim != 2 or b.ndim > 2 or b.ndim < 1:
+            raise ValueError(
+                "Beliefs over system components must be at most two-dimensional."
+            )
 
         def dim_mismatch_error(arg0, arg1, arg0_name, arg1_name):
             return ValueError(
@@ -73,19 +64,31 @@ class LinearSystemBelief:
             raise dim_mismatch_error(A, b, "A", "b")
 
         if x is not None:
+            if x.ndim > 2 or x.ndim < 1:
+                raise ValueError("Belief over solution must be one or two-dimensional.")
             if A.shape[1] != x.shape[0]:
                 raise dim_mismatch_error(A, x, "A", "x")
 
-            if x.shape[1] != b.shape[1]:
-                raise dim_mismatch_error(x, b, "x", "b")
+            if x.ndim > 1:
+                if x.shape[1] != b.shape[1]:
+                    raise dim_mismatch_error(x, b, "x", "b")
+            else:
+                if not b.ndim > 1:
+                    raise dim_mismatch_error(x, b, "x", "b")
 
         if A.shape != Ainv.shape:
             raise dim_mismatch_error(A, Ainv, "A", "Ainv")
 
+        self._x = x
+        self._A = A
+        self._Ainv = Ainv
+        self._b = b
+        self._hyperparams = hyperparams
+
     @property
     def hyperparams(
         self,
-    ) -> Optional[randvars.RandomVariable]:
+    ) -> Optional[Mapping[str, randvars.RandomVariable]]:
         """Hyperparameters of the linear system belief."""
         return self._hyperparams
 
@@ -93,7 +96,7 @@ class LinearSystemBelief:
     def x(self) -> randvars.RandomVariable:
         """Belief about the solution."""
         if self._x is None:
-            return self._induced_solution_belief()
+            return self._induced_x()
         else:
             return self._x
 
@@ -112,8 +115,9 @@ class LinearSystemBelief:
         """Belief about the right hand side."""
         return self._b
 
-    def _induced_solution_belief(self) -> randvars.RandomVariable:
+    def _induced_x(self) -> randvars.RandomVariable:
         r"""Induced belief about the solution from a belief about the inverse.
+
         Computes the induced belief about the solution given by (an approximation
         to) the random variable :math:`x=Hb`. This assumes independence between
         :math:`H` and :math:`b`.
