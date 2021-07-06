@@ -6,7 +6,7 @@ import numpy as np
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq, randvars
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 
 class PerturbedStepSolution(diffeq.ODESolution):
