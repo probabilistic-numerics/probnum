@@ -7,7 +7,7 @@ import numpy as np
 
 import probnum as pn
 from probnum import linops, randvars
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 
 def gaussian_belief_update(

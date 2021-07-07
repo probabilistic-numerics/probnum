@@ -9,7 +9,7 @@ from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
 from probnum.diffeq import wrappedscipyodesolution
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 
 class WrappedScipyRungeKutta(diffeq.ODESolver):
@@ -107,7 +107,7 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         self.solver.y = y_new
         self.solver.h_abs = dt
         self.solver.f = f_new
-        return y_new_as_rv, error_estimation
+        return y_new_as_rv, error_estimation, y
 
     def rvlist_to_odesol(self, times: np.array, rvs: np.array):
         """Create a ScipyODESolution object which is a subclass of

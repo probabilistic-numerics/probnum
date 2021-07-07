@@ -10,8 +10,8 @@ from typing import Optional
 import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, randvars
-from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
+from probnum.typing import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -44,10 +44,8 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
         raise NotImplementedError("Dense output is not implemented.")
 

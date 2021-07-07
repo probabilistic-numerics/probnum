@@ -39,6 +39,7 @@ def generate_samples(
         Observations according to measurement model.
     """
     obs = np.zeros((len(times), measmod.output_dim))
+
     base_measure_realizations_latent_state = scipy.stats.norm.rvs(
         size=(times.shape + (measmod.input_dim,)), random_state=rng
     )
@@ -47,6 +48,7 @@ def generate_samples(
             base_measure_realizations=base_measure_realizations_latent_state,
             t=times,
             initrv=initrv,
+            _diffusion_list=np.ones_like(times[:-1]),
         )
     )
 

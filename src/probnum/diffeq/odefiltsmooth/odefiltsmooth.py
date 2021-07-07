@@ -10,7 +10,8 @@ References
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import randprocs, randvars, statespace
+from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 from .. import steprule
 from ..ode import IVP
@@ -32,6 +33,7 @@ def probsolve_ivp(
     atol=1e-2,
     rtol=1e-2,
     step=None,
+    diffusion_model="dynamic",
 ):
     r"""Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -39,8 +41,8 @@ def probsolve_ivp(
     the initial value problem (IVP) based on a system of first order
     ordinary differential equations (ODEs)
 
-    .. math:: \\dot x(t) = f(t, x(t)), \\quad x(t_0) = x_0,
-        \\quad t \\in [t_0, T]
+    .. math:: \dot x(t) = f(t, x(t)), \quad x(t_0) = x_0,
+        \quad t \in [t_0, T]
 
     by regarding it as a (nonlinear) Gaussian filtering (and smoothing)
     problem [3]_. For some configurations it recovers certain multistep
@@ -122,6 +124,12 @@ def probsolve_ivp(
         Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
         dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
         but when it is ``True``, the filter solution is smoothed.
+    diffusion_model : str
+        Which diffusion model to use. The choices are ``'constant'`` and ``'dynamic'``,
+        which implement different styles of
+        online calibration of the underlying diffusion [5]_.
+        Optional. Default is ``'dynamic'``.
+
 
     Returns
     -------
@@ -162,6 +170,9 @@ def probsolve_ivp(
     .. [4] Tronarp, F., Särkkä, S., and Hennig, P..
         Bayesian ODE solvers: the maximum a posteriori estimate.
         2019.
+    .. [5] Bosch, N., and Hennig, P., and Tronarp, F..
+        Calibrated Adaptive Probabilistic ODE Solvers.
+        2021.
 
 
     Examples
@@ -241,6 +252,17 @@ def probsolve_ivp(
     else:
         stprl = steprule.ConstantSteps(step)
 
+    # Construct diffusion model.
+    diffusion_model = diffusion_model.lower()
+    if diffusion_model not in ["constant", "dynamic"]:
+        raise ValueError("Diffusion model is not supported.")
+
+    choose_diffusion_model = {
+        "constant": statespace.ConstantDiffusion(),
+        "dynamic": statespace.PiecewiseConstantDiffusion(t0=ivp.t0),
+    }
+    diffusion = choose_diffusion_model[diffusion_model]
+
     # Create solver
     prior = statespace.IBM(
         ordint=algo_order,
@@ -248,12 +270,24 @@ def probsolve_ivp(
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
+    initrv = randvars.Normal(
+        mean=np.zeros(prior.dimension),
+        cov=1e6 * np.eye(prior.dimension),
+        cov_cholesky=1e3 * np.eye(prior.dimension),
+    )
+    prior_process = randprocs.MarkovProcess(
+        transition=prior, initrv=initrv, initarg=ivp.t0
+    )
 
     if method.upper() not in ["EK0", "EK1"]:
         raise ValueError("Method is not supported.")
-    measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
+    measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior_process)
     solver = GaussianIVPFilter.construct_with_rk_init(
-        ivp, prior, measmod, with_smoothing=dense_output
+        ivp,
+        prior_process,
+        measmod,
+        with_smoothing=dense_output,
+        diffusion_model=diffusion,
     )
 
     return solver.solve(steprule=stprl)

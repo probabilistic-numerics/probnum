@@ -46,10 +46,10 @@ coverage.xml
 build/*
 dist/*
 sdist/*
-docs/api/*
 docs/_rst/*
 docs/_build/*
 docs/source/automod/*
+docs/source/api/automod/*
 cover/*
 MANIFEST
 

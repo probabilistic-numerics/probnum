@@ -7,7 +7,7 @@ import scipy.integrate
 import scipy.linalg
 
 from probnum import randvars
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import tril_to_positive_tril
 
 from . import discrete_transition, transition
@@ -138,7 +138,7 @@ class LinearSDE(SDE):
         dispmatfun: Callable[[FloatArgType], np.ndarray],
         mde_atol: Optional[FloatArgType] = 1e-6,
         mde_rtol: Optional[FloatArgType] = 1e-6,
-        mde_solver: Optional[str] = "LSODA",
+        mde_solver: Optional[str] = "RK45",
         forward_implementation: Optional[str] = "classic",
     ):
 

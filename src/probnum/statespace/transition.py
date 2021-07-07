@@ -5,7 +5,7 @@ import abc
 import numpy as np
 
 from probnum import _randomvariablelist, randvars
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 
 
 class Transition(abc.ABC):
@@ -49,6 +49,9 @@ class Transition(abc.ABC):
     def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
         self.input_dim = input_dim
         self.output_dim = output_dim
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(input_dim={self.input_dim}, output_dim={self.output_dim})"
 
     @abc.abstractmethod
     def forward_rv(
@@ -241,9 +244,11 @@ class Transition(abc.ABC):
         """
         raise NotImplementedError
 
-        # Smoothing and sampling implementations
+    # Smoothing and sampling implementations
 
-    def smooth_list(self, rv_list, locations, _previous_posterior=None):
+    def smooth_list(
+        self, rv_list, locations, _diffusion_list, _previous_posterior=None
+    ):
         """Apply smoothing to a list of random variables, according to the present
         transition.
 
@@ -253,7 +258,10 @@ class Transition(abc.ABC):
             List of random variables to be smoothed.
         locations :
             Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
-        _previous_posterior
+        _diffusion_list :
+            List of diffusions that correspond to the intervals in the locations.
+            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
+        _previous_posterior :
             Specify a previous posterior to improve linearisation in approximate backward passes.
             Used in iterated smoothing based on posterior linearisation.
 
@@ -274,6 +282,7 @@ class Transition(abc.ABC):
                 if _previous_posterior is None
                 else _previous_posterior(locations[idx - 1])
             )
+            squared_diffusion = _diffusion_list[idx - 1]
 
             # Actual smoothing step
             curr_rv, _ = self.backward_rv(
@@ -281,6 +290,7 @@ class Transition(abc.ABC):
                 unsmoothed_rv,
                 t=locations[idx - 1],
                 dt=locations[idx] - locations[idx - 1],
+                _diffusion=squared_diffusion,
                 _linearise_at=_linearise_smooth_step_at,
             )
             out_rvs.append(curr_rv)
@@ -292,6 +302,7 @@ class Transition(abc.ABC):
         base_measure_realizations: np.ndarray,
         t: FloatArgType,
         rv_list: _randomvariablelist._RandomVariableList,
+        _diffusion_list: np.ndarray,
         _previous_posterior=None,
     ) -> np.ndarray:
         """Transform samples from a base measure into joint backward samples from a list
@@ -306,6 +317,9 @@ class Transition(abc.ABC):
             List of random variables to be jointly sampled from.
         t :
             Locations of the random variables in the list. Assumed to be sorted.
+        _diffusion_list :
+            List of diffusions that correspond to the intervals in the locations.
+            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
         _previous_posterior :
             Previous posterior. Used for iterative posterior linearisation.
 
@@ -314,7 +328,6 @@ class Transition(abc.ABC):
         np.ndarray
             Jointly transformed realizations.
         """
-
         curr_rv = rv_list[-1]
 
         curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
@@ -329,6 +342,7 @@ class Transition(abc.ABC):
             )
 
             # Condition on the 'future' realization and sample
+            squared_diffusion = _diffusion_list[idx - 1]
             dt = t[idx] - t[idx - 1]
             curr_rv, _ = self.backward_realization(
                 curr_sample,
@@ -336,6 +350,7 @@ class Transition(abc.ABC):
                 t=t[idx - 1],
                 dt=dt,
                 _linearise_at=_linearise_smooth_step_at,
+                _diffusion=squared_diffusion,
             )
             curr_sample = (
                 curr_rv.mean
@@ -354,6 +369,7 @@ class Transition(abc.ABC):
         base_measure_realizations: np.ndarray,
         t: FloatArgType,
         initrv: randvars.RandomVariable,
+        _diffusion_list: np.ndarray,
         _previous_posterior=None,
     ) -> np.ndarray:
         """Transform samples from a base measure into joint backward samples from a list
@@ -368,6 +384,9 @@ class Transition(abc.ABC):
             Initial random variable.
         t :
             Locations of the random variables in the list. Assumed to be sorted.
+        _diffusion_list :
+            List of diffusions that correspond to the intervals in the locations.
+            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
         _previous_posterior :
             Previous posterior. Used for iterative posterior linearisation.
 
@@ -376,7 +395,6 @@ class Transition(abc.ABC):
         np.ndarray
             Jointly transformed realizations.
         """
-
         curr_rv = initrv
 
         curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
@@ -390,12 +408,14 @@ class Transition(abc.ABC):
                 None if _previous_posterior is None else _previous_posterior(t[idx - 1])
             )
 
+            squared_diffusion = _diffusion_list[idx - 1]
             dt = t[idx] - t[idx - 1]
             curr_rv, _ = self.forward_realization(
                 curr_sample,
                 t=t[idx - 1],
                 dt=dt,
                 _linearise_at=_linearise_prediction_step_at,
+                _diffusion=squared_diffusion,
             )
             curr_sample = (
                 curr_rv.mean

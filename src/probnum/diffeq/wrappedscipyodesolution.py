@@ -3,10 +3,8 @@ import numpy as np
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import _randomvariablelist, diffeq, randvars
-from probnum.filtsmooth.timeseriesposterior import (
-    DenseOutputLocationArgType,
-    DenseOutputValueType,
-)
+from probnum.filtsmooth._timeseriesposterior import DenseOutputValueType
+from probnum.typing import DenseOutputLocationArgType
 
 
 class WrappedScipyODESolution(diffeq.ODESolution):

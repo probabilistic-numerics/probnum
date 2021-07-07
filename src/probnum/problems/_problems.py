@@ -1,19 +1,19 @@
 """Definitions of problems currently solved by probabilistic numerical methods."""
 
 import dataclasses
-import typing
+from collections import abc
+from typing import Callable, Optional, Sequence, Union
 
 import numpy as np
 import scipy.sparse
 
-import probnum.linops as pnlo
-import probnum.type as pntp
-from probnum import randvars
+from probnum import linops, randvars
+from probnum.typing import FloatArgType
 
 
 @dataclasses.dataclass
-class RegressionProblem:
-    r"""Regression problem.
+class TimeSeriesRegressionProblem:
+    r"""Time series regression problem.
 
     Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
     Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
@@ -24,27 +24,80 @@ class RegressionProblem:
         Observations of the latent process.
     locations
         Grid-points on which the observations were taken.
+    measurement_models
+        Measurement models.
     solution
         Array containing solution to the problem at ``locations``. Used for testing and benchmarking.
 
     Examples
     --------
+    >>> import numpy as np
+    >>> from probnum import statespace
     >>> obs = [11.4123, -15.5123]
     >>> loc = [0.1, 0.2]
-    >>> rp = RegressionProblem(observations=obs, locations=loc)
+    >>> model = statespace.DiscreteLTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
+    >>> measurement_models = [model, model]
+    >>> rp = TimeSeriesRegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], solution=None)
+    TimeSeriesRegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
+
+    Regression problems are also indexable.
+
+    >>> len(rp)
+    2
+    >>> rp[0]
+    (0.1, 11.4123, DiscreteLTIGaussian(input_dim=1, output_dim=1))
     """
 
-    observations: np.ndarray
-    locations: np.ndarray
+    # The types are 'Sequence' (e.g. lists, tuples) or 'ndarray',
+    # because we need __len__ and __getitem__, which both provide.
+    # 'ndarray's are not 'Sequence's: https://github.com/numpy/numpy/issues/2776
+    locations: Union[Sequence, np.ndarray]
+    observations: Union[Sequence, np.ndarray]
+    measurement_models: Union[Sequence, np.ndarray]
 
-    # Optional: ground truth for testing and benchmarking
-    solution: typing.Optional[
-        typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
-    ] = None
+    # For testing and benchmarking
+    # The solution here is a Sequence or array of the values of the truth at the location.
+    solution: Optional[Union[Sequence, np.ndarray]] = None
+
+    def __post_init__(self):
+        """Some postprocessing of the time-series regression problem inits.
+
+        1. Wrap the measurement models into an iterable of measurement models (by
+        default, a list).
+        2. Check that all inputs have the same length.
+        """
+
+        # If a single measurement model has been provided, transform it into a list of models
+        # to ensure that there is a measurement model for every (t, y) combination.
+        if not isinstance(self.measurement_models, abc.Iterable):
+            self.measurement_models = [self.measurement_models] * len(self.locations)
+
+        # Check that the lengths align. Uneven lengths are not supported
+        # at the moment, because it is not clear how these should be handled.
+        lengths_equal = (
+            len(self.observations)
+            == len(self.locations)
+            == len(self.measurement_models)
+        )
+        if not lengths_equal:
+            errormsg = "Lengths of the inputs do not match. "
+            len_obs = f"len(observations)={len(self.observations)}. "
+            len_loc = f"len(locations)={len(self.locations)}. "
+            len_mm = f"len(measurement_models)={len(self.measurement_models)}."
+            raise ValueError(errormsg + len_obs + len_loc + len_mm)
+
+    def __len__(self):
+        return len(self.observations)
+
+    def __getitem__(self, item):
+        return (
+            self.locations[item],
+            self.observations[item],
+            self.measurement_models[item],
+        )
 
 
 @dataclasses.dataclass
@@ -91,15 +144,15 @@ class InitialValueProblem:
     0.09
     """
 
-    f: typing.Callable[[float, np.ndarray], np.ndarray]
+    f: Callable[[float, np.ndarray], np.ndarray]
     t0: float
     tmax: float
-    y0: typing.Union[pntp.FloatArgType, np.ndarray]
-    df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
-    ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+    y0: Union[FloatArgType, np.ndarray]
+    df: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
+    ddf: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+    solution: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
 
 @dataclasses.dataclass
@@ -130,16 +183,16 @@ class LinearSystem:
            [0., 0., 1.]]), b=array([0, 1, 2]), solution=None)
     """
 
-    A: typing.Union[
+    A: Union[
         np.ndarray,
         scipy.sparse.spmatrix,
-        pnlo.LinearOperator,
+        linops.LinearOperator,
         randvars.RandomVariable,
     ]
-    b: typing.Union[np.ndarray, randvars.RandomVariable]
+    b: Union[np.ndarray, randvars.RandomVariable]
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Union[np.ndarray, randvars.RandomVariable]] = None
+    solution: Optional[Union[np.ndarray, randvars.RandomVariable]] = None
 
 
 @dataclasses.dataclass
@@ -188,12 +241,10 @@ class QuadratureProblem:
     [1.0, 1.0]
     """
 
-    integrand: typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
-    lower_bd: typing.Union[pntp.FloatArgType, np.ndarray]
-    upper_bd: typing.Union[pntp.FloatArgType, np.ndarray]
-    output_dim: typing.Optional[int] = 1
+    integrand: Callable[[np.ndarray], Union[float, np.ndarray]]
+    lower_bd: Union[FloatArgType, np.ndarray]
+    upper_bd: Union[FloatArgType, np.ndarray]
+    output_dim: Optional[int] = 1
 
     # For testing and benchmarking
-    solution: typing.Optional[
-        typing.Union[float, np.ndarray, randvars.RandomVariable]
-    ] = None
+    solution: Optional[Union[float, np.ndarray, randvars.RandomVariable]] = None

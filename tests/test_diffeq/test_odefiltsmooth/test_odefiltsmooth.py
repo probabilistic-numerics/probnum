@@ -19,7 +19,11 @@ def ivp():
 )
 @pytest.mark.parametrize("dense_output", [True, False])
 @pytest.mark.parametrize("step", [0.01, None])
-def test_adaptive_solver_successful(ivp, method, algo_order, dense_output, step):
+@pytest.mark.parametrize("diffusion_model", ["constant", "dynamic"])
+@pytest.mark.parametrize("tolerance", [0.1, np.array([0.09, 0.10])])
+def test_adaptive_solver_successful(
+    ivp, method, algo_order, dense_output, step, diffusion_model, tolerance
+):
     """The solver terminates successfully for all sorts of parametrizations."""
     f = ivp.rhs
     df = ivp.jacobian
@@ -33,8 +37,8 @@ def test_adaptive_solver_successful(ivp, method, algo_order, dense_output, step)
         y0,
         df=df,
         adaptive=True,
-        atol=1e-1,
-        rtol=1e-1,
+        atol=tolerance,
+        rtol=tolerance,
         algo_order=algo_order,
         method=method,
         dense_output=dense_output,
@@ -68,3 +72,14 @@ def test_no_step_or_tol_info_raises_error(ivp):
 
     with pytest.raises(ValueError):
         probsolve_ivp(f, t0, tmax, y0, step=None, adaptive=True, atol=None, rtol=None)
+
+
+def test_wrong_diffusion_raises_error(ivp):
+    """Methods that are not in the list raise errors."""
+    f = ivp.rhs
+    t0, tmax = ivp.timespan
+    y0 = ivp.initrv.mean
+
+    # UK1 does not exist anymore
+    with pytest.raises(ValueError):
+        probsolve_ivp(f, t0, tmax, y0, diffusion_model="something_wrong")

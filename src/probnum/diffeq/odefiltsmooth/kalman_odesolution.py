@@ -5,8 +5,8 @@ from typing import Optional
 import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, randvars, utils
-from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
+from probnum.typing import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
 
 from ..odesolution import ODESolution
 
@@ -91,13 +91,11 @@ class KalmanODESolution(ODESolution):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
         out_rv = self.kalman_posterior.interpolate(
-            t, previous_location, previous_state, next_location, next_state
+            t, previous_index=previous_index, next_index=next_index
         )
         return _project_rv(self.proj_to_y, out_rv)
 
@@ -139,32 +137,6 @@ class KalmanODESolution(ODESolution):
         return KalmanODESolution(
             kalman_posterior=self.kalman_posterior.filtering_posterior
         )
-
-    @property
-    def _states_left_of_location(self):
-        """Return the set of states that is used to find the LEFTMOST states of a given
-        time point in a way that supports slicing with the output of numpy.searchsorted.
-
-        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
-        because then the _RandomVariableList functionality would be lost.
-
-
-        Note: This exists as a property, because for the KalmanSmoothingPosterior, the leftmost states
-        are extracted from the filtering posterior, not the smoothing posterior, which can be overwritten here.
-        """
-        return self.kalman_posterior._states_left_of_location
-
-    @property
-    def _states_right_of_location(self):
-        """Return the set of states that is used to find the RIGHTMOST states of a given
-        time point in a way that supports slicing with the output of numpy.searchsorted.
-
-        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
-        because then the _RandomVariableList functionality would be lost.
-
-        This exists as a property because the leftmost states exist as a property and who knows when we need it like that.
-        """
-        return self.kalman_posterior._states_right_of_location
 
 
 def _project_rv(projmat, rv):
