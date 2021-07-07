@@ -15,8 +15,8 @@ def rng():
 
 @pytest.fixture
 def sample_from_measure_policy(rng):
-    """Fix the random state in the "sample_from_measure" policy, thus make this policy
-    fit the common interface."""
+    """Fix the random number generator in the "sample_from_measure" policy, thus make
+    this policy fit the common interface."""
 
     def policy(nevals, measure):
         return sample_from_measure(rng=rng, nevals=nevals, measure=measure)
