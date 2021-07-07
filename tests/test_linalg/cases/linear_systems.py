@@ -1,6 +1,5 @@
 """Linear system test cases."""
 
-import pathlib
 from typing import Union
 
 import numpy as np

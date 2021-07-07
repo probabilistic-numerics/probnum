@@ -1,10 +1,8 @@
 """Policy returning :math:`A`-conjugate actions."""
-from typing import Callable, Iterable, Optional
 
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"
-from probnum import linops
 
 from . import _linear_solver_policy
 
