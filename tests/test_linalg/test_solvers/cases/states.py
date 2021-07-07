@@ -22,4 +22,4 @@ def case_linear_solver_state(
         ),
         b=randvars.Constant(linsys.b),
     )
-    return linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
+    return linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)

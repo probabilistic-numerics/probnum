@@ -1,7 +1,7 @@
 """Policies of probabilistic linear solvers returning actions."""
 
 from ._conjugate_gradient import ConjugateGradientPolicy
-from ._policy import LinearSolverPolicy
+from ._linear_solver_policy import LinearSolverPolicy
 from ._random_unit_vector import RandomUnitVectorPolicy
 
 # Public classes and functions. Order is reflected in documentation.

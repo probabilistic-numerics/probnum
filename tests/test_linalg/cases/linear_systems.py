@@ -1,5 +1,6 @@
 """Linear system test cases."""
 
+import pathlib
 from typing import Union
 
 import numpy as np
@@ -8,10 +9,10 @@ import scipy.sparse
 
 from probnum import linops, problems
 
-from .matrices import SPDMatrix
+cases_matrices = ".matrices"
 
 
-@pytest_cases.parametrize_with_cases("matrix", cases=[SPDMatrix])
+@pytest_cases.parametrize_with_cases("matrix", cases=cases_matrices)
 def case_linsys(
     matrix: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
     rng: np.random.Generator,
@@ -23,7 +24,9 @@ def case_linsys(
     return problems.LinearSystem.from_matrix(A=matrix, rng=rng)
 
 
-@pytest_cases.parametrize_with_cases("spd_matrix", cases=SPDMatrix)
+@pytest_cases.parametrize_with_cases(
+    "spd_matrix", cases=cases_matrices, has_tag=["symmetric", "positive_definite"]
+)
 def case_spd_linsys(
     spd_matrix: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
     rng: np.random.Generator,

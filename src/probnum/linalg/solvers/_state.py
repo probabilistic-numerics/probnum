@@ -24,12 +24,15 @@ class LinearSolverState:
         Linear system to be solved.
     prior
         Prior belief over the quantities of interest of the linear system.
+    rng
+        Random number generator.
     """
 
     def __init__(
         self,
         problem: problems.LinearSystem,
         prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
+        rng: Optional[np.random.Generator] = None,
     ):
         self.problem = problem
         self.belief = prior
@@ -44,6 +47,7 @@ class LinearSolverState:
         ]
 
         self._cache = defaultdict(list)
+        self.rng = rng
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(step={self.step})"

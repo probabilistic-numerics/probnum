@@ -3,10 +3,10 @@ import numpy as np
 
 import probnum  # pylint: disable="unused-import"
 
-from . import _policy
+from . import _linear_solver_policy
 
 
-class RandomUnitVectorPolicy(_policy.LinearSolverPolicy):
+class RandomUnitVectorPolicy(_linear_solver_policy.LinearSolverPolicy):
     r"""Policy returning randomly drawn standard unit vectors.
 
     Draw a standard unit vector :math:`e_i` at random and return it. This policy corresponds to selecting columns of the matrix as observations.

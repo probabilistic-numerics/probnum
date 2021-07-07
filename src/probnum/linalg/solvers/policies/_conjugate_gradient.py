@@ -6,10 +6,10 @@ import numpy as np
 import probnum  # pylint: disable="unused-import"
 from probnum import linops
 
-from . import _policy
+from . import _linear_solver_policy
 
 
-class ConjugateGradientPolicy(_policy.LinearSolverPolicy):
+class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
     r"""Policy returning :math:`A`-conjugate actions.
 
     Selects the negative gradient / residual as an initial action :math:`s_0 = A x_0 - b` and then successively generates :math:`A`-conjugate actions, i.e. the actions satisfy :math:`s_i^\top A s_j = 0` iff :math:`i \neq j`.
