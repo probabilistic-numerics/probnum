@@ -20,7 +20,7 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         self.rng = np.random.default_rng(42)
 
         # Random variable instantiation
-        self.scalars = [0, int(1), 0.1]
+        self.scalars = [0, int(1), 0.1, np.nan, np.inf]
         self.arrays = [np.empty(2), np.zeros(4), np.array([]), np.array([1, 2])]
 
         # Random variable arithmetic
@@ -104,7 +104,11 @@ class ArithmeticTestCase(RandomVariableTestCase):
         """Multiplication of random variables with scalar constants."""
         for (alpha, rv) in list(itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
-                z = alpha * rv
+                if np.isinf(alpha):
+                    with self.assertWarns(RuntimeWarning):
+                        z = alpha * rv
+                else:
+                    z = alpha * rv
                 self.assertEqual(z.shape, rv.shape)
                 self.assertIsInstance(z, randvars.RandomVariable)
 
@@ -113,6 +117,8 @@ class ArithmeticTestCase(RandomVariableTestCase):
         for alpha, rv in list(itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
                 z = alpha + rv
+                self.assertEqual(z.shape, rv.shape)
+
                 z = rv - alpha
                 self.assertEqual(z.shape, rv.shape)
 
