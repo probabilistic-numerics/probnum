@@ -7,9 +7,9 @@ from probnum._randomvariablelist import _RandomVariableList
 
 
 @pytest.fixture
-def problem():
+def problem(rng):
     """Car-tracking problem."""
-    return filtsmooth_zoo.car_tracking()
+    return filtsmooth_zoo.car_tracking(rng=rng)
 
 
 @pytest.fixture
