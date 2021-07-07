@@ -103,14 +103,14 @@ def bayesquad(
     Examples
     --------
     >>> import numpy as np
-    >>> np.random.seed(0)
+
     >>> input_dim = 1
     >>> domain = (0, 1)
     >>> def f(x):
     ...     return x
     >>> F, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
     >>> print(F.mean)
-    0.5000
+    0.5
     """
     if domain is None and measure is None:
         raise ValueError(
