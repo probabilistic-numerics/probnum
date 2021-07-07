@@ -60,10 +60,10 @@ class PerturbedStepSolver(diffeq.ODESolver):
     def step(
         self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
     ):
-        """Perturb the original stopping point [1]_.
+        """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original
-        stopping point.
+        stopping point [1]_.
 
         Parameters
         ----------

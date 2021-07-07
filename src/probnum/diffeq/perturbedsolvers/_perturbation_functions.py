@@ -4,7 +4,9 @@ import scipy
 
 
 def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=()):
-    """Perturb the step with uniformly distributed noise scaled by noise-scale [1]_.
+    """Perturb the step with uniformly distributed noise scaled by noise-scale.
+
+    based on Abdulle and Garegnani [1]_ .
 
     Parameters
     ----------
@@ -37,7 +39,9 @@ def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=())
 
 
 def perturb_lognormal(step, solver_order, noise_scale, random_state=None, size=()):
-    """Perturb the step with lognormally distributed noise scaled by noise-scale [1]_.
+    """Perturb the step with lognormally distributed noise scaled by noise-scale.
+
+    based on Abdulle and Garegnani [1]_ .
 
     Parameters
     ----------
