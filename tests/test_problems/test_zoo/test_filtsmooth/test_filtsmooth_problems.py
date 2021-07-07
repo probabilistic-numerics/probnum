@@ -9,7 +9,7 @@ def rng():
     return np.random.default_rng(seed=123)
 
 
-# The logistic ODE problem is not random, so it does not get a random seed.
+# The logistic ODE problem is not random, so it does not get a random number generator.
 all_filtmooth_setups = pytest.mark.parametrize(
     "filtsmooth_setup",
     [
