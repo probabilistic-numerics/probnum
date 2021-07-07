@@ -4,25 +4,37 @@ References
 ----------
 .. [1] https://arxiv.org/abs/1801.01340
 """
+from typing import Optional
+
 import numpy as np
 import scipy
 
+from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
-def perturb_uniform(rng, step, solver_order, noise_scale, size=()):
+
+def perturb_uniform(
+    rng: np.random.Generator,
+    step: FloatArgType,
+    solver_order: IntArgType,
+    noise_scale: FloatArgType,
+    size: Optional[ShapeArgType] = (),
+):
     """Perturb the step with uniformly distributed noise scaled by noise-scale [1]_.
 
-    Proposed by Abdulle and Garegnani(2020)
+    Proposed by Abdulle and Garegnani (2020).
 
     Parameters
     ----------
     rng
         Random number generator
-    step : float
-        unperturbed step propesed by the steprule
-    solver_order : int
-        order of the solver
-    noise_scale : float
-        scales the perturbation
+    step
+        Unperturbed step propesed by the steprule
+    solver_order
+        Order of the solver
+    noise_scale
+        Scales the perturbation
+    size
+        Number of perturbation samples to be drawn. Optional. Default is ``size=()`.
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
@@ -35,19 +47,27 @@ def perturb_uniform(rng, step, solver_order, noise_scale, size=()):
     return samples
 
 
-def perturb_lognormal(rng, step, solver_order, noise_scale, size=()):
+def perturb_lognormal(
+    rng: np.random.Generator,
+    step: FloatArgType,
+    solver_order: IntArgType,
+    noise_scale: FloatArgType,
+    size: Optional[ShapeArgType] = (),
+):
     """Perturb the step with lognormally distributed noise scaled by noise-scale [1]_.
 
     Parameters
     ----------
     rng
         Random number generator
-    step : float
-        unperturbed step propesed by the steprule
-    solver_order : int
-        order of the solver
-    noise_scale : float
-        scales the perturbation
+    step
+        Unperturbed step propesed by the steprule
+    solver_order
+        Order of the solver
+    noise_scale
+        Scales the perturbation
+    size
+        Number of perturbation samples to be drawn. Optional. Default is ``size=()`.
     """
     shift = 0.5 * np.log(1 + noise_scale * (step ** (2 * solver_order)))
     mean = np.log(step) - shift
