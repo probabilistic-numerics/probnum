@@ -24,7 +24,6 @@ def car_tracking(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
@@ -78,9 +77,6 @@ def car_tracking(
     backward_implementation
         Implementation of the backward transitions inside prior and measurement model.
         Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
@@ -135,7 +131,6 @@ def car_tracking(
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
-        random_state=random_state,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
@@ -160,7 +155,6 @@ def ornstein_uhlenbeck(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup based on an Ornstein Uhlenbeck process.
 
@@ -198,9 +192,6 @@ def ornstein_uhlenbeck(
     backward_implementation
         Implementation of the backward transitions inside prior and measurement model.
         Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
 
     Returns
@@ -269,7 +260,6 @@ def pendulum(
     step: FloatArgType = 0.0075,
     initrv: Optional[randvars.RandomVariable] = None,
     initarg: Optional[float] = None,
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup for a (noisy) pendulum.
 
@@ -320,9 +310,6 @@ def pendulum(
     initarg
         Initial time point of the prior process.
         Optional. Default is the left boundary of timespan.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
@@ -420,7 +407,6 @@ def benes_daum(
     process_diffusion: FloatArgType = 1.0,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup based on the Beneš SDE.
 
@@ -448,9 +434,6 @@ def benes_daum(
         Time grid for the filtering/smoothing problem.
     initrv
         Initial random variable.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
@@ -500,7 +483,6 @@ def benes_daum(
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
-        random_state=random_state,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,

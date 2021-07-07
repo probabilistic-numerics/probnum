@@ -35,7 +35,7 @@ def test_spectrum_matches_given(rng: np.random.Generator):
     """Test whether the spectrum of the test problem matches the provided spectrum."""
     dim = 10
     spectrum = np.sort(rng.uniform(0.1, 1, size=dim))
-    spdmat = random_spd_matrix(dim=dim, spectrum=spectrum, random_state=rng)
+    spdmat = random_spd_matrix(rng=rng, dim=dim, spectrum=spectrum)
     eigvals = np.sort(np.linalg.eigvals(spdmat))
     np.testing.assert_allclose(
         spectrum,
@@ -47,7 +47,7 @@ def test_spectrum_matches_given(rng: np.random.Generator):
 def test_negative_eigenvalues_throws_error(rng: np.random.Generator):
     """Test whether a non-positive spectrum throws an error."""
     with pytest.raises(ValueError):
-        random_spd_matrix(dim=3, spectrum=[-1, 1, 2], random_state=rng)
+        random_spd_matrix(rng=rng, dim=3, spectrum=[-1, 1, 2])
 
 
 def test_is_ndarray(rnd_dense_spd_mat: np.ndarray):
@@ -64,5 +64,5 @@ def test_is_spmatrix(rnd_sparse_spd_mat: scipy.sparse.spmatrix):
 def test_large_sparse_matrix(rng: np.random.Generator):
     """Test whether a large random spd matrix can be created."""
     n = 10 ** 5
-    sparse_mat = random_sparse_spd_matrix(dim=n, density=10 ** -8, random_state=rng)
+    sparse_mat = random_sparse_spd_matrix(rng=rng, dim=n, density=10 ** -8)
     assert sparse_mat.shape == (n, n)
