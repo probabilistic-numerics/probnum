@@ -27,8 +27,10 @@ def test_next_step(state: LinearSolverState):
 
 
 @parametrize_with_cases("state", cases=CASE_DIR)
-@parametrize("attr_name", [])
-def test_current_iter_attribute(state: LinearSolverState, attr_name: "str"):
+@parametrize("attr_name", ["action", "observation", "residual"])
+def test_current_iter_attribute(state: LinearSolverState, attr_name: str):
     """Test whether the current iteration attribute if set returns the last element of
     the attribute lists."""
-    pass
+    assert np.all(
+        getattr(state, attr_name) == getattr(state, attr_name + "s")[state.step]
+    )

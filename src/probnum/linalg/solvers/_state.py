@@ -90,7 +90,9 @@ class LinearSolverState:
     def residual(self) -> np.ndarray:
         r"""Residual :math:`Ax-b` for the current step."""
         if self._residuals[self.step] is None:
-            self._residuals.append(self.problem.A @ self.belief.x.mean - self.problem.b)
+            self._residuals[self.step] = (
+                self.problem.A @ self.belief.x.mean - self.problem.b
+            )
         return self._residuals[self.step]
 
     @property
