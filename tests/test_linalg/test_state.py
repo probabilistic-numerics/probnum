@@ -1,22 +1,34 @@
 """Tests for the state of a probabilistic linear solver."""
 
-import pytest_cases
+import numpy as np
+from pytest_cases import parametrize, parametrize_with_cases
 
-from probnum import problems
+from probnum.linalg.solvers import LinearSolverState
 
-# pylint: disable="wildcard-import,unused-wildcard-import"
-from .cases.linear_systems import *
-from .test_solvers.cases.beliefs import *
-
-
-@pytest_cases.parametrize_with_cases("spd_linsys", cases=case_spd_linsys)
-def test_dimension_match(spd_linsys: problems.LinearSystem):
-    assert spd_linsys.A.shape[0] == spd_linsys.b.shape[0]
+CASE_DIR = ".test_solvers.cases.states"
 
 
-def test_residual(state):
-    pass
+@parametrize_with_cases("state", cases=CASE_DIR)
+def test_residual(state: LinearSolverState):
+    """Test whether the state computes the residual correctly."""
+    linsys = state.problem
+    residual = linsys.A @ state.belief.x.mean - linsys.b
+    np.testing.assert_allclose(residual, state.residual)
 
 
-def test_next_step(state):
+@parametrize_with_cases("state", cases=CASE_DIR)
+def test_next_step(state: LinearSolverState):
+    """Test whether advancing a state to the next step updates all state attributes
+    correctly."""
+    initial_step = state.step
+    state.next_step()
+
+    assert initial_step + 1 == state.step
+
+
+@parametrize_with_cases("state", cases=CASE_DIR)
+@parametrize("attr_name", [])
+def test_current_iter_attribute(state: LinearSolverState, attr_name: "str"):
+    """Test whether the current iteration attribute if set returns the last element of
+    the attribute lists."""
     pass

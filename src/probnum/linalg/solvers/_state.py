@@ -39,10 +39,14 @@ class LinearSolverState:
         self._actions: List[np.ndarray] = [None]
         self._observations: List[Any] = [None]
         self._residuals: List[np.ndarray] = [
-            self.problem.A @ self.belief.x.mean - self.problem.b
+            self.problem.A @ self.belief.x.mean - self.problem.b,
+            None,
         ]
 
         self._cache = defaultdict(list)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(step={self.step})"
 
     @property
     def action(self) -> Optional[np.ndarray]:
@@ -51,7 +55,7 @@ class LinearSolverState:
         Is ``None`` at the beginning of a step and will be set by the
         policy.
         """
-        return self.actions[self.step]
+        return self._actions[self.step]
 
     @action.setter
     def action(self, value: np.ndarray) -> None:
@@ -65,7 +69,7 @@ class LinearSolverState:
         Is ``None`` at the beginning of a step, will be set by the
         observation model for a given action.
         """
-        return self.observations[self.step]
+        return self._observations[self.step]
 
     @observation.setter
     def observation(self, value: Any) -> None:
@@ -75,22 +79,24 @@ class LinearSolverState:
     @property
     def actions(self) -> Tuple[np.ndarray, ...]:
         """Actions taken by the solver."""
-        return tuple(self._actions[:-1])
+        return tuple(self._actions)
 
     @property
     def observations(self) -> Tuple[Any, ...]:
         """Observations of the problem by the solver."""
-        return tuple(self._observations[:-1])
+        return tuple(self._observations)
 
     @property
     def residual(self) -> np.ndarray:
         r"""Residual :math:`Ax-b` for the current step."""
-        return self.residuals[self.step]
+        if self._residuals[self.step] is None:
+            self._residuals.append(self.problem.A @ self.belief.x.mean - self.problem.b)
+        return self._residuals[self.step]
 
     @property
     def residuals(self) -> Tuple[np.ndarray, ...]:
         r"""Residuals :math:`\{Ax_i - b\}_i`."""
-        return tuple(self._residuals[:-1])
+        return tuple(self._residuals)
 
     @property
     def cache(self) -> Mapping[str, List[Any]]:
@@ -109,5 +115,6 @@ class LinearSolverState:
         """
         self._actions.append(None)
         self._observations.append(None)
+        self._residuals.append(None)
 
         self.step += 1

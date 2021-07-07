@@ -6,6 +6,8 @@ systems :math:`Ax=b`.
 """
 from probnum.linalg._problinsolve import bayescg, problinsolve
 
+from . import solvers
+
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "problinsolve",

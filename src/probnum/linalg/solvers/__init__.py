@@ -13,6 +13,7 @@ from probnum.linalg.solvers.matrixbased import (
 )
 from probnum.linalg.solvers.solutionbased import SolutionBasedSolver
 
+from . import beliefs, policies
 from ._state import LinearSolverState
 
 # Public classes and functions. Order is reflected in documentation.
