@@ -5,7 +5,6 @@ from typing import Sequence
 import numpy as np
 import scipy.stats
 
-import probnum.utils as _utils
 from probnum.typing import IntArgType
 
 

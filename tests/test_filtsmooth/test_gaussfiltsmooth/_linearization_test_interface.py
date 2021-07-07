@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, problems, randprocs, randvars, utils
+from probnum import filtsmooth, problems, randprocs, randvars
 
 
 class InterfaceDiscreteLinearizationTest:

@@ -4,7 +4,6 @@ import numbers
 from typing import Optional
 
 import numpy as np
-import scipy._lib._util
 
 from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType, ShapeType
 
