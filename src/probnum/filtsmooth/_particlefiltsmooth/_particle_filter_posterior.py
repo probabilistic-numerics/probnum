@@ -28,9 +28,9 @@ class ParticleFilterPosterior(TimeSeriesPosterior):
 
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         raise NotImplementedError("Sampling is not implemented.")
 

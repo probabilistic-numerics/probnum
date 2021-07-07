@@ -1,4 +1,4 @@
-"""Test fixtures for Gaussian filtering and smoothing."""
+"""Test fixtures for filtering and smoothing."""
 
 
 import numpy as np

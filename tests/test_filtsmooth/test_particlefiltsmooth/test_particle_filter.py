@@ -32,7 +32,7 @@ all_resampling_configurations = pytest.mark.parametrize(
 
 @pytest.fixture
 def num_particles():
-    return 20
+    return 30
 
 
 # Parameterize initarg with None and -10 to test both initial setups for the PF:
@@ -40,14 +40,14 @@ def num_particles():
 # before sampling an initial set of particles.
 # If -10, the initial set of particles is sampled immediately.
 @pytest.fixture(params=[None, -10])
-def problem(request):
+def problem(request, rng):
     initarg = request.param
-    return filtsmooth_zoo.pendulum(step=0.12, initarg=initarg, random_state=123)
+    return filtsmooth_zoo.pendulum(rng=rng, step=0.12, initarg=initarg)
 
 
 @pytest.fixture
 def particle_filter_setup(
-    problem, num_particles, measmod_style, resampling_percentage_threshold
+    problem, num_particles, measmod_style, resampling_percentage_threshold, rng
 ):
     _, info = problem
     prior_process = info["prior_process"]
@@ -71,6 +71,7 @@ def particle_filter_setup(
         prior_process,
         importance_distribution=importance_distribution,
         num_particles=num_particles,
+        rng=rng,
         resampling_percentage_threshold=resampling_percentage_threshold,
     )
     return particle
@@ -94,7 +95,6 @@ def pf_output(particle_filter_setup, regression_problem):
 @all_importance_distributions
 @all_resampling_configurations
 def test_shape_pf_output(pf_output, regression_problem, num_particles):
-    np.random.seed(12345)
 
     states = pf_output.states.support
     weights = pf_output.states.probabilities
@@ -108,8 +108,6 @@ def test_shape_pf_output(pf_output, regression_problem, num_particles):
 def test_rmse_particlefilter(pf_output, regression_problem):
     """Assert that the RMSE of the mode of the posterior of the PF is a lot smaller than
     the RMSE of the data."""
-
-    np.random.seed(12345)
 
     true_states = regression_problem.solution
 
