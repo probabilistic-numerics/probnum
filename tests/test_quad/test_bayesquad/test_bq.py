@@ -47,3 +47,14 @@ def test_integral_values_1d(f1d, kernel, measure, sample_from_measure_policy):
     num_integral, _ = quad(integrand, measure.domain[0], measure.domain[1])
     bq_integral, _ = bq.integrate(fun=f1d, measure=measure, nevals=250)
     np.testing.assert_almost_equal(bq_integral.mean, num_integral, decimal=2)
+
+
+def test_bmc_without_rng_raises_error():
+    """BMC policy requires a random number generator to be passed."""
+    with pytest.raises(ValueError):
+        dummy_input_dim = (
+            1  # irrelevant for the test below, but required from the interface
+        )
+        BayesianQuadrature.from_interface(
+            input_dim=dummy_input_dim, policy="bmc", rng=None
+        )
