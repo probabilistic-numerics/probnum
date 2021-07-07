@@ -4,7 +4,7 @@ References
 ----------
 .. [1] https://arxiv.org/abs/1801.01340
 """
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import scipy
