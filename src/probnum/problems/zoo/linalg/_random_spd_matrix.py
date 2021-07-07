@@ -134,11 +134,14 @@ def random_sparse_spd_matrix(
     >>> rng = np.random.default_rng(42)
     >>> sparsemat = random_sparse_spd_matrix(rng, dim=5, density=0.1)
     >>> sparsemat
-    array([[1.        , 0.4949906 , 0.        , 0.        , 0.        ],
-           [0.4949906 , 1.24501569, 0.        , 0.        , 0.        ],
-           [0.        , 0.        , 1.        , 0.        , 0.        ],
-           [0.        , 0.        , 0.        , 1.        , 0.        ],
-           [0.        , 0.        , 0.        , 0.        , 1.        ]])
+    <5x5 sparse matrix of type '<class 'numpy.float64'>'
+        with 7 stored elements in Compressed Sparse Row format>
+    >>> sparsemat.todense()
+    matrix([[1.        , 0.        , 0.43887844, 0.        , 0.        ],
+            [0.        , 1.        , 0.        , 0.        , 0.        ],
+            [0.43887844, 0.        , 1.19261428, 0.        , 0.        ],
+            [0.        , 0.        , 0.        , 1.        , 0.        ],
+            [0.        , 0.        , 0.        , 0.        , 1.        ]])
     """
 
     # Initialization

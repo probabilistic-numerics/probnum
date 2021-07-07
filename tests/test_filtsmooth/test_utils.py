@@ -8,23 +8,23 @@ from probnum import filtsmooth, problems
 
 
 @pytest.fixture
-def car_tracking1():
+def car_tracking1(rng):
     return filtsmooth_zoo.car_tracking(
-        measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
+        rng=rng, measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
     )
 
 
 @pytest.fixture
-def car_tracking2():
+def car_tracking2(rng):
     return filtsmooth_zoo.car_tracking(
-        measurement_variance=0.5, timespan=(0.1, 10.1), step=0.5
+        rng=rng, measurement_variance=0.5, timespan=(0.1, 10.1), step=0.5
     )
 
 
 @pytest.fixture
-def car_tracking3():
+def car_tracking3(rng):
     return filtsmooth_zoo.car_tracking(
-        measurement_variance=1.23, timespan=(0.2, 10.2), step=0.5
+        rng=rng, measurement_variance=1.23, timespan=(0.2, 10.2), step=0.5
     )
 
 
