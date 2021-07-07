@@ -109,7 +109,7 @@ class Categorical(DiscreteRandomVariable):
         Returns
         -------
         Categorical
-            Categorical random variable with resampled support (according to self.probabilisties).
+            Categorical random variable with resampled support (according to self.probabilities).
         """
         num_events = len(self.support)
         new_support = self.sample(rng=rng, size=num_events)
