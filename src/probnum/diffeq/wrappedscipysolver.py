@@ -1,7 +1,7 @@
 """Wrapper class of scipy.integrate. for RK23 and RK45.
 
 Dense-output can not be used for DOP853, if you use other RK-methods,
-make sure, that the current implementation works for them   .
+make sure, that the current implementation works for them.
 """
 import numpy as np
 from scipy.integrate._ivp import rk
@@ -13,8 +13,8 @@ from probnum.typing import FloatArgType
 
 
 class WrappedScipyRungeKutta(diffeq.ODESolver):
-    """Wrappper for Runge-Kutta methods from Scipy, implements the stepfunction and
-    dense output."""
+    """Wrapper for Runge-Kutta methods from Scipy, implements the stepfunction and dense
+    output."""
 
     def __init__(self, solver: rk.RungeKutta):
         self.solver = solver

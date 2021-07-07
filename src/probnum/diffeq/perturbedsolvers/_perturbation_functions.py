@@ -1,17 +1,12 @@
-"""Perturbation functions to perturb the stepsize.
-
-References
-----------
-.. [1] https://arxiv.org/abs/1801.01340
-"""
+"""Perturbation functions to perturb the stepsize."""
 import numpy as np
 import scipy
 
 
 def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=()):
-    """Perturb the step with uniformly distributed noise scaled by noise-scale [1]_.
+    """Perturb the step with uniformly distributed noise scaled by noise-scale.
 
-    Proposed by Abdulle and Garegnani(2020)
+    based on the work by Abdulle and Garegnani [1]_ .
 
     Parameters
     ----------
@@ -23,6 +18,12 @@ def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=())
         scales the perturbation
     seed : RandomStateArgType
         seed for pseudo-random number generator.
+
+    References
+    ----------
+    .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
+       uncertainty quantification in chaotic and geometric numerical integration.
+       Statistics and Computing, 1-26.
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
@@ -38,7 +39,9 @@ def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=())
 
 
 def perturb_lognormal(step, solver_order, noise_scale, random_state=None, size=()):
-    """Perturb the step with lognormally distributed noise scaled by noise-scale [1]_.
+    """Perturb the step with lognormally distributed noise scaled by noise-scale.
+
+    based on the work by Abdulle and Garegnani [1]_ .
 
     Parameters
     ----------
@@ -50,6 +53,12 @@ def perturb_lognormal(step, solver_order, noise_scale, random_state=None, size=(
         scales the perturbation
     seed : RandomStateArgType
         seed for pseudo-random number generator.
+
+    References
+    ----------
+    .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
+       uncertainty quantification in chaotic and geometric numerical integration.
+       Statistics and Computing, 1-26.
     """
     shift = 0.5 * np.log(1 + noise_scale * (step ** (2 * solver_order)))
     mean = np.log(step) - shift
