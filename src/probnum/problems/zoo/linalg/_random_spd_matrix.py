@@ -104,7 +104,9 @@ def random_sparse_spd_matrix(
 
     Constructs a random sparse symmetric positive definite matrix for a given degree
     of sparsity. The matrix is constructed from its Cholesky factor :math:`L`. Its
-    diagonal is set to one and all other nonzero entries of the lower triangle are sampled from a uniform distribution with bounds :code:`[chol_entry_min, chol_entry_max]`. The resulting sparse matrix is then given by :math:`A=LL^\top`.
+    diagonal is set to one and all other nonzero entries of the lower triangle are
+    sampled from a uniform distribution with bounds :code:`[chol_entry_min,
+    chol_entry_max]`. The resulting sparse matrix is then given by :math:`A=LL^\top`.
 
     Parameters
     ----------
