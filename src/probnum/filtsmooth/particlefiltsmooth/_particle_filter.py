@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import problems, randvars, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType, RandomStateArgType
 
 from ._particle_filter_posterior import ParticleFilterPosterior
 

@@ -5,7 +5,7 @@ from typing import Callable, Optional, Type, Union
 import numpy as np
 
 from probnum import kernels, randvars
-from probnum.type import ShapeArgType
+from probnum.typing import ShapeArgType
 
 from . import _random_process
 
