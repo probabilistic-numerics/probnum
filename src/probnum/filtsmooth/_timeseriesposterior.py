@@ -11,7 +11,6 @@ from probnum.typing import (
     DenseOutputLocationArgType,
     FloatArgType,
     IntArgType,
-    RandomStateArgType,
     ShapeArgType,
 )
 
@@ -139,9 +138,9 @@ class TimeSeriesPosterior(abc.ABC):
     @abc.abstractmethod
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         """Draw samples from the filtering/smoothing posterior.
 
@@ -153,14 +152,14 @@ class TimeSeriesPosterior(abc.ABC):
 
         Parameters
         ----------
+        rng :
+            Random number generator.
         t :
             Locations on which the samples are wanted. Default is none, which implies that
             self.location is used.
         size :
             Indicates how many samples are drawn. Default is an empty tuple, in which case
             a single sample is returned.
-        random_state
-            Random state (seed, generator) to be used for sampling base measure realizations.
 
 
         Returns

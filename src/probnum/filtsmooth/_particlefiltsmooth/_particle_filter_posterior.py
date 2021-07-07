@@ -5,12 +5,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import (
-    DenseOutputLocationArgType,
-    FloatArgType,
-    RandomStateArgType,
-    ShapeArgType,
-)
+from probnum.typing import DenseOutputLocationArgType, FloatArgType, ShapeArgType
 
 from .._timeseriesposterior import TimeSeriesPosterior
 

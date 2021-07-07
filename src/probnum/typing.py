@@ -76,7 +76,3 @@ respectively. Currently, the array-support for diffusions is experimental (at be
 DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
 """TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
 or an array of locations."""
-
-
-# Dummy while refactoring is not complete yet
-RandomStateArgType = None
