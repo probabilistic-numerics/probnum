@@ -78,9 +78,19 @@ def test_sparse_formats(
     spformat: str, sparse_matrix_class: scipy.sparse.spmatrix, rng: np.random.Generator
 ):
     """Test whether sparse matrices in different formats can be created."""
-    sparse_mat = random_sparse_spd_matrix(
-        dim=1000, density=10 ** -3, format=spformat, random_state=rng
-    )
+
+    # Scipy warns that creating DIA matrices with many diagonals is inefficient.
+    # This should not dilute the test output, as the tests
+    # only checks the *ability* to create large random sparse matrices.
+    if spformat == "dia":
+        with pytest.warns(scipy.sparse.SparseEfficiencyWarning):
+            sparse_mat = random_sparse_spd_matrix(
+                rng=rng, dim=1000, density=10 ** -3, format=spformat
+            )
+    else:
+        sparse_mat = random_sparse_spd_matrix(
+            rng=rng, dim=1000, density=10 ** -3, format=spformat
+        )
     assert isinstance(sparse_mat, sparse_matrix_class)
 
 
