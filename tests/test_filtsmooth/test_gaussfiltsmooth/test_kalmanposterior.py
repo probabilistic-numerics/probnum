@@ -48,8 +48,8 @@ def test_append(posterior):
     copied_posterior = filtsmooth.SmoothingPosterior(
         filtering_posterior=posterior.filtering_posterior,
         transition=posterior.transition,
-        locations=[l for l in posterior.locations],
-        states=[s for s in posterior.states],
+        locations=posterior.locations.copy(),
+        states=posterior.states.copy(),
         diffusion_model=posterior.diffusion_model,
     )
 
