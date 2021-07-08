@@ -292,9 +292,6 @@ class IBM(Integrator, sde.LTISDE):
             t=t,
             _diffusion=_diffusion,
         )
-        # assert info is empty. Otherwise, we need to change
-        # things in info in which case we want to be warned.
-        assert not info
 
         return _apply_precon(self.precon(dt), rv), info
 
@@ -460,10 +457,6 @@ class IOUP(Integrator, sde.LTISDE):
             _diffusion=_diffusion,
         )
 
-        # assert info is empty. Otherwise, we need to change
-        # things in info in which case we want to be warned.
-        assert not info
-
         # Undo preconditioning and return
         rv = _apply_precon(self.precon(dt), rv)
         self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
@@ -602,10 +595,6 @@ class Matern(Integrator, sde.LTISDE):
             t=t,
             _diffusion=_diffusion,
         )
-
-        # assert info is empty. Otherwise, we need to change
-        # things in info in which case we want to be warned.
-        assert not info
 
         # Undo preconditioning and return
         rv = _apply_precon(self.precon(dt), rv)
