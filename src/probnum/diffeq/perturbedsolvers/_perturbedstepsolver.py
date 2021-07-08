@@ -1,10 +1,10 @@
 """ODE-Solver as proposed by Abdulle and Garegnani."""
 
-from typing import Callable, Optional
+from typing import Callable
 
 import numpy as np
 
-from probnum import _randomvariablelist, randvars, utils
+from probnum import _randomvariablelist, randvars
 from probnum.typing import FloatArgType
 
 from ..odesolver import ODESolver
