@@ -1,7 +1,7 @@
 # Creating a Pull Request
 
 All code contributions to ProbNum should be made via pull requests (PR) to the
-[master branch](https://github.com/probabilistic-numerics/probnum/tree/master) on GitHub.
+[main branch](https://github.com/probabilistic-numerics/probnum/tree/main) on GitHub.
 
 To ensure a smooth workflow, please keep PRs as compact as possible.
 Each PR should only contain one enhancement at a time.
@@ -17,7 +17,7 @@ Code quality is an essential component in a collaborative open-source project.
 - All code should be covered by tests within the [pytest](https://docs.pytest.org/) framework.
 - Documentation of code is essential. ProbNum uses the
 [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
-- Code follows the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
+- Code follows the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/main/STYLEGUIDE.md).
 - To make life more simple, code should be formatted with [*Black*](https://github.com/psf/black).
 
 
@@ -54,9 +54,8 @@ and [how to create a pull request](https://docs.github.com/en/github/collaborati
 In order to keep your fork up-to-date with the main repository, one convenient
 way to do so is to set up [multiple remotes](https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes)
 for `git`.
-For example, this way you can always keep the master branch of your forked repository
-up-to-date with the main repository and you can easily `git merge` recent changes into
-your feature branch. To set up the main ProbNum repository as a secondary remote run
+For example, this way you can always keep the main branch of your forked repository
+up-to-date with the ProbNum repository and you can easily `git merge` recent changes into your feature branch. To set up the ProbNum repository as a secondary remote run
 
 ```shell
 $ cd probnum
@@ -73,13 +72,13 @@ origin	https://github.com/MyGithubAccount/probnum.git (push)
 upstream	https://github.com/probabilistic-numerics/probnum (fetch)
 upstream	https://github.com/probabilistic-numerics/probnum (push)
 ```
-Fetch and checkout the master branch of ProbNum.
-Since there exists already a local `master` branch tracking the master branch of your fork, we will name this one
-`probnum-master` which tracks the master branch of `upstream`.
+Fetch and checkout the main branch of ProbNum.
+Since there exists already a local `main` branch tracking the main branch of your fork, we will name this one
+`probnum-main` which tracks the main branch of `upstream`.
 
 ```shell
 $ git fetch upstream
-$ git checkout -b probnum-master upstream/master
+$ git checkout -b probnum-main upstream/main
 ```
 
 ## Code Changes
@@ -94,15 +93,15 @@ Next, set up a branch on your fork which is tracked by your local branch.
 ```shell
 git push --set-upstream origin my-new-feature
 ```
-Once in a while, merge changes of the upstream master branch into your local `my-new-feature` branch.
+Once in a while, merge changes of the upstream main branch into your local `my-new-feature` branch.
 ```shell
-$ git checkout probnum-master
+$ git checkout probnum-main
 $ git pull
 $ git checkout my-new-feature
-$ git merge probnum-master
+$ git merge probnum-main
 ```
 ## Creating a Pull-Request
-Once you are happy with your PR, make sure your branch is up-to-date with upstream `master`, and re-run all tests.
+Once you are happy with your PR, make sure your branch is up-to-date with upstream `main`, and re-run all tests.
 Then, from your local branch, push the changes to your remote branch
 ```shell
 $ git push
@@ -185,7 +184,7 @@ versions, the preferred way is to use tox.
 
 ## tox
 
-[![test coverage: latest](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?style=flat-square&label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
+[![test coverage: latest](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/main?style=flat-square&label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/main)
 
 Probnum uses [tox](https://tox.readthedocs.io/en/latest/) in its [continuous integration (CI)](#continuous-integration)
 pipeline to run tests, build documentation, check code formatting and code quality. Under the hood, tox builds virtual
@@ -238,7 +237,7 @@ Alternatively, you can run a single specific environment through `tox -e <env>`.
   $ tox -e docs
   ```
 
-Code coverage of the tests is reported via [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master).
+Code coverage of the tests is reported via [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=main).
 
 
 ## Documentation
@@ -247,8 +246,8 @@ Code coverage of the tests is reported via [codecov](https://codecov.io/github/p
 [![docs: latest](https://img.shields.io/readthedocs/probnum.svg?style=flat-square&logo=read%20the%20docs&logoColor=white&label=Docs:%20latest)](https://probnum.readthedocs.io/en/latest/)
 
 
-ProbNum's documentation is created with [Sphinx](https://www.sphinx-doc.org/en/master/) and automatically built and
-hosted by [ReadTheDocs](https://readthedocs.org/projects/probnum/) for stable releases and the latest (`master` branch)
+ProbNum's documentation is created with [Sphinx](https://www.sphinx-doc.org/en/main/) and automatically built and
+hosted by [ReadTheDocs](https://readthedocs.org/projects/probnum/) for stable releases and the latest (`main` branch)
 version.
 
 
@@ -290,7 +289,7 @@ If you regularly write code for ProbNum, pre-commit hoods might be useful.
 Pre-commit hooks allow the automatic identification of simple issues in a commit, e.g.
 inconsistent code formatting. They are
 executed automatically whenever `git commit` is executed. This way one can avoid common
-problems in a pull request which prevent an automatic merge into the `master` branch on
+problems in a pull request which prevent an automatic merge into the `main` branch on
 GitHub. To set up ProbNum's pre-commit hooks simply install [pre-commit](https://pre-commit.com/) by executing
 ```shell
 $ pip install pre-commit
