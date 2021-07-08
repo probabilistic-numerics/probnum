@@ -4,14 +4,15 @@ from typing import Callable, Optional
 
 import numpy as np
 
-from probnum import _randomvariablelist, diffeq, randvars, utils
-from probnum.diffeq.wrappedscipysolver import WrappedScipyRungeKutta
+from probnum import _randomvariablelist, randvars, utils
 from probnum.typing import FloatArgType
 
-RandomStateArgType = None
+from ..odesolver import ODESolver
+from ..wrappedscipysolver import WrappedScipyRungeKutta
+from ._perturbedstepsolution import PerturbedStepSolution
 
 
-class PerturbedStepSolver(diffeq.ODESolver):
+class PerturbedStepSolver(ODESolver):
     """ODE-Solver based on Abdulle and Garegnani.
 
     Perturbs the steps accordingly and projects the solution back to the originally
@@ -19,6 +20,8 @@ class PerturbedStepSolver(diffeq.ODESolver):
 
     Parameters
     ----------
+    rng :
+        Random number generator.
     solver :
         Currently this has to be a Runge-Kutta method based on SciPy.
     noise-scale :
@@ -26,29 +29,26 @@ class PerturbedStepSolver(diffeq.ODESolver):
     perturb_function :
         Defines how the stepsize is distributed. This can be either one of
         ``perturb_lognormal()`` or ``perturb_uniform()`` or any other perturbation function with
-        input parameters step, ``solver_order``, ``noise_scale``, ``random_state`` and size.
-    random_state :
-        Random state (seed, generator) to be used for sampling base measure realizations.
+        the same signature.
     """
 
     def __init__(
         self,
+        rng: np.random.Generator,
         solver: WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
         perturb_function: Callable,
-        random_state: Optional[RandomStateArgType] = None,
     ):
-        random_state = utils.as_random_state(random_state)
-
-        def perturb_step(step):
+        def perturb_step(rng, step):
             return perturb_function(
+                rng=rng,
                 step=step,
                 solver_order=solver.order,
                 noise_scale=noise_scale,
-                random_state=random_state,
                 size=(),
             )
 
+        self.rng = rng
         self.perturb_step = perturb_step
         self.solver = solver
         self.scales = None
@@ -91,7 +91,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         """
 
         dt = stop - start
-        noisy_step = self.perturb_step(dt)
+        noisy_step = self.perturb_step(self.rng, dt)
         state_as_rv, error_estimation, reference_state = self.solver.step(
             start, start + noisy_step, current
         )
@@ -107,9 +107,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         self, times: np.ndarray, rvs: _randomvariablelist._RandomVariableList
     ):
         interpolants = self.solver.interpolants
-        probnum_solution = diffeq.PerturbedStepSolution(
-            self.scales, times, rvs, interpolants
-        )
+        probnum_solution = PerturbedStepSolution(self.scales, times, rvs, interpolants)
         return probnum_solution
 
     def postprocess(self, odesol):
