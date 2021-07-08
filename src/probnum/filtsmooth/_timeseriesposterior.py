@@ -42,12 +42,20 @@ class TimeSeriesPosterior(abc.ABC):
         self._locations = list(locations) if locations is not None else []
         self._states = list(states) if states is not None else []
 
+    def _check_location(self, location: FloatArgType) -> FloatArgType:
+        if len(self._locations) > 0 and location <= self._locations[-1]:
+            _err_msg = "Locations have to be strictly ascending. "
+            _err_msg += f"Received {location} <= {self._locations[-1]}."
+            raise ValueError(_err_msg)
+        return location
+
     def append(
         self,
         location: FloatArgType,
         state: randvars.RandomVariable,
     ) -> None:
-        self._locations.append(location)
+
+        self._locations.append(self._check_location(location))
         self._states.append(state)
 
     @property
