@@ -14,9 +14,9 @@ def perturb_uniform(
     noise_scale: FloatArgType,
     size: Optional[ShapeArgType] = (),
 ) -> Union[float, np.ndarray]:
-    """Perturb the step with uniformly distributed noise scaled by noise-scale [1]_.
+    """Perturb the step with uniformly distributed noise scaled by noise-scale.
 
-    Proposed by Abdulle and Garegnani (2020).
+    Proposed by Abdulle and Garegnani (2020)  [1]_.
 
     Parameters
     ----------
@@ -55,9 +55,9 @@ def perturb_lognormal(
     noise_scale: FloatArgType,
     size: Optional[ShapeArgType] = (),
 ) -> Union[float, np.ndarray]:
-    """Perturb the step with lognormally distributed noise scaled by noise-scale [1]_.
+    """Perturb the step with lognormally distributed noise scaled by noise-scale.
 
-    Proposed by Abdulle and Garegnani (2020).
+    Proposed by Abdulle and Garegnani (2020)  [1]_.
 
     Parameters
     ----------
