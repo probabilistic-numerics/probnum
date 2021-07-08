@@ -9,9 +9,12 @@ from probnum import _randomvariablelist, diffeq
 def perturbed_solution():
     y0 = np.array([0.1, 0.1])
     ode = diffeq.lotkavolterra([0.0, 1.0], y0)
-    testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
+    rng = np.random.default_rng(seed=1)
+    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    testsolver = diffeq.WrappedScipyRungeKutta(scipysolver)
     sol = diffeq.PerturbedStepSolver(
-        testsolver,
+        rng=rng,
+        solver=testsolver,
         noise_scale=0.1,
         perturb_function=diffeq.perturb_uniform,
     )
