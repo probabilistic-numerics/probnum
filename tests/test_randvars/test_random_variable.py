@@ -4,11 +4,24 @@ import itertools
 import unittest
 
 import numpy as np
+import pytest
 import scipy.stats
 
 import probnum
 from probnum import linops, randvars
 from tests.testing import NumpyAssertions
+
+
+def test_rng_not_generator_raises_error():
+
+    # dummy random variable that implements a sample method.
+    rv = randvars.Normal(0.0, 1.0)
+
+    # incorrect random number generator (np.random.Generator is expected)
+    rng = np.random.RandomState(seed=1)
+
+    with pytest.raises(TypeError):
+        rv.sample(rng=rng)
 
 
 class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
