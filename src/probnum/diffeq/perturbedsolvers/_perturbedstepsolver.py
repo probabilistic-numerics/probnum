@@ -6,7 +6,9 @@ import numpy as np
 
 from probnum import _randomvariablelist, diffeq, randvars, utils
 from probnum.diffeq.wrappedscipysolver import WrappedScipyRungeKutta
-from probnum.typing import FloatArgType, RandomStateArgType
+from probnum.typing import FloatArgType
+
+RandomStateArgType = None
 
 
 class PerturbedStepSolver(diffeq.ODESolver):

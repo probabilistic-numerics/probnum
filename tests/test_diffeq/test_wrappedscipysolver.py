@@ -140,24 +140,21 @@ def test_dense_output(solvers, y, start_point, stop_point):
     )
     testsolver_dense = testsolver.dense_output()
     scipy_dense = scipysolver._dense_output_impl()
-    np.testing.assert_allclose(
-        testsolver_dense(scipysolver.t_old),
-        scipy_dense(scipysolver.t_old),
-        atol=1e-14,
-        rtol=1e-14,
-    )
-    np.testing.assert_allclose(
-        testsolver_dense(scipysolver.t),
-        scipy_dense(scipysolver.t),
-        atol=1e-14,
-        rtol=1e-14,
-    )
-    np.testing.assert_allclose(
-        testsolver_dense((scipysolver.t_old + scipysolver.t) / 2),
-        scipy_dense((scipysolver.t_old + scipysolver.t) / 2),
-        atol=1e-14,
-        rtol=1e-14,
-    )
+
+    t_old = scipysolver.t_old
+    t = scipysolver.t
+    t_mid = (t_old + t) / 2.0
+
+    for time in [t_old, t, t_mid]:
+        test_dense = testsolver_dense(time)
+        ref_dense = scipy_dense(time)
+        print(test_dense, ref_dense)
+        np.testing.assert_allclose(
+            test_dense,
+            ref_dense,
+            atol=1e-14,
+            rtol=1e-14,
+        )
 
 
 def test_rvlist_to_odesol(times, dense_output, list_of_randvars):

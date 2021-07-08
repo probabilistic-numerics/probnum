@@ -2,12 +2,14 @@
 import numpy as np
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import _randomvariablelist, diffeq, randvars
+from probnum import _randomvariablelist, randvars
 from probnum.filtsmooth._timeseriesposterior import DenseOutputValueType
 from probnum.typing import DenseOutputLocationArgType
 
+from .odesolution import ODESolution
 
-class WrappedScipyODESolution(diffeq.ODESolution):
+
+class WrappedScipyODESolution(ODESolution):
     """Make a ProbNum ODESolution out of a SciPy OdeSolution."""
 
     def __init__(self, scipy_solution: OdeSolution, rvs: list):
