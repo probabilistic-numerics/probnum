@@ -199,10 +199,6 @@ def test_same_backward_outputs(both_transitions, diffusion):
     np.testing.assert_allclose(out_1.mean, out_2.mean)
     np.testing.assert_allclose(out_1.cov, out_2.cov)
 
-    # Both dicts are empty?
-    assert not info1
-    assert not info2
-
 
 @pytest.fixture
 def dt():
