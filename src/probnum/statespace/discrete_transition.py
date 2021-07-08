@@ -5,7 +5,7 @@ from typing import Callable, Optional, Tuple
 import numpy as np
 import scipy.linalg
 
-from probnum import randvars
+from probnum import linops, randvars
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
@@ -334,7 +334,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
+            # gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
+            gain = crosscov @ new_cov.inv()
             info["gain"] = gain
         return randvars.Normal(new_mean, cov=new_cov), info
 
@@ -345,6 +346,13 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         H = self.state_trans_mat_fun(t)
         SR = self.proc_noise_cov_cholesky_fun(t)
         shift = self.shift_vec_fun(t)
+
+        if isinstance(H, linops.LinearOperator):
+            H = H.todense()
+        if isinstance(SR, linops.LinearOperator):
+            SR = SR.todense()
+        if isinstance(shift, linops.LinearOperator):
+            shift = shift.todense()
 
         new_mean = H @ rv.mean + shift
         new_cov_cholesky = cholesky_update(
@@ -391,8 +399,14 @@ class DiscreteLinearGaussian(DiscreteGaussian):
                 gain = np.zeros((len(rv.mean), len(rv_obtained.mean)))
 
         state_trans = self.state_trans_mat_fun(t)
+        if isinstance(state_trans, linops.LinearOperator):
+            state_trans = state_trans.todense()
         proc_noise_chol = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
+        if isinstance(proc_noise_chol, linops.LinearOperator):
+            proc_noise_chol = proc_noise_chol.todense()
         shift = self.shift_vec_fun(t)
+        if isinstance(shift, linops.LinearOperator):
+            shift = shift.todense()
 
         chol_past = rv.cov_cholesky
         chol_obtained = rv_obtained.cov_cholesky

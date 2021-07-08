@@ -29,12 +29,12 @@ class TestSDE(InterfaceTestTransition):
     def test_dispersionmatrix(self):
         expected = self.L(0.0)
         received = self.transition.dispmatfun(0.0)
-        np.testing.assert_allclose(received, expected)
+        np.testing.assert_allclose(received.todense(), expected.todense())
 
     def test_jacobfun(self, some_normal_rv1):
         expected = self.dg(0.0, some_normal_rv1.mean)
         received = self.transition.jacobfun(0.0, some_normal_rv1.mean)
-        np.testing.assert_allclose(received, expected)
+        np.testing.assert_allclose(received.todense(), expected.todense())
 
     # Test forward and backward implementations
 
@@ -84,7 +84,7 @@ class TestLinearSDE(TestSDE):
     def test_driftmatfun(self):
         expected = self.G(0.0)
         received = self.transition.driftmatfun(0.0)
-        np.testing.assert_allclose(expected, received)
+        np.testing.assert_allclose(expected.todense(), received.todense())
 
     def test_forcevecfun(self):
         expected = self.v(0.0)
