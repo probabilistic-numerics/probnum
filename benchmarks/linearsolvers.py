@@ -1,90 +1,104 @@
 """Benchmarks for linear solvers."""
-
-import os
-
 import numpy as np
-import scipy.sparse
 
-from benchmarks.benchmark_utils import SPD_MATRIX_5x5
+from probnum import linops, problems, randvars
 from probnum.linalg import problinsolve
+from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
+
+LINEAR_SYSTEMS = ["dense", "sparse", "linop"]
+LINSYS_DIMS = [100, 1000, 10000, 100000]
+QUANTITIES_OF_INTEREST = ["x", "A", "Ainv"]
 
 
-def load_poisson_linear_system():
-    """Poisson equation with Dirichlet conditions.
+def get_linear_system(name: str, dim: int):
+    rng = np.random.default_rng(0)
 
-      - Laplace(u) = f    in the interior
-                 u = u_D  on the boundary
-    where
-        u_D = 1 + x^2 + 2y^2
-        f = -4
+    if name == "dense":
+        if dim > 1000:
+            raise NotImplementedError()
+        A = random_spd_matrix(dim=dim, random_state=rng)
+    elif name == "sparse":
+        A = random_sparse_spd_matrix(
+            dim=dim, density=np.minimum(1.0, 1000 / dim ** 2), random_state=rng
+        )
+    elif name == "linop":
+        if dim > 100:
+            raise NotImplementedError()
+            # TODO: Larger benchmarks currently fail. Remove once PLS refactor (https://github.com/probabilistic-numerics/probnum/issues/51) is resolved
+        A = linops.Scaling(factors=rng.normal(size=(dim,)))
+    else:
+        raise NotImplementedError()
 
-    Linear system resulting from discretization on an elliptic grid.
-    """
-    # pylint: disable=invalid-name
-    fpath = os.path.join(os.path.dirname(__file__), "../tests/resources")
-    A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
-    f = np.load(file=fpath + "/rhs_poisson.npy")
-    return A, f
+    solution = rng.normal(size=(dim,))
+    b = A @ solution
+    return problems.LinearSystem(A=A, b=b, solution=solution)
+
+
+def get_quantity_of_interest(
+    qoi: str,
+    x: randvars.RandomVariable,
+    A: randvars.RandomVariable,
+    Ainv: randvars.RandomVariable,
+):
+    if qoi == "x":
+        return x
+    elif qoi == "A":
+        return A
+    elif qoi == "Ainv":
+        return Ainv
+    else:
+        raise NotImplementedError()
 
 
 class LinSolve:
     """Benchmark solving a linear system."""
 
-    param_names = ["system"]
-    params = [["sparse", "dense"]]  # , "large-scale"]
+    param_names = ["linsys", "dim"]
+    params = [
+        LINEAR_SYSTEMS,
+        LINSYS_DIMS,
+    ]
 
-    def setup(self, system):
-        # Seed
-        np.random.seed(42)
+    def setup(self, linsys, dim):
+        self.linsys = get_linear_system(name=linsys, dim=dim)
+        xhat, _, _, _ = problinsolve(A=self.linsys.A, b=self.linsys.b)
+        self.xhat = xhat
 
-        if system == "sparse":
-            (
-                self.A,
-                self.b,
-            ) = load_poisson_linear_system()
-        elif system == "dense":
-            self.A = SPD_MATRIX_5x5
-            self.b = np.random.normal(size=self.A.shape[0])
-        elif system == "large-scale":
-            self.A = None
-            self.b = None
+    def time_solve(self, linsys, dim):
+        problinsolve(A=self.linsys.A, b=self.linsys.b)
 
-    def time_solve(self, system):
-        """Time solving a linear system."""
-        problinsolve(A=self.A, b=self.b)
+    def peakmem_solve(self, linsys, dim):
+        problinsolve(A=self.linsys.A, b=self.linsys.b)
 
-    def mem_solve(self, system):
-        """Time solving a linear system."""
-        problinsolve(A=self.A, b=self.b)
+    def track_residual_norm(self, linsys, dim):
+        return np.linalg.norm(self.linsys.A @ self.xhat.mean - self.linsys.b)
 
-    def peakmem_solve(self, system):
-        """Time solving a linear system."""
-        problinsolve(A=self.A, b=self.b)
+    def track_error_2norm(self, linsys, dim):
+        return np.linalg.norm(self.linsys.solution - self.xhat.mean)
+
+    def track_error_Anorm(self, linsys, dim):
+        diff = self.linsys.solution - self.xhat.mean
+        return np.sqrt(np.inner(diff, self.linsys.A @ diff))
 
 
-class PosteriorDist:
-    """Benchmark sampling from the posterior distribution."""
+class PosteriorBelief:
+    """Benchmark computing derived quantities from the posterior belief."""
 
-    param_names = ["output"]
-    params = [["solution", "matrix", "matrix_inverse"]]
+    param_names = ["linsys", "dim", "qoi"]
+    params = [LINEAR_SYSTEMS, LINSYS_DIMS, QUANTITIES_OF_INTEREST]
 
-    def setup(self, output):
-        # pylint: disable=invalid-name
+    def setup(self, linsys, dim, qoi):
 
-        # Sparse system
-        self.A, self.b = load_poisson_linear_system()
+        if dim > 1000:
+            # Operations on the posterior for large matrices can be very memory intensive.
+            raise NotImplementedError()
 
-        # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        self.linsys = get_linear_system(name=linsys, dim=dim)
+        x, A, Ainv, _ = problinsolve(A=self.linsys.A, b=self.linsys.b)
+        self.qoi = get_quantity_of_interest(qoi, x, A, Ainv)
 
-        # Benchmark parameters
-        self.n_samples = 10
+    def time_trace_cov(self, linsys, dim, qoi):
+        self.qoi.cov.trace()
 
-    def time_sample(self, output):
-        """Time sampling from the posterior distribution."""
-        if output == "solution":
-            self.xhat.sample(self.n_samples)
-        elif output == "matrix":
-            self.Ahat.sample(self.n_samples)
-        elif output == "matrix_inverse":
-            self.Ainvhat.sample(self.n_samples)
+    def peakmem_trace_cov(self, linsys, dim, qoi):
+        self.qoi.cov.trace()
