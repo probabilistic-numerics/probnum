@@ -11,7 +11,6 @@ from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse
-from scipy.sparse.linalg.interface import LinearOperator
 
 from probnum import linops, randvars, utils
 from probnum.linalg.linearsolvers.matrixbased import (

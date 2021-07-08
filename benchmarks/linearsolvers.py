@@ -11,7 +11,7 @@ QUANTITIES_OF_INTEREST = ["x", "A", "Ainv"]
 
 
 def get_linear_system(name: str, dim: int):
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(0)
 
     if name == "dense":
         if dim > 1000:
