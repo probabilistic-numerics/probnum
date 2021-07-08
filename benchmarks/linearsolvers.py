@@ -80,11 +80,13 @@ class PosteriorDist:
         # Benchmark parameters
         self.n_samples = 10
 
+        self.rng = np.random.default_rng(seed=1)
+
     def time_sample(self, output):
         """Time sampling from the posterior distribution."""
         if output == "solution":
-            self.xhat.sample(self.n_samples)
+            self.xhat.sample(rng=self.rng, size=self.n_samples)
         elif output == "matrix":
-            self.Ahat.sample(self.n_samples)
+            self.Ahat.sample(rng=self.rng, size=self.n_samples)
         elif output == "matrix_inverse":
-            self.Ainvhat.sample(self.n_samples)
+            self.Ainvhat.sample(rng=self.rng, size=self.n_samples)
