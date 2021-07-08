@@ -11,6 +11,7 @@ from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse
+from scipy.sparse.linalg.interface import LinearOperator
 
 from probnum import linops, randvars, utils
 from probnum.linalg.linearsolvers.matrixbased import (
@@ -329,6 +330,7 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
         np.ndarray,
         scipy.sparse.spmatrix,
         scipy.sparse.linalg.LinearOperator,
+        linops.LinearOperator,
         randvars.RandomVariable,
     )
     vector_types = (np.ndarray, scipy.sparse.spmatrix, randvars.RandomVariable)
