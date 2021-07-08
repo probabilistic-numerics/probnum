@@ -329,6 +329,7 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
         np.ndarray,
         scipy.sparse.spmatrix,
         scipy.sparse.linalg.LinearOperator,
+        linops.LinearOperator,
         randvars.RandomVariable,
     )
     vector_types = (np.ndarray, scipy.sparse.spmatrix, randvars.RandomVariable)
