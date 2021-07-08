@@ -35,6 +35,11 @@ def perturb_uniform(
         Scales the perturbation
     size
         Number of perturbation samples to be drawn. Optional. Default is ``size=()``.
+
+    References
+    ----------
+    .. [1] Abdulle, A. and Garegnani, G.. Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020. PDF available at https://arxiv.org/abs/1801.01340.
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
@@ -56,6 +61,8 @@ def perturb_lognormal(
 ) -> Union[float, np.ndarray]:
     """Perturb the step with lognormally distributed noise scaled by noise-scale [1]_.
 
+    Proposed by Abdulle and Garegnani (2020).
+
     Parameters
     ----------
     rng
@@ -68,6 +75,11 @@ def perturb_lognormal(
         Scales the perturbation
     size
         Number of perturbation samples to be drawn. Optional. Default is ``size=()``.
+
+    References
+    ----------
+    .. [1] Abdulle, A. and Garegnani, G.. Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020. PDF available at https://arxiv.org/abs/1801.01340.
     """
     shift = 0.5 * np.log(1 + noise_scale * (step ** (2 * solver_order)))
     mean = np.log(step) - shift
