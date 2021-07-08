@@ -13,10 +13,10 @@ from ._perturbedstepsolution import PerturbedStepSolution
 
 
 class PerturbedStepSolver(ODESolver):
-    """ODE-Solver based on Abdulle and Garegnani.
+    """ODE-Solver random perturbatino of the step-sizes.
 
     Perturbs the steps accordingly and projects the solution back to the originally
-    proposed time points.
+    proposed time points. Proposed by Abdulle and Garegnani (2020) [1]_.
 
     Parameters
     ----------
@@ -30,6 +30,12 @@ class PerturbedStepSolver(ODESolver):
         Defines how the stepsize is distributed. This can be either one of
         ``perturb_lognormal()`` or ``perturb_uniform()`` or any other perturbation function with
         the same signature.
+
+    References
+    ----------
+    .. [1] Abdulle, A. and Garegnani, G.
+        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020.
     """
 
     def __init__(
@@ -85,9 +91,9 @@ class PerturbedStepSolver(ODESolver):
 
         References
         ----------
-        .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
-           uncertainty quantification in chaotic and geometric numerical integration.
-           Statistics and Computing, 1-26.
+        .. [1] Abdulle, A. and Garegnani, G.
+            Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+            Statistics and Computing. 2020.
         """
 
         dt = stop - start

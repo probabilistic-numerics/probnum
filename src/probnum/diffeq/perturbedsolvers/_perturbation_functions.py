@@ -33,8 +33,9 @@ def perturb_uniform(
 
     References
     ----------
-    .. [1] Abdulle, A. and Garegnani, G.. Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
-        Statistics and Computing. 2020. PDF available at https://arxiv.org/abs/1801.01340.
+    .. [1] Abdulle, A. and Garegnani, G.
+        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020.
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
@@ -73,8 +74,9 @@ def perturb_lognormal(
 
     References
     ----------
-    .. [1] Abdulle, A. and Garegnani, G.. Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
-        Statistics and Computing. 2020. PDF available at https://arxiv.org/abs/1801.01340.
+    .. [1] Abdulle, A. and Garegnani, G.
+        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020.
     """
     shift = 0.5 * np.log(1 + noise_scale * (step ** (2 * solver_order)))
     mean = np.log(step) - shift
