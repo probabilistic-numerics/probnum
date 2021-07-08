@@ -41,6 +41,7 @@ class TimeSeriesPosterior(abc.ABC):
     ) -> None:
         self._locations = list(locations) if locations is not None else []
         self._states = list(states) if states is not None else []
+        self._frozen = False
 
     def _check_location(self, location: FloatArgType) -> FloatArgType:
         if len(self._locations) > 0 and location <= self._locations[-1]:
@@ -55,8 +56,18 @@ class TimeSeriesPosterior(abc.ABC):
         state: randvars.RandomVariable,
     ) -> None:
 
+        if self.frozen:
+            raise ValueError("Cannot append to frozen TimeSeriesPosterior object.")
+
         self._locations.append(self._check_location(location))
         self._states.append(state)
+
+    def freeze(self) -> None:
+        self._frozen = True
+
+    @property
+    def frozen(self):
+        return self._frozen
 
     @property
     def locations(self):
