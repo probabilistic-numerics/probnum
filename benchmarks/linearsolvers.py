@@ -101,10 +101,16 @@ class PosteriorBelief:
         self.n_samples = 10
 
     def time_sample(self, linsys, dim, qoi):
-        self.qoi.sample(self.n_samples)
+        try:
+            self.qoi.sample(self.n_samples)
+        except np.linalg.LinAlgError as e:
+            raise NotImplementedError() from e
 
     def peakmem_sample(self, linsys, dim, qoi):
-        self.qoi.sample(self.n_samples)
+        try:
+            self.qoi.sample(self.n_samples)
+        except np.linalg.LinAlgError as e:
+            raise NotImplementedError() from e
 
     def time_trace_cov(self, linsys, dim, qoi):
         self.qoi.cov.trace()
