@@ -126,18 +126,22 @@ def test_step_variables(solvers, y, start_point, stop_point):
     np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-14, rtol=1e-14)
 
 
-def test_dense_output(solvers, y, start_point, stop_point):
+def test_dense_output(solvers):
     testsolver, scipysolver = solvers
 
-    # step has to be performed before dense-output can be computed
+    # perform steps of the same size
     scipysolver.step()
-
-    # perform step of the same size
-    testsolver.step(
+    y, *_ = testsolver.step(
         scipysolver.t_old,
         scipysolver.t,
         randvars.Constant(scipysolver.y_old),
     )
+
+    # sanity check: the steps are the same
+    # (this is contained in a different test already, but if this one
+    # does not work, the dense output test below is meaningless)
+    np.testing.assert_allclose(scipysolver.y, y.mean)
+
     testsolver_dense = testsolver.dense_output()
     scipy_dense = scipysolver._dense_output_impl()
 
@@ -148,7 +152,6 @@ def test_dense_output(solvers, y, start_point, stop_point):
     for time in [t_old, t, t_mid]:
         test_dense = testsolver_dense(time)
         ref_dense = scipy_dense(time)
-        print(test_dense, ref_dense)
         np.testing.assert_allclose(
             test_dense,
             ref_dense,
