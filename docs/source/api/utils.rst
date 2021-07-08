@@ -7,7 +7,8 @@ probnum.utils
     :no-heading:
     :headings: "="
 
-.. toctree::
-    :hidden:
+probnum.utils.linalg
+====================
 
-    utils/linalg
+.. automodapi:: probnum.utils.linalg
+    :no-heading:
