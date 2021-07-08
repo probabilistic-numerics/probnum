@@ -1,11 +1,4 @@
-"""Perturbation functions to perturb the stepsize.
-
-References
-----------
-.. [1] Abdulle, A. and Garegnani, G.
-    Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
-    Statistics and Computing. 2020.
-"""
+"""Perturbation functions to perturb the stepsize."""
 from typing import Optional, Union
 
 import numpy as np
@@ -37,6 +30,12 @@ def perturb_uniform(
         Scales the perturbation
     size
         Number of perturbation samples to be drawn. Optional. Default is ``size=()``.
+
+    References
+    ----------
+    .. [1] Abdulle, A. and Garegnani, G.
+        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020.
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
@@ -72,6 +71,12 @@ def perturb_lognormal(
         Scales the perturbation
     size
         Number of perturbation samples to be drawn. Optional. Default is ``size=()``.
+
+    References
+    ----------
+    .. [1] Abdulle, A. and Garegnani, G.
+        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020.
     """
     shift = 0.5 * np.log(1 + noise_scale * (step ** (2 * solver_order)))
     mean = np.log(step) - shift

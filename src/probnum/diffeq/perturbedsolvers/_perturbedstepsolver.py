@@ -1,11 +1,4 @@
-"""ODE-Solver as proposed by Abdulle and Garegnani.
-
-References
-----------
-.. [1] Abdulle, A. and Garegnani, G.
-    Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
-    Statistics and Computing. 2020.
-"""
+"""ODE-Solver as proposed by Abdulle and Garegnani."""
 
 from typing import Callable
 
@@ -37,6 +30,12 @@ class PerturbedStepSolver(ODESolver):
         Defines how the stepsize is distributed. This can be either one of
         ``perturb_lognormal()`` or ``perturb_uniform()`` or any other perturbation function with
         the same signature.
+
+    References
+    ----------
+    .. [1] Abdulle, A. and Garegnani, G.
+        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020.
     """
 
     def __init__(
