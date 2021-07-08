@@ -4,12 +4,12 @@ Contains the discrete time and function outputs. Provides dense output
 by being callable. Can function values can also be accessed by indexing.
 """
 import abc
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 import numpy as np
 from scipy import stats
 
-from probnum import _randomvariablelist, randvars, statespace, utils
+from probnum import randvars, statespace, utils
 from probnum.typing import (
     DenseOutputLocationArgType,
     FloatArgType,
@@ -48,9 +48,9 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
     def __init__(
         self,
-        locations: np.ndarray,
-        states: _randomvariablelist._RandomVariableList,
         transition: GaussMarkovPriorTransitionArgType,
+        locations: Optional[Iterable[FloatArgType]] = None,
+        states: Optional[Iterable[randvars.RandomVariable]] = None,
         diffusion_model=None,
     ) -> None:
 
@@ -158,14 +158,19 @@ class SmoothingPosterior(KalmanPosterior):
 
     def __init__(
         self,
-        locations: np.ndarray,
-        states: _randomvariablelist._RandomVariableList,
-        transition: GaussMarkovPriorTransitionArgType,
         filtering_posterior: TimeSeriesPosterior,
+        transition: GaussMarkovPriorTransitionArgType,
+        locations: Iterable[FloatArgType],
+        states: Iterable[randvars.RandomVariable],
         diffusion_model=None,
     ):
         self.filtering_posterior = filtering_posterior
-        super().__init__(locations, states, transition, diffusion_model=diffusion_model)
+        super().__init__(
+            transition=transition,
+            locations=locations,
+            states=states,
+            diffusion_model=diffusion_model,
+        )
 
     def interpolate(
         self,
