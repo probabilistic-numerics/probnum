@@ -97,21 +97,6 @@ class PosteriorBelief:
         x, A, Ainv, _ = problinsolve(A=self.linsys.A, b=self.linsys.b)
         self.qoi = get_quantity_of_interest(qoi, x, A, Ainv)
 
-        # Benchmark parameters
-        self.n_samples = 10
-
-    def time_sample(self, linsys, dim, qoi):
-        try:
-            self.qoi.sample(self.n_samples)
-        except np.linalg.LinAlgError as e:
-            raise NotImplementedError() from e
-
-    def peakmem_sample(self, linsys, dim, qoi):
-        try:
-            self.qoi.sample(self.n_samples)
-        except np.linalg.LinAlgError as e:
-            raise NotImplementedError() from e
-
     def time_trace_cov(self, linsys, dim, qoi):
         self.qoi.cov.trace()
 
