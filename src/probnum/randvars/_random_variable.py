@@ -428,6 +428,10 @@ class RandomVariable(Generic[_ValueType]):
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
+        if not isinstance(rng, np.random.Generator):
+            msg = "Random number generators must be of type np.random.Generator."
+            raise TypeError(msg)
+
         return self.__sample(rng=rng, size=_utils.as_shape(size))
 
     def cdf(self, x: _ValueType) -> np.float_:
