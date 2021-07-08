@@ -71,7 +71,7 @@ class PerturbedStepSolver(ODESolver):
         """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original
-        stopping point [1]_.
+        stopping point.
 
         Parameters
         ----------
@@ -88,12 +88,6 @@ class PerturbedStepSolver(ODESolver):
             Estimated states of the discrete-time solution.
         error_estimation : float
             estimated error after having performed the step.
-
-        References
-        ----------
-        .. [1] Abdulle, A. and Garegnani, G.
-            Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
-            Statistics and Computing. 2020.
         """
 
         dt = stop - start
