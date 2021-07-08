@@ -34,7 +34,7 @@ def perturb_uniform(
     noise_scale
         Scales the perturbation
     size
-        Number of perturbation samples to be drawn. Optional. Default is ``size=()`.
+        Number of perturbation samples to be drawn. Optional. Default is ``size=()``.
     """
     if step >= 1.0:
         raise ValueError("Stepsize too large (>= 1)")
@@ -67,7 +67,7 @@ def perturb_lognormal(
     noise_scale
         Scales the perturbation
     size
-        Number of perturbation samples to be drawn. Optional. Default is ``size=()`.
+        Number of perturbation samples to be drawn. Optional. Default is ``size=()``.
     """
     shift = 0.5 * np.log(1 + noise_scale * (step ** (2 * solver_order)))
     mean = np.log(step) - shift
