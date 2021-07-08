@@ -347,9 +347,9 @@ class GaussianIVPFilter(ODESolver):
         """Create an ODESolution object."""
 
         kalman_posterior = filtsmooth.FilteringPosterior(
-            times,
-            rvs,
-            self.prior_process.transition,
+            transition=self.prior_process.transition,
+            locations=times,
+            states=rvs,
             diffusion_model=self.diffusion_model,
         )
 
@@ -360,23 +360,27 @@ class GaussianIVPFilter(ODESolver):
         locations = odesol.kalman_posterior.locations
         rv_list = odesol.kalman_posterior.states
 
-        if self._calibrate_all_states_post_hoc:
-            # Constant diffusion model is the only way to go here.
-            s = self.diffusion_model.diffusion
+        kalman_posterior = filtsmooth.FilteringPosterior(
+            transition=self.prior_process.transition,
+            diffusion_model=self.diffusion_model,
+        )
 
-            for idx, (t, rv) in enumerate(zip(locations, rv_list)):
-                rv_list[idx] = randvars.Normal(
+        # Constant diffusion model is the only way to go here.
+        s = (
+            self.diffusion_model.diffusion
+            if self._calibrate_all_states_post_hoc
+            else 1.0
+        )
+
+        for idx, (t, rv) in enumerate(zip(locations, rv_list)):
+            kalman_posterior.append(
+                location=t,
+                state=randvars.Normal(
                     mean=rv.mean,
                     cov=s * rv.cov,
                     cov_cholesky=np.sqrt(s) * rv.cov_cholesky,
-                )
-
-        kalman_posterior = filtsmooth.FilteringPosterior(
-            locations,
-            rv_list,
-            self.prior_process.transition,
-            diffusion_model=self.diffusion_model,
-        )
+                ),
+            )
 
         if self.with_smoothing is True:
 
@@ -385,10 +389,10 @@ class GaussianIVPFilter(ODESolver):
                 rv_list, locations, _diffusion_list=squared_diffusion_list
             )
             kalman_posterior = filtsmooth.SmoothingPosterior(
-                locations,
-                rv_list,
-                self.prior_process.transition,
                 filtering_posterior=kalman_posterior,
+                transition=self.prior_process.transition,
+                locations=locations,
+                states=rv_list,
                 diffusion_model=self.diffusion_model,
             )
 

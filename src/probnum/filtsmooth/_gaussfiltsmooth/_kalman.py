@@ -198,20 +198,14 @@ class Kalman(BayesFiltSmooth):
         TimeSeriesRegressionProblem: a regression problem data class
         """
 
-        filtered_rvs = []
+        posterior = FilteringPosterior(transition=self.prior_process.transition)
         info_dicts = []
 
-        for rv, info in self.filtered_states_generator(
+        for t, rv, info in self.filtered_states_generator(
             regression_problem, _previous_posterior
         ):
-            filtered_rvs.append(rv)
+            posterior.append(location=t, state=rv)
             info_dicts.append(info)
-
-        posterior = FilteringPosterior(
-            locations=regression_problem.locations,
-            states=filtered_rvs,
-            transition=self.prior_process.transition,
-        )
 
         return posterior, info_dicts
 
@@ -276,7 +270,7 @@ class Kalman(BayesFiltSmooth):
                 realization_obtained=data, rv=curr_rv, _linearise_at=linearise_update_at
             )
 
-            yield curr_rv, info_dict
+            yield t, curr_rv, info_dict
             t_old = t
 
     def smooth(self, filter_posterior, _previous_posterior=None):
@@ -300,9 +294,8 @@ class Kalman(BayesFiltSmooth):
         )
 
         return SmoothingPosterior(
-            filter_posterior.locations,
-            rv_list,
-            self.prior_process.transition,
             filtering_posterior=filter_posterior,
-            diffusion_model=filter_posterior.diffusion_model,
+            transition=self.prior_process.transition,
+            locations=filter_posterior.locations,
+            states=rv_list,
         )
