@@ -1,11 +1,11 @@
-# Research
+# Probabilistic Numerics
 
 Mathematical models used to explain and predict the behaviour of complex systems such as immune cells or the climate
 rely heavily on numerical methods. The exponential growth in available data and computing power has revolutionized the
 scale of such models. In practice given finite computational resources, this introduces *additional uncertainty* arising
 from not running numerical methods to convergence and from observations corrupted by noise.
 
-## Probabilistic Numerics in a Nutshell
+## In a Nutshell
 
 Probabilistic numerics (PN) [^Hennig2015] [^Oates2019] aims to quantify uncertainty arising from
 intractable or incomplete numerical computation and from stochastic input. This new paradigm which has emerged at the
