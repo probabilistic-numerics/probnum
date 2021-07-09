@@ -126,38 +126,38 @@ def test_step_variables(solvers, y, start_point, stop_point):
     np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-14, rtol=1e-14)
 
 
-def test_dense_output(solvers, y, start_point, stop_point):
+def test_dense_output(solvers):
     testsolver, scipysolver = solvers
 
-    # step has to be performed before dense-output can be computed
+    # perform steps of the same size
     scipysolver.step()
-
-    # perform step of the same size
-    testsolver.step(
+    y, *_ = testsolver.step(
         scipysolver.t_old,
         scipysolver.t,
         randvars.Constant(scipysolver.y_old),
     )
+
+    # sanity check: the steps are the same
+    # (this is contained in a different test already, but if this one
+    # does not work, the dense output test below is meaningless)
+    np.testing.assert_allclose(scipysolver.y, y.mean)
+
     testsolver_dense = testsolver.dense_output()
     scipy_dense = scipysolver._dense_output_impl()
-    np.testing.assert_allclose(
-        testsolver_dense(scipysolver.t_old),
-        scipy_dense(scipysolver.t_old),
-        atol=1e-14,
-        rtol=1e-14,
-    )
-    np.testing.assert_allclose(
-        testsolver_dense(scipysolver.t),
-        scipy_dense(scipysolver.t),
-        atol=1e-14,
-        rtol=1e-14,
-    )
-    np.testing.assert_allclose(
-        testsolver_dense((scipysolver.t_old + scipysolver.t) / 2),
-        scipy_dense((scipysolver.t_old + scipysolver.t) / 2),
-        atol=1e-14,
-        rtol=1e-14,
-    )
+
+    t_old = scipysolver.t_old
+    t = scipysolver.t
+    t_mid = (t_old + t) / 2.0
+
+    for time in [t_old, t, t_mid]:
+        test_dense = testsolver_dense(time)
+        ref_dense = scipy_dense(time)
+        np.testing.assert_allclose(
+            test_dense,
+            ref_dense,
+            atol=1e-14,
+            rtol=1e-14,
+        )
 
 
 def test_rvlist_to_odesol(times, dense_output, list_of_randvars):

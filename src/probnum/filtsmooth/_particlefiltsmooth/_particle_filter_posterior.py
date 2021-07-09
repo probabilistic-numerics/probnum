@@ -5,12 +5,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import (
-    DenseOutputLocationArgType,
-    FloatArgType,
-    RandomStateArgType,
-    ShapeArgType,
-)
+from probnum.typing import DenseOutputLocationArgType, FloatArgType, ShapeArgType
 
 from .._timeseriesposterior import TimeSeriesPosterior
 
@@ -28,9 +23,9 @@ class ParticleFilterPosterior(TimeSeriesPosterior):
 
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         raise NotImplementedError("Sampling is not implemented.")
 

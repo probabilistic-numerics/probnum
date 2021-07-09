@@ -93,7 +93,7 @@ class _RandomVariableList(list):
         return np.stack([rv.probabilities for rv in self])
 
     # Purely for lists of categorical random variables.
-    def resample(self) -> "_RandomVariableList":
+    def resample(self, rng: np.random.Generator) -> "_RandomVariableList":
         if len(self) == 0:
             return _RandomVariableList([])
-        return _RandomVariableList([rv.resample() for rv in self])
+        return _RandomVariableList([rv.resample(rng=rng) for rv in self])

@@ -16,7 +16,9 @@ class Filtering:
     def setup(self, linearization_implementation):
         measvar = 0.1024
         initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        rng = np.random.default_rng(seed=1)
         regression_problem, info = filtsmooth_zoo.pendulum(
+            rng=rng,
             measurement_variance=measvar,
             timespan=(0.0, 4.0),
             step=0.0075,
@@ -65,7 +67,9 @@ class Smoothing:
     def setup(self, linearization_implementation):
         measvar = 0.1024
         initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        rng = np.random.default_rng(seed=1)
         regression_problem, info = filtsmooth_zoo.pendulum(
+            rng=rng,
             measurement_variance=measvar,
             timespan=(0.0, 4.0),
             step=0.0075,
@@ -120,7 +124,9 @@ class DenseGridOperations:
     def setup(self, linearization_implementation, num_samples):
         measvar = 0.1024
         initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        rng = np.random.default_rng(seed=1)
         regression_problem, info = filtsmooth_zoo.pendulum(
+            rng=rng,
             measurement_variance=measvar,
             timespan=(0.0, 4.0),
             step=0.0075,
@@ -168,10 +174,16 @@ class DenseGridOperations:
         )
 
     def time_sample(self, linearization_implementation, num_samples):
-        self.smoothing_posterior.sample(t=self.dense_locations, size=num_samples)
+        rng = np.random.default_rng(seed=1)
+        self.smoothing_posterior.sample(
+            rng=rng, t=self.dense_locations, size=num_samples
+        )
 
     def peakmem_sample(self, linearization_implementation, num_samples):
-        self.smoothing_posterior.sample(t=self.dense_locations, size=num_samples)
+        rng = np.random.default_rng(seed=1)
+        self.smoothing_posterior.sample(
+            rng=rng, t=self.dense_locations, size=num_samples
+        )
 
     def time_dense_filter(self, linearization_implementation, num_samples):
         self.filtering_posterior(self.dense_locations)

@@ -7,9 +7,9 @@ from probnum._randomvariablelist import _RandomVariableList
 
 
 @pytest.fixture
-def problem():
+def problem(rng):
     """Car-tracking problem."""
-    return filtsmooth_zoo.car_tracking()
+    return filtsmooth_zoo.car_tracking(rng=rng)
 
 
 @pytest.fixture
@@ -155,9 +155,9 @@ OUT_OF_DOMAIN_DENSE_LOCS = np.arange(0.0, 500.0, 25.0)
 
 @pytest.mark.parametrize("locs", [None, IN_DOMAIN_DENSE_LOCS, OUT_OF_DOMAIN_DENSE_LOCS])
 @pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
-def test_sampling_shapes(posterior, locs, size):
+def test_sampling_shapes(posterior, locs, size, rng):
     """Shape of the returned samples matches expectation."""
-    samples = posterior.sample(t=locs, size=size)
+    samples = posterior.sample(rng=rng, t=locs, size=size)
 
     if isinstance(size, int):
         size = (size,)

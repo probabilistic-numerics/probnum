@@ -5,7 +5,7 @@ from typing import Optional, Type, Union
 import numpy as np
 
 from probnum import randvars, statespace
-from probnum.typing import RandomStateArgType, ShapeArgType
+from probnum.typing import ShapeArgType
 
 from . import _random_process
 
@@ -66,13 +66,12 @@ class MarkovProcess(_random_process.RandomProcess):
 
     def _sample_at_input(
         self,
+        rng: np.random.Generator,
         args: _InputType,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> _OutputType:
         randvar = self.__call__(args=args)
-        randvar.random_state = random_state
-        return randvar.sample(size=size)
+        return randvar.sample(rng=rng, size=size)
 
     def push_forward(
         self,

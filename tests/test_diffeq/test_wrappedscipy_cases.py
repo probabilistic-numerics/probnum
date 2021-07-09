@@ -2,14 +2,15 @@ import numpy as np
 from scipy.integrate._ivp import rk
 
 from probnum import diffeq
-from probnum.diffeq import wrappedscipysolver
 
 
 def setup_solver(y0, ode):
     scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
-        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    )
+
+    # Pass the identical scipysolver into the wrapper
+    # (but make it a new object to avoid side effects)
+    scipysolver_copy = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    testsolver = diffeq.WrappedScipyRungeKutta(scipysolver_copy)
     return testsolver, scipysolver
 
 

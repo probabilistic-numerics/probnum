@@ -39,13 +39,23 @@ class BayesianQuadrature:
         kernel: Optional[Kernel] = None,
         method: str = "vanilla",
         policy: str = "bmc",
+        rng: np.random.Generator = None,
     ) -> "BayesianQuadrature":
         if method != "vanilla":
             raise NotImplementedError
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "bmc":
-            policy = sample_from_measure
+            if rng is None:
+                errormsg = (
+                    "Policy 'bmc' relies on random sampling, "
+                    "thus requires a random number generator ('rng')."
+                )
+                raise ValueError(errormsg)
+
+            def policy(nevals, measure):
+                return sample_from_measure(rng=rng, nevals=nevals, measure=measure)
+
         else:
             raise NotImplementedError(
                 "Policies other than random sampling are not available at the moment."

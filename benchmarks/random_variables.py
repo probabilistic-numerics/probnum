@@ -88,14 +88,14 @@ class Sampling:
     params = [RV_NAMES]
 
     def setup(self, randvar):
-        np.random.seed(42)
+        self.rng = np.random.default_rng(seed=2)
         self.n_samples = 1000
         self.randvar = get_randvar(rv_name=randvar)
 
     def time_sample(self, randvar):
         """Times sampling from this distribution."""
-        self.randvar.sample(self.n_samples)
+        self.randvar.sample(rng=self.rng, size=self.n_samples)
 
     def peakmem_sample(self, randvar):
         """Peak memory of sampling process."""
-        self.randvar.sample(self.n_samples)
+        self.randvar.sample(rng=self.rng, size=self.n_samples)

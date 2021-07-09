@@ -31,6 +31,7 @@ def bayesquad(
     measure: Optional[IntegrationMeasure] = None,
     method: str = "vanilla",
     policy: str = "bmc",
+    rng: np.random.Generator = None,
 ) -> Tuple[Normal, Dict]:
     r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
@@ -83,6 +84,10 @@ def bayesquad(
          Integral Variance       ``iv``
         =======================  =======
 
+    rng :
+        Random number generator. Required for Bayesian Monte Carlo policies.
+        Optional. Default is `np.random.default_rng()`.
+
     Returns
     -------
     integral :
@@ -98,14 +103,14 @@ def bayesquad(
     Examples
     --------
     >>> import numpy as np
-    >>> np.random.seed(0)
+
     >>> input_dim = 1
     >>> domain = (0, 1)
     >>> def f(x):
     ...     return x
     >>> F, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
     >>> print(F.mean)
-    0.5000
+    0.5
     """
     if domain is None and measure is None:
         raise ValueError(
@@ -118,8 +123,10 @@ def bayesquad(
         measure = LebesgueMeasure(domain=domain, dim=input_dim)
 
     # Choose Method
+    if policy == "bmc" and rng is None:
+        rng = np.random.default_rng()
     bq_method = BayesianQuadrature.from_interface(
-        input_dim=input_dim, kernel=kernel, method=method, policy=policy
+        input_dim=input_dim, kernel=kernel, method=method, policy=policy, rng=rng
     )
 
     if nevals is None:

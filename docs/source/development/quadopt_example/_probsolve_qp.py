@@ -6,7 +6,7 @@ import numpy as np
 import probnum as pn
 import probnum.utils as _utils
 from probnum import linops, randvars
-from probnum.typing import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation
@@ -16,6 +16,7 @@ from .stopping_criteria import maximum_iterations, parameter_uncertainty
 
 
 def probsolve_qp(
+    rng: np.random.Generator,
     fun: Callable[[FloatArgType], FloatArgType],
     fun_params0: Optional[Union[np.ndarray, randvars.RandomVariable]] = None,
     assume_fun: Optional[str] = None,
@@ -25,7 +26,6 @@ def probsolve_qp(
     callback: Optional[
         Callable[[FloatArgType, FloatArgType, randvars.RandomVariable], None]
     ] = None,
-    random_state: RandomStateArgType = None,
 ) -> Tuple[float, randvars.RandomVariable, randvars.RandomVariable, Dict]:
     """Probabilistic 1D Quadratic Optimization.
 
@@ -34,6 +34,8 @@ def probsolve_qp(
 
     Parameters
     ----------
+    rng :
+        Random number generator.
     fun :
         Quadratic objective function to optimize.
     fun_params0 :
@@ -62,10 +64,6 @@ def probsolve_qp(
         Callback function returning intermediate quantities of the
         optimization loop. Note that depending on the function
         supplied, this can slow down the solver considerably.
-    random_state :
-        Random state of the solver. If None (or ``np.random``), the global
-        ``np.random`` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
 
     Returns
     -------
@@ -97,14 +95,11 @@ def probsolve_qp(
     # Select appropriate prior based on the problem
     fun_params0 = _choose_prior(fun_params0=fun_params0)
 
-    # Create a local instance of the random number generator if none is provided
-    random_state = _utils.as_random_state(random_state)
-
     if assume_fun == "exact":
         # Exact 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=partial(stochastic_policy, random_state=random_state),
+            policy=partial(stochastic_policy, rng=rng),
             observation_operator=function_evaluation,
             belief_update=partial(gaussian_belief_update, noise_cov=np.zeros(3)),
             stopping_criteria=[
@@ -116,7 +111,7 @@ def probsolve_qp(
         # Noisy 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=partial(explore_exploit_policy, random_state=random_state),
+            policy=partial(explore_exploit_policy, rng=rng),
             observation_operator=function_evaluation,
             belief_update=partial(gaussian_belief_update, noise_cov=noise_cov),
             stopping_criteria=[

@@ -19,6 +19,10 @@ class TestConstant(unittest.TestCase):
     def setUp(self):
         self.supports = [1, np.array([1, 2]), np.array([[0]]), np.array([[6], [-0.3]])]
 
+        # A random number generator needs to be passed to any sample()
+        # function, but for Constant rvs, this is ignored.
+        self.unimportant_rng = np.random.default_rng(seed=1)
+
     def test_logpdf(self):
         pass
 
@@ -27,7 +31,9 @@ class TestConstant(unittest.TestCase):
         for supp in self.supports:
             for sample_size in [1, (), 10, (4,), (3, 2)]:
                 with self.subTest():
-                    s = randvars.Constant(support=supp).sample(size=sample_size)
+                    s = randvars.Constant(support=supp).sample(
+                        rng=self.unimportant_rng, size=sample_size
+                    )
                     if sample_size == ():
                         self.assertEqual(np.shape(supp), np.shape(s))
                     elif isinstance(sample_size, tuple):

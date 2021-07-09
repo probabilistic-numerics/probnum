@@ -46,6 +46,8 @@ class ParticleFilter(BayesFiltSmooth):
         Importance distribution.
     num_particles :
         Number of particles to use.
+    rng :
+        Random number generator.
     with_resampling :
         Whether after each step the effective number of particles shall be checked, and, if too low,
         the state should be resampled. Optional. Default is `True`.
@@ -61,6 +63,7 @@ class ParticleFilter(BayesFiltSmooth):
         prior_process: randprocs.MarkovProcess,
         importance_distribution: ImportanceDistribution,
         num_particles: IntArgType,
+        rng: np.random.Generator,
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,
     ) -> None:
@@ -69,6 +72,7 @@ class ParticleFilter(BayesFiltSmooth):
         )
         self.num_particles = num_particles
         self.importance_distribution = importance_distribution
+        self.rng = rng
 
         self.with_resampling = with_resampling
         self.resampling_percentage_threshold = resampling_percentage_threshold
@@ -153,7 +157,9 @@ class ParticleFilter(BayesFiltSmooth):
         if regression_problem.locations[0] == initarg:
             particles = np.nan * np.ones(particle_set_shape)
         else:
-            particles = self.prior_process.initrv.sample(size=(self.num_particles,))
+            particles = self.prior_process.initrv.sample(
+                rng=self.rng, size=(self.num_particles,)
+            )
 
         for t, data, measmod in regression_problem:
 
@@ -173,7 +179,7 @@ class ParticleFilter(BayesFiltSmooth):
             ):
 
                 # Importance sampling step
-                new_particle = importance_rv.sample()
+                new_particle = importance_rv.sample(rng=self.rng)
                 meas_rv, _ = measmod.forward_realization(new_particle, t=t)
                 loglikelihood = meas_rv.logpdf(data)
                 log_correction_factor = (
@@ -191,14 +197,12 @@ class ParticleFilter(BayesFiltSmooth):
 
             weights = new_weights / np.sum(new_weights)
             particles = new_particles
-            new_rv = randvars.Categorical(
-                support=particles, probabilities=weights, random_state=self.random_state
-            )
+            new_rv = randvars.Categorical(support=particles, probabilities=weights)
 
             if self.with_resampling:
                 N = effective_number_of_events(new_rv)
                 if N < self.min_effective_num_of_particles:
-                    new_rv = new_rv.resample()
+                    new_rv = new_rv.resample(rng=self.rng)
             yield new_rv, {}
             t_old = t
 
@@ -237,11 +241,3 @@ class ParticleFilter(BayesFiltSmooth):
             )
             importance_rv, dynamics_rv, _ = output
             yield importance_rv, dynamics_rv, p, w
-
-    @property
-    def random_state(self):
-        """Random state of the particle filter.
-
-        Inferred from the random state of the initial random variable.
-        """
-        return self.prior_process.initrv.random_state

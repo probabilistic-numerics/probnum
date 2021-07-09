@@ -10,6 +10,11 @@ from probnum import randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 
+@pytest.fixture
+def rng():
+    return np.random.default_rng(seed=123)
+
+
 @pytest.fixture(params=[2])
 def test_ndim(request):
     """Test dimension."""
@@ -20,60 +25,60 @@ def test_ndim(request):
 
 
 @pytest.fixture
-def spdmat1(test_ndim):
-    return random_spd_matrix(test_ndim)
+def spdmat1(test_ndim, rng):
+    return random_spd_matrix(rng, dim=test_ndim)
 
 
 @pytest.fixture
-def spdmat2(test_ndim):
-    return random_spd_matrix(test_ndim)
+def spdmat2(test_ndim, rng):
+    return random_spd_matrix(rng, dim=test_ndim)
 
 
 @pytest.fixture
-def spdmat3(test_ndim):
-    return random_spd_matrix(test_ndim)
+def spdmat3(test_ndim, rng):
+    return random_spd_matrix(rng, dim=test_ndim)
 
 
 @pytest.fixture
-def spdmat4(test_ndim):
-    return random_spd_matrix(test_ndim)
+def spdmat4(test_ndim, rng):
+    return random_spd_matrix(rng, dim=test_ndim)
 
 
 # A few 'Normal' random variables
 
 
 @pytest.fixture
-def some_normal_rv1(test_ndim, spdmat1):
+def some_normal_rv1(test_ndim, spdmat1, rng):
 
     return randvars.Normal(
-        mean=np.random.rand(test_ndim),
+        mean=rng.uniform(size=test_ndim),
         cov=spdmat1,
         cov_cholesky=np.linalg.cholesky(spdmat1),
     )
 
 
 @pytest.fixture
-def some_normal_rv2(test_ndim, spdmat2):
+def some_normal_rv2(test_ndim, spdmat2, rng):
     return randvars.Normal(
-        mean=np.random.rand(test_ndim),
+        mean=rng.uniform(size=test_ndim),
         cov=spdmat2,
         cov_cholesky=np.linalg.cholesky(spdmat2),
     )
 
 
 @pytest.fixture
-def some_normal_rv3(test_ndim, spdmat3):
+def some_normal_rv3(test_ndim, spdmat3, rng):
     return randvars.Normal(
-        mean=np.random.rand(test_ndim),
+        mean=rng.uniform(size=test_ndim),
         cov=spdmat3,
         cov_cholesky=np.linalg.cholesky(spdmat3),
     )
 
 
 @pytest.fixture
-def some_normal_rv4(test_ndim, spdmat4):
+def some_normal_rv4(test_ndim, spdmat4, rng):
     return randvars.Normal(
-        mean=np.random.rand(test_ndim),
+        mean=rng.uniform(size=test_ndim),
         cov=spdmat4,
         cov_cholesky=np.linalg.cholesky(spdmat4),
     )

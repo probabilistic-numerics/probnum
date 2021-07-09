@@ -4,36 +4,10 @@ import numbers
 from typing import Optional
 
 import numpy as np
-import scipy._lib._util
 
-from probnum.typing import (
-    DTypeArgType,
-    RandomStateArgType,
-    RandomStateType,
-    ScalarArgType,
-    ShapeArgType,
-    ShapeType,
-)
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType, ShapeType
 
-__all__ = ["as_shape", "as_random_state", "as_numpy_scalar"]
-
-
-def as_random_state(seed: RandomStateArgType) -> RandomStateType:
-    """Turn ``seed`` into a np.random.RandomState instance.
-
-    Parameters
-    ----------
-    seed
-        If seed is None, return the RandomState singleton used by np.random. If seed is
-        an int, return a new RandomState instance seeded with seed. If seed is already a
-        RandomState instance, return it.
-
-    Raises
-    -------
-    ValueError
-        If seed is neither None, an int or a RandomState instance.
-    """
-    return scipy._lib._util.check_random_state(seed)
+__all__ = ["as_shape", "as_numpy_scalar"]
 
 
 def as_shape(x: ShapeArgType, ndim: Optional[numbers.Integral] = None) -> ShapeType:

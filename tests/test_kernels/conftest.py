@@ -10,11 +10,11 @@ import probnum.kernels as kernels
 
 @pytest.fixture(
     params=[pytest.param(seed, id=f"seed{seed}") for seed in range(1)],
-    name="random_state",
+    name="rng",
 )
-def fixture_random_state(request):
+def fixture_rng(request):
     """Random state(s) used for test parameterization."""
-    return np.random.RandomState(seed=request.param)
+    return np.random.default_rng(seed=request.param)
 
 
 @pytest.fixture(
@@ -51,11 +51,9 @@ def output_dim(request) -> int:
 
 # Datasets
 @pytest.fixture(name="x0")
-def fixture_x0(
-    num_data: int, input_dim: int, random_state: np.random.RandomState
-) -> np.ndarray:
+def fixture_x0(num_data: int, input_dim: int, rng: np.random.Generator) -> np.ndarray:
     """Random data from a standard normal distribution."""
-    return random_state.normal(0, 1, size=(num_data, input_dim))
+    return rng.normal(0, 1, size=(num_data, input_dim))
 
 
 @pytest.fixture(
@@ -65,19 +63,19 @@ def fixture_x0(
     name="x1",
 )
 def fixture_x1(
-    request, input_dim: int, random_state: np.random.RandomState
+    request, input_dim: int, rng: np.random.Generator
 ) -> Optional[np.ndarray]:
     """Random data from a standard normal distribution."""
     if request.param is None:
         return None
     else:
-        return random_state.normal(0, 1, size=(request.param, input_dim))
+        return rng.normal(0, 1, size=(request.param, input_dim))
 
 
 @pytest.fixture()
-def x0_1d(input_dim: int, random_state: np.random.RandomState) -> np.ndarray:
+def x0_1d(input_dim: int, rng: np.random.Generator) -> np.ndarray:
     """Random 1D dataset."""
-    return random_state.normal(0, 1, size=(input_dim,))
+    return rng.normal(0, 1, size=(input_dim,))
 
 
 # Kernel and kernel matrices
