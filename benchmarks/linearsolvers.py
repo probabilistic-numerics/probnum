@@ -96,19 +96,9 @@ class PosteriorBelief:
         self.linsys = get_linear_system(name=linsys, dim=dim)
         x, A, Ainv, _ = problinsolve(A=self.linsys.A, b=self.linsys.b)
         self.qoi = get_quantity_of_interest(qoi, x, A, Ainv)
-        self.rng = np.random.default_rng(seed=1)
 
     def time_trace_cov(self, linsys, dim, qoi):
         self.qoi.cov.trace()
-
-    def time_sample(self, output):
-        """Time sampling from the posterior distribution."""
-        if output == "solution":
-            self.xhat.sample(rng=self.rng, size=self.n_samples)
-        elif output == "matrix":
-            self.Ahat.sample(rng=self.rng, size=self.n_samples)
-        elif output == "matrix_inverse":
-            self.Ainvhat.sample(rng=self.rng, size=self.n_samples)
 
     def peakmem_trace_cov(self, linsys, dim, qoi):
         self.qoi.cov.trace()
