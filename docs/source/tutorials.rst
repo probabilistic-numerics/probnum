@@ -4,7 +4,7 @@ Tutorials
 
 Learn how to use ProbNum and get to know its features. You can interactively try out the |Tutorials| directly in the browser or
 by downloading the notebooks from the
-`GitHub repository <https://github.com/probabilistic-numerics/probnum/tree/master/docs/source/tutorials>`_.
+`GitHub repository <https://github.com/probabilistic-numerics/probnum/tree/main/docs/source/tutorials>`_.
 
 
 Getting Started
@@ -80,5 +80,5 @@ Gaussian filtering and smoothing in more complex dynamical systems.
 
 
 .. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?style=flat-square&logo=Jupyter&logoColor=white
-    :target: https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials
+    :target: https://mybinder.org/v2/gh/probabilistic-numerics/probnum/main?filepath=docs%2Fsource%2Ftutorials
     :alt: ProbNum's Tutorials

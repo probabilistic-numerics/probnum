@@ -38,6 +38,38 @@ def test_len(posterior):
     assert len(posterior.states) == len(posterior)
 
 
+def test_append(posterior):
+    with pytest.raises(ValueError):
+        non_sorted_location = posterior.locations[0] - 1.0
+        posterior.append(non_sorted_location, posterior.states[0])
+
+    # Copy posterior such that random appends to the posterior object do not influence
+    # later tests
+    copied_posterior = filtsmooth.SmoothingPosterior(
+        filtering_posterior=posterior.filtering_posterior,
+        transition=posterior.transition,
+        locations=posterior.locations.copy(),
+        states=posterior.states.copy(),
+        diffusion_model=posterior.diffusion_model,
+    )
+
+    len_before_append = len(copied_posterior)
+    sorted_location = copied_posterior.locations[-1] + 1.0
+    last_state = copied_posterior.states[-1]
+    copied_posterior.append(sorted_location, last_state)
+    assert len(copied_posterior) == len_before_append + 1
+    assert copied_posterior.locations[-1] == sorted_location
+    assert copied_posterior.states[-1] == last_state
+
+    copied_posterior.freeze()
+
+    sorted_location = copied_posterior.locations[-1] + 1.0
+    last_state = copied_posterior.states[-1]
+
+    with pytest.raises(ValueError):
+        copied_posterior.append(sorted_location, last_state)
+
+
 def test_locations(posterior, setup):
     """Locations are stored correctly."""
     _, regression_problem = setup
