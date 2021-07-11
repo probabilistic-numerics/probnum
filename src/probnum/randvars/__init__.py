@@ -8,6 +8,7 @@ numerical methods.
 """
 
 from ._categorical import Categorical
+from ._config import _register_default_config
 from ._constant import Constant
 from ._normal import Normal
 from ._random_variable import (
@@ -52,10 +53,4 @@ Categorical.__module__ = "probnum.randvars"
 asrandvar.__module__ = "probnum.randvars"
 
 
-def _register_default_config(_config_singleton):
-    _defaults = [
-        ("covariance_inversion_damping", 1e-12),
-    ]
-
-    for k, v in _defaults:
-        _config_singleton.register(k, v, None)
+_register_default_config()

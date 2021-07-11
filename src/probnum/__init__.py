@@ -50,5 +50,3 @@ except DistributionNotFound:
     __version__ = "unknown"
 finally:
     del get_distribution, DistributionNotFound
-
-randvars._register_default_config(config)
