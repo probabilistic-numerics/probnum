@@ -50,3 +50,12 @@ Normal.__module__ = "probnum.randvars"
 Categorical.__module__ = "probnum.randvars"
 
 asrandvar.__module__ = "probnum.randvars"
+
+
+def _register_default_config(_config_singleton):
+    _defaults = [
+        ("covariance_inversion_damping", 1e-12),
+    ]
+
+    for k, v in _defaults:
+        _config_singleton.register(k, v, None)

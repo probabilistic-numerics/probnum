@@ -45,7 +45,9 @@ finally:
     del get_distribution, DistributionNotFound
 
 # Global Configuration
-config = _config.Settings()
+config = _config.Configuration()
 """The global configuration registry. Can be used as a context manager to create local
 contexts in which configuration is temporarily overwritten. This object contains
 unguarded global state and is hence not thread-safe!"""
+
+randvars._register_default_config(config)
