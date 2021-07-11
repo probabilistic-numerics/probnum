@@ -13,6 +13,12 @@ def test_register():
     with probnum.config(dummy=9.9):
         assert probnum.config.dummy == 9.9
 
+    probnum.config.dummy = 4.5
+    assert probnum.config.dummy == 4.5
+
     with pytest.raises(KeyError):
         with probnum.config(unknown_config=False):
             pass
+
+    with pytest.raises(KeyError):
+        probnum.config.unknown_config = False
