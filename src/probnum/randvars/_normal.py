@@ -405,10 +405,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Univariate Gaussians
     def _univariate_cov_cholesky(
         self,
-        damping_factor: Optional[FloatArgType] = None,
+        damping_factor: FloatArgType,
     ) -> np.floating:
-        if damping_factor is None:
-            damping_factor = config.covariance_inversion_damping
         return np.sqrt(self.cov + damping_factor)
 
     def _univariate_sample(
@@ -538,12 +536,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Matrixvariate Gaussian with Kronecker covariance
     def _kronecker_cov_cholesky(
         self,
-        damping_factor: Optional[FloatArgType] = None,
+        damping_factor: FloatArgType,
     ) -> linops.Kronecker:
         assert isinstance(self.cov, linops.Kronecker)
-
-        if damping_factor is None:
-            damping_factor = config.covariance_inversion_damping
 
         A = self.cov.A.todense()
         B = self.cov.B.todense()
@@ -563,15 +558,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # factors
     def _symmetric_kronecker_identical_factors_cov_cholesky(
         self,
-        damping_factor: Optional[FloatArgType] = None,
+        damping_factor: FloatArgType,
     ) -> linops.SymmetricKronecker:
         assert (
             isinstance(self.cov, linops.SymmetricKronecker)
             and self.cov.identical_factors
         )
-
-        if damping_factor is None:
-            damping_factor = config.covariance_inversion_damping
 
         A = self.cov.A.todense()
 
