@@ -63,6 +63,6 @@ def test_true_mean_ek(string, ivp, prior):
     received, _ = received.forward_realization(some_real, some_time)
 
     e0, e1 = prior.transition.proj2coord(0), prior.transition.proj2coord(1)
-    expected = e1 @ some_real - ivp.rhs(some_time, e0 @ some_real)
+    expected = e1 @ some_real - ivp.f(some_time, e0 @ some_real)
     np.testing.assert_allclose(received.mean, expected)
     np.testing.assert_allclose(received.cov, 0.0, atol=1e-12)

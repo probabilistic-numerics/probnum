@@ -154,6 +154,12 @@ class InitialValueProblem:
     # For testing and benchmarking
     solution: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
+    @property
+    def dimension(self):
+        if np.isscalar(self.y0):
+            return 1
+        return len(self.y0)
+
 
 @dataclasses.dataclass
 class LinearSystem:

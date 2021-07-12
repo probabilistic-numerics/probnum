@@ -77,31 +77,31 @@
 #         rv = Constant(0.1)
 #         lg1 = ivp_examples.logistic(self.tspan, rv)
 #
-#         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
+#         self.assertEqual(lg1.f(0.1, rv).shape, rv.shape)
 #
 #     def test_fitzhughnagumo_rhs(self):
 #         rv = Constant(np.ones(2))
 #         lg1 = ivp_examples.fitzhughnagumo(self.tspan, rv)
 #
-#         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
+#         self.assertEqual(lg1.f(0.1, rv).shape, rv.shape)
 #
 #     def test_lotkavolterra_rhs(self):
 #         rv = Constant(np.ones(2))
 #         lg1 = ivp_examples.lotkavolterra(self.tspan, rv)
 #
-#         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
+#         self.assertEqual(lg1.f(0.1, rv).shape, rv.shape)
 #
 #     def test_seir_rhs(self):
 #         rv = Constant(np.ones(4))
 #         lg1 = ivp_examples.seir(self.tspan, rv)
 #
-#         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
+#         self.assertEqual(lg1.f(0.1, rv).shape, rv.shape)
 #
 #     def test_lorenz_rhs(self):
 #         rv = Constant(np.ones(3))
 #         lg1 = ivp_examples.lorenz(self.tspan, rv)
 #
-#         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
+#         self.assertEqual(lg1.f(0.1, rv).shape, rv.shape)
 #
 #
 # class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
@@ -128,7 +128,7 @@
 #             )
 #         )
 #         self.assertAllClose(
-#             lg1.jacobian(0.1, random_point) @ random_direction,
+#             lg1.df(0.1, random_point) @ random_direction,
 #             fd_approx,
 #             rtol=self.rtol,
 #         )
@@ -148,7 +148,7 @@
 #             )
 #         )
 #         self.assertAllClose(
-#             lg1.jacobian(0.1, random_point) @ random_direction,
+#             lg1.df(0.1, random_point) @ random_direction,
 #             fd_approx,
 #             rtol=self.rtol,
 #         )
@@ -168,7 +168,7 @@
 #             )
 #         )
 #         self.assertAllClose(
-#             lg1.jacobian(0.1, random_point) @ random_direction,
+#             lg1.df(0.1, random_point) @ random_direction,
 #             fd_approx,
 #             rtol=self.rtol,
 #         )
@@ -188,7 +188,7 @@
 #             )
 #         )
 #         self.assertAllClose(
-#             lg1.jacobian(0.1, random_point) @ random_direction,
+#             lg1.df(0.1, random_point) @ random_direction,
 #             fd_approx,
 #             rtol=self.rtol,
 #         )
@@ -208,7 +208,7 @@
 #             )
 #         )
 #         self.assertAllClose(
-#             lg1.jacobian(0.1, random_point) @ random_direction,
+#             lg1.df(0.1, random_point) @ random_direction,
 #             fd_approx,
 #             rtol=self.rtol,
 #         )

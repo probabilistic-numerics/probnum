@@ -27,8 +27,8 @@ def posterior(stepsize, timespan):
     t0, tmax = timespan
     y0 = 20 * np.ones(2)
     ivp = diffeq_zoo.lotkavolterra(t0=t0, tmax=tmax, y0=y0)
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
     return diffeq.probsolve_ivp(f, t0, tmax, y0, step=stepsize, adaptive=False)
 
 

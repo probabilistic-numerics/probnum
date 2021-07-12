@@ -28,13 +28,13 @@
 #     def test_rhs(self):
 #         some_x = np.random.rand(TEST_NDIM)
 #         some_t = np.random.rand()
-#         out = self.mockivp.rhs(some_t, some_x)
+#         out = self.mockivp.f(some_t, some_x)
 #         self.assertEqual(len(out), TEST_NDIM)
 #
 #     def test_jacobian(self):
 #         some_x = np.random.rand(TEST_NDIM)
 #         some_t = np.random.rand()
-#         out = self.mockivp.jacobian(some_t, some_x)
+#         out = self.mockivp.df(some_t, some_x)
 #         self.assertEqual(out.shape[0], TEST_NDIM)
 #         self.assertEqual(out.shape[1], TEST_NDIM)
 #
@@ -48,4 +48,4 @@
 #         __ = self.mockivp.initialdistribution
 #
 #     def test_timespan(self):
-#         __, __ = self.mockivp.timespan
+#         __, __ = self.mockivp.t0, ivp.tmax

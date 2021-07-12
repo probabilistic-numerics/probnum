@@ -8,8 +8,8 @@ from probnum import diffeq
 
 def setup_solver(y0, ode, perturbfun):
     rng = np.random.default_rng(seed=1)
-    testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
-    testsolver2 = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
+    testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.f, ode.t0, y0, ode.tmax))
+    testsolver2 = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.f, ode.t0, y0, ode.tmax))
     perturbedsolver = diffeq.PerturbedStepSolver(
         rng=rng, solver=testsolver2, noise_scale=1.0, perturb_function=perturbfun
     )

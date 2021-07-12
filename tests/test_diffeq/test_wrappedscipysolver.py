@@ -50,7 +50,7 @@ def list_of_randvars():
 def doprisolver():
     y0 = np.array([0.1])
     ode = diffeq.logistic([0.0, 1.0], y0)
-    return rk.DOP853(ode.rhs, ode.t0, y0, ode.tmax)
+    return rk.DOP853(ode.f, ode.t0, y0, ode.tmax)
 
 
 def test_init(doprisolver):

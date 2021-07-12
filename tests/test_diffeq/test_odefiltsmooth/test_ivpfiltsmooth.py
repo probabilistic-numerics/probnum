@@ -26,9 +26,9 @@ def step():
 
 @pytest.fixture
 def sol(ivp, step):
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
     return probsolve_ivp(
         f,
         t0,
@@ -49,7 +49,7 @@ def test_first_iteration(ivp, sol):
     state_rvs = sol.kalman_posterior.states
     ms, cs = state_rvs.mean, state_rvs.cov
 
-    exp_mean = np.array([ivp.initrv.mean, ivp.rhs(0, ivp.initrv.mean)])
+    exp_mean = np.array([ivp.y0, ivp.f(0, ivp.y0)])
     np.testing.assert_allclose(ms[0], exp_mean[:, 0], atol=1e-14, rtol=1e-14)
     np.testing.assert_allclose(cs[0], np.zeros((2, 2)), atol=1e-14, rtol=1e-14)
 
@@ -64,9 +64,9 @@ def test_second_iteration(ivp, sol, step):
 
     ms, cs = state_rvs.mean, state_rvs.cov
 
-    y0 = ivp.initrv.mean
-    z0 = ivp.rhs(0, y0)
-    z1 = ivp.rhs(0, y0 + step * z0)
+    y0 = ivp.y0
+    z0 = ivp.f(0, y0)
+    z1 = ivp.f(0, y0 + step * z0)
     exp_mean = np.array([y0 + 0.5 * step * (z0 + z1), z1])
     np.testing.assert_allclose(ms[1], exp_mean[:, 0], rtol=1e-14)
 
@@ -82,9 +82,9 @@ def test_convergence_error(ivp, algo_order):
     expected_decay = (step_small / step_large) ** algo_order
 
     # Solve IVP with both step-sizes
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
     sol_small_step = probsolve_ivp(
         f,
         t0,
