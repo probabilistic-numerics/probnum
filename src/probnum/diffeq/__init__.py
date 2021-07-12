@@ -4,7 +4,7 @@ This package defines common dynamical models and probabilistic solvers
 for differential equations.
 """
 
-from .ode import IVP, ODE, fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
+# from .ode import IVP, ODE, fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
 from .odefiltsmooth import (
     GaussianIVPFilter,
     KalmanODESolution,
@@ -25,13 +25,13 @@ from .wrappedscipysolver import WrappedScipyRungeKutta
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
-    "ODE",
-    "IVP",
-    "logistic",
-    "fitzhughnagumo",
-    "lotkavolterra",
-    "seir",
-    "lorenz",
+    # "ODE",
+    # "IVP",
+    # "logistic",
+    # "fitzhughnagumo",
+    # "lotkavolterra",
+    # "seir",
+    # "lorenz",
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",
@@ -52,6 +52,6 @@ __all__ = [
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
-ODE.__module__ = "probnum.diffeq"
+# ODE.__module__ = "probnum.diffeq"
 ODESolver.__module__ = "probnum.diffeq"
 StepRule.__module__ = "probnum.diffeq"
