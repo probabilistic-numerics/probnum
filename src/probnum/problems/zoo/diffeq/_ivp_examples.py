@@ -2,7 +2,16 @@ import numpy as np
 
 from probnum.problems import InitialValueProblem
 
-__all__ = ["threebody", "vanderpol", "rigidbody"]
+__all__ = [
+    "threebody",
+    "vanderpol",
+    "rigidbody",
+    "fitzhughnagumo",
+    "logistic",
+    "lotkavolterra",
+    "seir",
+    "lorenz",
+]
 
 
 def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
