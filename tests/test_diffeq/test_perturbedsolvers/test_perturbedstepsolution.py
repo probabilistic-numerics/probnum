@@ -2,15 +2,16 @@ import numpy as np
 import pytest
 from scipy.integrate._ivp import rk
 
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import _randomvariablelist, diffeq
 
 
 @pytest.fixture
 def perturbed_solution():
     y0 = np.array([0.1, 0.1])
-    ode = diffeq.lotkavolterra([0.0, 1.0], y0)
+    ode = diffeq_zoo.lotkavolterra(t0=0.0, tmax=1.0, y0=y0)
     rng = np.random.default_rng(seed=1)
-    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    scipysolver = rk.RK45(ode.f, ode.t0, y0, ode.tmax)
     testsolver = diffeq.WrappedScipyRungeKutta(scipysolver)
     sol = diffeq.PerturbedStepSolver(
         rng=rng,

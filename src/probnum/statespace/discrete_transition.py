@@ -177,7 +177,7 @@ class DiscreteGaussian(trans.Transition):
         h1 = prior.proj2coord(coord=1)
 
         def dyna(t, x):
-            return h1 @ x - ode.rhs(t, h0 @ x)
+            return h1 @ x - ode.f(t, h0 @ x)
 
         def diff(t):
             return evlvar * np.eye(spatialdim)
@@ -186,7 +186,7 @@ class DiscreteGaussian(trans.Transition):
             return np.sqrt(evlvar) * np.eye(spatialdim)
 
         def jacobian(t, x):
-            return h1 - ode.jacobian(t, h0 @ x) @ h0
+            return h1 - ode.df(t, h0 @ x) @ h0
 
         return cls(
             input_dim=prior.dimension,

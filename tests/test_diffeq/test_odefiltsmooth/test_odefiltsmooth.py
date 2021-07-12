@@ -1,15 +1,14 @@
 import numpy as np
 import pytest
 
-from probnum.diffeq import ode
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum.diffeq.odefiltsmooth import KalmanODESolution, probsolve_ivp
-from probnum.randvars import Constant
 
 
 @pytest.fixture
 def ivp():
-    initrv = Constant(20.0 * np.ones(2))
-    return ode.lotkavolterra([0.0, 0.25], initrv)
+    y0 = 20.0 * np.ones(2)
+    return diffeq_zoo.lotkavolterra(t0=0.0, tmax=0.25, y0=y0)
 
 
 @pytest.mark.parametrize("method", ["EK0", "EK1"])
@@ -25,10 +24,10 @@ def test_adaptive_solver_successful(
     ivp, method, algo_order, dense_output, step, diffusion_model, tolerance
 ):
     """The solver terminates successfully for all sorts of parametrizations."""
-    f = ivp.rhs
-    df = ivp.jacobian
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    f = ivp.f
+    df = ivp.df
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
 
     sol = probsolve_ivp(
         f,
@@ -55,9 +54,9 @@ def test_adaptive_solver_successful(
 
 def test_wrong_method_raises_error(ivp):
     """Methods that are not in the list raise errors."""
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
 
     # UK1 does not exist anymore
     with pytest.raises(ValueError):
@@ -66,9 +65,9 @@ def test_wrong_method_raises_error(ivp):
 
 def test_no_step_or_tol_info_raises_error(ivp):
     """Providing neither a step-size nor a tolerance raises an error."""
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
 
     with pytest.raises(ValueError):
         probsolve_ivp(f, t0, tmax, y0, step=None, adaptive=True, atol=None, rtol=None)
@@ -76,9 +75,9 @@ def test_no_step_or_tol_info_raises_error(ivp):
 
 def test_wrong_diffusion_raises_error(ivp):
     """Methods that are not in the list raise errors."""
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
 
     # UK1 does not exist anymore
     with pytest.raises(ValueError):

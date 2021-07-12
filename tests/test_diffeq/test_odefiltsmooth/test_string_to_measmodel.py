@@ -8,13 +8,14 @@ They need different fixtures anyway.
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, filtsmooth, randprocs, randvars, statespace
 
 
 @pytest.fixture
 def ivp():
-    y0 = randvars.Constant(np.array([20.0, 15.0]))
-    return diffeq.lotkavolterra([0.4124, 1.15124], y0)
+    y0 = np.array([20.0, 15.0])
+    return diffeq_zoo.lotkavolterra(t0=0.4124, tmax=1.15124, y0=y0)
 
 
 @pytest.fixture
@@ -62,6 +63,6 @@ def test_true_mean_ek(string, ivp, prior):
     received, _ = received.forward_realization(some_real, some_time)
 
     e0, e1 = prior.transition.proj2coord(0), prior.transition.proj2coord(1)
-    expected = e1 @ some_real - ivp.rhs(some_time, e0 @ some_real)
+    expected = e1 @ some_real - ivp.f(some_time, e0 @ some_real)
     np.testing.assert_allclose(received.mean, expected)
     np.testing.assert_allclose(received.cov, 0.0, atol=1e-12)

@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
 
@@ -23,11 +24,11 @@ def timespan():
 @pytest.fixture
 def posterior(stepsize, timespan):
     """Kalman smoothing posterior."""
-    initrv = randvars.Constant(20 * np.ones(2))
-    ivp = diffeq.ode.lotkavolterra(timespan, initrv)
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    t0, tmax = timespan
+    y0 = 20 * np.ones(2)
+    ivp = diffeq_zoo.lotkavolterra(t0=t0, tmax=tmax, y0=y0)
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
     return diffeq.probsolve_ivp(f, t0, tmax, y0, step=stepsize, adaptive=False)
 
 

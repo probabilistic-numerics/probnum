@@ -4,7 +4,8 @@ import pytest_cases
 from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import diffeq, randvars
+import probnum.problems.zoo.diffeq as diffeq_zoo
+from probnum import randvars
 from probnum.diffeq import odesolution, wrappedscipyodesolution, wrappedscipysolver
 
 
@@ -49,8 +50,8 @@ def list_of_randvars():
 @pytest.fixture
 def doprisolver():
     y0 = np.array([0.1])
-    ode = diffeq.logistic([0.0, 1.0], y0)
-    return rk.DOP853(ode.rhs, ode.t0, y0, ode.tmax)
+    ode = diffeq_zoo.logistic(t0=0.0, tmax=1.0, y0=y0)
+    return rk.DOP853(ode.f, ode.t0, y0, ode.tmax)
 
 
 def test_init(doprisolver):
