@@ -17,6 +17,7 @@ import numbers
 from typing import Iterable, Tuple, Union
 
 import numpy as np
+import scipy
 
 ########################################################################################
 # API Types
@@ -45,6 +46,13 @@ ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
 """Type of a public API argument for supplying a scalar value. Values of this type
 should always be converted into :class:`np.generic` using the function
 :func:`probnum.utils.as_scalar` before further internal processing."""
+
+LinearOperatorArgType = Union[
+    np.ndarray,
+    scipy.sparse.spmatrix,
+    "probnum.linops.LinearOperator",
+]
+"""Type of a public API argument for supplying a matrix or finite-dimensional linear operator."""
 
 ArrayLikeGetitemArgType = Union[
     int,

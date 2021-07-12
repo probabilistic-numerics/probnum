@@ -12,6 +12,7 @@ from typing import Callable, Dict, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
+import probnum  # pylint: disable:unused-import
 from probnum import linops, randvars, utils
 from probnum.linalg.solvers.matrixbased import (
     AsymmetricMatrixBasedSolver,
@@ -19,23 +20,30 @@ from probnum.linalg.solvers.matrixbased import (
     SymmetricMatrixBasedSolver,
 )
 from probnum.linalg.solvers.solutionbased import SolutionBasedSolver
-
-# Type aliases
-SquareLinOp = Union[
-    np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "randvars.RandomVariable"
-]
-RandomVecMat = Union[np.ndarray, "randvars.RandomVariable"]
-
+from probnum.typing import LinearOperatorArgType
 
 # pylint: disable=too-many-branches
 
 
 def problinsolve(
-    A: SquareLinOp,
-    b: RandomVecMat,
-    A0: Optional[SquareLinOp] = None,
-    Ainv0: Optional[SquareLinOp] = None,
-    x0: Optional[RandomVecMat] = None,
+    A: Union[
+        LinearOperatorArgType,
+        "randvars.RandomVariable[LinearOperatorArgType]",
+    ],
+    b: Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"],
+    A0: Optional[
+        Union[
+            LinearOperatorArgType,
+            "randvars.RandomVariable[LinearOperatorArgType]",
+        ]
+    ] = None,
+    Ainv0: Optional[
+        Union[
+            LinearOperatorArgType,
+            "randvars.RandomVariable[LinearOperatorArgType]",
+        ]
+    ] = None,
+    x0: Optional[Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"]] = None,
     assume_A: str = "sympos",
     maxiter: Optional[int] = None,
     atol: float = 10 ** -6,
@@ -43,18 +51,18 @@ def problinsolve(
     callback: Optional[Callable] = None,
     **kwargs
 ) -> Tuple[
-    "randvars.RandomVariable",
-    "randvars.RandomVariable",
-    "randvars.RandomVariable",
+    "randvars.RandomVariable[np.ndarray]",
+    "randvars.RandomVariable[linops.LinearOperator]",
+    "randvars.RandomVariable[linops.LinearOperator]",
     Dict,
 ]:
-    """Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
+    r"""Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
     Probabilistic linear solvers infer solutions to problems of the form
 
     .. math:: Ax=b,
 
-    where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
+    where :math:`A \in \mathbb{R}^{n \times n}` and :math:`b \in \mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
     from finite computational resources. This solver can take prior information either
     on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in the form of a
@@ -66,7 +74,7 @@ def problinsolve(
     ----------
     A :
         *shape=(n, n)* -- A square linear operator (or matrix). Only matrix-vector
-        products :math:`v \\mapsto Av` are used internally.
+        products :math:`v \mapsto Av` are used internally.
     b :
         *shape=(n, ) or (n, nrhs)* -- Right-hand side vector, matrix or random
         variable in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems
@@ -80,7 +88,7 @@ def problinsolve(
     Ainv0 :
         *shape=(n, n)* -- A square matrix, linear operator or random variable
         representing the prior belief over the inverse :math:`H=A^{-1}`. This can be
-        viewed as taking the form of a pre-conditioner. If an array or linear operator
+        viewed as taking the form of a preconditioner. If an array or linear operator
         is given, a prior distribution is chosen automatically.
     x0 :
         *shape=(n, ) or (n, nrhs)* -- Prior belief for the solution of the linear

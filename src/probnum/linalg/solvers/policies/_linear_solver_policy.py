@@ -16,7 +16,7 @@ class LinearSolverPolicy(abc.ABC):
 
     See Also
     --------
-    ConjugateDirections : Policy returning :math:`A`-conjugate actions.
+    ConjugateDirectionsPolicy : Policy returning :math:`A`-conjugate actions.
     """
 
     def __call__(
