@@ -6,7 +6,7 @@ class Configuration:
     """
     Configuration over which some mechanics of probnum can be controlled dynamically.
 
-    ``probnum`` provides some configurations together with default values. These
+    ``ProbNum`` provides some configurations together with default values. These
     are listed in the tables below.
     Additionally, the user can register own configuration entries via the method
     :meth:`register`. Configuration entries can only be registered once and can only
