@@ -6,13 +6,13 @@ import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
-from src.probnum.diffeq.odefiltsmooth.initialization.initialize import (
+
+from .._odesolver import ODESolver
+from ._kalman_odesolution import KalmanODESolution
+from .initialize import (
     initialize_odefilter_with_rk,
     initialize_odefilter_with_taylormode,
 )
-
-from ..odesolver import ODESolver
-from .kalman_odesolution import KalmanODESolution
 
 
 class GaussianIVPFilter(ODESolver):

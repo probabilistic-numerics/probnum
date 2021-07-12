@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum.diffeq.perturbedsolvers import _perturbation_functions
+from probnum.diffeq.perturbed.step import _perturbation_functions
 
 
 @pytest.fixture

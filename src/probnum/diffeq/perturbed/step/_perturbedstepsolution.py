@@ -8,7 +8,7 @@ from scipy.integrate._ivp import rk
 from probnum import _randomvariablelist, randvars
 from probnum.typing import FloatArgType
 
-from ..odesolution import ODESolution
+from .._odesolution import ODESolution
 
 
 class PerturbedStepSolution(ODESolution):

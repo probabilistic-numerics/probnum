@@ -5,8 +5,7 @@ from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import randvars
-from probnum.diffeq import odesolution, wrappedscipyodesolution, wrappedscipysolver
+from probnum import diffeq, randvars
 
 
 @pytest_cases.fixture
@@ -56,7 +55,7 @@ def doprisolver():
 
 def test_init(doprisolver):
     with pytest.raises(TypeError):
-        wrappedscipysolver.WrappedScipyRungeKutta(doprisolver)
+        diffeq.scipy.WrappedScipyRungeKutta(doprisolver)
 
 
 def test_initialise(solvers):
@@ -163,10 +162,6 @@ def test_dense_output(solvers):
 
 def test_rvlist_to_odesol(times, dense_output, list_of_randvars):
     scipy_sol = OdeSolution(times, dense_output)
-    probnum_solution = wrappedscipyodesolution.WrappedScipyODESolution(
-        scipy_sol, list_of_randvars
-    )
-    assert issubclass(
-        wrappedscipyodesolution.WrappedScipyODESolution, odesolution.ODESolution
-    )
-    assert isinstance(probnum_solution, wrappedscipyodesolution.WrappedScipyODESolution)
+    probnum_solution = diffeq.scipy.WrappedScipyODESolution(scipy_sol, list_of_randvars)
+    assert issubclass(diffeq.scipy.WrappedScipyODESolution, odesolution.ODESolution)
+    assert isinstance(probnum_solution, diffeq.scipy.WrappedScipyODESolution)

@@ -8,7 +8,7 @@ from probnum import _randomvariablelist, filtsmooth, randvars, utils
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
 from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
-from ..odesolution import ODESolution
+from .._odesolution import ODESolution
 
 
 class KalmanODESolution(ODESolution):

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum.diffeq.odefiltsmooth import probsolve_ivp
+from probnum.diffeq import probsolve_ivp
 
 
 @pytest.fixture

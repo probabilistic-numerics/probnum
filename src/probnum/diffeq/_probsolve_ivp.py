@@ -12,8 +12,8 @@ import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
 
-from .. import steprule
-from .ivpfiltsmooth import GaussianIVPFilter
+from .odefiltsmooth import GaussianIVPFilter
+from .stepsize import AdaptiveSteps, ConstantSteps
 
 __all__ = ["probsolve_ivp"]
 

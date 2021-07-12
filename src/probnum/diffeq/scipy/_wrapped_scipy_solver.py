@@ -7,9 +7,10 @@ import numpy as np
 from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import diffeq, problems, randvars
-from probnum.diffeq import wrappedscipyodesolution
+from probnum import problems, randvars
 from probnum.typing import FloatArgType
+
+from ._wrapped_scipy_odesolution import WrappedScipyODESolution
 
 
 class WrappedScipyRungeKutta(diffeq.ODESolver):
@@ -114,9 +115,7 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         """Create a ScipyODESolution object which is a subclass of
         diffeq.ODESolution."""
         scipy_solution = OdeSolution(times, self.interpolants)
-        probnum_solution = wrappedscipyodesolution.WrappedScipyODESolution(
-            scipy_solution, rvs
-        )
+        probnum_solution = WrappedScipyODESolution(scipy_solution, rvs)
         return probnum_solution
 
     def method_callback(self, time, current_guess, current_error):

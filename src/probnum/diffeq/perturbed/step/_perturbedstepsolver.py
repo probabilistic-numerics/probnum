@@ -8,7 +8,7 @@ from probnum import _randomvariablelist, randvars
 from probnum.typing import FloatArgType
 from src.probnum.diffeq.scipy.wrappedscipysolver import WrappedScipyRungeKutta
 
-from ..odesolver import ODESolver
+from .._odesolver import ODESolver
 from ._perturbedstepsolution import PerturbedStepSolution
 
 

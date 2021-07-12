@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq import steprule
+from probnum import diffeq
 
 random_state = np.random.mtrand.RandomState(seed=1234)
 
@@ -12,7 +12,7 @@ class TestConstantStep(unittest.TestCase):
 
     def setUp(self):
         self.step = random_state.rand()
-        self.sr = steprule.ConstantSteps(self.step)
+        self.sr = diffeq.stepsize.ConstantSteps(self.step)
 
     def test_suggest(self):
         stp = self.sr.suggest(self.step, np.nan)
@@ -33,7 +33,9 @@ class TestAdaptiveStep(unittest.TestCase):
         """Set up imaginative solver of convergence rate 3."""
         self.atol = 0.1
         self.rtol = 0.01
-        self.asr = steprule.AdaptiveSteps(firststep=1.0, atol=self.atol, rtol=self.rtol)
+        self.asr = diffeq.stepsize.AdaptiveSteps(
+            firststep=1.0, atol=self.atol, rtol=self.rtol
+        )
 
     def test_is_accepted(self):
         errorest = 0.5  # < 1, should be accepted
@@ -63,7 +65,7 @@ class TestAdaptiveStep(unittest.TestCase):
         self.assertAlmostEqual(expected, received)
 
     def test_minstep_maxstep(self):
-        adaptive_steps = steprule.AdaptiveSteps(
+        adaptive_steps = diffeq.stepsize.AdaptiveSteps(
             firststep=1.0,
             limitchange=(0.0, 1e10),
             minstep=0.1,

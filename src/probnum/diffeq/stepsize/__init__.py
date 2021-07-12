@@ -1,6 +1,7 @@
 """Step-size selection rules."""
 
-from ._steprule import AdaptiveSteps, ConstantSteps, StepRule, propose_firststep
+from ._propose_firststep import propose_firststep
+from ._steprule import AdaptiveSteps, ConstantSteps, StepRule
 
 __all__ = ["StepRule", "AdaptiveSteps", "ConstantSteps", "propose_firststep"]
 
