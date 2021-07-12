@@ -56,12 +56,12 @@ class TestRandvarConfig(_TestConfig):
 
 def test_register():
     # Check if registering a new config entry works
-    probnum.config.register("some_config", 3.14, None)
+    probnum.config.register("some_config", 3.14)
     assert probnum.config.some_config == 3.14
 
     # When registering a new entry with an already existing name, throw
     with pytest.raises(KeyError):
-        probnum.config.register("some_config", 4.2, None)
+        probnum.config.register("some_config", 4.2)
 
     # Check if temporarily setting the config entry to a different value (via
     # the context manager) works

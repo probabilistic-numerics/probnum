@@ -7,4 +7,4 @@ def _register_default_config():
     ]
 
     for k, v in _defaults:
-        config.register(k, v, None)
+        config.register(k, v)

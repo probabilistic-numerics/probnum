@@ -4,6 +4,35 @@ from typing import Any
 
 class Configuration:
     """
+    Configuration over which some mechanics of probnum can be controlled dynamically.
+
+    ``probnum`` provides some configurations together with default values. These
+    are listed in the tables below.
+    Additionally, the user can register own configuration entries via the method
+    :meth:`register`. Configuration entries can only be registered once and can only
+    be used (accessed or overwritten) once they have been registered.
+
+    - ``probnum.randvars``
+
+    +----------------------------------+-----------------------------------------------+
+    | Config entry                     | Description                                   |
+    +==================================+===============================================+
+    | ``covariance_inversion_damping`` | A (typically small) value that is per         |
+    |                                  | default added to the diagonal of covariance   |
+    |                                  | matrices in order to make inversion           |
+    |                                  | numerically stable.                           |
+    +----------------------------------+-----------------------------------------------+
+    | ``...``                          | ...                                           |
+    +----------------------------------+-----------------------------------------------+
+
+    - ``probnum.diffeq``
+
+    - ``...``
+
+
+    Examples
+    ========
+
     >>> import probnum
     >>> probnum.config.covariance_inversion_damping
     1e-12
@@ -45,7 +74,7 @@ class Configuration:
 
         self.__dict__[key] = value
 
-    def register(self, key: str, default_value: Any, docstring: str) -> None:
+    def register(self, key: str, default_value: Any) -> None:
         if hasattr(self, key):
             raise KeyError(
                 f"Configuration entry {key} does already exist and "
