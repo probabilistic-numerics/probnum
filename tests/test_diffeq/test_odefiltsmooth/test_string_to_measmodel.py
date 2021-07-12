@@ -8,7 +8,7 @@ They need different fixtures anyway.
 import numpy as np
 import pytest
 
-import probnum.problems.diffeq.zoo as diffeq_zoo
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, filtsmooth, randprocs, randvars, statespace
 
 
