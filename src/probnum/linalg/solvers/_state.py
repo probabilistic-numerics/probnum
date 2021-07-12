@@ -1,8 +1,7 @@
 """State of a probabilistic linear solver."""
 
 import dataclasses
-from collections import defaultdict
-from typing import Any, List, Mapping, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
@@ -90,7 +89,7 @@ class LinearSolverState:
 
     @property
     def residual(self) -> np.ndarray:
-        r"""Residual :math:`Ax-b` for the current step."""
+        r"""Cached residual :math:`Ax_i-b` for the current solution estimate :math:`x_i`."""
         if self._residuals[self.step] is None:
             self._residuals[self.step] = (
                 self.problem.A @ self.belief.x.mean - self.problem.b
