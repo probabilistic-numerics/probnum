@@ -1,15 +1,16 @@
 """Benchmarks for probabilistic IVP solvers."""
 import numpy as np
 
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum.diffeq import lotkavolterra, probsolve_ivp
 from probnum.randvars import Constant
 
 
 def load_lotkavolterra():
     """Load LV system as a basic IVP."""
-    initrv = Constant(np.array([20, 20]))
-    return lotkavolterra(
-        timespan=[0, 0.55], initrv=initrv, params=(0.5, 0.05, 0.5, 0.05)
+    y0 = np.array([20, 20])
+    return diffeq_zoo.lotkavolterra(
+        t0=0.0, tmax=0.55, y0=y0, params=(0.5, 0.05, 0.5, 0.05)
     )
 
 
