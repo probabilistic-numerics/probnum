@@ -78,7 +78,7 @@ def test_induced_solution_belief(rng: np.random.Generator):
     """Test whether a consistent belief over the solution is inferred from a belief over
     the inverse."""
     n = 5
-    A = randvars.Constant(random_spd_matrix(dim=n, random_state=rng))
+    A = randvars.Constant(random_spd_matrix(dim=n, rng=rng))
     Ainv = randvars.Normal(
         mean=linops.Scaling(factors=1 / np.diag(A.mean)),
         cov=linops.SymmetricKronecker(linops.Identity(n)),

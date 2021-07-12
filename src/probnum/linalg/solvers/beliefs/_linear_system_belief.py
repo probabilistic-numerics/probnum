@@ -25,6 +25,8 @@ class LinearSystemBelief:
     modelling the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
     :math:`H=A^{-1}` and the right hand side :math:`b` of a linear system :math:`Ax=b`, as well as any associated hyperparameters.
 
+    For instantiation either providing a belief about the solution or the inverse must be provided. Note that if both are specified, their consistency is not checked and depending on the algorithm either may be used.
+
     Parameters
     ----------
     x :
@@ -42,43 +44,60 @@ class LinearSystemBelief:
     def __init__(
         self,
         A: randvars.RandomVariable,
-        Ainv: randvars.RandomVariable,
         b: randvars.RandomVariable,
-        x: randvars.RandomVariable,
+        Ainv: Optional[randvars.RandomVariable] = None,
+        x: Optional[randvars.RandomVariable] = None,
         hyperparams: Optional[Mapping[str, randvars.RandomVariable]] = None,
     ):
 
-        # Check shapes
-        if A.ndim != 2 or b.ndim > 2 or b.ndim < 1:
-            raise ValueError(
-                "Beliefs over system components must be at most two-dimensional."
+        if x and Ainv is None:
+            raise TypeError(
+                "Belief over the solution x and the inverse Ainv cannot both be None."
             )
 
-        def dim_mismatch_error(arg0, arg1, arg0_name, arg1_name):
+        # Check shapes and their compatibility
+        if A.ndim != 2:
+            raise ValueError(
+                f"Belief over the system matrix may have at most two dimensions, but has {A.ndim}."
+            )
+
+        if b.ndim > 2 or b.ndim < 1:
+            raise ValueError(
+                f"Belief over right-hand-side may have either one or two dimensions but has {b.ndim}."
+            )
+
+        def dim_mismatch_error(**kwargs):
+            argnames = list(kwargs.keys())
             return ValueError(
-                f"Dimension mismatch. The shapes of {arg0_name} : {arg0.shape} "
-                f"and {arg1_name} : {arg1.shape} must match."
+                f"Dimension mismatch. The shapes of {argnames[0]} : {kwargs[argnames[0]].shape} "
+                f"and {argnames[1]} : {kwargs[argnames[1]].shape} must match."
             )
 
         if A.shape[0] != b.shape[0]:
-            raise dim_mismatch_error(A, b, "A", "b")
+            raise dim_mismatch_error(A=A, b=b)
 
         if x is not None:
             if x.ndim > 2 or x.ndim < 1:
-                raise ValueError("Belief over solution must be one or two-dimensional.")
+                raise ValueError(
+                    f"Belief over solution must have either one or two dimensions, but has {x.ndim}."
+                )
             if A.shape[1] != x.shape[0]:
-                raise dim_mismatch_error(A, x, "A", "x")
+                raise dim_mismatch_error(A=A, x=x)
 
             if x.ndim > 1:
                 if x.shape[1] != b.shape[1]:
-                    raise dim_mismatch_error(x, b, "x", "b")
-            else:
-                if b.ndim > 1:
-                    raise dim_mismatch_error(x, b, "x", "b")
+                    raise dim_mismatch_error(x=x, b=b)
+            elif b.ndim > 1:
+                raise dim_mismatch_error(x=x, b=b)
 
         if Ainv is not None:
+            if Ainv.ndim != 2:
+                raise ValueError(
+                    f"Belief over the inverse system matrix may have at most two dimensions, but has {A.ndim}."
+                )
+
             if A.shape != Ainv.shape:
-                raise dim_mismatch_error(A, Ainv, "A", "Ainv")
+                raise dim_mismatch_error(A=A, Ainv=Ainv)
 
         self._x = x
         self._A = A
@@ -107,7 +126,7 @@ class LinearSystemBelief:
         return self._A
 
     @property
-    def Ainv(self) -> randvars.RandomVariable:
+    def Ainv(self) -> Optional[randvars.RandomVariable]:
         """Belief about the (pseudo-)inverse of the system matrix."""
         return self._Ainv
 
