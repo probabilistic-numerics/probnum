@@ -17,9 +17,6 @@ def case_linsys(
     rng: np.random.Generator,
 ) -> problems.LinearSystem:
     """Linear system."""
-    if hasattr(matrix, "valuegetter"):
-        matrix = matrix.valuegetter()
-
     return problems.LinearSystem.from_matrix(A=matrix, rng=rng)
 
 
@@ -31,7 +28,4 @@ def case_spd_linsys(
     rng: np.random.Generator,
 ) -> problems.LinearSystem:
     """Linear system with symmetric positive definite matrix."""
-    if hasattr(spd_matrix, "valuegetter"):
-        spd_matrix = spd_matrix.valuegetter()
-
     return problems.LinearSystem.from_matrix(A=spd_matrix, rng=rng)

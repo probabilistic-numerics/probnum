@@ -45,8 +45,6 @@ class LinearSolverState:
             self.problem.A @ self.belief.x.mean - self.problem.b,
             None,
         ]
-
-        self._cache = defaultdict(list)
         self.rng = rng
 
     def __repr__(self) -> str:
@@ -103,15 +101,6 @@ class LinearSolverState:
     def residuals(self) -> Tuple[np.ndarray, ...]:
         r"""Residuals :math:`\{Ax_i - b\}_i`."""
         return tuple(self._residuals)
-
-    @property
-    def cache(self) -> Mapping[str, List[Any]]:
-        """Dynamic cache.
-
-        Used to cache miscellaneous quantities computed by the solver in
-        a step and possibly reused multiple times.
-        """
-        return self._cache
 
     def next_step(self) -> None:
         """Advance the solver state to the next solver step.

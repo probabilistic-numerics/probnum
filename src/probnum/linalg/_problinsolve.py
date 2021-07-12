@@ -27,7 +27,7 @@ SquareLinOp = Union[
 RandomVecMat = Union[np.ndarray, "randvars.RandomVariable"]
 
 
-# pylint: disable="too-many-branches,unused-argument"
+# pylint: disable=too-many-branches
 
 
 def problinsolve(

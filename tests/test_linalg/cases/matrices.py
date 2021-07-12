@@ -16,12 +16,12 @@ n_cols = [1, 2, 10, 100]
 @case(tags=["symmetric", "positive_definite"])
 @parametrize("n", n_cols)
 def case_random_spd_matrix(n: int, rng: np.random.Generator) -> np.ndarray:
-    return random_spd_matrix(dim=n, random_state=rng)
+    return random_spd_matrix(dim=n, rng=rng)
 
 
 @case(tags=["symmetric", "positive_definite"])
 def case_random_sparse_spd_matrix(rng: np.random.Generator) -> scipy.sparse.spmatrix:
-    return random_sparse_spd_matrix(dim=1000, density=0.01, random_state=rng)
+    return random_sparse_spd_matrix(dim=1000, density=0.01, rng=rng)
 
 
 @case(tags=["symmetric", "positive_definite"])

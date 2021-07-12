@@ -12,7 +12,7 @@ def case_linear_solver_state(
     """State of a linear solver."""
     n = 10
     linsys = problems.LinearSystem.from_matrix(
-        random_spd_matrix(dim=n, random_state=rng), rng=rng
+        random_spd_matrix(dim=n, rng=rng), rng=rng
     )
     prior = linalg.solvers.beliefs.LinearSystemBelief(
         A=randvars.Constant(linsys.A),

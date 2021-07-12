@@ -13,3 +13,7 @@ __all__ = [
     "problinsolve",
     "bayescg",
 ]
+
+# Set correct module paths. Corrects links and module paths in documentation.
+problinsolve.__module__ = "probnum.linalg"
+bayescg.__module__ = "probnum.linalg"

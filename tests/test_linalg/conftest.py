@@ -8,8 +8,3 @@ import pytest_cases
 def rng() -> np.random.Generator:
     """Random number generator."""
     return np.random.default_rng(42)
-
-
-@pytest_cases.fixture()
-def my_fixture():
-    pass

@@ -6,12 +6,10 @@ iterative methods for the solution of linear systems.
 """
 
 from probnum.linalg.solvers.matrixbased import (
-    AsymmetricMatrixBasedSolver,
     MatrixBasedSolver,
     ProbabilisticLinearSolver,
     SymmetricMatrixBasedSolver,
 )
-from probnum.linalg.solvers.solutionbased import SolutionBasedSolver
 
 from . import beliefs, policies
 from ._state import LinearSolverState
@@ -21,9 +19,7 @@ __all__ = [
     "ProbabilisticLinearSolver",
     "LinearSolverState",
     "MatrixBasedSolver",
-    "AsymmetricMatrixBasedSolver",
     "SymmetricMatrixBasedSolver",
-    "SolutionBasedSolver",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
