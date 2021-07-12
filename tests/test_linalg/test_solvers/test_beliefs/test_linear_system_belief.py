@@ -7,6 +7,12 @@ from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 
+def test_init_invalid_belief():
+    """Test whether instantiating a belief over neither x nor Ainv raises an error."""
+    with pytest.raises(TypeError):
+        LinearSystemBelief(x=None, Ainv=None)
+
+
 def test_dimension_mismatch_raises_value_error():
     """Test whether mismatched components result in a ValueError."""
     m, n, nrhs = 5, 3, 2
