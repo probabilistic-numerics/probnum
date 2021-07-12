@@ -29,7 +29,7 @@ class KalmanODESolution(ODESolution):
 
     Examples
     --------
-    >>> from probnum.diffeq import logistic, probsolve_ivp
+    >>> from probnum.diffeq import probsolve_ivp
     >>> from probnum import randvars
     >>>
     >>> def f(t, x):

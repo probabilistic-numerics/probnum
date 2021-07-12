@@ -2,8 +2,10 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace
+from probnum import filtsmooth, problems, randprocs, randvars, statespace
 from probnum.typing import FloatArgType, IntArgType
+
+from .. import diffeq  # diffeq zoo
 
 __all__ = [
     "benes_daum",
@@ -559,9 +561,8 @@ def logistic_ode(
     if evlvar is None:
         evlvar = np.zeros((1, 1))
 
-    logistic_ivp = diffeq.logistic(
-        timespan=timespan, initrv=randvars.Constant(y0), params=params
-    )
+    t0, tmax = timespan
+    logistic_ivp = diffeq.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
     dynamics_model = statespace.IBM(
         ordint=order,
         spatialdim=1,
