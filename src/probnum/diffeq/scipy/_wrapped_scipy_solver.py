@@ -10,10 +10,11 @@ from scipy.integrate._ivp.common import OdeSolution
 from probnum import problems, randvars
 from probnum.typing import FloatArgType
 
+from .._odesolver import ODESolver
 from ._wrapped_scipy_odesolution import WrappedScipyODESolution
 
 
-class WrappedScipyRungeKutta(diffeq.ODESolver):
+class WrappedScipyRungeKutta(ODESolver):
     """Wrapper for Runge-Kutta methods from Scipy, implements the stepfunction and dense
     output."""
 

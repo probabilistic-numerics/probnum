@@ -8,7 +8,7 @@ from probnum import diffeq, randvars
 
 @pytest_cases.fixture
 @pytest_cases.parametrize_with_cases(
-    "testsolver, perturbedsolver", cases="test_perturbed_cases"
+    "testsolver, perturbedsolver", cases=".test_perturbed_cases"
 )
 def solvers(testsolver, perturbedsolver):
     return testsolver, perturbedsolver
@@ -41,7 +41,7 @@ def times():
 
 @pytest.fixture
 def steprule():
-    return diffeq.ConstantSteps(0.1)
+    return diffeq.stepsize.ConstantSteps(0.1)
 
 
 @pytest.fixture
@@ -101,7 +101,7 @@ def test_rvlist_to_odesol(solvers, times, list_of_randvars, dense_output):
     perturbedstepsolver.scales = [1]
     probnum_solution = perturbedstepsolver.rvlist_to_odesol(times, list_of_randvars)
     assert isinstance(probnum_solution, diffeq.ODESolution)
-    assert isinstance(probnum_solution, diffeq.PerturbedStepSolution)
+    assert isinstance(probnum_solution, diffeq.perturbed.step.PerturbedStepSolution)
 
 
 def test_postprocess(solvers, steprule):

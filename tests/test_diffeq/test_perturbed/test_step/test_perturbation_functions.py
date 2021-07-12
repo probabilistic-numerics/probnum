@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum.diffeq.perturbed.step import _perturbation_functions
+from probnum import diffeq
 
 
 @pytest.fixture
@@ -32,8 +32,8 @@ def num_samples():
 @pytest.mark.parametrize(
     "perturb_fct",
     [
-        _perturbation_functions.perturb_uniform,
-        _perturbation_functions.perturb_lognormal,
+        diffeq.perturbed.step.perturb_uniform,
+        diffeq.perturbed.step.perturb_lognormal,
     ],
 )
 def test_mean(perturb_fct, step, solver_order, noise_scale, num_samples, rng):
@@ -47,8 +47,8 @@ def test_mean(perturb_fct, step, solver_order, noise_scale, num_samples, rng):
 @pytest.mark.parametrize(
     "perturb_fct",
     [
-        _perturbation_functions.perturb_uniform,
-        _perturbation_functions.perturb_lognormal,
+        diffeq.perturbed.step.perturb_uniform,
+        diffeq.perturbed.step.perturb_lognormal,
     ],
 )
 def test_var(perturb_fct, step, solver_order, noise_scale, num_samples, rng):

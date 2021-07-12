@@ -8,9 +8,13 @@ from probnum import diffeq
 
 def setup_solver(y0, ode, perturbfun):
     rng = np.random.default_rng(seed=1)
-    testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.f, ode.t0, y0, ode.tmax))
-    testsolver2 = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.f, ode.t0, y0, ode.tmax))
-    perturbedsolver = diffeq.PerturbedStepSolver(
+    testsolver = diffeq.scipy.WrappedScipyRungeKutta(
+        rk.RK45(ode.f, ode.t0, y0, ode.tmax)
+    )
+    testsolver2 = diffeq.scipy.WrappedScipyRungeKutta(
+        rk.RK45(ode.f, ode.t0, y0, ode.tmax)
+    )
+    perturbedsolver = diffeq.perturbed.step.PerturbedStepSolver(
         rng=rng, solver=testsolver2, noise_scale=1.0, perturb_function=perturbfun
     )
     return testsolver, perturbedsolver
@@ -19,8 +23,8 @@ def setup_solver(y0, ode, perturbfun):
 @pytest.mark.parametrize(
     "perturbfun",
     [
-        diffeq.perturb_lognormal,
-        diffeq.perturb_uniform,
+        diffeq.perturbed.step.perturb_lognormal,
+        diffeq.perturbed.step.perturb_uniform,
     ],
 )
 def case_lorenz(perturbfun):
@@ -32,8 +36,8 @@ def case_lorenz(perturbfun):
 @pytest.mark.parametrize(
     "perturbfun",
     [
-        diffeq.perturb_lognormal,
-        diffeq.perturb_uniform,
+        diffeq.perturbed.step.perturb_lognormal,
+        diffeq.perturbed.step.perturb_uniform,
     ],
 )
 def case_logistic(perturbfun):
@@ -45,8 +49,8 @@ def case_logistic(perturbfun):
 @pytest.mark.parametrize(
     "perturbfun",
     [
-        diffeq.perturb_lognormal,
-        diffeq.perturb_uniform,
+        diffeq.perturbed.step.perturb_lognormal,
+        diffeq.perturbed.step.perturb_uniform,
     ],
 )
 def case_lotkavolterra(perturbfun):

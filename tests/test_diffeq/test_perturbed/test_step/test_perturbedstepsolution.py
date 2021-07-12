@@ -12,14 +12,14 @@ def perturbed_solution():
     ode = diffeq_zoo.lotkavolterra(t0=0.0, tmax=1.0, y0=y0)
     rng = np.random.default_rng(seed=1)
     scipysolver = rk.RK45(ode.f, ode.t0, y0, ode.tmax)
-    testsolver = diffeq.WrappedScipyRungeKutta(scipysolver)
-    sol = diffeq.PerturbedStepSolver(
+    testsolver = diffeq.scipy.WrappedScipyRungeKutta(scipysolver)
+    sol = diffeq.perturbed.step.PerturbedStepSolver(
         rng=rng,
         solver=testsolver,
         noise_scale=0.1,
-        perturb_function=diffeq.perturb_uniform,
+        perturb_function=diffeq.perturbed.step.perturb_uniform,
     )
-    return sol.solve(diffeq.AdaptiveSteps(0.1, atol=1e-4, rtol=1e-4))
+    return sol.solve(diffeq.stepsize.AdaptiveSteps(0.1, atol=1e-4, rtol=1e-4))
 
 
 def test_states(perturbed_solution):

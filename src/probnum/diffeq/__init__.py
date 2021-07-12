@@ -3,6 +3,9 @@
 This package defines probabilistic solvers for differential equations.
 """
 
+# Publicly visible subpackages
+# If these do not exist, a double-subpackage import does not work
+from . import perturbed
 from ._odesolution import ODESolution
 from ._odesolver import ODESolver
 from ._probsolve_ivp import probsolve_ivp
