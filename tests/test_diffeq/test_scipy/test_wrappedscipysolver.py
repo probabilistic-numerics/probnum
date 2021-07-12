@@ -163,5 +163,5 @@ def test_dense_output(solvers):
 def test_rvlist_to_odesol(times, dense_output, list_of_randvars):
     scipy_sol = OdeSolution(times, dense_output)
     probnum_solution = diffeq.scipy.WrappedScipyODESolution(scipy_sol, list_of_randvars)
-    assert issubclass(diffeq.scipy.WrappedScipyODESolution, odesolution.ODESolution)
+    assert issubclass(diffeq.scipy.WrappedScipyODESolution, diffeq.ODESolution)
     assert isinstance(probnum_solution, diffeq.scipy.WrappedScipyODESolution)
