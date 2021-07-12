@@ -107,14 +107,19 @@ class LinearSystemBelief:
         self._A = A
         self._Ainv = Ainv
         self._b = b
+        if hyperparams is None:
+            hyperparams = {}
         self._hyperparams = hyperparams
 
-    @property
-    def hyperparams(
-        self,
-    ) -> Optional[Mapping[str, randvars.RandomVariable]]:
-        """Hyperparameters of the linear system belief."""
-        return self._hyperparams
+    def hyperparameter(self, key: str) -> randvars.RandomVariable:
+        """Hyperparameter of the linear system belief.
+
+        Parameters
+        ----------
+        key :
+            Hyperparameter key.
+        """
+        return self._hyperparams[key]
 
     @cached_property
     def x(self) -> randvars.RandomVariable:

@@ -13,9 +13,7 @@ from probnum import problems
 class LinearSolverState:
     """State of a probabilistic linear solver.
 
-    The solver state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities computed during an iteration
-    of a probabilistic linear solver. The solver state is passed between the
-    different components of the solver and may be used internally to cache quantities which are used more than once.
+    The solver state separates the state of a probabilistic linear solver from the algorithm itself, making the solver stateless. The state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities computed during an iteration of a probabilistic linear solver. The solver state is passed between the different components of the solver and may be used internally to cache quantities which are used more than once.
 
     Parameters
     ----------
