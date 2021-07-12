@@ -2,7 +2,8 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq import ConstantSteps, ODESolution, ODESolver, logistic
+from probnum.diffeq import ConstantSteps, ODESolution, ODESolver
+from probnum.problems.zoo.diffeq import logistic
 from probnum.randvars import Constant
 
 
@@ -33,8 +34,8 @@ class ODESolverTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        y0 = Constant(0.3)
-        ivp = logistic([0, 4], initrv=y0)
+        y0 = np.array([0.3])
+        ivp = logistic(t0=0, tmax=4, y0=y0)
         euler_order = 1
         self.solver = MockODESolver(ivp, order=euler_order)
         self.step = 0.2

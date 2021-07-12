@@ -8,13 +8,14 @@ They need different fixtures anyway.
 import numpy as np
 import pytest
 
+import probnum.problems.diffeq.zoo as diffeq_zoo
 from probnum import diffeq, filtsmooth, randprocs, randvars, statespace
 
 
 @pytest.fixture
 def ivp():
-    y0 = randvars.Constant(np.array([20.0, 15.0]))
-    return diffeq.lotkavolterra([0.4124, 1.15124], y0)
+    y0 = np.array([20.0, 15.0])
+    return diffeq_zoo.lotkavolterra(t0=0.4124, tmax=1.15124, y0=y0)
 
 
 @pytest.fixture

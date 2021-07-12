@@ -32,10 +32,10 @@ def order():
 
 @pytest.fixture
 def lv():
-    y0 = randvars.Constant(np.array([20.0, 20.0]))
+    y0 = np.array([20.0, 20.0])
 
     # tmax is ignored anyway
-    return diffeq.lotkavolterra([0.0, np.inf], y0)
+    return diffeq_zoo.lotkavolterra(t0=0.0, tmax=np.inf, y0=y0)
 
 
 @pytest.fixture

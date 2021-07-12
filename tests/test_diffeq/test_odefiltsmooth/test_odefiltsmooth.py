@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum.diffeq import ode
 from probnum.diffeq.odefiltsmooth import KalmanODESolution, probsolve_ivp
 from probnum.randvars import Constant
@@ -8,8 +9,8 @@ from probnum.randvars import Constant
 
 @pytest.fixture
 def ivp():
-    initrv = Constant(20.0 * np.ones(2))
-    return ode.lotkavolterra([0.0, 0.25], initrv)
+    y0 = 20.0 * np.ones(2)
+    return diffeq_zoo.lotkavolterra(t0=0.0, tmax=0.25, y0=y0)
 
 
 @pytest.mark.parametrize("method", ["EK0", "EK1"])

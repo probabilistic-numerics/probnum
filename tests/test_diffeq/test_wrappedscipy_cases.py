@@ -16,17 +16,17 @@ def setup_solver(y0, ode):
 
 def case_lorenz():
     y0 = np.array([0.0, 1.0, 1.05])
-    ode = diffeq.lorenz([0.0, 1.0], y0)
-    return setup_solver(y0, ode)
+    ode = diffeq_zoo.lorenz(t0=0.0, tmax=1.0, y0=y0)
+    return setup_solver(y0, ode, perturbfun)
 
 
 def case_logistic():
     y0 = np.array([0.1])
-    ode = diffeq.logistic([0.0, 1.0], y0)
-    return setup_solver(y0, ode)
+    ode = diffeq_zoo.logistic(t0=0.0, tmax=1.0, y0=y0)
+    return setup_solver(y0, ode, perturbfun)
 
 
 def case_lotkavolterra():
     y0 = np.array([0.1, 0.1])
-    ode = diffeq.lotkavolterra([0.0, 1.0], y0)
-    return setup_solver(y0, ode)
+    ode = diffeq_zoo.lotkavolterra(t0=0.0, tmax=1.0, y0=y0)
+    return setup_solver(y0, ode, perturbfun)

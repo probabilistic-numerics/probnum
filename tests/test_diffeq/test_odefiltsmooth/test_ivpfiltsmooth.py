@@ -7,6 +7,7 @@ named w.r.t. ivpfiltsmooth.py.
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum.diffeq import ode
 from probnum.diffeq.odefiltsmooth import probsolve_ivp
 from probnum.randvars import Constant
@@ -14,8 +15,8 @@ from probnum.randvars import Constant
 
 @pytest.fixture
 def ivp():
-    initrv = Constant(0.1 * np.ones(1))
-    return ode.logistic([0.0, 1.5], initrv)
+    y0 = np.array([0.1])
+    return diffeq_zoo.logistic(t0=0.0, tmax=1.5, y0=y0)
 
 
 @pytest.fixture
