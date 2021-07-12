@@ -14,12 +14,7 @@ import scipy.sparse
 
 import probnum  # pylint: disable:unused-import
 from probnum import linops, randvars, utils
-from probnum.linalg.solvers.matrixbased import (
-    AsymmetricMatrixBasedSolver,
-    NoisySymmetricMatrixBasedSolver,
-    SymmetricMatrixBasedSolver,
-)
-from probnum.linalg.solvers.solutionbased import SolutionBasedSolver
+from probnum.linalg.solvers.matrixbased import SymmetricMatrixBasedSolver
 from probnum.typing import LinearOperatorArgType
 
 # pylint: disable=too-many-branches
@@ -285,26 +280,7 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
     --------
     problinsolve : Solve linear systems in a Bayesian framework.
     """
-    # Check linear system for type and dimension mismatch
-    _check_linear_system(A=A, b=b, x0=x0)
-
-    # Preprocess linear system
-    A, b, x0 = _preprocess_linear_system(A=A, b=b, x0=x0)
-
-    # Set default convergence parameters
-    n = A.shape[0]
-    if maxiter is None:
-        maxiter = n * 10
-
-    # Solve linear system
-    x, info = SolutionBasedSolver(A=A, b=b, x0=x0).solve(
-        callback=callback, maxiter=maxiter, atol=atol, rtol=rtol
-    )
-
-    # Check result and issue warnings (e.g. singular or ill-conditioned matrix)
-    _postprocess(info=info, A=A)
-
-    return x, info
+    raise NotImplementedError
 
 
 def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
@@ -494,18 +470,16 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
 
     # Solution-based view
     if isinstance(x0, randvars.RandomVariable):
-        return SolutionBasedSolver(A=A, b=b, x0=x0)
+        raise NotImplementedError
     # Matrix-based view
     else:
         if "sym" in assume_A and "pos" in assume_A:
             if "noise" in assume_A:
-                return NoisySymmetricMatrixBasedSolver(
-                    A=A, b=b, x0=x0, A0=A0, Ainv0=Ainv0
-                )
+                raise NotImplementedError
             else:
                 return SymmetricMatrixBasedSolver(A=A, b=b, x0=x0, A0=A0, Ainv0=Ainv0)
         elif "sym" not in assume_A and "pos" in assume_A:
-            return AsymmetricMatrixBasedSolver(A=A, b=b, x0=x0)
+            raise NotImplementedError
         else:
             raise NotImplementedError
 
