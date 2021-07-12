@@ -8,7 +8,6 @@ numerical methods.
 """
 
 from ._categorical import Categorical
-from ._config import _register_default_config
 from ._constant import Constant
 from ._normal import Normal
 from ._random_variable import (
@@ -51,6 +50,3 @@ Normal.__module__ = "probnum.randvars"
 Categorical.__module__ = "probnum.randvars"
 
 asrandvar.__module__ = "probnum.randvars"
-
-
-_register_default_config()

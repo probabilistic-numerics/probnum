@@ -12,8 +12,6 @@ class Configuration:
     :meth:`register`. Configuration entries can only be registered once and can only
     be used (accessed or overwritten) once they have been registered.
 
-    - ``probnum.randvars``
-
     +----------------------------------+-----------------------------------------------+
     | Config entry                     | Description                                   |
     +==================================+===============================================+
@@ -24,11 +22,6 @@ class Configuration:
     +----------------------------------+-----------------------------------------------+
     | ``...``                          | ...                                           |
     +----------------------------------+-----------------------------------------------+
-
-    - ``probnum.diffeq``
-
-    - ``...``
-
 
     Examples
     ========
@@ -81,3 +74,18 @@ class Configuration:
                 "cannot be registered again."
             )
         self.__dict__[key] = default_value
+
+
+# Create a single, global configuration object,...
+_GLOBAL_CONFIG_SINGLETON = Configuration()
+
+# ... define some configuration options, and the respective default values
+# (which have to be documented in the Configuration-class doctstring!!), ...
+_DEFAULT_CONFIG_OPTIONS = [
+    # list of tuples (config_key, default_value)
+    ("covariance_inversion_damping", 1e-12),
+]
+
+# ... and register the default configuration options.
+for key, default_value in _DEFAULT_CONFIG_OPTIONS:
+    _GLOBAL_CONFIG_SINGLETON.register(key, default_value)
