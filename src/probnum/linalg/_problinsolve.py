@@ -12,7 +12,7 @@ from typing import Callable, Dict, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
-import probnum  # pylint: disable:unused-import
+import probnum  # pylint: disable=unused-import
 from probnum import linops, randvars, utils
 from probnum.linalg.solvers.matrixbased import SymmetricMatrixBasedSolver
 from probnum.typing import LinearOperatorArgType
