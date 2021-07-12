@@ -246,7 +246,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         h1 = prior.proj2coord(coord=1)
 
         def dyna(t, x):
-            return h1 @ x - ode.rhs(t, h0 @ x)
+            return h1 @ x - ode.f(t, h0 @ x)
 
         def diff(t):
             return evlvar * np.eye(spatialdim)
@@ -255,7 +255,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             return np.sqrt(evlvar) * np.eye(spatialdim)
 
         def jaco_ek1(t, x):
-            return h1 - ode.jacobian(t, h0 @ x) @ h0
+            return h1 - ode.df(t, h0 @ x) @ h0
 
         def jaco_ek0(t, x):
             return h1

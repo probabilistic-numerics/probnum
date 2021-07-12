@@ -67,7 +67,7 @@
 #     >>> initrv = randvars.Constant(0.1)
 #     >>> timespan = (0, 10)
 #     >>> ivp = IVP(timespan, initrv, rhsfun)
-#     >>> print(ivp.rhs(0., 2.))
+#     >>> print(ivp.f(0., 2.))
 #     4.0
 #     >>> print(ivp.timespan)
 #     [0, 10]
@@ -78,9 +78,9 @@
 #     >>> ivp = IVP(timespan, initrv, rhsfun)
 #     >>> jac = lambda t, y, **kwargs: 2.0
 #     >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)
-#     >>> print(ivp.rhs(0., 2.))
+#     >>> print(ivp.f(0., 2.))
 #     4.0
-#     >>> print(ivp.jacobian(100., -1))
+#     >>> print(ivp.df(100., -1))
 #     2.0
 #     """
 #
@@ -105,7 +105,7 @@
 #
 #         Depends on the mean of the initial random variable.
 #         """
-#         if np.isscalar(self.initrv.mean):
+#         if np.isscalar(self.y0):
 #             return 1
 #         else:
-#             return len(self.initrv.mean)
+#             return len(self.y0)

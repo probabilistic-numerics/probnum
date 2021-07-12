@@ -53,13 +53,13 @@
 #         """
 #         self._t0, self._tmax = timespan
 #         self._rhs = rhs
-#         self._jac = jac
+#         self.df = jac
 #         self._hess = hess
 #         self._sol = sol
 #
 #     def __call__(self, t, y, **kwargs):
-#         """Piggybacks on self.rhs(t, y)."""
-#         return self.rhs(t, y, **kwargs)
+#         """Piggybacks on self.f(t, y)."""
+#         return self.f(t, y, **kwargs)
 #
 #     def rhs(self, t, y, **kwargs):
 #         """Evaluates model function f."""
@@ -67,10 +67,10 @@
 #
 #     def jacobian(self, t, y, **kwargs):
 #         """Jacobian of model function f."""
-#         if self._jac is None:
+#         if self.df is None:
 #             raise NotImplementedError
 #         else:
-#             return self._jac(t, y, **kwargs)
+#             return self.df(t, y, **kwargs)
 #
 #     def hessian(self, t, y, **kwargs):
 #         """Hessian of model function f.

@@ -167,11 +167,11 @@ class GaussianIVPFilter(ODESolver):
 
     def initialise(self):
         initrv = self.init_implementation(
-            self.ivp.rhs,
-            self.ivp.initrv.mean,
+            self.ivp.f,
+            self.ivp.y0,
             self.ivp.t0,
             self.prior_process,
-            self.ivp._jac,
+            self.ivp.df,
         )
 
         return self.ivp.t0, initrv

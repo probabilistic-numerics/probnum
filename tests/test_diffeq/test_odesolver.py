@@ -11,12 +11,12 @@ class MockODESolver(ODESolver):
     """Euler method as an ODE solver."""
 
     def initialise(self):
-        return self.ivp.t0, self.ivp.initrv
+        return self.ivp.t0, self.ivp.y0
 
     def step(self, start, stop, current):
         h = stop - start
         x = current.mean
-        xnew = x + h * self.ivp(start, x)
+        xnew = x + h * self.ivp.f(start, x)
         return (
             Constant(xnew),
             np.nan,

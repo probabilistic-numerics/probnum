@@ -51,7 +51,7 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         self.interpolants = []
         self.solver.y_old = None
         self.solver.t = self.ivp.t0
-        self.solver.y = self.ivp.initrv.mean
+        self.solver.y = self.ivp.y0
         self.solver.f = self.solver.fun(self.solver.t, self.solver.y)
         return self.ivp.t0, self.ivp.initrv
 
