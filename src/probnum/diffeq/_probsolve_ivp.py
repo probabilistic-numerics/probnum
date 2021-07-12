@@ -12,8 +12,7 @@ import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
 
-from .odefiltsmooth import GaussianIVPFilter
-from .stepsize import AdaptiveSteps, ConstantSteps
+from . import odefiltsmooth, stepsize
 
 __all__ = ["probsolve_ivp"]
 
@@ -240,10 +239,10 @@ def probsolve_ivp(
             raise ValueError(
                 "Please provide absolute and relative tolerance for adaptive steps."
             )
-        firststep = step if step is not None else steprule.propose_firststep(ivp)
-        stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+        firststep = step if step is not None else stepsize.propose_firststep(ivp)
+        stprl = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
-        stprl = steprule.ConstantSteps(step)
+        stprl = stepsize.ConstantSteps(step)
 
     # Construct diffusion model.
     diffusion_model = diffusion_model.lower()
@@ -274,8 +273,10 @@ def probsolve_ivp(
 
     if method.upper() not in ["EK0", "EK1"]:
         raise ValueError("Method is not supported.")
-    measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior_process)
-    solver = GaussianIVPFilter.construct_with_rk_init(
+    measmod = odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
+        method, ivp, prior_process
+    )
+    solver = odefiltsmooth.GaussianIVPFilter.construct_with_rk_init(
         ivp,
         prior_process,
         measmod,
