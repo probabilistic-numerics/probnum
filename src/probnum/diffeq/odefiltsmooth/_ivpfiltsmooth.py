@@ -6,12 +6,12 @@ import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
-
-from ..odesolver import ODESolver
-from .initialize import (
+from src.probnum.diffeq.odefiltsmooth.initialization.initialize import (
     initialize_odefilter_with_rk,
     initialize_odefilter_with_taylormode,
 )
+
+from ..odesolver import ODESolver
 from .kalman_odesolution import KalmanODESolution
 
 

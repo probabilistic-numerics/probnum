@@ -5,8 +5,7 @@ from scipy.integrate._ivp.common import OdeSolution
 from probnum import _randomvariablelist, randvars
 from probnum.filtsmooth._timeseriesposterior import DenseOutputValueType
 from probnum.typing import DenseOutputLocationArgType
-
-from .odesolution import ODESolution
+from src.probnum.diffeq.odesolution import ODESolution
 
 
 class WrappedScipyODESolution(ODESolution):
