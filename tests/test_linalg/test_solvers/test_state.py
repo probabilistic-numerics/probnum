@@ -24,6 +24,9 @@ def test_next_step(state: ProbabilisticLinearSolverState):
     state.next_step()
 
     assert initial_step + 1 == state.step
+    assert state.actions[state.step] is None
+    assert state.observations[state.step] is None
+    assert state.residuals[state.step] is None
 
 
 @parametrize_with_cases("state", cases=cases_states)
