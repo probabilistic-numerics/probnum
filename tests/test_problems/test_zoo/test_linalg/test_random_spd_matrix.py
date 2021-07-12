@@ -36,7 +36,7 @@ def test_spectrum_matches_given(rng: np.random.Generator):
     """Test whether the spectrum of the test problem matches the provided spectrum."""
     dim = 10
     spectrum = np.sort(rng.uniform(0.1, 1, size=dim))
-    spdmat = random_spd_matrix(dim=dim, spectrum=spectrum, random_state=rng)
+    spdmat = random_spd_matrix(rng=rng, dim=dim, spectrum=spectrum)
     eigvals = np.sort(np.linalg.eigvals(spdmat))
     np.testing.assert_allclose(
         spectrum,
@@ -48,7 +48,7 @@ def test_spectrum_matches_given(rng: np.random.Generator):
 def test_negative_eigenvalues_throws_error(rng: np.random.Generator):
     """Test whether a non-positive spectrum throws an error."""
     with pytest.raises(ValueError):
-        random_spd_matrix(dim=3, spectrum=[-1, 1, 2], random_state=rng)
+        random_spd_matrix(rng=rng, dim=3, spectrum=[-1, 1, 2])
 
 
 def test_is_ndarray(rnd_dense_spd_mat: np.ndarray):
@@ -78,14 +78,24 @@ def test_sparse_formats(
     spformat: str, sparse_matrix_class: scipy.sparse.spmatrix, rng: np.random.Generator
 ):
     """Test whether sparse matrices in different formats can be created."""
-    sparse_mat = random_sparse_spd_matrix(
-        dim=1000, density=10 ** -3, format=spformat, random_state=rng
-    )
+
+    # Scipy warns that creating DIA matrices with many diagonals is inefficient.
+    # This should not dilute the test output, as the tests
+    # only checks the *ability* to create large random sparse matrices.
+    if spformat == "dia":
+        with pytest.warns(scipy.sparse.SparseEfficiencyWarning):
+            sparse_mat = random_sparse_spd_matrix(
+                rng=rng, dim=1000, density=10 ** -3, format=spformat
+            )
+    else:
+        sparse_mat = random_sparse_spd_matrix(
+            rng=rng, dim=1000, density=10 ** -3, format=spformat
+        )
     assert isinstance(sparse_mat, sparse_matrix_class)
 
 
 def test_large_sparse_matrix(rng: np.random.Generator):
     """Test whether a large random spd matrix can be created."""
     n = 10 ** 5
-    sparse_mat = random_sparse_spd_matrix(dim=n, density=10 ** -8, random_state=rng)
+    sparse_mat = random_sparse_spd_matrix(rng=rng, dim=n, density=10 ** -8)
     assert sparse_mat.shape == (n, n)

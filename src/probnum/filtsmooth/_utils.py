@@ -44,15 +44,17 @@ def merge_regression_problems(
     Create two car-tracking problems with similar parameters and disjoint locations.
 
     >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+    >>> import numpy as np
+    >>> rng = np.random.default_rng(seed=1)
     >>> prob1, _ = filtsmooth_zoo.car_tracking(
-    ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
+    ...     rng=rng, measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
     ... )
     >>> print(prob1.locations)
     [0.  0.5 1.  1.5 2.  2.5 3.  3.5 4.  4.5 5.  5.5 6.  6.5 7.  7.5 8.  8.5
      9.  9.5]
 
     >>> prob2, _ = filtsmooth_zoo.car_tracking(
-    ...     measurement_variance=2.0, timespan=(0.25, 10.25), step=0.5
+    ...     rng=rng, measurement_variance=2.0, timespan=(0.25, 10.25), step=0.5
     ... )
     >>> print(prob2.locations)
     [0.25 0.75 1.25 1.75 2.25 2.75 3.25 3.75 4.25 4.75 5.25 5.75 6.25 6.75
@@ -70,7 +72,7 @@ def merge_regression_problems(
 
     >>> import functools
     >>> prob3, _ = filtsmooth_zoo.car_tracking(
-    ...     measurement_variance=2.0, timespan=(0.35, 10.35), step=0.5
+    ...     rng=rng, measurement_variance=2.0, timespan=(0.35, 10.35), step=0.5
     ... )
     >>> new_prob = functools.reduce(
     ...     merge_regression_problems,

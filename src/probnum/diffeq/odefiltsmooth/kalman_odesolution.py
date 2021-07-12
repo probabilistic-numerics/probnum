@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, randvars, utils
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
+from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
 from ..odesolution import ODESolution
 
@@ -101,14 +101,12 @@ class KalmanODESolution(ODESolution):
 
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
 
-        samples = self.kalman_posterior.sample(
-            t=t, size=size, random_state=random_state
-        )
+        samples = self.kalman_posterior.sample(rng=rng, t=t, size=size)
         # Project the samples down to the "true" KalmanODESolution dimensions
         # (which are a subset of the KalmanPosterior dimensions)
         ode_samples = np.einsum("dq,...q->...d", self.proj_to_y, samples)

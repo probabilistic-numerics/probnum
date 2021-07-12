@@ -14,7 +14,6 @@ from probnum.typing import (
     DenseOutputLocationArgType,
     FloatArgType,
     IntArgType,
-    RandomStateArgType,
     ShapeArgType,
 )
 
@@ -71,9 +70,9 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
 
         size = utils.as_shape(size)
@@ -84,7 +83,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         if t is None:
             base_measure_realizations = stats.norm.rvs(
                 size=(size + self.locations.shape + single_rv_shape),
-                random_state=random_state,
+                random_state=rng,
             )
             return self.transform_base_measure_realizations(
                 base_measure_realizations=base_measure_realizations, t=self.locations
@@ -96,7 +95,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         slice_these_out = np.where(np.isin(all_locations, t))[0]
         base_measure_realizations = stats.norm.rvs(
             size=(size + all_locations.shape + single_rv_shape),
-            random_state=random_state,
+            random_state=rng,
         )
 
         samples = self.transform_base_measure_realizations(
@@ -429,9 +428,9 @@ class FilteringPosterior(KalmanPosterior):
 
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         # If this error would not be thrown here, trying to sample from a FilteringPosterior
         # would call FilteringPosterior.transform_base_measure_realizations which is not implemented.

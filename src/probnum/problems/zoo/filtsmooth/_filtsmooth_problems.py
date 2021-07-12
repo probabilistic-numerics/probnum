@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace
-from probnum.typing import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType
 
 __all__ = [
     "benes_daum",
@@ -15,6 +15,7 @@ __all__ = [
 
 
 def car_tracking(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
     model_ordint: IntArgType = 1,
@@ -23,7 +24,6 @@ def car_tracking(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
@@ -56,6 +56,8 @@ def car_tracking(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     process_diffusion
@@ -75,9 +77,6 @@ def car_tracking(
     backward_implementation
         Implementation of the backward transitions inside prior and measurement model.
         Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
@@ -127,11 +126,11 @@ def car_tracking(
     # Set up regression problem
     time_grid = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
+        rng=rng,
         dynmod=discrete_dynamics_model,
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
-        random_state=random_state,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
@@ -148,6 +147,7 @@ def car_tracking(
 
 
 def ornstein_uhlenbeck(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1,
     driftspeed: FloatArgType = 0.21,
     process_diffusion: FloatArgType = 0.5,
@@ -155,7 +155,6 @@ def ornstein_uhlenbeck(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup based on an Ornstein Uhlenbeck process.
 
@@ -175,6 +174,8 @@ def ornstein_uhlenbeck(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     driftspeed
@@ -191,9 +192,6 @@ def ornstein_uhlenbeck(
     backward_implementation
         Implementation of the backward transitions inside prior and measurement model.
         Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
 
     Returns
@@ -234,11 +232,11 @@ def ornstein_uhlenbeck(
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
     states, obs = statespace.generate_samples(
+        rng=rng,
         dynmod=dynamics_model,
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
-        random_state=random_state,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
@@ -256,12 +254,12 @@ def ornstein_uhlenbeck(
 
 
 def pendulum(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1024,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
     step: FloatArgType = 0.0075,
     initrv: Optional[randvars.RandomVariable] = None,
     initarg: Optional[float] = None,
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup for a (noisy) pendulum.
 
@@ -299,6 +297,8 @@ def pendulum(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     timespan
@@ -310,9 +310,6 @@ def pendulum(
     initarg
         Initial time point of the prior process.
         Optional. Default is the left boundary of timespan.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
@@ -381,11 +378,11 @@ def pendulum(
     # Generate data
     time_grid = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
+        rng=rng,
         dynmod=dynamics_model,
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
-        random_state=random_state,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
@@ -405,11 +402,11 @@ def pendulum(
 
 
 def benes_daum(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1,
     process_diffusion: FloatArgType = 1.0,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
-    random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup based on the Beneš SDE.
 
@@ -427,6 +424,8 @@ def benes_daum(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     process_diffusion
@@ -435,9 +434,6 @@ def benes_daum(
         Time grid for the filtering/smoothing problem.
     initrv
         Initial random variable.
-    random_state
-        Random state that is used to generate samples from the state space model.
-        This argument is passed down to `filtsmooth.generate_samples`.
 
     Returns
     -------
@@ -482,11 +478,11 @@ def benes_daum(
         non_linear_model=dynamics_model
     )
     states, obs = statespace.generate_samples(
+        rng=rng,
         dynmod=linearized_dynamics_model,
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
-        random_state=random_state,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,

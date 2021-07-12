@@ -13,13 +13,18 @@ def even_ndim():
 
 
 @pytest.fixture
-def spdmat1(even_ndim):
-    return random_spd_matrix(even_ndim)
+def rng():
+    return np.random.default_rng(seed=123)
 
 
 @pytest.fixture
-def spdmat2(even_ndim):
-    return random_spd_matrix(even_ndim)
+def spdmat1(even_ndim, rng):
+    return random_spd_matrix(rng, dim=even_ndim)
+
+
+@pytest.fixture
+def spdmat2(even_ndim, rng):
+    return random_spd_matrix(rng, dim=even_ndim)
 
 
 def test_cholesky_update(spdmat1, spdmat2):

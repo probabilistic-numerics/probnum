@@ -4,14 +4,20 @@ import pytest
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import problems
 
+
+def rng():
+    return np.random.default_rng(seed=123)
+
+
+# The logistic ODE problem is not random, so it does not get a random number generator.
 all_filtmooth_setups = pytest.mark.parametrize(
     "filtsmooth_setup",
     [
-        filtsmooth_zoo.benes_daum(),
-        filtsmooth_zoo.car_tracking(),
+        filtsmooth_zoo.benes_daum(rng=rng()),
+        filtsmooth_zoo.car_tracking(rng=rng()),
         filtsmooth_zoo.logistic_ode(),
-        filtsmooth_zoo.ornstein_uhlenbeck(),
-        filtsmooth_zoo.pendulum(),
+        filtsmooth_zoo.ornstein_uhlenbeck(rng=rng()),
+        filtsmooth_zoo.pendulum(rng=rng()),
     ],
 )
 

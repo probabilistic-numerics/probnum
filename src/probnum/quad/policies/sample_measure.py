@@ -5,12 +5,17 @@ import numpy as np
 from probnum.quad._integration_measures import IntegrationMeasure
 
 
-def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
+def sample_from_measure(
+    rng: np.random.Generator, nevals: int, measure: IntegrationMeasure
+) -> np.ndarray:
     r"""Acquisition policy: Draw random samples from the integration measure.
 
     Parameters
     ----------
-    nevals : int
+    rng :
+        Random number generator.
+
+    nevals :
         Number of function evaluations.
 
     measure :
@@ -21,4 +26,4 @@ def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
     x : np.ndarray
         Nodes where the integrand will be evaluated.
     """
-    return measure.sample(nevals).reshape(nevals, -1)
+    return measure.sample(rng=rng, n_sample=nevals).reshape(nevals, -1)

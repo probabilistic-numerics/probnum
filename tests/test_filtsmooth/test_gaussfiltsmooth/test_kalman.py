@@ -8,10 +8,10 @@ from probnum import filtsmooth
 
 
 @pytest.fixture(params=[filtsmooth_zoo.car_tracking, filtsmooth_zoo.ornstein_uhlenbeck])
-def setup(request):
+def setup(request, rng):
     """Filter and regression problem."""
     problem = request.param
-    regression_problem, info = problem()
+    regression_problem, info = problem(rng=rng)
 
     kalman = filtsmooth.Kalman(info["prior_process"])
     return kalman, regression_problem
@@ -48,7 +48,7 @@ def test_info_dicts(setup):
     assert len(posterior) == len(info_dicts)
 
 
-def test_kalman_smoother_high_order_ibm():
+def test_kalman_smoother_high_order_ibm(rng):
     """The highest feasible order (without damping, which we dont use) is 11.
 
     If this test breaks, someone played with the stable square-root
@@ -56,6 +56,7 @@ def test_kalman_smoother_high_order_ibm():
     solve_triangular() and cho_solve() must not be changed to inv()!
     """
     regression_problem, info = filtsmooth_zoo.car_tracking(
+        rng=rng,
         model_ordint=11,
         timespan=(0.0, 1e-3),
         step=1e-5,
@@ -78,8 +79,9 @@ def test_kalman_smoother_high_order_ibm():
     assert smooms_rmse < filtms_rmse < obs_rmse
 
 
-def test_kalman_multiple_measurement_models():
+def test_kalman_multiple_measurement_models(rng):
     regression_problem, info = filtsmooth_zoo.car_tracking(
+        rng=rng,
         model_ordint=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
@@ -101,8 +103,9 @@ def test_kalman_multiple_measurement_models():
     assert smooms_rmse < filtms_rmse < obs_rmse
 
 
-def test_kalman_value_error_repeating_timepoints():
+def test_kalman_value_error_repeating_timepoints(rng):
     regression_problem, info = filtsmooth_zoo.car_tracking(
+        rng=rng,
         model_ordint=4,
         timespan=(0.0, 1e-3),
         step=1e-5,

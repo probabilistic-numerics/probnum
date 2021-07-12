@@ -25,8 +25,8 @@ def test_symmetric_kronecker_commutative(
     "A,B", [(np.array([[5, 1], [1, 10]]), np.array([[-2, 0.1], [0.1, 8]]))]
 )
 def test_symmetric_kronecker_symmetric_factors(A, B):
-    """Dense matrix from symmetric Kronecker product of two symmetric matrices must
-    be symmetric."""
+    """Dense matrix from symmetric Kronecker product of two symmetric matrices must be
+    symmetric."""
     linop = pn.linops.SymmetricKronecker(A, B)
     linop_transpose = linop.T
     linop_dense = linop.todense()
@@ -37,9 +37,9 @@ def test_symmetric_kronecker_symmetric_factors(A, B):
 
 @pytest.mark.parametrize("n", [1, 2, 3, 5, 12])
 def test_symmetrize(n):
-    np.random.seed(42)
 
-    x = np.random.uniform(size=n * n)
+    rng = np.random.default_rng(42)
+    x = rng.uniform(size=n * n)
     X = np.reshape(x, (n, n))
     y = pn.linops.Symmetrize(n) @ x
 
@@ -47,7 +47,7 @@ def test_symmetrize(n):
         y.reshape(n, n), 0.5 * (X + X.T), err_msg="Matrix not symmetric."
     )
 
-    Z = np.random.uniform(size=(9, 5))
+    Z = rng.uniform(size=(9, 5))
     W = pn.linops.Symmetrize(3) @ Z
 
     np.testing.assert_array_equal(

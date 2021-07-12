@@ -16,12 +16,12 @@ def solvers(testsolver, perturbedsolver):
 
 @pytest.fixture
 def start_point():
-    return 0.0
+    return 0.1
 
 
 @pytest.fixture
 def stop_point():
-    return 0.1
+    return 0.2
 
 
 @pytest.fixture

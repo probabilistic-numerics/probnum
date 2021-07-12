@@ -11,7 +11,7 @@ import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, randvars
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
+from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -59,14 +59,16 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
 
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         """Sample from the ODE solution.
 
         Parameters
         ----------
+        rng
+            Random number generator.
         t
             Location / time at which to sample.
             If nothing is specified, samples at the ODE-solver grid points are computed.
@@ -75,8 +77,6 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             This is not the same as computing i.i.d samples at the respective locations.
         size
             Number of samples.
-        random_state :
-            Random state used for sampling.
         """
         raise NotImplementedError("Sampling is not implemented.")
 

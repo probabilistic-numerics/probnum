@@ -3,8 +3,6 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.typing import RandomStateArgType
-
 from ._random_variable import DiscreteRandomVariable
 
 
@@ -19,15 +17,12 @@ class Categorical(DiscreteRandomVariable):
         Support of the categorical distribution. Optional. Default is None,
         in which case the support is chosen as :math:`(0, ..., K-1)` where
         :math:`K` is the number of elements in `event_probabilities`.
-    random_state :
-        Random state of the random variable.
     """
 
     def __init__(
         self,
         probabilities: np.ndarray,
         support: Optional[np.ndarray] = None,
-        random_state: Optional[RandomStateArgType] = None,
     ):
         # The set of events is names "support" to be aligned with the method
         # DiscreteRandomVariable.in_support().
@@ -44,7 +39,7 @@ class Categorical(DiscreteRandomVariable):
             "num_categories": num_categories,
         }
 
-        def _sample_categorical(size=()):
+        def _sample_categorical(rng, size=()):
             """Sample from a categorical distribution.
 
             While on first sight, one might think that this
@@ -54,10 +49,11 @@ class Categorical(DiscreteRandomVariable):
             arrays with `ndim > 1`, but `self.support` can be just that.
             This detour via the `mask` avoids this problem.
             """
-            mask = np.random.choice(
+
+            indices = rng.choice(
                 np.arange(len(self.support)), size=size, p=self.probabilities
             ).reshape(size)
-            return self.support[mask]
+            return self.support[indices]
 
         def _pmf_categorical(x):
             """PMF of a categorical distribution.
@@ -81,7 +77,6 @@ class Categorical(DiscreteRandomVariable):
         super().__init__(
             shape=self._support[0].shape,
             dtype=self._support[0].dtype,
-            random_state=random_state,
             parameters=parameters,
             sample=_sample_categorical,
             pmf=_pmf_categorical,
@@ -98,19 +93,28 @@ class Categorical(DiscreteRandomVariable):
         """Support of the categorical distribution."""
         return self._support
 
-    def resample(self) -> "Categorical":
+    def resample(self, rng: np.random.Generator) -> "Categorical":
         """Resample the support of the categorical random variable.
 
         Return a new categorical random variable (RV), where the support
         is randomly chosen from the elements in the current support with
         probabilities given by the current event probabilities. The
         probabilities of the resulting categorical RV are all equal.
+
+        Parameters
+        ----------
+        rng :
+            Random number generator.
+
+        Returns
+        -------
+        Categorical
+            Categorical random variable with resampled support (according to self.probabilities).
         """
         num_events = len(self.support)
-        new_support = self.sample(size=num_events)
+        new_support = self.sample(rng=rng, size=num_events)
         new_probabilities = np.ones(self.probabilities.shape) / num_events
         return Categorical(
             support=new_support,
             probabilities=new_probabilities,
-            random_state=self.random_state,
         )

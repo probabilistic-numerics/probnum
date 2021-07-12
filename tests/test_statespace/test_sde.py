@@ -44,7 +44,7 @@ class TestSDE(InterfaceTestTransition):
 
     def test_forward_realization(self, some_normal_rv1):
         with pytest.raises(NotImplementedError):
-            self.transition.forward_realization(some_normal_rv1.sample(), 0.0, dt=0.1)
+            self.transition.forward_realization(some_normal_rv1.mean, 0.0, dt=0.1)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
@@ -53,7 +53,7 @@ class TestSDE(InterfaceTestTransition):
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
             self.transition.backward_realization(
-                some_normal_rv1.sample(), some_normal_rv2, 0.0, dt=0.1
+                some_normal_rv1.mean, some_normal_rv2, 0.0, dt=0.1
             )
 
     def test_input_dim(self, test_ndim):
@@ -97,7 +97,7 @@ class TestLinearSDE(TestSDE):
 
     def test_forward_realization(self, some_normal_rv1):
         out, info = self.transition.forward_realization(
-            some_normal_rv1.sample(), t=0.0, dt=0.1
+            some_normal_rv1.mean, t=0.0, dt=0.1
         )
         assert isinstance(out, randvars.Normal)
 
@@ -109,14 +109,14 @@ class TestLinearSDE(TestSDE):
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_realization(
-            some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
+            some_normal_rv1.mean, some_normal_rv2, t=0.0, dt=0.1
         )
         assert isinstance(out, randvars.Normal)
 
     def test_forward_realization_value_error_caught(self, some_normal_rv1):
         """the forward realization only works if a time-increment dt is provided."""
         with pytest.raises(ValueError):
-            self.transition.forward_realization(some_normal_rv1.sample(), t=0.0)
+            self.transition.forward_realization(some_normal_rv1.mean, t=0.0)
 
     def test_backward_realization_value_error_caught(
         self, some_normal_rv1, some_normal_rv2
@@ -124,7 +124,7 @@ class TestLinearSDE(TestSDE):
         """the backward realization only works if a time-increment dt is provided."""
         with pytest.raises(ValueError):
             out, _ = self.transition.backward_realization(
-                some_normal_rv1.sample(),
+                some_normal_rv1.mean,
                 some_normal_rv2,
                 t=0.0,
             )
@@ -185,7 +185,7 @@ class TestLTISDE(TestLinearSDE):
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_realization(
-            some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
+            some_normal_rv1.mean, some_normal_rv2, t=0.0, dt=0.1
         )
         assert isinstance(out, randvars.Normal)
 
@@ -250,7 +250,8 @@ def test_solve_mde_forward_sqrt_values(
     v_const,
     diffusion,
 ):
-    """mde forward values in sqrt-implementation and classic implementation should be equal"""
+    """mde forward values in sqrt-implementation and classic implementation should be
+    equal."""
     out_linear, _ = ltisde_as_linearsde.forward_realization(
         v_const, t=0.0, dt=0.1, _diffusion=diffusion
     )

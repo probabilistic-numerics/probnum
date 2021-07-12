@@ -10,11 +10,11 @@ from probnum import kernels, randprocs, randvars, statespace
 
 @pytest.fixture(
     params=[pytest.param(seed, id=f"seed{seed}") for seed in range(3)],
-    name="random_state",
+    name="rng",
 )
-def fixture_random_state(request) -> np.random.RandomState:
+def fixture_rng(request) -> np.random.Generator:
     """Random state(s) used for test parameterization."""
-    return np.random.RandomState(seed=request.param)
+    return np.random.default_rng(seed=request.param)
 
 
 @pytest.fixture(
@@ -121,7 +121,7 @@ def fixture_gauss_markov_process(request) -> randprocs.MarkovProcess:
 def fixture_args0(
     request,
     random_process: randprocs.RandomProcess,
-    random_state: np.random.RandomState,
+    rng: np.random.Generator,
 ) -> np.ndarray:
     """Input(s) to a random process."""
-    return random_state.normal(size=(request.param, random_process.input_dim))
+    return rng.normal(size=(request.param, random_process.input_dim))

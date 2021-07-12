@@ -40,7 +40,7 @@ def density(density: float) -> float:
 @pytest_cases.fixture()
 def rnd_dense_spd_mat(n_cols: int, rng: np.random.Generator) -> np.ndarray:
     """Random spd matrix generated from :meth:`random_spd_matrix`."""
-    return random_spd_matrix(dim=n_cols, random_state=rng)
+    return random_spd_matrix(rng=rng, dim=n_cols)
 
 
 @pytest_cases.fixture()
@@ -48,7 +48,7 @@ def rnd_sparse_spd_mat(
     n_cols: int, density: float, rng: np.random.Generator
 ) -> scipy.sparse.spmatrix:
     """Random sparse spd matrix generated from :meth:`random_sparse_spd_matrix`."""
-    return random_sparse_spd_matrix(dim=n_cols, density=density, random_state=rng)
+    return random_sparse_spd_matrix(rng=rng, dim=n_cols, density=density)
 
 
 rnd_spd_mat = pytest_cases.fixture_union(

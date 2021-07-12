@@ -62,7 +62,7 @@ class TestDiscreteGaussian(InterfaceTestTransition):
             self.transition.forward_rv(some_normal_rv1, 0.0)
 
     def test_forward_realization(self, some_normal_rv1):
-        out, _ = self.transition.forward_realization(some_normal_rv1.sample(), 0.0)
+        out, _ = self.transition.forward_realization(some_normal_rv1.mean, 0.0)
         assert isinstance(out, randvars.Normal)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
@@ -71,9 +71,7 @@ class TestDiscreteGaussian(InterfaceTestTransition):
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
-            self.transition.backward_realization(
-                some_normal_rv1.sample(), some_normal_rv2
-            )
+            self.transition.backward_realization(some_normal_rv1.mean, some_normal_rv2)
 
     def test_input_dim(self, test_ndim):
         assert self.transition.input_dim == test_ndim
@@ -154,7 +152,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_realization(
-            some_normal_rv1.sample(), some_normal_rv2
+            some_normal_rv1.mean, some_normal_rv2
         )
         assert isinstance(out, randvars.Normal)
 

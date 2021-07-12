@@ -5,11 +5,13 @@ from typing import List, Optional
 import numpy as np
 from scipy.integrate._ivp import rk
 
-from probnum import _randomvariablelist, diffeq, randvars
+from probnum import _randomvariablelist, randvars
 from probnum.typing import FloatArgType
 
+from ..odesolution import ODESolution
 
-class PerturbedStepSolution(diffeq.ODESolution):
+
+class PerturbedStepSolution(ODESolution):
     """Solution to the PerturbedStepSolver."""
 
     def __init__(

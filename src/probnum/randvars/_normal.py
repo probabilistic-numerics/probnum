@@ -11,7 +11,6 @@ from probnum import utils as _utils
 from probnum.typing import (
     ArrayLikeGetitemArgType,
     FloatArgType,
-    RandomStateArgType,
     ShapeArgType,
     ShapeType,
 )
@@ -57,10 +56,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         In this case, its type and data type are compared to the type and data type of the covariance.
         If the types do not match, an exception is thrown. If the data types do not match,
         the data type of the Cholesky factor is promoted to the data type of the covariance matrix.
-    random_state :
-        Random state of the random variable. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
@@ -68,11 +63,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from probnum import randvars
-    >>> x = randvars.Normal(mean=0.5, cov=1.0, random_state=42)
-    >>> x.sample(size=(2, 2))
-    array([[0.99671415, 0.3617357 ],
-           [1.14768854, 2.02302986]])
+    >>> x = randvars.Normal(mean=0.5, cov=1.0)
+    >>> rng = np.random.default_rng(42)
+    >>> x.sample(rng=rng, size=(2, 2))
+    array([[ 0.80471708, -0.53998411],
+           [ 1.2504512 ,  1.44056472]])
     """
 
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
@@ -83,7 +80,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         cov_cholesky: Optional[
             Union[float, np.floating, np.ndarray, linops.LinearOperator]
         ] = None,
-        random_state: RandomStateArgType = None,
     ):
         # Type normalization
         if np.isscalar(mean):
@@ -224,7 +220,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         super().__init__(
             shape=mean.shape,
             dtype=mean.dtype,
-            random_state=random_state,
             parameters={"mean": mean, "cov": cov},
             sample=sample,
             in_support=in_support,
@@ -324,7 +319,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=mean,
             cov=cov,
-            random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def reshape(self, newshape: ShapeArgType) -> "Normal":
@@ -344,7 +338,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=reshaped_mean,
             cov=reshaped_cov,
-            random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def transpose(self, *axes: int) -> "Normal":
@@ -366,7 +359,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=mean_t,
             cov=cov_t,
-            random_state=_utils.derive_random_seed(self.random_state),
         )
 
     # Unary arithmetic operations
@@ -375,14 +367,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=-self.mean,
             cov=self.cov,
-            random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def __pos__(self) -> "Normal":
         return Normal(
             mean=+self.mean,
             cov=self.cov,
-            random_state=_utils.derive_random_seed(self.random_state),
         )
 
     # TODO: Overwrite __abs__ and add absolute moments of normal
@@ -400,9 +390,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=self.mean + other.mean,
             cov=self.cov + other.cov,
-            random_state=_utils.derive_random_seed(
-                self.random_state, other.random_state
-            ),
         )
 
     def _sub_normal(self, other: "Normal") -> "Normal":
@@ -415,9 +402,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=self.mean - other.mean,
             cov=self.cov + other.cov,
-            random_state=_utils.derive_random_seed(
-                self.random_state, other.random_state
-            ),
         )
 
     # Univariate Gaussians
@@ -427,10 +411,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return np.sqrt(self.cov + damping_factor)
 
     def _univariate_sample(
-        self, size: ShapeType = ()
+        self,
+        rng: np.random.Generator,
+        size: ShapeType = (),
     ) -> Union[np.floating, np.ndarray]:
         sample = scipy.stats.norm.rvs(
-            loc=self.mean, scale=self.std, size=size, random_state=self.random_state
+            loc=self.mean, scale=self.std, size=size, random_state=rng
         )
 
         if np.isscalar(sample):
@@ -480,12 +466,14 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             lower=True,
         )
 
-    def _dense_sample(self, size: ShapeType = ()) -> np.ndarray:
+    def _dense_sample(
+        self, rng: np.random.Generator, size: ShapeType = ()
+    ) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
             size=size,
-            random_state=self.random_state,
+            random_state=rng,
         )
 
         return sample.reshape(sample.shape[:-1] + self.shape)
@@ -584,7 +572,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     def _symmetric_kronecker_identical_factors_sample(
-        self, size: ShapeType = ()
+        self, rng: np.random.Generator, size: ShapeType = ()
     ) -> np.ndarray:
         assert (
             isinstance(self.cov, linops.SymmetricKronecker)
@@ -596,9 +584,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         # Draw standard normal samples
         size_sample = (n * n,) + size
 
-        stdnormal_samples = scipy.stats.norm.rvs(
-            size=size_sample, random_state=self.random_state
-        )
+        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample, random_state=rng)
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
         samples_scaled = linops.Symmetrize(n) @ (self.cov_cholesky @ stdnormal_samples)

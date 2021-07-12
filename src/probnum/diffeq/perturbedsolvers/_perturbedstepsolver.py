@@ -1,22 +1,27 @@
 """ODE-Solver as proposed by Abdulle and Garegnani."""
 
-from typing import Callable, Optional
+from typing import Callable
 
 import numpy as np
 
-from probnum import _randomvariablelist, diffeq, randvars, utils
-from probnum.diffeq.wrappedscipysolver import WrappedScipyRungeKutta
-from probnum.typing import FloatArgType, RandomStateArgType
+from probnum import _randomvariablelist, randvars
+from probnum.typing import FloatArgType
+
+from ..odesolver import ODESolver
+from ..wrappedscipysolver import WrappedScipyRungeKutta
+from ._perturbedstepsolution import PerturbedStepSolution
 
 
-class PerturbedStepSolver(diffeq.ODESolver):
-    """ODE-Solver based on Abdulle and Garegnani.
+class PerturbedStepSolver(ODESolver):
+    """ODE-Solver random perturbatino of the step-sizes.
 
     Perturbs the steps accordingly and projects the solution back to the originally
-    proposed time points.
+    proposed time points. Proposed by Abdulle and Garegnani (2020) [1]_.
 
     Parameters
     ----------
+    rng :
+        Random number generator.
     solver :
         Currently this has to be a Runge-Kutta method based on SciPy.
     noise-scale :
@@ -24,29 +29,32 @@ class PerturbedStepSolver(diffeq.ODESolver):
     perturb_function :
         Defines how the stepsize is distributed. This can be either one of
         ``perturb_lognormal()`` or ``perturb_uniform()`` or any other perturbation function with
-        input parameters step, ``solver_order``, ``noise_scale``, ``random_state`` and size.
-    random_state :
-        Random state (seed, generator) to be used for sampling base measure realizations.
+        the same signature.
+
+    References
+    ----------
+    .. [1] Abdulle, A. and Garegnani, G.
+        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Statistics and Computing. 2020.
     """
 
     def __init__(
         self,
+        rng: np.random.Generator,
         solver: WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
         perturb_function: Callable,
-        random_state: Optional[RandomStateArgType] = None,
     ):
-        random_state = utils.as_random_state(random_state)
-
-        def perturb_step(step):
+        def perturb_step(rng, step):
             return perturb_function(
+                rng=rng,
                 step=step,
                 solver_order=solver.order,
                 noise_scale=noise_scale,
-                random_state=random_state,
                 size=(),
             )
 
+        self.rng = rng
         self.perturb_step = perturb_step
         self.solver = solver
         self.scales = None
@@ -63,7 +71,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original
-        stopping point [1]_.
+        stopping point.
 
         Parameters
         ----------
@@ -80,16 +88,10 @@ class PerturbedStepSolver(diffeq.ODESolver):
             Estimated states of the discrete-time solution.
         error_estimation : float
             estimated error after having performed the step.
-
-        References
-        ----------
-        .. [1] Abdulle, A., Garegnani, G. (2020). Random time step probabilistic methods for
-           uncertainty quantification in chaotic and geometric numerical integration.
-           Statistics and Computing, 1-26.
         """
 
         dt = stop - start
-        noisy_step = self.perturb_step(dt)
+        noisy_step = self.perturb_step(self.rng, dt)
         state_as_rv, error_estimation, reference_state = self.solver.step(
             start, start + noisy_step, current
         )
@@ -105,9 +107,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         self, times: np.ndarray, rvs: _randomvariablelist._RandomVariableList
     ):
         interpolants = self.solver.interpolants
-        probnum_solution = diffeq.PerturbedStepSolution(
-            self.scales, times, rvs, interpolants
-        )
+        probnum_solution = PerturbedStepSolution(self.scales, times, rvs, interpolants)
         return probnum_solution
 
     def postprocess(self, odesol):
