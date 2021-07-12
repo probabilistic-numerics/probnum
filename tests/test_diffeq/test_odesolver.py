@@ -11,7 +11,7 @@ class MockODESolver(ODESolver):
     """Euler method as an ODE solver."""
 
     def initialise(self):
-        return self.ivp.t0, self.ivp.y0
+        return self.ivp.t0, Constant(self.ivp.y0)
 
     def step(self, start, stop, current):
         h = stop - start
@@ -48,7 +48,7 @@ class ODESolverTestCase(unittest.TestCase):
 
         # quick check that the result is sensible
         self.assertAlmostEqual(odesol.locations[-1], self.solver.ivp.tmax)
-        self.assertAlmostEqual(odesol.states[-1].mean, 1.0, places=2)
+        self.assertAlmostEqual(odesol.states[-1].mean[0], 1.0, places=2)
 
 
 if __name__ == "__main__":
