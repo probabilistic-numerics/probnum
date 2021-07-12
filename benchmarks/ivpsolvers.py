@@ -26,16 +26,12 @@ class IVPSolve:
         self.stepsize = 1e-1
 
     def time_solve(self, method, algo_order):
-        f = self.ivp.rhs
-        df = self.ivp.jacobian
-        t0, tmax = self.ivp.timespan
-        y0 = self.ivp.initrv.mean
         probsolve_ivp(
-            f,
-            t0,
-            tmax,
-            y0,
-            df=df,
+            f=self.ivp.f,
+            t0=self.ivp.t0,
+            tmax=self.ivp.tmax,
+            y0=self.ivp.y0,
+            df=self.ivp.df,
             method=method,
             dense_output=True,
             algo_order=algo_order,
@@ -44,16 +40,12 @@ class IVPSolve:
         )
 
     def peakmem_solve(self, method, algo_order):
-        f = self.ivp.rhs
-        df = self.ivp.jacobian
-        t0, tmax = self.ivp.timespan
-        y0 = self.ivp.initrv.mean
         probsolve_ivp(
-            f,
-            t0,
-            tmax,
-            y0,
-            df=df,
+            f=self.ivp.f,
+            t0=self.ivp.t0,
+            tmax=self.ivp.tmax,
+            y0=self.ivp.y0,
+            df=self.ivp.df,
             method=method,
             dense_output=True,
             algo_order=algo_order,
