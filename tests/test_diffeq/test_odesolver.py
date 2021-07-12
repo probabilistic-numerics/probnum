@@ -2,7 +2,8 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq import ConstantSteps, ODESolution, ODESolver, logistic
+from probnum.diffeq import ConstantSteps, ODESolution, ODESolver
+from probnum.problems.zoo.diffeq import logistic
 from probnum.randvars import Constant
 
 
@@ -10,12 +11,12 @@ class MockODESolver(ODESolver):
     """Euler method as an ODE solver."""
 
     def initialise(self):
-        return self.ivp.t0, self.ivp.initrv
+        return self.ivp.t0, Constant(self.ivp.y0)
 
     def step(self, start, stop, current):
         h = stop - start
         x = current.mean
-        xnew = x + h * self.ivp(start, x)
+        xnew = x + h * self.ivp.f(start, x)
         return (
             Constant(xnew),
             np.nan,
@@ -33,8 +34,8 @@ class ODESolverTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        y0 = Constant(0.3)
-        ivp = logistic([0, 4], initrv=y0)
+        y0 = np.array([0.3])
+        ivp = logistic(t0=0, tmax=4, y0=y0)
         euler_order = 1
         self.solver = MockODESolver(ivp, order=euler_order)
         self.step = 0.2
@@ -47,7 +48,7 @@ class ODESolverTestCase(unittest.TestCase):
 
         # quick check that the result is sensible
         self.assertAlmostEqual(odesol.locations[-1], self.solver.ivp.tmax)
-        self.assertAlmostEqual(odesol.states[-1].mean, 1.0, places=2)
+        self.assertAlmostEqual(odesol.states[-1].mean[0], 1.0, places=2)
 
 
 if __name__ == "__main__":

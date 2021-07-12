@@ -5,9 +5,8 @@ from typing import Callable, Optional
 import numpy as np
 import scipy.linalg
 
-from probnum import filtsmooth, randprocs, randvars, statespace, utils
+from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
 
-from ..ode import IVP
 from ..odesolver import ODESolver
 from .initialize import (
     initialize_odefilter_with_rk,
@@ -53,7 +52,7 @@ class GaussianIVPFilter(ODESolver):
 
     def __init__(
         self,
-        ivp: IVP,
+        ivp: problems.InitialValueProblem,
         prior_process: randprocs.MarkovProcess,
         measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
@@ -168,11 +167,11 @@ class GaussianIVPFilter(ODESolver):
 
     def initialise(self):
         initrv = self.init_implementation(
-            self.ivp.rhs,
-            self.ivp.initrv.mean,
+            self.ivp.f,
+            self.ivp.y0,
             self.ivp.t0,
             self.prior_process,
-            self.ivp._jac,
+            self.ivp.df,
         )
 
         return self.ivp.t0, initrv

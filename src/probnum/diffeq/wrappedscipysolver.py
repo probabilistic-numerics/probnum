@@ -7,7 +7,7 @@ import numpy as np
 from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import diffeq, randvars
+from probnum import diffeq, problems, randvars
 from probnum.diffeq import wrappedscipyodesolution
 from probnum.typing import FloatArgType
 
@@ -21,10 +21,11 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         self.interpolants = None
 
         # ProbNum ODESolver needs an ivp
-        ivp = diffeq.IVP(
-            timespan=[self.solver.t, self.solver.t_bound],
-            initrv=randvars.Constant(self.solver.y),
-            rhs=self.solver._fun,
+        ivp = problems.InitialValueProblem(
+            t0=self.solver.t,
+            tmax=self.solver.t_bound,
+            y0=self.solver.y,
+            f=self.solver._fun,
         )
 
         # Dopri853 as implemented in SciPy computes the dense output differently.
@@ -51,9 +52,9 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         self.interpolants = []
         self.solver.y_old = None
         self.solver.t = self.ivp.t0
-        self.solver.y = self.ivp.initrv.mean
+        self.solver.y = self.ivp.y0
         self.solver.f = self.solver.fun(self.solver.t, self.solver.y)
-        return self.ivp.t0, self.ivp.initrv
+        return self.ivp.t0, randvars.Constant(self.ivp.y0)
 
     def step(
         self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs

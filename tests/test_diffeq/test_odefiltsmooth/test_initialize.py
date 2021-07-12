@@ -32,10 +32,10 @@ def order():
 
 @pytest.fixture
 def lv():
-    y0 = randvars.Constant(np.array([20.0, 20.0]))
+    y0 = np.array([20.0, 20.0])
 
     # tmax is ignored anyway
-    return diffeq.lotkavolterra([0.0, np.inf], y0)
+    return diffeq_zoo.lotkavolterra(t0=0.0, tmax=np.inf, y0=y0)
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def lv_inits(order):
 
 def test_initialize_with_rk(lv, lv_inits, order):
     """Make sure that the values are close(ish) to the truth."""
-    ode_dim = len(lv.initrv.mean)
+    ode_dim = len(lv.y0)
     prior = statespace.IBM(
         ordint=order,
         spatialdim=ode_dim,
@@ -65,11 +65,11 @@ def test_initialize_with_rk(lv, lv_inits, order):
         transition=prior, initrv=initrv, initarg=lv.t0
     )
     received_rv = diffeq.initialize_odefilter_with_rk(
-        lv.rhs,
-        lv.initrv.mean,
+        lv.f,
+        lv.y0,
         lv.t0,
         prior_process=prior_process,
-        df=lv.jacobian,
+        df=lv.df,
         h0=1e-1,
         method="RK45",
     )
