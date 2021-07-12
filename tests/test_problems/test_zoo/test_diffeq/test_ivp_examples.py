@@ -4,9 +4,18 @@ import pytest
 import probnum.problems as pnpr
 import probnum.problems.zoo.diffeq as diffeqzoo
 
-all_odes = pytest.mark.parametrize(
-    "ivp", [diffeqzoo.vanderpol(), diffeqzoo.threebody(), diffeqzoo.rigidbody()]
-)
+ODE_LIST = [
+    diffeqzoo.vanderpol(),
+    diffeqzoo.threebody(),
+    diffeqzoo.rigidbody(),
+    diffeqzoo.lotkavolterra(),
+    diffeqzoo.logistic(),
+    diffeqzoo.seir(),
+    diffeqzoo.fitzhughnagumo(),
+    diffeqzoo.lorenz(),
+]
+
+all_odes = pytest.mark.parametrize("ivp", ODE_LIST)
 
 
 @all_odes

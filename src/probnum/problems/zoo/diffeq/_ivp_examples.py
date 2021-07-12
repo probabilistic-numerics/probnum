@@ -259,7 +259,7 @@ def logistic(t0=0.0, tmax=2.0, y0=None, params=(3.0, 1.0)):
     )
 
 
-def fitzhughnagumo(t0=0.0, tmax=20.0, y0=None, params=(0.2, 0.2, 3.0)):
+def fitzhughnagumo(t0=0.0, tmax=20.0, y0=None, params=(0.2, 0.2, 3.0, 1.0)):
     r"""Initial value problem (IVP) based on the FitzHugh-Nagumo model.
 
     The FitzHugh-Nagumo (FHN) model is defined through
@@ -285,7 +285,7 @@ def fitzhughnagumo(t0=0.0, tmax=20.0, y0=None, params=(0.2, 0.2, 3.0)):
     y0
         *(shape=(2, ))* -- Initial value. Default is ``[1., -1.]``.
     params
-        Parameter of the FitzHugh-Nagumo model. Default is ``(0.2, 0.2, 3.0)``.
+        Parameter of the FitzHugh-Nagumo model. Default is ``(0.2, 0.2, 3.0, 1.0)``.
 
     Returns
     -------
@@ -407,6 +407,8 @@ def seir(t0=0.0, tmax=200.0, y0=None, params=(0.3, 0.3, 0.1)):
     """
     if y0 is None:
         y0 = np.array([998, 1, 1, 0])
+
+    params = params + (np.sum(y0),)
 
     def rhs(t, y, params=params):
         alpha, beta, gamma, population_count = params
