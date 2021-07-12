@@ -5,7 +5,7 @@ from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import diffeq, randvars
+from probnum import randvars
 from probnum.diffeq import odesolution, wrappedscipyodesolution, wrappedscipysolver
 
 

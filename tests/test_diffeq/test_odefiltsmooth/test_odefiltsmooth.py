@@ -2,9 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum.diffeq import ode
 from probnum.diffeq.odefiltsmooth import KalmanODESolution, probsolve_ivp
-from probnum.randvars import Constant
 
 
 @pytest.fixture
