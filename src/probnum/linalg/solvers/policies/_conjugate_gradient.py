@@ -14,7 +14,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
     """
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> np.ndarray:
 
         action = -solver_state.residual.copy()

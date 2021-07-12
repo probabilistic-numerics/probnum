@@ -13,7 +13,7 @@ class RandomUnitVectorPolicy(_linear_solver_policy.LinearSolverPolicy):
     """
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> np.ndarray:
 
         n = solver_state.problem.A.shape[1]

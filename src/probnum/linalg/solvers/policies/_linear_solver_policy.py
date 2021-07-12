@@ -20,7 +20,7 @@ class LinearSolverPolicy(abc.ABC):
     """
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> np.ndarray:
         """Return an action for a given solver state.
 

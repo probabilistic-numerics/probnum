@@ -51,7 +51,7 @@ def problinsolve(
     "randvars.RandomVariable[linops.LinearOperator]",
     Dict,
 ]:
-    r"""Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
+    r"""Solve the linear system :math:`A x = b` in a Bayesian framework.
 
     Probabilistic linear solvers infer solutions to problems of the form
 
@@ -59,11 +59,11 @@ def problinsolve(
 
     where :math:`A \in \mathbb{R}^{n \times n}` and :math:`b \in \mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
-    from finite computational resources. This solver can take prior information either
-    on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in the form of a
-    random variable ``A0`` or ``Ainv0`` and outputs a posterior belief over :math:`A` or
-    :math:`H`. This code implements the method described in Wenger et al. [1]_ based on
-    the work in Hennig et al. [2]_.
+    from finite computational resources or stochastic input. This solver can take prior
+    information either on the linear operator :math:`A` or its inverse :math:`H=A^{
+    -1}` in the form of a random variable ``A0`` or ``Ainv0`` and outputs a posterior
+    belief about :math:`A` or :math:`H`. This code implements the method described in
+    Wenger et al. [1]_ based on the work in Hennig et al. [2]_.
 
     Parameters
     ----------
@@ -72,19 +72,14 @@ def problinsolve(
         products :math:`v \mapsto Av` are used internally.
     b :
         *shape=(n, ) or (n, nrhs)* -- Right-hand side vector, matrix or random
-        variable in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems
-        are solved sequentially with the posteriors over the matrices acting as priors
-        for subsequent solves. If the right-hand-side is assumed to be noisy, every
-        iteration of the solver samples a realization from ``b``.
+        variable in :math:`A x = b`.
     A0 :
         *shape=(n, n)* -- A square matrix, linear operator or random variable
-        representing the prior belief over the linear operator :math:`A`. If an array or
-        linear operator is given, a prior distribution is chosen automatically.
+        representing the prior belief about the linear operator :math:`A`.
     Ainv0 :
         *shape=(n, n)* -- A square matrix, linear operator or random variable
-        representing the prior belief over the inverse :math:`H=A^{-1}`. This can be
-        viewed as taking the form of a preconditioner. If an array or linear operator
-        is given, a prior distribution is chosen automatically.
+        representing the prior belief about the inverse :math:`H=A^{-1}`. This can be
+        viewed as a preconditioner.
     x0 :
         *shape=(n, ) or (n, nrhs)* -- Prior belief for the solution of the linear
         system. Will be ignored if ``Ainv0`` is given.

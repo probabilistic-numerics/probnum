@@ -8,36 +8,12 @@ import warnings
 
 import numpy as np
 
-import probnum
 from probnum import linops, randvars
 
 # pylint: disable="too-many-branches,too-many-lines,too-complex,too-many-statements,redefined-builtin,arguments-differ,abstract-method,unused-argument"
 
 
-class ProbabilisticLinearSolver(abc.ABC):
-    """An abstract base class for probabilistic linear solvers.
-
-    This class is designed to be subclassed with new (probabilistic) linear solvers,
-    which implement a ``.solve()`` method. Objects of this type are instantiated in
-    wrapper functions such as :meth:``problinsolve``.
-
-    Parameters
-    ----------
-    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
-        A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~randvars.RandomVariable`. If an array or linear operator is given,
-        a prior distribution is chosen automatically.
-    b : RandomVariable, shape=(n,) or (n, nrhs)
-        Right-hand side vector, matrix or RandomVariable of :math:`A x = b`.
-    """
-
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-        self.n = A.shape[1]
-
-
-class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
+class MatrixBasedSolver(abc.ABC):
     """Abstract class for matrix-based probabilistic linear solvers.
 
     Parameters
@@ -55,7 +31,9 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
 
     def __init__(self, A, b, x0=None):
         self.x0 = x0
-        super().__init__(A=A, b=b)
+        self.A = A
+        self.b = b
+        self.n = A.shape[1]
 
     def _get_prior_params(self, A0, Ainv0, x0, b):
         """Find the parameters of the prior distribution.
