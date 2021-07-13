@@ -13,7 +13,7 @@ class TestContinuousUKFComponent:
     def test_notimplementederror(self):
         sde = statespace.SDE(1, None, None, None)  # content is irrelevant.
         with pytest.raises(NotImplementedError):
-            filtsmooth.ContinuousUKFComponent(sde)
+            filtsmooth.gaussian.approx.ContinuousUKFComponent(sde)
 
 
 class TestDiscreteUKFComponent(InterfaceDiscreteLinearizationTest):
@@ -22,4 +22,4 @@ class TestDiscreteUKFComponent(InterfaceDiscreteLinearizationTest):
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.linearizing_component = filtsmooth.DiscreteUKFComponent
+        self.linearizing_component = filtsmooth.gaussian.approx.DiscreteUKFComponent
