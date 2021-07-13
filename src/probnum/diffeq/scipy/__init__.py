@@ -1,6 +1,5 @@
 """Scipy wrappers into the ODESolver and ODESolution interfaces."""
 
-
 from ._wrapped_scipy_odesolution import WrappedScipyODESolution
 from ._wrapped_scipy_solver import WrappedScipyRungeKutta
 
