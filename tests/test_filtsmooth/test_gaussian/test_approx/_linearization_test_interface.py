@@ -85,7 +85,7 @@ class InterfaceDiscreteLinearizationTest:
         prior_process = randprocs.MarkovProcess(
             transition=ekf_dyna, initrv=initrv, initarg=regression_problem.locations[0]
         )
-        method = filtsmooth.Kalman(prior_process)
+        method = filtsmooth.gaussian.Kalman(prior_process)
 
         # Compute filter/smoother solution
         posterior, _ = method.filtsmooth(regression_problem)
@@ -149,7 +149,7 @@ class InterfaceContinuousLinearizationTest:
         prior_process = randprocs.MarkovProcess(
             transition=ekf_dyna, initrv=initrv, initarg=regression_problem.locations[0]
         )
-        method = filtsmooth.Kalman(prior_process)
+        method = filtsmooth.gaussian.Kalman(prior_process)
 
         # Compute filter/smoother solution
         posterior, _ = method.filter(regression_problem)
