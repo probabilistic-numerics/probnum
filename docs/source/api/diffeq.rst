@@ -11,5 +11,4 @@ probnum.diffeq
 
     diffeq/odefiltsmooth
     diffeq/perturbed
-    diffeq/scipy
     diffeq/stepsize

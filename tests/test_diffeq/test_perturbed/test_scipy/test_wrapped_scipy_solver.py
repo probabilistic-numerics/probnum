@@ -165,7 +165,6 @@ def test_rvlist_to_odesol(times, dense_output, list_of_randvars):
     probnum_solution = diffeq.perturbed.scipy_wrapper.WrappedScipyODESolution(
         scipy_sol, list_of_randvars
     )
-    print(type(probnum_solution))
     assert isinstance(
         probnum_solution, diffeq.perturbed.scipy_wrapper.WrappedScipyODESolution
     )

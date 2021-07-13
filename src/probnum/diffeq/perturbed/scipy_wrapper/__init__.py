@@ -8,5 +8,5 @@ __all__ = ["WrappedScipyRungeKutta", "WrappedScipyODESolution"]
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
-WrappedScipyRungeKutta.__module__ = "probnum.diffeq.scipy"
-WrappedScipyODESolution.__module__ = "probnum.diffeq.scipy"
+WrappedScipyRungeKutta.__module__ = "probnum.diffeq.perturbed.scipy_wrapper"
+WrappedScipyODESolution.__module__ = "probnum.diffeq.perturbed.scipy_wrapper"

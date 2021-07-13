@@ -9,8 +9,8 @@ from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import problems, randvars
 from probnum.typing import FloatArgType
-from src.probnum.diffeq._odesolver import ODESolver
 
+from ..._odesolver import ODESolver
 from ._wrapped_scipy_odesolution import WrappedScipyODESolution
 
 

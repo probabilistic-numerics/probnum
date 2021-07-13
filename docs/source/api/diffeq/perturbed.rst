@@ -9,3 +9,4 @@ probnum.diffeq.perturbed
     :hidden:
 
     perturbed/step/
+    perturbed/scipy_wrapper/
