@@ -1,0 +1,82 @@
+from docutils import nodes
+from docutils.statemachine import StringList
+from sphinx.util.docutils import SphinxDirective, switch_source_input
+
+import probnum as pn
+
+
+class ProbNumConfigOptions(SphinxDirective):
+    def run(self):
+        table = nodes.table(
+            "",
+            classes=[
+                "longtable",
+                "colwidths-auto",
+                # "colwidths-given",
+            ],
+        )
+
+        group = nodes.tgroup("", cols=3)
+        table.append(group)
+        group.append(nodes.colspec("", colwidth=35))
+        group.append(nodes.colspec("", colwidth=15))
+        group.append(nodes.colspec("", colwidth=50))
+
+        thead = nodes.thead("")
+        group.append(thead)
+
+        headrow = nodes.row("")
+        thead.append(headrow)
+
+        headrow.append(nodes.entry("", nodes.paragraph(text="Config Option")))
+        headrow.append(nodes.entry("", nodes.paragraph(text="Default Value")))
+        headrow.append(nodes.entry("", nodes.paragraph(text="Description")))
+
+        tbody = nodes.tbody("")
+        group.append(tbody)
+
+        for key, value in pn.config.__dict__.items():
+            row = nodes.row("")
+            tbody.append(row)
+
+            default_value = value
+            description = (  # TODO: Read this from the configuration registry
+                "A (typically small) value that is per default added to the diagonal "
+                "of covariance matrices in order to make inversion numerically stable."
+            )
+
+            row.append(nodes.entry("", nodes.literal(text=key)))
+            row.append(nodes.entry("", nodes.literal(text=repr(default_value))))
+            row.append(nodes.entry("", self._parse_string(description)))
+
+        return [table]
+
+    def _parse_string(self, s: str):
+        """Adapted from https://github.com/sphinx-doc/sphinx/blob/5559e5af1ff6f5fc2dc70679bdd6dc089cfff388/sphinx/ext/autosummary/__init__.py#L425"""
+        node = nodes.paragraph("")
+
+        vl = StringList()
+
+        source, line = self.state_machine.get_source_and_line()
+        vl.append(s, f"{source}:{line}:<probnum-config-options>")
+
+        with switch_source_input(self.state, vl):
+            self.state.nested_parse(vl, 0, node)
+
+            try:
+                if isinstance(node[0], nodes.paragraph):
+                    node = node[0]
+            except IndexError:
+                pass
+
+        return node
+
+
+def setup(app):
+    app.add_directive("probnum-config-options", ProbNumConfigOptions)
+
+    return {
+        "version": "0.1",
+        "parallel_read_safe": True,
+        "parallel_write_safe": True,
+    }

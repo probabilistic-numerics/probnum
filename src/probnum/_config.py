@@ -12,16 +12,7 @@ class Configuration:
     :meth:`register`. Configuration entries can only be registered once and can only
     be used (accessed or overwritten) once they have been registered.
 
-    +----------------------------------+---------------+----------------------------------------------+
-    | Config entry                     | Default value | Description                                  |
-    +==================================+===============+==============================================+
-    | ``covariance_inversion_damping`` | ``1e-12``     | A (typically small) value that is per        |
-    |                                  |               | default added to the diagonal of covariance  |
-    |                                  |               | matrices in order to make inversion          |
-    |                                  |               | numerically stable.                          |
-    +----------------------------------+---------------+----------------------------------------------+
-    | ``...``                          | ``...``       | ...                                          |
-    +----------------------------------+---------------+----------------------------------------------+
+    .. probnum-config-options::
 
     Examples
     ========
