@@ -7,7 +7,7 @@ import scipy.linalg
 import scipy.sparse
 import scipy.stats
 
-from probnum import linops, randvars
+from probnum import config, linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
@@ -450,6 +450,23 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         with self.subTest("Cholesky is precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_damping_factor_config(self):
+        mean, cov = self.params
+        rv = randvars.Normal(mean, cov)
+
+        chol_standard_damping = rv.dense_cov_cholesky(damping_factor=None)
+        self.assertAllClose(
+            chol_standard_damping,
+            np.sqrt(rv.cov + 1e-12),
+        )
+
+        with config(covariance_inversion_damping=1e-3):
+            chol_altered_damping = rv.dense_cov_cholesky(damping_factor=None)
+            self.assertAllClose(
+                chol_altered_damping,
+                np.sqrt(rv.cov + 1e-3),
+            )
 
     def test_cov_cholesky_cov_cholesky_passed(self):
         """A value for cov_cholesky is passed in init.

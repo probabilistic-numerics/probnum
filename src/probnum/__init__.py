@@ -9,6 +9,15 @@ resources and stochastic input.
 
 from pkg_resources import DistributionNotFound, get_distribution
 
+from . import _config
+
+# Global Configuration
+from ._config import _GLOBAL_CONFIG_SINGLETON as config
+
+"""The global configuration registry. Can be used as a context manager to create local
+contexts in which configuration is temporarily overwritten. This object contains
+unguarded global state and is hence not thread-safe!"""
+
 from . import (
     diffeq,
     filtsmooth,
