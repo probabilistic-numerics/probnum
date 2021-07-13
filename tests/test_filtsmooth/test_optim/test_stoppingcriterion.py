@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-import probnum.filtsmooth as pnfs
+from probnum import filtsmooth
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def maxit():
 
 @pytest.fixture
 def stopcrit():
-    return pnfs.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
+    return filtsmooth.optim.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
 
 def test_continue(stopcrit, d1, d2):

@@ -11,7 +11,7 @@ def setup(request):
     problem = request.param
     regression_problem, info = problem()
 
-    kalman = filtsmooth.Kalman(
+    kalman = filtsmooth.gaussian.Kalman(
         info["prior_process"],
     )
     return (kalman, regression_problem)
@@ -24,7 +24,7 @@ def test_rmse_filt_smooth(setup):
     kalman, regression_problem = setup
     truth = regression_problem.solution
 
-    stopcrit = filtsmooth.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
+    stopcrit = filtsmooth.optim.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
     posterior, _ = kalman.filter(regression_problem)
     posterior = kalman.smooth(posterior)
