@@ -9,7 +9,9 @@ class TestUnscentedTransform(unittest.TestCase):
     def setUp(self):
         self.ndim = np.random.randint(1, 33)  # 1 < random int < 33
         alpha, beta, kappa = np.random.rand(3)
-        self.ut = filtsmooth.UnscentedTransform(self.ndim, alpha, beta, kappa)
+        self.ut = filtsmooth.gaussian.approx.UnscentedTransform(
+            self.ndim, alpha, beta, kappa
+        )
         self.mean = np.random.rand(self.ndim)
         cvr = np.random.rand(self.ndim, self.ndim)
         self.covar = cvr @ cvr.T
