@@ -1,48 +1,22 @@
 """Differential Equations.
 
-This package defines common dynamical models and probabilistic solvers
-for differential equations.
+This package defines probabilistic solvers for differential equations.
 """
 
-from .odefiltsmooth import (
-    GaussianIVPFilter,
-    KalmanODESolution,
-    initialize_odefilter_with_rk,
-    initialize_odefilter_with_taylormode,
-    probsolve_ivp,
-)
-from .odesolution import ODESolution
-from .odesolver import ODESolver
-from .perturbedsolvers import (
-    PerturbedStepSolution,
-    PerturbedStepSolver,
-    perturb_lognormal,
-    perturb_uniform,
-)
-from .steprule import AdaptiveSteps, ConstantSteps, StepRule, propose_firststep
-from .wrappedscipysolver import WrappedScipyRungeKutta
+# Publicly visible subpackage "perturbed" needs to be imported here
+# Without this line, a double-subpackage import as in
+#     import diffeq
+#     solver = diffeq.perturbed.step.PerturbedStepSolver(...)
+# does not work.
+from . import perturbed
+from ._odesolution import ODESolution
+from ._odesolver import ODESolver
+from ._probsolve_ivp import probsolve_ivp
 
-# Public classes and functions. Order is reflected in documentation.
-__all__ = [
-    "probsolve_ivp",
-    "ODESolver",
-    "GaussianIVPFilter",
-    "StepRule",
-    "ConstantSteps",
-    "AdaptiveSteps",
-    "ODESolution",
-    "KalmanODESolution",
-    "propose_firststep",
-    "initialize_odefilter_with_rk",
-    "initialize_odefilter_with_taylormode",
-    "PerturbedStepSolver",
-    "PerturbedStepSolution",
-    "WrappedScipyRungeKutta",
-    "perturb_lognormal",
-    "perturb_uniform",
-]
+__all__ = ["probsolve_ivp", "ODESolver", "ODESolution"]
+
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
 ODESolver.__module__ = "probnum.diffeq"
-StepRule.__module__ = "probnum.diffeq"
+ODESolution.__module__ = "probnum.diffeq"
