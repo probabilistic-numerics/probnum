@@ -16,7 +16,7 @@ def problem(rng):
 def setup(problem):
     """Filter and regression problem."""
     regression_problem, info = problem
-    kalman = filtsmooth.Kalman(
+    kalman = filtsmooth.gaussian.Kalman(
         info["prior_process"],
     )
 
@@ -45,7 +45,7 @@ def test_append(posterior):
 
     # Copy posterior such that random appends to the posterior object do not influence
     # later tests
-    copied_posterior = filtsmooth.SmoothingPosterior(
+    copied_posterior = filtsmooth.gaussian.SmoothingPosterior(
         filtering_posterior=posterior.filtering_posterior,
         transition=posterior.transition,
         locations=posterior.locations.copy(),
@@ -189,7 +189,7 @@ def test_sampling_shapes_1d(locs, size):
     prior_process = randprocs.MarkovProcess(
         transition=prior, initrv=initrv, initarg=locations[0]
     )
-    kalman = filtsmooth.Kalman(prior_process)
+    kalman = filtsmooth.gaussian.Kalman(prior_process)
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=data, measurement_models=measmod, locations=locations
     )

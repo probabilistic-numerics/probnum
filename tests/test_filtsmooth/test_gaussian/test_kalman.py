@@ -13,7 +13,7 @@ def setup(request, rng):
     problem = request.param
     regression_problem, info = problem(rng=rng)
 
-    kalman = filtsmooth.Kalman(info["prior_process"])
+    kalman = filtsmooth.gaussian.Kalman(info["prior_process"])
     return kalman, regression_problem
 
 
@@ -65,7 +65,7 @@ def test_kalman_smoother_high_order_ibm(rng):
     )
     truth = regression_problem.solution
 
-    kalman = filtsmooth.Kalman(info["prior_process"])
+    kalman = filtsmooth.gaussian.Kalman(info["prior_process"])
 
     posterior, _ = kalman.filtsmooth(regression_problem)
 
@@ -89,7 +89,7 @@ def test_kalman_multiple_measurement_models(rng):
         backward_implementation="sqrt",
     )
     truth = regression_problem.solution
-    kalman = filtsmooth.Kalman(info["prior_process"])
+    kalman = filtsmooth.gaussian.Kalman(info["prior_process"])
 
     posterior, _ = kalman.filtsmooth(regression_problem)
 
@@ -112,7 +112,7 @@ def test_kalman_value_error_repeating_timepoints(rng):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    kalman = filtsmooth.Kalman(info["prior_process"])
+    kalman = filtsmooth.gaussian.Kalman(info["prior_process"])
 
     # This should raise a ValueError
     regression_problem.locations[1] = regression_problem.locations[0]
