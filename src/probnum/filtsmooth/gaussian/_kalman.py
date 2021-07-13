@@ -6,12 +6,12 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import problems, statespace
+from src.probnum.filtsmooth.optim._stoppingcriterion import StoppingCriterion
 
 from .._bayesfiltsmooth import BayesFiltSmooth
 from .._timeseriesposterior import TimeSeriesPosterior
 from ._extendedkalman import DiscreteEKFComponent
 from ._kalmanposterior import FilteringPosterior, SmoothingPosterior
-from ._stoppingcriterion import StoppingCriterion
 from ._unscentedkalman import DiscreteUKFComponent
 
 # Measurement models for a Kalman filter can be all sorts of things:
