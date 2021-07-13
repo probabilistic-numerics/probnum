@@ -2,10 +2,14 @@
 
 import abc
 
+from ._stoppingcriterion import StoppingCriterion
+
 
 class StateSpaceOptimizer(abc.ABC):
-    def __init__(self, prior_process, stopping_criterion):
-        self.prior_process = prior_process
+    def __init__(self, kalman, stopping_criterion=None):
+        self.kalman = kalman
+        if stopping_criterion is None:
+            stopping_criterion = StoppingCriterion()
         self.stopping_criterion = stopping_criterion
 
     def solve(self, regression_problem, initial_guess):

@@ -14,6 +14,7 @@ def setup(request):
     kalman = filtsmooth.gaussian.Kalman(
         info["prior_process"],
     )
+    gauss_newton = filtsmooth.optim.GaussNewton(kalman)
     return (kalman, regression_problem)
 
 

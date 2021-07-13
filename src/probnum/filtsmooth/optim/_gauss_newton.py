@@ -5,7 +5,6 @@ import numpy as np
 
 from probnum import problems, statespace
 
-from . import gaussian
 from ._state_space_optimizer import StateSpaceOptimizer
 
 LinearizationStrategyType = Callable[
@@ -21,18 +20,19 @@ class GaussNewton(StateSpaceOptimizer):
 
     def __init__(
         self,
-        prior_process,
-        stopping_criterion,
         linearization_strategy: LinearizationStrategyType,
+        kalman,
+        stopping_criterion=None,
     ):
-        super().__init__(
-            prior_process=prior_process, stopping_criterion=stopping_criterion
-        )
+        super().__init__(kalman=kalman, stopping_criterion=stopping_criterion)
 
         self.linearization_strategy = linearization_strategy
 
         # The heavy lifting happens with an underlying Kalman filter.
-        self._kalman = gaussian.Kalman(prior_process=prior_process)
+        self.kalman = kalman
+
+    def from_local_linearization(self, kalman, stopping_criterion=None):
+        pass
 
     def solution_generator(self, regression_problem, initial_guess):
 
