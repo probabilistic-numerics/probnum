@@ -16,7 +16,7 @@ class TestDiscreteEKFComponent(InterfaceDiscreteLinearizationTest):
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.linearizing_component = filtsmooth.DiscreteEKFComponent
+        self.linearizing_component = filtsmooth.gaussian.approx.DiscreteEKFComponent
 
 
 class TestContinuousEKFComponent(InterfaceContinuousLinearizationTest):
@@ -25,4 +25,4 @@ class TestContinuousEKFComponent(InterfaceContinuousLinearizationTest):
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.linearizing_component = filtsmooth.ContinuousEKFComponent
+        self.linearizing_component = filtsmooth.gaussian.approx.ContinuousEKFComponent
