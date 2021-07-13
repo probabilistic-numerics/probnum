@@ -128,7 +128,7 @@ class KalmanODESolution(ODESolution):
     @property
     def filtering_solution(self):
 
-        if isinstance(self.kalman_posterior, filtsmooth.FilteringPosterior):
+        if isinstance(self.kalman_posterior, filtsmooth.gaussian.FilteringPosterior):
             return self
 
         # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.

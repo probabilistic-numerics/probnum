@@ -1,6 +1,7 @@
 """Previously, this module contained the tests for functions in the
-`diffeq.odefiltsmooth.ivp2filter` module, since this module has become obsolete, we test
-its replacement (`GaussianIVPFilter.string_to_measurement_model`) here.
+`diffeq.odefiltsmooth.gaussian.ivp2filter` module, since this module has become
+obsolete, we test its replacement (`GaussianIVPFilter.string_to_measurement_model`)
+here.
 
 They need different fixtures anyway.
 """
@@ -36,8 +37,8 @@ def prior(ivp):
 @pytest.mark.parametrize(
     "string, expected_type",
     [
-        ("EK0", filtsmooth.DiscreteEKFComponent),
-        ("EK1", filtsmooth.DiscreteEKFComponent),
+        ("EK0", filtsmooth.gaussian.approx.DiscreteEKFComponent),
+        ("EK1", filtsmooth.gaussian.approx.DiscreteEKFComponent),
     ],
 )
 def test_output_type(string, expected_type, ivp, prior):
