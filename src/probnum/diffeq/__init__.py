@@ -3,8 +3,11 @@
 This package defines probabilistic solvers for differential equations.
 """
 
-# Publicly visible subpackage: "perturbed" needs to be imported here
-# Without this line, a double-subpackage import does not work?!
+# Publicly visible subpackage "perturbed" needs to be imported here
+# Without this line, a double-subpackage import as in
+#     import diffeq
+#     solver = diffeq.perturbed.step.PerturbedStepSolver(...)
+# does not work.
 from . import perturbed
 from ._odesolution import ODESolution
 from ._odesolver import ODESolver
