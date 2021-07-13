@@ -1,12 +1,12 @@
 """Discrete transitions."""
 import typing
+from functools import lru_cache
 from typing import Callable, Optional, Tuple
 
 import numpy as np
 import scipy.linalg
 
-from probnum import config as probnum_config
-from probnum import linops, randvars
+from probnum import config, linops, randvars
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
@@ -15,17 +15,8 @@ from .discrete_transition_utils import condition_state_on_rv
 
 try:
     # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property, lru_cache
+    from functools import cached_property
 except ImportError:
-    from functools import lru_cache
-
-    from cached_property import cached_property
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property, lru_cache
-except ImportError:
-    from functools import lru_cache
 
     from cached_property import cached_property
 
@@ -335,7 +326,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            if probnum_config.statespace_use_linops:
+            if config.statespace_use_linops:
                 gain = (new_cov.T.inv() @ crosscov.T).T
             else:
                 gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
@@ -346,7 +337,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         self, rv, t, compute_gain=False, _diffusion=1.0
     ) -> Tuple[randvars.RandomVariable, typing.Dict]:
 
-        if probnum_config.statespace_use_linops:
+        if config.statespace_use_linops:
             raise RuntimeError("Sqrt-implementation does not work with linops for now.")
 
         H = self.state_trans_mat_fun(t)
@@ -384,7 +375,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         """
         # forwarded_rv is ignored in square-root smoothing.
 
-        if probnum_config.statespace_use_linops:
+        if config.statespace_use_linops:
             raise RuntimeError("Sqrt-implementation does not work with linops for now.")
 
         # Smoothing updates need the gain, but
