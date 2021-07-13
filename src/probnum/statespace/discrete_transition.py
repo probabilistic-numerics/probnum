@@ -335,7 +335,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         info = {"crosscov": crosscov}
         if compute_gain:
             # gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
-            gain = crosscov @ new_cov.inv()
+            gain = (new_cov.T.inv() @ crosscov.T).T
             info["gain"] = gain
         return randvars.Normal(new_mean, cov=new_cov), info
 
