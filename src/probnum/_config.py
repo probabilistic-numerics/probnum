@@ -12,16 +12,16 @@ class Configuration:
     :meth:`register`. Configuration entries can only be registered once and can only
     be used (accessed or overwritten) once they have been registered.
 
-    +----------------------------------+----------------------------------------------+
-    | Config entry                     | Description                                  |
-    +==================================+==============================================+
-    | ``covariance_inversion_damping`` | A (typically small) value that is per        |
-    |                                  | default added to the diagonal of covariance  |
-    |                                  | matrices in order to make inversion          |
-    |                                  | numerically stable. Default: ``1e-12``       |
-    +----------------------------------+----------------------------------------------+
-    | ``...``                          | ...                                          |
-    +----------------------------------+----------------------------------------------+
+    +----------------------------------+---------------+----------------------------------------------+
+    | Config entry                     | Default value | Description                                  |
+    +==================================+===============+==============================================+
+    | ``covariance_inversion_damping`` | ``1e-12``     | A (typically small) value that is per        |
+    |                                  |               | default added to the diagonal of covariance  |
+    |                                  |               | matrices in order to make inversion          |
+    |                                  |               | numerically stable.                          |
+    +----------------------------------+---------------+----------------------------------------------+
+    | ``...``                          | ``...``       | ...                                          |
+    +----------------------------------+---------------+----------------------------------------------+
 
     Examples
     ========
@@ -68,6 +68,16 @@ class Configuration:
         self.__dict__[key] = value
 
     def register(self, key: str, default_value: Any) -> None:
+        """Register new configuration option.
+
+        Parameters
+        ----------
+        key:
+            The name of the configuration option. This will be the ``key`` when calling
+            ``with config(key=<some_value>): ...``.
+        default_value:
+            The default value of the configuration option.
+        """
         if hasattr(self, key):
             raise KeyError(
                 f"Configuration entry {key} does already exist and "
