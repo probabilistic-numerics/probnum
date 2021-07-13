@@ -127,6 +127,15 @@ _DEFAULT_CONFIG_OPTIONS = [
             "of covariance matrices in order to make inversion numerically stable."
         ),
     ),
+    (
+        "statespace_use_linops",
+        False,
+        (
+            "Whether or not to use ``LinearOperator``s for computations in "
+            "``statespace``. If ``True``, wherever possible, lazy computations are "
+            "preferred."
+        ),
+    ),
 ]
 
 # ... and register the default configuration options.

@@ -11,6 +11,7 @@ except ImportError:
 import numpy as np
 import scipy.special  # for vectorised factorial
 
+from probnum import config as probnum_config
 from probnum import linops
 
 
@@ -56,10 +57,12 @@ class NordsieckLikeCoordinates(Preconditioner):
 
     def __call__(self, step):
         scaling_vector = np.abs(step) ** self.powers / self.scales
-        # return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
-        return linops.Kronecker(
-            A=linops.Identity(self.spatialdim), B=linops.Scaling(factors=scaling_vector)
-        )
+        if probnum_config.statespace_use_linops:
+            return linops.Kronecker(
+                A=linops.Identity(self.spatialdim),
+                B=linops.Scaling(factors=scaling_vector),
+            )
+        return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
 
     @cached_property
     def inverse(self) -> "NordsieckLikeCoordinates":

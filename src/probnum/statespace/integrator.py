@@ -13,6 +13,7 @@ import scipy.sparse
 import scipy.special
 
 import probnum.typing as pntype
+from probnum import config as probnum_config
 from probnum import linops, randvars
 
 from . import discrete_transition, sde
@@ -185,16 +186,14 @@ class IBM(Integrator, sde.LTISDE):
     @cached_property
     def _driftmat(self):
         driftmat_1d = np.diag(np.ones(self.ordint), 1)
-        # driftmat_1d = scipy.sparse.diags(np.ones(self.ordint), offsets=1)
-        # return np.kron(np.eye(self.spatialdim), driftmat_1d)
-        return linops.Kronecker(
-            A=linops.Identity(self.spatialdim), B=linops.Matrix(A=driftmat_1d)
-        )
+        if probnum_config.statespace_use_linops:
+            return linops.Kronecker(
+                A=linops.Identity(self.spatialdim), B=linops.Matrix(A=driftmat_1d)
+            )
+        return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
     @cached_property
     def _forcevec(self):
-        # force_1d = np.zeros(self.ordint + 1)
-        # return np.kron(np.ones(self.spatialdim), force_1d)
         return np.zeros((self.spatialdim * (self.ordint + 1)))
 
     @cached_property
@@ -202,12 +201,12 @@ class IBM(Integrator, sde.LTISDE):
         dispmat_1d = np.zeros(self.ordint + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
 
-        # return np.kron(np.eye(self.spatialdim), dispmat_1d).T
-
-        return linops.Kronecker(
-            A=linops.Identity(self.spatialdim),
-            B=linops.Matrix(A=dispmat_1d.reshape(-1, 1)),
-        )
+        if probnum_config.statespace_use_linops:
+            return linops.Kronecker(
+                A=linops.Identity(self.spatialdim),
+                B=linops.Matrix(A=dispmat_1d.reshape(-1, 1)),
+            )
+        return np.kron(np.eye(self.spatialdim), dispmat_1d).T
 
     @cached_property
     def equivalent_discretisation_preconditioned(self):
@@ -223,25 +222,32 @@ class IBM(Integrator, sde.LTISDE):
         state_transition_1d = np.flip(
             scipy.linalg.pascal(self.ordint + 1, kind="lower", exact=False)
         )
-        # state_transition = np.kron(np.eye(self.spatialdim), state_transition_1d)
-        state_transition = linops.Kronecker(
-            A=linops.Identity(self.spatialdim), B=linops.aslinop(state_transition_1d)
-        )
+        if probnum_config.statespace_use_linops:
+            state_transition = linops.Kronecker(
+                A=linops.Identity(self.spatialdim),
+                B=linops.aslinop(state_transition_1d),
+            )
+        else:
+            state_transition = np.kron(np.eye(self.spatialdim), state_transition_1d)
         process_noise_1d = np.flip(scipy.linalg.hilbert(self.ordint + 1))
-        # process_noise = np.kron(np.eye(self.spatialdim), process_noise_1d)
-        process_noise = linops.Kronecker(
-            A=linops.Identity(self.spatialdim), B=linops.aslinop(process_noise_1d)
-        )
+        if probnum_config.statespace_use_linops:
+            process_noise = linops.Kronecker(
+                A=linops.Identity(self.spatialdim), B=linops.aslinop(process_noise_1d)
+            )
+        else:
+            process_noise = np.kron(np.eye(self.spatialdim), process_noise_1d)
         empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
 
         process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
-        # process_noise_cholesky = np.kron(
-        #     np.eye(self.spatialdim), process_noise_cholesky_1d
-        # )
-        process_noise_cholesky = linops.Kronecker(
-            A=linops.Identity(self.spatialdim),
-            B=linops.aslinop(process_noise_cholesky_1d),
-        )
+        if probnum_config.statespace_use_linops:
+            process_noise_cholesky = linops.Kronecker(
+                A=linops.Identity(self.spatialdim),
+                B=linops.aslinop(process_noise_cholesky_1d),
+            )
+        else:
+            process_noise_cholesky = np.kron(
+                np.eye(self.spatialdim), process_noise_cholesky_1d
+            )
 
         return discrete_transition.DiscreteLTIGaussian(
             state_trans_mat=state_transition,

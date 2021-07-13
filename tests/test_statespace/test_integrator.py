@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.statespace as pnss
-from probnum import randvars
+from probnum import config as probnum_config
+from probnum import randvars, statespace
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 from .test_sde import TestLTISDE
@@ -22,7 +22,7 @@ class TestIntegrator:
     @pytest.fixture(autouse=True)
     def _setup(self, some_ordint):
         self.some_ordint = some_ordint
-        self.integrator = pnss.Integrator(ordint=self.some_ordint, spatialdim=1)
+        self.integrator = statespace.Integrator(ordint=self.some_ordint, spatialdim=1)
 
     def test_proj2coord(self):
         base = np.zeros(self.some_ordint + 1)
@@ -39,7 +39,7 @@ class TestIntegrator:
 
     def test_precon(self):
 
-        assert isinstance(self.integrator.precon, pnss.NordsieckLikeCoordinates)
+        assert isinstance(self.integrator.precon, statespace.NordsieckLikeCoordinates)
 
 
 class TestIBM(TestLTISDE, TestIntegrator):
@@ -55,7 +55,7 @@ class TestIBM(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnss.IBM(
+        self.transition = statespace.IBM(
             ordint=self.some_ordint,
             spatialdim=spatialdim,
             forward_implementation=forw_impl_string_linear_gauss,
@@ -74,6 +74,54 @@ class TestIBM(TestLTISDE, TestIntegrator):
         return self.transition
 
 
+class TestIBMLinOps(TestLTISDE, TestIntegrator):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        some_ordint,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+        self.some_ordint = some_ordint
+        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
+        with probnum_config(statespace_use_linops=True):
+            self.transition = statespace.IBM(
+                ordint=self.some_ordint,
+                spatialdim=spatialdim,
+                forward_implementation=forw_impl_string_linear_gauss,
+                backward_implementation=backw_impl_string_linear_gauss,
+            )
+
+        self.G = lambda t: self.transition.driftmat
+        self.v = lambda t: self.transition.forcevec
+        self.L = lambda t: self.transition.dispmat
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    @property
+    def integrator(self):
+        return self.transition
+
+    def test_dispersionmatrix(self):
+        expected = self.L(0.0)
+        received = self.transition.dispmatfun(0.0)
+        np.testing.assert_allclose(received.todense(), expected.todense())
+
+    def test_jacobfun(self, some_normal_rv1):
+        expected = self.dg(0.0, some_normal_rv1.mean)
+        received = self.transition.jacobfun(0.0, some_normal_rv1.mean)
+        np.testing.assert_allclose(received.todense(), expected.todense())
+
+    def test_driftmatfun(self):
+        expected = self.G(0.0)
+        received = self.transition.driftmatfun(0.0)
+        np.testing.assert_allclose(received.todense(), expected.todense())
+
+
 class TestIOUP(TestLTISDE, TestIntegrator):
 
     # Replacement for an __init__ in the pytest language. See:
@@ -87,7 +135,7 @@ class TestIOUP(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnss.IOUP(
+        self.transition = statespace.IOUP(
             ordint=self.some_ordint,
             spatialdim=spatialdim,
             driftspeed=1.2345,
@@ -120,7 +168,7 @@ class TestMatern(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnss.Matern(
+        self.transition = statespace.Matern(
             ordint=self.some_ordint,
             spatialdim=spatialdim,
             lengthscale=1.2345,
@@ -141,23 +189,25 @@ class TestMatern(TestLTISDE, TestIntegrator):
 
 
 def both_transitions_matern():
-    matern = pnss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
-    matern2 = pnss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
-    matern_as_ltisde = pnss.LTISDE(matern2.driftmat, matern2.forcevec, matern2.dispmat)
+    matern = statespace.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
+    matern2 = statespace.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
+    matern_as_ltisde = statespace.LTISDE(
+        matern2.driftmat, matern2.forcevec, matern2.dispmat
+    )
     return matern, matern_as_ltisde
 
 
 def both_transitions_ioup():
-    ioup = pnss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
-    ioup2 = pnss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
-    ioup_as_ltisde = pnss.LTISDE(ioup2.driftmat, ioup2.forcevec, ioup2.dispmat)
+    ioup = statespace.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
+    ioup2 = statespace.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
+    ioup_as_ltisde = statespace.LTISDE(ioup2.driftmat, ioup2.forcevec, ioup2.dispmat)
     return ioup, ioup_as_ltisde
 
 
 def both_transitions_ibm():
-    ibm = pnss.IBM(ordint=2, spatialdim=1)
-    ibm2 = pnss.IBM(ordint=2, spatialdim=1)
-    ibm_as_ltisde = pnss.LTISDE(ibm2.driftmat, ibm2.forcevec, ibm2.dispmat)
+    ibm = statespace.IBM(ordint=2, spatialdim=1)
+    ibm2 = statespace.IBM(ordint=2, spatialdim=1)
+    ibm_as_ltisde = statespace.LTISDE(ibm2.driftmat, ibm2.forcevec, ibm2.dispmat)
     return ibm, ibm_as_ltisde
 
 
@@ -253,7 +303,7 @@ class TestIBMValues:
         backw_impl_string_linear_gauss,
     ):
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnss.IBM(
+        self.transition = statespace.IBM(
             ordint=2,
             spatialdim=spatialdim,
             forward_implementation=forw_impl_string_linear_gauss,
@@ -262,10 +312,8 @@ class TestIBMValues:
 
     def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):
         discrete_model = self.transition.discretise(dt=dt)
-        np.testing.assert_allclose(discrete_model.state_trans_mat.todense(), ah_22_ibm)
-        np.testing.assert_allclose(
-            discrete_model.proc_noise_cov_mat.todense(), qh_22_ibm
-        )
+        np.testing.assert_allclose(discrete_model.state_trans_mat, ah_22_ibm)
+        np.testing.assert_allclose(discrete_model.proc_noise_cov_mat, qh_22_ibm)
 
     def test_forward_rv_values(self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt):
         rv, _ = self.transition.forward_rv(
@@ -326,7 +374,7 @@ def test_in_out_pair_is_not_identical(in_out_pair):
 
 def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    coordwise_as_derivwise = pnss.Integrator._convert_coordwise_to_derivwise(
+    coordwise_as_derivwise = statespace.Integrator._convert_coordwise_to_derivwise(
         coordwise, some_order, some_dim
     )
     np.testing.assert_allclose(coordwise_as_derivwise, derivwise)
@@ -334,7 +382,7 @@ def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
 
 def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    derivwise_as_coordwise = pnss.Integrator._convert_derivwise_to_coordwise(
+    derivwise_as_coordwise = statespace.Integrator._convert_derivwise_to_coordwise(
         derivwise, some_order, some_dim
     )
     np.testing.assert_allclose(derivwise_as_coordwise, coordwise)
@@ -342,10 +390,10 @@ def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
 
 def test_conversion_pairwise_inverse(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    as_coord = pnss.Integrator._convert_derivwise_to_coordwise(
+    as_coord = statespace.Integrator._convert_derivwise_to_coordwise(
         derivwise, some_order, some_dim
     )
-    as_deriv_again = pnss.Integrator._convert_coordwise_to_derivwise(
+    as_deriv_again = statespace.Integrator._convert_coordwise_to_derivwise(
         as_coord, some_order, some_dim
     )
     np.testing.assert_allclose(as_deriv_again, derivwise)
