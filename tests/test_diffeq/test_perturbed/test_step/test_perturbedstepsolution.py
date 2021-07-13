@@ -12,7 +12,7 @@ def perturbed_solution():
     ode = diffeq_zoo.lotkavolterra(t0=0.0, tmax=1.0, y0=y0)
     rng = np.random.default_rng(seed=1)
     scipysolver = rk.RK45(ode.f, ode.t0, y0, ode.tmax)
-    testsolver = diffeq.scipy.WrappedScipyRungeKutta(scipysolver)
+    testsolver = diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipysolver)
     sol = diffeq.perturbed.step.PerturbedStepSolver(
         rng=rng,
         solver=testsolver,

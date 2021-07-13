@@ -8,7 +8,7 @@ from probnum import _randomvariablelist, randvars
 from probnum.typing import FloatArgType
 
 from ..._odesolver import ODESolver
-from ...scipy import WrappedScipyRungeKutta
+from .. import scipy_wrapper
 from ._perturbedstepsolution import PerturbedStepSolution
 
 
@@ -41,7 +41,7 @@ class PerturbedStepSolver(ODESolver):
     def __init__(
         self,
         rng: np.random.Generator,
-        solver: WrappedScipyRungeKutta,
+        solver: scipy_wrapper.WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
         perturb_function: Callable,
     ):

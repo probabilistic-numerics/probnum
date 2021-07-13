@@ -10,7 +10,7 @@ from probnum import diffeq, randvars
 
 @pytest_cases.fixture
 @pytest_cases.parametrize_with_cases(
-    "testsolver, scipysolver", cases=".test_wrappedscipy_cases"
+    "testsolver, scipysolver", cases=".test_wrapped_scipy_cases"
 )
 def solvers(testsolver, scipysolver):
     return testsolver, scipysolver
@@ -55,7 +55,7 @@ def doprisolver():
 
 def test_init(doprisolver):
     with pytest.raises(TypeError):
-        diffeq.scipy.WrappedScipyRungeKutta(doprisolver)
+        diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(doprisolver)
 
 
 def test_initialise(solvers):
@@ -162,6 +162,10 @@ def test_dense_output(solvers):
 
 def test_rvlist_to_odesol(times, dense_output, list_of_randvars):
     scipy_sol = OdeSolution(times, dense_output)
-    probnum_solution = diffeq.scipy.WrappedScipyODESolution(scipy_sol, list_of_randvars)
-    assert issubclass(diffeq.scipy.WrappedScipyODESolution, diffeq.ODESolution)
-    assert isinstance(probnum_solution, diffeq.scipy.WrappedScipyODESolution)
+    probnum_solution = diffeq.perturbed.scipy_wrapper.WrappedScipyODESolution(
+        scipy_sol, list_of_randvars
+    )
+    print(type(probnum_solution))
+    assert isinstance(
+        probnum_solution, diffeq.perturbed.scipy_wrapper.WrappedScipyODESolution
+    )

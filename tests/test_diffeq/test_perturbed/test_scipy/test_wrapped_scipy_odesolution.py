@@ -6,7 +6,7 @@ from probnum import _randomvariablelist, diffeq, randvars
 
 @pytest_cases.fixture
 @pytest_cases.parametrize_with_cases(
-    "testsolver, scipysolver", cases=".test_wrappedscipy_cases"
+    "testsolver, scipysolver", cases=".test_wrapped_scipy_cases"
 )
 def solution_case(testsolver, scipysolver):
     testsolution = testsolver.solve(
@@ -40,7 +40,7 @@ def test_states(solution_case):
     np.testing.assert_allclose(scipy_states, probnum_states, atol=1e-14, rtol=1e-14)
 
 
-def test_call__(solution_case):
+def test_call(solution_case):
     testsolution, scipysolution = solution_case
     scipy_call = scipysolution(scipysolution.ts)
     probnum_call = testsolution(scipysolution.ts).mean.T

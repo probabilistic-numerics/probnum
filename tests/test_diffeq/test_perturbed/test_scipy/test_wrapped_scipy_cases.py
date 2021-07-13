@@ -11,7 +11,7 @@ def setup_solver(y0, ode):
     # Pass the identical scipysolver into the wrapper
     # (but make it a new object to avoid side effects)
     scipysolver_copy = rk.RK45(ode.f, ode.t0, y0, ode.tmax)
-    testsolver = diffeq.scipy.WrappedScipyRungeKutta(scipysolver_copy)
+    testsolver = diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipysolver_copy)
     return testsolver, scipysolver
 
 
