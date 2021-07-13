@@ -6,7 +6,8 @@ from ._stoppingcriterion import StoppingCriterion
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
-    "IteratedDiscreteComponent" "StoppingCriterion",
+    "IteratedDiscreteComponent",
+    "StoppingCriterion",
 ]
 
 # Set correct module paths (for superclasses).
