@@ -4,24 +4,24 @@ from typing import Any
 
 class Configuration:
     """
-    Configuration over which some mechanics of probnum can be controlled dynamically.
+    Configuration over which some mechanics of ProbNum can be controlled dynamically.
 
-    ``ProbNum`` provides some configurations together with default values. These
+    ProbNum provides some configurations together with default values. These
     are listed in the tables below.
-    Additionally, the user can register own configuration entries via the method
+    Additionally, users can register their own configuration entries via
     :meth:`register`. Configuration entries can only be registered once and can only
     be used (accessed or overwritten) once they have been registered.
 
-    +----------------------------------+-----------------------------------------------+
-    | Config entry                     | Description                                   |
-    +==================================+===============================================+
-    | ``covariance_inversion_damping`` | A (typically small) value that is per         |
-    |                                  | default added to the diagonal of covariance   |
-    |                                  | matrices in order to make inversion           |
-    |                                  | numerically stable.                           |
-    +----------------------------------+-----------------------------------------------+
-    | ``...``                          | ...                                           |
-    +----------------------------------+-----------------------------------------------+
+    +----------------------------------+----------------------------------------------+
+    | Config entry                     | Description                                  |
+    +==================================+==============================================+
+    | ``covariance_inversion_damping`` | A (typically small) value that is per        |
+    |                                  | default added to the diagonal of covariance  |
+    |                                  | matrices in order to make inversion          |
+    |                                  | numerically stable. Default: ``1e-12``       |
+    +----------------------------------+----------------------------------------------+
+    | ``...``                          | ...                                          |
+    +----------------------------------+----------------------------------------------+
 
     Examples
     ========
