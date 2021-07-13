@@ -10,7 +10,7 @@ def test_effective_number_of_events():
     categ = randvars.Categorical(
         support=np.random.rand(10, 2), probabilities=weights / np.sum(weights)
     )
-    ess = filtsmooth.effective_number_of_events(categ)
+    ess = filtsmooth.particle.effective_number_of_events(categ)
     assert 0 < ess < 10
 
 
@@ -53,21 +53,21 @@ def particle_filter_setup(
     prior_process = info["prior_process"]
     if measmod_style == "ekf":
         importance_distribution = (
-            filtsmooth.LinearizationImportanceDistribution.from_ukf(
+            filtsmooth.particle.LinearizationImportanceDistribution.from_ukf(
                 prior_process.transition
             )
         )
     elif measmod_style == "ukf":
         importance_distribution = (
-            filtsmooth.LinearizationImportanceDistribution.from_ekf(
+            filtsmooth.particle.LinearizationImportanceDistribution.from_ekf(
                 prior_process.transition
             )
         )
     else:
-        importance_distribution = filtsmooth.BootstrapImportanceDistribution(
+        importance_distribution = filtsmooth.particle.BootstrapImportanceDistribution(
             prior_process.transition
         )
-    particle = filtsmooth.ParticleFilter(
+    particle = filtsmooth.particle.ParticleFilter(
         prior_process,
         importance_distribution=importance_distribution,
         num_particles=num_particles,
