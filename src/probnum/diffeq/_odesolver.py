@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 
 class ODESolver(ABC):
-    """Interface for ODESolver."""
+    """Interface for ODE solvers in ProbNum."""
 
     def __init__(self, ivp, order):
         self.ivp = ivp

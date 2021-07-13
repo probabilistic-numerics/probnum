@@ -4,7 +4,7 @@ import numpy as np
 
 
 def propose_firststep(ivp):
-    """Propose a suitable first step that can be taken by an ODE solver.
+    """Propose a suitable first step-size that can be taken by an ODE solver.
 
     This function implements a lazy version of the algorithm on p. 169
     of Hairer, Wanner, Norsett.

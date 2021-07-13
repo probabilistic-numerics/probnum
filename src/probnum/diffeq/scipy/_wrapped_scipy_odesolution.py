@@ -10,7 +10,7 @@ from .._odesolution import ODESolution
 
 
 class WrappedScipyODESolution(ODESolution):
-    """Make a ProbNum ODESolution out of a SciPy OdeSolution."""
+    """ODE solution corresponding to the :class:`WrappedScipyRungeKutta`."""
 
     def __init__(self, scipy_solution: OdeSolution, rvs: list):
         self.scipy_solution = scipy_solution

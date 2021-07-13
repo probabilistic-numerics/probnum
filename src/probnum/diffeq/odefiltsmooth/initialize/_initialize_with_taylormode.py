@@ -13,7 +13,7 @@ SMALL_VALUE = 1e-28
 
 
 def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
-    """Initialize an ODE filter with Taylor-mode automatic differentiation.
+    """Initialize a probabilistic ODE solver with Taylor-mode automatic differentiation.
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
 

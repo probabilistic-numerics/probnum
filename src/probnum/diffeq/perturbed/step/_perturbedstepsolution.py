@@ -12,7 +12,7 @@ from ..._odesolution import ODESolution
 
 
 class PerturbedStepSolution(ODESolution):
-    """Solution to the PerturbedStepSolver."""
+    """Probabilistic ODE solution corresponding to the :class:`PerturbedStepSolver`."""
 
     def __init__(
         self,

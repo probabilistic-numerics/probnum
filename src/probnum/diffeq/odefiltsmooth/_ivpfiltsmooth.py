@@ -16,7 +16,7 @@ from .initialize import (
 
 
 class GaussianIVPFilter(ODESolver):
-    """ODE solver that uses a Gaussian filter.
+    """Probabilistic ODE solver based on Gaussian filtering and smoothing.
 
     This is based on continuous-discrete Gaussian filtering.
 

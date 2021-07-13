@@ -9,7 +9,7 @@ from probnum.typing import FloatArgType, IntArgType, ToleranceDiffusionType
 
 
 class StepRule(ABC):
-    """(Adaptive) step size rules for ODE solvers."""
+    """Step-size selection rules for ODE solvers."""
 
     def __init__(self, firststep: FloatArgType):
         self.firststep = firststep
@@ -48,7 +48,7 @@ class StepRule(ABC):
 
 
 class ConstantSteps(StepRule):
-    """Constant step size rule for ODE solvers."""
+    """Constant step-sizes."""
 
     def __init__(self, stepsize: FloatArgType):
         self.step = stepsize
@@ -74,7 +74,7 @@ class ConstantSteps(StepRule):
 
 # Once we have other controls, e.g. PI control, we can rename this into ProportionalControl.
 class AdaptiveSteps(StepRule):
-    """Adaptive step size selection using proportional control.
+    """Adaptive step-size selection (using proportional control).
 
     Parameters
     ----------

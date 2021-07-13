@@ -15,7 +15,7 @@ from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
-    """ODE solution.
+    """Interface for ODE solutions in ProbNum.
 
     Parameters
     ----------

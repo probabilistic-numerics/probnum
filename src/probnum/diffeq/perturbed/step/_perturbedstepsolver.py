@@ -13,7 +13,7 @@ from ._perturbedstepsolution import PerturbedStepSolution
 
 
 class PerturbedStepSolver(ODESolver):
-    """ODE-Solver random perturbatino of the step-sizes.
+    """Probabilistic ODE solver based on random perturbation of the step-sizes.
 
     Perturbs the steps accordingly and projects the solution back to the originally
     proposed time points. Proposed by Abdulle and Garegnani (2020) [1]_.

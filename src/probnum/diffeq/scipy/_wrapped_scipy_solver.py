@@ -15,8 +15,7 @@ from ._wrapped_scipy_odesolution import WrappedScipyODESolution
 
 
 class WrappedScipyRungeKutta(ODESolver):
-    """Wrapper for Runge-Kutta methods from Scipy, implements the stepfunction and dense
-    output."""
+    """Wrapper for Runge-Kutta methods from SciPy."""
 
     def __init__(self, solver: rk.RungeKutta):
         self.solver = solver

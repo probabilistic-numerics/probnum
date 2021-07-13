@@ -12,7 +12,7 @@ from .._odesolution import ODESolution
 
 
 class KalmanODESolution(ODESolution):
-    """Gaussian IVP filtering solution of an ODE problem.
+    """Probabilistic ODE solution corresponding to the :class:`GaussianIVPFilter`.
 
     Recall that in ProbNum, Gaussian filtering and smoothing is generally named "Kalman".
 

@@ -16,7 +16,7 @@ SMALL_VALUE = 1e-28
 def initialize_odefilter_with_rk(
     f, y0, t0, prior_process, df=None, h0=1e-2, method="DOP853"
 ):
-    r"""Initialize an ODE filter by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's RK.
+    r"""Initialize a probabilistic ODE solver by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's Runge-Kutta methods.
 
     It goes as follows:
 
