@@ -1,7 +1,8 @@
 import numpy as np
 
 from probnum import statespace
-from src.probnum.filtsmooth.optim._stoppingcriterion import StoppingCriterion
+
+from ._stoppingcriterion import StoppingCriterion
 
 
 class IteratedDiscreteComponent(statespace.Transition):

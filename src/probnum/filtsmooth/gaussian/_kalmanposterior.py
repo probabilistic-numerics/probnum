@@ -18,16 +18,15 @@ from probnum.typing import (
 )
 
 from .._timeseriesposterior import TimeSeriesPosterior
-from ._extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
-from ._unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
+from . import approx
 
 GaussMarkovPriorTransitionArgType = Union[
     statespace.DiscreteLinearGaussian,
-    DiscreteEKFComponent,
-    DiscreteUKFComponent,
+    approx.DiscreteEKFComponent,
+    approx.DiscreteUKFComponent,
     statespace.LinearSDE,
-    ContinuousEKFComponent,
-    ContinuousUKFComponent,
+    approx.ContinuousEKFComponent,
+    approx.ContinuousUKFComponent,
 ]
 """Any linear and linearised transition can define an (approximate) Gauss-Markov prior."""
 

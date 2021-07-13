@@ -7,8 +7,7 @@ import numpy as np
 
 from probnum.randvars import RandomVariable
 
-from .._gaussfiltsmooth._extendedkalman import DiscreteEKFComponent
-from .._gaussfiltsmooth._unscentedkalman import DiscreteUKFComponent
+from .. import gaussian
 
 __all__ = [
     "ImportanceDistribution",
@@ -87,7 +86,7 @@ class LinearizationImportanceDistribution(ImportanceDistribution):
         backward_implementation="classic",
     ):
         def linearization_strategy(non_linear_model):
-            return DiscreteEKFComponent(
+            return gaussian.approx.DiscreteEKFComponent(
                 non_linear_model,
                 forward_implementation=forward_implementation,
                 backward_implementation=backward_implementation,
@@ -100,7 +99,7 @@ class LinearizationImportanceDistribution(ImportanceDistribution):
     @classmethod
     def from_ukf(cls, dynamics_model, spread=1e-4, priorpar=2.0, special_scale=0.0):
         def linearization_strategy(non_linear_model):
-            return DiscreteUKFComponent(
+            return gaussian.approx.DiscreteUKFComponent(
                 non_linear_model,
                 spread=spread,
                 priorpar=priorpar,

@@ -70,7 +70,7 @@ class KalmanODESolution(ODESolution):
     [0.70]
     """
 
-    def __init__(self, kalman_posterior: filtsmooth.KalmanPosterior):
+    def __init__(self, kalman_posterior: filtsmooth.gaussian.KalmanPosterior):
         self.kalman_posterior = kalman_posterior
 
         # Pre-compute projection matrices.

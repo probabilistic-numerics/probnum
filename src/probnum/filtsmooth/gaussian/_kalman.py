@@ -6,19 +6,18 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import problems, statespace
-from src.probnum.filtsmooth.optim._stoppingcriterion import StoppingCriterion
 
+from .. import optim
 from .._bayesfiltsmooth import BayesFiltSmooth
 from .._timeseriesposterior import TimeSeriesPosterior
-from ._extendedkalman import DiscreteEKFComponent
+from . import approx
 from ._kalmanposterior import FilteringPosterior, SmoothingPosterior
-from ._unscentedkalman import DiscreteUKFComponent
 
 # Measurement models for a Kalman filter can be all sorts of things:
 KalmanSingleMeasurementModelType = Union[
     statespace.DiscreteLinearGaussian,
-    DiscreteEKFComponent,
-    DiscreteUKFComponent,
+    approx.DiscreteEKFComponent,
+    approx.DiscreteUKFComponent,
 ]
 KalmanMeasurementModelArgType = Union[
     KalmanSingleMeasurementModelType, Iterable[KalmanSingleMeasurementModelType]
@@ -41,7 +40,7 @@ class Kalman(BayesFiltSmooth):
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
-        stopcrit: Optional[StoppingCriterion] = None,
+        stopcrit: Optional[optim.StoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -81,7 +80,7 @@ class Kalman(BayesFiltSmooth):
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
-        stopcrit: Optional[StoppingCriterion] = None,
+        stopcrit: Optional[optim.StoppingCriterion] = None,
     ):
         """Compute iterated smoothing estimates with repeated posterior linearisation.
 
@@ -112,7 +111,7 @@ class Kalman(BayesFiltSmooth):
         """
 
         if stopcrit is None:
-            stopcrit = StoppingCriterion()
+            stopcrit = optim.StoppingCriterion()
 
         if init_posterior is None:
             # Initialise iterated smoother

@@ -1,7 +1,6 @@
 """Approximate Gaussian filtering and smoothing."""
 
 from ._extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent, EKFComponent
-from ._iterated_component import IteratedDiscreteComponent
 from ._unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent, UKFComponent
 from ._unscentedtransform import UnscentedTransform
 
@@ -14,7 +13,6 @@ __all__ = [
     "ContinuousUKFComponent",
     "DiscreteUKFComponent",
     "UnscentedTransform",
-    "IteratedDiscreteComponent",
 ]
 
 # Set correct module paths (for superclasses).
@@ -26,4 +24,3 @@ UKFComponent.__module__ = "probnum.filtsmooth.gaussian.approx"
 ContinuousUKFComponent.__module__ = "probnum.filtsmooth.gaussian.approx"
 DiscreteUKFComponent.__module__ = "probnum.filtsmooth.gaussian.approx"
 UnscentedTransform.__module__ = "probnum.filtsmooth.gaussian.approx"
-IteratedDiscreteComponent.__module__ = "probnum.filtsmooth.gaussian.approx"
