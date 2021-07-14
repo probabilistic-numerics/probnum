@@ -61,14 +61,6 @@ all:
 ---
 ```
 
-### Inferring ODEs
-
-```{bibliography} bibliography/ODE_from_path.bib
----
-all:
----
-```
-
 ## Partial Differential Equations
 
 ```{bibliography} bibliography/PDEs.bib
