@@ -12,9 +12,10 @@ equations.
 from . import perturbed
 from ._odesolution import ODESolution
 from ._odesolver import ODESolver
+from ._perturbsolve_ivp import perturbsolve_ivp
 from ._probsolve_ivp import probsolve_ivp
 
-__all__ = ["probsolve_ivp", "ODESolver", "ODESolution"]
+__all__ = ["probsolve_ivp", "perturbsolve_ivp", "ODESolver", "ODESolution"]
 
 
 # Set correct module paths (for superclasses).
