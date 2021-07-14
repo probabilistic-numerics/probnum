@@ -5,14 +5,13 @@ from typing import Callable
 import numpy as np
 
 from probnum import _randomvariablelist, randvars
+from probnum.diffeq import _odesolver
+from probnum.diffeq.perturbed import scipy_wrapper
+from probnum.diffeq.perturbed.step import _perturbedstepsolution
 from probnum.typing import FloatArgType
 
-from ..._odesolver import ODESolver
-from .. import scipy_wrapper
-from ._perturbedstepsolution import PerturbedStepSolution
 
-
-class PerturbedStepSolver(ODESolver):
+class PerturbedStepSolver(_odesolver.ODESolver):
     """Probabilistic ODE solver based on random perturbation of the step-sizes.
 
     Perturbs the steps accordingly and projects the solution back to the originally
@@ -107,7 +106,9 @@ class PerturbedStepSolver(ODESolver):
         self, times: np.ndarray, rvs: _randomvariablelist._RandomVariableList
     ):
         interpolants = self.solver.interpolants
-        probnum_solution = PerturbedStepSolution(self.scales, times, rvs, interpolants)
+        probnum_solution = _perturbedstepsolution.PerturbedStepSolution(
+            self.scales, times, rvs, interpolants
+        )
         return probnum_solution
 
     def postprocess(self, odesol):

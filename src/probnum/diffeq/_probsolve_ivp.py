@@ -11,8 +11,7 @@ References
 import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
-
-from . import odefiltsmooth, stepsize
+from probnum.diffeq import odefiltsmooth, stepsize
 
 __all__ = ["probsolve_ivp"]
 

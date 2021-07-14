@@ -5,13 +5,12 @@ from typing import Optional
 import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, randvars, utils
+from probnum.diffeq import _odesolution
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
 from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
-from .._odesolution import ODESolution
 
-
-class KalmanODESolution(ODESolution):
+class KalmanODESolution(_odesolution.ODESolution):
     """Probabilistic ODE solution corresponding to the :class:`GaussianIVPFilter`.
 
     Recall that in ProbNum, Gaussian filtering and smoothing is generally named "Kalman".
