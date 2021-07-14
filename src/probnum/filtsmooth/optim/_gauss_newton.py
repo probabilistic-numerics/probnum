@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from ._state_space_optimizer import StateSpaceOptimizer
+from probnum.filtsmooth.optim import _state_space_optimizer
 
 
-class GaussNewton(StateSpaceOptimizer):
+class GaussNewton(_state_space_optimizer.StateSpaceOptimizer):
     """Gauss-Newton optimizer in state-space models.
 
     Equivalent to the iterated Kalman smoother.

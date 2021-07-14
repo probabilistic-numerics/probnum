@@ -1,8 +1,7 @@
 import numpy as np
 
 from probnum import statespace
-
-from ._stoppingcriterion import StoppingCriterion
+from probnum.filtsmooth.optim import _stoppingcriterion
 
 
 class IteratedDiscreteComponent(statespace.Transition):
@@ -56,7 +55,9 @@ class IteratedDiscreteComponent(statespace.Transition):
         stopcrit=None,
     ):
         self._component = component
-        self.stopcrit = StoppingCriterion() if stopcrit is None else stopcrit
+        self.stopcrit = (
+            _stoppingcriterion.StoppingCriterion() if stopcrit is None else stopcrit
+        )
         super().__init__(input_dim=component.input_dim, output_dim=component.output_dim)
 
     # Iterated filtering implementation

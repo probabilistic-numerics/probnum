@@ -5,12 +5,11 @@ from typing import Optional
 import numpy as np
 
 from probnum import randvars
+from probnum.filtsmooth import _timeseriesposterior
 from probnum.typing import DenseOutputLocationArgType, FloatArgType, ShapeArgType
 
-from .._timeseriesposterior import TimeSeriesPosterior
 
-
-class ParticleFilterPosterior(TimeSeriesPosterior):
+class ParticleFilterPosterior(_timeseriesposterior.TimeSeriesPosterior):
     """Posterior distribution of a particle filter.."""
 
     def __call__(self, t):

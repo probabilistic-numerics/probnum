@@ -5,11 +5,12 @@ from typing import Iterable, Union
 import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
+from probnum.filtsmooth import _bayesfiltsmooth
+from probnum.filtsmooth.particle import (
+    _importance_distributions,
+    _particle_filter_posterior,
+)
 from probnum.typing import FloatArgType, IntArgType
-
-from .._bayesfiltsmooth import BayesFiltSmooth
-from ._importance_distributions import ImportanceDistribution
-from ._particle_filter_posterior import ParticleFilterPosterior
 
 # Terribly long variable names, but internal only, so no worries.
 ParticleFilterMeasurementModelArgType = Union[
@@ -30,7 +31,7 @@ def effective_number_of_events(categ_rv: randvars.Categorical) -> float:
     return 1.0 / np.sum(categ_rv.probabilities ** 2)
 
 
-class ParticleFilter(BayesFiltSmooth):
+class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
     r"""Particle filter (PF). Also known as sequential Monte Carlo method.
 
     A PF estimates the posterior distribution of a Markov process given noisy, non-linear observations,
@@ -61,7 +62,7 @@ class ParticleFilter(BayesFiltSmooth):
     def __init__(
         self,
         prior_process: randprocs.MarkovProcess,
-        importance_distribution: ImportanceDistribution,
+        importance_distribution: _importance_distributions.ImportanceDistribution,
         num_particles: IntArgType,
         rng: np.random.Generator,
         with_resampling: bool = True,
@@ -109,7 +110,7 @@ class ParticleFilter(BayesFiltSmooth):
             filtered_rvs.append(rv)
             info_dicts.append(info)
 
-        posterior = ParticleFilterPosterior(
+        posterior = _particle_filter_posterior.ParticleFilterPosterior(
             states=filtered_rvs,
             locations=regression_problem.locations,
         )

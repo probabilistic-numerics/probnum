@@ -10,15 +10,14 @@ import numpy as np
 from scipy import stats
 
 from probnum import randvars, statespace, utils
+from probnum.filtsmooth import _timeseriesposterior
+from probnum.filtsmooth.gaussian import approx
 from probnum.typing import (
     DenseOutputLocationArgType,
     FloatArgType,
     IntArgType,
     ShapeArgType,
 )
-
-from .._timeseriesposterior import TimeSeriesPosterior
-from . import approx
 
 GaussMarkovPriorTransitionArgType = Union[
     statespace.DiscreteLinearGaussian,
@@ -31,7 +30,7 @@ GaussMarkovPriorTransitionArgType = Union[
 """Any linear and linearised transition can define an (approximate) Gauss-Markov prior."""
 
 
-class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
+class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
     """Posterior distribution after approximate Gaussian filtering and smoothing.
 
     Parameters
@@ -156,7 +155,7 @@ class SmoothingPosterior(KalmanPosterior):
 
     def __init__(
         self,
-        filtering_posterior: TimeSeriesPosterior,
+        filtering_posterior: _timeseriesposterior.TimeSeriesPosterior,
         transition: GaussMarkovPriorTransitionArgType,
         locations: Iterable[FloatArgType],
         states: Iterable[randvars.RandomVariable],

@@ -3,8 +3,7 @@
 import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
-
-from . import gaussian
+from probnum.filtsmooth import gaussian
 
 __all__ = ["kalman_filter", "rauch_tung_striebel_smoother"]
 

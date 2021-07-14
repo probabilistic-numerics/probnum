@@ -5,9 +5,8 @@ from typing import Dict, Tuple
 
 import numpy as np
 
+from probnum.filtsmooth import gaussian
 from probnum.randvars import RandomVariable
-
-from .. import gaussian
 
 __all__ = [
     "ImportanceDistribution",

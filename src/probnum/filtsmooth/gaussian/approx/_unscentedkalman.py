@@ -10,9 +10,8 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 
 from probnum import randvars, statespace
+from probnum.filtsmooth.gaussian.approx import _unscentedtransform
 from probnum.typing import FloatArgType
-
-from ._unscentedtransform import UnscentedTransform
 
 
 class UKFComponent:
@@ -26,7 +25,7 @@ class UKFComponent:
         special_scale: Optional[FloatArgType] = 0.0,
     ) -> None:
         self.non_linear_model = non_linear_model
-        self.ut = UnscentedTransform(
+        self.ut = _unscentedtransform.UnscentedTransform(
             non_linear_model.input_dim, spread, priorpar, special_scale
         )
 
