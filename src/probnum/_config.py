@@ -28,6 +28,12 @@ class Configuration:
     0.01
     """
 
+    _NON_REGISTERED_KEY_ERR_MSG = (
+        'Configuration option "%s" does not exist yet. '
+        "Configuration options must be `register`ed before they can be "
+        "accessed."
+    )
+
     @dataclasses.dataclass
     class Option:
         name: str
@@ -45,20 +51,12 @@ class Configuration:
 
     def __getattr__(self, key: str) -> Any:
         if key not in self._options_registry:
-            raise AttributeError(
-                f"Configuration entry {key} does not exist yet."
-                "Configuration entries must be `register`ed before they can be "
-                "accessed."
-            )
+            raise AttributeError(f'Configuration option "{key}" does not exist.')
         return self._options_registry[key].value
 
     def __setattr__(self, key: str, value: Any) -> None:
         if key not in self._options_registry:
-            raise AttributeError(
-                f"Configuration entry {key} does not exist yet."
-                "Configuration entries must be `register`ed before they can be "
-                "accessed."
-            )
+            raise AttributeError(Configuration._NON_REGISTERED_KEY_ERR_MSG % key)
 
         self._options_registry[key].value = value
 
@@ -71,11 +69,7 @@ class Configuration:
 
         for key, value in kwargs.items():
             if key not in self._options_registry:
-                raise AttributeError(
-                    f"Configuration entry {key} does not exist yet."
-                    "Configuration entries must be `register`ed before they can be "
-                    "accessed."
-                )
+                raise AttributeError(Configuration._NON_REGISTERED_KEY_ERR_MSG % key)
 
             old_options[key] = getattr(self, key)
 
@@ -102,7 +96,7 @@ class Configuration:
         """
         if key in self._options_registry:
             raise KeyError(
-                f"Configuration entry {key} does already exist and "
+                f"Configuration option {key} does already exist and "
                 "cannot be registered again."
             )
         new_config_option = Configuration.Option(
