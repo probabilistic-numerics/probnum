@@ -2,12 +2,12 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq import ConstantSteps, ODESolution, ODESolver
+from probnum import diffeq
 from probnum.problems.zoo.diffeq import logistic
 from probnum.randvars import Constant
 
 
-class MockODESolver(ODESolver):
+class MockODESolver(diffeq.ODESolver):
     """Euler method as an ODE solver."""
 
     def initialise(self):
@@ -24,7 +24,7 @@ class MockODESolver(ODESolver):
         )  # return nan as error estimate to ensure that it is not used
 
     def rvlist_to_odesol(self, times, rvs):
-        return ODESolution(locations=times, states=rvs)
+        return diffeq.ODESolution(locations=times, states=rvs)
 
 
 class ODESolverTestCase(unittest.TestCase):
@@ -41,7 +41,7 @@ class ODESolverTestCase(unittest.TestCase):
         self.step = 0.2
 
     def test_solve(self):
-        steprule = ConstantSteps(self.step)
+        steprule = diffeq.stepsize.ConstantSteps(self.step)
         odesol = self.solver.solve(
             steprule=steprule,
         )  # this is the actual part of the test
