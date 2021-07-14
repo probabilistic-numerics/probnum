@@ -6,12 +6,11 @@ import numpy as np
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, randvars
+from probnum.diffeq import _odesolution
 from probnum.typing import FloatArgType
 
-from ..._odesolution import ODESolution
 
-
-class PerturbedStepSolution(ODESolution):
+class PerturbedStepSolution(_odesolution.ODESolution):
     """Probabilistic ODE solution corresponding to the :class:`PerturbedStepSolver`."""
 
     def __init__(

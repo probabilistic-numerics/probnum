@@ -8,13 +8,12 @@ from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import problems, randvars
+from probnum.diffeq import _odesolver
+from probnum.diffeq.perturbed.scipy_wrapper import _wrapped_scipy_odesolution
 from probnum.typing import FloatArgType
 
-from ..._odesolver import ODESolver
-from ._wrapped_scipy_odesolution import WrappedScipyODESolution
 
-
-class WrappedScipyRungeKutta(ODESolver):
+class WrappedScipyRungeKutta(_odesolver.ODESolver):
     """Wrapper for Runge-Kutta methods from SciPy."""
 
     def __init__(self, solver: rk.RungeKutta):
@@ -115,7 +114,9 @@ class WrappedScipyRungeKutta(ODESolver):
         """Create a ScipyODESolution object which is a subclass of
         diffeq.ODESolution."""
         scipy_solution = OdeSolution(times, self.interpolants)
-        probnum_solution = WrappedScipyODESolution(scipy_solution, rvs)
+        probnum_solution = _wrapped_scipy_odesolution.WrappedScipyODESolution(
+            scipy_solution, rvs
+        )
         return probnum_solution
 
     def method_callback(self, time, current_guess, current_error):

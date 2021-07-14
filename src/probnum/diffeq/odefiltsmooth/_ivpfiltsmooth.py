@@ -6,16 +6,11 @@ import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
-
-from .._odesolver import ODESolver
-from ._kalman_odesolution import KalmanODESolution
-from .initialize import (
-    initialize_odefilter_with_rk,
-    initialize_odefilter_with_taylormode,
-)
+from probnum.diffeq import _odesolver
+from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialize
 
 
-class GaussianIVPFilter(ODESolver):
+class GaussianIVPFilter(_odesolver.ODESolver):
     """Probabilistic ODE solver based on Gaussian filtering and smoothing.
 
     This is based on continuous-discrete Gaussian filtering.
@@ -123,7 +118,7 @@ class GaussianIVPFilter(ODESolver):
         :func:`initialize_odefilter_with_rk`."""
 
         def init_implementation(f, y0, t0, prior_process, df=None):
-            return initialize_odefilter_with_rk(
+            return initialize.initialize_odefilter_with_rk(
                 f=f,
                 y0=y0,
                 t0=t0,
@@ -160,7 +155,7 @@ class GaussianIVPFilter(ODESolver):
             prior_process,
             measurement_model,
             with_smoothing,
-            init_implementation=initialize_odefilter_with_taylormode,
+            init_implementation=initialize.initialize_odefilter_with_taylormode,
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
         )
@@ -352,7 +347,7 @@ class GaussianIVPFilter(ODESolver):
             diffusion_model=self.diffusion_model,
         )
 
-        return KalmanODESolution(kalman_posterior)
+        return _kalman_odesolution.KalmanODESolution(kalman_posterior)
 
     def postprocess(self, odesol):
         """If specified (at initialisation), smooth the filter output."""
@@ -395,7 +390,7 @@ class GaussianIVPFilter(ODESolver):
                 diffusion_model=self.diffusion_model,
             )
 
-        return KalmanODESolution(kalman_posterior)
+        return _kalman_odesolution.KalmanODESolution(kalman_posterior)
 
     @staticmethod
     def string_to_measurement_model(

@@ -3,13 +3,12 @@ import numpy as np
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import _randomvariablelist, randvars
+from probnum.diffeq import _odesolution
 from probnum.filtsmooth._timeseriesposterior import DenseOutputValueType
 from probnum.typing import DenseOutputLocationArgType
 
-from ..._odesolution import ODESolution
 
-
-class WrappedScipyODESolution(ODESolution):
+class WrappedScipyODESolution(_odesolution.ODESolution):
     """ODE solution corresponding to the :class:`WrappedScipyRungeKutta`."""
 
     def __init__(self, scipy_solution: OdeSolution, rvs: list):

@@ -1,6 +1,7 @@
 """Differential Equations.
 
-This package defines probabilistic solvers for differential equations.
+This package implements probabilistic solvers for differential
+equations.
 """
 
 # Publicly visible subpackage "perturbed" needs to be imported here
