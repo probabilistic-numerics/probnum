@@ -71,15 +71,15 @@ class Configuration:
             if key not in self._options_registry:
                 raise AttributeError(Configuration._NON_REGISTERED_KEY_ERR_MSG % key)
 
-            old_options[key] = getattr(self, key)
+            old_options[key] = self._options_registry[key].value
 
-            setattr(self, key, value)
+            self._options_registry[key].value = value
 
         try:
             yield
         finally:
             for key, old_value in old_options.items():
-                setattr(self, key, old_value)
+                self._options_registry[key].value = old_value
 
     def register(self, key: str, default_value: Any, description: str) -> None:
         r"""Register a new configuration option.
