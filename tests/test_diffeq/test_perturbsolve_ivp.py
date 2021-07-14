@@ -70,15 +70,3 @@ def test_no_step_or_tol_info_raises_error(ivp, rng):
         diffeq.perturbsolve_ivp(
             f, t0, tmax, y0, rng, step=None, adaptive=True, atol=None, rtol=None
         )
-
-
-#
-# def test_wrong_diffusion_raises_error(ivp):
-#     """Methods that are not in the list raise errors."""
-#     f = ivp.f
-#     t0, tmax = ivp.t0, ivp.tmax
-#     y0 = ivp.y0
-#
-#     # UK1 does not exist anymore
-#     with pytest.raises(ValueError):
-#         probsolve_ivp(f, t0, tmax, y0, diffusion_model="something_wrong")
