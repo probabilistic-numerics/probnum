@@ -22,6 +22,7 @@ def test_defaults():
 def test_register():
     # Check if registering a new config entry works
     probnum.config.register("some_config", 3.14, "Dummy description.")
+    assert hasattr(probnum.config, "some_config")
     assert probnum.config.some_config == 3.14
 
     # When registering a new entry with an already existing name, throw

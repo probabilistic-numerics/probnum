@@ -45,8 +45,11 @@ class Configuration:
     def __init__(self) -> None:
         object.__setattr__(self, "_options_registry", dict())
 
+    def __hasattr__(self, key: str) -> bool:
+        return key in self._options_registry
+
     def __getattr__(self, key):
-        if key not in self._options_registry:
+        if not self.__hasattr__(key):
             raise AttributeError(
                 f"getConfiguration entry {key} does not exist yet."
                 "Configuration entries must be `register`ed before they can be "
@@ -55,7 +58,7 @@ class Configuration:
         return self._options_registry[key].value
 
     def __setattr__(self, key: str, value: Any) -> None:
-        if key not in self._options_registry:
+        if not self.__hasattr__(key):
             raise AttributeError(
                 f"setConfiguration entry {key} does not exist yet."
                 "Configuration entries must be `register`ed before they can be "
@@ -69,24 +72,24 @@ class Configuration:
 
     @contextlib.contextmanager
     def __call__(self, **kwargs) -> None:
-        old_entries = dict()
+        old_options = dict()
 
         for key, value in kwargs.items():
-            if key not in self._options_registry:
+            if not self.__hasattr__(key):
                 raise AttributeError(
                     f"Configuration entry {key} does not exist yet."
                     "Configuration entries must be `register`ed before they can be "
                     "accessed."
                 )
 
-            old_entries[key] = getattr(self, key)
+            old_options[key] = getattr(self, key)
 
             setattr(self, key, value)
 
         try:
             yield
         finally:
-            for key, old_value in old_entries.items():
+            for key, old_value in old_options.items():
                 setattr(self, key, old_value)
 
     def register(self, key: str, default_value: Any, description: str) -> None:
@@ -102,7 +105,7 @@ class Configuration:
         description:
             A short description of the configuration option and what it controls.
         """
-        if key in self._options_registry:
+        if self.__hasattr__(key):
             raise KeyError(
                 f"Configuration entry {key} does already exist and "
                 "cannot be registered again."
