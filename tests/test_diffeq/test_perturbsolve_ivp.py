@@ -18,20 +18,18 @@ def ivp():
 
 @pytest.mark.parametrize("method", ["RK23", "RK45"])
 @pytest.mark.parametrize("perturb", ["step-lognormal", "step-uniform"])
+@pytest.mark.parametrize("noise_scale", [0.01, np.array([0.09, 0.10])])
 @pytest.mark.parametrize("step", [0.01, None])
 @pytest.mark.parametrize("tolerance", [0.1, np.array([0.09, 0.10])])
-def test_adaptive_solver_successful(rng, ivp, method, perturb, step, tolerance):
+def test_adaptive_solver_successful(
+    rng, ivp, method, perturb, noise_scale, step, tolerance
+):
     """The solver terminates successfully for all sorts of parametrizations."""
-    f = ivp.f
-    df = ivp.df
-    t0, tmax = ivp.t0, ivp.tmax
-    y0 = ivp.y0
-
     sol = diffeq.perturbsolve_ivp(
-        f=f,
-        t0=t0,
-        tmax=tmax,
-        y0=y0,
+        f=ivp.f,
+        t0=ivp.t0,
+        tmax=ivp.tmax,
+        y0=ivp.y0,
         rng=rng,
         perturb=perturb,
         adaptive=True,
