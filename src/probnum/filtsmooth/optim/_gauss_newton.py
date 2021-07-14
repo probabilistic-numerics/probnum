@@ -1,9 +1,6 @@
 """Gauss-Newton methods in state-space models."""
-from typing import Callable
 
 import numpy as np
-
-from probnum import problems, statespace
 
 from ._state_space_optimizer import StateSpaceOptimizer
 

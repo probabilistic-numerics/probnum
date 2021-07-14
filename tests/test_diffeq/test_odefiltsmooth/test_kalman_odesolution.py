@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace, utils
+from probnum import diffeq, randvars
 from probnum._randomvariablelist import _RandomVariableList
 
 
