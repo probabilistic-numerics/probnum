@@ -111,7 +111,8 @@ def perturbsolve_ivp(
             <http://www.unige.ch/~hairer/software.html>`_.
     """
 
-    scipy_solver = SELECT_METHOD[method](ode.f, ode.t0, y0, ode.tmax)
+    ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
+    scipy_solver = SELECT_METHOD[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
     wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipy_solver)
 
     perturbed_solver = SELECT_PERTURBS[perturb](
