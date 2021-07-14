@@ -20,35 +20,22 @@ Getting Started
 Features of ProbNum
 *******************
 
-Probability
------------
-
-Random variables are the main objects in ProbNum. They represent uncertainty about a numerical quantity via their
-distribution. A probabilistic numerical method takes random variables as inputs and also outputs random variables.
-
-.. nbgallery::
-   :caption: Probability
-
-   tutorials/prob/random_variables
-
-
-
-Linear Algebra
+Linear Solvers
 --------------
 
 Linear algebra is fundamental to arguably most of scientific computation. ProbNum defines (finite-dimensional) linear
 operators in a memory-efficient manner and implements probabilistic numerical methods to solve linear systems.
 
 .. nbgallery::
-   :caption: Linear Algebra
+   :caption: Linear Solvers
 
    tutorials/linalg/linear_operators
    tutorials/linalg/linear_systems
    tutorials/linalg/galerkin_method
 
 
-Ordinary Differential Equations
--------------------------------
+Ordinary Differential Equation Solvers
+--------------------------------------
 
 The behaviour of complex systems which evolve over time is often described via the use of ordinary differential equations.
 ProbNum provides a set of methods to solve ordinary differential equations based on filtering approaches which quantify
@@ -56,7 +43,7 @@ the uncertainty introduced by discretization.
 
 
 .. nbgallery::
-   :caption: Differential Equations
+   :caption: Differential Equation Solvers
 
    tutorials/odes/adaptive_steps_odefilter
    tutorials/odes/uncertainties_odefilters
@@ -76,6 +63,32 @@ Gaussian filtering and smoothing in more complex dynamical systems.
    tutorials/filtsmooth/linear_gaussian_filtering_smoothing
    tutorials/filtsmooth/nonlinear_gaussian_filtering_smoothing
    tutorials/filtsmooth/particle_filtering
+
+Linear Operators
+----------------
+
+Linear algebra is fundamental to arguably most of scientific computation. ProbNum defines (finite-dimensional) linear
+operators in a memory-efficient manner that are use  implements probabilistic numerical methods to solve linear systems.
+
+.. nbgallery::
+   :caption: Linear Operators
+
+   tutorials/linalg/linear_operators
+
+
+
+
+Probability
+-----------
+
+Random variables are the main objects in ProbNum. They represent uncertainty about a numerical quantity via their
+distribution. A probabilistic numerical method takes random variables as inputs and also outputs random variables.
+
+.. nbgallery::
+   :caption: Probability
+
+   tutorials/prob/random_variables
+
 
 
 
