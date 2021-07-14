@@ -7,10 +7,6 @@ from probnum import problems, statespace
 
 from ._state_space_optimizer import StateSpaceOptimizer
 
-LinearizationStrategyType = Callable[
-    [statespace.DiscreteGaussian], statespace.DiscreteLinearGaussian
-]
-
 
 class GaussNewton(StateSpaceOptimizer):
     """Gauss-Newton optimizer in state-space models.
