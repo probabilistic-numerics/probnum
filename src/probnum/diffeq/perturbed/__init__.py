@@ -1,3 +1,3 @@
-"""Perturbed solvers."""
+"""Perturbation-based solvers."""
 
 from . import step

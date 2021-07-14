@@ -32,7 +32,7 @@ def probsolve_ivp(
     step=None,
     diffusion_model="dynamic",
 ):
-    r"""Solve an initial value problem with a probabilistic ODE solver, i.e. with Gaussian filtering and smoothing.
+    r"""Solve an initial value problem with a (filtering-based) probabilistic ODE solver.
 
     Numerically computes a Gauss-Markov process which solves numerically
     the initial value problem (IVP) based on a system of first order
