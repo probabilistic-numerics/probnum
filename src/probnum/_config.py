@@ -4,19 +4,6 @@ import dataclasses
 from typing import Any
 
 
-@dataclasses.dataclass
-class Option:
-    name: str
-    default_value: Any
-    description: str
-    value: Any
-
-    def __repr__(self) -> str:
-        _r = "<Configuration.Option "
-        _r += f"name={self.name}, value={self.value}>"
-        return _r
-
-
 class Configuration:
     r"""
     Configuration over which some mechanics of ProbNum can be controlled dynamically.
@@ -42,25 +29,34 @@ class Configuration:
     0.01
     """
 
+    @dataclasses.dataclass
+    class Option:
+        name: str
+        default_value: Any
+        description: str
+        value: Any
+
+        def __repr__(self) -> str:
+            _r = "<Configuration.Option "
+            _r += f"name={self.name}, value={self.value}>"
+            return _r
+
     def __init__(self) -> None:
         object.__setattr__(self, "_options_registry", dict())
 
-    def __hasattr__(self, key: str) -> bool:
-        return key in self._options_registry
-
-    def __getattr__(self, key):
-        if not self.__hasattr__(key):
+    def __getattr__(self, key: str) -> Any:
+        if key not in self._options_registry:
             raise AttributeError(
-                f"getConfiguration entry {key} does not exist yet."
+                f"Configuration entry {key} does not exist yet."
                 "Configuration entries must be `register`ed before they can be "
                 "accessed."
             )
         return self._options_registry[key].value
 
     def __setattr__(self, key: str, value: Any) -> None:
-        if not self.__hasattr__(key):
+        if key not in self._options_registry:
             raise AttributeError(
-                f"setConfiguration entry {key} does not exist yet."
+                f"Configuration entry {key} does not exist yet."
                 "Configuration entries must be `register`ed before they can be "
                 "accessed."
             )
@@ -75,7 +71,7 @@ class Configuration:
         old_options = dict()
 
         for key, value in kwargs.items():
-            if not self.__hasattr__(key):
+            if key not in self._options_registry:
                 raise AttributeError(
                     f"Configuration entry {key} does not exist yet."
                     "Configuration entries must be `register`ed before they can be "
@@ -105,12 +101,12 @@ class Configuration:
         description:
             A short description of the configuration option and what it controls.
         """
-        if self.__hasattr__(key):
+        if key in self._options_registry:
             raise KeyError(
                 f"Configuration entry {key} does already exist and "
                 "cannot be registered again."
             )
-        new_config_option = Option(
+        new_config_option = Configuration.Option(
             name=key,
             default_value=default_value,
             description=description,
