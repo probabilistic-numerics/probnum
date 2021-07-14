@@ -4,6 +4,20 @@
 __all__ = ["perturbsolve_ivp"]
 
 
+SELECT_METHOD = {
+    "RK45": scipy.integrate.RK45,
+    "RK23": scipy.integrate.RK23,
+    "DOP853": scipy.integrate.DOP853,
+}
+METHODS = SELECT_METHOD.keys()
+
+SELECT_PERTURBS = {
+    "step-lognormal": perturbed.step.PerturbedStepSolver.construct_with_lognormal_perturbation,
+    "step-uniform": perturbed.step.PerturbedStepSolver.construct_with_uniform_perturbation,
+}
+PERTURBS = SELECT_METHOD.keys()
+
+
 def perturbsolve_ivp(
     f,
     t0,
@@ -11,7 +25,7 @@ def perturbsolve_ivp(
     y0,
     rng,
     method="RK45",
-    perturb="step",
+    perturb="step-lognormal",
     noise_scale=1.0,
     dense_output=True,
     adaptive=True,
@@ -54,8 +68,11 @@ def perturbsolve_ivp(
               Can be applied in the complex domain.
         Other integrators are not supported currently.
     perturb
-        Which perturbation style to use. Currently, only one method is supported:
-            * `step`: Perturbed-step (aka random time-step numerical integration) method [1]_.
+        Which perturbation style to use. Currently, the following methods are supported:
+            * `step-lognormal`: Perturbed-step (aka random time-step numerical integration) method
+            with lognormally distributed perturbation of the step-size [1]_.
+            * `step-uniform`: Perturbed-step (aka random time-step numerical integration) method
+            with lognormally distributed perturbation of the step-size [1]_.
     noise_scale
         Scale of the perturbation. Optional. Default is 1.0. The size of this parameter
         significantly impacts the width of the posterior.
@@ -94,4 +111,22 @@ def perturbsolve_ivp(
             <http://www.unige.ch/~hairer/software.html>`_.
     """
 
-    raise NotImplementedError
+    scipy_solver = SELECT_METHOD[method](ode.f, ode.t0, y0, ode.tmax)
+    wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipy_solver)
+
+    perturbed_solver = SELECT_PERTURBS[perturb](
+        rng=rng, solver=wrapped_scipy_solver, noise_scale=noise_scale
+    )
+
+    # Create steprule
+    if adaptive is True:
+        if atol is None or rtol is None:
+            raise ValueError(
+                "Please provide absolute and relative tolerance for adaptive steps."
+            )
+        firststep = step if step is not None else stepsize.propose_firststep(ivp)
+        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+    else:
+        steprule = stepsize.ConstantSteps(step)
+
+    return perturbed_solver.solve(steprule=steprule)
