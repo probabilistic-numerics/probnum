@@ -2,7 +2,9 @@
 
 import numpy as np
 
-from probnum import problems, randprocs, statespace
+from probnum import problems, randprocs, randvars, statespace
+
+from . import gaussian
 
 __all__ = ["kalman_filter", "rauch_tung_striebel_smoother"]
 
@@ -77,10 +79,10 @@ def kalman_filter(
         H=H, R=R, observations=observations, locations=locations
     )
     prior_process = _setup_prior_process(
-        F=F, L=L, m0=m0, C0=C0, prior_model=prior_model
+        F=F, L=L, m0=m0, C0=C0, t0=locations[0], prior_model=prior_model
     )
     kalman = gaussian.Kalman(prior_process)
-    return kalman.filter(regression_problem)
+    return kalman.filter(regression_problem)[0]
 
 
 def rauch_tung_striebel_smoother(
@@ -152,14 +154,14 @@ def rauch_tung_striebel_smoother(
         H=H, R=R, observations=observations, locations=locations
     )
     prior_process = _setup_prior_process(
-        F=F, L=L, m0=m0, C0=C0, prior_model=prior_model
+        F=F, L=L, m0=m0, C0=C0, t0=locations[0], prior_model=prior_model
     )
     kalman = gaussian.Kalman(prior_process)
-    return kalman.filtsmooth(regression_problem)
+    return kalman.filtsmooth(regression_problem)[0]
 
 
-def _setup_prior_process(F, L, m0, C0, prior_model):
-    zero_shift_prior = np.zeros(F.shape[1])
+def _setup_prior_process(F, L, m0, C0, t0, prior_model):
+    zero_shift_prior = np.zeros(F.shape[0])
     if prior_model == "discrete":
         prior = statespace.DiscreteLTIGaussian(
             state_trans_mat=F, shift_vec=zero_shift_prior, proc_noise_cov_mat=L
@@ -169,7 +171,7 @@ def _setup_prior_process(F, L, m0, C0, prior_model):
     else:
         raise ValueError
     initrv = randvars.Normal(m0, C0)
-    initarg = locations[0]
+    initarg = t0
     prior_process = randprocs.MarkovProcess(
         transition=prior, initrv=initrv, initarg=initarg
     )
@@ -177,8 +179,7 @@ def _setup_prior_process(F, L, m0, C0, prior_model):
 
 
 def _setup_regression_problem(H, R, observations, locations):
-
-    zero_shift_mm = np.zeros(H.shape[1])
+    zero_shift_mm = np.zeros(H.shape[0])
     measmod = statespace.DiscreteLTIGaussian(
         state_trans_mat=H, shift_vec=zero_shift_mm, proc_noise_cov_mat=R
     )

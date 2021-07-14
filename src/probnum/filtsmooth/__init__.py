@@ -8,7 +8,7 @@ smoothing takes the entire set of observations into account.
 """
 from . import gaussian, particle, utils
 from ._bayesfiltsmooth import BayesFiltSmooth
-from ._kalman_filter import kalman_filter, rauch_tung_striebel_smoother
+from ._kalman_filter_smoother import kalman_filter, rauch_tung_striebel_smoother
 from ._timeseriesposterior import TimeSeriesPosterior
 
 # Public classes and functions. Order is reflected in documentation.
