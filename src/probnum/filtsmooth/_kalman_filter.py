@@ -35,28 +35,30 @@ def kalman_filter(
 
     .. math:: Y_n \,|\, X_n \sim N(H X_n, R)
 
-    and the Kalman filter estimates :math:`X` given `Y_n=y_n`, `Y=[y_1, ..., y_N]`.
+    and the Kalman filter estimates :math:`X` given :math:`Y_n=y_n`, :math:`Y=[y_1, ..., y_N]`.
 
     Parameters
     ----------
     observations
-        A list of noisy observations of the hidden trajectory.
+        *(shape=(N, m))* -- A list of noisy observations of the hidden trajectory.
     locations
-        Time-locations of the observations.
+        *(shape=(N, ))* -- Time-locations of the observations.
     F
-        State transition matrix. Either the drift matrix in an SDE model,
+        *(shape=(n, n))* -- State transition matrix. Either the drift matrix in an SDE model,
         or the transition matrix in a discrete model (depending on the value of `prior_model`).
     L
-        Diffusion/dispersion matrix. Either the dispersion matrix in an SDE model,
+        *(shape=(n, n))* or *(shape=(n, s))* -- Diffusion/dispersion matrix. Either the dispersion matrix in an SDE model,
         or the diffusion matrix in a discrete model (depending on the value of `prior_model`).
+        In a continuous model, the matrix has shape (n, s) for s-dimensional driving Wiener process.
+        In a discrete model, the matrix has shape (n, n).
     H
-        Transition matrix of the (discrete) observation model.
+        *(shape=(m, n))* -- Transition matrix of the (discrete) observation model.
     R
-        Covariance matrix of the observation noise.
+        *(shape=(m, m))* -- Covariance matrix of the observation noise.
     m0
-        Initial mean of the prior model.
+        *(shape=(n,))* -- Initial mean of the prior model.
     C0
-        Initial covariance of the prior model.
+        *(shape=(n, n))* -- Initial covariance of the prior model.
     prior_model
         Either discrete (``discrete'') or continuous (``continuous''). This affects the role of `F' and `L'.
         Optional. Default is `continuous'.
@@ -109,28 +111,30 @@ def rauch_tung_striebel_smoother(
 
     .. math:: Y_n \,|\, X_n \sim N(H X_n, R)
 
-    and the Rauch-Tung-Striebel smoother estimates :math:`X` given `Y_n=y_n`, `Y=[y_1, ..., y_N]`.
+    and the Rauch-Tung-Striebel smoother estimates :math:`X` given :math:`Y_n=y_n`, :math:`Y=[y_1, ..., y_N]`.
 
     Parameters
     ----------
     observations
-        A list of noisy observations of the hidden trajectory.
+        *(shape=(N, m))* -- A list of noisy observations of the hidden trajectory.
     locations
-        Time-locations of the observations.
+        *(shape=(N, ))* -- Time-locations of the observations.
     F
-        State transition matrix. Either the drift matrix in an SDE model,
+        *(shape=(n, n))* -- State transition matrix. Either the drift matrix in an SDE model,
         or the transition matrix in a discrete model (depending on the value of `prior_model`).
     L
-        Diffusion/dispersion matrix. Either the dispersion matrix in an SDE model,
+        *(shape=(n, n))* or *(shape=(n, s))* -- Diffusion/dispersion matrix. Either the dispersion matrix in an SDE model,
         or the diffusion matrix in a discrete model (depending on the value of `prior_model`).
+        In a continuous model, the matrix has shape (n, s) for s-dimensional driving Wiener process.
+        In a discrete model, the matrix has shape (n, n).
     H
-        Transition matrix of the (discrete) observation model.
+        *(shape=(m, n))* -- Transition matrix of the (discrete) observation model.
     R
-        Covariance matrix of the observation noise.
+        *(shape=(m, m))* -- Covariance matrix of the observation noise.
     m0
-        Initial mean of the prior model.
+        *(shape=(n,))* -- Initial mean of the prior model.
     C0
-        Initial covariance of the prior model.
+        *(shape=(n, n))* -- Initial covariance of the prior model.
     prior_model
         Either discrete (``discrete'') or continuous (``continuous''). This affects the role of `F' and `L'.
 
