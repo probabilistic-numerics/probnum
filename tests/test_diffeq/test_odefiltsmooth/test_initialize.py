@@ -64,7 +64,7 @@ def test_initialize_with_rk(lv, lv_inits, order):
     prior_process = randprocs.MarkovProcess(
         transition=prior, initrv=initrv, initarg=lv.t0
     )
-    received_rv = diffeq.initialize_odefilter_with_rk(
+    received_rv = diffeq.odefiltsmooth.initialize.initialize_odefilter_with_rk(
         lv.f,
         lv.y0,
         lv.t0,
@@ -106,7 +106,7 @@ def test_initialize_with_taylormode(any_order):
         transition=prior, initrv=initrv, initarg=r2b_jax.t0
     )
 
-    received_rv = diffeq.initialize_odefilter_with_taylormode(
+    received_rv = diffeq.odefiltsmooth.initialize.initialize_odefilter_with_taylormode(
         r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior_process=prior_process
     )
 
