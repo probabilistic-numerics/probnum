@@ -174,11 +174,11 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import probsolve_ivp
-    >>> from probnum import randvars
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.
 
+    >>>
     >>> def f(t, x):
     ...     return 4*x*(1-x)
     >>>

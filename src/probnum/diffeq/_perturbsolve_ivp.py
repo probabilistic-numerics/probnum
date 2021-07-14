@@ -28,8 +28,8 @@ def perturbsolve_ivp(
     y0,
     rng,
     method="RK45",
-    perturb="step-lognormal",
-    noise_scale=1.0,
+    perturb="step-uniform",
+    noise_scale=10.0,
     adaptive=True,
     atol=1e-2,
     rtol=1e-2,
@@ -71,7 +71,7 @@ def perturbsolve_ivp(
             * `step-uniform`: Perturbed-step (aka random time-step numerical integration) method
             with lognormally distributed perturbation of the step-size [1]_.
     noise_scale
-        Scale of the perturbation. Optional. Default is 1.0. The size of this parameter
+        Scale of the perturbation. Optional. Default is 10.0. The magnitude of this parameter
         significantly impacts the width of the posterior.
     adaptive :
         Whether to use adaptive steps or not. Default is `True`.
@@ -85,6 +85,63 @@ def perturbsolve_ivp(
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as :math:`0.01 \cdot |y_0|/|f(t_0, y_0)|`.
+
+    Examples
+    --------
+
+    Examples
+    --------
+    >>> from probnum.diffeq import perturbsolve_ivp
+    >>> import numpy as np
+
+    Solve a simple logistic ODE with fixed steps.
+
+    >>> rng = np.random.default_rng(seed=2)
+    >>>
+    >>> def f(t, x):
+    ...     return 4*x*(1-x)
+    >>>
+    >>> y0 = np.array([0.15])
+    >>> t0, tmax = 0., 1.5
+    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False)
+    >>> print(np.round(solution.states.mean, 3))
+    [[0.15 ]
+     [0.292]
+     [0.497]
+     [0.766]
+     [0.874]
+     [0.955]
+     [0.987]]
+
+    Each solution is the result of a randomly-perturbed call the an underlying Runge-Kutta solver.
+    Therefore, if you call it again, the output will be different:
+
+    >>> other_solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False)
+    >>> print(np.round(other_solution.states.mean, 3))
+    [[0.15 ]
+     [0.282]
+     [0.448]
+     [0.657]
+     [0.853]
+     [0.945]
+     [0.975]]
+
+    Other methods, such as "RK45" (as well as other perturbation styles) are easily accessible.
+    Let us solve the same equation, with an adaptive RK45 solver that uses lognormally perturbed steps.
+    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6, method="RK45", adaptive=True)
+    >>> print(np.round(solution.states.mean, 3))
+    [[0.15 ]
+     [0.152]
+     [0.167]
+     [0.26 ]
+     [0.431]
+     [0.646]
+     [0.849]
+     [0.883]
+     [0.915]
+     [0.953]
+     [0.976]
+     [0.986]]
 
     References
     ----------
