@@ -35,7 +35,7 @@ class ProbNumConfigOptions(SphinxDirective):
         tbody = nodes.tbody("")
         group.append(tbody)
 
-        for config_option in pn.config.__dict__.values():
+        for config_option in pn.config._options_registry.values():
             row = nodes.row("")
             tbody.append(row)
 

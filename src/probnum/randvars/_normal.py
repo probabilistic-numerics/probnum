@@ -248,8 +248,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         damping_factor: Optional[FloatArgType] = None,
     ):
         """(P)recompute Cholesky factors (careful: in-place operation!)."""
-        if True:
-            damping_factor = 1e-12
+        if damping_factor is None:
+            damping_factor = config.covariance_inversion_damping
         if self.cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
         self._cov_cholesky = self._compute_cov_cholesky(damping_factor=damping_factor)
@@ -459,8 +459,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     ) -> np.ndarray:
         """Compute the Cholesky factorization of the covariance from its dense
         representation."""
-        if True:
-            damping_factor = 1e-12
+        if damping_factor is None:
+            damping_factor = config.covariance_inversion_damping
         dense_cov = self.dense_cov
 
         return scipy.linalg.cholesky(
