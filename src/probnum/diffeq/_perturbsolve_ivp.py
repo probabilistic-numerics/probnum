@@ -55,7 +55,7 @@ def perturbsolve_ivp(
         Other integrators are not supported currently.
     perturb
         Which perturbation style to use. Currently, only one method is supported:
-            * `step`: Perturbed-step (aka random time-step numerical integrator) method [1]_.
+            * `step`: Perturbed-step (aka random time-step numerical integration) method [1]_.
     noise_scale
         Scale of the perturbation. Optional. Default is 1.0. The size of this parameter
         significantly impacts the width of the posterior.
@@ -81,8 +81,6 @@ def perturbsolve_ivp(
     .. [1] Abdulle, A. and Garegnani, G.
         Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
         Statistics and Computing. 2020.
-    References
-    ----------
     .. [2] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
            formulae", Journal of Computational and Applied Mathematics, Vol. 6,
            No. 1, pp. 19-26, 1980.
