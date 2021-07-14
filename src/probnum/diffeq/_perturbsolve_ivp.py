@@ -52,31 +52,25 @@ def perturbsolve_ivp(
     method :
         Integration method to use.
         The following are available (docs adapted from `SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_):
-
             * `RK45` (default): Explicit Runge-Kutta method of order 5(4) [2]_.
               The error is controlled assuming accuracy of the fourth-order
               method, but steps are taken using the fifth-order accurate
               formula (local extrapolation is done). A quartic interpolation
               polynomial is used for the dense output [3]_. Can be applied in
               the complex domain.
-
             * `RK23`: Explicit Runge-Kutta method of order 3(2) [4]_. The error
               is controlled assuming accuracy of the second-order method, but
               steps are taken using the third-order accurate formula (local
               extrapolation is done). A cubic Hermite polynomial is used for the
               dense output. Can be applied in the complex domain.
-
         Other integrators are not supported currently.
     perturb
         Which perturbation style to use.
         Currently, the following methods are supported:
-
             * `step-lognormal`: Perturbed-step (aka random time-step numerical integration) method
             with lognormally distributed perturbation of the step-size [1]_.
-
             * `step-uniform`: Perturbed-step (aka random time-step numerical integration) method
             with lognormally distributed perturbation of the step-size [1]_.
-
         Other integrators are not supported currently.
     noise_scale
         Scale of the perturbation. Optional. Default is 10.0. The magnitude of this parameter
