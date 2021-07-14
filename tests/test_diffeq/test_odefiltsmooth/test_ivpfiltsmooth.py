@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum.diffeq.odefiltsmooth import probsolve_ivp
+from probnum import diffeq
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def sol(ivp, step):
     f = ivp.f
     t0, tmax = ivp.t0, ivp.tmax
     y0 = ivp.y0
-    return probsolve_ivp(
+    return diffeq.probsolve_ivp(
         f,
         t0,
         tmax,
@@ -83,7 +83,7 @@ def test_convergence_error(ivp, algo_order):
     f = ivp.f
     t0, tmax = ivp.t0, ivp.tmax
     y0 = ivp.y0
-    sol_small_step = probsolve_ivp(
+    sol_small_step = diffeq.probsolve_ivp(
         f,
         t0,
         tmax,
@@ -93,7 +93,7 @@ def test_convergence_error(ivp, algo_order):
         adaptive=False,
         diffusion_model="dynamic",
     )
-    sol_large_step = probsolve_ivp(
+    sol_large_step = diffeq.probsolve_ivp(
         f,
         t0,
         tmax,

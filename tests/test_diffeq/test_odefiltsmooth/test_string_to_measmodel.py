@@ -42,13 +42,17 @@ def prior(ivp):
 )
 def test_output_type(string, expected_type, ivp, prior):
     """Assert that the output type matches."""
-    received = diffeq.GaussianIVPFilter.string_to_measurement_model(string, ivp, prior)
+    received = diffeq.odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
+        string, ivp, prior
+    )
     assert isinstance(received, expected_type)
 
 
 def test_string_not_supported(ivp, prior):
     with pytest.raises(ValueError):
-        diffeq.GaussianIVPFilter.string_to_measurement_model("abc", ivp, prior)
+        diffeq.odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
+            "abc", ivp, prior
+        )
 
 
 @pytest.mark.parametrize(
@@ -57,7 +61,9 @@ def test_string_not_supported(ivp, prior):
 )
 def test_true_mean_ek(string, ivp, prior):
     """Assert that a forwarded realization is x[1] - f(t, x[0]) with zero added covariance."""
-    received = diffeq.GaussianIVPFilter.string_to_measurement_model(string, ivp, prior)
+    received = diffeq.odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
+        string, ivp, prior
+    )
     some_real = 1.0 + 0.01 * np.random.rand(prior.transition.dimension)
     some_time = 1.0 + 0.01 * np.random.rand()
     received, _ = received.forward_realization(some_real, some_time)
