@@ -52,20 +52,21 @@ def perturbsolve_ivp(
     method :
         Integration method to use.
         The following are available (docs adapted from `SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_):
-            * 'RK45' (default): Explicit Runge-Kutta method of order 5(4) [2]_.
+            * `RK45` (default): Explicit Runge-Kutta method of order 5(4) [2]_.
               The error is controlled assuming accuracy of the fourth-order
               method, but steps are taken using the fifth-order accurate
               formula (local extrapolation is done). A quartic interpolation
               polynomial is used for the dense output [3]_. Can be applied in
               the complex domain.
-            * 'RK23': Explicit Runge-Kutta method of order 3(2) [4]_. The error
+            * `RK23`: Explicit Runge-Kutta method of order 3(2) [4]_. The error
               is controlled assuming accuracy of the second-order method, but
               steps are taken using the third-order accurate formula (local
               extrapolation is done). A cubic Hermite polynomial is used for the
               dense output. Can be applied in the complex domain.
         Other integrators are not supported currently.
     perturb
-        Which perturbation style to use. Currently, the following methods are supported:
+        Which perturbation style to use.
+        Currently, the following methods are supported:
             * `step-lognormal`: Perturbed-step (aka random time-step numerical integration) method
             with lognormally distributed perturbation of the step-size [1]_.
             * `step-uniform`: Perturbed-step (aka random time-step numerical integration) method
@@ -84,10 +85,7 @@ def perturbsolve_ivp(
     step :
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
-        Default is None, in which case the first step is chosen as :math:`0.01 \cdot |y_0|/|f(t_0, y_0)|`.
-
-    Examples
-    --------
+        Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
 
     Examples
     --------
@@ -126,8 +124,9 @@ def perturbsolve_ivp(
      [0.945]
      [0.975]]
 
-    Other methods, such as "RK45" (as well as other perturbation styles) are easily accessible.
+    Other methods, such as `RK45` (as well as other perturbation styles) are easily accessible.
     Let us solve the same equation, with an adaptive RK45 solver that uses lognormally perturbed steps.
+
     >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6, method="RK45", adaptive=True)
     >>> print(np.round(solution.states.mean, 3))
     [[0.15 ]
@@ -145,16 +144,18 @@ def perturbsolve_ivp(
 
     References
     ----------
-    .. [1] Abdulle, A. and Garegnani, G.
+    .. [1] Abdulle, A. and Garegnani, G..
         Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
         Statistics and Computing. 2020.
-    .. [2] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
-           formulae", Journal of Computational and Applied Mathematics, Vol. 6,
-           No. 1, pp. 19-26, 1980.
-    .. [3] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
-           of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
-    .. [4] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
-           Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
+    .. [2] J. R. Dormand, P. J. Prince..
+        A family of embedded Runge-Kutta formulae.
+        Journal of Computational and Applied Mathematics, Vol. 6, No. 1, pp. 19-26, 1980.
+    .. [3] L. W. Shampine.
+        Some Practical Runge-Kutta Formulas.
+        Mathematics of Computation, Vol. 46, No. 173, pp. 135-150, 1986.
+    .. [4] P. Bogacki, L.F. Shampine.
+        A 3(2) Pair of Runge-Kutta Formulas.
+        Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
     """
 
     if method not in METHODS:

@@ -91,7 +91,7 @@ def probsolve_ivp(
     step :
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
-        Default is None, in which case the first step is chosen as :math:`0.01 \cdot |y_0|/|f(t_0, y_0)|`.
+        Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
     algo_order
         Order of the algorithm. This amounts to choosing the order of integration (``ordint``) of an integrated Brownian motion prior.
         For too high orders, process noise covariance matrices become singular. For IBM, this maximum seems to be :`q=11` (using standard ``float64``).
