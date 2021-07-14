@@ -18,7 +18,7 @@ def ivp():
 
 @pytest.mark.parametrize("method", ["RK23", "RK45"])
 @pytest.mark.parametrize("perturb", ["step-lognormal", "step-uniform"])
-@pytest.mark.parametrize("noise_scale", [0.01, np.array([0.09, 0.10])])
+@pytest.mark.parametrize("noise_scale", [0.01, 100])
 @pytest.mark.parametrize("step", [0.01, None])
 @pytest.mark.parametrize("tolerance", [0.1, np.array([0.09, 0.10])])
 def test_adaptive_solver_successful(
@@ -31,6 +31,7 @@ def test_adaptive_solver_successful(
         tmax=ivp.tmax,
         y0=ivp.y0,
         rng=rng,
+        noise_scale=noise_scale,
         perturb=perturb,
         adaptive=True,
         atol=tolerance,
