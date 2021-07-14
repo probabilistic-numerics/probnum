@@ -55,7 +55,7 @@ def perturbsolve_ivp(
         Other integrators are not supported currently.
     perturb
         Which perturbation style to use. Currently, only one method is supported:
-            * `step`: Perturbed-step (aka random time-step) method [1]_.
+            * `step`: Perturbed-step (aka random time-step numerical integrator) method [1]_.
     noise_scale
         Scale of the perturbation. Optional. Default is 1.0. The size of this parameter
         significantly impacts the width of the posterior.
