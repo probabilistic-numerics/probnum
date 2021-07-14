@@ -7,8 +7,6 @@ If you would like your publication to be featured in this list, please [open a p
 ```
 
 ## General and Foundational
-The following papers are often cited as early works on the
-idea of uncertainty over the result of deterministic computations.
 
 <!-- {% bibliography --file general %} -->
 ```{bibliography} bibliography/general.bib
@@ -52,6 +50,17 @@ all:
 ## Partial Differential Equations
 
 ```{bibliography} bibliography/PDEs.bib
+---
+all:
+---
+```
+
+
+## Historical Influences
+
+The following papers are not on probabilistic numerics per se, but are often cited as early works on the interplay of uncertainty and deterministic computations.
+
+```{bibliography} bibliography/historical.bib
 ---
 all:
 ---
