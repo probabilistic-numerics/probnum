@@ -62,11 +62,7 @@ def C0(prior_dimension):
     return np.eye(prior_dimension)
 
 
-@pytest.fixture
-def prior_model():
-    return "discrete"
-
-
+@pytest.mark.parametrize("prior_model", ["continuous", "discrete"])
 def test_kalman_filter(observations, locations, F, L, H, R, m0, C0, prior_model):
     posterior = filtsmooth.kalman_filter(
         observations=observations,
@@ -80,3 +76,21 @@ def test_kalman_filter(observations, locations, F, L, H, R, m0, C0, prior_model)
         prior_model=prior_model,
     )
     assert isinstance(posterior, filtsmooth.gaussian.FilteringPosterior)
+
+
+@pytest.mark.parametrize("prior_model", ["continuous", "discrete"])
+def test_rauch_tung_striebel_smoother(
+    observations, locations, F, L, H, R, m0, C0, prior_model
+):
+    posterior = filtsmooth.rauch_tung_striebel_smoother(
+        observations=observations,
+        locations=locations,
+        F=F,
+        L=L,
+        H=H,
+        R=R,
+        m0=m0,
+        C0=C0,
+        prior_model=prior_model,
+    )
+    assert isinstance(posterior, filtsmooth.gaussian.SmoothingPosterior)
