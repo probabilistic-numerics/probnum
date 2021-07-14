@@ -10,11 +10,12 @@ class IteratedDiscreteComponent(statespace.Transition):
 
     Examples
     --------
-    >>> from probnum.filtsmooth import DiscreteEKFComponent, StoppingCriterion
+    >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
+    >>> from probnum.filtsmooth.optim import StoppingCriterion
     >>> from probnum.problems.zoo.diffeq import logistic
     >>> from probnum.statespace import IBM
     >>> from probnum.randvars import Constant
-    >>> from numpy import array
+    >>> import numpy as np
     >>>
 
     Set up an iterated component.
@@ -25,7 +26,7 @@ class IteratedDiscreteComponent(statespace.Transition):
 
     Generate some random variables and pseudo observations.
 
-    >>> some_array = array([0.1, 1., 2.])
+    >>> some_array = np.array([0.1, 1., 2.])
     >>> some_rv = Constant(some_array)
     >>> rv, _ = prior.forward_realization(some_array , t=0., dt=0.1)
     >>> rv_observed, _ =  comp.forward_rv(rv, t=0.2)
