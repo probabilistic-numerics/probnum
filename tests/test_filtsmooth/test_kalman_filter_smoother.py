@@ -94,3 +94,37 @@ def test_rauch_tung_striebel_smoother(
         prior_model=prior_model,
     )
     assert isinstance(posterior, filtsmooth.gaussian.SmoothingPosterior)
+
+
+def test_kalman_filter_raise_error(observations, locations, F, L, H, R, m0, C0):
+    """Neither continuous nor discrete prior model raises a value error."""
+    with pytest.raises(ValueError):
+        filtsmooth.kalman_filter(
+            observations=observations,
+            locations=locations,
+            F=F,
+            L=L,
+            H=H,
+            R=R,
+            m0=m0,
+            C0=C0,
+            prior_model="neither_continuous_nor_discrete",
+        )
+
+
+def test_rauch_tung_striebel_smoother_raise_error(
+    observations, locations, F, L, H, R, m0, C0
+):
+    """Neither continuous nor discrete prior model raises a value error."""
+    with pytest.raises(ValueError):
+        filtsmooth.rauch_tung_striebel_smoother(
+            observations=observations,
+            locations=locations,
+            F=F,
+            L=L,
+            H=H,
+            R=R,
+            m0=m0,
+            C0=C0,
+            prior_model="neither_continuous_nor_discrete",
+        )

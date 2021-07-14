@@ -62,13 +62,13 @@ def kalman_filter(
     C0
         *(shape=(n, n))* -- Initial covariance of the prior model.
     prior_model
-        Either discrete (``discrete'') or continuous (``continuous''). This affects the role of `F' and `L'.
+        Either discrete (``discrete``) or continuous (``continuous``). This affects the role of `F` and `L`.
         Optional. Default is `continuous'.
 
     Raises
     ------
     ValueError
-        If `prior_model' is neither ``discrete'' nor ``continuous''.
+        If `prior_model' is neither ``discrete`` nor ``continuous``.
 
     Returns
     -------
@@ -138,12 +138,13 @@ def rauch_tung_striebel_smoother(
     C0
         *(shape=(n, n))* -- Initial covariance of the prior model.
     prior_model
-        Either discrete (``discrete'') or continuous (``continuous''). This affects the role of `F' and `L'.
+        Either discrete (``discrete``) or continuous (``continuous``). This affects the role of `F` and `L`.
+        Optional. Default is `continuous'.
 
     Raises
     ------
     ValueError
-        If `prior_model' is neither ``discrete'' nor ``continuous''.
+        If `prior_model' is neither ``discrete`` nor ``continuous``.
 
     Returns
     -------
