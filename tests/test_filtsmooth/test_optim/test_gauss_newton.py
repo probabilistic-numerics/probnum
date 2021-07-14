@@ -11,27 +11,28 @@ def setup(request):
     problem = request.param
     regression_problem, info = problem()
 
+    stopcrit = filtsmooth.optim.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
+
     kalman = filtsmooth.gaussian.Kalman(
         info["prior_process"],
     )
-    gauss_newton = filtsmooth.optim.GaussNewton(kalman)
-    return (kalman, regression_problem)
+    gauss_newton = filtsmooth.optim.GaussNewton(kalman, stopping_criterion=stopcrit)
+    return gauss_newton, regression_problem
 
 
 def test_rmse_filt_smooth(setup):
     """Assert that iterated smoothing beats smoothing."""
 
     np.random.seed(12345)
-    kalman, regression_problem = setup
+    gauss_newton, regression_problem = setup
+    kalman = gauss_newton.kalman
     truth = regression_problem.solution
-
-    stopcrit = filtsmooth.optim.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
     posterior, _ = kalman.filter(regression_problem)
     posterior = kalman.smooth(posterior)
 
-    iterated_posterior, _ = kalman.iterated_filtsmooth(
-        regression_problem, stopcrit=stopcrit
+    iterated_posterior, _ = gauss_newton.solve(
+        regression_problem, initial_guess=posterior
     )
 
     filtms = posterior.filtering_posterior.states.mean
