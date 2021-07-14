@@ -35,17 +35,15 @@ class ProbNumConfigOptions(SphinxDirective):
         tbody = nodes.tbody("")
         group.append(tbody)
 
-        for key, value in pn.config.__dict__.items():
+        for config_option in pn.config.__dict__.values():
             row = nodes.row("")
             tbody.append(row)
 
-            default_value = value
-            description = (  # TODO: Read this from the configuration registry
-                "A (typically small) value that is per default added to the diagonal "
-                "of covariance matrices in order to make inversion numerically stable."
-            )
+            name = config_option.name
+            default_value = config_option.default_value
+            description = config_option.description
 
-            row.append(nodes.entry("", nodes.literal(text=key)))
+            row.append(nodes.entry("", nodes.literal(text=name)))
             row.append(nodes.entry("", nodes.literal(text=repr(default_value))))
             row.append(nodes.entry("", self._parse_string(description)))
 
