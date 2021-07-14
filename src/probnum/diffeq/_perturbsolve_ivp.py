@@ -1,5 +1,9 @@
 """Perturbation-based probabilistic ODE solver."""
+import numpy as np
+import scipy.integrate
 
+from probnum import problems
+from probnum.diffeq import perturbed, stepsize
 
 __all__ = ["perturbsolve_ivp"]
 
@@ -7,7 +11,6 @@ __all__ = ["perturbsolve_ivp"]
 SELECT_METHOD = {
     "RK45": scipy.integrate.RK45,
     "RK23": scipy.integrate.RK23,
-    "DOP853": scipy.integrate.DOP853,
 }
 METHODS = SELECT_METHOD.keys()
 
@@ -27,7 +30,6 @@ def perturbsolve_ivp(
     method="RK45",
     perturb="step-lognormal",
     noise_scale=1.0,
-    dense_output=True,
     adaptive=True,
     atol=1e-2,
     rtol=1e-2,
@@ -61,11 +63,6 @@ def perturbsolve_ivp(
               steps are taken using the third-order accurate formula (local
               extrapolation is done). A cubic Hermite polynomial is used for the
               dense output. Can be applied in the complex domain.
-            * 'DOP853': Explicit Runge-Kutta method of order 8 [5]_.
-              Python implementation of the "DOP853" algorithm originally
-              written in Fortran [6]_. A 7-th order interpolation polynomial
-              accurate to 7-th order is used for the dense output.
-              Can be applied in the complex domain.
         Other integrators are not supported currently.
     perturb
         Which perturbation style to use. Currently, the following methods are supported:
@@ -76,10 +73,6 @@ def perturbsolve_ivp(
     noise_scale
         Scale of the perturbation. Optional. Default is 1.0. The size of this parameter
         significantly impacts the width of the posterior.
-    dense_output : bool
-        Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
-        dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
-        but when it is ``True``, the filter solution is smoothed.
     adaptive :
         Whether to use adaptive steps or not. Default is `True`.
     atol :
@@ -105,10 +98,6 @@ def perturbsolve_ivp(
            of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
     .. [4] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
            Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
-    .. [5] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
-            Equations I: Nonstiff Problems", Sec. II.
-    .. [6] `Page with original Fortran code of DOP853
-            <http://www.unige.ch/~hairer/software.html>`_.
     """
 
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
