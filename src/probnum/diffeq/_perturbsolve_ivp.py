@@ -18,7 +18,7 @@ SELECT_PERTURBS = {
     "step-lognormal": perturbed.step.PerturbedStepSolver.construct_with_lognormal_perturbation,
     "step-uniform": perturbed.step.PerturbedStepSolver.construct_with_uniform_perturbation,
 }
-PERTURBS = SELECT_METHOD.keys()
+PERTURBS = SELECT_PERTURBS.keys()
 
 
 def perturbsolve_ivp(
@@ -99,6 +99,12 @@ def perturbsolve_ivp(
     .. [4] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
            Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
     """
+
+    if method not in METHODS:
+        raise ValueError("Method is not supported.")
+
+    if perturb not in PERTURBS:
+        raise ValueError("Perturbation-style is not supported.")
 
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
     scipy_solver = SELECT_METHOD[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
