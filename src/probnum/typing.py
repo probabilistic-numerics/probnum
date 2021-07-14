@@ -17,7 +17,7 @@ import numbers
 from typing import Iterable, Tuple, Union
 
 import numpy as np
-import scipy
+import scipy.sparse
 
 ########################################################################################
 # API Types
