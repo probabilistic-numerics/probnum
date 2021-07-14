@@ -15,7 +15,7 @@ from .discrete_transition_utils import condition_state_on_rv
 
 try:
     # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
+    from functools import cached_property  # pylint: disable=ungrouped-imports
 except ImportError:
 
     from cached_property import cached_property
