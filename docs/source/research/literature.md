@@ -57,22 +57,3 @@ all:
 ---
 ```
 
-<!--
-## Approximate Bayesian Computation (ABC)
-
-coming soon
-
-
-## Applications
-
-coming soon
-
--->
-
-## Other Related Research
-
-```{bibliography} bibliography/related.bib
----
-all:
----
-```
