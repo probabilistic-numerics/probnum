@@ -99,7 +99,7 @@ def test_rauch_tung_striebel_smoother(
 def test_kalman_filter_raise_error(observations, locations, F, L, H, R, m0, C0):
     """Neither continuous nor discrete prior model raises a value error."""
     with pytest.raises(ValueError):
-        filtsmooth.kalman_filter(
+        filtsmooth.filter_kalman(
             observations=observations,
             locations=locations,
             F=F,
@@ -117,7 +117,7 @@ def test_rauch_tung_striebel_smoother_raise_error(
 ):
     """Neither continuous nor discrete prior model raises a value error."""
     with pytest.raises(ValueError):
-        filtsmooth.rauch_tung_striebel_smoother(
+        filtsmooth.smooth_rts(
             observations=observations,
             locations=locations,
             F=F,
