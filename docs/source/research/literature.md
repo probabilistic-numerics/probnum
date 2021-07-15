@@ -33,7 +33,7 @@ all:
 
 ## Global Optimization
 
-```{bibliography} bibliography/Bayesian_Optimization.bib
+```{bibliography} bibliography/Global_Optimization.bib
 ---
 all:
 ---
@@ -73,4 +73,3 @@ The following papers are not on probabilistic numerics per se, but are often cit
 all:
 ---
 ```
-
