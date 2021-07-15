@@ -197,6 +197,31 @@ class DiscreteGaussian(trans.Transition):
             proc_noise_cov_cholesky_fun=diff_cholesky,
         )
 
+    @classmethod
+    def from_callable(
+        cls,
+        input_dim: IntArgType,
+        output_dim: IntArgType,
+        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        jacob_state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+    ):
+        """Turn a callable into a deterministic transition."""
+
+        def diff(t):
+            return np.zeros((output_dim, output_dim))
+
+        def diff_cholesky(t):
+            return np.zeros((output_dim, output_dim))
+
+        return cls(
+            input_dim=input_dim,
+            output_dim=output_dim,
+            state_trans_fun=state_trans_fun,
+            jacob_state_trans_fun=jacob_state_trans_fun,
+            proc_noise_cov_mat_fun=diff,
+            proc_noise_cov_cholesky_fun=diff_cholesky,
+        )
+
 
 class DiscreteLinearGaussian(DiscreteGaussian):
     """Discrete, linear Gaussian transition models of the form.
@@ -528,6 +553,31 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         if self._proc_noise_cov_cholesky is not None:
             return self._proc_noise_cov_cholesky
         return np.linalg.cholesky(self.proc_noise_cov_mat)
+
+    @classmethod
+    def from_linop(
+        cls,
+        input_dim: IntArgType,
+        output_dim: IntArgType,
+        state_trans_mat: np.ndarray,
+        shift_vec: np.ndarray,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ):
+        """Turn a linear operator (or numpy array) into a deterministic transition."""
+        # Currently, this is only a numpy array.
+        # In the future, once linops are more widely adopted here, this will become a linop.
+        zero_matrix = np.zeros((output_dim, output_dim))
+        return cls(
+            input_dim=input_dim,
+            output_dim=output_dim,
+            state_trans_mat=state_trans_mat,
+            shift_vec=shift_vec,
+            proc_noise_cov_mat=zero_matrix,
+            proc_noise_cov_cholesky=zero_matrix,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
 
 
 def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
