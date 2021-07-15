@@ -6,7 +6,6 @@ import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq
 
 _ADAPTIVE_STEPS = diffeq.stepsize.AdaptiveSteps(atol=1e-4, rtol=1e-4, firststep=0.1)
-_ADAPTIVE_STEPS = diffeq.stepsize.ConstantSteps(0.1)
 _CONSTANT_STEPS = diffeq.stepsize.ConstantSteps(0.1)
 
 
