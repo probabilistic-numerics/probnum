@@ -52,7 +52,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
     def __init__(
         self,
-        ivp: problems.InitialValueProblem,
+        steprule,
         prior_process: randprocs.MarkovProcess,
         information_operator: information_operators.InformationOperator,
         approx_strategy: Callable[
@@ -83,12 +83,13 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self.approx_strategy = approx_strategy
 
         # Filled in in initialize(), once the ODE has been seen.
+        self.ivp = None
         self.measurement_model = None
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
-        super().__init__(ivp=ivp, order=prior_process.transition.ordint)
+        super().__init__(steprule=steprule, order=prior_process.transition.ordint)
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
@@ -118,7 +119,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
     @classmethod
     def construct_with_rk_init(
         cls,
-        ivp,
+        steprule,
         prior_process,
         information_operator: information_operators.InformationOperator,
         approx_strategy: Callable[
@@ -145,7 +146,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             )
 
         return cls(
-            ivp,
+            steprule,
             prior_process,
             information_operator=information_operator,
             approx_strategy=approx_strategy,
@@ -158,7 +159,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
     @classmethod
     def construct_with_taylormode_init(
         cls,
-        ivp,
+        steprule,
         prior_process,
         information_operator: information_operators.InformationOperator,
         approx_strategy: Callable[
@@ -171,7 +172,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_taylormode`."""
         return cls(
-            ivp,
+            steprule,
             prior_process,
             information_operator=information_operator,
             approx_strategy=approx_strategy,
@@ -181,7 +182,8 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             _reference_coordinates=_reference_coordinates,
         )
 
-    def initialise(self):
+    def initialise(self, ivp):
+        self.ivp = ivp
         initrv = self.init_implementation(
             self.ivp.f,
             self.ivp.y0,

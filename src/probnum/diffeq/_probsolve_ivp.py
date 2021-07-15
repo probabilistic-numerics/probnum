@@ -239,9 +239,9 @@ def probsolve_ivp(
                 "Please provide absolute and relative tolerance for adaptive steps."
             )
         firststep = step if step is not None else stepsize.propose_firststep(ivp)
-        stprl = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
-        stprl = stepsize.ConstantSteps(step)
+        steprule = stepsize.ConstantSteps(step)
 
     # Construct diffusion model.
     diffusion_model = diffusion_model.lower()
@@ -278,7 +278,7 @@ def probsolve_ivp(
     approx_strategy = choose_method[method]
 
     solver = odefiltsmooth.GaussianIVPFilter.construct_with_rk_init(
-        ivp,
+        steprule,
         prior_process,
         information_operator=info_op,
         approx_strategy=approx_strategy,
@@ -286,4 +286,4 @@ def probsolve_ivp(
         diffusion_model=diffusion,
     )
 
-    return solver.solve(steprule=stprl)
+    return solver.solve(ivp=ivp)
