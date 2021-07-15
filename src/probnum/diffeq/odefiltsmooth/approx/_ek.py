@@ -8,7 +8,7 @@ from probnum.diffeq.odefiltsmooth import information_operators
 from probnum.diffeq.odefiltsmooth.approx import _approx
 
 
-class EK0(_approx.ApproximateInformation):
+class EK0(_approx.ODEInformationApproximationStrategy):
     def __init__(self, forward_implementation="sqrt", backward_implementation="sqrt"):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
@@ -32,7 +32,7 @@ class EK0(_approx.ApproximateInformation):
         )
 
 
-class EK1(_approx.ApproximateInformation):
+class EK1(_approx.ODEInformationApproximationStrategy):
     def __init__(self, forward_implementation="sqrt", backward_implementation="sqrt"):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
@@ -42,7 +42,7 @@ class EK1(_approx.ApproximateInformation):
     ) -> statespace.DiscreteGaussian:
 
         return filtsmooth.DiscreteEKFComponent(
-            info.information_model,
+            ode_info.information_model,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )

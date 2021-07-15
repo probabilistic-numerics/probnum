@@ -271,7 +271,10 @@ def probsolve_ivp(
     )
 
     info_op = odefiltsmooth.information_operators.FirstOrderODEResidual()
-    choose_method = {"EK0": odefiltsmooth.approx.ek0, "EK1": odefiltsmooth.approx.ek1}
+    choose_method = {
+        "EK0": odefiltsmooth.approx.EK0(),
+        "EK1": odefiltsmooth.approx.EK1(),
+    }
     method = method.upper()
     if method not in choose_method.keys():
         raise ValueError("Method is not supported.")
