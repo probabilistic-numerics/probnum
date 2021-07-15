@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum import randvars, statespace
+from probnum import randprocs, randvars, statespace
 
 
 class MockTransition(statespace.Transition):
@@ -38,7 +38,12 @@ def test_generate_shapes(times, test_ndim, rng):
     """Output shapes are as expected."""
     mocktrans = MockTransition(dim=test_ndim)
     initrv = randvars.Constant(np.random.rand(test_ndim))
-    states, obs = statespace.generate_samples(rng, mocktrans, mocktrans, initrv, times)
+    proc = randprocs.MarkovProcess(
+        initarg=times[0], initrv=initrv, transition=mocktrans
+    )
+    states, obs = statespace.generate_samples(
+        rng, process=proc, measmod=mocktrans, times=times
+    )
 
     assert states.shape[0] == len(times)
     assert states.shape[1] == test_ndim

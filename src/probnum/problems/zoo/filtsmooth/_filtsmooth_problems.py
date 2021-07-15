@@ -127,11 +127,15 @@ def car_tracking(
 
     # Set up regression problem
     time_grid = np.arange(*timespan, step=step)
+
+    prior_process = randprocs.MarkovProcess(
+        transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
+
     states, obs = statespace.generate_samples(
         rng=rng,
-        dynmod=discrete_dynamics_model,
+        process=prior_process,
         measmod=measurement_model,
-        initrv=initrv,
         times=time_grid,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
@@ -141,9 +145,6 @@ def car_tracking(
         solution=states,
     )
 
-    prior_process = randprocs.MarkovProcess(
-        transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
-    )
     info = dict(prior_process=prior_process)
     return regression_problem, info
 
@@ -233,22 +234,19 @@ def ornstein_uhlenbeck(
     # Set up regression problem
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
-    states, obs = statespace.generate_samples(
-        rng=rng,
-        dynmod=dynamics_model,
-        measmod=measurement_model,
-        initrv=initrv,
-        times=time_grid,
+
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
+    states, obs = statespace.generate_samples(
+        rng=rng, process=prior_process, measmod=measurement_model, times=time_grid
+    )
+
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
         locations=time_grid,
         measurement_models=measurement_model,
         solution=states,
-    )
-
-    prior_process = randprocs.MarkovProcess(
-        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
     info = dict(prior_process=prior_process)
@@ -379,11 +377,17 @@ def pendulum(
 
     # Generate data
     time_grid = np.arange(*timespan, step=step)
+
+    if initarg is None:
+        initarg = time_grid[0]
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=initarg
+    )
+
     states, obs = statespace.generate_samples(
         rng=rng,
-        dynmod=dynamics_model,
+        process=prior_process,
         measmod=measurement_model,
-        initrv=initrv,
         times=time_grid,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
@@ -391,12 +395,6 @@ def pendulum(
         locations=time_grid,
         measurement_models=measurement_model,
         solution=states,
-    )
-
-    if initarg is None:
-        initarg = time_grid[0]
-    prior_process = randprocs.MarkovProcess(
-        transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
     info = dict(prior_process=prior_process)
@@ -479,11 +477,18 @@ def benes_daum(
     linearized_dynamics_model = filtsmooth.gaussian.approx.ContinuousEKFComponent(
         non_linear_model=dynamics_model
     )
+
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
+    prior_process_with_linearized_dynamics = randprocs.MarkovProcess(
+        transition=linearized_dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
+
     states, obs = statespace.generate_samples(
         rng=rng,
-        dynmod=linearized_dynamics_model,
+        process=prior_process_with_linearized_dynamics,
         measmod=measurement_model,
-        initrv=initrv,
         times=time_grid,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
@@ -491,9 +496,6 @@ def benes_daum(
         locations=time_grid,
         measurement_models=measurement_model,
         solution=states,
-    )
-    prior_process = randprocs.MarkovProcess(
-        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
     info = dict(prior_process=prior_process)

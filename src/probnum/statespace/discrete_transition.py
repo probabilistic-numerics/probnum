@@ -6,7 +6,7 @@ from typing import Callable, Optional, Tuple
 import numpy as np
 import scipy.linalg
 
-from probnum import config, linops, randvars
+from probnum import config, randvars
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
@@ -327,7 +327,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         info = {"crosscov": crosscov}
         if compute_gain:
             if config.statespace_use_linops:
-                gain = (new_cov.T.inv() @ crosscov.T).T
+                gain_T = new_cov.T.inv() @ crosscov.T
+                gain = gain_T.T
             else:
                 gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
             info["gain"] = gain
