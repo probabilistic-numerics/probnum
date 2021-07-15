@@ -41,7 +41,7 @@ all:
 
 ## Local Optimization
 
-```{bibliography} bibliography/Optimization.bib
+```{bibliography} bibliography/Local_Optimization.bib
 ---
 all:
 ---
