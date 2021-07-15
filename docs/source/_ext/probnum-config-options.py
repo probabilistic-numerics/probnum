@@ -6,6 +6,8 @@ import probnum as pn
 
 
 class ProbNumConfigOptions(SphinxDirective):
+    """Sphinx plugin that automatically generates the docs for ProbNum config options."""
+
     def run(self):
         table = nodes.table(
             "",
