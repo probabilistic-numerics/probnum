@@ -3,46 +3,56 @@
 Make an intractable information operator tractable with local
 linearization.
 """
-from probnum import filtsmooth, statespace
+import numpy as np
+
+from probnum import filtsmooth, problems, statespace
 from probnum.diffeq.odefiltsmooth import information_operators
 from probnum.diffeq.odefiltsmooth.approx import _approx
 
 
 class EK0(_approx.ODEInformationApproximationStrategy):
+    """Make inference with the information operator tractable using a zeroth-order
+    linearization of the ODE vector-field."""
+
     def __init__(self, forward_implementation="sqrt", backward_implementation="sqrt"):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
     def __call__(
-        self, ode_info: information_operators.ODEInformation
+        self, information_operator: information_operators.InformationOperator
     ) -> statespace.DiscreteGaussian:
-        def ek0_jacobian(t, x):
-            return ode_info.h1
 
-        ek0_model = statespace.DiscreteGaussian.from_callable(
-            input_dim=ode_info.information_model.input_dim,
-            output_dim=ode_info.information_model.output_dim,
-            state_trans_fun=ode_info.information_model.state_trans_fun,
-            jacob_state_trans_fun=ek0_jacobian,
+        if not information_operator.ivp_has_been_set:
+            raise ValueError
+
+        ivp = information_operator.ivp
+        custom_linearisation = lambda t, x: np.zeros((len(x), len(x)))
+
+        new_ivp = problems.InitialValueProblem(
+            f=ivp.f,
+            df=custom_linearisation,
+            y0=ivp.y0,
+            t0=ivp.t0,
+            tmax=ivp.tmax,
+            solution=ivp.solution,
         )
-        return filtsmooth.DiscreteEKFComponent(
-            ek0_model,
-            forward_implementation=self.forward_implementation,
-            backward_implementation=self.backward_implementation,
+
+        ek0_information_operator = type(information_operator)(
+            prior_transition=information_operator.prior_transition
         )
+        ek0_information_operator.set_ivp(new_ivp)
+        return ek0_information_operator.as_ekf_component()
 
 
 class EK1(_approx.ODEInformationApproximationStrategy):
+    """Make inference with the information operator tractable using a first-order
+    linearization of the ODE vector-field."""
+
     def __init__(self, forward_implementation="sqrt", backward_implementation="sqrt"):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
     def __call__(
-        self, ode_info: information_operators.ODEInformation
+        self, information_operator: information_operators.InformationOperator
     ) -> statespace.DiscreteGaussian:
-
-        return filtsmooth.DiscreteEKFComponent(
-            ode_info.information_model,
-            forward_implementation=self.forward_implementation,
-            backward_implementation=self.backward_implementation,
-        )
+        return information_operator.as_ekf_component()

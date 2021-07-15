@@ -81,7 +81,6 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self.approx_strategy = approx_strategy
 
         # Filled in in initialize(), once the ODE has been seen.
-        self.ivp = None
         self.measurement_model = None
 
         self.sigma_squared_mle = 1.0
@@ -177,7 +176,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         )
 
     def initialise(self, ivp):
-        self.ivp = ivp
+        self.information_operator.set_ivp(ivp=ivp)
         initrv = self.init_implementation(
             self.ivp.f,
             self.ivp.y0,
@@ -186,11 +185,12 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             self.ivp.df,
         )
 
-        information = self.information_operator(
-            ivp=self.ivp, prior_transition=self.prior_process.transition
-        )
-        self.measurement_model = self.approx_strategy(information)
+        self.measurement_model = self.approx_strategy(self.information_operator)
         return self.ivp.t0, initrv
+
+    @property
+    def ivp(self):
+        return self.information_operator.ivp
 
     def step(self, t, t_new, current_rv):
         r"""Gaussian IVP filter step as nonlinear Kalman filtering with zero data.
