@@ -1,3 +1,12 @@
+@article{mockus1978application,
+  title={The application of Bayesian methods for seeking the extremum},
+  author={Mockus, Jonas and Tiesis, Vytautas and Zilinskas, Antanas},
+  journal={Towards global optimization},
+  volume={2},
+  number={117-129},
+  pages={2},
+  year={1978}
+}
 
 @article{HennigS2012,
   title =	 {Entropy Search for Information-Efficient Global Optimization},
@@ -24,3 +33,5 @@
   link =	 {http://jmlr.csail.mit.edu/papers/v13/hennig12a.html},
   code = {http://probabilistic-optimization.org/Global.html}
 }
+
+
