@@ -31,17 +31,17 @@ all:
 ---
 ```
 
-## Optimization
+## Global Optimization
 
-```{bibliography} bibliography/Optimization.bib
+```{bibliography} bibliography/Bayesian_Optimization.bib
 ---
 all:
 ---
 ```
 
-## Bayesian Optimization
+## Local Optimization
 
-```{bibliography} bibliography/Bayesian_Optimization.bib
+```{bibliography} bibliography/Optimization.bib
 ---
 all:
 ---
