@@ -39,6 +39,14 @@ all:
 ---
 ```
 
+## Bayesian Optimization
+
+```{bibliography} bibliography/Bayesian_Optimization.bib
+---
+all:
+---
+```
+
 ## Ordinary Differential Equations
 
 ```{bibliography} bibliography/ODEs.bib
