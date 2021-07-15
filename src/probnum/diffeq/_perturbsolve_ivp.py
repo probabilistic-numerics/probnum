@@ -71,9 +71,9 @@ def perturbsolve_ivp(
         Currently, the following methods are supported:
 
             * `step-lognormal`: Perturbed-step (aka random time-step numerical integration) method
-            with lognormally distributed perturbation of the step-size [1]_.
+              with lognormally distributed perturbation of the step-size [1]_.
             * `step-uniform`: Perturbed-step (aka random time-step numerical integration) method
-            with lognormally distributed perturbation of the step-size [1]_.
+              with lognormally distributed perturbation of the step-size [1]_.
 
         Other integrators are not supported currently.
     noise_scale
