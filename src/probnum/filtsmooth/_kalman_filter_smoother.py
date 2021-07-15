@@ -5,10 +5,10 @@ import numpy as np
 from probnum import problems, randprocs, randvars, statespace
 from probnum.filtsmooth import gaussian
 
-__all__ = ["kalman_filter", "rauch_tung_striebel_smoother"]
+__all__ = ["filter_kalman", "smooth_rts"]
 
 
-def kalman_filter(
+def filter_kalman(
     observations, locations, F, L, H, R, m0, C0, prior_model="continuous"
 ):
     r"""Estimate an unknown, hidden trajectory from a set of observations with a Kalman filter.
@@ -84,9 +84,7 @@ def kalman_filter(
     return kalman.filter(regression_problem)[0]
 
 
-def rauch_tung_striebel_smoother(
-    observations, locations, F, L, H, R, m0, C0, prior_model="continuous"
-):
+def smooth_rts(observations, locations, F, L, H, R, m0, C0, prior_model="continuous"):
     r"""Estimate an unknown, hidden trajectory from a set of observations with a Rauch-Tung-Striebel smoother.
 
     A Rauch-Tung-Striebel smoother estimates the unknown trajectory :math:`X` from a set of observations `Y`.

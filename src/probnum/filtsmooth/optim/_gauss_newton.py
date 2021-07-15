@@ -9,6 +9,12 @@ class GaussNewton(_state_space_optimizer.StateSpaceOptimizer):
     """Gauss-Newton optimizer in state-space models.
 
     Equivalent to the iterated Kalman smoother.
+
+    Note
+    ----
+    This class of algorithms solves regression problems.
+    As such, it computes a posterior distribution over states.
+    It has not much to do with hyperparameter optimization.
     """
 
     def solution_generator(self, regression_problem, initial_guess):

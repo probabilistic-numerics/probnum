@@ -1,5 +1,4 @@
-"""Linear-time implementation of optimization algorithms in state space models via
-filtering and smoothing."""
+"""Fast optimization algorithms in state space models via filtering and smoothing."""
 
 from ._gauss_newton import GaussNewton
 from ._iterated_component import IteratedDiscreteComponent
