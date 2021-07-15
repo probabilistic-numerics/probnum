@@ -7,19 +7,25 @@ from probnum import _randomvariablelist, diffeq
 
 
 @pytest.fixture
-def perturbed_solution():
+def steprule():
+    return diffeq.stepsize.AdaptiveSteps(0.1, atol=1e-4, rtol=1e-4)
+
+
+@pytest.fixture
+def perturbed_solution(steprule):
     y0 = np.array([0.1, 0.1])
     ode = diffeq_zoo.lotkavolterra(t0=0.0, tmax=1.0, y0=y0)
     rng = np.random.default_rng(seed=1)
-    scipysolver = rk.RK45(ode.f, ode.t0, y0, ode.tmax)
-    testsolver = diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipysolver)
+    testsolver = diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(
+        rk.RK45, steprule=steprule
+    )
     sol = diffeq.perturbed.step.PerturbedStepSolver(
         rng=rng,
         solver=testsolver,
         noise_scale=0.1,
         perturb_function=diffeq.perturbed.step.perturb_uniform,
     )
-    return sol.solve(diffeq.stepsize.AdaptiveSteps(0.1, atol=1e-4, rtol=1e-4))
+    return sol.solve(ode)
 
 
 def test_states(perturbed_solution):

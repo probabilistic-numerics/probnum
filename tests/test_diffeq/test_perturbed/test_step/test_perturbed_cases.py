@@ -5,19 +5,24 @@ from scipy.integrate._ivp import rk
 import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq
 
+_ADAPTIVE_STEPS = diffeq.stepsize.AdaptiveSteps(atol=1e-4, rtol=1e-4, firststep=0.1)
+_ADAPTIVE_STEPS = diffeq.stepsize.ConstantSteps(0.1)
+_CONSTANT_STEPS = diffeq.stepsize.ConstantSteps(0.1)
 
-def setup_solver(y0, ode, perturbfun):
+
+def setup_solver(y0, ode, perturbfun, steprule):
     rng = np.random.default_rng(seed=1)
     testsolver = diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(
-        rk.RK45(ode.f, ode.t0, y0, ode.tmax)
+        rk.RK45, steprule=steprule
     )
+
     testsolver2 = diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(
-        rk.RK45(ode.f, ode.t0, y0, ode.tmax)
+        rk.RK45, steprule=steprule
     )
     perturbedsolver = diffeq.perturbed.step.PerturbedStepSolver(
         rng=rng, solver=testsolver2, noise_scale=1.0, perturb_function=perturbfun
     )
-    return testsolver, perturbedsolver
+    return testsolver, perturbedsolver, ode
 
 
 @pytest.mark.parametrize(
@@ -27,10 +32,11 @@ def setup_solver(y0, ode, perturbfun):
         diffeq.perturbed.step.perturb_uniform,
     ],
 )
-def case_lorenz(perturbfun):
+@pytest.mark.parametrize("steprule", [_ADAPTIVE_STEPS, _CONSTANT_STEPS])
+def case_lorenz(perturbfun, steprule):
     y0 = np.array([0.0, 1.0, 1.05])
     ode = diffeq_zoo.lorenz(t0=0.0, tmax=1.0, y0=y0)
-    return setup_solver(y0, ode, perturbfun)
+    return setup_solver(y0, ode, perturbfun, steprule=steprule)
 
 
 @pytest.mark.parametrize(
@@ -40,10 +46,11 @@ def case_lorenz(perturbfun):
         diffeq.perturbed.step.perturb_uniform,
     ],
 )
-def case_logistic(perturbfun):
+@pytest.mark.parametrize("steprule", [_ADAPTIVE_STEPS, _CONSTANT_STEPS])
+def case_logistic(perturbfun, steprule):
     y0 = np.array([0.1])
     ode = diffeq_zoo.logistic(t0=0.0, tmax=1.0, y0=y0)
-    return setup_solver(y0, ode, perturbfun)
+    return setup_solver(y0, ode, perturbfun, steprule=steprule)
 
 
 @pytest.mark.parametrize(
@@ -53,7 +60,8 @@ def case_logistic(perturbfun):
         diffeq.perturbed.step.perturb_uniform,
     ],
 )
-def case_lotkavolterra(perturbfun):
+@pytest.mark.parametrize("steprule", [_ADAPTIVE_STEPS, _CONSTANT_STEPS])
+def case_lotkavolterra(perturbfun, steprule):
     y0 = np.array([0.1, 0.1])
     ode = diffeq_zoo.lotkavolterra(t0=0.0, tmax=1.0, y0=y0)
-    return setup_solver(y0, ode, perturbfun)
+    return setup_solver(y0, ode, perturbfun, steprule=steprule)
