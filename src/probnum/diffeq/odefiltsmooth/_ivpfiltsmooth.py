@@ -7,7 +7,12 @@ import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
 from probnum.diffeq import _odesolver
-from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialize
+from probnum.diffeq.odefiltsmooth import (
+    _kalman_odesolution,
+    approx,
+    information_operators,
+    initialize,
+)
 
 
 class GaussianIVPFilter(_odesolver.ODESolver):
@@ -49,7 +54,10 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self,
         ivp: problems.InitialValueProblem,
         prior_process: randprocs.MarkovProcess,
-        measurement_model: statespace.DiscreteGaussian,
+        information_operator: information_operators.InformationOperator,
+        approx_strategy: Callable[
+            [information_operators.ODEInformation], statespace.DiscreteGaussian
+        ],
         with_smoothing: bool,
         init_implementation: Callable[
             [
@@ -70,7 +78,12 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             )
 
         self.prior_process = prior_process
-        self.measurement_model = measurement_model
+
+        self.information_operator = information_operator
+        self.approx_strategy = approx_strategy
+
+        # Filled in in initialize(), once the ODE has been seen.
+        self.measurement_model = None
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
@@ -107,7 +120,10 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         cls,
         ivp,
         prior_process,
-        measurement_model,
+        information_operator: information_operators.InformationOperator,
+        approx_strategy: Callable[
+            [information_operators.ODEInformation], statespace.DiscreteGaussian
+        ],
         with_smoothing,
         diffusion_model=None,
         _reference_coordinates=0,
@@ -131,8 +147,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         return cls(
             ivp,
             prior_process,
-            measurement_model,
-            with_smoothing,
+            information_operator=information_operator,
+            approx_strategy=approx_strategy,
+            with_smoothing=with_smoothing,
             init_implementation=init_implementation,
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
@@ -143,7 +160,10 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         cls,
         ivp,
         prior_process,
-        measurement_model,
+        information_operator: information_operators.InformationOperator,
+        approx_strategy: Callable[
+            [information_operators.ODEInformation], statespace.DiscreteGaussian
+        ],
         with_smoothing,
         diffusion_model=None,
         _reference_coordinates=0,
@@ -153,8 +173,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         return cls(
             ivp,
             prior_process,
-            measurement_model,
-            with_smoothing,
+            information_operator=information_operator,
+            approx_strategy=approx_strategy,
+            with_smoothing=with_smoothing,
             init_implementation=initialize.initialize_odefilter_with_taylormode,
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
@@ -169,6 +190,10 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             self.ivp.df,
         )
 
+        information = self.information_operator(
+            ivp=self.ivp, prior_transition=self.prior_process.transition
+        )
+        self.measurement_model = self.approx_strategy(information)
         return self.ivp.t0, initrv
 
     def step(self, t, t_new, current_rv):

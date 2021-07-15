@@ -270,15 +270,18 @@ def probsolve_ivp(
         transition=prior, initrv=initrv, initarg=ivp.t0
     )
 
-    if method.upper() not in ["EK0", "EK1"]:
+    info_op = odefiltsmooth.information_operators.FirstOrderODEResidual()
+    choose_method = {"EK0": odefiltsmooth.approx.ek0, "EK1": odefiltsmooth.approx.ek1}
+    method = method.upper()
+    if method not in choose_method.keys():
         raise ValueError("Method is not supported.")
-    measmod = odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
-        method, ivp, prior_process
-    )
+    approx_strategy = choose_method[method]
+
     solver = odefiltsmooth.GaussianIVPFilter.construct_with_rk_init(
         ivp,
         prior_process,
-        measmod,
+        information_operator=info_op,
+        approx_strategy=approx_strategy,
         with_smoothing=dense_output,
         diffusion_model=diffusion,
     )

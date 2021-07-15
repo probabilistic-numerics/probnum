@@ -1,7 +1,9 @@
 """Interface for information operators."""
 
 import abc
-from dataclasses import dataclasses
+import dataclasses
+
+import numpy as np
 
 from probnum import problems, statespace
 from probnum.typing import FloatArgType
@@ -38,10 +40,10 @@ class FirstOrderODEResidual:
         h1 = prior_transition.proj2coord(coord=1)
 
         def dyna(t, x):
-            return h1 @ x - ode.f(t, h0 @ x)
+            return h1 @ x - ivp.f(t, h0 @ x)
 
         def jacobian(t, x):
-            return h1 - ode.df(t, h0 @ x) @ h0
+            return h1 - ivp.df(t, h0 @ x) @ h0
 
         input_dim = prior_transition.dimension
         output_dim = ivp.dimension
