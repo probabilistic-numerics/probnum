@@ -271,8 +271,9 @@ def probsolve_ivp(
     )
 
     info_op = odefiltsmooth.information_operators.ODEResidualOperator(
-        prior_transition=prior_process.transition
+        prior_ordint=prior.ordint, prior_spatialdim=prior.spatialdim
     )
+
     choose_method = {
         "EK0": odefiltsmooth.approx.EK0(),
         "EK1": odefiltsmooth.approx.EK1(),

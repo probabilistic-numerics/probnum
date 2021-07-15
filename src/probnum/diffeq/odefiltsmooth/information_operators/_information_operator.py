@@ -30,8 +30,10 @@ class InformationOperator(abc.ABC):
     Therefore, they are one important component in a probabilistic ODE solver.
     """
 
-    def __init__(self, prior_transition):
-        self.prior_transition = prior_transition
+    def __init__(self, input_dim, output_dim):
+
+        self.input_dim = input_dim
+        self.output_dim = output_dim
 
         # Initialized once the IVP can be seen
         self.ivp = None
@@ -57,8 +59,8 @@ class InformationOperator(abc.ABC):
         return statespace.DiscreteGaussian.from_callable(
             state_trans_fun=self.__call__,
             jacob_state_trans_fun=self.jacobian,
-            input_dim=self.prior_transition.dimension,
-            output_dim=self.ivp.dimension,
+            input_dim=self.input_dim,
+            output_dim=self.output_dim,
         )
 
     def as_ekf_component(
@@ -72,12 +74,21 @@ class InformationOperator(abc.ABC):
 
 
 class ODEResidualOperator(InformationOperator):
-    def __init__(self, prior_transition):
-        super().__init__(prior_transition=prior_transition)
+    def __init__(self, prior_ordint, prior_spatialdim):
+        integrator_dimension = prior_spatialdim * (prior_ordint + 1)
+        expected_ode_dimension = prior_spatialdim
+        super().__init__(
+            input_dim=integrator_dimension, output_dim=expected_ode_dimension
+        )
 
         # Cache the projection matrices
-        self.h0 = self.prior_transition.proj2coord(coord=0)
-        self.h1 = self.prior_transition.proj2coord(coord=1)
+        dummy_integrator = statespace.Integrator(
+            ordint=prior_ordint, spatialdim=prior_spatialdim
+        )
+        self.h0 = dummy_integrator.proj2coord(coord=0)
+        self.h1 = dummy_integrator.proj2coord(coord=1)
+        self.prior_ordint = prior_ordint
+        self.prior_spatialdim = prior_spatialdim
 
     def __call__(self, t, x):
         return self.h1 @ x - self.ivp.f(t, self.h0 @ x)

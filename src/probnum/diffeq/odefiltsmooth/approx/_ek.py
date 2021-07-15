@@ -19,7 +19,7 @@ class EK0(_approx.ODEInformationApproximationStrategy):
         self.backward_implementation = backward_implementation
 
     def __call__(
-        self, information_operator: information_operators.InformationOperator
+        self, information_operator: information_operators.ODEResidualOperator
     ) -> statespace.DiscreteGaussian:
 
         if not information_operator.ivp_has_been_set:
@@ -37,8 +37,9 @@ class EK0(_approx.ODEInformationApproximationStrategy):
             solution=ivp.solution,
         )
 
-        ek0_information_operator = type(information_operator)(
-            prior_transition=information_operator.prior_transition
+        ek0_information_operator = information_operators.ODEResidualOperator(
+            prior_ordint=information_operator.prior_ordint,
+            prior_spatialdim=information_operator.prior_spatialdim,
         )
         ek0_information_operator.set_ivp(new_ivp)
         return ek0_information_operator.as_ekf_component()
