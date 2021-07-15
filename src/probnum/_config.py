@@ -68,6 +68,7 @@ class Configuration:
 
     @contextlib.contextmanager
     def __call__(self, **kwargs) -> None:
+        """Context manager used to set values of registered config options."""
         old_options = dict()
 
         for key, value in kwargs.items():
