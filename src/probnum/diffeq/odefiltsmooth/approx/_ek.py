@@ -23,5 +23,6 @@ def ek1(info: information_operators.ODEInformation) -> statespace.DiscreteGaussi
     return filtsmooth.gaussian.approx.DiscreteEKFComponent(info.information_model)
 
 
-def uk(info: information_operators.ODEInformation) -> statespace.DiscreteGaussian:
-    return filtsmooth.gaussian.approx.DiscreteUKFComponent(info.information_model)
+#
+# def uk(info: information_operators.ODEInformation) -> statespace.DiscreteGaussian:
+#     return filtsmooth.gaussian.approx.DiscreteUKFComponent(info.information_model)
