@@ -9,3 +9,5 @@ probnum.diffeq.odefiltsmooth
     :hidden:
 
     odefiltsmooth/initialize
+    odefiltsmooth/information_operators
+    odefiltsmooth/approx
