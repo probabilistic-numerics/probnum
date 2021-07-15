@@ -11,6 +11,10 @@ class ProbNumConfigOptions(SphinxDirective):
     The ``name``s, ``default_value``s, and ``description``s of the pre-defined
     ProbNum configuration options are read and dynamically added to a table in the docs.
     This plugin avoids maintaining the table in the config docstring manually.
+
+    See Also
+    --------
+    probnum.config : Register and set configs to control specific ProbNum behavior.
     """
 
     def run(self):
