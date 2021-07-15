@@ -11,14 +11,17 @@ class MarkovProcessSampling:
     params = [[100], [100]]
 
     def setup(self, num_samples, len_trajectory):
-        measvar = 0.1024
-        initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
         dynamics = statespace.Matern(
             ordint=5,
             spatialdim=3,
             lengthscale=float(len_trajectory),
             forward_implementation="classic",
             backward_implementation="classic",
+        )
+
+        measvar = 0.1024
+        initrv = randvars.Normal(
+            np.ones(dynamics.dimension), measvar * np.eye(dynamics.dimension)
         )
 
         time_domain = (0.0, float(len_trajectory))
