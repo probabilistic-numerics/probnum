@@ -1,7 +1,7 @@
 import numpy as np
 import pytest_cases
 
-from probnum import _randomvariablelist, diffeq, randvars
+from probnum import _randomvariablelist, randvars
 
 
 @pytest_cases.fixture

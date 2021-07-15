@@ -7,7 +7,7 @@ import numpy as np
 from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import problems, randvars
+from probnum import randvars
 from probnum.diffeq import _odesolver
 from probnum.diffeq.perturbed.scipy_wrapper import _wrapped_scipy_odesolution
 from probnum.typing import FloatArgType

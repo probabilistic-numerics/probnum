@@ -55,7 +55,10 @@ def doprisolver():
 
 def test_init(doprisolver):
     with pytest.raises(TypeError):
-        diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(doprisolver)
+        steprule = diffeq.stepsize.ConstantSteps(0.2)  # irrelevant value
+        diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(
+            rk.DOP853, steprule=steprule
+        )
 
 
 def test_initialise(solvers):
@@ -83,7 +86,6 @@ def test_step_execution(solvers):
 
 def test_step_variables(solvers, y, start_point, stop_point):
     testsolver, scipysolver, ode = solvers
-    print(ode)
 
     testsolver.initialise(ode)
     solver_y_new, solver_error_estimation, _ = testsolver.step(

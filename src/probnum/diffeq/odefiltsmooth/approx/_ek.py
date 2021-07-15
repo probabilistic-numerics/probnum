@@ -5,14 +5,18 @@ linearization.
 """
 import numpy as np
 
-from probnum import filtsmooth, problems, statespace
+from probnum import problems, statespace
 from probnum.diffeq.odefiltsmooth import information_operators
 from probnum.diffeq.odefiltsmooth.approx import _approx
 
 
 class EK0(_approx.ODEInformationApproximationStrategy):
     """Make inference with the information operator tractable using a zeroth-order
-    linearization of the ODE vector-field."""
+    linearization of the ODE vector-field.
+
+    This only applies to standard (explicit) ODEs. Implicit ODEs must
+    use the EK1.
+    """
 
     def __init__(self, forward_implementation="sqrt", backward_implementation="sqrt"):
         self.forward_implementation = forward_implementation

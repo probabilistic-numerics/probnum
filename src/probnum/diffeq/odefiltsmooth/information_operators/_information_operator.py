@@ -2,7 +2,7 @@
 
 import abc
 
-from probnum import filtsmooth, problems, statespace
+from probnum import filtsmooth, statespace
 
 
 class InformationOperator(abc.ABC):
@@ -74,7 +74,12 @@ class InformationOperator(abc.ABC):
         )
 
 
+# Implicit ODE Residuals might be done somewhere else?!
+# The advantage would be that the EK0 could throw errors as soon
+# as the to-be-linearized information operator is not the residual of an explicit ODE.
 class ODEResidualOperator(InformationOperator):
+    """Information operator that measures the residual of an ODE."""
+
     def __init__(self, prior_ordint, prior_spatialdim):
         integrator_dimension = prior_spatialdim * (prior_ordint + 1)
         expected_ode_dimension = prior_spatialdim

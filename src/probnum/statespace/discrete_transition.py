@@ -557,8 +557,6 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     @classmethod
     def from_linop(
         cls,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
         state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         forward_implementation="classic",
@@ -568,6 +566,9 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         # Currently, this is only a numpy array.
         # In the future, once linops are more widely adopted here, this will become a linop.
         zero_matrix = np.zeros((output_dim, output_dim))
+        if state_trans_mat.ndim != 2:
+            raise ValueError
+        output_dim, input_dim = state_trans_mat.shape
         return cls(
             input_dim=input_dim,
             output_dim=output_dim,
