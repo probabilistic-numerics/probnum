@@ -64,7 +64,7 @@ def C0(prior_dimension):
 
 @pytest.mark.parametrize("prior_model", ["continuous", "discrete"])
 def test_kalman_filter(observations, locations, F, L, H, R, m0, C0, prior_model):
-    posterior = filtsmooth.kalman_filter(
+    posterior = filtsmooth.filter_kalman(
         observations=observations,
         locations=locations,
         F=F,
@@ -82,7 +82,7 @@ def test_kalman_filter(observations, locations, F, L, H, R, m0, C0, prior_model)
 def test_rauch_tung_striebel_smoother(
     observations, locations, F, L, H, R, m0, C0, prior_model
 ):
-    posterior = filtsmooth.rauch_tung_striebel_smoother(
+    posterior = filtsmooth.smooth_rts(
         observations=observations,
         locations=locations,
         F=F,
