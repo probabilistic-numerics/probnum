@@ -47,6 +47,9 @@ class Configuration:
             return _r
 
     def __init__(self) -> None:
+        # This is the equivalent of `self._options_registry = dict()`.
+        # After rewriting the `__setattr__` method, we have to fall back on the
+        # `__setattr__` method of the super class.
         object.__setattr__(self, "_options_registry", dict())
 
     def __getattr__(self, key: str) -> Any:
