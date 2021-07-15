@@ -1,5 +1,6 @@
 """Finite-dimensional linear operators."""
 
+import copy
 from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
@@ -156,6 +157,9 @@ class LinearOperator:
         self.__det_cache = None
         self.__logabsdet_cache = None
         self.__trace_cache = None
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -849,8 +853,8 @@ class _InverseLinearOperator(LinearOperator):
             dtype=self._linop._inexact_dtype,
             matmul=LinearOperator.broadcast_matmat(self._matmat),
             rmatmul=lambda x: tmatmul(x[..., np.newaxis])[..., 0],
-            transpose=lambda x: TransposedLinearOperator(self, matmul=tmatmul),
-            adjoint=lambda x: AdjointLinearOperator(self, matmul=hmatmul),
+            transpose=lambda: TransposedLinearOperator(self, matmul=tmatmul),
+            adjoint=lambda: AdjointLinearOperator(self, matmul=hmatmul),
             inverse=lambda: self._linop,
             det=lambda: 1 / self._linop.det(),
             logabsdet=lambda: -self._linop.logabsdet(),
