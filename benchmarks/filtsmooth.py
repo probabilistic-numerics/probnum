@@ -29,11 +29,11 @@ class Filtering:
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
-                filtsmooth.DiscreteEKFComponent,
+                filtsmooth.gaussian.approx.DiscreteEKFComponent,
                 forward_implementation=implementation,
                 backward_implementation=implementation,
             ),
-            "ukf": filtsmooth.DiscreteUKFComponent,
+            "ukf": filtsmooth.gaussian.approx.DiscreteUKFComponent,
         }[linearization]
 
         linearized_dynmod = _lin_method(prior_process.transition)
@@ -49,7 +49,7 @@ class Filtering:
         )
         self.regression_problem = regression_problem
 
-        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
 
     def time_filter(self, linearization_implementation):
         self.kalman_filter.filter(self.regression_problem)
@@ -80,11 +80,11 @@ class Smoothing:
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
-                filtsmooth.DiscreteEKFComponent,
+                filtsmooth.gaussian.approx.DiscreteEKFComponent,
                 forward_implementation=implementation,
                 backward_implementation=implementation,
             ),
-            "ukf": filtsmooth.DiscreteUKFComponent,
+            "ukf": filtsmooth.gaussian.approx.DiscreteUKFComponent,
         }[linearization]
 
         linearized_dynmod = _lin_method(prior_process.transition)
@@ -99,7 +99,7 @@ class Smoothing:
             initarg=regression_problem.locations[0],
         )
 
-        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
         self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
 
     def time_smooth(self, linearization_implementation):
@@ -137,11 +137,11 @@ class DenseGridOperations:
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
-                filtsmooth.DiscreteEKFComponent,
+                filtsmooth.gaussian.approx.DiscreteEKFComponent,
                 forward_implementation=implementation,
                 backward_implementation=implementation,
             ),
-            "ukf": filtsmooth.DiscreteUKFComponent,
+            "ukf": filtsmooth.gaussian.approx.DiscreteUKFComponent,
         }[linearization]
 
         self.dense_locations = np.sort(
@@ -166,7 +166,7 @@ class DenseGridOperations:
             initarg=regression_problem.locations[0],
         )
 
-        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
 
         self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
         self.smoothing_posterior = self.kalman_filter.smooth(

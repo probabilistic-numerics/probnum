@@ -32,7 +32,7 @@ def test_merge_regression_problems(car_tracking1, car_tracking2):
     """Regression problems yield the correct shapes."""
     prob1, info1 = car_tracking1
     prob2, info2 = car_tracking2
-    new_prob = filtsmooth.merge_regression_problems(prob1, prob2)
+    new_prob = filtsmooth.utils.merge_regression_problems(prob1, prob2)
 
     N = len(prob1.locations) + len(prob2.locations)
     d1 = prob1.solution.shape[1:]
@@ -56,7 +56,7 @@ def test_merge_works_with_reduce(car_tracking1, car_tracking2, car_tracking3):
     prob3, info3 = car_tracking3
 
     new_prob = functools.reduce(
-        filtsmooth.merge_regression_problems,
+        filtsmooth.utils.merge_regression_problems,
         (prob1, prob2, prob3),
     )
 
@@ -78,7 +78,7 @@ def test_shared_locations_raise_error(car_tracking1):
     prob1, _ = car_tracking1
 
     with pytest.raises(ValueError):
-        filtsmooth.merge_regression_problems(prob1, prob1)
+        filtsmooth.utils.merge_regression_problems(prob1, prob1)
 
 
 def test_data_sets_incompatible_dimensions(car_tracking1, car_tracking2):
@@ -89,7 +89,7 @@ def test_data_sets_incompatible_dimensions(car_tracking1, car_tracking2):
     prob1.observations = prob1.observations[:, 1:]
 
     with pytest.raises(ValueError):
-        filtsmooth.merge_regression_problems(prob1, prob2)
+        filtsmooth.utils.merge_regression_problems(prob1, prob2)
 
 
 def test_solutions_incompatible_dimensions(car_tracking1, car_tracking2):
@@ -100,7 +100,7 @@ def test_solutions_incompatible_dimensions(car_tracking1, car_tracking2):
     prob1.solution = prob1.solution[:, 1:]
 
     with pytest.raises(ValueError):
-        filtsmooth.merge_regression_problems(prob1, prob2)
+        filtsmooth.utils.merge_regression_problems(prob1, prob2)
 
 
 def test_solutions_not_available(car_tracking1, car_tracking2):
@@ -110,10 +110,10 @@ def test_solutions_not_available(car_tracking1, car_tracking2):
     prob2, _ = car_tracking2
 
     # Sanity check: in principle, the output would have a solution
-    prob = filtsmooth.merge_regression_problems(prob1, prob2)
+    prob = filtsmooth.utils.merge_regression_problems(prob1, prob2)
     assert prob.solution is not None
 
     # Removing one of the solutions makes the output have no solution
     prob1.solution = None
-    prob = filtsmooth.merge_regression_problems(prob1, prob2)
+    prob = filtsmooth.utils.merge_regression_problems(prob1, prob2)
     assert prob.solution is None
