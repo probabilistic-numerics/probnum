@@ -98,6 +98,7 @@ def perturbsolve_ivp(
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.
+    Per default, `perturbsolve_ivp` uses a perturbed-step solver with uniform perturbation.
 
     >>> rng = np.random.default_rng(seed=2)
     >>>
@@ -116,7 +117,7 @@ def perturbsolve_ivp(
      [0.955]
      [0.987]]
 
-    Each solution is the result of a randomly-perturbed call the an underlying Runge-Kutta solver.
+    Each solution is the result of a randomly-perturbed call of an underlying Runge-Kutta solver.
     Therefore, if you call it again, the output will be different:
 
     >>> other_solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False)
@@ -132,17 +133,17 @@ def perturbsolve_ivp(
     Other methods, such as `RK45` (as well as other perturbation styles) are easily accessible.
     Let us solve the same equation, with an adaptive RK45 solver that uses lognormally perturbed steps.
 
-    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6, method="RK45", adaptive=True)
+    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6, method="RK45", perturb="step-lognormal", adaptive=True)
     >>> print(np.round(solution.states.mean, 3))
     [[0.15 ]
      [0.152]
      [0.167]
      [0.26 ]
      [0.431]
-     [0.646]
-     [0.849]
-     [0.883]
-     [0.915]
+     [0.644]
+     [0.848]
+     [0.882]
+     [0.914]
      [0.953]
      [0.976]
      [0.986]]
@@ -166,7 +167,10 @@ def perturbsolve_ivp(
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
 
     if method not in METHODS.keys():
-        raise ValueError("Method is not supported.")
+        msg1 = f"Parameter 'method'={method} is not supported. "
+        msg2 = "Possible values are {METHODS}."
+        errormsg = msg1 + msg2
+        raise ValueError(errormsg)
     scipy_solver = METHODS[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
     wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipy_solver)
 
