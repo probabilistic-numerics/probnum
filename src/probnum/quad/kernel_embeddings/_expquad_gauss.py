@@ -32,12 +32,12 @@ def _kernel_mean_expquad_gauss(
     input_dim = kernel.input_dim
 
     if measure.diagonal_covariance:
-        cov_diag = np.diag(np.atleast_2d(measure.cov))
+        cov_diag = np.diag(measure.cov)
         chol_inv_x = (x - measure.mean) / np.sqrt(kernel.lengthscale ** 2 + cov_diag)
         det_factor = kernel.lengthscale ** input_dim / np.sqrt(
             (kernel.lengthscale ** 2 + cov_diag).prod()
         )
-        exp_factor = np.exp(-0.5 * (np.atleast_2d(chol_inv_x) ** 2).sum(axis=1))
+        exp_factor = np.exp(-0.5 * (chol_inv_x ** 2).sum(axis=1))
     else:
         chol = slinalg.cho_factor(
             kernel.lengthscale ** 2 * np.eye(input_dim) + measure.cov,
@@ -69,9 +69,7 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
     input_dim = kernel.input_dim
 
     if measure.diagonal_covariance:
-        denom = (
-            kernel.lengthscale ** 2 + 2.0 * np.diag(np.atleast_2d(measure.cov))
-        ).prod()
+        denom = (kernel.lengthscale ** 2 + 2.0 * np.diag(measure.cov)).prod()
 
     else:
         denom = np.linalg.det(

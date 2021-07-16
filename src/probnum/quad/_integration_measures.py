@@ -236,17 +236,14 @@ class GaussianMeasure(IntegrationMeasure):
             domain=(np.full((input_dim,), -np.Inf), np.full((input_dim,), np.Inf)),
         )
 
-        # Transform the mean and covariance to scalars if in 1D. This is necessary to
-        # have Normal random variable work as intended working as intended.
-        if input_dim == 1:
-            mean = np.squeeze(mean)
-            cov = np.squeeze(cov)
-
         # Exploit random variables to carry out mean and covariance checks
+        # squeezes are needed due to the way random variables are currently implemented
         # pylint: disable=no-member
-        self.random_variable = Normal(mean=mean, cov=cov)
-        self.mean = self.random_variable.mean
-        self.cov = self.random_variable.cov
+        self.random_variable = Normal(mean=np.squeeze(mean), cov=np.squeeze(cov))
+        self.mean = np.reshape(self.random_variable.mean, (self.input_dim,))
+        self.cov = np.reshape(
+            self.random_variable.cov, (self.input_dim, self.input_dim)
+        )
 
         # Set diagonal_covariance flag
         if input_dim == 1:
