@@ -8,17 +8,17 @@ from probnum.diffeq import perturbed, stepsize
 __all__ = ["perturbsolve_ivp"]
 
 
-SELECT_METHOD = {
+METHODS = {
     "RK45": scipy.integrate.RK45,
     "RK23": scipy.integrate.RK23,
 }
-METHODS = SELECT_METHOD.keys()
+"""Implemented Scipy solvers."""
 
-SELECT_PERTURBS = {
+PERTURBS = {
     "step-lognormal": perturbed.step.PerturbedStepSolver.construct_with_lognormal_perturbation,
     "step-uniform": perturbed.step.PerturbedStepSolver.construct_with_uniform_perturbation,
 }
-PERTURBS = SELECT_PERTURBS.keys()
+"""Implemented perturbation-styles."""
 
 
 def perturbsolve_ivp(
@@ -163,17 +163,16 @@ def perturbsolve_ivp(
         Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
     """
 
-    if method not in METHODS:
-        raise ValueError("Method is not supported.")
-
-    if perturb not in PERTURBS:
-        raise ValueError("Perturbation-style is not supported.")
-
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
-    scipy_solver = SELECT_METHOD[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
+
+    if method not in METHODS.keys():
+        raise ValueError("Method is not supported.")
+    scipy_solver = METHODS[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
     wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipy_solver)
 
-    perturbed_solver = SELECT_PERTURBS[perturb](
+    if perturb not in PERTURBS.keys():
+        raise ValueError("Perturbation-style is not supported.")
+    perturbed_solver = PERTURBS[perturb](
         rng=rng, solver=wrapped_scipy_solver, noise_scale=noise_scale
     )
 
