@@ -476,7 +476,7 @@ def benes_daum(
         time_grid = np.arange(0.0, 4.0, step=0.2)
     # The non-linear dynamics are linearized according to an EKF in order
     # to generate samples.
-    linearized_dynamics_model = filtsmooth.ContinuousEKFComponent(
+    linearized_dynamics_model = filtsmooth.gaussian.approx.ContinuousEKFComponent(
         non_linear_model=dynamics_model
     )
     states, obs = statespace.generate_samples(
@@ -569,7 +569,7 @@ def logistic_ode(
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
-    measurement_model = filtsmooth.DiscreteEKFComponent.from_ode(
+    measurement_model = filtsmooth.gaussian.approx.DiscreteEKFComponent.from_ode(
         logistic_ivp,
         prior=dynamics_model,
         evlvar=evlvar,
