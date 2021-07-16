@@ -67,7 +67,7 @@ class InformationOperator(abc.ABC):
     def as_ekf_component(
         self, forward_implementation="sqrt", backward_implementation="sqrt"
     ):
-        return filtsmooth.DiscreteEKFComponent(
+        return filtsmooth.gaussian.approx.DiscreteEKFComponent(
             non_linear_model=self.as_transition(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
