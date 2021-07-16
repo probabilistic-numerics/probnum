@@ -31,8 +31,8 @@ def perturbsolve_ivp(
     perturb="step-uniform",
     noise_scale=10.0,
     adaptive=True,
-    atol=1e-2,
-    rtol=1e-2,
+    atol=1e-6,
+    rtol=1e-3,
     step=None,
 ):
     r"""Solve an initial value problem with a perturbation-based probabilistic ODE solver.
@@ -66,27 +66,27 @@ def perturbsolve_ivp(
               dense output. Can be applied in the complex domain.
 
         Other integrators are not supported currently.
-    perturb
+    perturb :
         Which perturbation style to use.
         Currently, the following methods are supported:
 
             * `step-lognormal`: Perturbed-step (aka random time-step numerical integration) method
               with lognormally distributed perturbation of the step-size [1]_.
             * `step-uniform`: Perturbed-step (aka random time-step numerical integration) method
-              with lognormally distributed perturbation of the step-size [1]_.
+              with uniformly distributed perturbation of the step-size [1]_.
 
         Other integrators are not supported currently.
-    noise_scale
+    noise_scale :
         Scale of the perturbation. Optional. Default is 10.0. The magnitude of this parameter
         significantly impacts the width of the posterior.
     adaptive :
         Whether to use adaptive steps or not. Default is `True`.
     atol :
         Absolute tolerance  of the adaptive step-size selection scheme.
-        Optional. Default is ``1e-4``.
+        Optional. Default is ``1e-6``.
     rtol :
         Relative tolerance   of the adaptive step-size selection scheme.
-        Optional. Default is ``1e-4``.
+        Optional. Default is ``1e-3``.
     step :
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
