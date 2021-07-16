@@ -7,6 +7,8 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | **Subpackage**                                  | **Description**                                              |
     +-------------------------------------------------+--------------------------------------------------------------+
+    | :class:`config <probnum._config.Configuration>` | Global configuration options.                                |
+    +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.diffeq`                          | Probabilistic solvers for ordinary differential equations.   |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.filtsmooth`                      | Bayesian filtering and smoothing.                            |
@@ -29,14 +31,13 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.utils`                           | Utility functions.                                           |
     +-------------------------------------------------+--------------------------------------------------------------+
-    | :class:`config <probnum._config.Configuration>` | Global configuration options.                                |
-    +-------------------------------------------------+--------------------------------------------------------------+
 
 .. toctree::
     :caption: API Reference
     :hidden:
 
     api/probnum
+    api/config
     api/diffeq
     api/filtsmooth
     api/kernels
@@ -48,4 +49,3 @@ API Reference
     api/randvars
     api/statespace
     api/utils
-    api/config

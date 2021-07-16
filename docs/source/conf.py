@@ -24,6 +24,7 @@ from pkg_resources import DistributionNotFound, get_distribution
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath("../src"))
+sys.path.append(os.path.abspath("./_ext"))
 
 # -- General configuration ------------------------------------------------
 
@@ -47,6 +48,7 @@ extensions = [
     "sphinx_gallery.load_style",
     "myst_parser",
     "nbsphinx",
+    "probnum-config-options",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
