@@ -56,10 +56,24 @@ class InformationOperator(abc.ABC):
     def jacobian(self, t, x):
         raise NotImplementedError
 
-    def as_transition(self):
-        return statespace.DiscreteGaussian.from_callable(
+    def as_transition(
+        self, measurement_cov_fun=None, measurement_cov_cholesky_fun=None
+    ):
+        if measurement_cov_fun is None:
+            if measurement_cov_cholesky_fun is not None:
+                raise ValueError
+            return statespace.DiscreteGaussian.from_callable(
+                state_trans_fun=self.__call__,
+                jacob_state_trans_fun=self.jacobian,
+                input_dim=self.input_dim,
+                output_dim=self.output_dim,
+            )
+
+        return statespace.DiscreteGaussian(
             state_trans_fun=self.__call__,
             jacob_state_trans_fun=self.jacobian,
+            proc_noise_cov_mat_fun=measurement_cov_fun,
+            proc_noise_cov_cholesky_fun=measurement_cov_cholesky_fun,
             input_dim=self.input_dim,
             output_dim=self.output_dim,
         )
