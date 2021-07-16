@@ -259,31 +259,6 @@ link = {http://www.worldscientific.com/doi/abs/10.1142/9789812708298_0028}
   code =	 {https://github.com/OxfordML/wsabi}
 }
 
-
-@Article{oates14-contr-monte-carlo,
-  author =	 {Chris J. Oates and Mark Girolami and Nicolas Chopin},
-  title =	 {Control functionals for Monte Carlo integration},
-  journal =	 {arXiv preprint 1410.2392},
-  year =	 2014,
-  abstract =	 {This paper introduces a novel class of estimators for Monte
-                  Carlo integration, that leverage gradient information in
-                  order to provide the improved estimator performance demanded
-                  by contemporary statistical applications. The proposed
-                  estimators, called "control functionals", achieve sub-root-n
-                  convergence and often require orders of magnitude fewer
-                  simulations, compared with existing approaches, in order to
-                  achieve a fixed level of precision. We focus on a particular
-                  sub-class of estimators that permit an elegant analytic form
-                  and study their properties, both theoretically and
-                  empirically. Results are presented on Bayes-Hermite
-                  quadrature, hierarchical Gaussian process models and
-                  non-linear ordinary differential equation models, where in
-                  each case our estimators are shown to offer state of the art
-                  performance.},
-  link =          {http://www2.warwick.ac.uk/fac/sci/statistics/staff/academic-research/oates/control_functionals},
-  file =	 {http://arxiv.org/pdf/1410.2392v1}
-}
-
 @ARTICLE{2015arXiv150405994S,
    author = {{S{\"a}rkk{\"a}}, S. and {Hartikainen}, J. and {Svensson}, L. and
   {Sandblom}, F.},
@@ -372,18 +347,6 @@ abstract = {Much of research in machine learning has centered around the search 
   code = {https://github.com/jacobnzw/icinco-code}
 }
 
-@article{2016arXiv160606841O,
-   author = {{Oates}, C.~J. and {Briol}, F.-X. and {Girolami}, M.},
-    title = "{Probabilistic Integration and Intractable Distributions}",
-  journal = {ArXiv e-prints},
-   volume = {stat.ME 1606.06841},
-     year = 2016,
-    month = {June},
-    abstract = {This paper considers numerical approximation for integrals of the form $$\int f(x) p(\mathrm{d}x)$$ in the case where $f(x)$ is an expensive black-box function and $p(\mathrm{d}x)$ is an intractable distribution (meaning that it is accessible only through a finite collection of samples). Our proposal extends previous work that treats numerical integration as a problem of statistical inference, in that we model both $f$ as an a priori unknown random function and $p$ as an a priori unknown random distribution. The result is a posterior distribution over the value of the integral that accounts for these dual sources of approximation error. This construction is designed to enable the principled quantification and propagation of epistemic uncertainty due to numerical error through a computational pipeline. The work is motivated by such problems that occur in the Bayesian calibration of computer models.},
-  file = {http://arxiv.org/pdf/1606.06841v2},
-  link = {http://arxiv.org/abs/1606.06841}
- }
-
 @incollection{NIPS2016-6174,
   title = {Convergence guarantees for kernel-based quadrature rules in misspecified settings},
   author = {Kanagawa, Motonobu and Sriperumbudur, Bharath K. and Fukumizu, Kenji},
@@ -409,20 +372,6 @@ abstract = {Much of research in machine learning has centered around the search 
   doi={10.1109/MLSP.2017.8168195}
 }
 
-
-@article{sarkka_relation_2015,
-  title = {On the relation between {Gaussian} process quadratures and sigma-point methods},
-  url = {http://arxiv.org/abs/1504.05994},
-  abstract = {This article is concerned with Gaussian process quadratures, which are numerical integration methods based on Gaussian process regression methods, and sigma-point methods, which are used in advanced non-linear Kalman filtering and smoothing algorithms. We show that many sigma-point methods can be interpreted as Gaussian quadrature based methods with suitably selected covariance functions. We show that this interpretation also extends to more general multivariate Gauss--Hermite integration methods and related spherical cubature rules. Additionally, we discuss different criteria for selecting the sigma-point locations: exactness for multivariate polynomials up to a given order, minimum average error, and quasi-random point sets. The performance of the different methods is tested in numerical experiments.},
-  urldate = {2017-09-11},
-  journal = {arXiv:1504.05994 [math, stat]},
-  author = {S{\"a}rkk{\"a}, Simo and Hartikainen, Jouni and Svensson, Lennart and Sandblom, Fredrik},
-  month = apr,
-  year = {2015},
-  note = {arXiv: 1504.05994},
-  keywords = {Mathematics - Dynamical Systems, Statistics - Machine Learning, Statistics - Methodology},
-  file = {https://arxiv.org/pdf/1504.05994.pdf}
-}
 
 
 @article{karvonen_fully_2017,
@@ -470,19 +419,6 @@ abstract = {Much of research in machine learning has centered around the search 
 }
 
 
-@article{cockayne_bayesian_2017,
-  title = {Bayesian {Probabilistic} {Numerical} {Methods}},
-  url = {http://arxiv.org/abs/1702.03673},
-  abstract = {The emergent field of probabilistic numerics has thus far lacked rigorous statistical principals. This paper establishes Bayesian probabilistic numerical methods as those which can be cast as solutions to certain Bayesian inverse problems, albeit problems that are non-standard. This allows us to establish general conditions under which Bayesian probabilistic numerical methods are well-defined, encompassing both non-linear and non-Gaussian models. For general computation, a numerical approximation scheme is developed and its asymptotic convergence is established. The theoretical development is then extended to pipelines of computation, wherein probabilistic numerical methods are composed to solve more challenging numerical tasks. The contribution highlights an important research frontier at the interface of numerical analysis and uncertainty quantification, with some illustrative applications presented.},
-  urldate = {2017-03-06},
-  journal = {arXiv:1702.03673 [cs, math, stat]},
-  author = {Cockayne, Jon and Oates, Chris and Sullivan, Tim and Girolami, Mark},
-  month = feb,
-  year = {2017},
-  keywords = {Computer Science - Numerical Analysis, Mathematics - Numerical Analysis, Mathematics - Statistics Theory, Statistics - Computation, Statistics - Methodology},
-  file = {https://arxiv.org/pdf/1702.03673.pdf}
-}
-
 @article{kanagawa_convergence_2017,
   title = {Convergence {Analysis} of {Deterministic} {Kernel}-{Based} {Quadrature} {Rules} in {Misspecified} {Settings}},
   url = {http://arxiv.org/abs/1709.00147},
@@ -525,4 +461,13 @@ archivePrefix = "arXiv",
     link  = {https://arxiv.org/abs/1707.04723},
     file = {https://arxiv.org/pdf/1707.04723.pdf},
     abstract = {The worst case integration error in reproducing kernel Hilbert spaces of standard Monte Carlo methods with n random points decays as 1/sqrt(n). However, re-weighting of random points can sometimes be used to improve the convergence order. This paper contributes general theoretical results for Sobolev spaces on closed Riemannian manifolds, where we verify that such re-weighting yields optimal approximation rates up to a logarithmic factor. We also provide numerical experiments matching the theoretical results for some Sobolev spaces on the unit sphere and on the Grassmannian manifold. Our theoretical findings also cover function spaces on more general sets such as the unit ball, the cube, and the simplex.}
+}
+
+@inproceedings{fisher2020locally,
+  title={A locally adaptive Bayesian cubature method},
+  author={Fisher, Matthew and Oates, Chris and Powell, Catherine and Teckentrup, Aretha},
+  booktitle={International Conference on Artificial Intelligence and Statistics},
+  pages={1265--1275},
+  year={2020},
+  organization={PMLR}
 }

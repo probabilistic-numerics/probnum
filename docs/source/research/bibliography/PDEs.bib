@@ -15,33 +15,6 @@
 }
 
 
-@article{2014arXiv14071517B,
-  author =	 {{Bui-Thanh}, T. and {Girolami}, M.},
-  title =	 "{Solving Large-Scale PDE-constrained Bayesian Inverse
-                  Problems with Riemann Manifold Hamiltonian Monte Carlo}",
-  journal =	 {arXiv pre-print 1407.1517},
-  keywords =	 {Mathematics - Statistics Theory},
-  year =	 2014,
-  month =	 {July},
-  abstract =	 {We consider the Riemann manifold Hamiltonian Monte Carlo
-                  (RMHMC) method for solving statistical inverse problems
-                  governed by partial differential equations (PDEs). The power
-                  of the RMHMC method is that it exploits the geometric
-                  structure induced by the PDE constraints of the underlying
-                  inverse problem. Consequently, each RMHMC posterior sample is
-                  almost independent from the others providing statistically
-                  efficient Markov chain simulation. We reduce the cost of
-                  forming the Fisher information matrix by using a low rank
-                  approximation via a randomized singular value decomposition
-                  technique. This is efficient since a small number of
-                  Hessian-vector products are required. The Hessian-vector
-                  product in turn requires only two extra PDE solves using the
-                  adjoint technique. The results suggest RMHMC as a highly
-                  efficient simulation scheme for sampling from PDE induced
-                  posterior measures.},
-  link =	 {http://arxiv.org/abs/1407.1517}
-}
-
 @article{owhadi2015bayesian,
   title={Bayesian Numerical Homogenization},
   author={Owhadi, Houman},
@@ -68,18 +41,6 @@
   year = {2015},
   note = {arXiv: 1506.04592},
   keywords = {Statistics - Methodology}
-}
-
-@article{raissi_machine_2017,
-  title = {Machine {Learning} of {Linear} {Differential} {Equations} using {Gaussian} {Processes}},
-  file = {https://arxiv.org/pdf/1701.02440.pdf},
-  abstract = {This work leverages recent advances in probabilistic machine learning to discover conservation laws expressed by parametric linear equations. Such equations involve, but are not limited to, ordinary and partial differential, integro-differential, and fractional order operators. Here, Gaussian process priors are modified according to the particular form of such operators and are employed to infer parameters of the linear equations from scarce and possibly noisy observations. Such observations may come from experiments or "black-box" computer simulations.},
-  journal = {arXiv:1701.02440 [cs, math, stat]},
-  author = {Raissi, Maziar and Karniadakis, George Em},
-  month = jan,
-  year = {2017},
-  note = {arXiv: 1701.02440},
-  keywords = {Computer Science - Learning, Mathematics - Numerical Analysis, Statistics - Machine Learning}
 }
 
 
@@ -134,20 +95,6 @@
     file = {http://arxiv.org/pdf/1606.07686v1.pdf}
 }
 
-
-@article{2017arXiv170310230,
-  author = {Maziar Raissi and Paris Perdikaris and George Em Karniadakis},
-  title = {Numerical {G}aussian Processes for Time-dependent and Non-linear Partial Differential Equations},
-  journal = {ArXiv e-prints},
-  issue = {stat.ML 1703.10230},
-  year = {2017},
-  month = mar,
-  abstract = {We introduce the concept of numerical Gaussian processes, which we define as Gaussian processes with covariance functions resulting from temporal discretization of time-dependent partial differential equations. Numerical Gaussian processes, by construction, are designed to deal with cases where: (1) all we observe are noisy data on black-box initial conditions, and (2) we are interested in quantifying the uncertainty associated with such noisy data in our solutions to time-dependent partial differential equations. Our method circumvents the need for spatial discretization of the differential operators by proper placement of Gaussian process priors. This is an attempt to construct structured and data-efficient learning machines, which are explicitly informed by the underlying physics that possibly generated the observed data. The effectiveness of the proposed approach is demonstrated through several benchmark problems involving linear and nonlinear time-dependent operators. In all examples, we are able to recover accurate approximations of the latent solutions, and consistently propagate uncertainty, even in cases involving very long time integration.},
-  link = {https://arxiv.org/abs/1703.10230},
-  file = {https://arxiv.org/pdf/1703.10230.pdf}
-}
-
-
 @article{owhadi_gamblets_2017,
   title = {Gamblets for opening the complexity-bottleneck of implicit schemes for hyperbolic and parabolic {ODEs}/{PDEs} with rough coefficients},
   volume = {347},
@@ -195,4 +142,12 @@
   doi = {10.1103/PhysRevE.97.033314},
   link = {https://link.aps.org/doi/10.1103/PhysRevE.97.033314},
    abstract = {Most simulation schemes for partial differential equations (PDEs) focus on minimizing a simple error norm of a discretized version of a field. This paper takes a fundamentally different approach; the discretized field is interpreted as data providing information about a real physical field that is unknown. This information is sought to be conserved by the scheme as the field evolves in time. Such an information theoretic approach to simulation was pursued before by information field dynamics (IFD). In this paper we work out the theory of IFD for nonlinear PDEs in a noiseless Gaussian approximation. The result is an action that can be minimized to obtain an information-optimal simulation scheme. It can be brought into a closed form using field operators to calculate the appearing Gaussian integrals. The resulting simulation schemes are tested numerically in two instances for the Burgers equation. Their accuracy surpasses finite-difference schemes on the same resolution. The IFD scheme, however, has to be correctly informed on the subgrid correlation structure. In certain limiting cases we recover well-known simulation schemes like spectral Fourier-Galerkin methods. We discuss implications of the approximations made. }
+}
+
+@article{wang2021bayesian,
+  title={Bayesian Numerical Methods for Nonlinear Partial Differential Equations},
+  author={Wang, Junyang and Cockayne, Jon and Chkrebtii, Oksana and Sullivan, Timothy John and Oates, Chris and others},
+  journal={Statistics and Computing},
+  year={2021},
+  link = {https://arxiv.org/abs/2104.12587}
 }
