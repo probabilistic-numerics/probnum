@@ -44,27 +44,50 @@ def _construct_measurement_models(
     transition_matrix = np.eye(ode_information_operator.input_dim, ivp.dimension)
     shift_vector = -ivp.y0
     if ode_measurement_variance is None:
-        measmod_initial_condition = statespace.DiscreteLTIGaussian.from_linop(
-            state_trans_mat=transition_matrix, shift_vec=shift_vector
+        measmod_y0, measmod_ode = _construct_measurement_models_dirac_likelihood(
+            ode_information_operator,
+            shift_vector,
+            transition_matrix,
+            ode_measurement_variance,
         )
-        measmod_ode = ode_information_operator.as_transition()
     else:
-
-        def diff(t):
-            return ode_measurement_variance * np.eye(ode_information_operator.input_dim)
-
-        def diff_cholesky(t):
-            return np.sqrt(ode_measurement_variance) * np.eye(
-                ode_information_operator.input_dim
-            )
-
-        measmod_initial_condition = statespace.DiscreteLTIGaussian(
-            state_trans_mat=transition_matrix,
-            shift_vec=shift_vector,
-            proc_noise_cov_mat=diff(None),
-            proc_noise_cov_cholesky=diff_cholesky(None),
+        measmod_y0, measmod_ode = _construct_measurement_models_gaussian_likelihood(
+            ode_information_operator,
+            shift_vector,
+            transition_matrix,
+            ode_measurement_variance,
         )
-        measmod_ode = ode_information_operator.as_transition(
-            measurement_cov_fun=diff, measurement_cov_cholesky_fun=diff_cholesky
+    return measmod_y0, measmod_ode
+
+
+def _construct_measurement_models_gaussian_likelihood(
+    ode_information_operator, shift_vector, transition_matrix, ode_measurement_variance
+):
+    def diff(t):
+        return ode_measurement_variance * np.eye(ode_information_operator.input_dim)
+
+    def diff_cholesky(t):
+        return np.sqrt(ode_measurement_variance) * np.eye(
+            ode_information_operator.input_dim
         )
+
+    measmod_initial_condition = statespace.DiscreteLTIGaussian(
+        state_trans_mat=transition_matrix,
+        shift_vec=shift_vector,
+        proc_noise_cov_mat=diff(None),
+        proc_noise_cov_cholesky=diff_cholesky(None),
+    )
+    measmod_ode = ode_information_operator.as_transition(
+        measurement_cov_fun=diff, measurement_cov_cholesky_fun=diff_cholesky
+    )
+    return measmod_initial_condition, measmod_ode
+
+
+def _construct_measurement_models_dirac_likelihood(
+    ode_information_operator, shift_vector, transition_matrix, ode_measurement_variance
+):
+    measmod_initial_condition = statespace.DiscreteLTIGaussian.from_linop(
+        state_trans_mat=transition_matrix, shift_vec=shift_vector
+    )
+    measmod_ode = ode_information_operator.as_transition()
     return measmod_initial_condition, measmod_ode
