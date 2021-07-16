@@ -5,9 +5,9 @@ from probnum._config import _DEFAULT_CONFIG_OPTIONS
 
 
 def test_defaults():
-    none_vals = {key: None for (key, _) in _DEFAULT_CONFIG_OPTIONS}
+    none_vals = {key: None for (key, _, _) in _DEFAULT_CONFIG_OPTIONS}
 
-    for key, default_val in _DEFAULT_CONFIG_OPTIONS:
+    for key, default_val, _ in _DEFAULT_CONFIG_OPTIONS:
         # Check if default is correct before context manager
         assert getattr(probnum.config, key) == default_val
         # Temporarily set all config values to None
@@ -21,12 +21,13 @@ def test_defaults():
 
 def test_register():
     # Check if registering a new config entry works
-    probnum.config.register("some_config", 3.14)
+    probnum.config.register("some_config", 3.14, "Dummy description.")
+    assert hasattr(probnum.config, "some_config")
     assert probnum.config.some_config == 3.14
 
     # When registering a new entry with an already existing name, throw
     with pytest.raises(KeyError):
-        probnum.config.register("some_config", 4.2)
+        probnum.config.register("some_config", 4.2, "Dummy description.")
 
     # Check if temporarily setting the config entry to a different value (via
     # the context manager) works
@@ -43,10 +44,10 @@ def test_register():
 
     # Setting a config entry before registering it, does not work. Neither via
     # the context manager ...
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         with probnum.config(unknown_config=False):
             pass
 
     # ... nor by accessing the attribute directly.
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         probnum.config.unknown_config = False

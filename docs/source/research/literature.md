@@ -7,8 +7,6 @@ If you would like your publication to be featured in this list, please [open a p
 ```
 
 ## General and Foundational
-The following papers are often cited as early works on the
-idea of uncertainty over the result of deterministic computations.
 
 <!-- {% bibliography --file general %} -->
 ```{bibliography} bibliography/general.bib
@@ -33,9 +31,17 @@ all:
 ---
 ```
 
-## Optimization
+## Global Optimization
 
-```{bibliography} bibliography/Optimization.bib
+```{bibliography} bibliography/Global_Optimization.bib
+---
+all:
+---
+```
+
+## Local Optimization
+
+```{bibliography} bibliography/Local_Optimization.bib
 ---
 all:
 ---
@@ -43,27 +49,7 @@ all:
 
 ## Ordinary Differential Equations
 
-To avoid a frequent initial confusion for new readers, it may be helpful to
-point out that there are two common ways in which probabilistic methods are
-used in combination with ordinary differential equations: The "classic" problem
-of numerics is to infer the solution to an initial value problem given access
-to the differential equation. Below, we term this problem "solving ODEs". The
-reverse problem, in some sense, has
-also found interest in machine learning: inferring a differential equation from
-(noisy) observations of trajectories that are assumed to be governed by this
-ODE. Below, this is listed under "inferring ODEs".
-
-### Solving ODEs
-
 ```{bibliography} bibliography/ODEs.bib
----
-all:
----
-```
-
-### Inferring ODEs
-
-```{bibliography} bibliography/ODE_from_path.bib
 ---
 all:
 ---
@@ -77,21 +63,12 @@ all:
 ---
 ```
 
-<!--
-## Approximate Bayesian Computation (ABC)
 
-coming soon
+## Historical Influences
 
+The following papers are not on probabilistic numerics per se, but are often cited as early works on the interplay of uncertainty and deterministic computations.
 
-## Applications
-
-coming soon
-
--->
-
-## Other Related Research
-
-```{bibliography} bibliography/related.bib
+```{bibliography} bibliography/historical.bib
 ---
 all:
 ---

@@ -9,8 +9,6 @@ resources and stochastic input.
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from . import _config
-
 # Global Configuration
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
