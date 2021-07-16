@@ -361,7 +361,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        kalman_posterior = filtsmooth.FilteringPosterior(
+        kalman_posterior = filtsmooth.gaussian.FilteringPosterior(
             transition=self.prior_process.transition,
             locations=times,
             states=rvs,
@@ -375,7 +375,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         locations = odesol.kalman_posterior.locations
         rv_list = odesol.kalman_posterior.states
 
-        kalman_posterior = filtsmooth.FilteringPosterior(
+        kalman_posterior = filtsmooth.gaussian.FilteringPosterior(
             transition=self.prior_process.transition,
             diffusion_model=self.diffusion_model,
         )
@@ -403,7 +403,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             rv_list = self.prior_process.transition.smooth_list(
                 rv_list, locations, _diffusion_list=squared_diffusion_list
             )
-            kalman_posterior = filtsmooth.SmoothingPosterior(
+            kalman_posterior = filtsmooth.gaussian.SmoothingPosterior(
                 filtering_posterior=kalman_posterior,
                 transition=self.prior_process.transition,
                 locations=locations,
