@@ -15,7 +15,7 @@ def ivp_to_regression_problem(
     ode_information_operator: information_operators.ODEInformationOperator,
     ode_measurement_variance: Optional[FloatArgType] = None,
 ):
-
+    # Construct data and solution
     N = len(locations)
     data = np.zeros((N + 1, ivp.dimension))
     if ivp.solution is not None:
@@ -23,10 +23,26 @@ def ivp_to_regression_problem(
     else:
         solution = None
 
-    # Assemble measurement models
+    # Construct measurement models
+    measmod_initial_condition, measmod_ode = _construct_measurement_models(
+        ivp, ode_information_operator, ode_measurement_variance
+    )
+    measmod_list = measmod_initial_condition + measmod_ode * N
+
+    # Return regression problem
+    return problems.TimeSeriesRegressionProblem(
+        locations=locations,
+        observations=data,
+        measurement_models=measmod_list,
+        solution=solution,
+    )
+
+
+def _construct_measurement_models(
+    ivp, ode_information_operator, ode_measurement_variance
+):
     transition_matrix = np.eye(ode_information_operator.input_dim, ivp.dimension)
     shift_vector = -ivp.y0
-
     if ode_measurement_variance is None:
         measmod_initial_condition = statespace.DiscreteLTIGaussian.from_linop(
             state_trans_mat=transition_matrix, shift_vec=shift_vector
@@ -51,12 +67,4 @@ def ivp_to_regression_problem(
         measmod_ode = ode_information_operator.as_transition(
             measurement_cov_fun=diff, measurement_cov_cholesky_fun=diff_cholesky
         )
-
-    measmod_list = measmod_initial_condition + measmod_ode * N
-
-    return problems.TimeSeriesRegressionProblem(
-        locations=locations,
-        observations=data,
-        measurement_models=measmod_list,
-        solution=solution,
-    )
+    return measmod_initial_condition, measmod_ode
