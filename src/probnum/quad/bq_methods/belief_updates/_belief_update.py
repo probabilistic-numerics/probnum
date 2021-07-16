@@ -56,8 +56,8 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
             gram = bq_state.kernel(new_nodes)
             kernel_means = bq_state.kernel_embedding.kernel_mean(new_nodes)
         else:
-            gram_new_new = np.atleast_2d(bq_state.kernel(new_nodes))
-            gram_old_new = np.atleast_2d(bq_state.kernel(new_nodes, old_nodes))
+            gram_new_new = bq_state.kernel(new_nodes)
+            gram_old_new = bq_state.kernel(new_nodes, old_nodes)
             gram = np.hstack(
                 (
                     np.vstack((bq_state.gram, gram_old_new)),
@@ -75,7 +75,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         weights = self._solve_gram(gram, kernel_means)
 
         # integral mean and variance
-        integral_mean = np.squeeze(weights @ fun_evals)
+        integral_mean = weights @ fun_evals
         integral_variance = initial_integral_variance - weights @ kernel_means
 
         updated_belief = Normal(integral_mean, integral_variance)
