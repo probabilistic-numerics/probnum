@@ -167,16 +167,16 @@ def perturbsolve_ivp(
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
 
     if method not in METHODS.keys():
-        msg1 = f"Parameter 'method'={method} is not supported. "
-        msg2 = f"Possible values are {METHODS}."
+        msg1 = f"Parameter method='{method}' is not supported. "
+        msg2 = f"Possible values are {list(METHODS.keys())}."
         errormsg = msg1 + msg2
         raise ValueError(errormsg)
     scipy_solver = METHODS[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
     wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipy_solver)
 
     if perturb not in PERTURBS.keys():
-        msg1 = f"Parameter 'perturb'={perturb} is not supported. "
-        msg2 = f"Possible values are {PERTURBS}."
+        msg1 = f"Parameter perturb='{perturb}' is not supported. "
+        msg2 = f"Possible values are {list(PERTURBS.keys())}."
         errormsg = msg1 + msg2
         raise ValueError(errormsg)
     perturbed_solver = PERTURBS[perturb](

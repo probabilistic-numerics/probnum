@@ -60,6 +60,18 @@ def test_wrong_method_raises_error(ivp):
             diffeq.perturbsolve_ivp(f, t0, tmax, y0, rng=rng, method=wrong_method)
 
 
+def test_wrong_perturb_raises_error(ivp):
+    """Perturbation-styles that are not in the list raise errors."""
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
+
+    wrong_perturbs = ["step-something", "state"]
+    for wrong_perturb in wrong_perturbs:
+        with pytest.raises(ValueError):
+            diffeq.perturbsolve_ivp(f, t0, tmax, y0, rng=rng, perturb=wrong_perturb)
+
+
 def test_no_step_or_tol_info_raises_error(ivp, rng):
     """Providing neither a step-size nor a tolerance raises an error."""
     f = ivp.f
