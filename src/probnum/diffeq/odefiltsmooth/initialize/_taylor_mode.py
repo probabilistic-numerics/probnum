@@ -87,7 +87,7 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
     """
 
     def __init__(self):
-        super().__init__(is_exact=True)
+        super().__init__(is_exact=True, requires_jax=True)
 
     def __call__(
         self, ivp: problems.InitialValueProblem, prior_process: randprocs.MarkovProcess

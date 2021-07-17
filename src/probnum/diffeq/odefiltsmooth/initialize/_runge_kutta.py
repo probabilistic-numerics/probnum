@@ -55,7 +55,7 @@ class RungeKuttaInitialization(_initialize.InitializationRoutine):
     def __init__(self, dt=1e-2, method="DOP853"):
         self.dt = dt
         self.method = method
-        super().__init__(is_exact=False)
+        super().__init__(is_exact=False, requires_jax=False)
 
     def __call__(self, ivp, prior_process):
         """Compute the initial distribution.
