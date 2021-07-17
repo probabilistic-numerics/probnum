@@ -17,10 +17,10 @@ class TestRungeKuttaInitialization(
             dt=1e-1, method="RK45"
         )
 
-    def test_call(self, lotka_volterra, lotka_volterra_inits, order):
+    def test_call(self, lotka_volterra, lotka_volterra_inits, lotka_volterra_order):
         ode_dim = len(lotka_volterra.y0)
         prior = statespace.IBM(
-            ordint=order,
+            ordint=lotka_volterra_order,
             spatialdim=ode_dim,
             forward_implementation="sqrt",
             backward_implementation="sqrt",

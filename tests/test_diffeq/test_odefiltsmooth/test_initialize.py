@@ -49,38 +49,6 @@ def lv_inits(order):
     )
 
 
-def test_initialize_with_rk(lv, lv_inits, order):
-    """Make sure that the values are close(ish) to the truth."""
-    ode_dim = len(lv.y0)
-    prior = statespace.IBM(
-        ordint=order,
-        spatialdim=ode_dim,
-        forward_implementation="sqrt",
-        backward_implementation="sqrt",
-    )
-    initrv = randvars.Normal(
-        np.zeros(prior.dimension),
-        np.eye(prior.dimension),
-        cov_cholesky=np.eye(prior.dimension),
-    )
-    prior_process = randprocs.MarkovProcess(
-        transition=prior, initrv=initrv, initarg=lv.t0
-    )
-
-    rk_init = diffeq.odefiltsmooth.initialize.RungeKuttaInitialization(
-        dt=1e-1, method="RK45"
-    )
-    received_rv = rk_init(ivp=lv, prior_process=prior_process)
-
-    # Extract the relevant values
-    expected = lv_inits
-
-    # The higher derivatives will have absolute difference ~8%
-    # if things work out correctly
-    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.25)
-    assert np.linalg.norm(received_rv.std) > 0
-
-
 @pytest.mark.parametrize("any_order", [0, 1, 2])
 @only_if_jax_available
 def test_initialize_with_taylormode(any_order):
