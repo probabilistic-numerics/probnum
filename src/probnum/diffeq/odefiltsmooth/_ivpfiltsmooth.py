@@ -29,8 +29,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
     initialization_routine :
-        Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
-        For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
+        Initialization algorithm.
+        Either via fitting the prior to a few steps of a Runge-Kutta method (:class:`RungeKuttaInitialization`)
+        or via Taylor-mode automatic differentiation (:class:``TaylorModeInitialization``).
     diffusion_model :
         Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [1]_ for a survey.
     _reference_coordinates :
