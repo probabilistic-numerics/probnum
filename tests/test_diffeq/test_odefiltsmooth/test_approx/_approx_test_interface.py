@@ -4,4 +4,6 @@ import abc
 
 
 class ApproximationStrategyTest(abc.ABC):
-    pass
+    @abc.abstractmethod
+    def test_call(self):
+        raise NotImplementedError
