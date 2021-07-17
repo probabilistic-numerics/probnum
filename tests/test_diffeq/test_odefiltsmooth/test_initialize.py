@@ -64,15 +64,12 @@ def test_initialize_with_rk(lv, lv_inits, order):
     prior_process = randprocs.MarkovProcess(
         transition=prior, initrv=initrv, initarg=lv.t0
     )
-    received_rv = diffeq.odefiltsmooth.initialize.initialize_odefilter_with_rk(
-        lv.f,
-        lv.y0,
-        lv.t0,
-        prior_process=prior_process,
-        df=lv.df,
-        h0=1e-1,
-        method="RK45",
+
+    rk_init = diffeq.odefiltsmooth.initialize.RungeKuttaInitialization(
+        dt=1e-1, method="RK45"
     )
+    received_rv = rk_init(ivp=lv, prior_process=prior_process)
+
     # Extract the relevant values
     expected = lv_inits
 
