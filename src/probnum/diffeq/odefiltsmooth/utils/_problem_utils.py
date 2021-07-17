@@ -5,14 +5,14 @@ from typing import Optional, Sequence, Union
 import numpy as np
 
 from probnum import problems, statespace
-from probnum.diffeq import information_operators
+from probnum.diffeq.odefiltsmooth import information_operators
 from probnum.typing import FloatArgType
 
 
 def ivp_to_regression_problem(
     ivp: problems.InitialValueProblem,
     locations: Union[Sequence, np.ndarray],
-    ode_information_operator: information_operators.ODEInformationOperator,
+    ode_information_operator: information_operators.InformationOperator,
     ode_measurement_variance: Optional[FloatArgType] = None,
 ):
     # Construct data and solution
