@@ -58,6 +58,8 @@ class ExplicitODEResidual(_information_operator.ODEInformationOperator):
         return choose_implementation[ode_order]
 
     def __call__(self, t, x):
+        if not self.ode_has_been_incorporated:
+            raise ValueError
         return self._residual(t, x)
 
     def jacobian(self, t, x):

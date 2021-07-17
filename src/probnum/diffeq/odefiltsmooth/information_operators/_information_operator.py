@@ -46,6 +46,7 @@ class InformationOperator(abc.ABC):
     def as_transition(
         self, measurement_cov_fun=None, measurement_cov_cholesky_fun=None
     ):
+
         if measurement_cov_fun is None:
             if measurement_cov_cholesky_fun is not None:
                 raise ValueError
