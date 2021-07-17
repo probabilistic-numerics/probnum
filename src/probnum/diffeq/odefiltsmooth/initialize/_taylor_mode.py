@@ -23,7 +23,6 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
     https://github.com/jacobjinkelly/easy-neural-ode/blob/master/latent_ode.py
 
 
-
     Examples
     --------
 
@@ -86,6 +85,9 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
     >>> print(improved_initrv.std)
     [0. 0. 0. 0. 0. 0. 0. 0.]
     """
+
+    def __init__(self):
+        super().__init__(is_exact=True)
 
     def __call__(
         self, ivp: problems.InitialValueProblem, prior_process: randprocs.MarkovProcess
@@ -158,28 +160,3 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
             cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
         )
-
-
-#
-#
-# def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
-#     """
-#     Parameters
-#     ----------
-#     f
-#         ODE vector field.
-#     y0
-#         Initial value.
-#     t0
-#         Initial time point.
-#     prior_process
-#         Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
-#
-#     Returns
-#     -------
-#     Normal
-#         Estimated initial random variable. Compatible with the specified prior.
-#     """
-#     taylor_init = TaylorModeInitialization()
-#     ivp = problems.InitialValueProblem(f=f, y0=y0, t0=t0, tmax=np.inf)
-#     return taylor_init(ivp, prior_process=prior_process)

@@ -8,16 +8,6 @@ import scipy.integrate as sci
 from probnum import filtsmooth, problems, statespace
 from probnum.diffeq.odefiltsmooth.initialize import _initialize
 
-#
-# # Legacy -- kept so the tests pass for now, while I am refactoring.
-# def initialize_odefilter_with_rk(
-#     f, y0, t0, prior_process, df=None, h0=1e-2, method="DOP853"
-# ):
-#     rk_init = RungeKuttaInitialization(dt=h0, method=method)
-#     ivp = problems.InitialValueProblem(f=f, y0=y0, t0=t0, tmax=np.inf, df=df)
-#     return rk_init(ivp, prior_process=prior_process)
-#
-
 
 class RungeKuttaInitialization(_initialize.InitializationRoutine):
     r"""Initialize a probabilistic ODE solver by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's Runge-Kutta methods.
@@ -65,6 +55,7 @@ class RungeKuttaInitialization(_initialize.InitializationRoutine):
     def __init__(self, dt=1e-2, method="DOP853"):
         self.dt = dt
         self.method = method
+        super().__init__(is_exact=False)
 
     def __call__(self, ivp, prior_process):
         """Compute the initial distribution.
