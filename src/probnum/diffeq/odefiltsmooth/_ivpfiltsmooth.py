@@ -176,7 +176,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         )
 
     def initialise(self, ivp):
-        self.information_operator.set_ivp(ivp=ivp)
+        self.information_operator.incorporate_ode(ode=ivp)
         initrv = self.init_implementation(
             self.ivp.f,
             self.ivp.y0,
@@ -190,7 +190,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
     @property
     def ivp(self):
-        return self.information_operator.ivp
+        return self.information_operator.ode
 
     def step(self, t, t_new, current_rv):
         r"""Gaussian IVP filter step as nonlinear Kalman filtering with zero data.

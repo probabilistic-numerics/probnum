@@ -35,19 +35,19 @@ class InformationOperator(abc.ABC):
         self.input_dim = input_dim
         self.output_dim = output_dim
 
-        # Initialized once the IVP can be seen
-        self.ivp = None
+        # Initialized once the ODE can be seen
+        self.ode = None
 
-    def set_ivp(self, ivp):
-        """Set the initial value problem."""
-        if self.ivp_has_been_set:
+    def incorporate_ode(self, ode):
+        """Incorporate the ODE into the operator."""
+        if self.ode_has_been_incorporated:
             raise ValueError
         else:
-            self.ivp = ivp
+            self.ode = ode
 
     @property
-    def ivp_has_been_set(self):
-        return self.ivp is not None
+    def ode_has_been_incorporated(self):
+        return self.ode is not None
 
     @abc.abstractmethod
     def __call__(self, t, x):
@@ -109,11 +109,11 @@ class ODEResidualOperator(InformationOperator):
         self._residual = None
         self._residual_jacobian = None
 
-    def set_ivp(self, ivp):
-        if self.ivp_has_been_set:
+    def incorporate_ode(self, ode):
+        if self.ode_has_been_incorporated:
             raise ValueError
         else:
-            self.ivp = ivp
+            self.ode = ode
 
         # Cache the projection matrices and match the implementation to the ODE
         dummy_integrator = statespace.Integrator(
@@ -146,11 +146,11 @@ class ODEResidualOperator(InformationOperator):
 
     def _residual_first_order_ode(self, t, x):
         h0, h1 = self.projection_matrices
-        return h1 @ x - self.ivp.f(t, h0 @ x)
+        return h1 @ x - self.ode.f(t, h0 @ x)
 
     def _residual_first_order_ode_jacobian(self, t, x):
         h0, h1 = self.projection_matrices
-        return h1 - self.ivp.df(t, h0 @ x) @ h0
+        return h1 - self.ode.df(t, h0 @ x) @ h0
 
     # Implementation of the residuals for higher order ODEs:
     #
