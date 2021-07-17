@@ -136,14 +136,11 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
             stacked_ode_eval = jnp.concatenate((dx_ravelled, dt))
             return stacked_ode_eval
 
-        stacked_state = jnp.concatenate((jnp.ravel(y0), jnp.array([t0])))
-        derivs = []
-
-        # Order == 0
-        derivs.extend(y0)
-        if order == 0:
+        def derivs_to_normal_randvar(derivs, ordint):
+            """Finalize the output in terms of creating a suitably sized random
+            variable."""
             all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
-                np.asarray(derivs), ordint=0, spatialdim=y0_shape[0]
+                np.asarray(derivs), ordint=ordint, spatialdim=y0_shape[0]
             )
 
             # Wrap all inputs through np.asarray, because 'Normal's
@@ -154,44 +151,33 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
                 cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             )
 
+        stacked_state = jnp.concatenate((jnp.ravel(y0), jnp.array([t0])))
+        derivs = []
+
+        # Order == 0
+        derivs.extend(y0)
+        if order == 0:
+            return derivs_to_normal_randvar(derivs=derivs, ordint=0)
+
         # Order == 1
-        vector_of_ones = jnp.ones_like(stacked_state)
-        (dy0, [*yns]) = jet(
+        # Call to jet requ
+        initial_series = (jnp.ones_like(stacked_state),)
+        (dy0, [*remaining_taylor_coefficents]) = jet(
             fun=evaluate_ode_for_stacked_state,
             primals=(stacked_state,),
-            series=((vector_of_ones,),),
+            series=(initial_series,),
         )
         derivs.extend(dy0[:-1])
         if order == 1:
-            all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
-                np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
-            )
-
-            # Wrap all inputs through np.asarray, because 'Normal's
-            # do not like JAX 'DeviceArray's
-            return randvars.Normal(
-                np.asarray(all_derivs),
-                cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
-                cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
-            )
+            return derivs_to_normal_randvar(derivs=derivs, ordint=1)
 
         # Order > 1
         for _ in range(1, order):
-            (dy0, [*yns]) = jet(
+            new_series = (dy0, *remaining_taylor_coefficents)
+            (_, [*remaining_taylor_coefficents]) = jet(
                 fun=evaluate_ode_for_stacked_state,
                 primals=(stacked_state,),
-                series=((dy0, *yns),),
+                series=(new_series,),
             )
-            derivs.extend(yns[-2][:-1])
-
-        all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
-            jnp.array(derivs), ordint=order, spatialdim=len(y0)
-        )
-
-        # Wrap all inputs through np.asarray, because 'Normal's
-        # do not like JAX 'DeviceArray's
-        return randvars.Normal(
-            np.asarray(all_derivs),
-            cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
-            cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
-        )
+            derivs.extend(remaining_taylor_coefficents[-2][:-1])
+        return derivs_to_normal_randvar(derivs=derivs, ordint=order)
