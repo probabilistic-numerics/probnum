@@ -270,7 +270,7 @@ def probsolve_ivp(
         transition=prior, initrv=initrv, initarg=ivp.t0
     )
 
-    info_op = odefiltsmooth.information_operators.ODEResidualOperator(
+    info_op = odefiltsmooth.information_operators.ExplicitODEResidual(
         prior_ordint=prior.ordint, prior_spatialdim=prior.spatialdim
     )
 
