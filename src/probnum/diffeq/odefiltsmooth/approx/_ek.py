@@ -10,7 +10,7 @@ from probnum.diffeq.odefiltsmooth import information_operators
 from probnum.diffeq.odefiltsmooth.approx import _approx
 
 
-class EK1(_approx.ODEInformationApproximationStrategy):
+class EK1(_approx.ApproximationStrategy):
     """Make inference with the information operator tractable using a first-order
     linearization of the ODE vector-field."""
 
@@ -24,7 +24,7 @@ class EK1(_approx.ODEInformationApproximationStrategy):
         return information_operator.as_ekf_component()
 
 
-class EK0(_approx.ODEInformationApproximationStrategy):
+class EK0(_approx.ApproximationStrategy):
     """Make inference with the information operator tractable using a zeroth-order
     linearization of the ODE vector-field.
 

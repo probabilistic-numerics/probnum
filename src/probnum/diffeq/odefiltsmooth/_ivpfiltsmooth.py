@@ -55,7 +55,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         steprule,
         prior_process: randprocs.MarkovProcess,
         information_operator: information_operators.ODEInformationOperator,
-        approx_strategy: approx.ODEInformationApproximationStrategy,
+        approx_strategy: approx.ApproximationStrategy,
         with_smoothing: bool,
         init_implementation: Callable[
             [
@@ -119,7 +119,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         steprule,
         prior_process,
         information_operator: information_operators.InformationOperator,
-        approx_strategy: approx.ODEInformationApproximationStrategy,
+        approx_strategy: approx.ApproximationStrategy,
         with_smoothing,
         diffusion_model=None,
         _reference_coordinates=0,
@@ -157,7 +157,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         steprule,
         prior_process,
         information_operator: information_operators.InformationOperator,
-        approx_strategy: approx.ODEInformationApproximationStrategy,
+        approx_strategy: approx.ApproximationStrategy,
         with_smoothing,
         diffusion_model=None,
         _reference_coordinates=0,
