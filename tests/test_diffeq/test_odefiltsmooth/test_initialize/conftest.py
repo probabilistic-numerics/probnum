@@ -14,7 +14,7 @@ def order():
 
 
 @pytest.fixture
-def lv():
+def lotka_volterra():
     y0 = np.array([20.0, 20.0])
 
     # tmax is ignored anyway
@@ -22,7 +22,7 @@ def lv():
 
 
 @pytest.fixture
-def lv_inits(order):
+def lotka_volterra_inits(order):
     lv_dim = 2
     vals = _known_initial_derivatives.LV_INITS[: lv_dim * (order + 1)]
     return statespace.Integrator._convert_derivwise_to_coordwise(

@@ -4,6 +4,8 @@ import abc
 
 
 class InterfaceInitializationRoutineTest(abc.ABC):
+    """Interface for tests of initialization routines."""
+
     @abc.abstractmethod
     def test_call(self):
         raise NotImplementedError

@@ -17,8 +17,8 @@ class TestRungeKuttaInitialization(
             dt=1e-1, method="RK45"
         )
 
-    def test_call(self, lv, lv_inits, order):
-        ode_dim = len(lv.y0)
+    def test_call(self, lotka_volterra, lotka_volterra_inits, order):
+        ode_dim = len(lotka_volterra.y0)
         prior = statespace.IBM(
             ordint=order,
             spatialdim=ode_dim,
@@ -31,13 +31,13 @@ class TestRungeKuttaInitialization(
             cov_cholesky=np.eye(prior.dimension),
         )
         prior_process = randprocs.MarkovProcess(
-            transition=prior, initrv=initrv, initarg=lv.t0
+            transition=prior, initrv=initrv, initarg=lotka_volterra.t0
         )
 
-        received_rv = self.rk_init(ivp=lv, prior_process=prior_process)
+        received_rv = self.rk_init(ivp=lotka_volterra, prior_process=prior_process)
 
         # Extract the relevant values
-        expected = lv_inits
+        expected = lotka_volterra_inits
 
         # The higher derivatives will have absolute difference ~8%
         # if things work out correctly
