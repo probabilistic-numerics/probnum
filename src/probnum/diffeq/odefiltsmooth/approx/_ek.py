@@ -21,9 +21,6 @@ class EK1(_approx.ApproximationStrategy):
     def __call__(
         self, information_operator: information_operators.InformationOperator
     ) -> statespace.DiscreteGaussian:
-        if not information_operator.ode_has_been_incorporated:
-            raise ValueError
-
         return information_operator.as_ekf_component()
 
 

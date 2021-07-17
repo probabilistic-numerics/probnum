@@ -37,11 +37,16 @@ class TestExplicitODEResidual(
         assert called.shape == (self.info_op.output_dim, self.info_op.input_dim)
 
     def test_as_transition(self, fitzhughnagumo):
+        with pytest.raises(ValueError):
+            self.info_op.as_transition()
         self.info_op.incorporate_ode(ode=fitzhughnagumo)
         ekf_component = self.info_op.as_ekf_component()
         assert isinstance(ekf_component, statespace.DiscreteGaussian)
 
     def test_as_ekf_component(self, fitzhughnagumo):
+        with pytest.raises(ValueError):
+            self.info_op.as_ekf_component()
+
         self.info_op.incorporate_ode(ode=fitzhughnagumo)
         ekf_component = self.info_op.as_ekf_component()
         assert isinstance(

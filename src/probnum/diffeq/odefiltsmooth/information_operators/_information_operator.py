@@ -95,3 +95,13 @@ class ODEInformationOperator(InformationOperator):
     @property
     def ode_has_been_incorporated(self):
         return self.ode is not None
+
+    def as_transition(
+        self, measurement_cov_fun=None, measurement_cov_cholesky_fun=None
+    ):
+        if not self.ode_has_been_incorporated:
+            raise ValueError
+        return super().as_transition(
+            measurement_cov_fun=measurement_cov_fun,
+            measurement_cov_cholesky_fun=measurement_cov_cholesky_fun,
+        )
