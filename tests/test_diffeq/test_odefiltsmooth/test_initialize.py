@@ -103,9 +103,8 @@ def test_initialize_with_taylormode(any_order):
         transition=prior, initrv=initrv, initarg=r2b_jax.t0
     )
 
-    received_rv = diffeq.odefiltsmooth.initialize.initialize_odefilter_with_taylormode(
-        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior_process=prior_process
-    )
+    taylor_init = diffeq.odefiltsmooth.initialize.TaylorModeInitialization()
+    received_rv = taylor_init(ivp=r2b_jax, prior_process=prior_process)
 
     np.testing.assert_allclose(received_rv.mean, expected)
     np.testing.assert_allclose(received_rv.std, 0.0)
