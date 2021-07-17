@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import diffeq, randprocs, randvars, statespace
+from probnum import statespace
 from tests.test_diffeq.test_odefiltsmooth.test_initialize.utils import (
     _known_initial_derivatives,
 )
