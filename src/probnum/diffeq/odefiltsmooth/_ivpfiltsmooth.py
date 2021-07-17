@@ -90,58 +90,6 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # or from any other state.
         self._reference_coordinates = _reference_coordinates
 
-    # Construct an ODE solver from different initialisation methods.
-    # The reason for implementing these via classmethods is that different
-    # initialisation methods require different parameters.
-    #
-    # @classmethod
-    # def construct_with_rk_init(
-    #     cls,
-    #     ivp,
-    #     prior_process,
-    #     measurement_model,
-    #     with_smoothing,
-    #     diffusion_model=None,
-    #     _reference_coordinates=0,
-    #     init_h0=0.01,
-    #     init_method="DOP853",
-    # ):
-    #     """Create a Gaussian IVP filter that is initialised via
-    #     :func:`initialize_odefilter_with_rk`."""
-    #
-    #     rk_init = initialize.RungeKuttaInitialization(dt=init_h0, method=init_method)
-    #     return cls(
-    #         ivp,
-    #         prior_process,
-    #         measurement_model,
-    #         with_smoothing,
-    #         initialization_routine=rk_init,
-    #         diffusion_model=diffusion_model,
-    #         _reference_coordinates=_reference_coordinates,
-    #     )
-    #
-    # @classmethod
-    # def construct_with_taylormode_init(
-    #     cls,
-    #     ivp,
-    #     prior_process,
-    #     measurement_model,
-    #     with_smoothing,
-    #     diffusion_model=None,
-    #     _reference_coordinates=0,
-    # ):
-    #     """Create a Gaussian IVP filter that is initialised via
-    #     :func:`initialize_odefilter_with_taylormode`."""
-    #     return cls(
-    #         ivp,
-    #         prior_process,
-    #         measurement_model,
-    #         with_smoothing,
-    #         initialization_routine=initialize.TaylorModeInitialization(),
-    #         diffusion_model=diffusion_model,
-    #         _reference_coordinates=_reference_coordinates,
-    #     )
-
     def initialise(self):
         initrv = self.initialization_routine(
             ivp=self.ivp, prior_process=self.prior_process
