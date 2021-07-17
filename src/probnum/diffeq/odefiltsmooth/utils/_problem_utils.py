@@ -8,6 +8,8 @@ from probnum import problems, statespace
 from probnum.diffeq.odefiltsmooth import information_operators
 from probnum.typing import FloatArgType
 
+__all__ = ["ivp_to_regression_problem"]
+
 
 def ivp_to_regression_problem(
     ivp: problems.InitialValueProblem,
@@ -17,7 +19,7 @@ def ivp_to_regression_problem(
 ):
     # Construct data and solution
     N = len(locations)
-    data = np.zeros((N + 1, ivp.dimension))
+    data = np.zeros((N, ivp.dimension))
     if ivp.solution is not None:
         solution = [ivp.solution(t) for t in locations]
     else:
@@ -27,7 +29,7 @@ def ivp_to_regression_problem(
     measmod_initial_condition, measmod_ode = _construct_measurement_models(
         ivp, ode_information_operator, ode_measurement_variance
     )
-    measmod_list = measmod_initial_condition + measmod_ode * N
+    measmod_list = [measmod_initial_condition] + [measmod_ode] * (N - 1)
 
     # Return regression problem
     return problems.TimeSeriesRegressionProblem(
@@ -41,14 +43,14 @@ def ivp_to_regression_problem(
 def _construct_measurement_models(
     ivp, ode_information_operator, ode_measurement_variance
 ):
-    transition_matrix = np.eye(ode_information_operator.input_dim, ivp.dimension)
+    transition_matrix = np.eye(
+        ode_information_operator.output_dim, ode_information_operator.input_dim
+    )
     shift_vector = -ivp.y0
+
     if ode_measurement_variance is None:
         measmod_y0, measmod_ode = _construct_measurement_models_dirac_likelihood(
-            ode_information_operator,
-            shift_vector,
-            transition_matrix,
-            ode_measurement_variance,
+            ode_information_operator, shift_vector, transition_matrix
         )
     else:
         measmod_y0, measmod_ode = _construct_measurement_models_gaussian_likelihood(
@@ -64,11 +66,11 @@ def _construct_measurement_models_gaussian_likelihood(
     ode_information_operator, shift_vector, transition_matrix, ode_measurement_variance
 ):
     def diff(t):
-        return ode_measurement_variance * np.eye(ode_information_operator.input_dim)
+        return ode_measurement_variance * np.eye(ode_information_operator.output_dim)
 
     def diff_cholesky(t):
         return np.sqrt(ode_measurement_variance) * np.eye(
-            ode_information_operator.input_dim
+            ode_information_operator.output_dim
         )
 
     measmod_initial_condition = statespace.DiscreteLTIGaussian(
@@ -84,7 +86,7 @@ def _construct_measurement_models_gaussian_likelihood(
 
 
 def _construct_measurement_models_dirac_likelihood(
-    ode_information_operator, shift_vector, transition_matrix, ode_measurement_variance
+    ode_information_operator, shift_vector, transition_matrix
 ):
     measmod_initial_condition = statespace.DiscreteLTIGaussian.from_linop(
         state_trans_mat=transition_matrix, shift_vec=shift_vector

@@ -1,5 +1,6 @@
 """ODE Filtering."""
 
+from . import utils
 from ._ivpfiltsmooth import GaussianIVPFilter
 from ._kalman_odesolution import KalmanODESolution
 
