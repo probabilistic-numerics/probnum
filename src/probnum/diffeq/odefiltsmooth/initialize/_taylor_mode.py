@@ -97,8 +97,6 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
         self, ivp: problems.InitialValueProblem, prior_process: randprocs.MarkovProcess
     ) -> randvars.RandomVariable:
 
-        f, y0, t0, tmax = ivp.f, ivp.y0, ivp.t0, ivp.tmax
-
         try:
             import jax.numpy as jnp
             from jax.config import config
@@ -114,13 +112,13 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
         order = prior_process.transition.ordint
 
         dt = jnp.array([1.0])
-        y0_shape = y0.shape
 
-        def evaluate_ode_for_stacked_state(stacked_state, y0_shape=y0_shape, dt=dt):
-            r"""Evaluate the ODE for a stacked state.
+        def evaluate_ode_for_extended_state(extended_state, ivp=ivp, dt=dt):
+            r"""Evaluate the ODE for an extended state (x(t), t).
 
-            More precisly, compute the derivative of the stacked state (x(t), t) according to the ODE.
-            This function implements a rewriting of non-autonomous as autonomous ODEs, i.e.
+            More precisely, compute the derivative of the stacked state (x(t), t) according to the ODE.
+            This function implements a rewriting of non-autonomous as autonomous ODEs.
+            This means that
 
             .. math:: \dot x(t) = f(t, x(t))
 
@@ -128,10 +126,11 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
 
             .. math:: \dot z(t) = \dot (x(t), t) = (f(x(t), t), 1).
 
-            This rewriting makes the jet-implementation easier.
+            Only considering autonomous ODEs makes the jet-implementation
+            (and automatic differentiation in general) easier.
             """
-            x, t = jnp.reshape(stacked_state[:-1], y0_shape), stacked_state[-1]
-            dx = f(t, x)
+            x, t = jnp.reshape(extended_state[:-1], ivp.y0.shape), extended_state[-1]
+            dx = ivp.f(t, x)
             dx_ravelled = jnp.ravel(dx)
             stacked_ode_eval = jnp.concatenate((dx_ravelled, dt))
             return stacked_ode_eval
@@ -140,7 +139,7 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
             """Finalize the output in terms of creating a suitably sized random
             variable."""
             all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
-                np.asarray(derivs), ordint=ordint, spatialdim=y0_shape[0]
+                np.asarray(derivs), ordint=ordint, spatialdim=ivp.y0.shape[0]
             )
 
             # Wrap all inputs through np.asarray, because 'Normal's
@@ -151,31 +150,31 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
                 cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             )
 
-        stacked_state = jnp.concatenate((jnp.ravel(y0), jnp.array([t0])))
+        extended_state = jnp.concatenate((jnp.ravel(ivp.y0), jnp.array([ivp.t0])))
         derivs = []
 
         # Corner case 1: order == 0
-        derivs.extend(y0)
+        derivs.extend(ivp.y0)
         if order == 0:
             return derivs_to_normal_randvar(derivs=derivs, ordint=0)
 
         # Corner case 2: order == 1
-        initial_series = (jnp.ones_like(stacked_state),)
-        (dy0, [*remaining_taylor_coefficents]) = jet(
-            fun=evaluate_ode_for_stacked_state,
-            primals=(stacked_state,),
+        initial_series = (jnp.ones_like(extended_state),)
+        (initial_taylor_coefficient, [*remaining_taylor_coefficents]) = jet(
+            fun=evaluate_ode_for_extended_state,
+            primals=(extended_state,),
             series=(initial_series,),
         )
-        derivs.extend(dy0[:-1])
+        derivs.extend(initial_taylor_coefficient[:-1])
         if order == 1:
             return derivs_to_normal_randvar(derivs=derivs, ordint=1)
 
         # Order > 1
         for _ in range(1, order):
-            new_series = (dy0, *remaining_taylor_coefficents)
+            new_series = (initial_taylor_coefficient, *remaining_taylor_coefficents)
             (_, [*remaining_taylor_coefficents]) = jet(
-                fun=evaluate_ode_for_stacked_state,
-                primals=(stacked_state,),
+                fun=evaluate_ode_for_extended_state,
+                primals=(extended_state,),
                 series=(new_series,),
             )
             derivs.extend(remaining_taylor_coefficents[-2][:-1])
