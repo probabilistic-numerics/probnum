@@ -7,7 +7,10 @@ import numpy as np
 from probnum import _randomvariablelist, randvars
 from probnum.diffeq import _odesolver
 from probnum.diffeq.perturbed import scipy_wrapper
-from probnum.diffeq.perturbed.step import _perturbedstepsolution
+from probnum.diffeq.perturbed.step import (
+    _perturbation_functions,
+    _perturbedstepsolution,
+)
 from probnum.typing import FloatArgType
 
 
@@ -58,6 +61,30 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.solver = solver
         self.scales = None
         super().__init__(steprule=solver.steprule, order=solver.order)
+
+    @classmethod
+    def construct_with_lognormal_perturbation(
+        cls,
+        rng: np.random.Generator,
+        solver: scipy_wrapper.WrappedScipyRungeKutta,
+        noise_scale: FloatArgType,
+    ):
+        pertfun = _perturbation_functions.perturb_lognormal
+        return cls(
+            rng=rng, solver=solver, noise_scale=noise_scale, perturb_function=pertfun
+        )
+
+    @classmethod
+    def construct_with_uniform_perturbation(
+        cls,
+        rng: np.random.Generator,
+        solver: scipy_wrapper.WrappedScipyRungeKutta,
+        noise_scale: FloatArgType,
+    ):
+        pertfun = _perturbation_functions.perturb_uniform
+        return cls(
+            rng=rng, solver=solver, noise_scale=noise_scale, perturb_function=pertfun
+        )
 
     def initialise(self, ivp):
         """Initialise and reset the solver."""
