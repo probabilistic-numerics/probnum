@@ -28,7 +28,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         ODE measurement model.
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
-    init_implementation :
+    initialization_routine :
         Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
         For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
     diffusion_model :
@@ -51,7 +51,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         prior_process: randprocs.MarkovProcess,
         measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
-        init_implementation: initialize.InitializationRoutine,
+        initialization_routine: initialize.InitializationRoutine,
         diffusion_model: Optional[statespace.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
@@ -65,7 +65,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
-        self.init_implementation = init_implementation
+        self.initialization_routine = initialization_routine
         super().__init__(ivp=ivp, order=prior_process.transition.ordint)
 
         # Set up the diffusion_model style: constant or piecewise constant.
@@ -114,7 +114,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             prior_process,
             measurement_model,
             with_smoothing,
-            init_implementation=rk_init,
+            initialization_routine=rk_init,
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
         )
@@ -136,13 +136,13 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             prior_process,
             measurement_model,
             with_smoothing,
-            init_implementation=initialize.TaylorModeInitialization(),
+            initialization_routine=initialize.TaylorModeInitialization(),
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
         )
 
     def initialise(self):
-        initrv = self.init_implementation(
+        initrv = self.initialization_routine(
             ivp=self.ivp, prior_process=self.prior_process
         )
 
