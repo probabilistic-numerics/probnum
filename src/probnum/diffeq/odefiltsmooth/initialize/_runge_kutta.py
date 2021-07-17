@@ -40,6 +40,7 @@ class RungeKuttaInitialization(_initialize.InitializationRoutine):
     Examples
     --------
 
+    >>> import numpy as np
     >>> from probnum.randvars import Normal
     >>> from probnum.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
@@ -53,7 +54,7 @@ class RungeKuttaInitialization(_initialize.InitializationRoutine):
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=ivp.t0)
 
     Next, we call the initialization routine.
 

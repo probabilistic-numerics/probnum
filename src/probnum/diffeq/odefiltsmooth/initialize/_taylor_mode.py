@@ -38,6 +38,7 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
     >>> if not sys.platform.startswith('linux'):
     ...     pytest.skip()
 
+    >>> import numpy as np
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
     >>> from probnum.statespace import IBM
@@ -53,7 +54,7 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
 
     >>> prior = IBM(ordint=3, spatialdim=4)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=ivp.t0)
 
     Initialize with Taylor-mode autodiff.
 
@@ -78,7 +79,7 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=ivp.t0)
 
     >>> taylor_init = TaylorModeInitialization()
     >>> improved_initrv = taylor_init(ivp=ivp, prior_process=prior_process)
