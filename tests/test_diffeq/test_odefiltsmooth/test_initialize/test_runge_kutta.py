@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, randprocs, randvars, statespace
+from probnum import diffeq, randvars, statespace
 from tests.test_diffeq.test_odefiltsmooth.test_initialize import (
     _interface_initialize_test,
 )
@@ -17,21 +17,15 @@ class TestRungeKuttaInitialization(
             dt=1e-1, method="RK45"
         )
 
-    def test_call(self, lotka_volterra, lotka_volterra_inits, lotka_volterra_order):
+    def test_call(
+        self, lotka_volterra, lotka_volterra_inits, lotka_volterra_testcase_order
+    ):
         ode_dim = len(lotka_volterra.y0)
-        prior = statespace.IBM(
-            ordint=lotka_volterra_order,
-            spatialdim=ode_dim,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-        initrv = randvars.Normal(
-            np.zeros(prior.dimension),
-            np.eye(prior.dimension),
-            cov_cholesky=np.eye(prior.dimension),
-        )
-        prior_process = randprocs.MarkovProcess(
-            transition=prior, initrv=initrv, initarg=lotka_volterra.t0
+
+        prior_process = self._construct_prior_process(
+            order=lotka_volterra_testcase_order,
+            spatialdim=lotka_volterra.dimension,
+            t0=lotka_volterra.t0,
         )
 
         received_rv = self.rk_init(ivp=lotka_volterra, prior_process=prior_process)
@@ -41,6 +35,7 @@ class TestRungeKuttaInitialization(
 
         # The higher derivatives will have absolute difference ~8%
         # if things work out correctly
+        assert isinstance(received_rv, randvars.Normal)
         np.testing.assert_allclose(received_rv.mean, expected, rtol=0.25)
         assert np.linalg.norm(received_rv.std) > 0
 

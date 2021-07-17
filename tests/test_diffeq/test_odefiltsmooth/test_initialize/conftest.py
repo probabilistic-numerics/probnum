@@ -9,7 +9,7 @@ from tests.test_diffeq.test_odefiltsmooth.test_initialize.utils import (
 
 
 @pytest.fixture
-def lotka_volterra_order():
+def lotka_volterra_testcase_order():
     """Order of the solver in Lotka-Volterra tests.
 
     This determines which known initial derivatives are imported.
@@ -26,9 +26,11 @@ def lotka_volterra():
 
 
 @pytest.fixture
-def lotka_volterra_inits(lotka_volterra_order):
+def lotka_volterra_inits(lotka_volterra_testcase_order):
     lv_dim = 2
-    vals = _known_initial_derivatives.LV_INITS[: lv_dim * (lotka_volterra_order + 1)]
+    vals = _known_initial_derivatives.LV_INITS[
+        : lv_dim * (lotka_volterra_testcase_order + 1)
+    ]
     return statespace.Integrator._convert_derivwise_to_coordwise(
-        vals, ordint=lotka_volterra_order, spatialdim=lv_dim
+        vals, ordint=lotka_volterra_testcase_order, spatialdim=lv_dim
     )

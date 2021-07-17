@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, randprocs, randvars, statespace
+from probnum import diffeq, randvars, statespace
 from probnum.problems.zoo import diffeq as diffeq_zoo
 from tests.test_diffeq.test_odefiltsmooth.test_initialize import (
     _interface_initialize_test,
@@ -24,28 +24,23 @@ class TestTaylorModeInitialization(
     @_decorators.only_if_jax_available
     def test_call(self, any_order):
         r2b_jax = diffeq_zoo.threebody_jax()
-        ode_dim = 4
+
         expected = statespace.Integrator._convert_derivwise_to_coordwise(
-            _known_initial_derivatives.THREEBODY_INITS[: ode_dim * (any_order + 1)],
+            _known_initial_derivatives.THREEBODY_INITS[
+                : r2b_jax.dimension * (any_order + 1)
+            ],
             ordint=any_order,
-            spatialdim=ode_dim,
+            spatialdim=r2b_jax.dimension,
         )
 
-        prior = statespace.IBM(
-            ordint=any_order,
-            spatialdim=ode_dim,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-
-        initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
-        prior_process = randprocs.MarkovProcess(
-            transition=prior, initrv=initrv, initarg=r2b_jax.t0
+        prior_process = self._construct_prior_process(
+            order=any_order, spatialdim=r2b_jax.dimension, t0=r2b_jax.t0
         )
 
         taylor_init = diffeq.odefiltsmooth.initialize.TaylorModeInitialization()
         received_rv = taylor_init(ivp=r2b_jax, prior_process=prior_process)
 
+        assert isinstance(received_rv, randvars.Normal)
         np.testing.assert_allclose(received_rv.mean, expected)
         np.testing.assert_allclose(received_rv.std, 0.0)
 
