@@ -28,6 +28,7 @@ class KalmanODESolution(_odesolution.ODESolution):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from probnum.diffeq import probsolve_ivp
     >>> from probnum import randvars
     >>>
