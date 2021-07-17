@@ -51,16 +51,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         prior_process: randprocs.MarkovProcess,
         measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
-        init_implementation: Callable[
-            [
-                Callable,
-                np.ndarray,
-                float,
-                randprocs.MarkovProcess,
-                Optional[Callable],
-            ],
-            randvars.Normal,
-        ],
+        init_implementation: initialize.InitializationRoutine,
         diffusion_model: Optional[statespace.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
@@ -117,23 +108,13 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_rk`."""
 
-        def init_implementation(f, y0, t0, prior_process, df=None):
-            return initialize.initialize_odefilter_with_rk(
-                f=f,
-                y0=y0,
-                t0=t0,
-                prior_process=prior_process,
-                df=df,
-                h0=init_h0,
-                method=init_method,
-            )
-
+        rk_init = initialize.RungeKuttaInitialization(dt=init_h0, method=init_method)
         return cls(
             ivp,
             prior_process,
             measurement_model,
             with_smoothing,
-            init_implementation=init_implementation,
+            init_implementation=rk_init,
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
         )
@@ -155,18 +136,14 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             prior_process,
             measurement_model,
             with_smoothing,
-            init_implementation=initialize.initialize_odefilter_with_taylormode,
+            init_implementation=initialize.TaylorModeInitialization(),
             diffusion_model=diffusion_model,
             _reference_coordinates=_reference_coordinates,
         )
 
     def initialise(self):
         initrv = self.init_implementation(
-            self.ivp.f,
-            self.ivp.y0,
-            self.ivp.t0,
-            self.prior_process,
-            self.ivp.df,
+            ivp=self.ivp, prior_process=self.prior_process
         )
 
         return self.ivp.t0, initrv
