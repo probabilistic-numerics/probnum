@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import scipy.integrate as sci
 
-from probnum import filtsmooth, problems, statespace
+from probnum import filtsmooth, problems, randprocs, randvars, statespace
 from probnum.diffeq.odefiltsmooth.initialize import _initialize
 from probnum.typing import FloatArgType
 
