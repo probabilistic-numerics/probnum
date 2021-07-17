@@ -3,8 +3,10 @@ import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, randprocs, randvars, statespace
-
-from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
+from tests.test_diffeq.test_odefiltsmooth.test_initialize._known_initial_derivatives import (
+    LV_INITS,
+    THREEBODY_INITS,
+)
 
 # Jax dependency handling
 # pylint: disable=unused-import
