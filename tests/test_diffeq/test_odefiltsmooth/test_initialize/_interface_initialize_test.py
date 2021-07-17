@@ -1,4 +1,4 @@
-"""Interface for python initialize tests."""
+"""Interface for tests of initialization routines of ODE filters."""
 
 import abc
 
