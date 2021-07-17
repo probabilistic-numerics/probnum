@@ -171,11 +171,14 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
 
         # Order > 1
         for _ in range(1, order):
-            new_series = (initial_taylor_coefficient, *remaining_taylor_coefficents)
+            taylor_coefficients = (
+                initial_taylor_coefficient,
+                *remaining_taylor_coefficents,
+            )
             (_, [*remaining_taylor_coefficents]) = jet(
                 fun=evaluate_ode_for_extended_state,
                 primals=(extended_state,),
-                series=(new_series,),
+                series=(taylor_coefficients,),
             )
             derivs.extend(remaining_taylor_coefficents[-2][:-1])
         return derivs_to_normal_randvar(derivs=derivs, ordint=order)

@@ -20,7 +20,7 @@ class TestTaylorModeInitialization(
     def _setup(self):
         self.taylor_init = diffeq.odefiltsmooth.initialize.TaylorModeInitialization()
 
-    @pytest.mark.parametrize("any_order", [0, 1, 2])
+    @pytest.mark.parametrize("any_order", [0, 1, 2, 3])
     @_decorators.only_if_jax_available
     def test_call(self, any_order):
         r2b_jax = diffeq_zoo.threebody_jax()
