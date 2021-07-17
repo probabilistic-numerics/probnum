@@ -6,7 +6,7 @@ from probnum import problems, randprocs, randvars
 
 
 class InitializationRoutine(abc.ABC):
-    """Interface initialization routines for a filtering-based ODE solver."""
+    """Interface for initialization routines for a filtering-based ODE solver."""
 
     @abc.abstractmethod
     def __call__(
