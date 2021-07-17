@@ -13,14 +13,18 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
 
+    The implementation is inspired by the implementation in
+    https://github.com/jacobjinkelly/easy-neural-ode/blob/master/latent_ode.py
+    See also [2]_.
+
     References
     ----------
     .. [1] Krämer, N. and Hennig, P., Stable implementation of probabilistic ODE solvers,
        *arXiv:2012.10106*, 2020.
+    .. [2] Kelly, J. and Bettencourt, J. and Johnson, M. and Duvenaud, D.,
+        Learning differential equations that are easy to solve,
+        Neurips 2020.
 
-
-    The implementation is inspired by the implementation in
-    https://github.com/jacobjinkelly/easy-neural-ode/blob/master/latent_ode.py
 
 
     Examples
@@ -109,52 +113,83 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
 
         order = prior_process.transition.ordint
 
-        def total_derivative(z_t):
-            """Total derivative."""
-            z, t = jnp.reshape(z_t[:-1], z_shape), z_t[-1]
-            dz = jnp.ravel(f(t, z))
-            dt = jnp.array([1.0])
-            dz_t = jnp.concatenate((dz, dt))
-            return dz_t
+        dt = jnp.array([1.0])
+        y0_shape = y0.shape
 
-        z_shape = y0.shape
-        z_t = jnp.concatenate((jnp.ravel(y0), jnp.array([t0])))
+        def evaluate_ode_for_stacked_state(stacked_state, y0_shape=y0_shape, dt=dt):
+            r"""Evaluate the ODE for a stacked state.
 
+            More precisly, compute the derivative of the stacked state (x(t), t) according to the ODE.
+            This function implements a rewriting of non-autonomous as autonomous ODEs, i.e.
+
+            .. math:: \dot x(t) = f(t, x(t))
+
+            becomes
+
+            .. math:: \dot z(t) = \dot (x(t), t) = (f(x(t), t), 1).
+
+            This rewriting makes the jet-implementation easier.
+            """
+            x, t = jnp.reshape(stacked_state[:-1], y0_shape), stacked_state[-1]
+            dx = f(t, x)
+            dx_ravelled = jnp.ravel(dx)
+            stacked_ode_eval = jnp.concatenate((dx_ravelled, dt))
+            return stacked_ode_eval
+
+        stacked_state = jnp.concatenate((jnp.ravel(y0), jnp.array([t0])))
         derivs = []
 
+        # Order == 0
         derivs.extend(y0)
         if order == 0:
             all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
-                np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
+                np.asarray(derivs), ordint=0, spatialdim=y0_shape[0]
             )
 
+            # Wrap all inputs through np.asarray, because 'Normal's
+            # do not like JAX 'DeviceArray's
             return randvars.Normal(
-                np.asarray(all_derivs),
+                mean=np.asarray(all_derivs),
                 cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
                 cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             )
 
-        (dy0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
+        # Order == 1
+        vector_of_ones = jnp.ones_like(stacked_state)
+        (dy0, [*yns]) = jet(
+            fun=evaluate_ode_for_stacked_state,
+            primals=(stacked_state,),
+            series=((vector_of_ones,),),
+        )
         derivs.extend(dy0[:-1])
         if order == 1:
             all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
                 np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
             )
 
+            # Wrap all inputs through np.asarray, because 'Normal's
+            # do not like JAX 'DeviceArray's
             return randvars.Normal(
                 np.asarray(all_derivs),
                 cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
                 cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             )
 
+        # Order > 1
         for _ in range(1, order):
-            (dy0, [*yns]) = jet(total_derivative, (z_t,), ((dy0, *yns),))
+            (dy0, [*yns]) = jet(
+                fun=evaluate_ode_for_stacked_state,
+                primals=(stacked_state,),
+                series=((dy0, *yns),),
+            )
             derivs.extend(yns[-2][:-1])
 
         all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
             jnp.array(derivs), ordint=order, spatialdim=len(y0)
         )
 
+        # Wrap all inputs through np.asarray, because 'Normal's
+        # do not like JAX 'DeviceArray's
         return randvars.Normal(
             np.asarray(all_derivs),
             cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
