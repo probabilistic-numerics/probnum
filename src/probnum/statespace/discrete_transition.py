@@ -568,10 +568,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         zero_matrix = np.zeros((output_dim, output_dim))
         if state_trans_mat.ndim != 2:
             raise ValueError
-        output_dim, input_dim = state_trans_mat.shape
         return cls(
-            input_dim=input_dim,
-            output_dim=output_dim,
             state_trans_mat=state_trans_mat,
             shift_vec=shift_vec,
             proc_noise_cov_mat=zero_matrix,
