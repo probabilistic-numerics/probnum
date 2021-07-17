@@ -1,8 +1,7 @@
 """ODE residual information operators."""
 
-import abc
 
-from probnum import filtsmooth, statespace
+from probnum import statespace
 from probnum.diffeq.odefiltsmooth.information_operators import _information_operator
 
 __all__ = ["ExplicitODEResidual"]
