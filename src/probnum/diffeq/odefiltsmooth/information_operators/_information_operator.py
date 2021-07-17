@@ -67,10 +67,18 @@ class InformationOperator(abc.ABC):
         )
 
     def as_ekf_component(
-        self, forward_implementation="sqrt", backward_implementation="sqrt"
+        self,
+        measurement_cov_fun=None,
+        measurement_cov_cholesky_fun=None,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
     ):
+        transition = self.as_transition(
+            measurement_cov_fun=measurement_cov_fun,
+            measurement_cov_cholesky_fun=measurement_cov_cholesky_fun,
+        )
         return filtsmooth.gaussian.approx.DiscreteEKFComponent(
-            non_linear_model=self.as_transition(),
+            non_linear_model=transition,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
