@@ -1,11 +1,14 @@
 """Runge-Kutta initialisation."""
 
 
+from typing import Optional
+
 import numpy as np
 import scipy.integrate as sci
 
 from probnum import filtsmooth, problems, statespace
 from probnum.diffeq.odefiltsmooth.initialize import _initialize
+from probnum.typing import FloatArgType
 
 
 class RungeKuttaInitialization(_initialize.InitializationRoutine):
@@ -51,12 +54,16 @@ class RungeKuttaInitialization(_initialize.InitializationRoutine):
     [-13.8 -11.3  -9.   -1.5 -13.8 -11.3  -9.   -1.5]
     """
 
-    def __init__(self, dt=1e-2, method="DOP853"):
+    def __init__(
+        self, dt: Optional[FloatArgType] = 1e-2, method: Optional[str] = "DOP853"
+    ):
         self.dt = dt
         self.method = method
         super().__init__(is_exact=False, requires_jax=False)
 
-    def __call__(self, ivp, prior_process):
+    def __call__(
+        self, ivp: problems.InitialValueProblem, prior_process: randprocs.MarkovProcess
+    ) -> randvars.RandomVariable:
         """Compute the initial distribution.
 
         For Runge-Kutta initialization, it goes as follows:

@@ -20,7 +20,7 @@ class InitializationRoutine(abc.ABC):
        *arXiv:2012.10106*, 2020.
     """
 
-    def __init__(self, is_exact, requires_jax):
+    def __init__(self, is_exact: bool, requires_jax: bool):
         self._is_exact = is_exact
         self._requires_jax = requires_jax
 
@@ -31,7 +31,7 @@ class InitializationRoutine(abc.ABC):
         pass
 
     @property
-    def is_exact(self):
+    def is_exact(self) -> bool:
         """Exactness of the computed initial values.
 
         Some initialization routines yield the exact initial
@@ -40,6 +40,6 @@ class InitializationRoutine(abc.ABC):
         return self._is_exact
 
     @property
-    def requires_jax(self):
+    def requires_jax(self) -> bool:
         """Whether the implementation of the routine relies on JAX."""
         return self._requires_jax
