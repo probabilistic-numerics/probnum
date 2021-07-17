@@ -154,13 +154,12 @@ class TaylorModeInitialization(_initialize.InitializationRoutine):
         stacked_state = jnp.concatenate((jnp.ravel(y0), jnp.array([t0])))
         derivs = []
 
-        # Order == 0
+        # Corner case 1: order == 0
         derivs.extend(y0)
         if order == 0:
             return derivs_to_normal_randvar(derivs=derivs, ordint=0)
 
-        # Order == 1
-        # Call to jet requ
+        # Corner case 2: order == 1
         initial_series = (jnp.ones_like(stacked_state),)
         (dy0, [*remaining_taylor_coefficents]) = jet(
             fun=evaluate_ode_for_stacked_state,
