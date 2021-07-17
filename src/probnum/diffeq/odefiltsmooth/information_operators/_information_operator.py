@@ -32,6 +32,10 @@ class InformationOperator(abc.ABC):
     Therefore, they are one important component in a probabilistic ODE solver.
     """
 
+    def __init__(self, input_dim, output_dim):
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+
     @abc.abstractmethod
     def __call__(self, t, x):
         raise NotImplementedError

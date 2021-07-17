@@ -2,6 +2,10 @@
 
 import abc
 
+import pytest
+
+from probnum.problems.zoo import diffeq as diffeq_zoo
+
 
 class InformationOperatorTest(abc.ABC):
     @abc.abstractmethod
@@ -29,3 +33,7 @@ class ODEInformationOperatorTest(InformationOperatorTest):
     @abc.abstractmethod
     def test_ode_has_been_incorporated(self):
         raise NotImplementedError
+
+    @pytest.fixture
+    def fitzhughnagumo(self):
+        return diffeq_zoo.fitzhughnagumo()
