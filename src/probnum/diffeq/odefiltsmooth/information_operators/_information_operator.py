@@ -30,25 +30,6 @@ class InformationOperator(abc.ABC):
     Therefore, they are one important component in a probabilistic ODE solver.
     """
 
-    def __init__(self, input_dim, output_dim):
-
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-
-        # Initialized once the ODE can be seen
-        self.ode = None
-
-    def incorporate_ode(self, ode):
-        """Incorporate the ODE into the operator."""
-        if self.ode_has_been_incorporated:
-            raise ValueError
-        else:
-            self.ode = ode
-
-    @property
-    def ode_has_been_incorporated(self):
-        return self.ode is not None
-
     @abc.abstractmethod
     def __call__(self, t, x):
         raise NotImplementedError
@@ -88,10 +69,31 @@ class InformationOperator(abc.ABC):
         )
 
 
+class ODEInformationOperator(InformationOperator):
+    """Information operators that depend on an ODE function."""
+
+    def __init__(self, input_dim, output_dim):
+        super().__init__(input_dim=input_dim, output_dim=output_dim)
+
+        # Initialized once the ODE can be seen
+        self.ode = None
+
+    def incorporate_ode(self, ode):
+        """Incorporate the ODE into the operator."""
+        if self.ode_has_been_incorporated:
+            raise ValueError
+        else:
+            self.ode = ode
+
+    @property
+    def ode_has_been_incorporated(self):
+        return self.ode is not None
+
+
 # Implicit ODE Residuals might be done somewhere else?!
 # The advantage would be that the EK0 could throw errors as soon
 # as the to-be-linearized information operator is not the residual of an explicit ODE.
-class ODEResidualOperator(InformationOperator):
+class ODEResidualOperator(ODEInformationOperator):
     """Information operator that measures the residual of an ODE."""
 
     def __init__(self, prior_ordint, prior_spatialdim):
@@ -123,14 +125,16 @@ class ODEResidualOperator(InformationOperator):
         self.projection_matrices = [
             dummy_integrator.proj2coord(coord=deriv) for deriv in range(ode_order + 1)
         ]
-        self._residual = self._residual_first_order_ode
-        self._residual_jacobian = self._residual_first_order_ode_jacobian
+        res, res_jac = self._match_residual_and_jacobian_to_ode_order(
+            ode_order=ode_order
+        )
+        self._residual, self._residual_jacobian = res, res_jac
 
         # For higher order IVPs, do something along the lines of
         # self.proj_matrices = [dummy_integrator.proj2coord(coord=deriv) for deriv in range(ivp.order + 1)]
-        # self._residual, self._residual_jacobian = self._match_residual_and_jacobian(ode_order=ode_order)
+        # self._residual, self._residual_jacobian = self._match_residual_and_jacobian_to_ode_order(ode_order=ode_order)
 
-    def _match_residual_and_jacobian(self, ode_order):
+    def _match_residual_and_jacobian_to_ode_order(self, ode_order):
         choose_implementation = {
             1: (self._residual_first_order_ode, self._residual_first_order_ode_jacobian)
         }
