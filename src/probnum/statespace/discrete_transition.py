@@ -565,7 +565,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         """Turn a linear operator (or numpy array) into a deterministic transition."""
         # Currently, this is only a numpy array.
         # In the future, once linops are more widely adopted here, this will become a linop.
-        zero_matrix = np.zeros((output_dim, output_dim))
+        zero_matrix = np.zeros((state_trans_mat.shape[1], state_trans_mat.shape[1]))
         if state_trans_mat.ndim != 2:
             raise ValueError
         return cls(
