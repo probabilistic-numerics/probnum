@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, randvars, statespace
+from probnum import diffeq, randvars
 from tests.test_diffeq.test_odefiltsmooth.test_initialize import (
     _interface_initialize_test,
 )
@@ -20,7 +20,6 @@ class TestRungeKuttaInitialization(
     def test_call(
         self, lotka_volterra, lotka_volterra_inits, lotka_volterra_testcase_order
     ):
-        ode_dim = len(lotka_volterra.y0)
 
         prior_process = self._construct_prior_process(
             order=lotka_volterra_testcase_order,
