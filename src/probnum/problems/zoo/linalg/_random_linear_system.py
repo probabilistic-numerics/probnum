@@ -2,8 +2,12 @@
 
 import numpy as np
 
+from probnum import randvars
 
-def random_linear_system(assume_A: str, rng: np.random.Generator):
+
+def random_linear_system(
+    assume_A: str, solution: randvars.RandomVariable, rng: np.random.Generator
+):
     """Random linear system.
 
     Generate a random linear system by sampling a system matrix with the given properties. The solution is chosen to be a realization from the provided random variable. If None the solution is drawn from a standard normal distribution.
