@@ -43,7 +43,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         where the initial covariance is of the form :math:`\kappa I_{d(\nu + 1)}`
         with :math:`\kappa=10^6`.
         Diffuse priors are used when initial distributions are not known.
-        They are used for filtering-based probabilistic ODE solvers.
+        They are common for filtering-based probabilistic ODE solvers.
     forward_implementation
         Implementation of the forward-propagation in the underlying transitions.
         Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.

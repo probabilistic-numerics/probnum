@@ -7,6 +7,8 @@ try:
 except ImportError:
     from cached_property import cached_property
 
+import warnings
+
 from probnum import randvars
 from probnum.randprocs.markov import _markov_process
 from probnum.randprocs.markov.continuous import _sde
@@ -34,12 +36,25 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     initrv
         Law of the integrated Wiener process at the initial time point.
         Optional. Default is a :math:`d(\nu + 1)` dimensional standard-normal distribution.
+    diffuse
+        Whether to instantiate a diffuse prior. A diffuse prior has large initial variances.
+        Optional. Default is `False`.
+        If `True`, and if an initial random variable is not passed, an initial random variable is created,
+        where the initial covariance is of the form :math:`\kappa I_{d(\nu + 1)}`
+        with :math:`\kappa=10^6`.
+        Diffuse priors are used when initial distributions are not known.
+        They are common for filtering-based probabilistic ODE solvers.
     forward_implementation
         Implementation of the forward-propagation in the underlying transitions.
         Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
     backward_implementation
         Implementation of the backward-conditioning in the underlying transitions.
         Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+
+    Raises
+    ------
+    Warning
+        If `initrv` is not None and `diffuse` is True.
 
     Examples
     --------
@@ -67,22 +82,33 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
         nu=1,
         wiener_process_dimension=1,
         initrv=None,
+        diffuse=False,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        iwp_transition = IntegratedOrnsteinUhlenbeckTransition(
+        ioup_transition = IntegratedOrnsteinUhlenbeckTransition(
             nu=nu,
             wiener_process_dimension=wiener_process_dimension,
             driftspeed=driftspeed,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
+        if initrv is not None and diffuse:
+            warnings.warn(
+                "Parameter `diffuse` has no effect, because an `initrv` has been provided."
+            )
         if initrv is None:
-            zeros = np.zeros(iwp_transition.dimension)
-            eye = np.eye(iwp_transition.dimension)
-            initrv = randvars.Normal(mean=zeros, cov=eye, cov_cholesky=eye)
+            if diffuse:
+                scale_cholesky = 1e3
+            else:
+                scale_cholesky = 1.0
+            zeros = np.zeros(ioup_transition.dimension)
+            cov_cholesky = scale_cholesky * np.eye(ioup_transition.dimension)
+            initrv = randvars.Normal(
+                mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
+            )
 
-        super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
+        super().__init__(transition=ioup_transition, initrv=initrv, initarg=initarg)
 
 
 class IntegratedOrnsteinUhlenbeckTransition(

@@ -46,12 +46,12 @@ def test_matern_construction(
             diffuse=diffuse,
         )
 
-    isinstance(matern, randprocs.markov.continuous.integrator.MaternProcess)
-    isinstance(matern, randprocs.markov.MarkovProcess)
-    isinstance(
-        matern.transition,
-        randprocs.markov.continuous.integrator.MaternTransition,
-    )
+        isinstance(matern, randprocs.markov.continuous.integrator.MaternProcess)
+        isinstance(matern, randprocs.markov.MarkovProcess)
+        isinstance(
+            matern.transition,
+            randprocs.markov.continuous.integrator.MaternTransition,
+        )
 
 
 class TestMaternTransition(
