@@ -1,7 +1,18 @@
 """Tests for IOUPs."""
 
 
-class TestIOUP(TestLTISDE, TestIntegrator):
+import numpy as np
+import pytest
+
+from probnum import randprocs, randvars
+from probnum.problems.zoo import linalg as linalg_zoo
+from tests.test_randprocs.test_markov.test_continuous import test_sde
+from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
+    test_integrator,
+)
+
+
+class TestIOUP(test_sde.TestLTISDE, test_integrator.TestIntegrator):
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
@@ -14,7 +25,7 @@ class TestIOUP(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnss.IOUP(
+        self.transition = randprocs.markov.continuous.integrator.IOUP(
             ordint=self.some_ordint,
             spatialdim=spatialdim,
             driftspeed=1.2345,
