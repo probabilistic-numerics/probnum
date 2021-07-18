@@ -1,6 +1,5 @@
 """Tests for Markov processes."""
 
-from probnum import randprocs, randvars
 
 #
 #

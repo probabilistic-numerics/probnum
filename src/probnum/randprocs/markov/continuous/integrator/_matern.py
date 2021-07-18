@@ -2,21 +2,8 @@
 import numpy as np
 import scipy.special
 
-try:
-    # cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
-import probnum.typing as pntype
-from probnum import randvars
-from probnum.randprocs.markov import discrete
 from probnum.randprocs.markov.continuous import _sde
-from probnum.randprocs.markov.continuous.integrator import (
-    _integrator,
-    _preconditioner,
-    _utils,
-)
+from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
 class Matern(_integrator.Integrator, _sde.LTISDE):

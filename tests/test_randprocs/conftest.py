@@ -5,7 +5,7 @@ from typing import Callable
 import numpy as np
 import pytest
 
-from probnum import kernels, randprocs, randvars
+from probnum import kernels, randprocs
 
 
 @pytest.fixture(

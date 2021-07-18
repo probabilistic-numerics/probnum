@@ -2,20 +2,11 @@
 
 This is the sucessor of the former ODEPrior.
 """
-try:
-    # cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
 
 import numpy as np
-import scipy.special
 
-import probnum.typing as pntype
-from probnum import randvars
-from probnum.randprocs.markov import discrete
-from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _preconditioner
+from probnum.typing import IntArgType
 
 
 class Integrator:
@@ -111,7 +102,7 @@ class Integrator:
 
     @staticmethod
     def _convert_coordwise_to_derivwise(
-        state: np.ndarray, ordint: pntype.IntArgType, spatialdim: pntype.IntArgType
+        state: np.ndarray, ordint: IntArgType, spatialdim: IntArgType
     ) -> np.ndarray:
         """Convert coordinate-wise representation to derivative-wise representation.
 
@@ -136,7 +127,7 @@ class Integrator:
 
     @staticmethod
     def _convert_derivwise_to_coordwise(
-        state: np.ndarray, ordint: pntype.IntArgType, spatialdim: pntype.IntArgType
+        state: np.ndarray, ordint: IntArgType, spatialdim: IntArgType
     ) -> np.ndarray:
         """Convert coordinate-wise representation to derivative-wise representation.
 
