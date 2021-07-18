@@ -2,12 +2,7 @@ import numpy as np
 import pytest
 
 from probnum import randprocs, randvars
-from probnum.problems.zoo.linalg import random_spd_matrix
-
-
-@pytest.fixture
-def some_ordint(test_ndim):
-    return test_ndim - 1
+from probnum.problems.zoo import linalg as linalg_zoo
 
 
 class TestIntegrator:
@@ -106,7 +101,7 @@ def test_same_backward_outputs(both_transitions, diffusion, rng):
     trans1, trans2 = both_transitions
     real = 1 + 0.1 * np.random.rand(trans1.dimension)
     real2 = 1 + 0.1 * np.random.rand(trans1.dimension)
-    cov = random_spd_matrix(rng, dim=trans1.dimension)
+    cov = linalg_zoo.random_spd_matrix(rng, dim=trans1.dimension)
     rv = randvars.Normal(real2, cov)
     out_1, info1 = trans1.backward_realization(
         real, rv, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion

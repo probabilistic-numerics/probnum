@@ -1,8 +1,10 @@
 """Tests for integrated Brownian motion processes."""
 
+import numpy as np
 import pytest
 
-from probnum import randprocs
+from probnum import randprocs, randvars
+from probnum.problems.zoo import linalg as linalg_zoo
 from tests.test_randprocs.test_markov.test_continuous import test_sde
 from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
     test_integrator,
@@ -70,7 +72,7 @@ def qh_22_ibm(dt):
 
 @pytest.fixture
 def spdmat3x3(rng):
-    return random_spd_matrix(rng, dim=3)
+    return linalg_zoo.random_spd_matrix(rng, dim=3)
 
 
 @pytest.fixture
