@@ -5,6 +5,7 @@ space models, which are the basis for Bayesian filtering and smoothing,
 but also probabilistic ODE solvers.
 """
 
+from . import continuous, discrete, utils
 from ._markov_process import MarkovProcess
 from ._transition import Transition
 

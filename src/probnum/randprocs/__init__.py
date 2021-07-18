@@ -14,6 +14,7 @@ __all__ = [
     "RandomProcess",
     "GaussianProcess",
 ]
+from . import markov
 
 # Set correct module paths. Corrects links and module paths in documentation.
 RandomProcess.__module__ = "probnum.randprocs"

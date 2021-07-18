@@ -4,10 +4,10 @@ from typing import Optional, Type, Union
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import randvars
+from probnum.randprocs import _random_process
+from probnum.randprocs.markov import _transition
 from probnum.typing import ShapeArgType
-
-from . import _random_process
 
 _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
@@ -41,7 +41,7 @@ class MarkovProcess(_random_process.RandomProcess):
         self,
         initarg: np.ndarray,
         initrv: randvars.RandomVariable,
-        transition: statespace.Transition,
+        transition: _transition.Transition,
     ):
         self.initarg = initarg
         self.initrv = initrv

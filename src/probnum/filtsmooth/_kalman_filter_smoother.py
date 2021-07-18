@@ -172,7 +172,7 @@ def _setup_prior_process(F, L, m0, C0, t0, prior_model):
         raise ValueError
     initrv = randvars.Normal(m0, C0)
     initarg = t0
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=initarg
     )
     return prior_process
