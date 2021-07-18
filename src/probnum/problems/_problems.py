@@ -200,29 +200,6 @@ class LinearSystem:
     # For testing and benchmarking
     solution: Optional[Union[np.ndarray, randvars.RandomVariable]] = None
 
-    @classmethod
-    def from_matrix(
-        cls,
-        A: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
-        rng: np.random.Generator,
-        solution_rv: randvars.RandomVariable = randvars.Normal(mean=0.0, cov=1.0),
-    ):
-        """Create a random linear system from a system matrix.
-
-        Draws a realization from a random variable as the solution to the linear system and multiplies it with the system matrix to generate the right hand side.
-
-        Parameters
-        ----------
-        A :
-            System matrix or linear operator.
-        rng :
-            Random number generator.
-        solution_rv :
-            Random variable to draw solution from.
-        """
-        solution = solution_rv.sample(rng=rng, size=A.shape[1])
-        return cls(A=A, b=A @ solution, solution=solution)
-
 
 @dataclasses.dataclass
 class QuadratureProblem:

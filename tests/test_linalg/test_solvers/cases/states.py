@@ -3,7 +3,7 @@
 import numpy as np
 
 from probnum import linalg, linops, problems, randvars
-from probnum.problems.zoo.linalg import random_spd_matrix
+from probnum.problems.zoo.linalg import random_linear_system, random_spd_matrix
 
 
 def case_linear_solver_state(
@@ -11,9 +11,7 @@ def case_linear_solver_state(
 ):
     """State of a linear solver."""
     n = 10
-    linsys = problems.LinearSystem.from_matrix(
-        random_spd_matrix(dim=n, rng=rng), rng=rng
-    )
+    linsys = random_linear_system(rng=rng, matrix=random_spd_matrix, dim=n)
     prior = linalg.solvers.beliefs.LinearSystemBelief(
         A=randvars.Constant(linsys.A),
         Ainv=None,

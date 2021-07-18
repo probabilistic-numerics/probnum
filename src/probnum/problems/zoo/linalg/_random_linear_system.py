@@ -7,33 +7,38 @@ import scipy.sparse
 
 from probnum import linops, problems, randvars
 from probnum.problems.zoo.linalg._random_spd_matrix import random_spd_matrix
+from probnum.typing import LinearOperatorArgType
 
 
 def random_linear_system(
     rng: np.random.Generator,
-    random_matrix: Optional[
+    matrix: Union[
+        LinearOperatorArgType,
         Callable[
             [np.random.Generator, Optional[Any]],
             Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
-        ]
-    ] = random_spd_matrix,
-    solution: Optional[randvars.RandomVariable] = None,
+        ],
+    ],
+    solution_rv: Optional[randvars.RandomVariable] = None,
     **kwargs,
 ) -> problems.LinearSystem:
     """Random linear system.
 
-    Generate a random linear system by sampling a system matrix with the given properties.
-    The solution is chosen to be a realization from the provided random variable. If None
-    the solution is drawn from a standard normal distribution with iid components.
+    Generate a random linear system from a (random) matrix. If ``matrix`` is a callable instead of a matrix or
+    linear operator, the system matrix is sampled by passing the random generator instance ``rng``. The solution
+    of the linear system is set to a realization from ``solution_rv``. If ``None`` the solution is drawn from a
+    standard normal distribution with iid components.
 
     Parameters
     ----------
     rng
         Random number generator.
-    random_matrix
-        Callable returning a matrix or linear operator if given a random number generator instance.
+    matrix
+        Matrix, linear operator or callable returning either for a given random number generator instance.
+    solution_rv
+        Random variable from which the solution of the linear system is sampled.
     kwargs
-        Miscellaneous arguments passed onto the matrix-generating function ``random_matrix``.
+        Miscellaneous arguments passed onto the matrix-generating callable ``matrix``.
 
     See Also
     --------
@@ -42,20 +47,50 @@ def random_linear_system(
 
     Examples
     --------
-    #TODO
+    >>> import numpy as np
+    >>> from probnum.problems.zoo.linalg import random_linear_system
+    >>> rng = np.random.default_rng(42)
+
+    Linear system with given system matrix.
+
+    >>> import scipy.stats
+    >>> unitary_matrix = scipy.stats.unitary_group.rvs(dim=5, random_state=rng)
+    >>> linsys_unitary = random_linear_system(rng, unitary_matrix)
+    >>> np.abs(np.linalg.det(linsys_unitary.A))
+    1.0
+
+    Linear system with random symmetric positive-definite matrix.
+
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
+    >>> linsys_spd = random_linear_system(rng, random_spd_matrix, dim=2)
+    >>> linsys_spd
+    LinearSystem(A=array([[ 9.62543582,  3.14955953],
+           [ 3.14955953, 13.28720426]]), b=array([-2.7108139 ,  1.10779288]), solution=array([-0.33488503,  0.16275307]))
+
+
+    Linear system with random sparse matrix.
+
+    >>> import scipy.sparse
+    >>> random_sparse_matrix = lambda rng,m,n: scipy.sparse.random(m=m, n=n, random_state=rng)
+    >>> linsys_sparse = random_linear_system(rng, random_sparse_matrix, m=4, n=2)
+    >>> isinstance(linsys_sparse.A, scipy.sparse.spmatrix)
+    True
     """
     # Generate system matrix
-    A = random_matrix(rng=rng, **kwargs)
+    if isinstance(matrix, (np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator)):
+        A = matrix
+    else:
+        A = matrix(rng=rng, **kwargs)
 
     # Sample solution
-    if solution is None:
+    if solution_rv is None:
         n = A.shape[1]
-        x = randvars.Normal(mean=0, cov=1).sample(size=(n,))
+        x = randvars.Normal(mean=0.0, cov=1.0).sample(size=(n,), rng=rng)
     else:
-        if A.shape[1] != solution.shape[0]:
+        if A.shape[1] != solution_rv.shape[0]:
             raise ValueError(
-                f"Shape of the system matrix: {A.shape} must match shape of the solution: {solution.shape}."
+                f"Shape of the system matrix: {A.shape} must match shape of the solution: {solution_rv.shape}."
             )
-        x = solution.sample(size=())
+        x = solution_rv.sample(size=(), rng=rng)
 
     return problems.LinearSystem(A=A, b=A @ x, solution=x)

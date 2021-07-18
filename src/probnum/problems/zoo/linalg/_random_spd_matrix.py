@@ -37,8 +37,8 @@ def random_spd_matrix(
 
     Examples
     --------
-    >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> import numpy as np
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> rng = np.random.default_rng(1)
     >>> mat = random_spd_matrix(rng, dim=5)
     >>> mat
@@ -128,8 +128,8 @@ def random_sparse_spd_matrix(
 
     Examples
     --------
-    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
     >>> import numpy as np
+    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
     >>> rng = np.random.default_rng(42)
     >>> sparsemat = random_sparse_spd_matrix(rng, dim=5, density=0.1)
     >>> sparsemat
