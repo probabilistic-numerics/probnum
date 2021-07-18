@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import diffeq, randprocs, randvars, statespace
+from probnum import diffeq, randprocs, randvars
 
 from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
 
@@ -42,7 +42,7 @@ def lv():
 def lv_inits(order):
     lv_dim = 2
     vals = LV_INITS[: lv_dim * (order + 1)]
-    return statespace.Integrator._convert_derivwise_to_coordwise(
+    return randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
         vals, ordint=order, spatialdim=lv_dim
     )
 
@@ -50,7 +50,7 @@ def lv_inits(order):
 def test_initialize_with_rk(lv, lv_inits, order):
     """Make sure that the values are close(ish) to the truth."""
     ode_dim = len(lv.y0)
-    prior = statespace.IBM(
+    prior = randprocs.markov.continuous.integrator.IBM(
         ordint=order,
         spatialdim=ode_dim,
         forward_implementation="sqrt",

@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import diffeq, filtsmooth, randprocs, randvars, statespace
+from probnum import diffeq, filtsmooth, randprocs, randvars
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def ivp():
 @pytest.fixture
 def prior(ivp):
     ode_dim = ivp.dimension
-    prior = statespace.IBM(ordint=2, spatialdim=ode_dim)
+    prior = randprocs.markov.continuous.integrator.IBM(ordint=2, spatialdim=ode_dim)
     initrv = randvars.Normal(
         mean=np.zeros(prior.dimension),
         cov=np.eye(prior.dimension),
