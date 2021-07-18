@@ -5,7 +5,7 @@ import abc
 import numpy as np
 import pytest
 
-from probnum import randvars, statespace
+from probnum import randprocs, randvars
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ class TestConstantDiffusion(DiffusionTestInterface):
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.diffusion = statespace.ConstantDiffusion()
+        self.diffusion = randprocs.markov.continuous.ConstantDiffusion()
 
     def test_call(self):
         """Check whether call returns the correct values."""
@@ -94,7 +94,7 @@ class TestPiecewiseConstantDiffusion(DiffusionTestInterface):
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.diffusion = statespace.PiecewiseConstantDiffusion(t0=0.0)
+        self.diffusion = randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=0.0)
 
     def test_call(self):
 
