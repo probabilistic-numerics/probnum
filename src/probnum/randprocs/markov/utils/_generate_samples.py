@@ -4,14 +4,13 @@ import numpy as np
 import scipy.stats
 
 from probnum import randvars
-
-from .transition import Transition
+from probnum.randprocs.markov import _transition
 
 
 def generate_samples(
     rng: np.random.Generator,
-    dynmod: Transition,
-    measmod: Transition,
+    dynmod: _transition.Transition,
+    measmod: _transition.Transition,
     initrv: randvars.RandomVariable,
     times: np.ndarray,
 ):
