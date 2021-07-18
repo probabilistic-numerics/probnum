@@ -6,7 +6,7 @@ import numpy as np
 import pytest_cases
 import scipy.sparse
 
-from probnum import linops, problems, randvars
+from probnum import linops, problems
 from probnum.problems.zoo.linalg import random_linear_system
 
 cases_matrices = ".matrices"
