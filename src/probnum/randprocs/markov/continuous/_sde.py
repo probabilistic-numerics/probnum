@@ -7,14 +7,13 @@ import scipy.integrate
 import scipy.linalg
 
 from probnum import randvars
+from probnum.randprocs.markov import _transition, discrete
+from probnum.randprocs.markov.continuous import _utils
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import tril_to_positive_tril
 
-from . import discrete_transition, transition
-from .sde_utils import matrix_fraction_decomposition
 
-
-class SDE(transition.Transition):
+class SDE(_transition.Transition):
     """Stochastic differential equation.
 
     .. math:: d x(t) = g(t, x(t)) d t + L(t) d w(t),
@@ -591,16 +590,20 @@ class LTISDE(LinearSDE):
             eye = np.eye(self.dimension)
             driftmat = np.block([[self.driftmat, eye], [zeros, zeros]])
             dispmat = np.concatenate((self.dispmat, np.zeros(self.dispmat.shape)))
-            ah_stack, qh_stack, _ = matrix_fraction_decomposition(driftmat, dispmat, dt)
+            ah_stack, qh_stack, _ = _utils.matrix_fraction_decomposition(
+                driftmat, dispmat, dt
+            )
             proj = np.eye(self.dimension, 2 * self.dimension)
             proj_rev = np.flip(proj, axis=1)
             ah = proj @ ah_stack @ proj.T
             sh = proj @ ah_stack @ proj_rev.T @ self.forcevec
             qh = proj @ qh_stack @ proj.T
         else:
-            ah, qh, _ = matrix_fraction_decomposition(self.driftmat, self.dispmat, dt)
+            ah, qh, _ = _utils.matrix_fraction_decomposition(
+                self.driftmat, self.dispmat, dt
+            )
             sh = np.zeros(len(ah))
-        return discrete_transition.DiscreteLTIGaussian(
+        return discrete.DiscreteLTIGaussian(
             ah,
             sh,
             qh,

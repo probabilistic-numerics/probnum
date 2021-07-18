@@ -6,12 +6,11 @@ import numpy as np
 import scipy.linalg
 
 from probnum import randvars
+from probnum.randprocs.markov import _transition
+from probnum.randprocs.markov.discrete import _utils
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
-from . import transition as trans
-from .discrete_transition_utils import condition_state_on_rv
-
 try:
     # functools.cached_property is only available in Python >=3.8
     from functools import cached_property, lru_cache
@@ -29,7 +28,7 @@ except ImportError:
     from cached_property import cached_property
 
 
-class DiscreteGaussian(trans.Transition):
+class DiscreteGaussian(_transition.Transition):
     r"""Discrete transitions with additive Gaussian noise.
 
     .. math:: x_{i+1} \sim \mathcal{N}(g(t_i, x_i), S(t_i))
@@ -155,7 +154,7 @@ class DiscreteGaussian(trans.Transition):
             )
             gain = info_forwarded["gain"]
         info = {"rv_forwarded": rv_forwarded}
-        return condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain), info
+        return _utils.condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain), info
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):

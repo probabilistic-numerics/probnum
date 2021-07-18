@@ -5,22 +5,19 @@ from ._discrete_gaussian import (
     DiscreteLinearGaussian,
     DiscreteLTIGaussian,
 )
+from ._utils import condition_state_on_measurement, condition_state_on_rv
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
-    "SDE",
-    "LinearSDE",
-    "LTISDE",
-    "matrix_fraction_decomposition",
-    "Diffusion",
-    "ConstantDiffusion",
-    "PiecewiseConstantDiffusion",
+    "DiscreteGaussian",
+    "DiscreteLinearGaussian",
+    "DiscreteLTIGaussian",
+    "condition_state_on_rv",
+    "condition_state_on_measurement",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-SDE.__module__ = "probnum.randprocs.markov.continuous"
-LinearSDE.__module__ = "probnum.randprocs.markov.continuous"
-LTISDE.__module__ = "probnum.randprocs.markov.continuous"
-Diffusion.__module__ = "probnum.randprocs.markov.continuous"
-ConstantDiffusion.__module__ = "probnum.randprocs.markov.continuous"
-PiecewiseConstantDiffusion.__module__ = "probnum.randprocs.markov.continuous"
+DiscreteGaussian.__module__ = "probnum.randprocs.markov.discrete"
+DiscreteLinearGaussian.__module__ = "probnum.randprocs.markov.discrete"
+DiscreteLTIGaussian.__module__ = "probnum.randprocs.markov.discrete"
+DiscreteGaussian.__module__ = "probnum.randprocs.markov.discrete"

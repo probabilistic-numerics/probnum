@@ -13,8 +13,9 @@ import scipy.special
 
 import probnum.typing as pntype
 from probnum import randvars
+from probnum.randprocs.markov import discrete
+from probnum.randprocs.markov.continuous import _sde
 
-from . import discrete_transition, sde
 from .preconditioner import NordsieckLikeCoordinates
 
 
@@ -159,7 +160,7 @@ class Integrator:
         return projmat @ state
 
 
-class IBM(Integrator, sde.LTISDE):
+class IBM(Integrator, _sde.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
     def __init__(
@@ -172,7 +173,7 @@ class IBM(Integrator, sde.LTISDE):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
-        sde.LTISDE.__init__(
+        _sde.LTISDE.__init__(
             self,
             driftmat=self._driftmat,
             forcevec=self._forcevec,
@@ -221,7 +222,7 @@ class IBM(Integrator, sde.LTISDE):
             np.eye(self.spatialdim), process_noise_cholesky_1d
         )
 
-        return discrete_transition.DiscreteLTIGaussian(
+        return discrete.DiscreteLTIGaussian(
             state_trans_mat=state_transition,
             shift_vec=empty_shift,
             proc_noise_cov_mat=process_noise,
@@ -321,7 +322,7 @@ class IBM(Integrator, sde.LTISDE):
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
         )
 
-        return discrete_transition.DiscreteLTIGaussian(
+        return discrete.DiscreteLTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,
@@ -331,7 +332,7 @@ class IBM(Integrator, sde.LTISDE):
         )
 
 
-class IOUP(Integrator, sde.LTISDE):
+class IOUP(Integrator, _sde.LTISDE):
     """Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions."""
 
     def __init__(
@@ -345,7 +346,7 @@ class IOUP(Integrator, sde.LTISDE):
         self.driftspeed = driftspeed
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
-        sde.LTISDE.__init__(
+        _sde.LTISDE.__init__(
             self,
             driftmat=self._driftmat,
             forcevec=self._forcevec,
@@ -465,7 +466,7 @@ class IOUP(Integrator, sde.LTISDE):
         return rv, info
 
 
-class Matern(Integrator, sde.LTISDE):
+class Matern(Integrator, _sde.LTISDE):
     """Matern process in :math:`d` dimensions."""
 
     def __init__(
@@ -480,7 +481,7 @@ class Matern(Integrator, sde.LTISDE):
         self.lengthscale = lengthscale
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
-        sde.LTISDE.__init__(
+        _sde.LTISDE.__init__(
             self,
             driftmat=self._driftmat,
             forcevec=self._forcevec,

@@ -182,7 +182,7 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
         )
 
 
-class DiscreteEKFComponent(EKFComponent, randprocs.discrete.DiscreteGaussian):
+class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
