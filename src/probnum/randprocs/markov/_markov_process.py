@@ -49,7 +49,7 @@ class MarkovProcess(_random_process.RandomProcess):
 
         super().__init__(
             input_dim=1 if np.asarray(initarg).ndim == 0 else initarg.shape[0],
-            output_dim=1 if np.asarray(initrv).ndim == 0 else initrv.shape[0],
+            output_dim=1 if initrv.ndim == 0 else initrv.shape[0],
             dtype=np.dtype(np.float_),
         )
 

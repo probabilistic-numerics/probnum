@@ -22,26 +22,26 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     --------
     >>> iwp1 = IntegratedWienerProcess(initarg=0.)
     >>> print(iwp1)
-    <IntegratedWienerProcess with input_dim=1, output_dim=1, dtype=float64>
+    <IntegratedWienerProcess with input_dim=1, output_dim=2, dtype=float64>
 
     >>> iwp2 = IntegratedWienerProcess(initarg=0., nu=2)
     >>> print(iwp2)
-    <IntegratedWienerProcess with input_dim=1, output_dim=1, dtype=float64>
+    <IntegratedWienerProcess with input_dim=1, output_dim=3, dtype=float64>
 
-    >>> iwp3 = IntegratedWienerProcess(initarg=0., output_dim=10)
+    >>> iwp3 = IntegratedWienerProcess(initarg=0., wiener_process_dimension=10)
     >>> print(iwp3)
-    <IntegratedWienerProcess with input_dim=1, output_dim=1, dtype=float64>
+    <IntegratedWienerProcess with input_dim=1, output_dim=20, dtype=float64>
 
-    >>> iwp4 = IntegratedWienerProcess(initarg=0., nu=4, output_dim=1)
+    >>> iwp4 = IntegratedWienerProcess(initarg=0., nu=4, wiener_process_dimension=1)
     >>> print(iwp4)
-    <IntegratedWienerProcess with input_dim=1, output_dim=1, dtype=float64>
+    <IntegratedWienerProcess with input_dim=1, output_dim=5, dtype=float64>
     """
 
     def __init__(
         self,
         initarg,
         nu=1,
-        output_dim=1,
+        wiener_process_dimension=1,
         initrv=None,
         forward_implementation="classic",
         backward_implementation="classic",
@@ -49,7 +49,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
 
         iwp_transition = IntegratedWienerProcessTransition(
             nu=nu,
-            output_dim=output_dim,
+            wiener_process_dimension=wiener_process_dimension,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
@@ -67,13 +67,15 @@ class IntegratedWienerProcessTransition(_integrator.IntegratorTransition, _sde.L
     def __init__(
         self,
         nu,
-        output_dim,
+        wiener_process_dimension,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
-        _integrator.IntegratorTransition.__init__(self, nu=nu, output_dim=output_dim)
+        _integrator.IntegratorTransition.__init__(
+            self, nu=nu, wiener_process_dimension=wiener_process_dimension
+        )
         _sde.LTISDE.__init__(
             self,
             driftmat=self._driftmat,
@@ -86,18 +88,18 @@ class IntegratedWienerProcessTransition(_integrator.IntegratorTransition, _sde.L
     @cached_property
     def _driftmat(self):
         driftmat_1d = np.diag(np.ones(self.nu), 1)
-        return np.kron(np.eye(self.output_dim), driftmat_1d)
+        return np.kron(np.eye(self.wiener_process_dimension), driftmat_1d)
 
     @cached_property
     def _forcevec(self):
         force_1d = np.zeros(self.nu + 1)
-        return np.kron(np.ones(self.output_dim), force_1d)
+        return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @cached_property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.nu + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
-        return np.kron(np.eye(self.output_dim), dispmat_1d).T
+        return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
 
     @cached_property
     def equivalent_discretisation_preconditioned(self):
@@ -113,14 +115,16 @@ class IntegratedWienerProcessTransition(_integrator.IntegratorTransition, _sde.L
         state_transition_1d = np.flip(
             scipy.linalg.pascal(self.nu + 1, kind="lower", exact=False)
         )
-        state_transition = np.kron(np.eye(self.output_dim), state_transition_1d)
+        state_transition = np.kron(
+            np.eye(self.wiener_process_dimension), state_transition_1d
+        )
         process_noise_1d = np.flip(scipy.linalg.hilbert(self.nu + 1))
-        process_noise = np.kron(np.eye(self.output_dim), process_noise_1d)
-        empty_shift = np.zeros(self.output_dim * (self.nu + 1))
+        process_noise = np.kron(np.eye(self.wiener_process_dimension), process_noise_1d)
+        empty_shift = np.zeros(self.wiener_process_dimension * (self.nu + 1))
 
         process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
         process_noise_cholesky = np.kron(
-            np.eye(self.output_dim), process_noise_cholesky_1d
+            np.eye(self.wiener_process_dimension), process_noise_cholesky_1d
         )
 
         return discrete.DiscreteLTIGaussian(

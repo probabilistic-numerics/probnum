@@ -15,11 +15,11 @@ class IntegratorTransition:
     """An integrator is a special kind of SDE, where the :math:`i` th coordinate models
     the :math:`i` th derivative."""
 
-    def __init__(self, nu, output_dim):
+    def __init__(self, nu, wiener_process_dimension):
         self.nu = nu
-        self.output_dim = output_dim
+        self.wiener_process_dimension = wiener_process_dimension
         self.precon = _preconditioner.NordsieckLikeCoordinates.from_order(
-            self.nu, self.output_dim
+            self.nu, self.wiener_process_dimension
         )
 
     def proj2coord(self, coord: int) -> np.ndarray:
