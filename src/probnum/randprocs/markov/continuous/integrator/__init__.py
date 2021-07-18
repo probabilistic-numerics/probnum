@@ -1,6 +1,9 @@
 """Transitions for integrated systems (e.g. integrated Wiener processes)."""
 
-from ._integrator import IBM, IOUP, Integrator, Matern
+from ._ibm import IBM
+from ._integrator import Integrator
+from ._ioup import IOUP
+from ._matern import Matern
 from ._preconditioner import NordsieckLikeCoordinates, Preconditioner
 
 __all__ = [
