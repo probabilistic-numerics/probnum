@@ -28,11 +28,11 @@ def random_linear_system(
 
     Parameters
     ----------
-    rng:
+    rng
         Random number generator.
-    random_matrix:
-        Callable returning a random matrix.
-    kwargs :
+    random_matrix
+        Callable returning a matrix or linear operator if given a random number generator instance.
+    kwargs
         Miscellaneous arguments passed onto the matrix-generating function ``random_matrix``.
 
     See Also
