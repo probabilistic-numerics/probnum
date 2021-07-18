@@ -69,7 +69,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        iwp_transition = IntegratedWienerProcessTransition(
+        iwp_transition = IntegratedWienerTransition(
             nu=nu,
             wiener_process_dimension=wiener_process_dimension,
             forward_implementation=forward_implementation,
@@ -83,7 +83,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
 
 
-class IntegratedWienerProcessTransition(_integrator.IntegratorTransition, _sde.LTISDE):
+class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
     def __init__(
@@ -242,7 +242,7 @@ class IntegratedWienerProcessTransition(_integrator.IntegratorTransition, _sde.L
         )
         zero_shift = np.zeros(len(state_trans_mat))
 
-        # The Cholesky factor of the process noise covariance matrix of the IntegratedWienerProcessTransition
+        # The Cholesky factor of the process noise covariance matrix of the IntegratedWienerTransition
         # always exists, even for non-square root implementations.
         proc_noise_cov_cholesky = (
             self.precon(dt)

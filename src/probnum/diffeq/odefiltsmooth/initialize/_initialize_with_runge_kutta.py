@@ -41,7 +41,7 @@ def initialize_odefilter_with_rk(
     t0
         Initial time point.
     prior_process
-        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IntegratedWienerProcessTransition``).
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IntegratedWienerTransition``).
     df
         Jacobian of the ODE vector field. Optional. If specified, more components of the result will be exact.
     h0
@@ -61,7 +61,7 @@ def initialize_odefilter_with_rk(
 
     >>> from dataclasses import astuple
     >>> from probnum.randvars import Normal
-    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerProcessTransition
+    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerTransition
     >>> from probnum.problems.zoo.diffeq import vanderpol
     >>> from probnum.randprocs.markov import MarkovProcess
 
@@ -70,7 +70,7 @@ def initialize_odefilter_with_rk(
     >>> f, t0, tmax, y0, df, *_ = astuple(vanderpol())
     >>> print(y0)
     [2. 0.]
-    >>> prior = IntegratedWienerProcessTransition(nu=3, wiener_process_dimension=2)
+    >>> prior = IntegratedWienerTransition(nu=3, wiener_process_dimension=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
     >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
     >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior_process=prior_process, df=df)

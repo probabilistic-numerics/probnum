@@ -34,7 +34,7 @@ class NordsieckLikeCoordinates(Preconditioner):
 
     Similar to Nordsieck coordinates (which store the Taylor
     coefficients instead of the derivatives), but better for ODE
-    filtering and smoothing. Used in IntegratedWienerProcessTransition.
+    filtering and smoothing. Used in IntegratedWienerTransition.
     """
 
     def __init__(self, powers, scales, wiener_process_dimension):

@@ -2,11 +2,85 @@
 import numpy as np
 import scipy.special
 
+from probnum import randvars
+from probnum.randprocs.markov import _markov_process
 from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
-class Matern(_integrator.IntegratorTransition, _sde.LTISDE):
+class MaternProcess(_markov_process.MarkovProcess):
+    r"""Matern process.
+
+    Convenience access to (:math:`d` dimensional) Matern(:math:`\nu`) processes.
+
+    Parameters
+    ----------
+    lengthscale
+        Lengthscale of the Matern process.
+    initarg
+        Initial time point.
+    nu
+        Order of the integrated process (''number of integrations'').
+        Optional. Default is :math:`\nu=1`.
+    wiener_process_dimension
+        Dimension of the underlying Wiener process.
+        Optional. Default is :math:`d=1`.
+        The dimension of the integrated Wiener process itself is :math:`d(\nu + 1)`.
+    initrv
+        Law of the integrated Wiener process at the initial time point.
+        Optional. Default is a :math:`d(\nu + 1)` dimensional standard-normal distribution.
+    forward_implementation
+        Implementation of the forward-propagation in the underlying transitions.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+    backward_implementation
+        Implementation of the backward-conditioning in the underlying transitions.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+
+    Examples
+    --------
+    >>> matern1 = MaternProcess(lengthscale=1., initarg=0.)
+    >>> print(matern1)
+    <MaternProcess with input_dim=1, output_dim=2, dtype=float64>
+
+    >>> matern2 = MaternProcess(lengthscale=1.,initarg=0., nu=2)
+    >>> print(matern2)
+    <MaternProcess with input_dim=1, output_dim=3, dtype=float64>
+
+    >>> matern3 = MaternProcess(lengthscale=1.,initarg=0., wiener_process_dimension=10)
+    >>> print(matern3)
+    <MaternProcess with input_dim=1, output_dim=20, dtype=float64>
+
+    >>> matern4 = MaternProcess(lengthscale=1.,initarg=0., nu=4, wiener_process_dimension=1)
+    >>> print(matern4)
+    <MaternProcess with input_dim=1, output_dim=5, dtype=float64>
+    """
+
+    def __init__(
+        self,
+        lengthscale,
+        initarg,
+        nu=1,
+        wiener_process_dimension=1,
+        initrv=None,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ):
+        iwp_transition = MaternTransition(
+            nu=nu,
+            wiener_process_dimension=wiener_process_dimension,
+            lengthscale=lengthscale,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
+        if initrv is None:
+            zeros = np.zeros(iwp_transition.dimension)
+            eye = np.eye(iwp_transition.dimension)
+            initrv = randvars.Normal(mean=zeros, cov=eye, cov_cholesky=eye)
+
+        super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
+
+
+class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
     """Matern process in :math:`d` dimensions."""
 
     def __init__(

@@ -16,7 +16,7 @@ from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
 @pytest.mark.parametrize("nu", [0, 1, 4])
 @pytest.mark.parametrize("wiener_process_dimension", [1, 2, 3])
 @pytest.mark.parametrize("use_initrv", [True, False])
-def test_iwp_construction(
+def test_ioup_construction(
     driftspeed, initarg, nu, wiener_process_dimension, use_initrv
 ):
     if use_initrv:
@@ -32,11 +32,13 @@ def test_iwp_construction(
         initrv=initrv,
     )
 
-    isinstance(ioup, randprocs.markov.continuous.integrator.IntegratedWienerProcess)
+    isinstance(
+        ioup, randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcess
+    )
     isinstance(ioup, randprocs.markov.MarkovProcess)
     isinstance(
         ioup.transition,
-        randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcessTransition,
+        randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition,
     )
 
 
@@ -55,7 +57,7 @@ class TestIntegratedOrnsteinUhlenbeckProcessTransition(
     ):
         self.some_nu = some_nu
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcessTransition(
+        self.transition = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
             nu=self.some_nu,
             wiener_process_dimension=wiener_process_dimension,
             driftspeed=1.2345,

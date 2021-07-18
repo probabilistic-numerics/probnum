@@ -7,8 +7,7 @@ from probnum.problems.zoo import linalg as linalg_zoo
 
 class TestIntegratorTransition:
     """An integrator should be usable as is, but its tests are also useful for
-    IntegratedWienerProcessTransition, IntegratedOrnsteinUhlenbeckProcessTransition,
-    etc."""
+    IntegratedWienerTransition(, IntegratedOrnsteinUhlenbeckProcessTransition, etc."""
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
@@ -41,10 +40,10 @@ class TestIntegratorTransition:
 
 
 def both_transitions_matern():
-    matern = randprocs.markov.continuous.integrator.Matern(
+    matern = randprocs.markov.continuous.integrator.MaternTransition(
         nu=2, wiener_process_dimension=2, lengthscale=2.041
     )
-    matern2 = randprocs.markov.continuous.integrator.Matern(
+    matern2 = randprocs.markov.continuous.integrator.MaternTransition(
         nu=2, wiener_process_dimension=2, lengthscale=2.041
     )
     matern_as_ltisde = randprocs.markov.continuous.LTISDE(
@@ -54,11 +53,13 @@ def both_transitions_matern():
 
 
 def both_transitions_ioup():
-    ioup = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcessTransition(
+    ioup = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
         nu=2, wiener_process_dimension=2, driftspeed=2.041
     )
-    ioup2 = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcessTransition(
-        nu=2, wiener_process_dimension=2, driftspeed=2.041
+    ioup2 = (
+        randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
+            nu=2, wiener_process_dimension=2, driftspeed=2.041
+        )
     )
     ioup_as_ltisde = randprocs.markov.continuous.LTISDE(
         ioup2.driftmat, ioup2.forcevec, ioup2.dispmat
@@ -67,10 +68,10 @@ def both_transitions_ioup():
 
 
 def both_transitions_ibm():
-    ibm = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+    ibm = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
         nu=2, wiener_process_dimension=1
     )
-    ibm2 = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+    ibm2 = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
         nu=2, wiener_process_dimension=1
     )
     ibm_as_ltisde = randprocs.markov.continuous.LTISDE(

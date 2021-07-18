@@ -50,7 +50,7 @@ def lv_inits(order):
 def test_initialize_with_rk(lv, lv_inits, order):
     """Make sure that the values are close(ish) to the truth."""
     ode_dim = len(lv.y0)
-    prior = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+    prior = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
         nu=order,
         wiener_process_dimension=ode_dim,
         forward_implementation="sqrt",
@@ -96,7 +96,7 @@ def test_initialize_with_taylormode(any_order):
         )
     )
 
-    prior = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+    prior = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
         nu=any_order,
         wiener_process_dimension=ode_dim,
         forward_implementation="sqrt",

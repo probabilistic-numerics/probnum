@@ -32,11 +32,11 @@ def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv):
     isinstance(iwp, randprocs.markov.MarkovProcess)
     isinstance(
         iwp.transition,
-        randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition,
+        randprocs.markov.continuous.integrator.IntegratedWienerTransition,
     )
 
 
-class TestIntegratedWienerProcessTransition(
+class TestIntegratedWienerTransition(
     test_sde.TestLTISDE, test_integrator.TestIntegratorTransition
 ):
 
@@ -52,7 +52,7 @@ class TestIntegratedWienerProcessTransition(
         self.some_nu = some_nu
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = (
-            randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+            randprocs.markov.continuous.integrator.IntegratedWienerTransition(
                 nu=self.some_nu,
                 wiener_process_dimension=wiener_process_dimension,
                 forward_implementation=forw_impl_string_linear_gauss,
@@ -114,7 +114,7 @@ def normal_rv3x3(spdmat3x3):
     )
 
 
-class TestIntegratedWienerProcessTransitionValues:
+class TestIntegratedWienerTransitionValues:
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
@@ -126,7 +126,7 @@ class TestIntegratedWienerProcessTransitionValues:
     ):
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = (
-            randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+            randprocs.markov.continuous.integrator.IntegratedWienerTransition(
                 nu=2,
                 wiener_process_dimension=wiener_process_dimension,
                 forward_implementation=forw_impl_string_linear_gauss,

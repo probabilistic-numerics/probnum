@@ -10,7 +10,9 @@ from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
 )
 
 
-class TestMatern(test_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
+class TestMaternTransition(
+    test_sde.TestLTISDE, test_integrator.TestIntegratorTransition
+):
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
@@ -23,7 +25,7 @@ class TestMatern(test_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
     ):
         self.some_nu = some_nu
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = randprocs.markov.continuous.integrator.Matern(
+        self.transition = randprocs.markov.continuous.integrator.MaternTransition(
             nu=self.some_nu,
             wiener_process_dimension=wiener_process_dimension,
             lengthscale=1.2345,

@@ -103,7 +103,7 @@ def fixture_gaussian_process(mean, cov) -> randprocs.GaussianProcess:
 #         for gmpdef in [
 #             (
 #                 "ibm",
-#                 statespace.IntegratedWienerProcessTransition(nu=1, wiener_process_dimension=1),
+#                 statespace.IntegratedWienerTransition((nu=1, wiener_process_dimension=1),
 #                 0.0,
 #                 randvars.Normal(0.0, 1.0),
 #             )

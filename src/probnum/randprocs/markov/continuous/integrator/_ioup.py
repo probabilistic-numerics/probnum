@@ -70,7 +70,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        iwp_transition = IntegratedOrnsteinUhlenbeckProcessTransition(
+        iwp_transition = IntegratedOrnsteinUhlenbeckTransition(
             nu=nu,
             wiener_process_dimension=wiener_process_dimension,
             driftspeed=driftspeed,
@@ -85,7 +85,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
 
 
-class IntegratedOrnsteinUhlenbeckProcessTransition(
+class IntegratedOrnsteinUhlenbeckTransition(
     _integrator.IntegratorTransition, _sde.LTISDE
 ):
     """Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions."""
