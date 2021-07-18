@@ -13,13 +13,13 @@ def random_spd_matrix(
     dim: IntArgType,
     spectrum: Sequence = None,
 ) -> np.ndarray:
-    """Random symmetric positive definite matrix.
+    r"""Random symmetric positive definite matrix.
 
     Constructs a random symmetric positive definite matrix from a given spectrum. An
-    orthogonal matrix :math:`Q` with :math:`\\operatorname{det}(Q)` (a rotation) is
+    orthogonal matrix :math:`Q` with :math:`\operatorname{det}(Q)` (a rotation) is
     sampled with respect to the Haar measure and the diagonal matrix
     containing the eigenvalues is rotated accordingly resulting in :math:`A=Q
-    \\operatorname{diag}(\\lambda_1, \\dots, \\lambda_n)Q^\\top`. If no spectrum is
+    \operatorname{diag}(\lambda_1, \dots, \lambda_n)Q^\top`. If no spectrum is
     provided, one is randomly drawn from a Gamma distribution.
 
     Parameters
