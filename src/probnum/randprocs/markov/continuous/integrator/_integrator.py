@@ -11,7 +11,7 @@ __all__ = ["IntegratorTransition"]
 
 
 class IntegratorTransition:
-    """Integrator processes.
+    r"""Integrator processes.
 
     An integrator is a special kind of random process
     that models a stack of a state and its first :math:`\nu` time-derivatives.
