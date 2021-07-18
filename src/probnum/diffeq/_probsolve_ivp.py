@@ -255,7 +255,7 @@ def probsolve_ivp(
     diffusion = choose_diffusion_model[diffusion_model]
 
     # Create solver
-    prior = statespace.IBM(
+    prior = randprocs.markov.continuous.integrator.IBM(
         ordint=algo_order,
         spatialdim=ivp.dimension,
         forward_implementation="sqrt",
@@ -266,7 +266,7 @@ def probsolve_ivp(
         cov=1e6 * np.eye(prior.dimension),
         cov_cholesky=1e3 * np.eye(prior.dimension),
     )
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=ivp.t0
     )
 

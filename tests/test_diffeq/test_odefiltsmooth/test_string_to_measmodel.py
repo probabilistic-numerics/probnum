@@ -28,7 +28,7 @@ def prior(ivp):
         cov=np.eye(prior.dimension),
         cov_cholesky=np.eye(prior.dimension),
     )
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=0.0
     )
     return prior_process

@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from probnum import randvars
+from probnum import randprocs, randvars
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).

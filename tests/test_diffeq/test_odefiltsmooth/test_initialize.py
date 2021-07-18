@@ -61,7 +61,7 @@ def test_initialize_with_rk(lv, lv_inits, order):
         np.eye(prior.dimension),
         cov_cholesky=np.eye(prior.dimension),
     )
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=lv.t0
     )
     received_rv = diffeq.odefiltsmooth.initialize.initialize_odefilter_with_rk(
@@ -88,13 +88,13 @@ def test_initialize_with_taylormode(any_order):
     """Make sure that the values are close(ish) to the truth."""
     r2b_jax = diffeq_zoo.threebody_jax()
     ode_dim = 4
-    expected = statespace.Integrator._convert_derivwise_to_coordwise(
+    expected = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
         THREEBODY_INITS[: ode_dim * (any_order + 1)],
         ordint=any_order,
         spatialdim=ode_dim,
     )
 
-    prior = statespace.IBM(
+    prior = randprocs.markov.continuous.integrator.IBM(
         ordint=any_order,
         spatialdim=ode_dim,
         forward_implementation="sqrt",
@@ -102,7 +102,7 @@ def test_initialize_with_taylormode(any_order):
     )
 
     initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=r2b_jax.t0
     )
 
