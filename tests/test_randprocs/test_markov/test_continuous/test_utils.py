@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.statespace as pnss
+from probnum import randprocs
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def L1():
 @pytest.mark.parametrize("L", [L0(), L1()])
 def test_matrix_fraction_decomposition(F, L, dt, Ah_closedform, Qh_closedform):
     """Test MFD against a closed-form IBM solution."""
-    Ah, Qh, _ = pnss.matrix_fraction_decomposition(F, L, dt=dt)
+    Ah, Qh, _ = randprocs.markov.continuous.matrix_fraction_decomposition(F, L, dt=dt)
 
     np.testing.assert_allclose(Ah, Ah_closedform)
     np.testing.assert_allclose(Qh, Qh_closedform)
