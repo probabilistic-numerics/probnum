@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from probnum import randvars, statespace
+from probnum import randprocs, randvars
 
 
-class MockTransition(statespace.Transition):
+class MockTransition(randprocs.markov.Transition):
     """Empty transition object to test the generate() function."""
 
     # pylint: disable=signature-differs
@@ -38,7 +38,9 @@ def test_generate_shapes(times, test_ndim, rng):
     """Output shapes are as expected."""
     mocktrans = MockTransition(dim=test_ndim)
     initrv = randvars.Constant(np.random.rand(test_ndim))
-    states, obs = statespace.generate_samples(rng, mocktrans, mocktrans, initrv, times)
+    states, obs = randprocs.markov.utils.generate_samples(
+        rng, mocktrans, mocktrans, initrv, times
+    )
 
     assert states.shape[0] == len(times)
     assert states.shape[1] == test_ndim
