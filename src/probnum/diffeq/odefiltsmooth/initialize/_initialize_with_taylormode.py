@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import randvars
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
@@ -53,7 +53,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> from dataclasses import astuple
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
-    >>> from probnum.statespace import IBM
+    >>> from probnum.randprocs.markov.continuous.integrator import IBM
     >>> from probnum.randprocs import MarkovProcess
 
     Compute the initial values of the restricted three-body problem as follows
@@ -120,7 +120,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
 
     derivs.extend(y0)
     if order == 0:
-        all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
+        all_derivs = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
             np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
         )
 
@@ -133,7 +133,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     (dy0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
     derivs.extend(dy0[:-1])
     if order == 1:
-        all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
+        all_derivs = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
             np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
         )
 
@@ -147,7 +147,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
         (dy0, [*yns]) = jet(total_derivative, (z_t,), ((dy0, *yns),))
         derivs.extend(yns[-2][:-1])
 
-    all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
+    all_derivs = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
         jnp.array(derivs), ordint=order, spatialdim=len(y0)
     )
 

@@ -10,7 +10,7 @@ References
 
 import numpy as np
 
-from probnum import problems, randprocs, randvars, statespace
+from probnum import problems, randprocs, randvars
 from probnum.diffeq import odefiltsmooth, stepsize
 
 __all__ = ["probsolve_ivp"]
@@ -249,8 +249,8 @@ def probsolve_ivp(
         raise ValueError("Diffusion model is not supported.")
 
     choose_diffusion_model = {
-        "constant": statespace.ConstantDiffusion(),
-        "dynamic": statespace.PiecewiseConstantDiffusion(t0=ivp.t0),
+        "constant": randprocs.markov.continuous.ConstantDiffusion(),
+        "dynamic": randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=ivp.t0),
     }
     diffusion = choose_diffusion_model[diffusion_model]
 

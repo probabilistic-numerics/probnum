@@ -5,7 +5,7 @@
 import numpy as np
 import scipy.integrate as sci
 
-from probnum import filtsmooth, problems, statespace
+from probnum import filtsmooth, problems
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
@@ -61,7 +61,7 @@ def initialize_odefilter_with_rk(
 
     >>> from dataclasses import astuple
     >>> from probnum.randvars import Normal
-    >>> from probnum.statespace import IBM
+    >>> from probnum.randprocs.markov.continuous.integrator import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
     >>> from probnum.randprocs import MarkovProcess
 
@@ -103,7 +103,7 @@ def initialize_odefilter_with_rk(
     proj_to_y = prior_process.transition.proj2coord(coord=0)
     zeros_shift = np.zeros(ode_dim)
     zeros_cov = np.zeros((ode_dim, ode_dim))
-    measmod_scipy = statespace.DiscreteLTIGaussian(
+    measmod_scipy = randprocs.markov.discrete.DiscreteLTIGaussian(
         proj_to_y,
         zeros_shift,
         zeros_cov,
@@ -125,7 +125,7 @@ def initialize_odefilter_with_rk(
     zeros_cov = np.zeros(
         (len(projmat_initial_conditions), len(projmat_initial_conditions))
     )
-    measmod_initcond = statespace.DiscreteLTIGaussian(
+    measmod_initcond = randprocs.markov.discrete.DiscreteLTIGaussian(
         projmat_initial_conditions,
         zeros_shift,
         zeros_cov,
