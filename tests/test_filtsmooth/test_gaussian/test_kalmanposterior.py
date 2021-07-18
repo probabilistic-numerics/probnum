@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
+from probnum import filtsmooth, problems, randprocs, randvars, utils
 from probnum._randomvariablelist import _RandomVariableList
 
 
@@ -180,8 +180,8 @@ def test_sampling_shapes_1d(locs, size):
     locations = np.linspace(0, 2 * np.pi, 100)
     data = 0.5 * np.random.randn(100) + np.sin(locations)
 
-    prior = statespace.IBM(0, 1)
-    measmod = statespace.DiscreteLTIGaussian(
+    prior = randprocs.markov.continuous.integrator.IBM(0, 1)
+    measmod = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
