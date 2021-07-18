@@ -15,11 +15,11 @@ class IntegratorTransition:
     """An integrator is a special kind of SDE, where the :math:`i` th coordinate models
     the :math:`i` th derivative."""
 
-    def __init__(self, ordint, spatialdim):
-        self.ordint = ordint
-        self.spatialdim = spatialdim
+    def __init__(self, nu, output_dim):
+        self.nu = nu
+        self.output_dim = output_dim
         self.precon = _preconditioner.NordsieckLikeCoordinates.from_order(
-            self.ordint, self.spatialdim
+            self.nu, self.output_dim
         )
 
     def proj2coord(self, coord: int) -> np.ndarray:
@@ -45,9 +45,9 @@ class IntegratorTransition:
         np.ndarray, shape=(d, d*(q+1))
             Projection matrix :math:`H_i`.
         """
-        projvec1d = np.eye(self.ordint + 1)[:, coord]
-        projmat1d = projvec1d.reshape((1, self.ordint + 1))
-        projmat = np.kron(np.eye(self.spatialdim), projmat1d)
+        projvec1d = np.eye(self.nu + 1)[:, coord]
+        projmat1d = projvec1d.reshape((1, self.nu + 1))
+        projmat = np.kron(np.eye(self.output_dim), projmat1d)
         return projmat
 
     @property
@@ -70,13 +70,13 @@ class IntegratorTransition:
         :attr:`Integrator._convert_derivwise_to_coordwise`
 
         """
-        dim = (self.ordint + 1) * self.spatialdim
+        dim = (self.nu + 1) * self.output_dim
         projmat = np.zeros((dim, dim))
         E = np.eye(dim)
-        for q in range(self.ordint + 1):
+        for q in range(self.nu + 1):
 
-            projmat[q :: (self.ordint + 1)] = E[
-                q * self.spatialdim : (q + 1) * self.spatialdim
+            projmat[q :: (self.nu + 1)] = E[
+                q * self.output_dim : (q + 1) * self.output_dim
             ]
         return projmat
 
@@ -105,15 +105,15 @@ class IntegratorTransition:
     #
     # @staticmethod
     # def _convert_coordwise_to_derivwise(
-    #     state: np.ndarray, ordint: IntArgType, spatialdim: IntArgType
+    #     state: np.ndarray, nu: IntArgType, output_dim: IntArgType
     # ) -> np.ndarray:
     #
-    #     projmat = Integrator(ordint, spatialdim)._coordwise2derivwise_projmat
+    #     projmat = Integrator(nu, output_dim)._coordwise2derivwise_projmat
     #     return projmat @ state
     #
     # @staticmethod
     # def _convert_derivwise_to_coordwise(
-    #     state: np.ndarray, ordint: IntArgType, spatialdim: IntArgType
+    #     state: np.ndarray, nu: IntArgType, output_dim: IntArgType
     # ) -> np.ndarray:
-    #     projmat = Integrator(ordint, spatialdim)._derivwise2coordwise_projmat
+    #     projmat = Integrator(nu, output_dim)._derivwise2coordwise_projmat
     #     return projmat @ state
