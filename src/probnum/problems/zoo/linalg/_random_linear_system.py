@@ -6,7 +6,6 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, problems, randvars
-from probnum.problems.zoo.linalg._random_spd_matrix import random_spd_matrix
 from probnum.typing import LinearOperatorArgType
 
 
