@@ -7,11 +7,87 @@ try:
 except ImportError:
     from cached_property import cached_property
 
+from probnum import randvars
+from probnum.randprocs.markov import _markov_process
 from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
-class IOUP(_integrator.IntegratorTransition, _sde.LTISDE):
+class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
+    r"""Integrated Ornstein-Uhlenbeck process.
+
+    Convenience access to :math:`\nu` times integrated (:math:`d` dimensional) Ornstein-Uhlenbeck processes.
+
+    Parameters
+    ----------
+    driftspeed
+        Drift-speed of the underlying OrnsteinUhlenbeck process.
+    initarg
+        Initial time point.
+    nu
+        Order of the integrated process (''number of integrations'').
+        Optional. Default is :math:`\nu=1`.
+    wiener_process_dimension
+        Dimension of the underlying Wiener process.
+        Optional. Default is :math:`d=1`.
+        The dimension of the integrated Wiener process itself is :math:`d(\nu + 1)`.
+    initrv
+        Law of the integrated Wiener process at the initial time point.
+        Optional. Default is a :math:`d(\nu + 1)` dimensional standard-normal distribution.
+    forward_implementation
+        Implementation of the forward-propagation in the underlying transitions.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+    backward_implementation
+        Implementation of the backward-conditioning in the underlying transitions.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+
+    Examples
+    --------
+    >>> ioup1 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1., initarg=0.)
+    >>> print(ioup1)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=2, dtype=float64>
+
+    >>> ioup2 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., nu=2)
+    >>> print(ioup2)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=3, dtype=float64>
+
+    >>> ioup3 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., wiener_process_dimension=10)
+    >>> print(ioup3)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=20, dtype=float64>
+
+    >>> ioup4 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., nu=4, wiener_process_dimension=1)
+    >>> print(ioup4)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=5, dtype=float64>
+    """
+
+    def __init__(
+        self,
+        driftspeed,
+        initarg,
+        nu=1,
+        wiener_process_dimension=1,
+        initrv=None,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ):
+        iwp_transition = IntegratedOrnsteinUhlenbeckProcessTransition(
+            nu=nu,
+            wiener_process_dimension=wiener_process_dimension,
+            driftspeed=driftspeed,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
+        if initrv is None:
+            zeros = np.zeros(iwp_transition.dimension)
+            eye = np.eye(iwp_transition.dimension)
+            initrv = randvars.Normal(mean=zeros, cov=eye, cov_cholesky=eye)
+
+        super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
+
+
+class IntegratedOrnsteinUhlenbeckProcessTransition(
+    _integrator.IntegratorTransition, _sde.LTISDE
+):
     """Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions."""
 
     def __init__(

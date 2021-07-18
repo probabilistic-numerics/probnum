@@ -103,19 +103,3 @@ class IntegratorTransition:
 
         """
         return self._derivwise2coordwise_projmat.T
-
-    #
-    # @staticmethod
-    # def _convert_coordwise_to_derivwise(
-    #     state: np.ndarray, nu: IntArgType, wiener_process_dimension: IntArgType
-    # ) -> np.ndarray:
-    #
-    #     projmat = Integrator(nu, wiener_process_dimension)._coordwise2derivwise_projmat
-    #     return projmat @ state
-    #
-    # @staticmethod
-    # def _convert_derivwise_to_coordwise(
-    #     state: np.ndarray, nu: IntArgType, wiener_process_dimension: IntArgType
-    # ) -> np.ndarray:
-    #     projmat = Integrator(nu, wiener_process_dimension)._derivwise2coordwise_projmat
-    #     return projmat @ state

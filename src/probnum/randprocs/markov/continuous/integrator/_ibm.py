@@ -16,7 +16,7 @@ from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
 class IntegratedWienerProcess(_markov_process.MarkovProcess):
-    """Integrted Wiener process.
+    r"""Integrated Wiener process.
 
     Convenience access to :math:`\nu` times integrated (:math:`d` dimensional) Wiener processes.
 
@@ -26,12 +26,20 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         Initial time point.
     nu
         Order of the integrated process (''number of integrations'').
+        Optional. Default is :math:`\nu=1`.
     wiener_process_dimension
         Dimension of the underlying Wiener process.
+        Optional. Default is :math:`d=1`.
         The dimension of the integrated Wiener process itself is :math:`d(\nu + 1)`.
     initrv
         Law of the integrated Wiener process at the initial time point.
         Optional. Default is a :math:`d(\nu + 1)` dimensional standard-normal distribution.
+    forward_implementation
+        Implementation of the forward-propagation in the underlying transitions.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+    backward_implementation
+        Implementation of the backward-conditioning in the underlying transitions.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
 
     Examples
     --------

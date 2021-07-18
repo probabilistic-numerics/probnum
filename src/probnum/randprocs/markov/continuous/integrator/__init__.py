@@ -3,7 +3,10 @@
 from . import utils
 from ._ibm import IntegratedWienerProcess, IntegratedWienerProcessTransition
 from ._integrator import IntegratorTransition
-from ._ioup import IOUP
+from ._ioup import (
+    IntegratedOrnsteinUhlenbeckProcess,
+    IntegratedOrnsteinUhlenbeckProcessTransition,
+)
 from ._matern import Matern
 from ._preconditioner import NordsieckLikeCoordinates, Preconditioner
 
@@ -11,7 +14,8 @@ __all__ = [
     "IntegratorTransition",
     "IntegratedWienerProcess",
     "IntegratedWienerProcessTransition",
-    "IOUP",
+    "IntegratedOrnsteinUhlenbeckProcess",
+    "IntegratedOrnsteinUhlenbeckProcessTransition",
     "Matern",
     "Preconditioner",
     "NordsieckLikeCoordinates",
@@ -23,7 +27,12 @@ IntegratedWienerProcess.__module__ = "probnum.randprocs.markov.continuous.integr
 IntegratedWienerProcessTransition.__module__ = (
     "probnum.randprocs.markov.continuous.integrator"
 )
-IOUP.__module__ = "probnum.randprocs.markov.continuous.integrator"
+IntegratedOrnsteinUhlenbeckProcess.__module__ = (
+    "probnum.randprocs.markov.continuous.integrator"
+)
+IntegratedOrnsteinUhlenbeckProcessTransition.__module__ = (
+    "probnum.randprocs.markov.continuous.integrator"
+)
 Matern.__module__ = "probnum.randprocs.markov.continuous.integrator"
 Preconditioner.__module__ = "probnum.randprocs.markov.continuous.integrator"
 NordsieckLikeCoordinates.__module__ = "probnum.randprocs.markov.continuous.integrator"
