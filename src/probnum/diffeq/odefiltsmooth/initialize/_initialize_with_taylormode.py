@@ -54,7 +54,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
     >>> from probnum.randprocs.markov.continuous.integrator import IBM
-    >>> from probnum.randprocs import MarkovProcess
+    >>> from probnum.randprocs.markov import MarkovProcess
 
     Compute the initial values of the restricted three-body problem as follows
 

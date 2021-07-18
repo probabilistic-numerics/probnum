@@ -12,7 +12,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.filtsmooth.optim import StoppingCriterion
     >>> from probnum.problems.zoo.diffeq import logistic
-    >>> from probnum.randprocs.markov.continuous import IBM
+    >>> from probnum.randprocs.markov.continuous.integrator import IBM
     >>> from probnum.randvars import Constant
     >>> import numpy as np
     >>>

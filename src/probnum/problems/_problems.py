@@ -32,10 +32,10 @@ class TimeSeriesRegressionProblem:
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum import statespace
+    >>> from probnum import randprocs
     >>> obs = [11.4123, -15.5123]
     >>> loc = [0.1, 0.2]
-    >>> model = statespace.DiscreteLTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
+    >>> model = randprocs.markov.discrete.DiscreteLTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
     >>> measurement_models = [model, model]
     >>> rp = TimeSeriesRegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp

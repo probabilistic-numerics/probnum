@@ -63,7 +63,7 @@ def initialize_odefilter_with_rk(
     >>> from probnum.randvars import Normal
     >>> from probnum.randprocs.markov.continuous.integrator import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
-    >>> from probnum.randprocs import MarkovProcess
+    >>> from probnum.randprocs.markov import MarkovProcess
 
     Compute the initial values of the van-der-Pol problem as follows
 
