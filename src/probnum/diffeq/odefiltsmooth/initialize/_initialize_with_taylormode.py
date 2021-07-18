@@ -35,7 +35,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     t0
         Initial time point.
     prior_process
-        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IntegratedWienerProcessTransition``).
 
     Returns
     -------
@@ -53,7 +53,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> from dataclasses import astuple
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
-    >>> from probnum.randprocs.markov.continuous.integrator import IBM
+    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerProcessTransition
     >>> from probnum.randprocs.markov import MarkovProcess
 
     Compute the initial values of the restricted three-body problem as follows
@@ -62,7 +62,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> print(y0)
     [ 0.994       0.          0.         -2.00158511]
 
-    >>> prior = IBM(ordint=3, spatialdim=4)
+    >>> prior = IntegratedWienerProcessTransition(nu=3, wiener_process_dimension=4)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
     >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
     >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
@@ -79,7 +79,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> f, t0, tmax, y0, df, *_ = astuple(vanderpol_jax())
     >>> print(y0)
     [2. 0.]
-    >>> prior = IBM(ordint=3, spatialdim=2)
+    >>> prior = IntegratedWienerProcessTransition(nu=3, wiener_process_dimension=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
     >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
     >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
@@ -103,7 +103,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
             "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
         ) from err
 
-    order = prior_process.transition.ordint
+    order = prior_process.transition.nu
 
     def total_derivative(z_t):
         """Total derivative."""
@@ -122,7 +122,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     if order == 0:
         all_derivs = (
             randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
-                np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
+                np.asarray(jnp.array(derivs)), nu=0, wiener_process_dimension=len(y0)
             )
         )
 
@@ -137,7 +137,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     if order == 1:
         all_derivs = (
             randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
-                np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
+                np.asarray(jnp.array(derivs)), nu=1, wiener_process_dimension=len(y0)
             )
         )
 
@@ -153,7 +153,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
 
     all_derivs = (
         randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
-            jnp.array(derivs), ordint=order, spatialdim=len(y0)
+            jnp.array(derivs), nu=order, wiener_process_dimension=len(y0)
         )
     )
 

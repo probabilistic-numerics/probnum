@@ -34,30 +34,36 @@ class NordsieckLikeCoordinates(Preconditioner):
 
     Similar to Nordsieck coordinates (which store the Taylor
     coefficients instead of the derivatives), but better for ODE
-    filtering and smoothing. Used in IBM.
+    filtering and smoothing. Used in IntegratedWienerProcessTransition.
     """
 
-    def __init__(self, powers, scales, spatialdim):
+    def __init__(self, powers, scales, wiener_process_dimension):
         # Clean way of assembling these coordinates cheaply,
         # because the powers and scales of the inverse
         # are better read off than inverted
         self.powers = powers
         self.scales = scales
-        self.spatialdim = spatialdim
+        self.wiener_process_dimension = wiener_process_dimension
 
     @classmethod
-    def from_order(cls, order, spatialdim):
+    def from_order(cls, order, wiener_process_dimension):
         # used to conveniently initialise in the beginning
         powers = np.arange(order, -1, -1)
         scales = scipy.special.factorial(powers)
-        return cls(powers=powers + 0.5, scales=scales, spatialdim=spatialdim)
+        return cls(
+            powers=powers + 0.5,
+            scales=scales,
+            wiener_process_dimension=wiener_process_dimension,
+        )
 
     def __call__(self, step):
         scaling_vector = np.abs(step) ** self.powers / self.scales
-        return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
+        return np.kron(np.eye(self.wiener_process_dimension), np.diag(scaling_vector))
 
     @cached_property
     def inverse(self) -> "NordsieckLikeCoordinates":
         return NordsieckLikeCoordinates(
-            powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
+            powers=-self.powers,
+            scales=1.0 / self.scales,
+            wiener_process_dimension=self.wiener_process_dimension,
         )

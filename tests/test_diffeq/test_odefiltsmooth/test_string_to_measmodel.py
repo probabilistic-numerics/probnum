@@ -22,7 +22,9 @@ def ivp():
 @pytest.fixture
 def prior(ivp):
     ode_dim = ivp.dimension
-    prior = randprocs.markov.continuous.integrator.IBM(ordint=2, spatialdim=ode_dim)
+    prior = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+        nu=2, wiener_process_dimension=ode_dim
+    )
     initrv = randvars.Normal(
         mean=np.zeros(prior.dimension),
         cov=np.eye(prior.dimension),

@@ -16,7 +16,22 @@ from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
 class IntegratedWienerProcess(_markov_process.MarkovProcess):
-    """Convenience access to integrated Wiener processes.
+    """Integrted Wiener process.
+
+    Convenience access to :math:`\nu` times integrated (:math:`d` dimensional) Wiener processes.
+
+    Parameters
+    ----------
+    initarg
+        Initial time point.
+    nu
+        Order of the integrated process (''number of integrations'').
+    wiener_process_dimension
+        Dimension of the underlying Wiener process.
+        The dimension of the integrated Wiener process itself is :math:`d(\nu + 1)`.
+    initrv
+        Law of the integrated Wiener process at the initial time point.
+        Optional. Default is a :math:`d(\nu + 1)` dimensional standard-normal distribution.
 
     Examples
     --------
@@ -46,7 +61,6 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-
         iwp_transition = IntegratedWienerProcessTransition(
             nu=nu,
             wiener_process_dimension=wiener_process_dimension,
@@ -220,7 +234,7 @@ class IntegratedWienerProcessTransition(_integrator.IntegratorTransition, _sde.L
         )
         zero_shift = np.zeros(len(state_trans_mat))
 
-        # The Cholesky factor of the process noise covariance matrix of the IBM
+        # The Cholesky factor of the process noise covariance matrix of the IntegratedWienerProcessTransition
         # always exists, even for non-square root implementations.
         proc_noise_cov_cholesky = (
             self.precon(dt)

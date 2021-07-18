@@ -11,24 +11,53 @@ from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
 )
 
 
-class TestIBM(test_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
+@pytest.mark.parametrize("initarg", [0.0, 2.0])
+@pytest.mark.parametrize("nu", [0, 1, 4])
+@pytest.mark.parametrize("wiener_process_dimension", [1, 2, 3])
+@pytest.mark.parametrize("use_initrv", [True, False])
+def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv):
+    if use_initrv:
+        d = (nu + 1) * wiener_process_dimension
+        initrv = randvars.Normal(np.arange(d), np.diag(np.arange(1, d + 1)))
+    else:
+        initrv = None
+    iwp = randprocs.markov.continuous.integrator.IntegratedWienerProcess(
+        initarg=initarg,
+        nu=nu,
+        wiener_process_dimension=wiener_process_dimension,
+        initrv=initrv,
+    )
+
+    isinstance(iwp, randprocs.markov.continuous.integrator.IntegratedWienerProcess)
+    isinstance(iwp, randprocs.markov.MarkovProcess)
+    isinstance(
+        iwp.transition,
+        randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition,
+    )
+
+
+class TestIntegratedWienerProcessTransition(
+    test_sde.TestLTISDE, test_integrator.TestIntegratorTransition
+):
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        some_ordint,
+        some_nu,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
-        self.some_ordint = some_ordint
-        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = randprocs.markov.continuous.integrator.IBM(
-            ordint=self.some_ordint,
-            spatialdim=spatialdim,
-            forward_implementation=forw_impl_string_linear_gauss,
-            backward_implementation=backw_impl_string_linear_gauss,
+        self.some_nu = some_nu
+        wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
+        self.transition = (
+            randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+                nu=self.some_nu,
+                wiener_process_dimension=wiener_process_dimension,
+                forward_implementation=forw_impl_string_linear_gauss,
+                backward_implementation=backw_impl_string_linear_gauss,
+            )
         )
 
         self.G = lambda t: self.transition.driftmat
@@ -85,7 +114,7 @@ def normal_rv3x3(spdmat3x3):
     )
 
 
-class TestIBMValues:
+class TestIntegratedWienerProcessTransitionValues:
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
@@ -95,12 +124,14 @@ class TestIBMValues:
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
-        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = randprocs.markov.continuous.integrator.IBM(
-            ordint=2,
-            spatialdim=spatialdim,
-            forward_implementation=forw_impl_string_linear_gauss,
-            backward_implementation=backw_impl_string_linear_gauss,
+        wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
+        self.transition = (
+            randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+                nu=2,
+                wiener_process_dimension=wiener_process_dimension,
+                forward_implementation=forw_impl_string_linear_gauss,
+                backward_implementation=backw_impl_string_linear_gauss,
+            )
         )
 
     def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):

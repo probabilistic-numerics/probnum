@@ -43,16 +43,16 @@ def lv_inits(order):
     lv_dim = 2
     vals = LV_INITS[: lv_dim * (order + 1)]
     return randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
-        vals, ordint=order, spatialdim=lv_dim
+        vals, nu=order, wiener_process_dimension=lv_dim
     )
 
 
 def test_initialize_with_rk(lv, lv_inits, order):
     """Make sure that the values are close(ish) to the truth."""
     ode_dim = len(lv.y0)
-    prior = randprocs.markov.continuous.integrator.IBM(
-        ordint=order,
-        spatialdim=ode_dim,
+    prior = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+        nu=order,
+        wiener_process_dimension=ode_dim,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
@@ -91,14 +91,14 @@ def test_initialize_with_taylormode(any_order):
     expected = (
         randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
             THREEBODY_INITS[: ode_dim * (any_order + 1)],
-            ordint=any_order,
-            spatialdim=ode_dim,
+            nu=any_order,
+            wiener_process_dimension=ode_dim,
         )
     )
 
-    prior = randprocs.markov.continuous.integrator.IBM(
-        ordint=any_order,
-        spatialdim=ode_dim,
+    prior = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+        nu=any_order,
+        wiener_process_dimension=ode_dim,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )

@@ -57,7 +57,7 @@ def test_kalman_smoother_high_order_ibm(rng):
     """
     regression_problem, info = filtsmooth_zoo.car_tracking(
         rng=rng,
-        model_ordint=11,
+        model_nu=11,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",
@@ -82,7 +82,7 @@ def test_kalman_smoother_high_order_ibm(rng):
 def test_kalman_multiple_measurement_models(rng):
     regression_problem, info = filtsmooth_zoo.car_tracking(
         rng=rng,
-        model_ordint=4,
+        model_nu=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",
@@ -106,7 +106,7 @@ def test_kalman_multiple_measurement_models(rng):
 def test_kalman_value_error_repeating_timepoints(rng):
     regression_problem, info = filtsmooth_zoo.car_tracking(
         rng=rng,
-        model_ordint=4,
+        model_nu=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",

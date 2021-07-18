@@ -11,8 +11,8 @@ class Matern(_integrator.IntegratorTransition, _sde.LTISDE):
 
     def __init__(
         self,
-        ordint: int,
-        spatialdim: int,
+        nu: int,
+        wiener_process_dimension: int,
         lengthscale: float,
         forward_implementation="classic",
         backward_implementation="classic",
@@ -21,7 +21,7 @@ class Matern(_integrator.IntegratorTransition, _sde.LTISDE):
         self.lengthscale = lengthscale
 
         _integrator.IntegratorTransition.__init__(
-            self, ordint=ordint, spatialdim=spatialdim
+            self, nu=nu, wiener_process_dimension=wiener_process_dimension
         )
         _sde.LTISDE.__init__(
             self,
@@ -34,24 +34,24 @@ class Matern(_integrator.IntegratorTransition, _sde.LTISDE):
 
     @property
     def _driftmat(self):
-        driftmat = np.diag(np.ones(self.ordint), 1)
-        nu = self.ordint + 0.5
-        D, lam = self.ordint + 1, np.sqrt(2 * nu) / self.lengthscale
+        driftmat = np.diag(np.ones(self.nu), 1)
+        nu = self.nu + 0.5
+        D, lam = self.nu + 1, np.sqrt(2 * nu) / self.lengthscale
         driftmat[-1, :] = np.array(
             [-scipy.special.binom(D, i) * lam ** (D - i) for i in range(D)]
         )
-        return np.kron(np.eye(self.spatialdim), driftmat)
+        return np.kron(np.eye(self.wiener_process_dimension), driftmat)
 
     @property
     def _forcevec(self):
-        force_1d = np.zeros(self.ordint + 1)
-        return np.kron(np.ones(self.spatialdim), force_1d)
+        force_1d = np.zeros(self.nu + 1)
+        return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @property
     def _dispmat(self):
-        dispmat_1d = np.zeros(self.ordint + 1)
+        dispmat_1d = np.zeros(self.nu + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
-        return np.kron(np.eye(self.spatialdim), dispmat_1d).T
+        return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
 
     def forward_rv(
         self,

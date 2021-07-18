@@ -6,29 +6,29 @@ from probnum.problems.zoo import linalg as linalg_zoo
 
 
 class TestIntegratorTransition:
-    """An integrator should be usable as is, but its tests are also useful for IBM,
-    IOUP, etc."""
+    """An integrator should be usable as is, but its tests are also useful for
+    IntegratedWienerProcessTransition, IOUP, etc."""
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, some_ordint):
-        self.some_ordint = some_ordint
+    def _setup(self, some_nu):
+        self.some_nu = some_nu
         self.integrator = randprocs.markov.continuous.integrator.IntegratorTransition(
-            ordint=self.some_ordint, spatialdim=1
+            nu=self.some_nu, wiener_process_dimension=1
         )
 
     def test_proj2coord(self):
-        base = np.zeros(self.some_ordint + 1)
+        base = np.zeros(self.some_nu + 1)
         base[0] = 1
         e_0_expected = np.kron(np.eye(1), base)
         e_0 = self.integrator.proj2coord(coord=0)
         np.testing.assert_allclose(e_0, e_0_expected)
 
-        base = np.zeros(self.some_ordint + 1)
+        base = np.zeros(self.some_nu + 1)
         base[-1] = 1
         e_q_expected = np.kron(np.eye(1), base)
-        e_q = self.integrator.proj2coord(coord=self.some_ordint)
+        e_q = self.integrator.proj2coord(coord=self.some_nu)
         np.testing.assert_allclose(e_q, e_q_expected)
 
     def test_precon(self):
@@ -41,10 +41,10 @@ class TestIntegratorTransition:
 
 def both_transitions_matern():
     matern = randprocs.markov.continuous.integrator.Matern(
-        ordint=2, spatialdim=2, lengthscale=2.041
+        nu=2, wiener_process_dimension=2, lengthscale=2.041
     )
     matern2 = randprocs.markov.continuous.integrator.Matern(
-        ordint=2, spatialdim=2, lengthscale=2.041
+        nu=2, wiener_process_dimension=2, lengthscale=2.041
     )
     matern_as_ltisde = randprocs.markov.continuous.LTISDE(
         matern2.driftmat, matern2.forcevec, matern2.dispmat
@@ -54,10 +54,10 @@ def both_transitions_matern():
 
 def both_transitions_ioup():
     ioup = randprocs.markov.continuous.integrator.IOUP(
-        ordint=2, spatialdim=2, driftspeed=2.041
+        nu=2, wiener_process_dimension=2, driftspeed=2.041
     )
     ioup2 = randprocs.markov.continuous.integrator.IOUP(
-        ordint=2, spatialdim=2, driftspeed=2.041
+        nu=2, wiener_process_dimension=2, driftspeed=2.041
     )
     ioup_as_ltisde = randprocs.markov.continuous.LTISDE(
         ioup2.driftmat, ioup2.forcevec, ioup2.dispmat
@@ -66,8 +66,12 @@ def both_transitions_ioup():
 
 
 def both_transitions_ibm():
-    ibm = randprocs.markov.continuous.integrator.IBM(ordint=2, spatialdim=1)
-    ibm2 = randprocs.markov.continuous.integrator.IBM(ordint=2, spatialdim=1)
+    ibm = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+        nu=2, wiener_process_dimension=1
+    )
+    ibm2 = randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+        nu=2, wiener_process_dimension=1
+    )
     ibm_as_ltisde = randprocs.markov.continuous.LTISDE(
         ibm2.driftmat, ibm2.forcevec, ibm2.dispmat
     )

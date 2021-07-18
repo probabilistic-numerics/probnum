@@ -29,7 +29,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         Prior Gauss-Markov process. Usually a :class:`MarkovProcess` with a :class:`Normal` initial random variable,
         and an LTISDE transition or an Integrator transition, but LinearSDE, ContinuousEKFComponent,
         or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
-        If the transition is an integrator, `K=spatialdim*(ordint+1)` for some spatialdim and ordint.
+        If the transition is an integrator, `K=wiener_process_dimension*(nu+1)` for some wiener_process_dimension and nu.
     """
 
     def iterated_filtsmooth(

@@ -41,7 +41,7 @@ def initialize_odefilter_with_rk(
     t0
         Initial time point.
     prior_process
-        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IntegratedWienerProcessTransition``).
     df
         Jacobian of the ODE vector field. Optional. If specified, more components of the result will be exact.
     h0
@@ -61,7 +61,7 @@ def initialize_odefilter_with_rk(
 
     >>> from dataclasses import astuple
     >>> from probnum.randvars import Normal
-    >>> from probnum.randprocs.markov.continuous.integrator import IBM
+    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerProcessTransition
     >>> from probnum.problems.zoo.diffeq import vanderpol
     >>> from probnum.randprocs.markov import MarkovProcess
 
@@ -70,7 +70,7 @@ def initialize_odefilter_with_rk(
     >>> f, t0, tmax, y0, df, *_ = astuple(vanderpol())
     >>> print(y0)
     [2. 0.]
-    >>> prior = IBM(ordint=3, spatialdim=2)
+    >>> prior = IntegratedWienerProcessTransition(nu=3, wiener_process_dimension=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
     >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
     >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior_process=prior_process, df=df)
@@ -83,7 +83,7 @@ def initialize_odefilter_with_rk(
     """
     y0 = np.asarray(y0)
     ode_dim = y0.shape[0] if y0.ndim > 0 else 1
-    order = prior_process.transition.ordint
+    order = prior_process.transition.nu
 
     # order + 1 would suffice in theory, 2*order + 1 is for good measure
     # (the "+1" is a safety factor for order=1)

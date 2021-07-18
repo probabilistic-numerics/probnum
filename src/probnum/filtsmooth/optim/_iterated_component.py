@@ -12,14 +12,14 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.filtsmooth.optim import StoppingCriterion
     >>> from probnum.problems.zoo.diffeq import logistic
-    >>> from probnum.randprocs.markov.continuous.integrator import IBM
+    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerProcessTransition
     >>> from probnum.randvars import Constant
     >>> import numpy as np
     >>>
 
     Set up an iterated component.
 
-    >>> prior = IBM(ordint=2, spatialdim=1)
+    >>> prior = IntegratedWienerProcessTransition(nu=2, wiener_process_dimension=1)
     >>> ekf = DiscreteEKFComponent.from_ode(logistic(t0=0., tmax=1., y0=np.array([0.1])), prior, 0.)
     >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
 

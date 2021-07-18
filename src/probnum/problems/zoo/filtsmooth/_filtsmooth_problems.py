@@ -20,7 +20,7 @@ def car_tracking(
     rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
-    model_ordint: IntArgType = 1,
+    model_nu: IntArgType = 1,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
     step: FloatArgType = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
@@ -64,7 +64,7 @@ def car_tracking(
         Marginal measurement variance.
     process_diffusion
         Diffusion constant for the dynamics.
-    model_ordint
+    model_nu
         Order of integration for the dynamics model. Defaults to one, which corresponds
         to a Wiener velocity model.
     timespan
@@ -94,13 +94,15 @@ def car_tracking(
 
     """
     state_dim = 2
-    model_dim = state_dim * (model_ordint + 1)
+    model_dim = state_dim * (model_nu + 1)
     measurement_dim = 2
-    dynamics_model = randprocs.markov.continuous.integrator.IBM(
-        ordint=model_ordint,
-        spatialdim=state_dim,
-        forward_implementation=forward_implementation,
-        backward_implementation=backward_implementation,
+    dynamics_model = (
+        randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+            nu=model_nu,
+            wiener_process_dimension=state_dim,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
     )
     dynamics_model.dispmat *= process_diffusion
 
@@ -211,8 +213,8 @@ def ornstein_uhlenbeck(
     """
 
     dynamics_model = randprocs.markov.continuous.integrator.IOUP(
-        ordint=0,
-        spatialdim=1,
+        nu=0,
+        wiener_process_dimension=1,
         driftspeed=driftspeed,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
@@ -565,11 +567,13 @@ def logistic_ode(
 
     t0, tmax = timespan
     logistic_ivp = diffeq.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
-    dynamics_model = randprocs.markov.continuous.integrator.IBM(
-        ordint=order,
-        spatialdim=1,
-        forward_implementation=forward_implementation,
-        backward_implementation=backward_implementation,
+    dynamics_model = (
+        randprocs.markov.continuous.integrator.IntegratedWienerProcessTransition(
+            nu=order,
+            wiener_process_dimension=1,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
     )
     measurement_model = filtsmooth.gaussian.approx.DiscreteEKFComponent.from_ode(
         logistic_ivp,

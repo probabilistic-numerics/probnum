@@ -37,7 +37,7 @@ def L1():
 
 @pytest.mark.parametrize("L", [L0(), L1()])
 def test_matrix_fraction_decomposition(F, L, dt, Ah_closedform, Qh_closedform):
-    """Test MFD against a closed-form IBM solution."""
+    """Test MFD against a closed-form IntegratedWienerProcessTransition solution."""
     Ah, Qh, _ = randprocs.markov.continuous.matrix_fraction_decomposition(F, L, dt=dt)
 
     np.testing.assert_allclose(Ah, Ah_closedform)

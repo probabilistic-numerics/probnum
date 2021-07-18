@@ -17,15 +17,15 @@ class TestMatern(test_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        some_ordint,
+        some_nu,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
-        self.some_ordint = some_ordint
-        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
+        self.some_nu = some_nu
+        wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = randprocs.markov.continuous.integrator.Matern(
-            ordint=self.some_ordint,
-            spatialdim=spatialdim,
+            nu=self.some_nu,
+            wiener_process_dimension=wiener_process_dimension,
             lengthscale=1.2345,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,

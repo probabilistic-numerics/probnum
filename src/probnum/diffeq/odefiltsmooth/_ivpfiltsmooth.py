@@ -78,7 +78,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
-        super().__init__(ivp=ivp, order=prior_process.transition.ordint)
+        super().__init__(ivp=ivp, order=prior_process.transition.nu)
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (

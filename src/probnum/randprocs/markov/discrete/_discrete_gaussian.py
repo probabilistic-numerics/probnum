@@ -171,7 +171,7 @@ class DiscreteGaussian(_transition.Transition):
         evlvar=0.0,
     ):
 
-        spatialdim = prior.spatialdim
+        wiener_process_dimension = prior.wiener_process_dimension
         h0 = prior.proj2coord(coord=0)
         h1 = prior.proj2coord(coord=1)
 
@@ -179,17 +179,17 @@ class DiscreteGaussian(_transition.Transition):
             return h1 @ x - ode.f(t, h0 @ x)
 
         def diff(t):
-            return evlvar * np.eye(spatialdim)
+            return evlvar * np.eye(wiener_process_dimension)
 
         def diff_cholesky(t):
-            return np.sqrt(evlvar) * np.eye(spatialdim)
+            return np.sqrt(evlvar) * np.eye(wiener_process_dimension)
 
         def jacobian(t, x):
             return h1 - ode.df(t, h0 @ x) @ h0
 
         return cls(
             input_dim=prior.dimension,
-            output_dim=prior.spatialdim,
+            output_dim=prior.wiener_process_dimension,
             state_trans_fun=dyna,
             jacob_state_trans_fun=jacobian,
             proc_noise_cov_mat_fun=diff,
