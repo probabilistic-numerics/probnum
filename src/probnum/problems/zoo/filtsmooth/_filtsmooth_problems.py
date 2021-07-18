@@ -339,17 +339,17 @@ def pendulum(
         return np.array([y1, y2])
 
     def df(t, x):
-        x1, x2 = x
+        x1, _ = x
         y1 = [1, step]
         y2 = [-g * np.cos(x1) * step, 1]
         return np.array([y1, y2])
 
     def h(t, x):
-        x1, x2 = x
+        x1, _ = x
         return np.array([np.sin(x1)])
 
     def dh(t, x):
-        x1, x2 = x
+        x1, _ = x
         return np.array([[np.cos(x1), 0.0]])
 
     process_noise_cov = (

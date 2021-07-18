@@ -4,4 +4,8 @@ probnum.linalg
 
 .. automodapi:: probnum.linalg
     :no-heading:
-    :headings: "="
+
+.. toctree::
+    :hidden:
+
+    linalg/solvers

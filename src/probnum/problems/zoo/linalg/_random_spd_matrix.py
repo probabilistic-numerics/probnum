@@ -13,13 +13,13 @@ def random_spd_matrix(
     dim: IntArgType,
     spectrum: Sequence = None,
 ) -> np.ndarray:
-    """Random symmetric positive definite matrix.
+    r"""Random symmetric positive definite matrix.
 
     Constructs a random symmetric positive definite matrix from a given spectrum. An
-    orthogonal matrix :math:`Q` with :math:`\\operatorname{det}(Q)` (a rotation) is
+    orthogonal matrix :math:`Q` with :math:`\operatorname{det}(Q)` (a rotation) is
     sampled with respect to the Haar measure and the diagonal matrix
     containing the eigenvalues is rotated accordingly resulting in :math:`A=Q
-    \\operatorname{diag}(\\lambda_1, \\dots, \\lambda_n)Q^\\top`. If no spectrum is
+    \operatorname{diag}(\lambda_1, \dots, \lambda_n)Q^\top`. If no spectrum is
     provided, one is randomly drawn from a Gamma distribution.
 
     Parameters
@@ -37,8 +37,8 @@ def random_spd_matrix(
 
     Examples
     --------
-    >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> import numpy as np
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> rng = np.random.default_rng(1)
     >>> mat = random_spd_matrix(rng, dim=5)
     >>> mat
@@ -97,7 +97,7 @@ def random_sparse_spd_matrix(
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
     format="csr",  # pylint: disable="redefined-builtin"
-) -> np.ndarray:
+) -> scipy.sparse.spmatrix:
     r"""Random sparse symmetric positive definite matrix.
 
     Constructs a random sparse symmetric positive definite matrix for a given degree
@@ -128,8 +128,8 @@ def random_sparse_spd_matrix(
 
     Examples
     --------
-    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
     >>> import numpy as np
+    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
     >>> rng = np.random.default_rng(42)
     >>> sparsemat = random_sparse_spd_matrix(rng, dim=5, density=0.1)
     >>> sparsemat
@@ -151,7 +151,6 @@ def random_sparse_spd_matrix(
     num_nonzero_entries = int(num_off_diag_cholesky * density)
 
     if num_nonzero_entries > 0:
-
         sparse_matrix = scipy.sparse.rand(
             m=dim,
             n=dim,
