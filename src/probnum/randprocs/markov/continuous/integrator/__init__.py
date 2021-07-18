@@ -1,12 +1,12 @@
 """Transitions for integrated systems (e.g. integrated Wiener processes)."""
 
 from . import utils
-from ._ibm import IntegratedWienerProcess, IntegratedWienerTransition
 from ._integrator import IntegratorTransition
 from ._ioup import (
     IntegratedOrnsteinUhlenbeckProcess,
     IntegratedOrnsteinUhlenbeckTransition,
 )
+from ._iwp import IntegratedWienerProcess, IntegratedWienerTransition
 from ._matern import MaternProcess, MaternTransition
 from ._preconditioner import NordsieckLikeCoordinates, Preconditioner
 

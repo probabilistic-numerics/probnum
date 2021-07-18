@@ -11,7 +11,7 @@ from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
 )
 
 
-@pytest.mark.parametrize("lengthscale", [-2.0, 0.0, 2.0])
+@pytest.mark.parametrize("lengthscale", [-2.0, 2.0])
 @pytest.mark.parametrize("initarg", [0.0, 2.0])
 @pytest.mark.parametrize("nu", [0, 1, 4])
 @pytest.mark.parametrize("wiener_process_dimension", [1, 2, 3])

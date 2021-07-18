@@ -35,7 +35,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     t0
         Initial time point.
     prior_process
-        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IntegratedWienerTransition``).
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Wiener process prior (:class:`IntegratedWienerProcess`).
 
     Returns
     -------
@@ -51,10 +51,8 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     ...     pytest.skip()
 
     >>> from dataclasses import astuple
-    >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
-    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerTransition
-    >>> from probnum.randprocs.markov import MarkovProcess
+    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerProcess
 
     Compute the initial values of the restricted three-body problem as follows
 
@@ -62,9 +60,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> print(y0)
     [ 0.994       0.          0.         -2.00158511]
 
-    >>> prior = IntegratedWienerTransition(nu=3, wiener_process_dimension=4)
-    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> prior_process = IntegratedWienerProcess(initarg=t0, nu=3, wiener_process_dimension=4)
     >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
     >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [ 0.994       0.          0.         -2.00158511]
@@ -79,9 +75,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> f, t0, tmax, y0, df, *_ = astuple(vanderpol_jax())
     >>> print(y0)
     [2. 0.]
-    >>> prior = IntegratedWienerTransition(nu=3, wiener_process_dimension=2)
-    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> prior_process = IntegratedWienerProcess(initarg=t0, nu=3, wiener_process_dimension=2)
     >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
     >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]

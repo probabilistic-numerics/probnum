@@ -15,25 +15,38 @@ from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
 @pytest.mark.parametrize("nu", [0, 1, 4])
 @pytest.mark.parametrize("wiener_process_dimension", [1, 2, 3])
 @pytest.mark.parametrize("use_initrv", [True, False])
-def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv):
+@pytest.mark.parametrize("diffuse", [True, False])
+def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv, diffuse):
     if use_initrv:
         d = (nu + 1) * wiener_process_dimension
         initrv = randvars.Normal(np.arange(d), np.diag(np.arange(1, d + 1)))
     else:
         initrv = None
-    iwp = randprocs.markov.continuous.integrator.IntegratedWienerProcess(
-        initarg=initarg,
-        nu=nu,
-        wiener_process_dimension=wiener_process_dimension,
-        initrv=initrv,
-    )
+    if use_initrv and diffuse:
+        with pytest.warns(Warning):
+            randprocs.markov.continuous.integrator.IntegratedWienerProcess(
+                initarg=initarg,
+                nu=nu,
+                wiener_process_dimension=wiener_process_dimension,
+                initrv=initrv,
+                diffuse=diffuse,
+            )
 
-    isinstance(iwp, randprocs.markov.continuous.integrator.IntegratedWienerProcess)
-    isinstance(iwp, randprocs.markov.MarkovProcess)
-    isinstance(
-        iwp.transition,
-        randprocs.markov.continuous.integrator.IntegratedWienerTransition,
-    )
+    else:
+        iwp = randprocs.markov.continuous.integrator.IntegratedWienerProcess(
+            initarg=initarg,
+            nu=nu,
+            wiener_process_dimension=wiener_process_dimension,
+            initrv=initrv,
+            diffuse=diffuse,
+        )
+
+        isinstance(iwp, randprocs.markov.continuous.integrator.IntegratedWienerProcess)
+        isinstance(iwp, randprocs.markov.MarkovProcess)
+        isinstance(
+            iwp.transition,
+            randprocs.markov.continuous.integrator.IntegratedWienerTransition,
+        )
 
 
 class TestIntegratedWienerTransition(
