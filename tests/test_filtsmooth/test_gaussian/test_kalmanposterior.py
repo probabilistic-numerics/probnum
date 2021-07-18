@@ -186,7 +186,7 @@ def test_sampling_shapes_1d(locs, size):
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=locations[0]
     )
     kalman = filtsmooth.gaussian.Kalman(prior_process)

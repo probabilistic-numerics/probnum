@@ -164,7 +164,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
             special_scale=special_scale,
         )
 
-        randprocs.discrete.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.DiscreteGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
