@@ -1,13 +1,11 @@
 import numpy as np
 import pytest
 
-import probnum.statespace as pnss
-from probnum import randvars
-
-from .test_transition import InterfaceTestTransition
+from probnum import randprocs, randvars
+from tests.test_randprocs.test_markov import test_transition
 
 
-class TestDiscreteGaussian(InterfaceTestTransition):
+class TestDiscreteGaussian(test_transition.InterfaceTestTransition):
     """Tests for the discrete Gaussian class.
 
     Most of the tests are reused/overwritten in subclasses, therefore
@@ -24,7 +22,7 @@ class TestDiscreteGaussian(InterfaceTestTransition):
         self.g = lambda t, x: np.sin(x)
         self.S = lambda t: spdmat1
         self.dg = lambda t, x: np.cos(x)
-        self.transition = pnss.DiscreteGaussian(
+        self.transition = randprocs.markov.discrete.DiscreteGaussian(
             test_ndim,
             test_ndim,
             self.g,
@@ -115,7 +113,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
         self.G = lambda t: spdmat1
         self.S = lambda t: spdmat2
         self.v = lambda t: np.arange(test_ndim)
-        self.transition = pnss.DiscreteLinearGaussian(
+        self.transition = randprocs.markov.discrete.DiscreteLinearGaussian(
             test_ndim,
             test_ndim,
             self.G,
@@ -333,7 +331,7 @@ class TestLTIGaussian(TestLinearGaussian):
         self.G_const = spdmat1
         self.S_const = spdmat2
         self.v_const = np.arange(test_ndim)
-        self.transition = pnss.DiscreteLTIGaussian(
+        self.transition = randprocs.markov.discrete.DiscreteLTIGaussian(
             self.G_const,
             self.v_const,
             self.S_const,
