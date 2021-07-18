@@ -26,7 +26,6 @@ from . import (
     quad,
     randprocs,
     randvars,
-    statespace,
     utils,
 )
 from ._probabilistic_numerical_method import ProbabilisticNumericalMethod

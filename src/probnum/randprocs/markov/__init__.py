@@ -1,4 +1,4 @@
-"""Probabilistic State Space Models.
+"""Markov processes and probabilistic state-space model routines.
 
 This package implements continuous-discrete and discrete-discrete state
 space models, which are the basis for Bayesian filtering and smoothing,
