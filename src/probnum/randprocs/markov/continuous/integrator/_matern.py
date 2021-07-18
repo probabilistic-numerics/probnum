@@ -65,7 +65,7 @@ class MaternProcess(_markov_process.MarkovProcess):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        iwp_transition = MaternTransition(
+        matern_transition = MaternTransition(
             nu=nu,
             wiener_process_dimension=wiener_process_dimension,
             lengthscale=lengthscale,
@@ -73,11 +73,11 @@ class MaternProcess(_markov_process.MarkovProcess):
             backward_implementation=backward_implementation,
         )
         if initrv is None:
-            zeros = np.zeros(iwp_transition.dimension)
-            eye = np.eye(iwp_transition.dimension)
+            zeros = np.zeros(matern_transition.dimension)
+            eye = np.eye(matern_transition.dimension)
             initrv = randvars.Normal(mean=zeros, cov=eye, cov_cholesky=eye)
 
-        super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
+        super().__init__(transition=matern_transition, initrv=initrv, initarg=initarg)
 
 
 class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):

@@ -12,14 +12,21 @@ __all__ = ["IntegratorTransition"]
 
 
 class IntegratorTransition:
-    """An integrator is a special kind of SDE, where the :math:`i` th coordinate models
-    the :math:`i` th derivative."""
+    """Integrator processes.
+
+    An integrator is a special kind of random process
+    that models a stack of a state and its first :math:`\nu` time-derivatives.
+    For instances, this includes integrated Wiener processes or Matern processes.
+
+    In ProbNum, integrators are always derived by driving :math:`d` dimensional Wiener processes.
+    We compute the transitions usually in Nordsieck-Coordinates.
+    """
 
     def __init__(self, nu, wiener_process_dimension):
         self.nu = nu
         self.wiener_process_dimension = wiener_process_dimension
         self.precon = _preconditioner.NordsieckLikeCoordinates.from_order(
-            self.nu, self.wiener_process_dimension
+            nu, wiener_process_dimension
         )
 
     def proj2coord(self, coord: int) -> np.ndarray:
