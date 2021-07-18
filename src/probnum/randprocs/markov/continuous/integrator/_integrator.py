@@ -15,8 +15,7 @@ import probnum.typing as pntype
 from probnum import randvars
 from probnum.randprocs.markov import discrete
 from probnum.randprocs.markov.continuous import _sde
-
-from .preconditioner import NordsieckLikeCoordinates
+from probnum.randprocs.markov.continuous.integrator import _preconditioner
 
 
 class Integrator:
@@ -26,7 +25,9 @@ class Integrator:
     def __init__(self, ordint, spatialdim):
         self.ordint = ordint
         self.spatialdim = spatialdim
-        self.precon = NordsieckLikeCoordinates.from_order(self.ordint, self.spatialdim)
+        self.precon = _preconditioner.NordsieckLikeCoordinates.from_order(
+            self.ordint, self.spatialdim
+        )
 
     def proj2coord(self, coord: int) -> np.ndarray:
         """Projection matrix to :math:`i` th coordinates.

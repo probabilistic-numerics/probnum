@@ -96,7 +96,7 @@ def car_tracking(
     state_dim = 2
     model_dim = state_dim * (model_ordint + 1)
     measurement_dim = 2
-    dynamics_model = randprocs.markov.continuous.IBM(
+    dynamics_model = randprocs.markov.continuous.integrator.IBM(
         ordint=model_ordint,
         spatialdim=state_dim,
         forward_implementation=forward_implementation,
@@ -141,7 +141,7 @@ def car_tracking(
         solution=states,
     )
 
-    prior_process = randprocs.markov.Mar.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
     info = dict(prior_process=prior_process)
@@ -210,7 +210,7 @@ def ornstein_uhlenbeck(
         Cambridge University Press, 2019
     """
 
-    dynamics_model = statespace.IOUP(
+    dynamics_model = randprocs.markov.continuous.integrator.IOUP(
         ordint=0,
         spatialdim=1,
         driftspeed=driftspeed,
@@ -219,7 +219,7 @@ def ornstein_uhlenbeck(
     )
     dynamics_model.dispmat *= process_diffusion
 
-    measurement_model = statespace.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -233,7 +233,7 @@ def ornstein_uhlenbeck(
     # Set up regression problem
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
-    states, obs = statespace.generate_samples(
+    states, obs = randprocs.markov.utils.generate_samples(
         rng=rng,
         dynmod=dynamics_model,
         measmod=measurement_model,
@@ -247,7 +247,7 @@ def ornstein_uhlenbeck(
         solution=states,
     )
 
-    prior_process = randprocs.markov.Mar.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
@@ -358,7 +358,7 @@ def pendulum(
         + np.diag(np.array([step ** 2 / 2]), -1)
     )
 
-    dynamics_model = statespace.DiscreteGaussian(
+    dynamics_model = randprocs.markov.discrete.DiscreteGaussian(
         input_dim=2,
         output_dim=2,
         state_trans_fun=f,
@@ -366,7 +366,7 @@ def pendulum(
         jacob_state_trans_fun=df,
     )
 
-    measurement_model = statespace.DiscreteGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteGaussian(
         input_dim=2,
         output_dim=1,
         state_trans_fun=h,
@@ -379,7 +379,7 @@ def pendulum(
 
     # Generate data
     time_grid = np.arange(*timespan, step=step)
-    states, obs = statespace.generate_samples(
+    states, obs = randprocs.markov.utils.generate_samples(
         rng=rng,
         dynmod=dynamics_model,
         measmod=measurement_model,
@@ -395,7 +395,7 @@ def pendulum(
 
     if initarg is None:
         initarg = time_grid[0]
-    prior_process = randprocs.markov.Mar.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
@@ -464,8 +464,10 @@ def benes_daum(
     if initrv is None:
         initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
 
-    dynamics_model = statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
-    measurement_model = statespace.DiscreteLTIGaussian(
+    dynamics_model = randprocs.markov.continuous.SDE(
+        dimension=1, driftfun=f, dispmatfun=l, jacobfun=df
+    )
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -479,7 +481,7 @@ def benes_daum(
     linearized_dynamics_model = filtsmooth.gaussian.approx.ContinuousEKFComponent(
         non_linear_model=dynamics_model
     )
-    states, obs = statespace.generate_samples(
+    states, obs = randprocs.markov.utils.generate_samples(
         rng=rng,
         dynmod=linearized_dynamics_model,
         measmod=measurement_model,
@@ -492,7 +494,7 @@ def benes_daum(
         measurement_models=measurement_model,
         solution=states,
     )
-    prior_process = randprocs.markov.Mar.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
@@ -563,7 +565,7 @@ def logistic_ode(
 
     t0, tmax = timespan
     logistic_ivp = diffeq.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
-    dynamics_model = statespace.IBM(
+    dynamics_model = randprocs.markov.continuous.integrator.IBM(
         ordint=order,
         spatialdim=1,
         forward_implementation=forward_implementation,
@@ -593,7 +595,7 @@ def logistic_ode(
         solution=solution,
     )
 
-    prior_process = randprocs.markov.Mar.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
     info = dict(
