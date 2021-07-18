@@ -4,6 +4,12 @@ import warnings
 import numpy as np
 import scipy.special
 
+try:
+    # cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
 from probnum import randvars
 from probnum.randprocs.markov import _markov_process
 from probnum.randprocs.markov.continuous import _sde
@@ -132,7 +138,7 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             backward_implementation=backward_implementation,
         )
 
-    @property
+    @cached_property
     def _driftmat(self):
         driftmat = np.diag(np.ones(self.nu), 1)
         nu = self.nu + 0.5
@@ -142,12 +148,12 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
         )
         return np.kron(np.eye(self.wiener_process_dimension), driftmat)
 
-    @property
+    @cached_property
     def _forcevec(self):
         force_1d = np.zeros(self.nu + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
-    @property
+    @cached_property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.nu + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion

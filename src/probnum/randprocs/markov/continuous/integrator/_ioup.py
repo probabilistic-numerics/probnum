@@ -1,4 +1,6 @@
 """Integrated Ornstein-Uhlenbeck processes."""
+import warnings
+
 import numpy as np
 
 try:
@@ -6,8 +8,6 @@ try:
     from functools import cached_property
 except ImportError:
     from cached_property import cached_property
-
-import warnings
 
 from probnum import randvars
 from probnum.randprocs.markov import _markov_process

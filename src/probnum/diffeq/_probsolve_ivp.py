@@ -10,7 +10,7 @@ References
 
 import numpy as np
 
-from probnum import problems, randprocs, randvars
+from probnum import problems, randprocs
 from probnum.diffeq import odefiltsmooth, stepsize
 
 __all__ = ["probsolve_ivp"]

@@ -6,7 +6,6 @@ This is the sucessor of the former ODEPrior.
 import numpy as np
 
 from probnum.randprocs.markov.continuous.integrator import _preconditioner
-from probnum.typing import IntArgType
 
 __all__ = ["IntegratorTransition"]
 
