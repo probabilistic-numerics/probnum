@@ -5,7 +5,7 @@ from probnum import randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
 
 
-class TestIntegrator:
+class TestIntegratorTransition:
     """An integrator should be usable as is, but its tests are also useful for IBM,
     IOUP, etc."""
 
@@ -14,7 +14,7 @@ class TestIntegrator:
     @pytest.fixture(autouse=True)
     def _setup(self, some_ordint):
         self.some_ordint = some_ordint
-        self.integrator = randprocs.markov.continuous.integrator.Integrator(
+        self.integrator = randprocs.markov.continuous.integrator.IntegratorTransition(
             ordint=self.some_ordint, spatialdim=1
         )
 
@@ -151,26 +151,34 @@ def test_in_out_pair_is_not_identical(in_out_pair):
 
 def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    coordwise_as_derivwise = randprocs.markov.continuous.integrator.Integrator._convert_coordwise_to_derivwise(
-        coordwise, some_order, some_dim
+    coordwise_as_derivwise = (
+        randprocs.markov.continuous.integrator.utils.convert_coordwise_to_derivwise(
+            coordwise, some_order, some_dim
+        )
     )
     np.testing.assert_allclose(coordwise_as_derivwise, derivwise)
 
 
 def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    derivwise_as_coordwise = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
-        derivwise, some_order, some_dim
+    derivwise_as_coordwise = (
+        randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+            derivwise, some_order, some_dim
+        )
     )
     np.testing.assert_allclose(derivwise_as_coordwise, coordwise)
 
 
 def test_conversion_pairwise_inverse(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    as_coord = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
-        derivwise, some_order, some_dim
+    as_coord = (
+        randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+            derivwise, some_order, some_dim
+        )
     )
-    as_deriv_again = randprocs.markov.continuous.integrator.Integrator._convert_coordwise_to_derivwise(
-        as_coord, some_order, some_dim
+    as_deriv_again = (
+        randprocs.markov.continuous.integrator.utils.convert_coordwise_to_derivwise(
+            as_coord, some_order, some_dim
+        )
     )
     np.testing.assert_allclose(as_deriv_again, derivwise)

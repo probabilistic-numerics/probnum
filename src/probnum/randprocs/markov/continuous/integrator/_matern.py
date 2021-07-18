@@ -6,7 +6,7 @@ from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
-class Matern(_integrator.Integrator, _sde.LTISDE):
+class Matern(_integrator.IntegratorTransition, _sde.LTISDE):
     """Matern process in :math:`d` dimensions."""
 
     def __init__(
@@ -20,7 +20,9 @@ class Matern(_integrator.Integrator, _sde.LTISDE):
 
         self.lengthscale = lengthscale
 
-        _integrator.Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
+        _integrator.IntegratorTransition.__init__(
+            self, ordint=ordint, spatialdim=spatialdim
+        )
         _sde.LTISDE.__init__(
             self,
             driftmat=self._driftmat,

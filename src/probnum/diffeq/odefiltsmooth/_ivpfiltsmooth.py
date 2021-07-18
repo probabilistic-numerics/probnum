@@ -65,7 +65,8 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         _reference_coordinates: Optional[int] = 0,
     ):
         if not isinstance(
-            prior_process.transition, randprocs.markov.continuous.integrator.Integrator
+            prior_process.transition,
+            randprocs.markov.continuous.integrator.IntegratorTransition,
         ):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see `probnum.randprocs.markov.continuous.integrator`)"

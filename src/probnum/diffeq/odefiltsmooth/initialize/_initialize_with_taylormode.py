@@ -120,8 +120,10 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
 
     derivs.extend(y0)
     if order == 0:
-        all_derivs = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
-            np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
+        all_derivs = (
+            randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+                np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
+            )
         )
 
         return randvars.Normal(
@@ -133,8 +135,10 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     (dy0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
     derivs.extend(dy0[:-1])
     if order == 1:
-        all_derivs = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
-            np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
+        all_derivs = (
+            randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+                np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
+            )
         )
 
         return randvars.Normal(
@@ -147,8 +151,10 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
         (dy0, [*yns]) = jet(total_derivative, (z_t,), ((dy0, *yns),))
         derivs.extend(yns[-2][:-1])
 
-    all_derivs = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
-        jnp.array(derivs), ordint=order, spatialdim=len(y0)
+    all_derivs = (
+        randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+            jnp.array(derivs), ordint=order, spatialdim=len(y0)
+        )
     )
 
     return randvars.Normal(

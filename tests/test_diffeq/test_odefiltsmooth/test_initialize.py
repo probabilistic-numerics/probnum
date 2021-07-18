@@ -42,7 +42,7 @@ def lv():
 def lv_inits(order):
     lv_dim = 2
     vals = LV_INITS[: lv_dim * (order + 1)]
-    return randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
+    return randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
         vals, ordint=order, spatialdim=lv_dim
     )
 
@@ -88,10 +88,12 @@ def test_initialize_with_taylormode(any_order):
     """Make sure that the values are close(ish) to the truth."""
     r2b_jax = diffeq_zoo.threebody_jax()
     ode_dim = 4
-    expected = randprocs.markov.continuous.integrator.Integrator._convert_derivwise_to_coordwise(
-        THREEBODY_INITS[: ode_dim * (any_order + 1)],
-        ordint=any_order,
-        spatialdim=ode_dim,
+    expected = (
+        randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+            THREEBODY_INITS[: ode_dim * (any_order + 1)],
+            ordint=any_order,
+            spatialdim=ode_dim,
+        )
     )
 
     prior = randprocs.markov.continuous.integrator.IBM(

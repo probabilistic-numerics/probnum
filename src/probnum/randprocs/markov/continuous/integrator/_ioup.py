@@ -11,7 +11,7 @@ from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
-class IOUP(_integrator.Integrator, _sde.LTISDE):
+class IOUP(_integrator.IntegratorTransition, _sde.LTISDE):
     """Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions."""
 
     def __init__(
@@ -24,7 +24,9 @@ class IOUP(_integrator.Integrator, _sde.LTISDE):
     ):
         self.driftspeed = driftspeed
 
-        _integrator.Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
+        _integrator.IntegratorTransition.__init__(
+            self, ordint=ordint, spatialdim=spatialdim
+        )
         _sde.LTISDE.__init__(
             self,
             driftmat=self._driftmat,

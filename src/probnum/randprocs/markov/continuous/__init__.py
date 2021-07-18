@@ -10,10 +10,10 @@ __all__ = [
     "SDE",
     "LinearSDE",
     "LTISDE",
-    "matrix_fraction_decomposition",
     "Diffusion",
     "ConstantDiffusion",
     "PiecewiseConstantDiffusion",
+    "matrix_fraction_decomposition",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.

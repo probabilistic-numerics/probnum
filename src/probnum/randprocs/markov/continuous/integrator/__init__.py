@@ -1,13 +1,14 @@
 """Transitions for integrated systems (e.g. integrated Wiener processes)."""
 
+from . import utils
 from ._ibm import IBM
-from ._integrator import Integrator
+from ._integrator import IntegratorTransition
 from ._ioup import IOUP
 from ._matern import Matern
 from ._preconditioner import NordsieckLikeCoordinates, Preconditioner
 
 __all__ = [
-    "Integrator",
+    "IntegratorTransition",
     "IBM",
     "IOUP",
     "Matern",
@@ -16,7 +17,7 @@ __all__ = [
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-Integrator.__module__ = "probnum.randprocs.markov.continuous.integrator"
+IntegratorTransition.__module__ = "probnum.randprocs.markov.continuous.integrator"
 IBM.__module__ = "probnum.randprocs.markov.continuous.integrator"
 IOUP.__module__ = "probnum.randprocs.markov.continuous.integrator"
 Matern.__module__ = "probnum.randprocs.markov.continuous.integrator"

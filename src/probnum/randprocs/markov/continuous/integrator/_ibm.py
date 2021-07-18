@@ -14,7 +14,7 @@ from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
 
 
-class IBM(_integrator.Integrator, _sde.LTISDE):
+class IBM(_integrator.IntegratorTransition, _sde.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
     def __init__(
@@ -26,7 +26,9 @@ class IBM(_integrator.Integrator, _sde.LTISDE):
     ):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
-        _integrator.Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
+        _integrator.IntegratorTransition.__init__(
+            self, ordint=ordint, spatialdim=spatialdim
+        )
         _sde.LTISDE.__init__(
             self,
             driftmat=self._driftmat,

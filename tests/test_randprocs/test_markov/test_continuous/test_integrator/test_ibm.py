@@ -11,7 +11,7 @@ from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
 )
 
 
-class TestIBM(test_sde.TestLTISDE, test_integrator.TestIntegrator):
+class TestIBM(test_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
