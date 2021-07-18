@@ -1,7 +1,13 @@
-******************
-probnum.statespace
-******************
+probnum.randprocs.markov
+========================
 
-.. automodapi:: probnum.statespace
+.. automodapi:: probnum.randprocs.markov
     :no-heading:
-    :headings: "="
+    :headings: "-"
+
+.. toctree::
+    :hidden:
+
+    markov/continuous
+    markov/discrete
+    markov/utils
