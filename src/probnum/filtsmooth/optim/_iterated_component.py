@@ -1,10 +1,10 @@
 import numpy as np
 
-from probnum import statespace
+from probnum import randprocs
 from probnum.filtsmooth.optim import _stoppingcriterion
 
 
-class IteratedDiscreteComponent(statespace.Transition):
+class IteratedDiscreteComponent(randprocs.markov.Transition):
     """Iterated updates.
 
     Examples
@@ -12,7 +12,7 @@ class IteratedDiscreteComponent(statespace.Transition):
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.filtsmooth.optim import StoppingCriterion
     >>> from probnum.problems.zoo.diffeq import logistic
-    >>> from probnum.statespace import IBM
+    >>> from probnum.randprocs.markov.continuous import IBM
     >>> from probnum.randvars import Constant
     >>> import numpy as np
     >>>

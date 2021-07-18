@@ -5,13 +5,13 @@ from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import problems, statespace
+from probnum import problems, randprocs
 from probnum.filtsmooth import _bayesfiltsmooth, _timeseriesposterior, optim
 from probnum.filtsmooth.gaussian import _kalmanposterior, approx
 
 # Measurement models for a Kalman filter can be all sorts of things:
 KalmanSingleMeasurementModelType = Union[
-    statespace.DiscreteLinearGaussian,
+    randprocs.discrete.DiscreteLinearGaussian,
     approx.DiscreteEKFComponent,
     approx.DiscreteUKFComponent,
 ]

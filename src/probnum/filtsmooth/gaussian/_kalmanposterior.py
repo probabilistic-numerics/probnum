@@ -9,7 +9,7 @@ from typing import Iterable, Optional, Union
 import numpy as np
 from scipy import stats
 
-from probnum import randvars, statespace, utils
+from probnum import randprocs, randvars, utils
 from probnum.filtsmooth import _timeseriesposterior
 from probnum.filtsmooth.gaussian import approx
 from probnum.typing import (
@@ -20,10 +20,10 @@ from probnum.typing import (
 )
 
 GaussMarkovPriorTransitionArgType = Union[
-    statespace.DiscreteLinearGaussian,
+    randprocs.markov.discrete.DiscreteLinearGaussian,
     approx.DiscreteEKFComponent,
     approx.DiscreteUKFComponent,
-    statespace.LinearSDE,
+    randprocs.markov.continuous.LinearSDE,
     approx.ContinuousEKFComponent,
     approx.ContinuousUKFComponent,
 ]
