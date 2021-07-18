@@ -97,7 +97,7 @@ def random_sparse_spd_matrix(
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
     format="csr",  # pylint: disable="redefined-builtin"
-) -> np.ndarray:
+) -> scipy.sparse.spmatrix:
     r"""Random sparse symmetric positive definite matrix.
 
     Constructs a random sparse symmetric positive definite matrix for a given degree
