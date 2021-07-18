@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from probnum import linalg, linops, problems, randvars
+from probnum import linalg, linops, randvars
 from probnum.problems.zoo.linalg import random_linear_system, random_spd_matrix
 
 
