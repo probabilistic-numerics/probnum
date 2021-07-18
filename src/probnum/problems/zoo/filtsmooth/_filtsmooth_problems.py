@@ -212,7 +212,7 @@ def ornstein_uhlenbeck(
         Cambridge University Press, 2019
     """
 
-    dynamics_model = randprocs.markov.continuous.integrator.IOUP(
+    dynamics_model = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcessTransition(
         nu=0,
         wiener_process_dimension=1,
         driftspeed=driftspeed,

@@ -7,7 +7,8 @@ from probnum.problems.zoo import linalg as linalg_zoo
 
 class TestIntegratorTransition:
     """An integrator should be usable as is, but its tests are also useful for
-    IntegratedWienerProcessTransition, IOUP, etc."""
+    IntegratedWienerProcessTransition, IntegratedOrnsteinUhlenbeckProcessTransition,
+    etc."""
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
@@ -53,10 +54,10 @@ def both_transitions_matern():
 
 
 def both_transitions_ioup():
-    ioup = randprocs.markov.continuous.integrator.IOUP(
+    ioup = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcessTransition(
         nu=2, wiener_process_dimension=2, driftspeed=2.041
     )
-    ioup2 = randprocs.markov.continuous.integrator.IOUP(
+    ioup2 = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcessTransition(
         nu=2, wiener_process_dimension=2, driftspeed=2.041
     )
     ioup_as_ltisde = randprocs.markov.continuous.LTISDE(
