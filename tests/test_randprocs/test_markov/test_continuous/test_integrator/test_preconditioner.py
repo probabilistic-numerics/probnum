@@ -1,14 +1,16 @@
 import numpy as np
 import pytest
 
-import probnum.statespace as pnss
+from probnum import randprocs
 
 
 @pytest.fixture
 def precon():
     some_order = 3
     some_dim = 1
-    return pnss.NordsieckLikeCoordinates.from_order(some_order, some_dim)
+    return randprocs.markov.continuous.integrator.NordsieckLikeCoordinates.from_order(
+        some_order, some_dim
+    )
 
 
 def test_call(precon):
