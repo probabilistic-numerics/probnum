@@ -9,7 +9,7 @@ from tests.test_diffeq.test_odefiltsmooth.test_approx import _approx_test_interf
 class TestEK0(_approx_test_interface.ApproximationStrategyTest):
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.approx_strategy = diffeq.odefiltsmooth.approx.EK0()
+        self.approx_strategy = diffeq.odefiltsmooth.approx_strategies.EK0()
         self.info_op = diffeq.odefiltsmooth.information_operators.ExplicitODEResidual(
             prior_ordint=3, prior_spatialdim=2
         )
@@ -29,7 +29,7 @@ class TestEK0(_approx_test_interface.ApproximationStrategyTest):
 class TestEK1(_approx_test_interface.ApproximationStrategyTest):
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.approx_strategy = diffeq.odefiltsmooth.approx.EK1()
+        self.approx_strategy = diffeq.odefiltsmooth.approx_strategies.EK1()
         self.info_op = diffeq.odefiltsmooth.information_operators.ExplicitODEResidual(
             prior_ordint=3, prior_spatialdim=2
         )

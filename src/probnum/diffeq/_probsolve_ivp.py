@@ -275,8 +275,8 @@ def probsolve_ivp(
     )
 
     choose_method = {
-        "EK0": odefiltsmooth.approx.EK0(),
-        "EK1": odefiltsmooth.approx.EK1(),
+        "EK0": odefiltsmooth.approx_strategies.EK0(),
+        "EK1": odefiltsmooth.approx_strategies.EK1(),
     }
     method = method.upper()
     if method not in choose_method.keys():
