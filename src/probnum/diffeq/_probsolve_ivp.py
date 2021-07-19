@@ -276,7 +276,7 @@ def probsolve_ivp(
         method, ivp, prior_process
     )
 
-    rk_init = odefiltsmooth.initialize.RungeKuttaInitialization()
+    rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
     solver = odefiltsmooth.GaussianIVPFilter(
         ivp=ivp,
         prior_process=prior_process,

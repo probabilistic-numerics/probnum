@@ -18,7 +18,9 @@ class TestTaylorModeInitialization(
 ):
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.taylor_init = diffeq.odefiltsmooth.initialize.TaylorModeInitialization()
+        self.taylor_init = (
+            diffeq.odefiltsmooth.initialization_routines.TaylorModeInitialization()
+        )
 
     @pytest.mark.parametrize("any_order", [0, 1, 2, 3])
     @_decorators.only_if_jax_available
@@ -37,8 +39,7 @@ class TestTaylorModeInitialization(
             order=any_order, spatialdim=r2b_jax.dimension, t0=r2b_jax.t0
         )
 
-        taylor_init = diffeq.odefiltsmooth.initialize.TaylorModeInitialization()
-        received_rv = taylor_init(ivp=r2b_jax, prior_process=prior_process)
+        received_rv = self.taylor_init(ivp=r2b_jax, prior_process=prior_process)
 
         assert isinstance(received_rv, randvars.Normal)
         np.testing.assert_allclose(received_rv.mean, expected)

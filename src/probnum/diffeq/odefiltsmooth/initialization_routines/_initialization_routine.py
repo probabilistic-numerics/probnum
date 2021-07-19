@@ -34,8 +34,8 @@ class InitializationRoutine(abc.ABC):
     def is_exact(self) -> bool:
         """Exactness of the computed initial values.
 
-        Some initialization routines yield the exact initial
-        derivatives, some others only yield approximations.
+        Some initialization routines yield the exact initial derivatives, some others
+        only yield approximations.
         """
         return self._is_exact
 

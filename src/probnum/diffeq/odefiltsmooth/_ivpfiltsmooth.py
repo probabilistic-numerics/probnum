@@ -7,7 +7,7 @@ import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
 from probnum.diffeq import _odesolver
-from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialize
+from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialization_routines
 
 
 class GaussianIVPFilter(_odesolver.ODESolver):
@@ -52,7 +52,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         prior_process: randprocs.MarkovProcess,
         measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
-        initialization_routine: initialize.InitializationRoutine,
+        initialization_routine: initialization_routines.InitializationRoutine,
         diffusion_model: Optional[statespace.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):

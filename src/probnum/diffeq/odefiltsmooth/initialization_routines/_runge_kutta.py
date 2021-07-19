@@ -7,11 +7,11 @@ import numpy as np
 import scipy.integrate as sci
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace
-from probnum.diffeq.odefiltsmooth.initialize import _initialize
+from probnum.diffeq.odefiltsmooth.initialization_routines import _initialization_routine
 from probnum.typing import FloatArgType
 
 
-class RungeKuttaInitialization(_initialize.InitializationRoutine):
+class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
     r"""Initialize a probabilistic ODE solver by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's Runge-Kutta methods.
 
     Parameters

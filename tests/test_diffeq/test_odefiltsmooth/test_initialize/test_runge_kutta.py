@@ -13,8 +13,10 @@ class TestRungeKuttaInitialization(
 ):
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.rk_init = diffeq.odefiltsmooth.initialize.RungeKuttaInitialization(
-            dt=1e-1, method="RK45"
+        self.rk_init = (
+            diffeq.odefiltsmooth.initialization_routines.RungeKuttaInitialization(
+                dt=1e-1, method="RK45"
+            )
         )
 
     def test_call(

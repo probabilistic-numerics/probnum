@@ -5,10 +5,10 @@
 import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
-from probnum.diffeq.odefiltsmooth.initialize import _initialize
+from probnum.diffeq.odefiltsmooth.initialization_routines import _initialization_routine
 
 
-class TaylorModeInitialization(_initialize.InitializationRoutine):
+class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
     """Initialize a probabilistic ODE solver with Taylor-mode automatic differentiation.
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
