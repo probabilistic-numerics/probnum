@@ -4,10 +4,10 @@ import pytest
 
 from probnum import diffeq, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
-from tests.test_diffeq.test_odefiltsmooth.test_initialize import (
+from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines import (
     _interface_initialize_test,
 )
-from tests.test_diffeq.test_odefiltsmooth.test_initialize.utils import (
+from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines.utils import (
     _decorators,
     _known_initial_derivatives,
 )
