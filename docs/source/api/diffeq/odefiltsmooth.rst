@@ -8,4 +8,4 @@ probnum.diffeq.odefiltsmooth
 .. toctree::
     :hidden:
 
-    odefiltsmooth/initialize
+    odefiltsmooth/initialization_routines

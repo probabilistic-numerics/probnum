@@ -1,13 +1,13 @@
 """Gaussian IVP filtering and smoothing."""
 
-from typing import Callable, Optional
+from typing import Optional
 
 import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, utils
 from probnum.diffeq import _odesolver
-from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialize
+from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialization_routines
 
 
 class GaussianIVPFilter(_odesolver.ODESolver):
@@ -28,9 +28,10 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         ODE measurement model.
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
-    init_implementation :
-        Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
-        For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
+    initialization_routine :
+        Initialization algorithm.
+        Either via fitting the prior to a few steps of a Runge-Kutta method (:class:`RungeKuttaInitialization`)
+        or via Taylor-mode automatic differentiation (:class:``TaylorModeInitialization``).
     diffusion_model :
         Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [1]_ for a survey.
     _reference_coordinates :
@@ -51,17 +52,8 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         prior_process: randprocs.markov.MarkovProcess,
         measurement_model: randprocs.markov.discrete.DiscreteGaussian,
         with_smoothing: bool,
-        init_implementation: Callable[
-            [
-                Callable,
-                np.ndarray,
-                float,
-                randprocs.markov.MarkovProcess,
-                Optional[Callable],
-            ],
-            randvars.Normal,
-        ],
-        diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
+        initialization_routine: initialization_routines.InitializationRoutine,
+        diffusion_model: Optional[statespace.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
         if not isinstance(
@@ -77,8 +69,8 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
-        self.init_implementation = init_implementation
-        super().__init__(ivp=ivp, order=prior_process.transition.nu)
+        self.initialization_routine = initialization_routine
+        super().__init__(ivp=ivp, order=prior_process.transition.ordint)
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
@@ -101,75 +93,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # or from any other state.
         self._reference_coordinates = _reference_coordinates
 
-    # Construct an ODE solver from different initialisation methods.
-    # The reason for implementing these via classmethods is that different
-    # initialisation methods require different parameters.
-
-    @classmethod
-    def construct_with_rk_init(
-        cls,
-        ivp,
-        prior_process,
-        measurement_model,
-        with_smoothing,
-        diffusion_model=None,
-        _reference_coordinates=0,
-        init_h0=0.01,
-        init_method="DOP853",
-    ):
-        """Create a Gaussian IVP filter that is initialised via
-        :func:`initialize_odefilter_with_rk`."""
-
-        def init_implementation(f, y0, t0, prior_process, df=None):
-            return initialize.initialize_odefilter_with_rk(
-                f=f,
-                y0=y0,
-                t0=t0,
-                prior_process=prior_process,
-                df=df,
-                h0=init_h0,
-                method=init_method,
-            )
-
-        return cls(
-            ivp,
-            prior_process,
-            measurement_model,
-            with_smoothing,
-            init_implementation=init_implementation,
-            diffusion_model=diffusion_model,
-            _reference_coordinates=_reference_coordinates,
-        )
-
-    @classmethod
-    def construct_with_taylormode_init(
-        cls,
-        ivp,
-        prior_process,
-        measurement_model,
-        with_smoothing,
-        diffusion_model=None,
-        _reference_coordinates=0,
-    ):
-        """Create a Gaussian IVP filter that is initialised via
-        :func:`initialize_odefilter_with_taylormode`."""
-        return cls(
-            ivp,
-            prior_process,
-            measurement_model,
-            with_smoothing,
-            init_implementation=initialize.initialize_odefilter_with_taylormode,
-            diffusion_model=diffusion_model,
-            _reference_coordinates=_reference_coordinates,
-        )
-
     def initialise(self):
-        initrv = self.init_implementation(
-            self.ivp.f,
-            self.ivp.y0,
-            self.ivp.t0,
-            self.prior_process,
-            self.ivp.df,
+        initrv = self.initialization_routine(
+            ivp=self.ivp, prior_process=self.prior_process
         )
 
         return self.ivp.t0, initrv
