@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, randvars, statespace
+from probnum import diffeq, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
 from tests.test_diffeq.test_odefiltsmooth.test_initialize import (
     _interface_initialize_test,
@@ -27,12 +27,14 @@ class TestTaylorModeInitialization(
     def test_call(self, any_order):
         r2b_jax = diffeq_zoo.threebody_jax()
 
-        expected = statespace.Integrator._convert_derivwise_to_coordwise(
-            _known_initial_derivatives.THREEBODY_INITS[
-                : r2b_jax.dimension * (any_order + 1)
-            ],
-            ordint=any_order,
-            spatialdim=r2b_jax.dimension,
+        expected = (
+            randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+                _known_initial_derivatives.THREEBODY_INITS[
+                    : r2b_jax.dimension * (any_order + 1)
+                ],
+                nu=any_order,
+                wiener_process_dimension=r2b_jax.dimension,
+            )
         )
 
         prior_process = self._construct_prior_process(

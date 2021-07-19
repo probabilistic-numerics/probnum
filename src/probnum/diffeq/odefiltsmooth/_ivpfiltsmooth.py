@@ -53,7 +53,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         measurement_model: randprocs.markov.discrete.DiscreteGaussian,
         with_smoothing: bool,
         initialization_routine: initialization_routines.InitializationRoutine,
-        diffusion_model: Optional[statespace.Diffusion] = None,
+        diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
         if not isinstance(
@@ -70,7 +70,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.initialization_routine = initialization_routine
-        super().__init__(ivp=ivp, order=prior_process.transition.ordint)
+        super().__init__(ivp=ivp, order=prior_process.transition.nu)
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
