@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from probnum import randvars
+from probnum import config, linops, randvars
 
 
 def test_constant_accessible_like_gaussian():
@@ -25,6 +25,17 @@ class TestConstant(unittest.TestCase):
 
     def test_logpdf(self):
         pass
+
+    def test_cov_linops(self):
+        # Ignore scalar support, because in this case, LinOps make no sense.
+        for supp in self.supports[1:]:
+            with self.subTest():
+                with config(prefer_dense_arrays=False):
+                    rv_lo = randvars.Constant(support=supp)
+                    assert isinstance(rv_lo.cov, linops.LinearOperator)
+                with config(prefer_dense_arrays=True):
+                    rv_de = randvars.Constant(support=supp)
+                    assert isinstance(rv_de.cov, np.ndarray)
 
     def test_sample_shapes(self):
         """Test whether samples have the correct shapes."""

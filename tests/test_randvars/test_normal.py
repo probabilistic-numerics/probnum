@@ -148,6 +148,12 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 randvars.Normal(mean=mean, cov=cov)
 
+            try:
+                with config(prefer_dense_arrays=False):
+                    randvars.Normal(mean=mean, cov=cov)
+            except TypeError:
+                pass
+
     def test_normal_pdf(self):
         """Evaluate pdf at random input."""
         for mean, cov in self.normal_params:
@@ -581,6 +587,25 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertAllClose(
                 rv.cov_cholesky, np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov)))
             )
+
+        with self.subTest("Cholesky is precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_precompute_cov_cholesky_with_linops(self):
+        mean, cov = self.params
+        rv = randvars.Normal(mean, cov)
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Damping factor check"):
+            with config(prefer_dense_arrays=False):
+                rv.precompute_cov_cholesky(damping_factor=10.0)
+                self.assertIsInstance(rv.cov_cholesky, linops.LinearOperator)
+                self.assertAllClose(
+                    rv.cov_cholesky.todense(),
+                    np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov))),
+                )
 
         with self.subTest("Cholesky is precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
