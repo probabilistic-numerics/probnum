@@ -179,6 +179,10 @@ class LinearOperator:
         return 2
 
     @property
+    def size(self) -> int:
+        return np.prod(self.__shape)
+
+    @property
     def dtype(self) -> np.dtype:
         """Data type of the linear operator."""
         return self.__dtype
