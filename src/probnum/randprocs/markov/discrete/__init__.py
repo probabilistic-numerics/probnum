@@ -20,4 +20,3 @@ __all__ = [
 DiscreteGaussian.__module__ = "probnum.randprocs.markov.discrete"
 DiscreteLinearGaussian.__module__ = "probnum.randprocs.markov.discrete"
 DiscreteLTIGaussian.__module__ = "probnum.randprocs.markov.discrete"
-DiscreteGaussian.__module__ = "probnum.randprocs.markov.discrete"

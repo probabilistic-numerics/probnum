@@ -96,28 +96,6 @@ def fixture_gaussian_process(mean, cov) -> randprocs.GaussianProcess:
     return randprocs.GaussianProcess(mean=mean, cov=cov)
 
 
-#
-# @pytest.fixture(
-#     params=[
-#         pytest.param(gmpdef, id=gmpdef[0])
-#         for gmpdef in [
-#             (
-#                 "ibm",
-#                 statespace.IntegratedWienerTransition((nu=1, wiener_process_dimension=1),
-#                 0.0,
-#                 randvars.Normal(0.0, 1.0),
-#             )
-#         ]
-#     ],
-#     name="gauss_markov_process",
-# )
-# def fixture_gauss_markov_process(request) -> randprocs.MarkovProcess:
-#     """Gauss-Markov process."""
-#     return randprocs.MarkovProcess(
-#         transition=request.param[1], initarg=request.param[2], initrv=request.param[3]
-#     )
-
-
 @pytest.fixture(params=[pytest.param(n, id=f"n{n}") for n in [1, 10]], name="args0")
 def fixture_args0(
     request,

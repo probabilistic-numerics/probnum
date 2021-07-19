@@ -243,7 +243,6 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
     ):
         # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
 
-        wiener_process_dimension = prior.wiener_process_dimension
         h0 = prior.proj2coord(coord=0)
         h1 = prior.proj2coord(coord=1)
 
@@ -251,10 +250,10 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
             return h1 @ x - ode.f(t, h0 @ x)
 
         def diff(t):
-            return evlvar * np.eye(wiener_process_dimension)
+            return evlvar * np.eye(ode.dimension)
 
         def diff_cholesky(t):
-            return np.sqrt(evlvar) * np.eye(wiener_process_dimension)
+            return np.sqrt(evlvar) * np.eye(ode.dimension)
 
         def jaco_ek1(t, x):
             return h1 - ode.df(t, h0 @ x) @ h0

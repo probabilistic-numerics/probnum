@@ -94,7 +94,7 @@ def probsolve_ivp(
         Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
     algo_order
         Order of the algorithm. This amounts to choosing the order of integration (``nu``) of an integrated Brownian motion prior.
-        For too high orders, process noise covariance matrices become singular. For integrated Wiener processes, this maximum seems to be :`q=11` (using standard ``float64``).
+        For too high orders, process noise covariance matrices become singular. For integrated Wiener processes, this maximum seems to be :`\nu=11` (using standard ``float64``).
         It is possible that higher orders may work for you.
         The type of prior relates to prior assumptions about the
         derivative of the solution.

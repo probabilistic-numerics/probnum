@@ -15,8 +15,8 @@ import scipy.special  # for vectorised factorial
 class Preconditioner(abc.ABC):
     """Coordinate change transformations as preconditioners in state space models.
 
-    For some models, this makes the filtering and smoothing steps more
-    numerically stable.
+    For some models, this makes the filtering and smoothing steps more numerically
+    stable.
     """
 
     @abc.abstractmethod
@@ -32,38 +32,38 @@ class Preconditioner(abc.ABC):
 class NordsieckLikeCoordinates(Preconditioner):
     """Nordsieck-like coordinates.
 
-    Similar to Nordsieck coordinates (which store the Taylor
-    coefficients instead of the derivatives), but better for ODE
-    filtering and smoothing. Used in IntegratedWienerTransition.
+    Similar to Nordsieck coordinates (which store the Taylor coefficients instead of the
+    derivatives), but better for ODE filtering and smoothing. Used in
+    IntegratedWienerTransition.
     """
 
-    def __init__(self, powers, scales, wiener_process_dimension):
+    def __init__(self, powers, scales, dimension):
         # Clean way of assembling these coordinates cheaply,
         # because the powers and scales of the inverse
         # are better read off than inverted
         self.powers = powers
         self.scales = scales
-        self.wiener_process_dimension = wiener_process_dimension
+        self.dimension = dimension
 
     @classmethod
-    def from_order(cls, order, wiener_process_dimension):
+    def from_order(cls, order, dimension):
         # used to conveniently initialise in the beginning
         powers = np.arange(order, -1, -1)
         scales = scipy.special.factorial(powers)
         return cls(
             powers=powers + 0.5,
             scales=scales,
-            wiener_process_dimension=wiener_process_dimension,
+            dimension=dimension,
         )
 
     def __call__(self, step):
         scaling_vector = np.abs(step) ** self.powers / self.scales
-        return np.kron(np.eye(self.wiener_process_dimension), np.diag(scaling_vector))
+        return np.kron(np.eye(self.dimension), np.diag(scaling_vector))
 
     @cached_property
     def inverse(self) -> "NordsieckLikeCoordinates":
         return NordsieckLikeCoordinates(
             powers=-self.powers,
             scales=1.0 / self.scales,
-            wiener_process_dimension=self.wiener_process_dimension,
+            dimension=self.dimension,
         )
