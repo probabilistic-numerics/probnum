@@ -9,7 +9,7 @@ class MarkovProcessSampling:
     """Benchmark sampling from Markov processes."""
 
     param_names = ["use_linops", "num_samples", "len_trajectory", "order", "dimension"]
-    params = [[True, False], [10], [10], [5], [50]]
+    params = [[True, False], [10], [10], [5], [50, 100]]
 
     def setup(self, use_linops, num_samples, len_trajectory, order, dimension):
         with config(statespace_use_linops=use_linops):
