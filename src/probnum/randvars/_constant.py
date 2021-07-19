@@ -77,7 +77,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             zero_cov = (
                 0.0 * linops.Identity(self._support.size)
                 if self._support.ndim > 0
-                else 0.0
+                else np.zeros(shape=())
             )
         else:
             zero_cov = np.zeros_like(  # pylint: disable=unexpected-keyword-arg

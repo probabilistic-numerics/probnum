@@ -101,7 +101,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         if not config.prefer_dense_arrays and not isinstance(
             cov, linops.LinearOperator
         ):
-            raise RuntimeError(
+            raise TypeError(
                 f"Received type {type(cov)} instead of LinearOperator as cov."
             )
 
