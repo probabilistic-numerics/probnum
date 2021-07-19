@@ -8,6 +8,6 @@ probnum.diffeq.odefiltsmooth
 .. toctree::
     :hidden:
 
-    odefiltsmooth/initialize
+    odefiltsmooth/initialization_routines
     odefiltsmooth/information_operators
     odefiltsmooth/approx_strategies

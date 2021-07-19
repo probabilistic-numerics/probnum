@@ -283,12 +283,15 @@ def probsolve_ivp(
         raise ValueError("Method is not supported.")
     approx_strategy = choose_method[method]
 
-    solver = odefiltsmooth.GaussianIVPFilter.construct_with_rk_init(
+    rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+
+    solver = odefiltsmooth.GaussianIVPFilter(
         steprule,
         prior_process,
         information_operator=info_op,
         approx_strategy=approx_strategy,
         with_smoothing=dense_output,
+        initialization_routine=rk_init,
         diffusion_model=diffusion,
     )
 
