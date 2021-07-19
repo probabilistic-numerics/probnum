@@ -10,4 +10,4 @@ probnum.diffeq.odefiltsmooth
 
     odefiltsmooth/initialize
     odefiltsmooth/information_operators
-    odefiltsmooth/approx
+    odefiltsmooth/approx_strategies
