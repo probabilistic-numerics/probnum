@@ -171,7 +171,8 @@ html_logo = "assets/img/logo/probnum_logo_light_txtright.svg"
 # documentation.
 html_theme_options = {
     "navbar_align": "right",
-    "show_toc_level": 2,
+    "show_toc_level": 3,
+    "navigation_depth": 4,
     "icon_links": [
         {
             "name": "GitHub",
