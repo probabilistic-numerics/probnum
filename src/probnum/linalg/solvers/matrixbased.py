@@ -8,91 +8,12 @@ import warnings
 
 import numpy as np
 
-import probnum
 from probnum import linops, randvars
 
-
-class ProbabilisticLinearSolver(abc.ABC):
-    """An abstract base class for probabilistic linear solvers.
-
-    This class is designed to be subclassed with new (probabilistic) linear solvers,
-    which implement a ``.solve()`` method. Objects of this type are instantiated in
-    wrapper functions such as :meth:``problinsolve``.
-
-    Parameters
-    ----------
-    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
-        A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~randvars.RandomVariable`. If an array or linear operator is given,
-        a prior distribution is chosen automatically.
-    b : RandomVariable, shape=(n,) or (n, nrhs)
-        Right-hand side vector, matrix or RandomVariable of :math:`A x = b`.
-    """
-
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-        self.n = A.shape[1]
-
-    def has_converged(self, iter, maxiter, **kwargs):
-        """Check convergence of a linear solver.
-
-        Evaluates a set of convergence criteria based on its input arguments to decide
-        whether the iteration has converged.
-
-        Parameters
-        ----------
-        iter : int
-            Current iteration of solver.
-        maxiter : int
-            Maximum number of iterations
-
-        Returns
-        -------
-        has_converged : bool
-            True if the method has converged.
-        convergence_criterion : str
-            Convergence criterion which caused termination.
-        """
-        # maximum iterations
-        if iter >= maxiter:
-            warnings.warn(
-                "Iteration terminated. Solver reached the maximum number of iterations."
-            )
-            return True, "maxiter"
-        else:
-            return False, ""
-
-    def solve(self, callback=None, **kwargs):
-        """Solve the linear system :math:`Ax=b`.
-
-        Parameters
-        ----------
-        callback : function, optional
-            User-supplied function called after each iteration of the linear solver. It
-            is called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)``
-            and can be used to return quantities from the iteration. Note that depending
-            on the function supplied, this can slow down the solver.
-        kwargs
-            Key-word arguments adjusting the behaviour of the ``solve`` iteration. These
-            are usually convergence criteria.
-
-        Returns
-        -------
-        x : RandomVariable, shape=(n,) or (n, nrhs)
-            Approximate solution :math:`x` to the linear system. Shape of the return
-            matches the shape of ``b``.
-        A : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator.
-        Ainv : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
-        info : dict
-            Information on convergence of the solver.
-        """
-        raise NotImplementedError
+# pylint: disable="too-many-branches,too-many-lines,too-complex,too-many-statements,redefined-builtin,arguments-differ,abstract-method,unused-argument"
 
 
-class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
+class MatrixBasedSolver(abc.ABC):
     """Abstract class for matrix-based probabilistic linear solvers.
 
     Parameters
@@ -110,7 +31,9 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
 
     def __init__(self, A, b, x0=None):
         self.x0 = x0
-        super().__init__(A=A, b=b)
+        self.A = A
+        self.b = b
+        self.n = A.shape[1]
 
     def _get_prior_params(self, A0, Ainv0, x0, b):
         """Find the parameters of the prior distribution.
@@ -201,31 +124,60 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         return A0_mean, Ainv0_mean
 
     def has_converged(self, iter, maxiter, **kwargs):
-        raise NotImplementedError
+        """Check convergence of a linear solver.
 
-    def solve(self, callback=None, maxiter=None, atol=None):
-        raise NotImplementedError
+        Evaluates a set of convergence criteria based on its input arguments to decide
+        whether the iteration has converged.
 
+        Parameters
+        ----------
+        iter : int
+            Current iteration of solver.
+        maxiter : int
+            Maximum number of iterations
 
-class AsymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
-    """Asymmetric matrix-based probabilistic linear solver.
+        Returns
+        -------
+        has_converged : bool
+            True if the method has converged.
+        convergence_criterion : str
+            Convergence criterion which caused termination.
+        """
+        # maximum iterations
+        if iter >= maxiter:
+            warnings.warn(
+                "Iteration terminated. Solver reached the maximum number of iterations."
+            )
+            return True, "maxiter"
+        else:
+            return False, ""
 
-    Parameters
-    ----------
-    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
-        The square matrix or linear operator of the linear system.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
-    """
+    def solve(self, callback=None, **kwargs):
+        """Solve the linear system :math:`Ax=b`.
 
-    def __init__(self, A, b, x0):
-        self.x0 = x0
-        super().__init__(A=A, b=b)
+        Parameters
+        ----------
+        callback : function, optional
+            User-supplied function called after each iteration of the linear solver. It
+            is called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)``
+            and can be used to return quantities from the iteration. Note that depending
+            on the function supplied, this can slow down the solver.
+        kwargs
+            Key-word arguments adjusting the behaviour of the ``solve`` iteration. These
+            are usually convergence criteria.
 
-    def has_converged(self, iter, maxiter, **kwargs):
-        raise NotImplementedError
-
-    def solve(self, callback=None, maxiter=None, atol=None):
+        Returns
+        -------
+        x : RandomVariable, shape=(n,) or (n, nrhs)
+            Approximate solution :math:`x` to the linear system. Shape of the return
+            matches the shape of ``b``.
+        A : RandomVariable, shape=(n,n)
+            Posterior belief over the linear operator.
+        Ainv : RandomVariable, shape=(n,n)
+            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
+        info : dict
+            Information on convergence of the solver.
+        """
         raise NotImplementedError
 
 
@@ -1017,345 +969,3 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         }
 
         return x, A, Ainv, info
-
-
-class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
-    """Solver iteration of the noisy symmetric probabilistic linear solver.
-
-    Implements the solve iteration of the symmetric matrix-based probabilistic linear
-    solver taking into account noisy matrix-vector products :math:`y_k = (A + E_k)s_k`
-    as described in [1]_ and [2]_.
-
-    Parameters
-    ----------
-    A : LinearOperator or RandomVariable, shape=(n,n)
-        The square matrix or linear operator of the linear system.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
-    A0 : array-like or LinearOperator or RandomVariable, shape=(n, n), optional
-        A square matrix, linear operator or random variable representing the prior
-        belief over the linear operator :math:`A`. If an array or linear operator is
-        given, a prior distribution is chosen automatically.
-    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-        A square matrix, linear operator or random variable representing the prior
-        belief over the inverse :math:`H=A^{-1}`. This can be viewed as taking the form
-        of a pre-conditioner. If an array or linear operator is given, a prior
-        distribution is chosen automatically.
-    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-        Optional. Prior belief for the solution of the linear system. Will be ignored if
-        ``Ainv0`` is given.
-
-    Returns
-    -------
-    A : RandomVariable
-        Posterior belief over the linear operator.
-    Ainv : RandomVariable
-        Posterior belief over the inverse linear operator.
-    x : RandomVariable
-        Posterior belief over the solution of the linear system.
-    info : dict
-        Information about convergence and the solution.
-
-    References
-    ----------
-    .. [1] Wenger, J., de Roos, F. and Hennig, P., Probabilistic Solution of Noisy
-       Linear Systems, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
-       Optimization*, 2015, 25, 234-260
-
-    See Also
-    --------
-    SymmetricMatrixBasedSolver :
-        Class implementing the symmetric probabilistic linear solver.
-    """
-
-    def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
-
-        # Transform right hand side to random variable
-        if not isinstance(b, randvars.RandomVariable):
-            _b = probnum.asrandvar(b)
-        else:
-            _b = b
-
-        super().__init__(A=A, b=_b, x0=x0)
-
-        # Get or initialize prior parameters
-        (
-            A0_mean,
-            A0_covfactor,
-            Ainv0_mean,
-            Ainv0_covfactor,
-            b_mean,
-        ) = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=x0, b=_b)
-
-        # Matrix prior parameters
-        self.A0_mean = linops.aslinop(A0_mean)
-        self.A_mean = linops.aslinop(A0_mean)
-        self.A0_covfactor = A0_covfactor
-        self.Ainv0_mean = linops.aslinop(Ainv0_mean)
-        self.Ainv_mean = linops.aslinop(Ainv0_mean)
-        self.Ainv0_covfactor = Ainv0_covfactor
-        self.b_mean = b_mean
-
-        # Induced distribution on x via Ainv
-        # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
-        Wb = Ainv0_covfactor @ self.b_mean
-        bWb = np.squeeze(Wb.T @ self.b_mean)
-
-        def _matmul(x):
-            return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
-
-        self.x_cov = linops.LinearOperator(
-            shape=(self.n, self.n),
-            dtype=np.result_type(bWb.dtype, Ainv0_covfactor.dtype, Wb.dtype),
-            matmul=_matmul,
-        )
-        if isinstance(x0, np.ndarray):
-            self.x_mean = x0
-        elif x0 is None:
-            self.x_mean = Ainv0_mean @ self.b_mean
-        else:
-            raise NotImplementedError
-        self.x0 = self.x_mean
-
-    def _get_prior_params(self, A0, Ainv0, x0, b):
-        """Get the parameters of the matrix priors on A and H.
-
-        Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
-
-        Parameters
-        ----------
-        A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior
-            belief over the linear operator :math:`A`. If an array or linear operator is
-            given, a prior distribution is chosen automatically.
-        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior
-            belief over the inverse :math:`H=A^{-1}`. This can be viewed as taking the
-            form of a pre-conditioner. If an array or linear operator is given, a prior
-            distribution is chosen automatically.
-        x0 : array-like, or RandomVariable, shape=(n,)
-            Optional. Prior belief for the solution of the linear system. Will be
-            ignored if ``A0`` or ``Ainv0`` is given.
-        b : RandomVariable, shape=(n,) or (n, nrhs)
-            Right-hand side random variable `b` in :math:`A x = b`.
-
-        Returns
-        -------
-        A0_mean : array-like or LinearOperator, shape=(n,n)
-            Prior mean of the linear operator :math:`A`.
-        A0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^A` of the symmetric Kronecker product prior covariance
-            :math:`W^A \\otimes_s W^A` of :math:`A`.
-        Ainv0_mean : array-like or LinearOperator, shape=(n,n)
-            Prior mean of the linear operator :math:`H`.
-        Ainv0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^H` of the symmetric Kronecker product prior covariance
-            :math:`W^H \\otimes_s W^H` of :math:`H`.
-        b_mean : array-like, shape=(n,nrhs)
-            Prior mean of the right hand side :math:`b`.
-        """
-
-        # Right hand side mean
-        b_mean = b.sample(1)  # TODO: build prior model for rhs and change to b.mean
-
-        # No matrix priors specified
-        if A0 is None and Ainv0 is None:
-            # No prior information given
-            if x0 is None:
-                Ainv0_mean = linops.Identity(shape=self.n)
-                Ainv0_covfactor = linops.Identity(shape=self.n)
-                # Standard normal covariance
-                A0_mean = linops.Identity(shape=self.n)
-                A0_covfactor = linops.Identity(shape=self.n)
-                # TODO: should this be a sample from A to achieve symm. posterior
-                # correspondence?
-                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-            # Construct matrix priors from initial guess x0
-            elif isinstance(x0, np.ndarray):
-                # Sample from linear operator for prior construction
-                if isinstance(self.A, randvars.RandomVariable):
-                    _A = self.A.sample([1])[0]
-                else:
-                    _A = self.A
-                A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(
-                    A=_A, x0=x0, b=b_mean
-                )
-                Ainv0_covfactor = Ainv0_mean
-                # Standard normal covariance
-                A0_covfactor = linops.Identity(shape=self.n)
-                # TODO: should this be a sample from A to achieve symm. posterior
-                # correspondence?
-                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-            elif isinstance(x0, randvars.RandomVariable):
-                raise NotImplementedError
-
-        # Prior on Ainv specified
-        if not isinstance(A0, randvars.RandomVariable) and Ainv0 is not None:
-            if isinstance(Ainv0, randvars.RandomVariable):
-                Ainv0_mean = Ainv0.mean
-                Ainv0_covfactor = Ainv0.cov.A
-            else:
-                Ainv0_mean = Ainv0
-                Ainv0_covfactor = Ainv0  # Symmetric posterior correspondence
-            try:
-                if A0 is not None:
-                    A0_mean = A0
-                elif isinstance(Ainv0, randvars.RandomVariable):
-                    A0_mean = Ainv0.mean.inv()
-                else:
-                    A0_mean = Ainv0.inv()
-            except AttributeError:
-                warnings.warn(
-                    "Prior specified only for Ainv. Inverting prior mean naively. "
-                    "This operation is computationally costly! Specify an inverse "
-                    "prior (mean) instead."
-                )
-                A0_mean = np.linalg.inv(Ainv0.mean)
-            except NotImplementedError:
-                A0_mean = linops.Identity(self.n)
-                warnings.warn(
-                    "Prior specified only for Ainv. Automatic prior mean inversion "
-                    "not implemented, falling back to standard normal prior."
-                )
-            # Standard normal covariance
-            A0_covfactor = linops.Identity(shape=self.n)
-            # TODO: should this be a sample from A to achieve symm. posterior
-            # correspondence?
-            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-
-        # Prior on A specified
-        elif A0 is not None and not isinstance(Ainv0, randvars.RandomVariable):
-            if isinstance(A0, randvars.RandomVariable):
-                A0_mean = A0.mean
-                A0_covfactor = A0.cov.A
-            else:
-                A0_mean = A0
-                A0_covfactor = A0  # Symmetric posterior correspondence
-            try:
-                if Ainv0 is not None:
-                    Ainv0_mean = Ainv0
-                elif isinstance(A0, randvars.RandomVariable):
-                    Ainv0_mean = A0.mean.inv()
-                else:
-                    Ainv0_mean = A0.inv()
-            except AttributeError:
-                warnings.warn(
-                    "Prior specified only for A. Inverting prior mean naively. "
-                    "This operation is computationally costly! Specify an inverse "
-                    "prior (mean) instead."
-                )
-                Ainv0_mean = np.linalg.inv(A0.mean)
-            except NotImplementedError:
-                Ainv0_mean = linops.Identity(self.n)
-                warnings.warn(
-                    "Prior specified only for A. Automatic prior mean inversion "
-                    "failed, falling back to standard normal prior."
-                )
-            # Symmetric posterior correspondence
-            Ainv0_covfactor = Ainv0_mean
-            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-        # Both matrix priors on A and H specified via random variables
-        elif isinstance(A0, randvars.RandomVariable) and isinstance(
-            Ainv0, randvars.RandomVariable
-        ):
-            A0_mean = A0.mean
-            A0_covfactor = A0.cov.A
-            Ainv0_mean = Ainv0.mean
-            Ainv0_covfactor = Ainv0.cov.A
-            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-        else:
-            raise NotImplementedError
-
-    def has_converged(self, iter, maxiter, atol=None, rtol=None):
-        """Check convergence of a linear solver.
-
-        Evaluates a set of convergence criteria based on its input arguments to decide
-        whether the iteration has converged.
-
-        Parameters
-        ----------
-        iter : int
-            Current iteration of solver.
-        maxiter : int
-            Maximum number of iterations
-        atol : float
-            Absolute tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where
-            :math:`\\Sigma` is the covariance of the solution :math:`x`.
-        rtol : float
-            Relative tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`,
-            where :math:`\\Sigma` is the covariance of the solution :math`x` and
-            :math:`x_i` its mean.
-
-        Returns
-        -------
-        has_converged : bool
-            True if the method has converged.
-        convergence_criterion : str
-            Convergence criterion which caused termination.
-        """
-        # maximum iterations
-        if iter >= maxiter:
-            warnings.warn(
-                "Iteration terminated. Solver reached the maximum number of iterations."
-            )
-            return True, "maxiter"
-        # uncertainty-based
-        if isinstance(self.x_cov, linops.LinearOperator):
-            sqrttracecov = np.sqrt(self.x_cov.trace())
-        else:
-            sqrttracecov = np.sqrt(np.trace(self.x_cov))
-        if sqrttracecov <= atol:
-            return True, "covar_atol"
-        elif sqrttracecov <= rtol * np.linalg.norm(self.x_mean):
-            return True, "covar_rtol"
-        else:
-            return False, ""
-
-    def solve(
-        self,
-        callback=None,
-        maxiter=None,
-        atol=10 ** -6,
-        rtol=10 ** -6,
-        noise_scale=None,
-        **kwargs
-    ):
-        """Solve the linear system :math:`Ax=b`.
-
-        Parameters
-        ----------
-        callback : function, optional
-            User-supplied function called after each iteration of the linear solver. It
-            is called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, noise_scale)``
-            and can be used to return quantities from the iteration. Note that depending
-            on the function supplied, this can slow down the solver.
-        maxiter : int
-            Maximum number of iterations
-        atol : float
-            Absolute tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where
-            :math:`\\Sigma` is the covariance of the solution :math:`x`.
-        rtol : float
-            Relative tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`,
-            where :math:`\\Sigma` is the covariance of the solution :math`x` and
-            :math:`x_i` its mean.
-        noise_scale : float
-            Assumed (initial) noise scale :math:`\\varepsilon^2`.
-
-        Returns
-        -------
-        x : RandomVariable, shape=(n,) or (n, nrhs)
-            Approximate solution :math:`x` to the linear system. Shape of the return
-            matches the shape of ``b``.
-        A : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator.
-        Ainv : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
-        info : dict
-            Information on convergence of the solver.
-        """
-        raise NotImplementedError

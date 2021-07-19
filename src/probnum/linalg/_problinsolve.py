@@ -12,27 +12,33 @@ from typing import Callable, Dict, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
+import probnum  # pylint: disable=unused-import
 from probnum import linops, randvars, utils
-from probnum.linalg.linearsolvers.matrixbased import (
-    AsymmetricMatrixBasedSolver,
-    NoisySymmetricMatrixBasedSolver,
-    SymmetricMatrixBasedSolver,
-)
-from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
+from probnum.linalg.solvers.matrixbased import SymmetricMatrixBasedSolver
+from probnum.typing import LinearOperatorArgType
 
-# Type aliases
-SquareLinOp = Union[
-    np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "randvars.RandomVariable"
-]
-RandomVecMat = Union[np.ndarray, "randvars.RandomVariable"]
+# pylint: disable=too-many-branches
 
 
 def problinsolve(
-    A: SquareLinOp,
-    b: RandomVecMat,
-    A0: Optional[SquareLinOp] = None,
-    Ainv0: Optional[SquareLinOp] = None,
-    x0: Optional[RandomVecMat] = None,
+    A: Union[
+        LinearOperatorArgType,
+        "randvars.RandomVariable[LinearOperatorArgType]",
+    ],
+    b: Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"],
+    A0: Optional[
+        Union[
+            LinearOperatorArgType,
+            "randvars.RandomVariable[LinearOperatorArgType]",
+        ]
+    ] = None,
+    Ainv0: Optional[
+        Union[
+            LinearOperatorArgType,
+            "randvars.RandomVariable[LinearOperatorArgType]",
+        ]
+    ] = None,
+    x0: Optional[Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"]] = None,
     assume_A: str = "sympos",
     maxiter: Optional[int] = None,
     atol: float = 10 ** -6,
@@ -40,45 +46,40 @@ def problinsolve(
     callback: Optional[Callable] = None,
     **kwargs
 ) -> Tuple[
-    "randvars.RandomVariable",
-    "randvars.RandomVariable",
-    "randvars.RandomVariable",
+    "randvars.RandomVariable[np.ndarray]",
+    "randvars.RandomVariable[linops.LinearOperator]",
+    "randvars.RandomVariable[linops.LinearOperator]",
     Dict,
 ]:
-    """Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
+    r"""Solve the linear system :math:`A x = b` in a Bayesian framework.
 
     Probabilistic linear solvers infer solutions to problems of the form
 
     .. math:: Ax=b,
 
-    where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
+    where :math:`A \in \mathbb{R}^{n \times n}` and :math:`b \in \mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
-    from finite computational resources. This solver can take prior information either
-    on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in the form of a
-    random variable ``A0`` or ``Ainv0`` and outputs a posterior belief over :math:`A` or
-    :math:`H`. This code implements the method described in Wenger et al. [1]_ based on
-    the work in Hennig et al. [2]_.
+    from finite computational resources or stochastic input. This solver can take prior
+    information either on the linear operator :math:`A` or its inverse :math:`H=A^{
+    -1}` in the form of a random variable ``A0`` or ``Ainv0`` and outputs a posterior
+    belief about :math:`A` or :math:`H`. This code implements the method described in
+    Wenger et al. [1]_ based on the work in Hennig et al. [2]_.
 
     Parameters
     ----------
     A :
         *shape=(n, n)* -- A square linear operator (or matrix). Only matrix-vector
-        products :math:`v \\mapsto Av` are used internally.
+        products :math:`v \mapsto Av` are used internally.
     b :
         *shape=(n, ) or (n, nrhs)* -- Right-hand side vector, matrix or random
-        variable in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems
-        are solved sequentially with the posteriors over the matrices acting as priors
-        for subsequent solves. If the right-hand-side is assumed to be noisy, every
-        iteration of the solver samples a realization from ``b``.
+        variable in :math:`A x = b`.
     A0 :
         *shape=(n, n)* -- A square matrix, linear operator or random variable
-        representing the prior belief over the linear operator :math:`A`. If an array or
-        linear operator is given, a prior distribution is chosen automatically.
+        representing the prior belief about the linear operator :math:`A`.
     Ainv0 :
         *shape=(n, n)* -- A square matrix, linear operator or random variable
-        representing the prior belief over the inverse :math:`H=A^{-1}`. This can be
-        viewed as taking the form of a pre-conditioner. If an array or linear operator
-        is given, a prior distribution is chosen automatically.
+        representing the prior belief about the inverse :math:`H=A^{-1}`. This can be
+        viewed as a preconditioner.
     x0 :
         *shape=(n, ) or (n, nrhs)* -- Prior belief for the solution of the linear
         system. Will be ignored if ``Ainv0`` is given.
@@ -274,26 +275,7 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
     --------
     problinsolve : Solve linear systems in a Bayesian framework.
     """
-    # Check linear system for type and dimension mismatch
-    _check_linear_system(A=A, b=b, x0=x0)
-
-    # Preprocess linear system
-    A, b, x0 = _preprocess_linear_system(A=A, b=b, x0=x0)
-
-    # Set default convergence parameters
-    n = A.shape[0]
-    if maxiter is None:
-        maxiter = n * 10
-
-    # Solve linear system
-    x, info = SolutionBasedSolver(A=A, b=b, x0=x0).solve(
-        callback=callback, maxiter=maxiter, atol=atol, rtol=rtol
-    )
-
-    # Check result and issue warnings (e.g. singular or ill-conditioned matrix)
-    _postprocess(info=info, A=A)
-
-    return x, info
+    raise NotImplementedError
 
 
 def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
@@ -483,18 +465,16 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
 
     # Solution-based view
     if isinstance(x0, randvars.RandomVariable):
-        return SolutionBasedSolver(A=A, b=b, x0=x0)
+        raise NotImplementedError
     # Matrix-based view
     else:
         if "sym" in assume_A and "pos" in assume_A:
             if "noise" in assume_A:
-                return NoisySymmetricMatrixBasedSolver(
-                    A=A, b=b, x0=x0, A0=A0, Ainv0=Ainv0
-                )
+                raise NotImplementedError
             else:
                 return SymmetricMatrixBasedSolver(A=A, b=b, x0=x0, A0=A0, Ainv0=Ainv0)
         elif "sym" not in assume_A and "pos" in assume_A:
-            return AsymmetricMatrixBasedSolver(A=A, b=b, x0=x0)
+            raise NotImplementedError
         else:
             raise NotImplementedError
 
