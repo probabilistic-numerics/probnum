@@ -4,6 +4,7 @@ from typing import Callable, TypeVar
 
 import numpy as np
 
+from probnum import config, linops
 from probnum import utils as _utils
 from probnum.typing import ArrayLikeGetitemArgType, ShapeArgType, ShapeType
 
@@ -72,6 +73,22 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             np.promote_types(self._support.dtype, np.float_)
         )
 
+        if config.statespace_use_linops:
+            zero_cov = (
+                0.0 * linops.Identity(self._support.size)
+                if self._support.ndim > 0
+                else 0.0
+            )
+        else:
+            zero_cov = np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+                support_floating,
+                shape=(
+                    (self._support.size, self._support.size)
+                    if self._support.ndim > 0
+                    else ()
+                ),
+            )
+
         super().__init__(
             shape=self._support.shape,
             dtype=self._support.dtype,
@@ -83,14 +100,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             mode=lambda: self._support,
             median=lambda: support_floating,
             mean=lambda: support_floating,
-            cov=lambda: np.zeros_like(  # pylint: disable=unexpected-keyword-arg
-                support_floating,
-                shape=(
-                    (self._support.size, self._support.size)
-                    if self._support.ndim > 0
-                    else ()
-                ),
-            ),
+            cov=lambda: zero_cov,
             var=lambda: np.zeros_like(support_floating),
         )
 
