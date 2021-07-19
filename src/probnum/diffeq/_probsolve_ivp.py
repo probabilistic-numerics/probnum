@@ -275,11 +275,14 @@ def probsolve_ivp(
     measmod = odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
         method, ivp, prior_process
     )
-    solver = odefiltsmooth.GaussianIVPFilter.construct_with_rk_init(
-        ivp,
-        prior_process,
-        measmod,
+
+    rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+    solver = odefiltsmooth.GaussianIVPFilter(
+        ivp=ivp,
+        prior_process=prior_process,
+        measurement_model=measmod,
         with_smoothing=dense_output,
+        initialization_routine=rk_init,
         diffusion_model=diffusion,
     )
 
