@@ -98,6 +98,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         mean = mean.astype(dtype, order="C", casting="safe", copy=False)
         cov = cov.astype(dtype, order="C", casting="safe", copy=False)
 
+        if config.statespace_use_linops and not isinstance(cov, linops.LinearOperator):
+            raise RuntimeError(
+                f"Received type {type(cov)} instead of LinearOperator as cov."
+            )
+
         # Shape checking
         if not 0 <= mean.ndim <= 2:
             raise ValueError(
@@ -255,7 +260,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             damping_factor = config.covariance_inversion_damping
         if self.cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
-        self._cov_cholesky = self._compute_cov_cholesky(damping_factor=damping_factor)
+        _cov_chol = self._compute_cov_cholesky(damping_factor=damping_factor)
+        if config.statespace_use_linops and not isinstance(
+            _cov_chol, linops.LinearOperator
+        ):
+            _cov_chol = linops.aslinop(_cov_chol)
+        self._cov_cholesky = _cov_chol
 
     @property
     def cov_cholesky_is_precomputed(self) -> bool:
