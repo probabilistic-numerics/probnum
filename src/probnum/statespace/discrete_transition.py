@@ -326,7 +326,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            if config.statespace_use_linops:
+            if not config.prefer_dense_arrays:
                 gain_T = new_cov.T.inv() @ crosscov.T
                 gain = gain_T.T
             else:
@@ -338,7 +338,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         self, rv, t, compute_gain=False, _diffusion=1.0
     ) -> Tuple[randvars.RandomVariable, typing.Dict]:
 
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             raise RuntimeError("Sqrt-implementation does not work with linops for now.")
 
         H = self.state_trans_mat_fun(t)
@@ -376,7 +376,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         """
         # forwarded_rv is ignored in square-root smoothing.
 
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             raise RuntimeError("Sqrt-implementation does not work with linops for now.")
 
         # Smoothing updates need the gain, but

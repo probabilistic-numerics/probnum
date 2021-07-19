@@ -87,7 +87,7 @@ class TestIBMLinOps(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        with probnum_config(statespace_use_linops=True):
+        with probnum_config(prefer_dense_arrays=False):
             self.transition = statespace.IBM(
                 ordint=self.some_ordint,
                 spatialdim=spatialdim,

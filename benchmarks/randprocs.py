@@ -12,7 +12,7 @@ class MarkovProcessSampling:
     params = [[True, False], [10], [10], [5], [50, 100]]
 
     def setup(self, use_linops, num_samples, len_trajectory, order, dimension):
-        with config(statespace_use_linops=use_linops):
+        with config(prefer_dense_arrays=not use_linops):
             dynamics = statespace.IBM(
                 ordint=order,
                 spatialdim=dimension,
@@ -39,7 +39,7 @@ class MarkovProcessSampling:
             )
 
     def time_sample(self, use_linops, num_samples, len_trajectory, order, dimension):
-        with config(statespace_use_linops=use_linops):
+        with config(prefer_dense_arrays=not use_linops):
             for base_measure_real in self.base_measure_realizations:
                 self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_measure_real,

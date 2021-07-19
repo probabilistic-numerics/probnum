@@ -73,7 +73,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             np.promote_types(self._support.dtype, np.float_)
         )
 
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             zero_cov = (
                 0.0 * linops.Identity(self._support.size)
                 if self._support.ndim > 0

@@ -128,12 +128,12 @@ _DEFAULT_CONFIG_OPTIONS = [
         ),
     ),
     (
-        "statespace_use_linops",
-        False,
+        "prefer_dense_arrays",
+        True,
         (
             "Whether or not to use ``LinearOperator``s for computations in "
-            "``statespace``. If ``True``, wherever possible, lazy computations are "
-            "preferred."
+            "``statespace``, instead of NumPy arrays. If ``False``, "
+            "wherever possible, lazy computations are preferred."
         ),
     ),
 ]

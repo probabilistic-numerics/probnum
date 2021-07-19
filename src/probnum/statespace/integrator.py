@@ -185,7 +185,7 @@ class IBM(Integrator, sde.LTISDE):
     @cached_property
     def _driftmat(self):
         driftmat_1d = np.diag(np.ones(self.ordint), 1)
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             return linops.Kronecker(
                 A=linops.Identity(self.spatialdim), B=linops.Matrix(A=driftmat_1d)
             )
@@ -200,7 +200,7 @@ class IBM(Integrator, sde.LTISDE):
         dispmat_1d = np.zeros(self.ordint + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
 
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             return linops.Kronecker(
                 A=linops.Identity(self.spatialdim),
                 B=linops.Matrix(A=dispmat_1d.reshape(-1, 1)),
@@ -221,7 +221,7 @@ class IBM(Integrator, sde.LTISDE):
         state_transition_1d = np.flip(
             scipy.linalg.pascal(self.ordint + 1, kind="lower", exact=False)
         )
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             state_transition = linops.Kronecker(
                 A=linops.Identity(self.spatialdim),
                 B=linops.aslinop(state_transition_1d),
@@ -229,7 +229,7 @@ class IBM(Integrator, sde.LTISDE):
         else:
             state_transition = np.kron(np.eye(self.spatialdim), state_transition_1d)
         process_noise_1d = np.flip(scipy.linalg.hilbert(self.ordint + 1))
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             process_noise = linops.Kronecker(
                 A=linops.Identity(self.spatialdim), B=linops.aslinop(process_noise_1d)
             )
@@ -238,7 +238,7 @@ class IBM(Integrator, sde.LTISDE):
         empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
 
         process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
-        if config.statespace_use_linops:
+        if not config.prefer_dense_arrays:
             process_noise_cholesky = linops.Kronecker(
                 A=linops.Identity(self.spatialdim),
                 B=linops.aslinop(process_noise_cholesky_1d),

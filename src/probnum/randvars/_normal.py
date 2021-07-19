@@ -98,7 +98,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         mean = mean.astype(dtype, order="C", casting="safe", copy=False)
         cov = cov.astype(dtype, order="C", casting="safe", copy=False)
 
-        if config.statespace_use_linops and not isinstance(cov, linops.LinearOperator):
+        if not config.prefer_dense_arrays and not isinstance(
+            cov, linops.LinearOperator
+        ):
             raise RuntimeError(
                 f"Received type {type(cov)} instead of LinearOperator as cov."
             )
@@ -261,7 +263,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         if self.cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
         _cov_chol = self._compute_cov_cholesky(damping_factor=damping_factor)
-        if config.statespace_use_linops and not isinstance(
+        if not config.prefer_dense_arrays and not isinstance(
             _cov_chol, linops.LinearOperator
         ):
             _cov_chol = linops.aslinop(_cov_chol)
