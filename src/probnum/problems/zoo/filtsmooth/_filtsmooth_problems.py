@@ -569,6 +569,7 @@ def logistic_ode(
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
+
     measurement_model = filtsmooth.gaussian.approx.DiscreteEKFComponent.from_ode(
         logistic_ivp,
         prior=dynamics_model,
