@@ -28,7 +28,7 @@ class InitializationRoutine(abc.ABC):
     def __call__(
         self, ivp: problems.InitialValueProblem, prior_process: randprocs.MarkovProcess
     ) -> randvars.RandomVariable:
-        pass
+        raise NotImplementedError
 
     @property
     def is_exact(self) -> bool:

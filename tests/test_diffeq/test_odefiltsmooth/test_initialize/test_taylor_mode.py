@@ -1,4 +1,4 @@
-"""Tests for Runge-Kutta initialization."""
+"""Tests for Taylor-mode initialization."""
 import numpy as np
 import pytest
 
