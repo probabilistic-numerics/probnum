@@ -1,5 +1,6 @@
 """Benchmarks for random processes."""
 import numpy as np
+import scipy.stats
 
 from probnum import config, randprocs, randvars, statespace
 
@@ -8,7 +9,7 @@ class MarkovProcessSampling:
     """Benchmark sampling from Markov processes."""
 
     param_names = ["use_linops", "num_samples", "len_trajectory", "order", "dimension"]
-    params = [[True, False], [1000], [100], [2], [10]]
+    params = [[True, False], [10], [10], [5], [50]]
 
     def setup(self, use_linops, num_samples, len_trajectory, order, dimension):
         with config(statespace_use_linops=use_linops):
@@ -26,10 +27,22 @@ class MarkovProcessSampling:
 
         time_domain = (0.0, float(len_trajectory))
         self.time_grid = np.arange(*time_domain)
-        self.prior_process = randprocs.MarkovProcess(
+        self.markov_process = randprocs.MarkovProcess(
             initarg=time_domain[0], initrv=initrv, transition=dynamics
         )
-        self.rng = np.random.default_rng(seed=1)
+
+        rng = np.random.default_rng(seed=1)
+        self.base_measure_realizations = scipy.stats.norm.rvs(
+            size=((num_samples,) + self.time_grid.shape + initrv.shape),
+            random_state=rng,
+        )
 
     def time_sample(self, use_linops, num_samples, len_trajectory, order, dimension):
-        self.prior_process.sample(self.rng, args=self.time_grid, size=num_samples)
+
+        for base_measure_real in self.base_measure_realizations:
+            self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
+                base_measure_realizations=base_measure_real,
+                t=self.time_grid,
+                initrv=self.markov_process.initrv,
+                _diffusion_list=np.ones_like(self.time_grid[:-1]),
+            )
