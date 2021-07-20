@@ -9,15 +9,13 @@ from tests.test_diffeq.test_odefiltsmooth.test_information_operators import (
 )
 
 
-class TestExplicitODEResidual(
-    _information_operator_test_inferface.ODEInformationOperatorTest
-):
+class TestODEResidual(_information_operator_test_inferface.ODEInformationOperatorTest):
     @pytest.fixture(autouse=True)
     def _setup(self):
         prior_ordint = 3
         prior_spatialdim = 2
 
-        self.info_op = diffeq.odefiltsmooth.information_operators.ExplicitODEResidual(
+        self.info_op = diffeq.odefiltsmooth.information_operators.ODEResidual(
             prior_ordint=prior_ordint, prior_spatialdim=prior_spatialdim
         )
         self.initial_rv = randvars.Normal(

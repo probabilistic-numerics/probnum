@@ -4,12 +4,12 @@
 from probnum import statespace
 from probnum.diffeq.odefiltsmooth.information_operators import _information_operator
 
-__all__ = ["ExplicitODEResidual"]
+__all__ = ["ODEResidual"]
 
 # Implicit ODE Residuals might be done somewhere else?!
 # The advantage would be that the EK0 could throw errors as soon
 # as the to-be-linearized information operator is not the residual of an explicit ODE.
-class ExplicitODEResidual(_information_operator.ODEInformationOperator):
+class ODEResidual(_information_operator.ODEInformationOperator):
     """Information operator that measures the residual of an explicit ODE."""
 
     def __init__(self, prior_ordint, prior_spatialdim):

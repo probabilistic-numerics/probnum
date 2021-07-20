@@ -35,7 +35,7 @@ class EK0(_approx_strategy.ApproximationStrategy):
         self.backward_implementation = backward_implementation
 
     def __call__(
-        self, information_operator: information_operators.ExplicitODEResidual
+        self, information_operator: information_operators.ODEResidual
     ) -> statespace.DiscreteGaussian:
 
         if not information_operator.ode_has_been_incorporated:
@@ -53,7 +53,7 @@ class EK0(_approx_strategy.ApproximationStrategy):
             solution=ode.solution,
         )
 
-        ek0_information_operator = information_operators.ExplicitODEResidual(
+        ek0_information_operator = information_operators.ODEResidual(
             prior_ordint=information_operator.prior_ordint,
             prior_spatialdim=information_operator.prior_spatialdim,
         )
