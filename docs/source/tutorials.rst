@@ -23,8 +23,12 @@ Features of ProbNum
 Linear Solvers
 --------------
 
-Linear algebra is fundamental to arguably most of scientific computation. ProbNum defines (finite-dimensional) linear
-operators in a memory-efficient manner and implements probabilistic numerical methods to solve linear systems.
+Solving linear systems is arguable one of the most fundamental computations in statistics and machine learning
+as linear systems appear as (part of) the solution or as intermediate computation during inference or during
+the training of models.
+ProbNum provides a set linear solvers that infer either the inverse matrix, or the solution
+vector directly and quantify the uncertainty of the solution.
+
 
 .. nbgallery::
    :caption: Linear Solvers
