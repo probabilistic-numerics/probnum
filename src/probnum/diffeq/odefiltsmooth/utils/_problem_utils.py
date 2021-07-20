@@ -29,6 +29,8 @@ def ivp_to_regression_problem(
     else:
         solution = None
 
+    ode_information_operator.incorporate_ode(ivp)
+
     # Construct measurement models
     measmod_initial_condition, measmod_ode = _construct_measurement_models(
         ivp, ode_information_operator, approx_strategy, ode_measurement_variance

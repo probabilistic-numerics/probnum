@@ -44,7 +44,6 @@ def test_ivp_to_regression_problem(
 ):
     """Test all possible parametrizations of ivp_to_regression_problem."""
     # Call function
-    ode_information_operator.incorporate_ode(ode=ivp)
     regprob = diffeq.odefiltsmooth.utils.ivp_to_regression_problem(
         ivp=ivp,
         locations=locations,
