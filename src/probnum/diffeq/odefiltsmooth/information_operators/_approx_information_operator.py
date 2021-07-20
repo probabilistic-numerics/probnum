@@ -7,7 +7,18 @@ __all__ = ["ApproximateInformationOperator"]
 
 
 class ApproximateInformationOperator(_information_operator.InformationOperator):
-    """Approximate information operators."""
+    """Approximate information operators.
+
+    An approximate information operator is a version of an information operator that
+    differs from its non-approximated operator in two ways:
+
+    1) When it is transformed into a transition, the output is an approximate transition such as an EKF component.
+    2) The Jacobian might be different to the Jacobian of the original version.
+
+    Approximate information operators are returned by approximation strategies such as EK0 and EK1.
+    For instance, the EK0 changes the Jacobian of the information operator
+    (in the sense that it sets the Jacobian of the ODE vector field to zero).
+    """
 
     def __init__(
         self,

@@ -3,7 +3,9 @@
 import pytest
 
 from probnum import diffeq, filtsmooth, statespace
-from tests.test_diffeq.test_odefiltsmooth.test_approx import _approx_test_interface
+from tests.test_diffeq.test_odefiltsmooth.test_approx_strategies import (
+    _approx_test_interface,
+)
 
 
 class TestEK0(_approx_test_interface.ApproximationStrategyTest):
@@ -23,7 +25,13 @@ class TestEK0(_approx_test_interface.ApproximationStrategyTest):
         self.info_op.incorporate_ode(ode=fitzhughnagumo)
 
         called = self.approx_strategy(self.info_op)
-        assert isinstance(called, statespace.DiscreteGaussian)
+        assert isinstance(
+            called,
+            diffeq.odefiltsmooth.information_operators.ApproximateInformationOperator,
+        )
+        assert isinstance(
+            called.as_transition(), filtsmooth.gaussian.approx.DiscreteEKFComponent
+        )
 
 
 class TestEK1(_approx_test_interface.ApproximationStrategyTest):
@@ -43,5 +51,10 @@ class TestEK1(_approx_test_interface.ApproximationStrategyTest):
         self.info_op.incorporate_ode(ode=fitzhughnagumo)
 
         called = self.approx_strategy(self.info_op)
-        assert isinstance(called, statespace.DiscreteGaussian)
-        assert isinstance(called, filtsmooth.gaussian.approx.DiscreteEKFComponent)
+        assert isinstance(
+            called,
+            diffeq.odefiltsmooth.information_operators.ApproximateInformationOperator,
+        )
+        assert isinstance(
+            called.as_transition(), filtsmooth.gaussian.approx.DiscreteEKFComponent
+        )

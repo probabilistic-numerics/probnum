@@ -21,6 +21,9 @@ class EK1(_approx_strategy.ApproximationStrategy):
         self, information_operator: information_operators.InformationOperator
     ) -> information_operators.ApproximateInformationOperator:
 
+        if not information_operator.ode_has_been_incorporated:
+            raise ValueError
+
         return information_operators.ApproximateInformationOperator(
             information_operator=information_operator,
             forward_implementation=self.forward_implementation,
