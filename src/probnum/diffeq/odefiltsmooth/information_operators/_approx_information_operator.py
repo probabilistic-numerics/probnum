@@ -26,6 +26,10 @@ class ApproximateInformationOperator(_information_operator.InformationOperator):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     ):
+        super().__init__(
+            input_dim=information_operator.input_dim,
+            output_dim=information_operator.output_dim,
+        )
         self.information_operator = information_operator
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
