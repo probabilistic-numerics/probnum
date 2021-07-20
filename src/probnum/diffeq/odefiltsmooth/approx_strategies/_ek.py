@@ -19,8 +19,13 @@ class EK1(_approx_strategy.ApproximationStrategy):
 
     def __call__(
         self, information_operator: information_operators.InformationOperator
-    ) -> statespace.DiscreteGaussian:
-        return information_operator.as_ekf_component()
+    ) -> information_operators.ApproximateInformationOperator:
+
+        return information_operators.ApproximateInformationOperator(
+            information_operator=information_operator,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
+        )
 
 
 class EK0(_approx_strategy.ApproximationStrategy):
@@ -35,8 +40,8 @@ class EK0(_approx_strategy.ApproximationStrategy):
         self.backward_implementation = backward_implementation
 
     def __call__(
-        self, information_operator: information_operators.ODEResidual
-    ) -> statespace.DiscreteGaussian:
+        self, information_operator: information_operators.InformationOperator
+    ) -> information_operators.ApproximateInformationOperator:
 
         if not information_operator.ode_has_been_incorporated:
             raise ValueError
@@ -57,5 +62,9 @@ class EK0(_approx_strategy.ApproximationStrategy):
             prior_ordint=information_operator.prior_ordint,
             prior_spatialdim=information_operator.prior_spatialdim,
         )
-        ek0_information_operator.incorporate_ode(new_ivp)
-        return ek0_information_operator.as_ekf_component()
+        ek0_information_operator.incorporate_ode(ode=new_ivp)
+        return information_operators.ApproximateInformationOperator(
+            information_operator=ek0_information_operator,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
+        )

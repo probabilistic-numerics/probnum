@@ -108,7 +108,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             prior_process=self.prior_process,
         )
 
-        self.measurement_model = self.approx_strategy(self.information_operator)
+        self.measurement_model = self.approx_strategy(
+            self.information_operator
+        ).as_transition()
         return self.ivp.t0, initrv
 
     @property
