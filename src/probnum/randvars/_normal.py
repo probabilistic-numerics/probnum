@@ -98,13 +98,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         mean = mean.astype(dtype, order="C", casting="safe", copy=False)
         cov = cov.astype(dtype, order="C", casting="safe", copy=False)
 
-        if not config.prefer_dense_arrays and not isinstance(
-            cov, linops.LinearOperator
-        ):
-            raise TypeError(
-                f"Received type {type(cov)} instead of LinearOperator as cov."
-            )
-
         # Shape checking
         if not 0 <= mean.ndim <= 2:
             raise ValueError(
@@ -182,38 +175,45 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                         cov.dtype, casting="safe", copy=False
                     )
 
-            if isinstance(cov, linops.SymmetricKronecker):
-                m, n = mean.shape
+            if cov_operator:
+                if isinstance(cov, linops.SymmetricKronecker):
+                    m, n = mean.shape
 
-                if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
-                    raise ValueError(
-                        "Normal distributions with symmetric Kronecker structured "
-                        "kernels must have square mean and square kernels factors with "
-                        "matching dimensions."
-                    )
+                    if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
+                        raise ValueError(
+                            "Normal distributions with symmetric Kronecker structured "
+                            "kernels must have square mean and square kernels factors with "
+                            "matching dimensions."
+                        )
 
-                if cov.identical_factors:
-                    sample = self._symmetric_kronecker_identical_factors_sample
+                    if cov.identical_factors:
+                        sample = self._symmetric_kronecker_identical_factors_sample
 
-                    # pylint: disable=redefined-variable-type
-                    compute_cov_cholesky = (
-                        self._symmetric_kronecker_identical_factors_cov_cholesky
-                    )
-            elif isinstance(cov, linops.Kronecker):
-                m, n = mean.shape
+                        # pylint: disable=redefined-variable-type
+                        compute_cov_cholesky = (
+                            self._symmetric_kronecker_identical_factors_cov_cholesky
+                        )
+                elif isinstance(cov, linops.Kronecker):
+                    m, n = mean.shape
 
-                if (
-                    m != cov.A.shape[0]
-                    or m != cov.A.shape[1]
-                    or n != cov.B.shape[0]
-                    or n != cov.B.shape[1]
-                ):
-                    raise ValueError(
-                        "Kronecker structured kernels must have factors with the same "
-                        "shape as the mean."
-                    )
+                    if (
+                        m != cov.A.shape[0]
+                        or m != cov.A.shape[1]
+                        or n != cov.B.shape[0]
+                        or n != cov.B.shape[1]
+                    ):
+                        raise ValueError(
+                            "Kronecker structured kernels must have factors with the same "
+                            "shape as the mean."
+                        )
 
-                compute_cov_cholesky = self._kronecker_cov_cholesky
+                    compute_cov_cholesky = self._kronecker_cov_cholesky
+
+                else:
+                    # This case handles all linear operators, for which no Cholesky
+                    # factorization is implemented, yet.
+                    # Computes the dense Cholesky and converts it to a LinearOperator.
+                    compute_cov_cholesky = self._assure_linop_cov_cholesky
 
         else:
             raise ValueError(
@@ -262,12 +262,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             damping_factor = config.covariance_inversion_damping
         if self.cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
-        _cov_chol = self._compute_cov_cholesky(damping_factor=damping_factor)
-        if not config.prefer_dense_arrays and not isinstance(
-            _cov_chol, linops.LinearOperator
-        ):
-            _cov_chol = linops.aslinop(_cov_chol)
-        self._cov_cholesky = _cov_chol
+        self._cov_cholesky = self._compute_cov_cholesky(damping_factor=damping_factor)
 
     @property
     def cov_cholesky_is_precomputed(self) -> bool:
@@ -547,6 +542,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             ),
             dtype=np.float_,
         )
+
+    def _assure_linop_cov_cholesky(
+        self, damping_factor: FloatArgType
+    ) -> linops.LinearOperator:
+        return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
 
     # Matrixvariate Gaussian with Kronecker covariance
     def _kronecker_cov_cholesky(
