@@ -4,7 +4,7 @@ Make an intractable information operator tractable with local linearization.
 """
 import numpy as np
 
-from probnum import problems, statespace
+from probnum import problems
 from probnum.diffeq.odefiltsmooth import information_operators
 from probnum.diffeq.odefiltsmooth.approx_strategies import _approx_strategy
 

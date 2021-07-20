@@ -17,6 +17,7 @@ def ivp_to_regression_problem(
     ode_information_operator: information_operators.InformationOperator,
     approx_strategy: Optional[approx_strategies.ApproximationStrategy] = None,
     ode_measurement_variance: Optional[FloatArgType] = None,
+    exclude_initial_condition=False,
 ):
     """Transform an initial value problem into a regression problem."""
 
@@ -24,7 +25,7 @@ def ivp_to_regression_problem(
     N = len(locations)
     data = np.zeros((N, ivp.dimension))
     if ivp.solution is not None:
-        solution = [ivp.solution(t) for t in locations]
+        solution = np.stack([ivp.solution(t) for t in locations])
     else:
         solution = None
 
@@ -32,7 +33,11 @@ def ivp_to_regression_problem(
     measmod_initial_condition, measmod_ode = _construct_measurement_models(
         ivp, ode_information_operator, approx_strategy, ode_measurement_variance
     )
-    measmod_list = [measmod_initial_condition] + [measmod_ode] * (N - 1)
+
+    if exclude_initial_condition:
+        measmod_list = [measmod_ode] * N
+    else:
+        measmod_list = [measmod_initial_condition] + [measmod_ode] * (N - 1)
 
     # Return regression problem
     return problems.TimeSeriesRegressionProblem(

@@ -2,7 +2,7 @@
 
 import abc
 
-from probnum import filtsmooth, statespace
+from probnum import statespace
 
 __all__ = ["InformationOperator", "ODEInformationOperator"]
 

@@ -2,7 +2,6 @@
 
 import abc
 
-from probnum import statespace
 from probnum.diffeq.odefiltsmooth import information_operators
 
 

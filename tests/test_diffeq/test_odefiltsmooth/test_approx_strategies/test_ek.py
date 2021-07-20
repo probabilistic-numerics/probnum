@@ -2,7 +2,7 @@
 
 import pytest
 
-from probnum import diffeq, filtsmooth, statespace
+from probnum import diffeq, filtsmooth
 from tests.test_diffeq.test_odefiltsmooth.test_approx_strategies import (
     _approx_test_interface,
 )

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, filtsmooth, randvars, statespace
+from probnum import diffeq, randvars, statespace
 from tests.test_diffeq.test_odefiltsmooth.test_information_operators import (
     _information_operator_test_inferface,
 )

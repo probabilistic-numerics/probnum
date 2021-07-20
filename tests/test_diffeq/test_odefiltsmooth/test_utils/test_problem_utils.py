@@ -25,6 +25,7 @@ def ode_information_operator():
     "ivp", [diffeq_zoo.lotkavolterra(), diffeq_zoo.fitzhughnagumo()]
 )
 @pytest.mark.parametrize("ode_measurement_variance", [None, 1.0])
+@pytest.mark.parametrize("exclude_initial_condition", [True, False])
 @pytest.mark.parametrize(
     "approx_strategy",
     [
@@ -34,7 +35,12 @@ def ode_information_operator():
     ],
 )
 def test_ivp_to_regression_problem(
-    ivp, locations, ode_information_operator, approx_strategy, ode_measurement_variance
+    ivp,
+    locations,
+    ode_information_operator,
+    approx_strategy,
+    ode_measurement_variance,
+    exclude_initial_condition,
 ):
 
     ode_information_operator.incorporate_ode(ode=ivp)
@@ -44,15 +50,21 @@ def test_ivp_to_regression_problem(
         ode_information_operator=ode_information_operator,
         approx_strategy=approx_strategy,
         ode_measurement_variance=ode_measurement_variance,
+        exclude_initial_condition=exclude_initial_condition,
     )
     assert isinstance(regprob, problems.TimeSeriesRegressionProblem)
     assert len(regprob.locations) == len(locations)
     assert len(regprob.locations) == len(locations)
     assert len(regprob.measurement_models) == len(locations)
-    assert isinstance(regprob.measurement_models[0], statespace.DiscreteLTIGaussian)
-    assert isinstance(regprob.measurement_models[0], statespace.DiscreteLTIGaussian)
     assert isinstance(regprob.measurement_models[1], statespace.DiscreteGaussian)
     assert isinstance(regprob.measurement_models[-1], statespace.DiscreteGaussian)
+
+    if exclude_initial_condition:
+        assert isinstance(regprob.measurement_models[0], statespace.DiscreteGaussian)
+        assert isinstance(regprob.measurement_models[0], statespace.DiscreteGaussian)
+    else:
+        assert isinstance(regprob.measurement_models[0], statespace.DiscreteLTIGaussian)
+        assert isinstance(regprob.measurement_models[0], statespace.DiscreteLTIGaussian)
 
     if ode_measurement_variance is not None:
         cov = regprob.measurement_models[1].proc_noise_cov_mat_fun(locations[0])
