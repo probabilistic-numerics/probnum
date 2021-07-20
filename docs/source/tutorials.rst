@@ -29,7 +29,6 @@ operators in a memory-efficient manner and implements probabilistic numerical me
 .. nbgallery::
    :caption: Linear Solvers
 
-   tutorials/linalg/linear_operators
    tutorials/linalg/linear_systems
    tutorials/linalg/galerkin_method
 
@@ -64,6 +63,7 @@ Gaussian filtering and smoothing in more complex dynamical systems.
    tutorials/filtsmooth/nonlinear_gaussian_filtering_smoothing
    tutorials/filtsmooth/particle_filtering
 
+
 Linear Operators
 ----------------
 
@@ -76,8 +76,6 @@ operators in a memory-efficient manner that are use  implements probabilistic nu
    tutorials/linalg/linear_operators
 
 
-
-
 Probability
 -----------
 
@@ -88,8 +86,6 @@ distribution. A probabilistic numerical method takes random variables as inputs 
    :caption: Probability
 
    tutorials/prob/random_variables
-
-
 
 
 .. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?style=flat-square&logo=Jupyter&logoColor=white
