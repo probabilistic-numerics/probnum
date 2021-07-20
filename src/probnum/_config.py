@@ -131,9 +131,9 @@ _DEFAULT_CONFIG_OPTIONS = [
         "prefer_dense_arrays",
         True,
         (
-            "Whether or not to use ``LinearOperator``s for computations in "
-            "``statespace``, instead of NumPy arrays. If ``False``, "
-            "wherever possible, lazy computations are preferred."
+            "Whether or not to use ``LinearOperator``s for computations instead of "
+            "NumPy arrays. LinearOperators can lazify linear algebra operations. "
+            "If ``False``, wherever possible, lazy computations are preferred."
         ),
     ),
 ]
