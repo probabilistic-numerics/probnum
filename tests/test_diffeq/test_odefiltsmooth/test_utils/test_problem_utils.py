@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, problems, statespace
+from probnum import diffeq, filtsmooth, problems, randvars, statespace
 from probnum.problems.zoo import diffeq as diffeq_zoo
 
 
@@ -61,3 +61,18 @@ def test_ivp_to_regression_problem(
         )
         assert np.linalg.norm(cov > 0.0)
         assert np.linalg.norm(cov_cholesky > 0.0)
+
+    if approx_strategy is not None:
+        assert isinstance(
+            regprob.measurement_models[1],
+            filtsmooth.gaussian.approx.DiscreteEKFComponent,
+        )
+        assert isinstance(
+            regprob.measurement_models[-1],
+            filtsmooth.gaussian.approx.DiscreteEKFComponent,
+        )
+
+        mm = regprob.measurement_models[1]  # should know forward_rv
+        rv = randvars.Normal(np.zeros(mm.input_dim), cov=np.eye(mm.input_dim))
+        new_rv, _ = mm.forward_rv(rv, t=locations[0])
+        assert isinstance(new_rv, randvars.RandomVariable)
