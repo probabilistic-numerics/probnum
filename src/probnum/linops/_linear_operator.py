@@ -13,6 +13,8 @@ BinaryOperandType = Union[
     "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
 ]
 
+# pylint: disable="too-many-lines"
+
 
 class LinearOperator:
     r"""Composite base class for finite-dimensional linear operators.

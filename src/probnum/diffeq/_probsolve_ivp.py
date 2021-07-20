@@ -31,7 +31,7 @@ def probsolve_ivp(
     step=None,
     diffusion_model="dynamic",
 ):
-    r"""Solve an initial value problem with a (filtering-based) probabilistic ODE solver.
+    r"""Solve an initial value problem with a filtering-based probabilistic ODE solver.
 
     Numerically computes a Gauss-Markov process which solves numerically
     the initial value problem (IVP) based on a system of first order
@@ -91,7 +91,7 @@ def probsolve_ivp(
     step :
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
-        Default is None, in which case the first step is chosen as :math:`0.01 \cdot |y_0|/|f(t_0, y_0)|`.
+        Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
     algo_order
         Order of the algorithm. This amounts to choosing the order of integration (``ordint``) of an integrated Brownian motion prior.
         For too high orders, process noise covariance matrices become singular. For IBM, this maximum seems to be :`q=11` (using standard ``float64``).
@@ -174,11 +174,11 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import probsolve_ivp
-    >>> from probnum import randvars
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.
 
+    >>>
     >>> def f(t, x):
     ...     return 4*x*(1-x)
     >>>
@@ -275,11 +275,14 @@ def probsolve_ivp(
     measmod = odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
         method, ivp, prior_process
     )
-    solver = odefiltsmooth.GaussianIVPFilter.construct_with_rk_init(
-        ivp,
-        prior_process,
-        measmod,
+
+    rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+    solver = odefiltsmooth.GaussianIVPFilter(
+        ivp=ivp,
+        prior_process=prior_process,
+        measurement_model=measmod,
         with_smoothing=dense_output,
+        initialization_routine=rk_init,
         diffusion_model=diffusion,
     )
 

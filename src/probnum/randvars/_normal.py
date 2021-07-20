@@ -27,6 +27,9 @@ except ImportError:
 _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
 
+# pylint: disable="too-complex"
+
+
 class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     """Random variable with a normal distribution.
 
