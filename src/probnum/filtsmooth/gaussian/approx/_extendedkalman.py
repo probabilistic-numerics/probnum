@@ -4,8 +4,6 @@ through Taylor-method approximations, e.g. linearization."""
 import abc
 from typing import Dict, Tuple
 
-import numpy as np
-
 from probnum import randvars, statespace
 
 
