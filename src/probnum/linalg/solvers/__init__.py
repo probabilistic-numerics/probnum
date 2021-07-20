@@ -1,8 +1,8 @@
 """Probabilistic linear solvers.
 
-Compositional implementation of probabilistic linear solvers. The
-classes and methods in this subpackage allow the creation of custom
-iterative methods for the solution of linear systems.
+Compositional implementation of probabilistic linear solvers. The classes and methods in
+this subpackage allow the creation of custom iterative methods for the solution of
+linear systems.
 """
 
 from probnum.linalg.solvers.matrixbased import (
@@ -10,7 +10,7 @@ from probnum.linalg.solvers.matrixbased import (
     SymmetricMatrixBasedSolver,
 )
 
-from . import beliefs, policies
+from . import beliefs, information_ops, policies
 from ._probabilistic_linear_solver import ProbabilisticLinearSolver
 from ._state import ProbabilisticLinearSolverState
 
