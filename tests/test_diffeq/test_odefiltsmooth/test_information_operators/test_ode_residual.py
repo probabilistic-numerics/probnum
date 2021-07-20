@@ -69,49 +69,6 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
                 measurement_cov_cholesky_fun=meascov_cholesky_fun,
             )
 
-    @pytest.mark.parametrize("forw_impl", ["sqrt", "classic"])
-    @pytest.mark.parametrize("backw_impl", ["sqrt", "classic", "joseph"])
-    def test_as_ekf_component(self, fitzhughnagumo, forw_impl, backw_impl):
-        # Nothin happens unless an ODE has been incorporated
-        with pytest.raises(ValueError):
-            self.info_op.as_ekf_component()
-
-        # Basic functionality works
-        self.info_op.incorporate_ode(ode=fitzhughnagumo)
-        ekf_component = self.info_op.as_ekf_component()
-        assert isinstance(
-            ekf_component, filtsmooth.gaussian.approx.DiscreteEKFComponent
-        )
-
-        # meascov-fun and meascov-cholesky-fun accepted
-        meascov_fun = lambda t: np.eye(self.info_op.output_dim)
-        meascov_cholesky_fun = lambda t: np.eye(self.info_op.output_dim)
-        ekf_component = self.info_op.as_ekf_component(
-            measurement_cov_fun=meascov_fun,
-            measurement_cov_cholesky_fun=meascov_cholesky_fun,
-        )
-        assert isinstance(
-            ekf_component, filtsmooth.gaussian.approx.DiscreteEKFComponent
-        )
-        assert np.linalg.norm(ekf_component.proc_noise_cov_cholesky_fun(0.0)) > 0.0
-        assert np.linalg.norm(ekf_component.proc_noise_cov_mat_fun(0.0)) > 0.0
-
-        # Only meascov-fun accepted
-        ekf_component = self.info_op.as_ekf_component(
-            measurement_cov_fun=meascov_fun, measurement_cov_cholesky_fun=None
-        )
-        assert isinstance(
-            ekf_component, filtsmooth.gaussian.approx.DiscreteEKFComponent
-        )
-        assert np.linalg.norm(ekf_component.proc_noise_cov_mat_fun(0.0)) > 0.0
-
-        # Only meascov-cholesky-fun rejected
-        with pytest.raises(ValueError):
-            self.info_op.as_ekf_component(
-                measurement_cov_fun=None,
-                measurement_cov_cholesky_fun=meascov_cholesky_fun,
-            )
-
     def test_incorporate_ode(self, fitzhughnagumo):
         self.info_op.incorporate_ode(ode=fitzhughnagumo)
         assert self.info_op.ode == fitzhughnagumo

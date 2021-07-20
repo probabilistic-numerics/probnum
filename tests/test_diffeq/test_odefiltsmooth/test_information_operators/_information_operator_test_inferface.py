@@ -20,10 +20,6 @@ class InformationOperatorTest(abc.ABC):
     def test_as_transition(self):
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def test_as_ekf_component(self):
-        raise NotImplementedError
-
 
 class ODEInformationOperatorTest(InformationOperatorTest):
     @abc.abstractmethod
