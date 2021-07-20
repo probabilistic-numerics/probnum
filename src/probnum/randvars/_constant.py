@@ -73,13 +73,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             np.promote_types(self._support.dtype, np.float_)
         )
 
-        if not config.prefer_dense_arrays:
-            zero_cov = (
-                0.0 * linops.Identity(self._support.size)
-                if self._support.ndim > 0
-                else np.zeros(shape=())
-            )
-        else:
+        if config.prefer_dense_arrays:
             zero_cov = np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 support_floating,
                 shape=(
@@ -87,6 +81,12 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
                     if self._support.ndim > 0
                     else ()
                 ),
+            )
+        else:
+            zero_cov = (
+                linops.Scaling(0.0, shape=((self._support.size, self._support.size)))
+                if self._support.ndim > 0
+                else np.zeros(shape=())
             )
 
         super().__init__(
