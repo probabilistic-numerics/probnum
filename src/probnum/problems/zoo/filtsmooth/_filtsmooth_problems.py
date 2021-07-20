@@ -572,7 +572,6 @@ def logistic_ode(
     ode_residual = diffeq.odefiltsmooth.information_operators.ODEResidual(
         prior_ordint=order, prior_spatialdim=logistic_ivp.dimension
     )
-    ode_residual.incorporate_ode(logistic_ivp)
     if ek0_or_ek1 == 0:
         ek = diffeq.odefiltsmooth.approx_strategies.EK0()
     else:
