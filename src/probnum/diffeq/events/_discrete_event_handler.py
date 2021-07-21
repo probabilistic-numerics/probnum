@@ -26,13 +26,11 @@ class DiscreteEventHandler(_event_handler.EventHandler):
 
     def __init__(self, time_stamps, condition=None, modify=None):
 
-        self.condition_has_been_provided = condition is not None
-        if not self.condition_has_been_provided:
+        if condition is None:
             condition = lambda x: False
         super().__init__(condition=condition)
 
-        self.modify_has_been_provided = modify is not None
-        if not self.modify_has_been_provided:
+        if modify is None:
             modify = lambda x: x
         self.modify = modify
 
