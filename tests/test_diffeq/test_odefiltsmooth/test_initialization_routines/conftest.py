@@ -3,7 +3,7 @@ import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import statespace
-from tests.test_diffeq.test_odefiltsmooth.test_initialize.utils import (
+from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines.utils import (
     _known_initial_derivatives,
 )
 

@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from probnum import diffeq, randvars
-from tests.test_diffeq.test_odefiltsmooth.test_initialize import (
+from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines import (
     _interface_initialize_test,
 )
 
