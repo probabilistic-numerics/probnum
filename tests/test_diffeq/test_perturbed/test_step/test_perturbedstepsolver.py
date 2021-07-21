@@ -51,11 +51,12 @@ def list_of_randvars():
 
 def test_initialise(solvers):
     testsolver, perturbedsolver = solvers
-    time, state = perturbedsolver.initialize()
+    # time, state = perturbedsolver.initialize()
+    state = perturbedsolver.initialize()
     time_scipy = testsolver.solver.t
     state_scipy = testsolver.solver.y
-    np.testing.assert_allclose(time, time_scipy, atol=1e-14, rtol=1e-14)
-    np.testing.assert_allclose(state.mean[0], state_scipy[0], atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(state.t, time_scipy, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(state.rv.mean[0], state_scipy[0], atol=1e-14, rtol=1e-14)
 
 
 def test_step(solvers, start_point, stop_point, y):
@@ -67,25 +68,40 @@ def test_step(solvers, start_point, stop_point, y):
 
     _, perturbedsolver = solvers
     perturbedsolver.initialize()
-    first_step, _, _ = perturbedsolver.step(start_point, stop_point, y)
-    perturbed_y_1, perturbed_error_estimation_1, _ = perturbedsolver.step(
-        stop_point, stop_point + start_point, y + first_step
+
+    test_state = perturbedsolver.State(
+        rv=y, t=start_point, error_estimate=None, reference_state=None
     )
+    step_after_first_step = perturbedsolver.step(
+        test_state, dt=stop_point - start_point
+    )
+    perturbed_y_1 = perturbedsolver.step(
+        step_after_first_step, dt=stop_point - start_point
+    )
+
     perturbedsolver.initialize()
-    first_step, _, _ = perturbedsolver.step(start_point, stop_point, y)
-    perturbed_y_2, perturbed_error_estimation_2, _ = perturbedsolver.step(
-        stop_point, stop_point + start_point, y + first_step
+    test_state = perturbedsolver.State(
+        rv=y, t=start_point, error_estimate=None, reference_state=None
     )
-    np.testing.assert_allclose(
-        perturbed_y_1.mean, perturbed_y_2.mean, atol=1e-4, rtol=1e-4
+
+    step_after_first_step = perturbedsolver.step(
+        test_state, dt=stop_point - start_point
     )
+    perturbed_y_2 = perturbedsolver.step(
+        step_after_first_step, dt=stop_point - start_point
+    )
+
     np.testing.assert_allclose(
-        perturbed_error_estimation_1,
-        perturbed_error_estimation_2,
+        perturbed_y_1.rv.mean, perturbed_y_2.rv.mean, atol=1e-4, rtol=1e-4
+    )
+
+    np.testing.assert_allclose(
+        perturbed_y_1.error_estimate,
+        perturbed_y_2.error_estimate,
         atol=1e-4,
         rtol=1e-4,
     )
-    assert np.all(np.not_equal(perturbed_y_1.mean, perturbed_y_2.mean))
+    assert np.all(np.not_equal(perturbed_y_1.rv.mean, perturbed_y_2.rv.mean))
 
 
 def test_solve(solvers, steprule):

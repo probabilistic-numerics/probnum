@@ -14,8 +14,8 @@ class TestDiscreteEventHandler(_event_handler_test_interface.EventHandlerTest):
             time_stamps=self.time_stamps
         )
 
-        def dummy_perform_step(start, stop, current):
-            return current
+        def dummy_perform_step(state, dt):
+            return state
 
         self.dummy_perform_step = dummy_perform_step
 
@@ -23,7 +23,10 @@ class TestDiscreteEventHandler(_event_handler_test_interface.EventHandlerTest):
         wrapped = self.discrete_events(self.dummy_perform_step)
 
         # Signature remains the same
-        assert wrapped(start=0.1, stop=0.2, current=3.0) == 3.0
+        # The fact that "3.0" is not an ODESolver.State does not matter here.
+        dummy_state = diffeq.ODESolver.State(rv=3.0, t=0.0)
+        assert self.dummy_perform_step(state=dummy_state, dt=0.1).rv == 3.0
+        assert wrapped(state=dummy_state, dt=0.1).rv == 3.0
         # more tests to  come
 
     def test_interfere_dt(self):

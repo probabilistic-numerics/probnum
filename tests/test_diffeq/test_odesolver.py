@@ -11,17 +11,22 @@ class MockODESolver(diffeq.ODESolver):
     """Euler method as an ODE solver."""
 
     def initialize(self):
-        return self.ivp.t0, Constant(self.ivp.y0)
+        return self.State(
+            rv=Constant(self.ivp.y0),
+            t=self.ivp.t0,
+            error_estimate=np.nan,
+            reference_state=None,
+        )
 
-    def step(self, start, stop, current):
-        h = stop - start
-        x = current.mean
-        xnew = x + h * self.ivp.f(start, x)
-        return (
-            Constant(xnew),
-            np.nan,
-            xnew,
-        )  # return nan as error estimate to ensure that it is not used
+    def step(self, state, dt):
+        t, x = state.t, state.rv.mean
+        xnew = x + dt * self.ivp.f(t, x)
+
+        # return nan as error estimate to ensure that it is not used
+        new_state = self.State(
+            rv=Constant(xnew), t=t + dt, error_estimate=np.nan, reference_state=xnew
+        )
+        return new_state
 
     def rvlist_to_odesol(self, times, rvs):
         return diffeq.ODESolution(locations=times, states=rvs)

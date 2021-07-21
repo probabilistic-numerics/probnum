@@ -91,9 +91,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.scales = []
         return self.solver.initialize()
 
-    def step(
-        self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
-    ):
+    def step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
         """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original
@@ -101,33 +99,34 @@ class PerturbedStepSolver(_odesolver.ODESolver):
 
         Parameters
         ----------
-        start : float
-            starting location of the step
-        stop : float
-            stopping location of the step
-        current : :obj:`list` of :obj:`RandomVariable`
-            current state of the ODE.
+        state
+            Current state of the ODE solver.
+        dt
+            Step-size.
 
         Returns
         -------
-        random_var : randvars.RandomVariable
-            Estimated states of the discrete-time solution.
-        error_estimation : float
-            estimated error after having performed the step.
+        _odesolver.ODESolver.State
+            New state.
         """
 
-        dt = stop - start
         noisy_step = self.perturb_step(self.rng, dt)
-        state_as_rv, error_estimation, reference_state = self.solver.step(
-            start, start + noisy_step, current
-        )
+        new_state = self.solver.step(state, noisy_step)
         scale = noisy_step / dt
         self.scales.append(scale)
-        return state_as_rv, error_estimation, reference_state
 
-    def method_callback(self, time, current_guess, current_error):
+        t_new = state.t + dt
+        state = self.State(
+            rv=new_state.rv,
+            t=t_new,
+            error_estimate=new_state.error_estimate,
+            reference_state=new_state.reference_state,
+        )
+        return state
+
+    def method_callback(self, state):
         """Call dense output after each step and store the interpolants."""
-        return self.solver.method_callback(time, current_guess, current_error)
+        return self.solver.method_callback(state)
 
     def rvlist_to_odesol(
         self, times: np.ndarray, rvs: _randomvariablelist._RandomVariableList

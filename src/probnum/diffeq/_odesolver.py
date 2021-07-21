@@ -19,10 +19,10 @@ class ODESolver(ABC):
 
         t: float
         rv: randvars.RandomVariable
-        error_estimate: np.ndarray
+        error_estimate: Optional[np.ndarray] = None
 
         # reference state for relative error estimation
-        reference_state: np.ndarray
+        reference_state: Optional[np.ndarray] = None
 
     def __init__(
         self,

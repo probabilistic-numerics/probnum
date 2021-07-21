@@ -10,7 +10,7 @@ from probnum import _randomvariablelist, diffeq, randvars
 )
 def solution_case(testsolver, scipysolver):
     testsolution = testsolver.solve(
-        diffeq.stepsize.AdaptiveSteps(0.1, atol=1e-12, rtol=1e-12)
+        diffeq.stepsize.AdaptiveSteps(0.1, atol=1e-4, rtol=1e-4)
     )
     scipysolution = testsolution.scipy_solution
     return testsolution, scipysolution
