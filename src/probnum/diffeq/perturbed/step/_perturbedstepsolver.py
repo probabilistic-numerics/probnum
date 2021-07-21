@@ -104,7 +104,9 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.scales = []
         return self.solver.initialize()
 
-    def attempt_step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
+    def _attempt_step_implementation(
+        self, state: _odesolver.ODESolver.State, dt: FloatArgType
+    ):
         """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original
