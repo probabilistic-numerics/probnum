@@ -1,6 +1,7 @@
 """Interface for information operators."""
 
 import abc
+from typing import Optional
 
 from probnum import statespace
 

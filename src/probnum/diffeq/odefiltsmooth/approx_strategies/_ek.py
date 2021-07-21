@@ -2,6 +2,8 @@
 
 Make an intractable information operator tractable with local linearization.
 """
+from typing import Optional
+
 import numpy as np
 
 from probnum import problems
