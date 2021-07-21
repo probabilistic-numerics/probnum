@@ -40,9 +40,7 @@ class ODESolver(ABC):
             if isinstance(event_handler, events.EventHandler):
                 event_handler = [event_handler]
             for handle in event_handler:
-                self.attempt_step = handle(self._attempt_step_implementation)
-        else:
-            self.attempt_step = self._attempt_step_implementation
+                self.perform_full_step = handle(self.perform_full_step)
 
     def solve(self, steprule):
         """Solve an IVP.
@@ -104,7 +102,7 @@ class ODESolver(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _attempt_step_implementation(self, state, dt):
+    def attempt_step(self, state, dt):
         """Compute a step from the current state to the next state with increment dt.
 
         This does not include the acceptance/rejection decision from the step-size

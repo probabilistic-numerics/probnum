@@ -62,9 +62,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         )
         return state
 
-    def _attempt_step_implementation(
-        self, state: _odesolver.ODESolver.State, dt: FloatArgType
-    ):
+    def attempt_step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
         """Perform one ODE-step from start to stop and set variables to the
         corresponding values.
 
