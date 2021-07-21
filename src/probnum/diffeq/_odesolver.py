@@ -21,7 +21,7 @@ class ODESolver(ABC):
         rv: randvars.RandomVariable
         error_estimate: Optional[np.ndarray] = None
 
-        # reference state for relative error estimation
+        # The reference state is used for relative error estimation
         reference_state: Optional[np.ndarray] = None
 
     def __init__(
@@ -63,18 +63,20 @@ class ODESolver(ABC):
         """Generate ODE solver steps."""
 
         state = self.initialize()
-
         yield state
 
         dt = steprule.firststep
-
         while state.t < self.ivp.tmax:
             state, dt = self.perform_full_step(state, dt, steprule)
             self.num_steps += 1
             yield state
 
     def perform_full_step(self, state, initial_dt, steprule):
-        """Perform a full ODE solver step."""
+        """Perform a full ODE solver step.
+
+        This includes the acceptance/rejection decision as governed by error estimation
+        and steprule.
+        """
         dt = initial_dt
         step_is_sufficiently_small = False
         while not step_is_sufficiently_small:
@@ -101,8 +103,12 @@ class ODESolver(ABC):
 
     @abstractmethod
     def attempt_step(self, state, dt):
-        """Every ODE solver needs an attempt_step() method that returns a new random
-        variable and an error estimate."""
+        """Compute a step from the current state to the next state with increment dt.
+
+        This does not include the acceptance/rejection decision from the step-size
+        selection. Therefore, if dt turns out to be too large, the result of
+        attempt_step() will be discarded.
+        """
         raise NotImplementedError
 
     @abstractmethod

@@ -6,22 +6,12 @@ from probnum.diffeq.events import _event_handler
 
 
 class DiscreteEventHandler(_event_handler.EventHandler):
-    """Whenever a condition: X -> {True, False} is True, do something.
+    """Handle discrete events in an ODE solver.
 
-    This object also handles a set of time-stamps that the solver shall cross.
-
-    Examples
-    --------
-    >>> t = [1., 2., 3.]
-    >>> events = DiscreteEventHandler(time_stamps=t)
-    >>> solver = ODESolver(event_handler=events)
-    >>> solver.solve()  # output contains [1., 2., 3.]
-
-    >>> condition = lambda t, x: x==2.
-    >>> modify = lambda x: x + 2
-    >>> disc_events = DiscreteEventHandler(time_stamps=t, condition=condition, modify=modify)
-    >>> solver = ODESolver(event_handler=disc_events)
-    >>> solver.solve()
+    A discrete event can be a time-stamp that must be included in the locations. It can
+    also be any event for which it is possible to write down a condition that evaluates
+    to `True` or `False`. If a condition evaluates to `True`, the current state can be
+    modified.
     """
 
     def __init__(self, time_stamps, condition=None, modify=None):
@@ -58,6 +48,12 @@ class DiscreteEventHandler(_event_handler.EventHandler):
     def intervene_state(self, state):
         if self.condition(state):
             new_rv = self.modify(state.rv)
+
+            # We copy the state with the modified random variable.
+            # Error estimate und reference state are copied on purpose.
+            # By the time intervene_state is called, only these two values
+            # will decide whether the step will be accepted or not.
+            # The modification must not influence this decision.
             state = type(state)(
                 rv=new_rv,
                 t=state.t,

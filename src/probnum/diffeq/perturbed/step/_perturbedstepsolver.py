@@ -46,6 +46,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         solver: scipy_wrapper.WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
         perturb_function: Callable,
+        event_handler=None,
     ):
         def perturb_step(rng, step):
             return perturb_function(
@@ -60,7 +61,9 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.perturb_step = perturb_step
         self.solver = solver
         self.scales = None
-        super().__init__(ivp=solver.ivp, order=solver.order)
+        super().__init__(
+            ivp=solver.ivp, order=solver.order, event_handler=event_handler
+        )
 
     @classmethod
     def construct_with_lognormal_perturbation(
@@ -68,10 +71,15 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         rng: np.random.Generator,
         solver: scipy_wrapper.WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
+        event_handler=None,
     ):
         pertfun = _perturbation_functions.perturb_lognormal
         return cls(
-            rng=rng, solver=solver, noise_scale=noise_scale, perturb_function=pertfun
+            rng=rng,
+            solver=solver,
+            noise_scale=noise_scale,
+            perturb_function=pertfun,
+            event_handler=event_handler,
         )
 
     @classmethod
@@ -80,10 +88,15 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         rng: np.random.Generator,
         solver: scipy_wrapper.WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
+        event_handler=None,
     ):
         pertfun = _perturbation_functions.perturb_uniform
         return cls(
-            rng=rng, solver=solver, noise_scale=noise_scale, perturb_function=pertfun
+            rng=rng,
+            solver=solver,
+            noise_scale=noise_scale,
+            perturb_function=pertfun,
+            event_handler=event_handler,
         )
 
     def initialize(self):
@@ -109,7 +122,6 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         _odesolver.ODESolver.State
             New state.
         """
-
         noisy_step = self.perturb_step(self.rng, dt)
         new_state = self.solver.attempt_step(state, noisy_step)
         scale = noisy_step / dt

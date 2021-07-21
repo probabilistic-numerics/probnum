@@ -14,19 +14,19 @@ class EventHandler(abc.ABC):
     ):
         self.condition = condition
 
-    def __call__(self, perform_step_function):
+    def __call__(self, attempt_step_function):
         """Wrap an ODE solver step() implementation into a step() implementation that
         knows events."""
 
-        def new_perform_step_function(state, dt):
+        def new_attempt_step_function(state, dt):
             """ODE solver steps that check for event handling."""
 
             new_dt = self.interfere_dt(t=state.t, dt=dt)
-            new_state = perform_step_function(state, new_dt)
+            new_state = attempt_step_function(state, new_dt)
             new_state = self.intervene_state(new_state)
             return new_state
 
-        return new_perform_step_function
+        return new_attempt_step_function
 
     def interfere_dt(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""

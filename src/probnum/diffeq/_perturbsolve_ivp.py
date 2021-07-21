@@ -3,7 +3,7 @@ import numpy as np
 import scipy.integrate
 
 from probnum import problems
-from probnum.diffeq import perturbed, stepsize
+from probnum.diffeq import events, perturbed, stepsize
 
 __all__ = ["perturbsolve_ivp"]
 
@@ -28,7 +28,7 @@ def perturbsolve_ivp(
     y0,
     rng,
     method="RK45",
-    perturb="step-uniform",
+    perturb="step-lognormal",
     noise_scale=10.0,
     adaptive=True,
     atol=1e-6,
@@ -167,29 +167,31 @@ def perturbsolve_ivp(
 
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
 
-    # Event handling
-    if time_stamps is not None:
-        event_handler = events.DiscreteEventHandler(time_stamps=time_stamps)
-    else:
-        event_handler = None
-
     if method not in METHODS.keys():
         msg1 = f"Parameter method='{method}' is not supported. "
         msg2 = f"Possible values are {list(METHODS.keys())}."
         errormsg = msg1 + msg2
         raise ValueError(errormsg)
     scipy_solver = METHODS[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
-    wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(
-        scipy_solver, event_handler=event_handler
-    )
+    wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipy_solver)
 
     if perturb not in PERTURBS.keys():
         msg1 = f"Parameter perturb='{perturb}' is not supported. "
         msg2 = f"Possible values are {list(PERTURBS.keys())}."
         errormsg = msg1 + msg2
         raise ValueError(errormsg)
+
+    # Event handling
+    if time_stamps is not None:
+        event_handler = events.DiscreteEventHandler(time_stamps=time_stamps)
+    else:
+        event_handler = None
+
     perturbed_solver = PERTURBS[perturb](
-        rng=rng, solver=wrapped_scipy_solver, noise_scale=noise_scale
+        rng=rng,
+        solver=wrapped_scipy_solver,
+        noise_scale=noise_scale,
+        event_handler=event_handler,
     )
 
     # Create steprule
