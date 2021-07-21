@@ -1,6 +1,5 @@
 """Gaussian IVP filtering and smoothing."""
 
-import warnings
 from typing import List, Optional, Union
 
 import numpy as np

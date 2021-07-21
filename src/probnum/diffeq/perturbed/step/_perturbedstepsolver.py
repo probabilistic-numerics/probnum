@@ -4,7 +4,7 @@ from typing import Callable
 
 import numpy as np
 
-from probnum import _randomvariablelist, randvars
+from probnum import _randomvariablelist
 from probnum.diffeq import _odesolver
 from probnum.diffeq.perturbed import scipy_wrapper
 from probnum.diffeq.perturbed.step import (
