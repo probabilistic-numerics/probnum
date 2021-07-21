@@ -86,10 +86,10 @@ class PerturbedStepSolver(_odesolver.ODESolver):
             rng=rng, solver=solver, noise_scale=noise_scale, perturb_function=pertfun
         )
 
-    def initialise(self):
+    def initialize(self):
         """Initialise and reset the solver."""
         self.scales = []
-        return self.solver.initialise()
+        return self.solver.initialize()
 
     def step(
         self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs

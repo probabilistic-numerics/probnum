@@ -51,7 +51,7 @@ def list_of_randvars():
 
 def test_initialise(solvers):
     testsolver, perturbedsolver = solvers
-    time, state = perturbedsolver.initialise()
+    time, state = perturbedsolver.initialize()
     time_scipy = testsolver.solver.t
     state_scipy = testsolver.solver.y
     np.testing.assert_allclose(time, time_scipy, atol=1e-14, rtol=1e-14)
@@ -61,18 +61,17 @@ def test_initialise(solvers):
 def test_step(solvers, start_point, stop_point, y):
     """When performing two small similar steps, their output should be similar.
 
-    For the first step no error estimation is available, the first step
-    is therefore deterministic and to check for non-determinism, two
-    steps have to be performed.
+    For the first step no error estimation is available, the first step is therefore
+    deterministic and to check for non-determinism, two steps have to be performed.
     """
 
     _, perturbedsolver = solvers
-    perturbedsolver.initialise()
+    perturbedsolver.initialize()
     first_step, _, _ = perturbedsolver.step(start_point, stop_point, y)
     perturbed_y_1, perturbed_error_estimation_1, _ = perturbedsolver.step(
         stop_point, stop_point + start_point, y + first_step
     )
-    perturbedsolver.initialise()
+    perturbedsolver.initialize()
     first_step, _, _ = perturbedsolver.step(start_point, stop_point, y)
     perturbed_y_2, perturbed_error_estimation_2, _ = perturbedsolver.step(
         stop_point, stop_point + start_point, y + first_step

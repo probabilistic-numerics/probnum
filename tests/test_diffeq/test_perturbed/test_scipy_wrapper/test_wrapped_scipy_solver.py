@@ -60,7 +60,7 @@ def test_init(doprisolver):
 
 def test_initialise(solvers):
     testsolver, scipysolver = solvers
-    time, state = testsolver.initialise()
+    time, state = testsolver.initialize()
     time_scipy = scipysolver.t
     state_scipy = scipysolver.y
     np.testing.assert_allclose(time, time_scipy, atol=1e-13, rtol=1e-13)

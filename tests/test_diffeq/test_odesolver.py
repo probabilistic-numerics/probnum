@@ -10,7 +10,7 @@ from probnum.randvars import Constant
 class MockODESolver(diffeq.ODESolver):
     """Euler method as an ODE solver."""
 
-    def initialise(self):
+    def initialize(self):
         return self.ivp.t0, Constant(self.ivp.y0)
 
     def step(self, start, stop, current):

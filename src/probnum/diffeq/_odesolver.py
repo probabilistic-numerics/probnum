@@ -2,6 +2,12 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import List, Optional, Union
+
+import numpy as np
+
+from probnum import randvars
+from probnum.diffeq import events
 
 
 class ODESolver(ABC):
@@ -54,7 +60,7 @@ class ODESolver(ABC):
     def solution_generator(self, steprule):
         """Generate ODE solver steps."""
 
-        t, current_rv = self.initialise()
+        t, current_rv = self.initialize()
 
         yield t, current_rv
         stepsize = steprule.firststep
@@ -83,7 +89,7 @@ class ODESolver(ABC):
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
     @abstractmethod
-    def initialise(self):
+    def initialize(self):
         """Returns t0 and y0 (for the solver, which might be different to ivp.y0)"""
         raise NotImplementedError
 

@@ -1,7 +1,7 @@
 """Wrapper class of scipy.integrate. for RK23 and RK45.
 
-Dense-output can not be used for DOP853, if you use other RK-methods,
-make sure, that the current implementation works for them.
+Dense-output can not be used for DOP853, if you use other RK-methods, make sure, that
+the current implementation works for them.
 """
 import numpy as np
 from scipy.integrate._ivp import rk
@@ -35,7 +35,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
             )
         super().__init__(ivp=ivp, order=solver.order)
 
-    def initialise(self):
+    def initialize(self):
         """Return t0 and y0 (for the solver, which might be different to ivp.y0) and
         initialize the solver. Reset the solver when solving the ODE multiple times,
         i.e. explicitly setting y_old, t, y and f to the respective initial values,

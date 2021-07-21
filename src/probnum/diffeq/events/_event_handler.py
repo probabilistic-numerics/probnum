@@ -1,6 +1,9 @@
 """Event handler interface."""
 
 import abc
+from typing import Callable, Union
+
+from probnum import randvars
 
 
 class EventHandler(abc.ABC):

@@ -90,7 +90,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # or from any other state.
         self._reference_coordinates = _reference_coordinates
 
-    def initialise(self):
+    def initialize(self):
         initrv = self.initialization_routine(
             ivp=self.ivp, prior_process=self.prior_process
         )
