@@ -23,7 +23,7 @@ class EK1(_approx_strategy.ApproximationStrategy):
 
     def __call__(
         self, information_operator: information_operators.InformationOperator
-    ) -> information_operators.ApproximateInformationOperator:
+    ) -> information_operators.LocallyLinearizedInformationOperator:
 
         return information_operators.ApproximateInformationOperator(
             information_operator=information_operator,
@@ -49,7 +49,7 @@ class EK0(_approx_strategy.ApproximationStrategy):
 
     def __call__(
         self, information_operator: information_operators.ODEResidual
-    ) -> information_operators.ApproximateInformationOperator:
+    ) -> information_operators.LocallyLinearizedInformationOperator:
 
         if not information_operator.ode_has_been_incorporated:
             raise ValueError(

@@ -1,12 +1,16 @@
 """Approximate information operators."""
 
+import abc
+
 from probnum import filtsmooth
 from probnum.diffeq.odefiltsmooth.information_operators import _information_operator
 
 __all__ = ["ApproximateInformationOperator"]
 
 
-class ApproximateInformationOperator(_information_operator.InformationOperator):
+class ApproximateInformationOperator(
+    _information_operator.InformationOperator, abc.ABC
+):
     """Approximate information operators.
 
     An approximate information operator is a version of an information operator that
@@ -22,23 +26,43 @@ class ApproximateInformationOperator(_information_operator.InformationOperator):
 
     def __init__(
         self,
-        information_operator,
-        forward_implementation="sqrt",
-        backward_implementation="sqrt",
+        information_operator: _information_operator.InformationOperator,
     ):
         super().__init__(
             input_dim=information_operator.input_dim,
             output_dim=information_operator.output_dim,
         )
         self.information_operator = information_operator
-        self.forward_implementation = forward_implementation
-        self.backward_implementation = backward_implementation
 
     def __call__(self, t, x):
         return self.information_operator(t, x)
 
     def jacobian(self, t, x):
         return self.information_operator.jacobian(t, x)
+
+    @abc.abstractmethod
+    def as_transition(
+        self,
+        measurement_cov_fun=None,
+        measurement_cov_cholesky_fun=None,
+    ):
+        raise NotImplementedError
+
+
+class LocallyLinearizedInformationOperator(ApproximateInformationOperator):
+    """Approximate information operators based on local linearization."""
+
+    def __init__(
+        self,
+        information_operator: _information_operator.InformationOperator,
+        forward_implementation: Optional[str] = "sqrt",
+        backward_implementation: Optional[str] = "sqrt",
+    ):
+        super().__init__(
+            information_operator=information_operator,
+        )
+        self.forward_implementation = forward_implementation
+        self.backward_implementation = backward_implementation
 
     def as_transition(
         self,
