@@ -1,15 +1,38 @@
 """ODE solver interface."""
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 
 class ODESolver(ABC):
     """Interface for ODE solvers in ProbNum."""
 
-    def __init__(self, ivp, order):
+    @dataclass
+    class State:
+        """ODE solver states."""
+
+        t: float
+        x: randvars.RandomVariable
+        error_estimate: np.ndarray
+        _reference_state: np.ndarray
+
+    def __init__(
+        self,
+        ivp,
+        order,
+        event_handler: Optional[
+            Union[events.EventHandler, List[events.EventHandler]]
+        ] = None,
+    ):
         self.ivp = ivp
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
+
+        if event_handler is not None:
+            if isinstance(event_handler, events.EventHandler):
+                event_handler = [event_handler]
+            for handle in event_handler:
+                self.step = handle(self.step)
 
     def solve(self, steprule):
         """Solve an IVP.
@@ -65,7 +88,7 @@ class ODESolver(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def step(self, start, stop, current, **kwargs):
+    def step(self, start, stop, current):
         """Every ODE solver needs a step() method that returns a new random variable and
         an error estimate."""
         raise NotImplementedError
