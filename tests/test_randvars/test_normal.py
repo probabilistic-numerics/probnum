@@ -593,7 +593,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_precompute_cov_cholesky_with_linops(self):
         mean, cov = self.params
-        rv = randvars.Normal(mean, cov)
+        rv = randvars.Normal(mean, linops.aslinop(cov))
 
         with self.subTest("No Cholesky precomputed"):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
@@ -604,7 +604,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertIsInstance(rv.cov_cholesky, linops.LinearOperator)
                 self.assertAllClose(
                     rv.cov_cholesky.todense(),
-                    np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov))),
+                    np.linalg.cholesky(cov + 10.0 * np.eye(rv.cov.shape[0])),
                 )
 
         with self.subTest("Cholesky is precomputed"):
