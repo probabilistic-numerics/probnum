@@ -41,10 +41,12 @@ class DiscreteEventHandler(_event_handler.EventHandler):
 
     def interfere_dt(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""
+
         if t + dt > self.next_time_stamp:
             new_dt = self.next_time_stamp - t
             self.advance_current_time_stamp()
             return new_dt
+
         return dt
 
     def advance_current_time_stamp(self):

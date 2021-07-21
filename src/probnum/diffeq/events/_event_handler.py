@@ -18,10 +18,11 @@ class EventHandler(abc.ABC):
         """Wrap an ODE solver step() implementation into a step() implementation that
         knows events."""
 
-        def new_perform_step_function(start, stop, current_rv):
+        def new_perform_step_function(state, dt):
             """ODE solver steps that check for event handling."""
-            new_dt = self.interfere_dt(t=start, dt=stop - start)
-            new_state = perform_step_function(start, start + new_dt, current_rv)
+
+            new_dt = self.interfere_dt(t=state.t, dt=dt)
+            new_state = perform_step_function(state, new_dt)
             new_state = self.intervene_state(new_state)
             return new_state
 

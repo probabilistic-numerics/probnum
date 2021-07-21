@@ -18,9 +18,11 @@ class ODESolver(ABC):
         """ODE solver states."""
 
         t: float
-        x: randvars.RandomVariable
+        rv: randvars.RandomVariable
         error_estimate: np.ndarray
-        _reference_state: np.ndarray
+
+        # reference state for relative error estimation
+        reference_state: np.ndarray
 
     def __init__(
         self,
@@ -50,9 +52,9 @@ class ODESolver(ABC):
         """
         self.steprule = steprule
         times, rvs = [], []
-        for t, rv in self.solution_generator(steprule):
-            times.append(t)
-            rvs.append(rv)
+        for state in self.solution_generator(steprule):
+            times.append(state.t)
+            rvs.append(state.rv)
 
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         return self.postprocess(odesol)
@@ -60,33 +62,29 @@ class ODESolver(ABC):
     def solution_generator(self, steprule):
         """Generate ODE solver steps."""
 
-        t, current_rv = self.initialize()
+        state = self.initialize()
 
-        yield t, current_rv
+        yield state
+
         stepsize = steprule.firststep
 
-        while t < self.ivp.tmax:
-
-            t_new = t + stepsize
-            proposed_rv, errorest, reference_state = self.step(t, t_new, current_rv)
+        while state.t < self.ivp.tmax:
+            proposed_state = self.step(state, stepsize)
             internal_norm = steprule.errorest_to_norm(
-                errorest=errorest,
-                reference_state=reference_state,
+                errorest=proposed_state.error_estimate,
+                reference_state=proposed_state.reference_state,
             )
             if steprule.is_accepted(internal_norm):
                 self.num_steps += 1
-                self.method_callback(
-                    time=t_new, current_guess=proposed_rv, current_error=errorest
-                )
-                t = t_new
-                current_rv = proposed_rv
+                self.method_callback(proposed_state)
 
-                yield t, current_rv
+                state = proposed_state
+                yield state
 
             suggested_stepsize = steprule.suggest(
                 stepsize, internal_norm, localconvrate=self.order + 1
             )
-            stepsize = min(suggested_stepsize, self.ivp.tmax - t)
+            stepsize = min(suggested_stepsize, self.ivp.tmax - state.t)
 
     @abstractmethod
     def initialize(self):
@@ -94,7 +92,7 @@ class ODESolver(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def step(self, start, stop, current):
+    def step(self, state, dt):
         """Every ODE solver needs a step() method that returns a new random variable and
         an error estimate."""
         raise NotImplementedError
@@ -108,7 +106,7 @@ class ODESolver(ABC):
         """Process the ODESolution object before returning."""
         return odesol
 
-    def method_callback(self, time, current_guess, current_error):
+    def method_callback(self, state):
         """Optional callback.
 
         Can be overwritten. Do this as soon as it is clear that the
