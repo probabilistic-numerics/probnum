@@ -21,7 +21,7 @@ def ivp():
 @pytest.mark.parametrize("step", [0.01, None])
 @pytest.mark.parametrize("diffusion_model", ["constant", "dynamic"])
 @pytest.mark.parametrize("tolerance", [0.1, np.array([0.09, 0.10])])
-@pytest.mark.parametrize("time_stamps", [None, [0.1, 0.2]])
+@pytest.mark.parametrize("time_stamps", [[0.1, 0.2], None])
 def test_adaptive_solver_successful(
     ivp,
     method,

@@ -1,5 +1,7 @@
 """Discrete interventions."""
 
+import numpy as np
+
 from probnum.diffeq.events import _event_handler
 
 
@@ -47,7 +49,7 @@ class DiscreteEventHandler(_event_handler.EventHandler):
 
     def advance_current_time_stamp(self):
         self.current_time_stamp_index += 1
-        if self.current_time_stamp_index > len(self.time_stamps):
+        if self.current_time_stamp_index >= len(self.time_stamps):
             self.next_time_stamp = np.inf
         else:
             self.next_time_stamp = self.time_stamps[self.current_time_stamp_index]
