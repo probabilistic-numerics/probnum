@@ -27,7 +27,7 @@ Solving linear systems is arguably one of the most fundamental computations in s
 ProbNum provides a family of linear solvers, which infer either the inverse system matrix or the solution directly, while quantifying their uncertainty.
 as linear systems appear as (part of) the solution or as intermediate computation during inference or during
 the training of models.
-ProbNum provides a set linear solvers that infer either the inverse matrix, or the solution
+ProbNum provides a set of linear solvers that infer either the inverse matrix, or the solution
 vector directly and quantify the uncertainty of the solution.
 
 
@@ -72,8 +72,8 @@ Gaussian filtering and smoothing in more complex dynamical systems.
 Linear Operators
 ----------------
 
-Linear algebra is fundamental to arguably most of scientific computation. ProbNum defines (finite-dimensional) linear
-operators in a memory-efficient manner that are use  implements probabilistic numerical methods to solve linear systems.
+Linear algebra is fundamental to arguably most of scientific computation.
+ProbNum implements (finite-dimensional) linear operators in a memory-efficient manner with support for lazy arithmetic.
 
 .. nbgallery::
    :caption: Linear Operators
