@@ -61,6 +61,7 @@ the uncertainty introduced by discretization.
    tutorials/odes/adaptive_steps_odefilter
    tutorials/odes/uncertainties_odefilters
    tutorials/odes/odesolvers_from_scratch
+   tutorials/odes/event_handling
 
 
 Bayesian Filtering and Smoothing

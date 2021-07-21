@@ -99,7 +99,7 @@ def perturbsolve_ivp(
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.
-    Per default, `perturbsolve_ivp` uses a perturbed-step solver with uniform perturbation.
+    Per default, `perturbsolve_ivp` uses a perturbed-step solver with lognormal perturbation.
 
     >>> rng = np.random.default_rng(seed=2)
     >>>
@@ -111,12 +111,12 @@ def perturbsolve_ivp(
     >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False)
     >>> print(np.round(solution.states.mean, 3))
     [[0.15 ]
-     [0.292]
-     [0.497]
-     [0.766]
-     [0.874]
-     [0.955]
-     [0.987]]
+     [0.325]
+     [0.56 ]
+     [0.772]
+     [0.893]
+     [0.964]
+     [0.989]]
 
     Each solution is the result of a randomly-perturbed call of an underlying Runge-Kutta solver.
     Therefore, if you call it again, the output will be different:
@@ -124,27 +124,28 @@ def perturbsolve_ivp(
     >>> other_solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False)
     >>> print(np.round(other_solution.states.mean, 3))
     [[0.15 ]
-     [0.282]
-     [0.448]
-     [0.657]
-     [0.853]
-     [0.945]
-     [0.975]]
+     [0.319]
+     [0.57 ]
+     [0.785]
+     [0.908]
+     [0.968]
+     [0.989]]
+
 
     Other methods, such as `RK45` (as well as other perturbation styles) are easily accessible.
-    Let us solve the same equation, with an adaptive RK45 solver that uses lognormally perturbed steps.
+    Let us solve the same equation, with an adaptive RK45 solver that uses uniformly perturbed steps.
 
-    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6, method="RK45", perturb="step-lognormal", adaptive=True)
+    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6, method="RK45", perturb="step-uniform", adaptive=True)
     >>> print(np.round(solution.states.mean, 3))
     [[0.15 ]
      [0.152]
      [0.167]
      [0.26 ]
      [0.431]
-     [0.644]
-     [0.848]
-     [0.882]
-     [0.914]
+     [0.646]
+     [0.849]
+     [0.883]
+     [0.915]
      [0.953]
      [0.976]
      [0.986]]
