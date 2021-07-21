@@ -20,7 +20,7 @@ class EventHandler(abc.ABC):
 
         def new_perform_step_function(start, stop, current):
             """ODE solver steps that check for event handling."""
-            new_dt = self.interfere_dt(state, dt=stop - start)
+            new_dt = self.interfere_dt(t=start, dt=stop - start)
             new_state = perform_step_function(
                 start=start, stop=start + new_dt, current=current
             )
@@ -29,7 +29,7 @@ class EventHandler(abc.ABC):
 
         return new_perform_step_function
 
-    def interfere_dt(self, state, dt):
+    def interfere_dt(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""
         # Default behaviour: do nothing to the step.
         # Overwritten by discrete interventions (which handle event time-stamps).

@@ -11,7 +11,7 @@ References
 import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
-from probnum.diffeq import odefiltsmooth, stepsize
+from probnum.diffeq import events, odefiltsmooth, stepsize
 
 __all__ = ["probsolve_ivp"]
 
@@ -30,6 +30,7 @@ def probsolve_ivp(
     rtol=1e-2,
     step=None,
     diffusion_model="dynamic",
+    time_stamps=None,
 ):
     r"""Solve an initial value problem with a filtering-based probabilistic ODE solver.
 
@@ -254,6 +255,12 @@ def probsolve_ivp(
     }
     diffusion = choose_diffusion_model[diffusion_model]
 
+    # Event handling
+    if time_stamps is not None:
+        event_handler = events.DiscreteEventHandler(time_stamps=time_stamps)
+    else:
+        event_handler = None
+
     # Create solver
     prior = statespace.IBM(
         ordint=algo_order,
@@ -284,6 +291,7 @@ def probsolve_ivp(
         with_smoothing=dense_output,
         initialization_routine=rk_init,
         diffusion_model=diffusion,
+        event_handler=event_handler,
     )
 
     return solver.solve(steprule=stprl)
