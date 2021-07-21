@@ -26,11 +26,13 @@ class DiscreteEventHandler(_event_handler.EventHandler):
 
     def __init__(self, time_stamps, condition=None, modify=None):
 
-        if condition is None:
+        self.condition_has_been_provided = condition is not None
+        if not self.condition_has_been_provided:
             condition = lambda x: False
         super().__init__(condition=condition)
 
-        if modify is None:
+        self.modify_has_been_provided = modify is not None
+        if not self.modify_has_been_provided:
             modify = lambda x: x
         self.modify = modify
 
@@ -59,6 +61,9 @@ class DiscreteEventHandler(_event_handler.EventHandler):
         if self.condition(state):
             new_rv = self.modify(state.rv)
             state = type(state)(
-                rv=new_rv, t=state.t, error_estimate=None, reference_state=None
+                rv=new_rv,
+                t=state.t,
+                error_estimate=state.error_estimate,
+                reference_state=state.reference_state,
             )
         return state

@@ -66,25 +66,32 @@ class ODESolver(ABC):
 
         yield state
 
-        stepsize = steprule.firststep
+        dt = steprule.firststep
 
         while state.t < self.ivp.tmax:
-            proposed_state = self.step(state, stepsize)
+            state, dt = self.perform_full_step(state, dt, steprule)
+            self.num_steps += 1
+            yield state
+
+    def perform_full_step(self, state, initial_dt, steprule):
+        dt = initial_dt
+        step_is_sufficiently_small = False
+        while not step_is_sufficiently_small:
+            proposed_state = self.step(state, dt)
             internal_norm = steprule.errorest_to_norm(
                 errorest=proposed_state.error_estimate,
                 reference_state=proposed_state.reference_state,
             )
-            if steprule.is_accepted(internal_norm):
-                self.num_steps += 1
-                self.method_callback(proposed_state)
-
-                state = proposed_state
-                yield state
-
-            suggested_stepsize = steprule.suggest(
-                stepsize, internal_norm, localconvrate=self.order + 1
+            step_is_sufficiently_small = steprule.is_accepted(internal_norm)
+            suggested_dt = steprule.suggest(
+                dt, internal_norm, localconvrate=self.order + 1
             )
-            stepsize = min(suggested_stepsize, self.ivp.tmax - state.t)
+            if step_is_sufficiently_small:
+                dt = min(suggested_dt, self.ivp.tmax - proposed_state.t)
+            else:
+                dt = min(suggested_dt, self.ivp.tmax - state.t)
+        self.method_callback(state)
+        return proposed_state, dt
 
     @abstractmethod
     def initialize(self):

@@ -1,5 +1,6 @@
 """Gaussian IVP filtering and smoothing."""
 
+import warnings
 from typing import List, Optional, Union
 
 import numpy as np
@@ -68,6 +69,18 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.initialization_routine = initialization_routine
+
+        # This behaviour cost me at least an hour one day.
+        if isinstance(event_handler, events.DiscreteEventHandler):
+            if event_handler.modify_has_been_provided and self.with_smoothing:
+                warnings.warn("Smoothing will alter the event-modification behaviour.")
+        if isinstance(event_handler, list):
+            for handle in event_handler:
+                if handle.modify_has_been_provided and self.with_smoothing:
+                    warnings.warn(
+                        "Smoothing will alter the event-modification behaviour."
+                    )
+
         super().__init__(
             ivp=ivp, order=prior_process.transition.ordint, event_handler=event_handler
         )
