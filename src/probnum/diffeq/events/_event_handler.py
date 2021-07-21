@@ -45,15 +45,10 @@ class EventHandler(abc.ABC):
 # class ContinuousInterventions(EventHandler):
 #     """Whenever a condition : X -> R is zero, do something.
 #
-#     Examples
-#     --------
-#     >>> event = lambda t, x: x - 30
-#     >>> intervene = lambda x: x + 2
-#     >>> cont_events = ContinuousInterventions(condition=event, intervene=intervene)
+#     If a sign-change happens, use dense output of the posterior to find the root.
 #     """
 #
-#
-#     def __init__(self, condition: ContinuousEvent, intervene, root_finding_method="bisect", **root_finding_kwargs):
+#     def __init__(self, condition: Callable, intervene, root_finding_method="bisect", **root_finding_kwargs):
 #         self.condition = condition  # ContinuousEvent
 #         self.intervene = intervene  # callable
 #
