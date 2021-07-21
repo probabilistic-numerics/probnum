@@ -13,7 +13,7 @@ cases_states = case_modules + ".states"
 
 
 @parametrize_with_cases("info_op", cases=cases_information_ops, glob="*proj_residual")
-@parametrize_with_cases("state", cases=cases_states)
+@parametrize_with_cases("state", cases=cases_states, has_tag=["has_action"])
 def test_is_projected_residual(
     info_op: information_ops.LinearSolverInfoOp, state: ProbabilisticLinearSolverState
 ):

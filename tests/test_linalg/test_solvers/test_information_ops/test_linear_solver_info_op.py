@@ -13,7 +13,7 @@ cases_states = case_modules + ".states"
 
 
 @parametrize_with_cases("info_op", cases=cases_information_ops)
-@parametrize_with_cases("state", cases=cases_states)
+@parametrize_with_cases("state", cases=cases_states, has_tag=["has_action"])
 def test_returns_ndarray_or_scalar(
     info_op: information_ops.LinearSolverInfoOp, state: ProbabilisticLinearSolverState
 ):
