@@ -3,7 +3,7 @@
 from probnum.diffeq.events import _event_handler
 
 
-class DiscreteInterventions(_event_handler.EventHandler):
+class DiscreteEventHandler(_event_handler.EventHandler):
 
     """Whenever a condition: X -> {True, False} is True, do something.
 
@@ -12,13 +12,13 @@ class DiscreteInterventions(_event_handler.EventHandler):
     Examples
     --------
     >>> t = [1., 2., 3.]
-    >>> events = DiscreteInterventions(time_stamps=t)
+    >>> events = DiscreteEventHandler(time_stamps=t)
     >>> solver = ODESolver(event_handler=events)
     >>> solver.solve()  # output contains [1., 2., 3.]
 
     >>> condition = lambda t, x: x==2.
     >>> modify = lambda x: x + 2
-    >>> disc_events = DiscreteInterventions(time_stamps=t, condition=condition, modify=modify)
+    >>> disc_events = DiscreteEventHandler(time_stamps=t, condition=condition, modify=modify)
     >>> solver = ODESolver(event_handler=disc_events)
     >>> solver.solve()
     """
