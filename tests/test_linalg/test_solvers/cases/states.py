@@ -1,17 +1,18 @@
 """Probabilistic linear solver state test cases."""
 
 import numpy as np
+from pytest_cases import parametrize_with_cases
 
 from probnum import linalg, linops, randvars
 from probnum.problems.zoo.linalg import random_linear_system, random_spd_matrix
 
 
-def case_linear_solver_state(
+def case_initial_state(
     rng: np.random.Generator,
 ):
-    """State of a linear solver."""
+    """Initial state of a linear solver."""
     # Problem
-    n = 10
+    n = 5
     linsys = random_linear_system(rng=rng, matrix=random_spd_matrix, dim=n)
 
     # Prior
@@ -29,7 +30,14 @@ def case_linear_solver_state(
         problem=linsys, prior=prior, rng=rng
     )
 
-    # Action
-    solver_state.action = rng.standard_normal(size=n)
-
     return solver_state
+
+
+@parametrize_with_cases("initial_state", cases=case_initial_state)
+def case_state(initial_state: linalg.solvers.ProbabilisticLinearSolverState):
+    """State of a linear solver."""
+    initial_state.action = initial_state.rng.standard_normal(
+        size=initial_state.problem.A.shape[1]
+    )
+
+    return initial_state

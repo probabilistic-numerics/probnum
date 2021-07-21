@@ -23,7 +23,7 @@ def test_initial_action_is_negative_gradient(
 
 
 @parametrize_with_cases("policy", cases=cases_policies, glob="*conjugate_*")
-@parametrize_with_cases("state", cases=cases_states)
+@parametrize_with_cases("state", cases=cases_states, glob="*initial_state")
 def test_conjugate_actions(
     policy: policies.ConjugateGradientPolicy, state: ProbabilisticLinearSolverState
 ):
