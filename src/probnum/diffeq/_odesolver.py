@@ -38,11 +38,14 @@ class ODESolver(ABC):
 
         # If the event handlers are a list, the final entry (i.e. bottom entry if thought of as a stack of entries)
         # is the outer-most event handler.
+        full_step_implementation = self._perform_full_step
         if event_handler is not None:
             if isinstance(event_handler, events.EventHandler):
                 event_handler = [event_handler]
+
             for handle in event_handler:
-                self.perform_full_step = handle(self.perform_full_step)
+                full_step_implementation = handle(full_step_implementation)
+        self.perform_full_step = full_step_implementation
 
     def solve(self, steprule):
         """Solve an IVP.
@@ -73,7 +76,8 @@ class ODESolver(ABC):
             self.num_steps += 1
             yield state
 
-    def perform_full_step(self, state, initial_dt, steprule):
+    # "private" because it may be wrapped through an event handler in the constructor.
+    def _perform_full_step(self, state, initial_dt, steprule):
         """Perform a full ODE solver step.
 
         This includes the acceptance/rejection decision as governed by error estimation
