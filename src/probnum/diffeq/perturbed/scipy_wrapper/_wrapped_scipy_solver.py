@@ -1,7 +1,7 @@
 """Wrapper class of scipy.integrate. for RK23 and RK45.
 
-Dense-output can not be used for DOP853, if you use other RK-methods,
-make sure, that the current implementation works for them.
+Dense-output can not be used for DOP853, if you use other RK-methods, make sure, that
+the current implementation works for them.
 """
 import numpy as np
 from scipy.integrate._ivp import rk
@@ -23,15 +23,6 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         # Filled in later
         self.solver = None
         self.ivp = None
-
-        #
-        # # ProbNum ODESolver needs an ivp
-        # ivp = problems.InitialValueProblem(
-        #     t0=self.solver.t,
-        #     tmax=self.solver.t_bound,
-        #     y0=self.solver.y,
-        #     f=self.solver._fun,
-        # )
 
         # Dopri853 as implemented in SciPy computes the dense output differently.
         if issubclass(solver_type, rk.DOP853):
