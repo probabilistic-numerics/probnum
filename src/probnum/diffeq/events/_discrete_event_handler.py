@@ -47,17 +47,5 @@ class DiscreteEventHandler(_event_handler.EventHandler):
 
     def intervene_state(self, state):
         if self.condition(state):
-            new_rv = self.modify(state.rv)
-
-            # We copy the state with the modified random variable.
-            # Error estimate und reference state are copied on purpose.
-            # By the time intervene_state is called, only these two values
-            # will decide whether the step will be accepted or not.
-            # The modification must not influence this decision.
-            state = type(state)(
-                rv=new_rv,
-                t=state.t,
-                error_estimate=state.error_estimate,
-                reference_state=state.reference_state,
-            )
+            state = self.modify(state)
         return state

@@ -36,6 +36,8 @@ class ODESolver(ABC):
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
+        # If the event handlers are a list, the final entry (i.e. bottom entry if thought of as a stack of entries)
+        # is the outer-most event handler.
         if event_handler is not None:
             if isinstance(event_handler, events.EventHandler):
                 event_handler = [event_handler]
