@@ -23,7 +23,8 @@ Features of ProbNum
 Linear Solvers
 --------------
 
-Solving linear systems is arguable one of the most fundamental computations in statistics and machine learning
+Solving linear systems is arguably one of the most fundamental computations in statistics, machine learning and numerics. For example, linear systems arise when inferring parameters in statistical models or during model training.
+ProbNum provides a family of linear solvers, which infer either the inverse system matrix or the solution directly, while quantifying their uncertainty.
 as linear systems appear as (part of) the solution or as intermediate computation during inference or during
 the training of models.
 ProbNum provides a set linear solvers that infer either the inverse matrix, or the solution
