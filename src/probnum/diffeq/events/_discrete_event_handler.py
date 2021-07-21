@@ -46,7 +46,6 @@ class DiscreteEventHandler(_event_handler.EventHandler):
             new_dt = self.next_time_stamp - t
             self.advance_current_time_stamp()
             return new_dt
-
         return dt
 
     def advance_current_time_stamp(self):
@@ -58,5 +57,8 @@ class DiscreteEventHandler(_event_handler.EventHandler):
 
     def intervene_state(self, state):
         if self.condition(state):
-            return self.modify(state)
+            new_rv = self.modify(state.rv)
+            state = type(state)(
+                rv=new_rv, t=state.t, error_estimate=None, reference_state=None
+            )
         return state
