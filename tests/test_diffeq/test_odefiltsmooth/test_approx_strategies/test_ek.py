@@ -1,5 +1,6 @@
 """Tests for EK0/1."""
 
+import numpy as np
 import pytest
 
 from probnum import diffeq, filtsmooth
