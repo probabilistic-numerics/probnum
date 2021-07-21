@@ -72,7 +72,7 @@ Gaussian filtering and smoothing in more complex dynamical systems.
 Linear Operators
 ----------------
 
-Linear algebra is fundamental to arguably most of scientific computation.
+Linear algebra is essential to virtually all of scientific computation.
 ProbNum implements (finite-dimensional) linear operators in a memory-efficient manner with support for lazy arithmetic.
 
 .. nbgallery::
