@@ -27,7 +27,7 @@ class EK1(_approx_strategy.ApproximationStrategy):
         self, information_operator: information_operators.InformationOperator
     ) -> information_operators.LocallyLinearizedInformationOperator:
 
-        return information_operators.ApproximateInformationOperator(
+        return information_operators.LocallyLinearizedInformationOperator(
             information_operator=information_operator,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
@@ -79,7 +79,7 @@ class EK0(_approx_strategy.ApproximationStrategy):
             prior_spatialdim=information_operator.prior_spatialdim,
         )
         ek0_information_operator.incorporate_ode(ode=new_ivp)
-        return information_operators.ApproximateInformationOperator(
+        return information_operators.LocallyLinearizedInformationOperator(
             information_operator=ek0_information_operator,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,

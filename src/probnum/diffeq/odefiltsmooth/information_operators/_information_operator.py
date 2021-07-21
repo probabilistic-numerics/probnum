@@ -1,9 +1,12 @@
 """Interface for information operators."""
 
 import abc
-from typing import Optional
+from typing import Callable, Optional
 
-from probnum import statespace
+import numpy as np
+
+from probnum import problems, statespace
+from probnum.typing import FloatArgType, IntArgType
 
 __all__ = ["InformationOperator", "ODEInformationOperator"]
 
@@ -33,24 +36,30 @@ class InformationOperator(abc.ABC):
     Therefore, they are one important component in a probabilistic ODE solver.
     """
 
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
         self.input_dim = input_dim
         self.output_dim = output_dim
 
     @abc.abstractmethod
-    def __call__(self, t, x):
+    def __call__(self, t: FloatArgType, x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
-    def jacobian(self, t, x):
+    def jacobian(self, t: FloatArgType, x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
     def as_transition(
-        self, measurement_cov_fun=None, measurement_cov_cholesky_fun=None
+        self,
+        measurement_cov_fun: Optional[Callable[[FloatArgType], np.ndarray]] = None,
+        measurement_cov_cholesky_fun: Optional[
+            Callable[[FloatArgType], np.ndarray]
+        ] = None,
     ):
 
         if measurement_cov_fun is None:
             if measurement_cov_cholesky_fun is not None:
-                raise ValueError
+                raise ValueError(
+                    "If a Cholesky function is provided, a covariance function must be provided as well."
+                )
             return statespace.DiscreteGaussian.from_callable(
                 state_trans_fun=self.__call__,
                 jacob_state_trans_fun=self.jacobian,
@@ -71,28 +80,32 @@ class InformationOperator(abc.ABC):
 class ODEInformationOperator(InformationOperator):
     """Information operators that depend on an ODE function."""
 
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
 
         # Initialized once the ODE can be seen
         self.ode = None
 
-    def incorporate_ode(self, ode):
+    def incorporate_ode(self, ode: problems.InitialValueProblem):
         """Incorporate the ODE into the operator."""
         if self.ode_has_been_incorporated:
-            raise ValueError
+            raise ValueError("An ODE has been incorporated already.")
         else:
             self.ode = ode
 
     @property
-    def ode_has_been_incorporated(self):
+    def ode_has_been_incorporated(self) -> bool:
         return self.ode is not None
 
     def as_transition(
-        self, measurement_cov_fun=None, measurement_cov_cholesky_fun=None
+        self,
+        measurement_cov_fun: Optional[Callable[[FloatArgType], np.ndarray]] = None,
+        measurement_cov_cholesky_fun: Optional[
+            Callable[[FloatArgType], np.ndarray]
+        ] = None,
     ):
         if not self.ode_has_been_incorporated:
-            raise ValueError
+            raise ValueError("An ODE has not been incorporated yet.")
         return super().as_transition(
             measurement_cov_fun=measurement_cov_fun,
             measurement_cov_cholesky_fun=measurement_cov_cholesky_fun,
