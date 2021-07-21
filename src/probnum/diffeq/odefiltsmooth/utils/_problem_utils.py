@@ -10,16 +10,42 @@ from probnum.typing import FloatArgType
 
 __all__ = ["ivp_to_regression_problem"]
 
-
+# The ODE information operator is not optional, because in order to create it
+# one needs to know the order of the algorithm that is desired (i.e. prior_ordint).
+# Since this is a weird input for the function, it seems safer to just require
+# the full operator.
 def ivp_to_regression_problem(
     ivp: problems.InitialValueProblem,
     locations: Union[Sequence, np.ndarray],
     ode_information_operator: information_operators.InformationOperator,
     approx_strategy: Optional[approx_strategies.ApproximationStrategy] = None,
-    ode_measurement_variance: Optional[FloatArgType] = None,
+    ode_measurement_variance: Optional[FloatArgType] = 0.0,
     exclude_initial_condition=False,
 ):
-    """Transform an initial value problem into a regression problem."""
+    """Transform an initial value problem into a regression problem.
+
+    Parameters
+    ----------
+    ivp
+        Initial value problem to be transformed.
+    locations
+        Locations of the time-grid-points.
+    ode_information_operator
+        ODE information operator to use.
+    approx_strategy
+        Approximation strategy to use. Optional. Default is `EK1()`.
+    ode_measurement_variance
+        Artificial ODE measurement noise. Optional. Default is 0.0.
+    exclude_initial_condition
+        Whether to exclude the initial condition from the regression problem.
+        Optional. Default is False, in which case the returned measurement model list
+        consist of [`initcond_mm`, `ode_mm`, ..., `ode_mm`].
+
+    Returns
+    -------
+    problems.TimeSeriesRegressionProblem
+        Time-series regression problem.
+    """
 
     # Construct data and solution
     N = len(locations)
@@ -60,20 +86,20 @@ def _construct_measurement_models(
     )
     shift_vector = -ivp.y0
 
-    if ode_measurement_variance is None:
-        measmod_y0, measmod_ode = _construct_measurement_models_dirac_likelihood(
-            ode_information_operator,
-            shift_vector,
-            transition_matrix,
-            approx_strategy,
-        )
-    else:
+    if ode_measurement_variance > 0.0:
         measmod_y0, measmod_ode = _construct_measurement_models_gaussian_likelihood(
             ode_information_operator,
             shift_vector,
             transition_matrix,
             approx_strategy,
             ode_measurement_variance,
+        )
+    else:
+        measmod_y0, measmod_ode = _construct_measurement_models_dirac_likelihood(
+            ode_information_operator,
+            shift_vector,
+            transition_matrix,
+            approx_strategy,
         )
     return measmod_y0, measmod_ode
 

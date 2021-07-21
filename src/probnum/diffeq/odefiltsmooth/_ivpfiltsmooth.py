@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, randprocs, randvars, statespace, utils
-from probnum.diffeq import _odesolver
+from probnum.diffeq import _odesolver, stepsize
 from probnum.diffeq.odefiltsmooth import (
     _kalman_odesolution,
     approx_strategies,
@@ -53,7 +53,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
     def __init__(
         self,
-        steprule,
+        steprule: stepsize.StepRule,
         prior_process: randprocs.MarkovProcess,
         information_operator: information_operators.ODEInformationOperator,
         approx_strategy: approx_strategies.ApproximationStrategy,
