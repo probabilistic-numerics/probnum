@@ -24,7 +24,7 @@ def ode_information_operator():
 @pytest.mark.parametrize(
     "ivp", [diffeq_zoo.lotkavolterra(), diffeq_zoo.fitzhughnagumo()]
 )
-@pytest.mark.parametrize("ode_measurement_variance", [None, 1.0])
+@pytest.mark.parametrize("ode_measurement_variance", [0.0, 1.0])
 @pytest.mark.parametrize("exclude_initial_condition", [True, False])
 @pytest.mark.parametrize(
     "approx_strategy",
@@ -73,7 +73,7 @@ def test_ivp_to_regression_problem(
 
     # If the ODE measurement variance is not None, i.e. not zero,
     # the process noise covariance matrices should be non-zero.
-    if ode_measurement_variance is not None:
+    if ode_measurement_variance > 0.0:
         cov = regprob.measurement_models[1].proc_noise_cov_mat_fun(locations[0])
         cov_cholesky = regprob.measurement_models[1].proc_noise_cov_cholesky_fun(
             locations[0]
