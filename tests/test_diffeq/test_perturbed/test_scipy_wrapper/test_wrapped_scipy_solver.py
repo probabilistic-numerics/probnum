@@ -79,7 +79,7 @@ def test_step_execution(solvers):
         reference_state=None,
     )
     dt = scipysolver.t - scipysolver.t_old
-    new_state = testsolver.step(teststate, dt)
+    new_state = testsolver.attempt_step(teststate, dt)
     np.testing.assert_allclose(scipysolver.y, new_state.rv.mean)
 
 
@@ -92,7 +92,7 @@ def test_step_variables(solvers, y, start_point, stop_point):
         error_estimate=None,
         reference_state=None,
     )
-    solver_y_new = testsolver.step(teststate, dt=stop_point - start_point)
+    solver_y_new = testsolver.attempt_step(teststate, dt=stop_point - start_point)
     y_new, f_new = rk.rk_step(
         scipysolver.fun,
         start_point,
@@ -145,7 +145,9 @@ def test_dense_output(solvers):
         error_estimate=None,
         reference_state=None,
     )
-    state = testsolver.step(state=teststate, dt=scipysolver.t - scipysolver.t_old)
+    state = testsolver.attempt_step(
+        state=teststate, dt=scipysolver.t - scipysolver.t_old
+    )
 
     # sanity check: the steps are the same
     # (this is contained in a different test already, but if this one

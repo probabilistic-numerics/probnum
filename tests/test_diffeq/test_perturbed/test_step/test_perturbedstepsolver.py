@@ -72,10 +72,10 @@ def test_step(solvers, start_point, stop_point, y):
     test_state = perturbedsolver.State(
         rv=y, t=start_point, error_estimate=None, reference_state=None
     )
-    step_after_first_step = perturbedsolver.step(
+    step_after_first_step = perturbedsolver.attempt_step(
         test_state, dt=stop_point - start_point
     )
-    perturbed_y_1 = perturbedsolver.step(
+    perturbed_y_1 = perturbedsolver.attempt_step(
         step_after_first_step, dt=stop_point - start_point
     )
 
@@ -84,10 +84,10 @@ def test_step(solvers, start_point, stop_point, y):
         rv=y, t=start_point, error_estimate=None, reference_state=None
     )
 
-    step_after_first_step = perturbedsolver.step(
+    step_after_first_step = perturbedsolver.attempt_step(
         test_state, dt=stop_point - start_point
     )
-    perturbed_y_2 = perturbedsolver.step(
+    perturbed_y_2 = perturbedsolver.attempt_step(
         step_after_first_step, dt=stop_point - start_point
     )
 

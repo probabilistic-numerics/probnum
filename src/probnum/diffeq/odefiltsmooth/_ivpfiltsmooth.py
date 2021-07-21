@@ -104,7 +104,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         )
         return state
 
-    def step(self, state, dt):
+    def attempt_step(self, state, dt):
         r"""Gaussian IVP filter step as nonlinear Kalman filtering with zero data.
 
         It goes as follows:

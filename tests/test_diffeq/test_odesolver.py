@@ -18,7 +18,7 @@ class MockODESolver(diffeq.ODESolver):
             reference_state=None,
         )
 
-    def step(self, state, dt):
+    def attempt_step(self, state, dt):
         t, x = state.t, state.rv.mean
         xnew = x + dt * self.ivp.f(t, x)
 

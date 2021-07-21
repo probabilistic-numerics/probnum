@@ -40,7 +40,7 @@ class ODESolver(ABC):
             if isinstance(event_handler, events.EventHandler):
                 event_handler = [event_handler]
             for handle in event_handler:
-                self.step = handle(self.step)
+                self.attempt_step = handle(self.attempt_step)
 
     def solve(self, steprule):
         """Solve an IVP.
@@ -74,10 +74,11 @@ class ODESolver(ABC):
             yield state
 
     def perform_full_step(self, state, initial_dt, steprule):
+        """Perform a full ODE solver step."""
         dt = initial_dt
         step_is_sufficiently_small = False
         while not step_is_sufficiently_small:
-            proposed_state = self.step(state, dt)
+            proposed_state = self.attempt_step(state, dt)
             internal_norm = steprule.errorest_to_norm(
                 errorest=proposed_state.error_estimate,
                 reference_state=proposed_state.reference_state,
@@ -99,9 +100,9 @@ class ODESolver(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def step(self, state, dt):
-        """Every ODE solver needs a step() method that returns a new random variable and
-        an error estimate."""
+    def attempt_step(self, state, dt):
+        """Every ODE solver needs an attempt_step() method that returns a new random
+        variable and an error estimate."""
         raise NotImplementedError
 
     @abstractmethod

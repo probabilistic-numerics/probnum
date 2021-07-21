@@ -91,7 +91,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.scales = []
         return self.solver.initialize()
 
-    def step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
+    def attempt_step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
         """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original
@@ -111,7 +111,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         """
 
         noisy_step = self.perturb_step(self.rng, dt)
-        new_state = self.solver.step(state, noisy_step)
+        new_state = self.solver.attempt_step(state, noisy_step)
         scale = noisy_step / dt
         self.scales.append(scale)
 
