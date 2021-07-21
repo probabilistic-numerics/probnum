@@ -1,4 +1,4 @@
-"""Extended Kalman information.
+"""Extended Kalman filter-based approximation strategies.
 
 Make an intractable information operator tractable with local linearization.
 """
@@ -10,19 +10,20 @@ from probnum.diffeq.odefiltsmooth.approx_strategies import _approx_strategy
 
 
 class EK1(_approx_strategy.ApproximationStrategy):
-    """Make inference with the information operator tractable using a first-order
+    """Make inference with an (ODE-)information operator tractable using a first-order
     linearization of the ODE vector-field."""
 
-    def __init__(self, forward_implementation="sqrt", backward_implementation="sqrt"):
+    def __init__(
+        self,
+        forward_implementation: Optional[str] = "sqrt",
+        backward_implementation: Optional[str] = "sqrt",
+    ):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
     def __call__(
         self, information_operator: information_operators.InformationOperator
     ) -> information_operators.ApproximateInformationOperator:
-
-        if not information_operator.ode_has_been_incorporated:
-            raise ValueError
 
         return information_operators.ApproximateInformationOperator(
             information_operator=information_operator,
@@ -38,29 +39,39 @@ class EK0(_approx_strategy.ApproximationStrategy):
     This only applies to standard (explicit) ODEs. Implicit ODEs must use the EK1.
     """
 
-    def __init__(self, forward_implementation="sqrt", backward_implementation="sqrt"):
+    def __init__(
+        self,
+        forward_implementation: Optional[str] = "sqrt",
+        backward_implementation: Optional[str] = "sqrt",
+    ):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
     def __call__(
-        self, information_operator: information_operators.InformationOperator
+        self, information_operator: information_operators.ODEResidual
     ) -> information_operators.ApproximateInformationOperator:
 
         if not information_operator.ode_has_been_incorporated:
-            raise ValueError
+            raise ValueError(
+                "ODE has not been incorporated into the ODE information operator."
+            )
 
+        # The following EK0 implementation generalizes to higher-order ODEs in the sense
+        # that for higher order ODEs, the attribute `df` is a list of Jacobians,
+        # and in this case we can loop over "all" Jacobians and set them to the
+        # custom (zero) linearization.
         ode = information_operator.ode
-        custom_linearisation = lambda t, x: np.zeros((len(x), len(x)))
-
+        custom_linearization = lambda t, x: np.zeros((len(x), len(x)))
         new_ivp = problems.InitialValueProblem(
             f=ode.f,
-            df=custom_linearisation,
+            df=custom_linearization,
             y0=ode.y0,
             t0=ode.t0,
             tmax=ode.tmax,
             solution=ode.solution,
         )
 
+        # From here onwards, mimic the EK1 implementation.
         ek0_information_operator = information_operators.ODEResidual(
             prior_ordint=information_operator.prior_ordint,
             prior_spatialdim=information_operator.prior_spatialdim,

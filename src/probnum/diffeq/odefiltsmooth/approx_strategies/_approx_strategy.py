@@ -6,9 +6,14 @@ from probnum.diffeq.odefiltsmooth import information_operators
 
 
 class ApproximationStrategy(abc.ABC):
-    """Turn an information operator into a tractable measurement model."""
+    """Interface for approximation strategies.
+
+    Turn an information operator into an approximate information operator that converts
+    into a :class:`GaussianIVPFilter` compatible :class:`Transition`.
+    """
 
     def __call__(
         self, information_operator: information_operators.InformationOperator
     ) -> information_operators.ApproximateInformationOperator:
+        """Derive a tractable approximation of an information operator."""
         raise NotImplementedError
