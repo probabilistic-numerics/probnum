@@ -2,7 +2,7 @@
 
 import numpy as np
 
-import probnum  # pylint: disable="unused-import"
+import probnum
 from probnum.typing import ScalarArgType
 
 from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
@@ -28,15 +28,13 @@ class ResidualNormStopCrit(LinearSolverStoppingCriterion):
         atol: ScalarArgType = 10 ** -5,
         rtol: ScalarArgType = 10 ** -5,
     ):
-        self.atol = atol
-        self.rtol = rtol
+        self.atol = probnum.utils.as_numpy_scalar(atol)
+        self.rtol = probnum.utils.as_numpy_scalar(rtol)
 
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> bool:
 
-        residual_norm = np.linalg.norm(solver_state.residual.flatten(), ord=2)
-        b_norm = np.linalg.norm(
-            solver_state.problem.b.flatten(), ord=2
-        )  # TODO: cache this
+        residual_norm = np.linalg.norm(solver_state.residual, ord=2)
+        b_norm = np.linalg.norm(solver_state.problem.b, ord=2)
         return residual_norm <= self.atol or residual_norm <= self.rtol * b_norm

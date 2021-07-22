@@ -1,7 +1,7 @@
 """Stopping criterion based on a maximum number of iterations."""
+from typing import Optional
 
 import probnum  # pylint: disable="unused-import"
-from probnum.typing import IntArgType
 
 from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 
@@ -19,7 +19,7 @@ class MaxIterationsStopCrit(LinearSolverStoppingCriterion):
         Maximum number of steps the solver should take.
     """
 
-    def __init__(self, maxiter: IntArgType = None):
+    def __init__(self, maxiter: Optional[int] = None):
         self.maxiter = maxiter
 
     def __call__(

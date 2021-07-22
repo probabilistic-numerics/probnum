@@ -28,18 +28,15 @@ class PosteriorContractionStopCrit(LinearSolverStoppingCriterion):
         atol: ScalarArgType = 10 ** -5,
         rtol: ScalarArgType = 10 ** -5,
     ):
-        self.atol = atol
-        self.rtol = rtol
+        self.atol = probnum.utils.as_numpy_scalar(atol)
+        self.rtol = probnum.utils.as_numpy_scalar(rtol)
 
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> bool:
 
         trace_sol_cov = solver_state.belief.x.cov.trace()
-
-        b_norm = np.linalg.norm(
-            solver_state.problem.b.flatten(), ord=2
-        )  # TODO: cache this
+        b_norm = np.linalg.norm(solver_state.problem.b, ord=2)
 
         return (
             np.abs(trace_sol_cov) <= self.atol ** 2
