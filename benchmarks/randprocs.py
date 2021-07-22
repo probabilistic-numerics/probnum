@@ -8,10 +8,10 @@ from probnum import config, linops, randprocs, randvars, statespace
 class MarkovProcessSampling:
     """Benchmark sampling from Markov processes."""
 
-    param_names = ["lazy_linalg", "num_samples", "len_trajectory", "order", "dimension"]
-    params = [[True, False], [10], [10], [5], [50, 100]]
+    param_names = ["lazy_linalg", "len_trajectory", "order", "dimension"]
+    params = [[True, False], [10], [5], [50, 100]]
 
-    def setup(self, lazy_linalg, num_samples, len_trajectory, order, dimension):
+    def setup(self, lazy_linalg, len_trajectory, order, dimension):
         with config(lazy_linalg=lazy_linalg):
             dynamics = statespace.IBM(
                 ordint=order,
@@ -33,17 +33,16 @@ class MarkovProcessSampling:
             )
 
             rng = np.random.default_rng(seed=1)
-            self.base_measure_realizations = scipy.stats.norm.rvs(
-                size=((num_samples,) + self.time_grid.shape + initrv.shape),
+            self.base_measure_realization = scipy.stats.norm.rvs(
+                size=(self.time_grid.shape + initrv.shape),
                 random_state=rng,
             )
 
-    def time_sample(self, lazy_linalg, num_samples, len_trajectory, order, dimension):
+    def time_sample(self, lazy_linalg, len_trajectory, order, dimension):
         with config(lazy_linalg=lazy_linalg):
-            for base_measure_real in self.base_measure_realizations:
-                self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
-                    base_measure_realizations=base_measure_real,
-                    t=self.time_grid,
-                    initrv=self.markov_process.initrv,
-                    _diffusion_list=np.ones_like(self.time_grid[:-1]),
-                )
+            self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
+                base_measure_realizations=self.base_measure_realization,
+                t=self.time_grid,
+                initrv=self.markov_process.initrv,
+                _diffusion_list=np.ones_like(self.time_grid[:-1]),
+            )
