@@ -10,8 +10,8 @@ __all__ = ["EventHandler", "CallbackEventHandler"]
 
 
 PerformStepFunctionType = Callable[
-    ["diffeq.ODESolver.State", FloatArgType, stepsize.StepRule],
-    Tuple["diffeq.ODESolver.State", float],
+    ["probnum.diffeq.ODESolver.State", FloatArgType, stepsize.StepRule],
+    Tuple["probnum.diffeq.ODESolver.State", float],
 ]
 """Implementation of a perform_full_step() function. Interface according to ODESolver."""
 
@@ -33,8 +33,10 @@ class CallbackEventHandler(EventHandler):
 
     def __init__(
         self,
-        modify: Callable[["diffeq.ODESolver.State"], "diffeq.ODESolver.State"],
-        condition: Callable[["diffeq.ODESolver.State"], Union[float, bool]],
+        modify: Callable[
+            ["probnum.diffeq.ODESolver.State"], "probnum.diffeq.ODESolver.State"
+        ],
+        condition: Callable[["probnum.diffeq.ODESolver.State"], Union[float, bool]],
     ):
         self.condition = condition
         self.modify = modify
@@ -43,10 +45,10 @@ class CallbackEventHandler(EventHandler):
         self, perform_step_function: PerformStepFunctionType
     ) -> PerformStepFunctionType:
         def new_perform_step_function(
-            state: "diffeq.ODESolver.State",
+            state: "probnum.diffeq.ODESolver.State",
             dt: FloatArgType,
             steprule: stepsize.StepRule,
-        ) -> Tuple["diffeq.ODESolver.State", float]:
+        ) -> Tuple["probnum.diffeq.ODESolver.State", float]:
             """Modify the state after each performed step."""
 
             new_state, dt = perform_step_function(state, dt, steprule)
@@ -56,7 +58,9 @@ class CallbackEventHandler(EventHandler):
         return new_perform_step_function
 
     @abc.abstractmethod
-    def modify_state(self, state: "diffeq.ODESolver.State") -> "diffeq.ODESolver.State":
+    def modify_state(
+        self, state: "probnum.diffeq.ODESolver.State"
+    ) -> "probnum.diffeq.ODESolver.State":
         """Modify a state whenever a condition dictates doing so."""
         raise NotImplementedError
 
