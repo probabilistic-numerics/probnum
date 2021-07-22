@@ -48,3 +48,19 @@ def case_state(
     initial_state.action = rng.standard_normal(size=initial_state.problem.A.shape[1])
 
     return initial_state
+
+
+def case_state_converged(
+    rng: np.random.Generator,
+):
+    """State of a linear solver, which has converged at initialization."""
+    belief = linalg.solvers.beliefs.LinearSystemBelief(
+        A=randvars.Constant(linsys.A),
+        Ainv=randvars.Constant(linops.aslinop(linsys.A).inv().todense()),
+        x=randvars.Constant(linsys.solution),
+        b=randvars.Constant(linsys.b),
+    )
+    state = linalg.solvers.ProbabilisticLinearSolverState(
+        problem=linsys, prior=belief, rng=rng
+    )
+    return state

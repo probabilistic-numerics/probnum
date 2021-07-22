@@ -1,6 +1,5 @@
 """Stopping criteria test cases."""
 
-from _pytest.mark import param
 from pytest_cases import parametrize
 
 from probnum.linalg.solvers import stopping_criteria
