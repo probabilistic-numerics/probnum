@@ -3,7 +3,7 @@
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"
-from probnum.typing import IntArgType, ScalarArgType
+from probnum.typing import ScalarArgType
 
 from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 
