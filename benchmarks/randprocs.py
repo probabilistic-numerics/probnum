@@ -8,11 +8,11 @@ from probnum import config, linops, randprocs, randvars, statespace
 class MarkovProcessSampling:
     """Benchmark sampling from Markov processes."""
 
-    param_names = ["use_linops", "num_samples", "len_trajectory", "order", "dimension"]
+    param_names = ["lazy_linalg", "num_samples", "len_trajectory", "order", "dimension"]
     params = [[True, False], [10], [10], [5], [50, 100]]
 
-    def setup(self, use_linops, num_samples, len_trajectory, order, dimension):
-        with config(prefer_dense_arrays=not use_linops):
+    def setup(self, lazy_linalg, num_samples, len_trajectory, order, dimension):
+        with config(lazy_linalg=lazy_linalg):
             dynamics = statespace.IBM(
                 ordint=order,
                 spatialdim=dimension,
@@ -38,8 +38,8 @@ class MarkovProcessSampling:
                 random_state=rng,
             )
 
-    def time_sample(self, use_linops, num_samples, len_trajectory, order, dimension):
-        with config(prefer_dense_arrays=not use_linops):
+    def time_sample(self, lazy_linalg, num_samples, len_trajectory, order, dimension):
+        with config(lazy_linalg=lazy_linalg):
             for base_measure_real in self.base_measure_realizations:
                 self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_measure_real,

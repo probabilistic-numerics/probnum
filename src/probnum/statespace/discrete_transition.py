@@ -261,13 +261,11 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
 
-        if not config.prefer_dense_arrays and not isinstance(
-            rv.cov, linops.LinearOperator
-        ):
+        if config.lazy_linalg and not isinstance(rv.cov, linops.LinearOperator):
             warnings.warn(
                 (
                     "`forward_rv()` received np.ndarray as covariance, while "
-                    "`config.prefer_dense_arrays` is set to `False`. This might lead "
+                    "`config.lazy_linalg` is set to `True`. This might lead "
                     "to unexpected behavior regarding data types."
                 ),
                 RuntimeWarning,
@@ -297,14 +295,14 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         **kwargs,
     ):
 
-        if not config.prefer_dense_arrays and not (
+        if config.lazy_linalg and not (
             isinstance(rv.cov, linops.LinearOperator)
             and isinstance(rv_obtained.cov, linops.LinearOperator)
         ):
             warnings.warn(
                 (
                     "`backward_rv()` received np.ndarray as covariance, while "
-                    "`config.prefer_dense_arrays` is set to `False`. This might lead "
+                    "`config.lazy_linalg` is set to `True`. This might lead "
                     "to unexpected behavior regarding data types."
                 ),
                 RuntimeWarning,
@@ -353,7 +351,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            if not config.prefer_dense_arrays:
+            if config.lazy_linalg:
                 gain = (new_cov.T.inv() @ crosscov.T).T
             else:
                 gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
@@ -364,7 +362,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         self, rv, t, compute_gain=False, _diffusion=1.0
     ) -> Tuple[randvars.RandomVariable, typing.Dict]:
 
-        if not config.prefer_dense_arrays:
+        if config.lazy_linalg:
             raise NotImplementedError(
                 "Sqrt-implementation does not work with linops for now."
             )
@@ -404,7 +402,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         """
         # forwarded_rv is ignored in square-root smoothing.
 
-        if not config.prefer_dense_arrays:
+        if config.lazy_linalg:
             raise NotImplementedError(
                 "Sqrt-implementation does not work with linops for now."
             )

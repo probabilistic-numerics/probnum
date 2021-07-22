@@ -386,7 +386,7 @@ class TestLinearGaussianLinOps:
         spdmat1,
         spdmat2,
     ):
-        with config(prefer_dense_arrays=False):
+        with config(lazy_linalg=True):
             self.G = lambda t: linops.aslinop(spdmat1)
             self.S = lambda t: linops.aslinop(spdmat2)
             self.v = lambda t: np.arange(test_ndim)
@@ -431,7 +431,7 @@ class TestLinearGaussianLinOps:
         linop_cov_rv = randvars.Normal(
             array_cov_rv.mean.copy(), linops.aslinop(array_cov_rv.cov)
         )
-        with config(prefer_dense_arrays=False):
+        with config(lazy_linalg=True):
             with pytest.warns(RuntimeWarning):
                 self.transition.forward_rv(array_cov_rv, 0.0)
 
@@ -454,7 +454,7 @@ class TestLinearGaussianLinOps:
         linop_cov_rv2 = randvars.Normal(
             array_cov_rv2.mean.copy(), linops.aslinop(array_cov_rv2.cov)
         )
-        with config(prefer_dense_arrays=False):
+        with config(lazy_linalg=True):
             with pytest.warns(RuntimeWarning):
                 self.transition.backward_rv(array_cov_rv1, array_cov_rv2)
             with pytest.warns(RuntimeWarning):
@@ -473,15 +473,13 @@ class TestLinearGaussianLinOps:
                 self.sqrt_transition.backward_rv(linop_cov_rv1, linop_cov_rv2)
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
-        with config(prefer_dense_arrays=False):
+        with config(lazy_linalg=True):
             array_cov_rv = some_normal_rv2
             linop_cov_rv = randvars.Normal(
                 array_cov_rv.mean.copy(), linops.aslinop(array_cov_rv.cov)
             )
             with pytest.warns(RuntimeWarning):
-                self.transition.backward_realization(
-                    some_normal_rv1.mean, array_cov_rv
-                )
+                self.transition.backward_realization(some_normal_rv1.mean, array_cov_rv)
             out, _ = self.transition.backward_realization(
                 some_normal_rv1.mean, linop_cov_rv
             )

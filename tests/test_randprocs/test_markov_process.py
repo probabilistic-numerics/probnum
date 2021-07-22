@@ -27,7 +27,7 @@ def test_sample():
     order = 5
     spatialdim = 100
 
-    with config(prefer_dense_arrays=True):
+    with config(lazy_linalg=False):
         dynamics_dense = statespace.IBM(
             ordint=order,
             spatialdim=spatialdim,
@@ -48,7 +48,7 @@ def test_sample():
 
     time_dense = stop_dense - start_dense
 
-    with config(prefer_dense_arrays=False):
+    with config(lazy_linalg=True):
         dynamics_linop = statespace.IBM(
             ordint=order,
             spatialdim=spatialdim,

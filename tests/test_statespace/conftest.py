@@ -91,11 +91,6 @@ def diffusion():
     return 5.1412512431
 
 
-@pytest.fixture(params=[True, False])
-def prefer_dense_arrays(request):
-    return request.param
-
-
 @pytest.fixture(params=["classic", "sqrt"])
 def forw_impl_string_linear_gauss(request):
     """Forward implementation choices passed via strings."""

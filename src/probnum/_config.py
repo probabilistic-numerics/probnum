@@ -128,12 +128,13 @@ _DEFAULT_CONFIG_OPTIONS = [
         ),
     ),
     (
-        "prefer_dense_arrays",
-        True,
+        "lazy_linalg",
+        False,
         (
             "Whether or not to use ``LinearOperator``s for computations instead of "
-            "NumPy arrays. LinearOperators can lazify linear algebra operations. "
-            "If ``False``, wherever possible, lazy computations are preferred."
+            "NumPy arrays. LinearOperators makes use of lazy arithmetic. This can speed"
+            " up matrix-matrix products and provide memory-efficient matrix-vector "
+            "products."
         ),
     ),
 ]

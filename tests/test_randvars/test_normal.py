@@ -148,12 +148,6 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 randvars.Normal(mean=mean, cov=cov)
 
-            try:
-                with config(prefer_dense_arrays=False):
-                    randvars.Normal(mean=mean, cov=cov)
-            except TypeError:
-                pass
-
     def test_normal_pdf(self):
         """Evaluate pdf at random input."""
         for mean, cov in self.normal_params:
@@ -599,7 +593,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
 
         with self.subTest("Damping factor check"):
-            with config(prefer_dense_arrays=False):
+            with config(lazy_linalg=True):
                 rv.precompute_cov_cholesky(damping_factor=10.0)
                 self.assertIsInstance(rv.cov_cholesky, linops.LinearOperator)
                 self.assertAllClose(
