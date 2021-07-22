@@ -92,6 +92,8 @@ def perturbsolve_ivp(
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
+    time_stamps: np.ndarray
+        Time-stamps at which to store the computed solution. Optional. Default is None.
 
     Examples
     --------
