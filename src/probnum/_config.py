@@ -129,7 +129,7 @@ _DEFAULT_CONFIG_OPTIONS = [
     ),
     (
         "lazy_linalg",
-        True,
+        False,
         (
             "If True, wherever possible, LinearOperators are used instead "
             "of Numpy arrays. LinearOperators provide lazy arithmetic and "
