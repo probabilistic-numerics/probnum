@@ -7,43 +7,48 @@ from probnum import randvars
 from probnum.diffeq import stepsize
 from probnum.typing import FloatArgType
 
+__all__ = ["EventHandler", "CallbackEventHandler"]
+
+
 PerformStepFunctionType = Callable[
     ["_odesolver.ODESolver.State", FloatArgType, stepsize.StepRule],
-    Tuple["_odesolver.ODESolver.State", FloatArgType],
+    Tuple["_odesolver.ODESolver.State", float],
 ]
+"""Implementation of a perform_full_step() function. Interface according to ODESolver."""
 
 
 class EventHandler(abc.ABC):
-    """Interface for event handlers.
-
-    Event handlers decorate perform_full_step implementations bei either interferring
-    before or after the step. For instance, enforcing fixed time-stamps into the
-    solution grid requires interferring before the step. Modifying the state whenever a
-    condition is true, however, is done after the step.
-    """
+    """Interface for event handlers."""
 
     @abc.abstractmethod
     def __call__(
         self, perform_step_function: PerformStepFunctionType
     ) -> PerformStepFunctionType:
+        """Wrap a perform_full_step implementation into a version that knows event
+        handling functionality."""
         raise NotImplementedError
 
 
-class EventCallback(EventHandler):
+class CallbackEventHandler(EventHandler):
     """Interface for pure callback-type events."""
 
-    def __init__(self, condition, modify):
+    def __init__(
+        self,
+        modify: Callable[["_odesolver.ODESolver.State"], "_odesolver.ODESolver.State"],
+        condition: Callable[["_odesolver.ODESolver.State"], Union[float, bool]],
+    ):
         self.condition = condition
         self.modify = modify
 
     def __call__(
         self, perform_step_function: PerformStepFunctionType
     ) -> PerformStepFunctionType:
-        """Wrap an ODE solver step() implementation into a step() implementation that
-        knows events."""
-
-        def new_perform_step_function(state, dt, steprule):
-            """ODE solver steps that check for event handling."""
+        def new_perform_step_function(
+            state: "_odesolver.ODESolver.State",
+            dt: FloatArgType,
+            steprule: stepsize.StepRule,
+        ) -> Tuple["_odesolver.ODESolver.State", float]:
+            """Modify the state after each performed step."""
 
             new_state, dt = perform_step_function(state, dt, steprule)
             new_state = self.modify_state(new_state)
@@ -52,11 +57,16 @@ class EventCallback(EventHandler):
         return new_perform_step_function
 
     @abc.abstractmethod
-    def modify_state(self, state):
+    def modify_state(
+        self, state: "_odesolver.ODESolver.State"
+    ) -> "_odesolver.ODESolver.State":
         """Modify a state whenever a condition dictates doing so."""
         raise NotImplementedError
 
 
+#
+# One might implement a continuous callback as follows:
+#
 # class ContinuousInterventions(EventHandler):
 #     """Whenever a condition : X -> R is zero, do something.
 #
@@ -72,12 +82,12 @@ class EventCallback(EventHandler):
 #         self.root_finding_algorithm = scipy_root
 #
 #
-#     def intervene_state(self, state, solver):
+#     def modify_state(self, state):
 #         if self.condition(state.x) < 0:
-#             composed = lambda t: self.condition(state.dense_output(t))
+#             composed = lambda t: self.condition(state.dense_output(t).mean)
 #             new_t, new_x = self.root_finding_algorithm(composed)
 #
 #             # new solver.State object including dense output!
 #             new_state = solver.new_state(t=new_t, x=new_x)
-#             return self.affect(new_state)
+#             return self.modify(new_state)
 #         return state

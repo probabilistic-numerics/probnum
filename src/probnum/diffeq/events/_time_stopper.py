@@ -1,18 +1,20 @@
 """Time-stamps."""
 
+from typing import Iterable
+
 import numpy as np
 
 from probnum.diffeq.events import _event_handler
 
 
-class TimeStampStopper(_event_handler.EventHandler):
-    """Make the ODE solver stop at specified time-stamps."""
+class TimeStopper(_event_handler.EventHandler):
+    """Make the ODE solver stop at specified time-points."""
 
-    def __init__(self, time_stamps):
-        self._time_stamps = iter(time_stamps)
-        self._next_time_stamp = next(self._time_stamps)
+    def __init__(self, locations: Iterable):
+        self._locations = iter(locations)
+        self._next_location = next(self._locations)
 
-    def __call__(self, perform_step_function):
+    def __call__(self, perform_step_function: _event_handler.PerformStepFunctionType):
         """Wrap an ODE solver step() implementation into a step() implementation that
         knows events."""
 
@@ -28,13 +30,13 @@ class TimeStampStopper(_event_handler.EventHandler):
     def adjust_dt_to_next_time_stamp(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""
 
-        if t + dt > self._next_time_stamp:
-            dt = self._next_time_stamp - t
-            self._advance_current_time_stamp()
+        if t + dt > self._next_location:
+            dt = self._next_location - t
+            self._advance_current_location()
         return dt
 
-    def _advance_current_time_stamp(self):
+    def _advance_current_location(self):
         try:
-            self._next_time_stamp = next(self._time_stamps)
+            self._next_location = next(self._locations)
         except StopIteration:
-            self._next_time_stamp = np.inf
+            self._next_location = np.inf

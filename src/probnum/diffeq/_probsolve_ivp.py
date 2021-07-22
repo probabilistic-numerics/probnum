@@ -257,7 +257,7 @@ def probsolve_ivp(
 
     # Event handling
     if time_stamps is not None:
-        event_handler = events.TimeStampStopper(time_stamps=time_stamps)
+        event_handler = events.TimeStopper(locations=time_stamps)
     else:
         event_handler = None
 

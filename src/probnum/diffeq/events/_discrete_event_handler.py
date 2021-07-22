@@ -5,7 +5,7 @@ import numpy as np
 from probnum.diffeq.events import _event_handler
 
 
-class DiscreteEventHandler(_event_handler.EventCallback):
+class DiscreteEventHandler(_event_handler.CallbackEventHandler):
     """Handle discrete events in an ODE solver.
 
     A discrete event can be a time-stamp that must be included in the locations. It can
