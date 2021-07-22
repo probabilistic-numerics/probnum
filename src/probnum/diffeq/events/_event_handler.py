@@ -3,7 +3,6 @@
 import abc
 from typing import Callable, Tuple, Union
 
-from probnum import randvars
 from probnum.diffeq import stepsize
 from probnum.typing import FloatArgType
 

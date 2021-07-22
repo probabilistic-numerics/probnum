@@ -2,8 +2,6 @@
 
 from typing import Callable, Union
 
-import numpy as np
-
 from probnum.diffeq.events import _event_handler
 
 
