@@ -129,12 +129,11 @@ _DEFAULT_CONFIG_OPTIONS = [
     ),
     (
         "lazy_linalg",
-        False,
+        True,
         (
-            "Whether or not to use ``LinearOperator``s for computations instead of "
-            "NumPy arrays. LinearOperators makes use of lazy arithmetic. This can speed"
-            " up matrix-matrix products and provide memory-efficient matrix-vector "
-            "products."
+            "If True, wherever possible, LinearOperators are used instead "
+            "of Numpy arrays. LinearOperators provide lazy arithmetic and "
+            "thus memory-efficient matrix-vector products."
         ),
     ),
 ]
