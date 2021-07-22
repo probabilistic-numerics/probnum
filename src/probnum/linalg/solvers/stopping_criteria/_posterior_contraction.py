@@ -11,23 +11,28 @@ from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 class PosteriorContractionStopCrit(LinearSolverStoppingCriterion):
     r"""Posterior contraction stopping criterion.
 
-    Terminate when the uncertainty about the solution is sufficiently small, i.e. if it
-    satisfies :math:`\sqrt{\operatorname{tr}(\mathbb{Cov}(\mathsf{x}))}
-    \leq \max(\text{atol}, \text{rtol} \lVert b \rVert_2)`.
+    Terminate when the uncertainty about the quantity of interest :math:`q` is
+    sufficiently small, i.e. if :math:`\sqrt{\operatorname{tr}(\mathbb{Cov}(q))}
+    \leq \max(\text{atol}, \text{rtol} \lVert b \rVert_2)`, where :math:`q` is either
+    the solution :math:`x`, the system matrix :math:`A` or its inverse :math:`A^{-1}`.
 
     Parameters
     ----------
+    qoi :
+        Quantity of interest. One of ``{"x", "A", "Ainv"}``.
     atol :
-        Absolute residual tolerance.
+        Absolute tolerance.
     rtol :
-        Relative residual tolerance.
+        Relative tolerance.
     """
 
     def __init__(
         self,
+        qoi: str = "x",
         atol: ScalarArgType = 10 ** -5,
         rtol: ScalarArgType = 10 ** -5,
     ):
+        self.qoi = qoi
         self.atol = probnum.utils.as_numpy_scalar(atol)
         self.rtol = probnum.utils.as_numpy_scalar(rtol)
 
@@ -35,10 +40,10 @@ class PosteriorContractionStopCrit(LinearSolverStoppingCriterion):
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> bool:
 
-        trace_sol_cov = solver_state.belief.x.cov.trace()
+        trace_cov_qoi = getattr(solver_state.belief, self.qoi).cov.trace()
         b_norm = np.linalg.norm(solver_state.problem.b, ord=2)
 
         return (
-            np.abs(trace_sol_cov) <= self.atol ** 2
-            or np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2
+            np.abs(trace_cov_qoi) <= self.atol ** 2
+            or np.abs(trace_cov_qoi) <= (self.rtol * b_norm) ** 2
         )

@@ -27,6 +27,6 @@ class MaxIterationsStopCrit(LinearSolverStoppingCriterion):
     ) -> bool:
 
         if self.maxiter is None:
-            return solver_state.problem.A.shape[0] * 10 >= self.maxiter
+            return solver_state.step >= solver_state.problem.A.shape[0] * 10
         else:
             return solver_state.step >= self.maxiter
