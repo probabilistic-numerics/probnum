@@ -133,7 +133,7 @@ _DEFAULT_CONFIG_OPTIONS = [
         (
             "If True, wherever possible, LinearOperators are used instead "
             "of Numpy arrays. LinearOperators provide lazy arithmetic and "
-            "thus memory-efficient matrix-vector products."
+            "thus memory- and runtime-efficient linear algebra operations."
         ),
     ),
 ]
