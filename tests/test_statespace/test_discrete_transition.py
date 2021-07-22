@@ -105,48 +105,34 @@ class TestLinearGaussian(TestDiscreteGaussian):
     def _setup(
         self,
         test_ndim,
-        prefer_dense_arrays,
         spdmat1,
         spdmat2,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
 
-        self.prefer_dense_arrays = prefer_dense_arrays
-        self.forward_implementation = forw_impl_string_linear_gauss
-        self.backward_implementation = backw_impl_string_linear_gauss
+        self.G = lambda t: spdmat1
+        self.S = lambda t: spdmat2
+        self.v = lambda t: np.arange(test_ndim)
+        self.transition = statespace.DiscreteLinearGaussian(
+            test_ndim,
+            test_ndim,
+            self.G,
+            self.v,
+            self.S,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
 
-        if not self.prefer_dense_arrays:
-            spdmat1 = linops.aslinop(spdmat1)
-            spdmat2 = linops.aslinop(spdmat2)
-
-        with config(prefer_dense_arrays=self.prefer_dense_arrays):
-            self.G = lambda t: spdmat1
-            self.S = lambda t: spdmat2
-            self.v = lambda t: np.arange(test_ndim)
-
-            self.transition = statespace.DiscreteLinearGaussian(
-                test_ndim,
-                test_ndim,
-                self.G,
-                self.v,
-                self.S,
-                forward_implementation=forw_impl_string_linear_gauss,
-                backward_implementation=backw_impl_string_linear_gauss,
-            )
-
-            self.g = lambda t, x: self.G(t) @ x + self.v(t)
-            self.dg = lambda t, x: self.G(t)
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
 
     # Test access to system matrices
 
     def test_state_transition_mat_fun(self):
         received = self.transition.state_trans_mat_fun(0.0)
         expected = self.G(0.0)
-        if self.prefer_dense_arrays:
-            np.testing.assert_allclose(received, expected)
-        else:
-            np.testing.assert_allclose(received.todense(), expected.todense())
+        np.testing.assert_allclose(received, expected)
 
     def test_shift_vec_fun(self):
         received = self.transition.shift_vec_fun(0.0)
@@ -156,33 +142,8 @@ class TestLinearGaussian(TestDiscreteGaussian):
     # Test forward and backward implementations
 
     def test_forward_rv(self, some_normal_rv1):
-        dense_cov_rv = some_normal_rv1
-        linop_cov_rv = randvars.Normal(
-            dense_cov_rv.mean.copy(), linops.aslinop(dense_cov_rv.cov)
-        )
-        with config(prefer_dense_arrays=self.prefer_dense_arrays):
-            if not self.prefer_dense_arrays:
-                # Use linops
-                if self.forward_implementation == "sqrt":
-                    with pytest.raises(NotImplementedError):
-                        self.transition.forward_rv(dense_cov_rv, 0.0)
-                    with pytest.raises(NotImplementedError):
-                        self.transition.forward_rv(linop_cov_rv, 0.0)
-                else:
-                    with pytest.warns(RuntimeWarning):
-                        self.transition.forward_rv(dense_cov_rv, 0.0)
-
-                    out, _ = self.transition.forward_rv(linop_cov_rv, 0.0)
-                    assert isinstance(out, randvars.Normal)
-                    assert isinstance(out.cov, linops.LinearOperator)
-                    assert isinstance(out.cov_cholesky, linops.LinearOperator)
-
-            else:
-                # Use np arrays
-                out, _ = self.transition.forward_rv(dense_cov_rv, 0.0)
-                assert isinstance(out, randvars.Normal)
-                assert isinstance(out.cov, np.ndarray)
-                assert isinstance(out.cov_cholesky, np.ndarray)
+        out, _ = self.transition.forward_rv(some_normal_rv1, 0.0)
+        assert isinstance(out, randvars.Normal)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_rv(some_normal_rv1, some_normal_rv2)
@@ -362,40 +323,29 @@ class TestLTIGaussian(TestLinearGaussian):
     def _setup(
         self,
         test_ndim,
-        prefer_dense_arrays,
         spdmat1,
         spdmat2,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
 
-        self.prefer_dense_arrays = prefer_dense_arrays
-        self.forward_implementation = forw_impl_string_linear_gauss
-        self.backward_implementation = backw_impl_string_linear_gauss
+        self.G_const = spdmat1
+        self.S_const = spdmat2
+        self.v_const = np.arange(test_ndim)
+        self.transition = statespace.DiscreteLTIGaussian(
+            self.G_const,
+            self.v_const,
+            self.S_const,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
 
-        if not self.prefer_dense_arrays:
-            spdmat1 = linops.aslinop(spdmat1)
-            spdmat2 = linops.aslinop(spdmat2)
-
-        with config(prefer_dense_arrays=self.prefer_dense_arrays):
-            self.G_const = spdmat1
-            self.S_const = spdmat2
-            self.v_const = np.arange(test_ndim)
-
-            self.transition = statespace.DiscreteLTIGaussian(
-                self.G_const,
-                self.v_const,
-                self.S_const,
-                forward_implementation=forw_impl_string_linear_gauss,
-                backward_implementation=backw_impl_string_linear_gauss,
-            )
-
-            # Compatibility with superclass' test
-            self.G = lambda t: self.G_const
-            self.S = lambda t: self.S_const
-            self.v = lambda t: self.v_const
-            self.g = lambda t, x: self.G(t) @ x + self.v(t)
-            self.dg = lambda t, x: self.G(t)
+        # Compatibility with superclass' test
+        self.G = lambda t: self.G_const
+        self.S = lambda t: self.S_const
+        self.v = lambda t: self.v_const
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
 
     # Test access to system matrices
 
@@ -418,3 +368,121 @@ class TestLTIGaussian(TestLinearGaussian):
         received = self.transition.proc_noise_cov_cholesky
         expected = np.linalg.cholesky(self.S_const)
         np.testing.assert_allclose(received, expected)
+
+
+class TestLinearGaussianLinOps:
+    """Test class for linear Gaussians using LinearOperators where possible.
+
+    Also tests that different forward and backward deal correctly when LinearOperators
+    are used.
+    """
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        test_ndim,
+        spdmat1,
+        spdmat2,
+    ):
+        with config(prefer_dense_arrays=False):
+            self.G = lambda t: linops.aslinop(spdmat1)
+            self.S = lambda t: linops.aslinop(spdmat2)
+            self.v = lambda t: np.arange(test_ndim)
+            self.transition = statespace.DiscreteLinearGaussian(
+                test_ndim,
+                test_ndim,
+                self.G,
+                self.v,
+                self.S,
+                forward_implementation="classic",
+                backward_implementation="classic",
+            )
+            self.sqrt_transition = statespace.DiscreteLinearGaussian(
+                test_ndim,
+                test_ndim,
+                self.G,
+                self.v,
+                self.S,
+                forward_implementation="sqrt",
+                backward_implementation="sqrt",
+            )
+
+            self.g = lambda t, x: self.G(t) @ x + self.v(t)
+            self.dg = lambda t, x: self.G(t)
+
+    # Test access to system matrices
+
+    def test_state_transition_mat_fun(self):
+        received = self.transition.state_trans_mat_fun(0.0)
+        expected = self.G(0.0)
+        np.testing.assert_allclose(received.todense(), expected.todense())
+
+    def test_shift_vec_fun(self):
+        received = self.transition.shift_vec_fun(0.0)
+        expected = self.v(0.0)
+        np.testing.assert_allclose(received, expected)
+
+    # Test forward and backward implementations
+
+    def test_forward_rv(self, some_normal_rv1):
+        array_cov_rv = some_normal_rv1
+        linop_cov_rv = randvars.Normal(
+            array_cov_rv.mean.copy(), linops.aslinop(array_cov_rv.cov)
+        )
+        with config(prefer_dense_arrays=False):
+            with pytest.warns(RuntimeWarning):
+                self.transition.forward_rv(array_cov_rv, 0.0)
+
+            out, _ = self.transition.forward_rv(linop_cov_rv, 0.0)
+            assert isinstance(out, randvars.Normal)
+            assert isinstance(out.cov, linops.LinearOperator)
+            assert isinstance(out.cov_cholesky, linops.LinearOperator)
+
+            with pytest.raises(NotImplementedError):
+                self.sqrt_transition.forward_rv(array_cov_rv, 0.0)
+            with pytest.raises(NotImplementedError):
+                self.sqrt_transition.forward_rv(linop_cov_rv, 0.0)
+
+    def test_backward_rv_classic(self, some_normal_rv1, some_normal_rv2):
+        array_cov_rv1 = some_normal_rv1
+        linop_cov_rv1 = randvars.Normal(
+            array_cov_rv1.mean.copy(), linops.aslinop(array_cov_rv1.cov)
+        )
+        array_cov_rv2 = some_normal_rv2
+        linop_cov_rv2 = randvars.Normal(
+            array_cov_rv2.mean.copy(), linops.aslinop(array_cov_rv2.cov)
+        )
+        with config(prefer_dense_arrays=False):
+            with pytest.warns(RuntimeWarning):
+                self.transition.backward_rv(array_cov_rv1, array_cov_rv2)
+            with pytest.warns(RuntimeWarning):
+                self.transition.backward_rv(linop_cov_rv1, array_cov_rv2)
+            with pytest.warns(RuntimeWarning):
+                self.transition.backward_rv(array_cov_rv1, linop_cov_rv2)
+
+            out, _ = self.transition.backward_rv(linop_cov_rv1, linop_cov_rv2)
+            assert isinstance(out, randvars.Normal)
+            assert isinstance(out.cov, linops.LinearOperator)
+            assert isinstance(out.cov_cholesky, linops.LinearOperator)
+
+            with pytest.raises(NotImplementedError):
+                self.sqrt_transition.backward_rv(array_cov_rv1, array_cov_rv2)
+            with pytest.raises(NotImplementedError):
+                self.sqrt_transition.backward_rv(linop_cov_rv1, linop_cov_rv2)
+
+    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
+        with config(prefer_dense_arrays=False):
+            array_cov_rv = some_normal_rv2
+            linop_cov_rv = randvars.Normal(
+                array_cov_rv.mean.copy(), linops.aslinop(array_cov_rv.cov)
+            )
+            with pytest.warns(RuntimeWarning):
+                self.transition.backward_realization(
+                    some_normal_rv1.mean, array_cov_rv
+                )
+            out, _ = self.transition.backward_realization(
+                some_normal_rv1.mean, linop_cov_rv
+            )
+            assert isinstance(out, randvars.Normal)

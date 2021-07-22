@@ -267,8 +267,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             warnings.warn(
                 (
                     "`forward_rv()` received np.ndarray as covariance, while "
-                    "`config.prefer_dense_arrays` is set to `False`. The computation might "
-                    "proceed on dense arrays, instead of `LinearOperator`s."
+                    "`config.prefer_dense_arrays` is set to `False`. This might lead "
+                    "to unexpected behavior regarding data types."
                 ),
                 RuntimeWarning,
             )
@@ -297,14 +297,15 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         **kwargs,
     ):
 
-        if not config.prefer_dense_arrays and not isinstance(
-            rv.cov, linops.LinearOperator
+        if not config.prefer_dense_arrays and not (
+            isinstance(rv.cov, linops.LinearOperator)
+            and isinstance(rv_obtained.cov, linops.LinearOperator)
         ):
             warnings.warn(
                 (
                     "`backward_rv()` received np.ndarray as covariance, while "
-                    "`config.prefer_dense_arrays` is set to `False`. The computation might "
-                    "proceed on dense arrays, instead of `LinearOperator`s."
+                    "`config.prefer_dense_arrays` is set to `False`. This might lead "
+                    "to unexpected behavior regarding data types."
                 ),
                 RuntimeWarning,
             )
@@ -352,10 +353,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            if (
-                isinstance(rv.cov, linops.LinearOperator)
-                and not config.prefer_dense_arrays
-            ):
+            if not config.prefer_dense_arrays:
                 gain = (new_cov.T.inv() @ crosscov.T).T
             else:
                 gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
