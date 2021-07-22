@@ -17,14 +17,12 @@ class DiscreteEventHandler(_event_handler.CallbackEventHandler):
     # New init because condition() types are more specific.
     def __init__(
         self,
-        modify: Callable[["_odesolver.ODESolver.State"], "_odesolver.ODESolver.State"],
-        condition: Callable[["_odesolver.ODESolver.State"], Union[bool]],
+        modify: Callable[["diffeq.ODESolver.State"], "diffeq.ODESolver.State"],
+        condition: Callable[["diffeq.ODESolver.State"], Union[bool]],
     ):
         super().__init__(modify=modify, condition=condition)
 
-    def modify_state(
-        self, state: "_odesolver.ODESolver.State"
-    ) -> "_odesolver.ODESolver.State":
+    def modify_state(self, state: "diffeq.ODESolver.State") -> "diffeq.ODESolver.State":
         if self.condition(state):
             state = self.modify(state)
         return state
