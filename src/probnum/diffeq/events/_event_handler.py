@@ -1,47 +1,62 @@
 """Event handler interface."""
 
 import abc
-from typing import Callable, Union
+from typing import Callable, Tuple, Union
 
 from probnum import randvars
+from probnum.diffeq import stepsize
+from probnum.typing import FloatArgType
+
+PerformStepFunctionType = Callable[
+    ["_odesolver.ODESolver.State", FloatArgType, stepsize.StepRule],
+    Tuple["_odesolver.ODESolver.State", FloatArgType],
+]
 
 
 class EventHandler(abc.ABC):
-    """Interface for event handlers."""
+    """Interface for event handlers.
 
-    def __init__(
-        self, condition: Callable[[randvars.RandomVariable], Union[bool, float]]
-    ):
+    Event handlers decorate perform_full_step implementations bei either interferring
+    before or after the step. For instance, enforcing fixed time-stamps into the
+    solution grid requires interferring before the step. Modifying the state whenever a
+    condition is true, however, is done after the step.
+    """
+
+    @abc.abstractmethod
+    def __call__(
+        self, perform_step_function: PerformStepFunctionType
+    ) -> PerformStepFunctionType:
+        raise NotImplementedError
+
+
+class EventCallback(EventHandler):
+    """Interface for pure callback-type events."""
+
+    def __init__(self, condition, modify):
         self.condition = condition
+        self.modify = modify
 
-    def __call__(self, perform_step_function):
+    def __call__(
+        self, perform_step_function: PerformStepFunctionType
+    ) -> PerformStepFunctionType:
         """Wrap an ODE solver step() implementation into a step() implementation that
         knows events."""
 
         def new_perform_step_function(state, dt, steprule):
             """ODE solver steps that check for event handling."""
 
-            new_dt = self.interfere_dt(t=state.t, dt=dt)
-            new_state, dt = perform_step_function(state, new_dt, steprule)
-            new_state = self.intervene_state(new_state)
+            new_state, dt = perform_step_function(state, dt, steprule)
+            new_state = self.modify_state(new_state)
             return new_state, dt
 
         return new_perform_step_function
 
-    def interfere_dt(self, t, dt):
-        """Check whether the next time-point is supposed to be stopped at."""
-        # Default behaviour: do nothing to the step.
-        # Overwritten by discrete interventions (which handle event time-stamps).
-        # Any other intervention (i.e. continuous interventions, do not do anything here).
-        return dt
-
     @abc.abstractmethod
-    def intervene_state(self, state):
-        """Do nothing by default."""
+    def modify_state(self, state):
+        """Modify a state whenever a condition dictates doing so."""
         raise NotImplementedError
 
 
-#
 # class ContinuousInterventions(EventHandler):
 #     """Whenever a condition : X -> R is zero, do something.
 #
