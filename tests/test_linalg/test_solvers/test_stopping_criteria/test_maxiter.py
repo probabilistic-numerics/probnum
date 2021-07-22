@@ -11,7 +11,14 @@ cases_stopping_criteria = case_modules + ".stopping_criteria"
 cases_states = case_modules + ".states"
 
 
-def test_maxiter_None():
+@parametrize_with_cases("state", cases=cases_states, glob="*initial_state")
+def test_maxiter_None(state: ProbabilisticLinearSolverState):
     """Test whether if ``maxiter=None``, the maximum number of iterations is set to
     :math:`10n`, where :math:`n` is the dimension of the linear system."""
-    pass  # TODO
+    stop_crit = stopping_criteria.MaxIterationsStopCrit()
+
+    for _ in range(10 * state.problem.A.shape[1]):
+        assert not stop_crit(state)
+        state.next_step()
+
+    assert stop_crit(state)
