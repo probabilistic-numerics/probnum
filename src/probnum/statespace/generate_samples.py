@@ -18,7 +18,7 @@ def generate_artificial_measurements(
     ----------
     rng
         Random number generator.
-    process
+    prior_process
         Markov process to sample from, defining dynamics and initial conditions.
     measmod
         Transition model describing the measurement model.
