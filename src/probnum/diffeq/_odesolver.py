@@ -97,6 +97,8 @@ class ODESolver(ABC):
         step_is_sufficiently_small = False
         while not step_is_sufficiently_small:
             proposed_state = self.attempt_step(state, dt)
+
+            # Acceptance/Rejection due to the step-rule
             internal_norm = steprule.errorest_to_norm(
                 errorest=proposed_state.error_estimate,
                 reference_state=proposed_state.reference_state,
@@ -105,10 +107,14 @@ class ODESolver(ABC):
             suggested_dt = steprule.suggest(
                 dt, internal_norm, localconvrate=self.order + 1
             )
+
+            # Get a new step-size for the next step
             if step_is_sufficiently_small:
                 dt = min(suggested_dt, self.ivp.tmax - proposed_state.t)
             else:
                 dt = min(suggested_dt, self.ivp.tmax - state.t)
+
+        # This line of code is unnecessary?!
         self.method_callback(state)
         return proposed_state, dt
 
