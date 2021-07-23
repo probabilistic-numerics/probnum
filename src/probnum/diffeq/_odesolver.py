@@ -171,7 +171,7 @@ class ODESolver(ABC):
 
         Time-stops:
 
-        As context:
+        As context (current implementation):
 
         >>> solver = ODESolver(...)
         >>> with solver.stop_at(locations=[2.3, 2.4]):
@@ -207,9 +207,16 @@ class _TimeStopper:
         self._next_location = next(self._locations)
 
     def wrap(self, perform_step_function):
+        """Wrap a perform_step function into a perform_step function that is informed
+        about the time-stops."""
+
         def wrapped_step(state, initial_dt, steprule):
             new_dt = self.adjust_dt_to_time_stamps(state.t, initial_dt)
             state, dt = perform_step_function(state, new_dt, steprule)
+
+            # This line ensures that the "current" next location is only advanced if the taken step is beyond the point.
+            # It cannot happen in adjust_dt_..., because inside perform_step, a step might be rejected for the sake of a smaller
+            # step, in which case we do not want to advance the state.
             self.advance_current_location_if_applicable(state)
             return state, dt
 
