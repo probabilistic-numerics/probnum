@@ -213,7 +213,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     # This case handles all linear operators, for which no Cholesky
                     # factorization is implemented, yet.
                     # Computes the dense Cholesky and converts it to a LinearOperator.
-                    compute_cov_cholesky = self._assure_linop_cov_cholesky
+                    compute_cov_cholesky = self._dense_cov_cholesky_as_linop
 
         else:
             raise ValueError(
@@ -478,6 +478,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             lower=True,
         )
 
+    def _dense_cov_cholesky_as_linop(
+        self, damping_factor: FloatArgType
+    ) -> linops.LinearOperator:
+        return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
+
     def _dense_sample(
         self, rng: np.random.Generator, size: ShapeType = ()
     ) -> np.ndarray:
@@ -542,11 +547,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             ),
             dtype=np.float_,
         )
-
-    def _assure_linop_cov_cholesky(
-        self, damping_factor: FloatArgType
-    ) -> linops.LinearOperator:
-        return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
 
     # Matrixvariate Gaussian with Kronecker covariance
     def _kronecker_cov_cholesky(
