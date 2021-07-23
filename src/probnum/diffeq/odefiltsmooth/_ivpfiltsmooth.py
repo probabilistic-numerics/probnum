@@ -1,6 +1,6 @@
 """Gaussian IVP filtering and smoothing."""
 
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, Optional, Union
 
 import numpy as np
 import scipy.linalg
