@@ -18,64 +18,6 @@ def test_gauss_markov_process_initrv_is_gaussian(
     )
 
 
-def test_sample():
-    rng = np.random.default_rng(seed=1)
-    time_domain = (0.0, 10.0)
-    time_grid = np.arange(*time_domain)
-    measvar = 0.1024
-
-    order = 5
-    spatialdim = 100
-
-    with config(lazy_linalg=False):
-        dynamics_dense = statespace.IBM(
-            ordint=order,
-            spatialdim=spatialdim,
-            forward_implementation="classic",
-            backward_implementation="classic",
-        )
-        initrv_dense = randvars.Normal(
-            np.ones(dynamics_dense.dimension),
-            measvar * np.eye(dynamics_dense.dimension),
-        )
-        prior_process_dense = randprocs.MarkovProcess(
-            initarg=time_domain[0], initrv=initrv_dense, transition=dynamics_dense
-        )
-
-        start_dense = time.time()
-        prior_process_dense.sample(rng=rng, args=time_grid)
-        stop_dense = time.time()
-
-    time_dense = stop_dense - start_dense
-
-    with config(lazy_linalg=True):
-        dynamics_linop = statespace.IBM(
-            ordint=order,
-            spatialdim=spatialdim,
-            forward_implementation="classic",
-            backward_implementation="classic",
-        )
-        initrv_linop = randvars.Normal(
-            np.ones(dynamics_linop.dimension),
-            measvar * linops.Identity(dynamics_linop.dimension),
-            cov_cholesky=np.sqrt(measvar) * linops.Identity(dynamics_linop.dimension),
-        )
-        prior_process_linop = randprocs.MarkovProcess(
-            initarg=time_domain[0], initrv=initrv_linop, transition=dynamics_linop
-        )
-
-        start_linop = time.time()
-        prior_process_linop.sample(rng=rng, args=time_grid)
-        stop_linop = time.time()
-
-    time_linop = stop_linop - start_linop
-
-    print(f"Dense: {time_dense}")
-    print(f"LinOp: {time_linop}")
-
-    assert time_linop < time_dense
-
-
 def test_bad_args_shape():
     rng = np.random.default_rng(seed=1)
     time_domain = (0.0, 10.0)
