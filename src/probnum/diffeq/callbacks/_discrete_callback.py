@@ -2,6 +2,7 @@
 
 from typing import Callable, Union
 
+import probnum
 from probnum.diffeq.callbacks import _callback
 
 

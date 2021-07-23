@@ -3,6 +3,8 @@
 import abc
 from typing import Callable, Union
 
+import probnum
+
 __all__ = ["ODESolverCallback"]
 
 
