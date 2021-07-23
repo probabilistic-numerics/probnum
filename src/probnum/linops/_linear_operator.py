@@ -175,6 +175,10 @@ class LinearOperator:
         return 2
 
     @property
+    def size(self) -> int:
+        return np.prod(self.__shape)
+
+    @property
     def dtype(self) -> np.dtype:
         """Data type of the linear operator."""
         return self.__dtype
@@ -849,8 +853,8 @@ class _InverseLinearOperator(LinearOperator):
             dtype=self._linop._inexact_dtype,
             matmul=LinearOperator.broadcast_matmat(self._matmat),
             rmatmul=lambda x: tmatmul(x[..., np.newaxis])[..., 0],
-            transpose=lambda x: TransposedLinearOperator(self, matmul=tmatmul),
-            adjoint=lambda x: AdjointLinearOperator(self, matmul=hmatmul),
+            transpose=lambda: TransposedLinearOperator(self, matmul=tmatmul),
+            adjoint=lambda: AdjointLinearOperator(self, matmul=hmatmul),
             inverse=lambda: self._linop,
             det=lambda: 1 / self._linop.det(),
             logabsdet=lambda: -self._linop.logabsdet(),
