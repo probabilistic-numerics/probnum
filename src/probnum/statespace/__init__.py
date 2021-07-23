@@ -15,7 +15,7 @@ from .discrete_transition_utils import (
     condition_state_on_measurement,
     condition_state_on_rv,
 )
-from .generate_samples import generate_samples
+from .generate_samples import generate_artificial_measurements
 from .integrator import IBM, IOUP, Integrator, Matern
 from .preconditioner import NordsieckLikeCoordinates, Preconditioner
 from .sde import LTISDE, SDE, LinearSDE
@@ -38,7 +38,7 @@ __all__ = [
     "Preconditioner",
     "NordsieckLikeCoordinates",
     "matrix_fraction_decomposition",
-    "generate_samples",
+    "generate_artificial_measurements",
     "condition_state_on_measurement",
     "condition_state_on_rv",
     "Diffusion",

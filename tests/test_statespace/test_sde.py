@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.statespace as pnss
-from probnum import randvars
+from probnum import randvars, statespace
 
 from .test_transition import InterfaceTestTransition
 
@@ -17,7 +16,7 @@ class TestSDE(InterfaceTestTransition):
         self.g = lambda t, x: np.sin(x)
         self.L = lambda t: spdmat1
         self.dg = lambda t, x: np.cos(x)
-        self.transition = pnss.SDE(test_ndim, self.g, self.L, self.dg)
+        self.transition = statespace.SDE(test_ndim, self.g, self.L, self.dg)
 
     # Test access to system matrices
 
@@ -76,7 +75,7 @@ class TestLinearSDE(TestSDE):
         self.G = lambda t: spdmat1
         self.v = lambda t: np.arange(test_ndim)
         self.L = lambda t: spdmat2
-        self.transition = pnss.LinearSDE(test_ndim, self.G, self.v, self.L)
+        self.transition = statespace.LinearSDE(test_ndim, self.G, self.v, self.L)
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
@@ -148,7 +147,7 @@ class TestLTISDE(TestLinearSDE):
         self.v_const = np.arange(test_ndim)
         self.L_const = spdmat2
 
-        self.transition = pnss.LTISDE(
+        self.transition = statespace.LTISDE(
             self.G_const,
             self.v_const,
             self.L_const,
@@ -165,7 +164,7 @@ class TestLTISDE(TestLinearSDE):
 
     def test_discretise(self):
         out = self.transition.discretise(dt=0.1)
-        assert isinstance(out, pnss.DiscreteLTIGaussian)
+        assert isinstance(out, statespace.DiscreteLTIGaussian)
 
     def test_discretise_no_force(self):
         """LTISDE.discretise() works if there is zero force (there is an "if" in the
@@ -175,7 +174,7 @@ class TestLTISDE(TestLinearSDE):
             np.linalg.norm(self.transition.forcevecfun(0.0)) == 0.0
         )  # side quest/test
         out = self.transition.discretise(dt=0.1)
-        assert isinstance(out, pnss.DiscreteLTIGaussian)
+        assert isinstance(out, statespace.DiscreteLTIGaussian)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_rv(
@@ -212,7 +211,7 @@ def ltisde_as_linearsde(G_const, v_const, L_const):
     L = lambda t: L_const
     dim = 2
 
-    return pnss.LinearSDE(dim, G, v, L, mde_atol=1e-12, mde_rtol=1e-12)
+    return statespace.LinearSDE(dim, G, v, L, mde_atol=1e-12, mde_rtol=1e-12)
 
 
 @pytest.fixture
@@ -222,14 +221,14 @@ def ltisde_as_linearsde_sqrt_forward_implementation(G_const, v_const, L_const):
     L = lambda t: L_const
     dim = 2
 
-    return pnss.LinearSDE(
+    return statespace.LinearSDE(
         dim, G, v, L, mde_atol=1e-12, mde_rtol=1e-12, forward_implementation="sqrt"
     )
 
 
 @pytest.fixture
 def ltisde(G_const, v_const, L_const):
-    return pnss.LTISDE(G_const, v_const, L_const)
+    return statespace.LTISDE(G_const, v_const, L_const)
 
 
 def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, v_const, diffusion):

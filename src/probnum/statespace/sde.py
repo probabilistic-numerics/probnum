@@ -516,7 +516,7 @@ class LTISDE(LinearSDE):
         backward_implementation="classic",
     ):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
-        dimension = len(driftmat)
+        dimension = driftmat.shape[0]
         self.driftmat = driftmat
         self.forcevec = forcevec
         self.dispmat = dispmat
