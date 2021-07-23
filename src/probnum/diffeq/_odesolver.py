@@ -40,12 +40,12 @@ class ODESolver(ABC):
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
+        def promote_callback_type(callbacks):
+            return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
+
         if callbacks is not None:
-            self.callbacks = (
-                callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
-            )
-        else:
-            self.callbacks = None
+            callbacks = promote_callback_type(callbacks)
+        self.callbacks = callbacks
 
         if time_stamps is not None:
             self.time_stopper = _TimeStopper(time_stamps)
