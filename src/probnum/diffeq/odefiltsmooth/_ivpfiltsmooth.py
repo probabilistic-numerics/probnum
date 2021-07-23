@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
-from probnum.diffeq import _odesolver, events
+from probnum.diffeq import _odesolver, callbacks
 from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialization_routines
 
 
@@ -56,7 +56,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         diffusion_model: Optional[statespace.Diffusion] = None,
         time_stamps=None,
         callbacks: Optional[
-            Union[events.CallbackEventHandler, Iterable[events.CallbackEventHandler]]
+            Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
         ] = None,
         _reference_coordinates: Optional[int] = 0,
     ):

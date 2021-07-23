@@ -4,10 +4,10 @@
 import pytest
 
 from probnum import diffeq
-from tests.test_diffeq.test_events import _event_handler_test_interface
+from tests.test_diffeq.test_callbacks import _callback_test_interface
 
 
-class TestDiscreteEventHandler(_event_handler_test_interface.EventHandlerTest):
+class TestDiscreteCallback(_callback_test_interface.CallbackTest):
     """Tests for discrete event handlers."""
 
     @pytest.fixture(autouse=True)
@@ -20,7 +20,7 @@ class TestDiscreteEventHandler(_event_handler_test_interface.EventHandlerTest):
         def condition(state):
             return state.t < 0
 
-        self.discrete_events = diffeq.events.DiscreteEventHandler(
+        self.discrete_callbacks = diffeq.callbacks.DiscreteCallback(
             modify=modify, condition=condition
         )
 
@@ -34,10 +34,10 @@ class TestDiscreteEventHandler(_event_handler_test_interface.EventHandlerTest):
 
         # t > 0, hence the state is not affected
         dummy_state = diffeq.ODESolver.State(rv=3.0, t=1.0)
-        updated = self.discrete_events(state=dummy_state)
+        updated = self.discrete_callbacks(state=dummy_state)
         assert updated.rv == 3.0
 
         # t < 0, hence the state is multiplied by two
         dummy_state = diffeq.ODESolver.State(rv=3.0, t=-1.0)
-        updated = self.discrete_events(state=dummy_state)
+        updated = self.discrete_callbacks(state=dummy_state)
         assert updated.rv == 6.0

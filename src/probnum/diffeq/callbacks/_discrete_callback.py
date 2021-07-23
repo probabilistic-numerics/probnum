@@ -2,10 +2,10 @@
 
 from typing import Callable, Union
 
-from probnum.diffeq.events import _event_handler
+from probnum.diffeq.callbacks import _callback
 
 
-class DiscreteEventHandler(_event_handler.CallbackEventHandler):
+class DiscreteCallback(_callback.ODESolverCallback):
     """Handle discrete events in an ODE solver.
 
     A discrete event can be a time-stamp that must be included in the locations. It can

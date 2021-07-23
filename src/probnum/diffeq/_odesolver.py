@@ -7,7 +7,7 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.diffeq import events
+from probnum.diffeq import callbacks
 
 
 class ODESolver(ABC):
@@ -32,7 +32,7 @@ class ODESolver(ABC):
         order,
         time_stamps=None,
         callbacks: Optional[
-            Union[events.CallbackEventHandler, Iterable[events.CallbackEventHandler]]
+            Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
         ] = None,
     ):
         self.ivp = ivp

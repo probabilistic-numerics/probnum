@@ -3,7 +3,7 @@
 import abc
 
 
-class EventHandlerTest(abc.ABC):
+class CallbackTest(abc.ABC):
     @abc.abstractmethod
     def test_call(self):
         raise NotImplementedError

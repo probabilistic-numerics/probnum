@@ -3,7 +3,7 @@ import numpy as np
 import scipy.integrate
 
 from probnum import problems
-from probnum.diffeq import events, perturbed, stepsize
+from probnum.diffeq import callbacks, perturbed, stepsize
 
 __all__ = ["perturbsolve_ivp"]
 
