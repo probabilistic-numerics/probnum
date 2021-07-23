@@ -134,7 +134,7 @@ def car_tracking(
 
     states, obs = statespace.generate_artificial_measurements(
         rng=rng,
-        process=prior_process,
+        prior_process=prior_process,
         measmod=measurement_model,
         times=time_grid,
     )
@@ -239,7 +239,7 @@ def ornstein_uhlenbeck(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
     states, obs = statespace.generate_artificial_measurements(
-        rng=rng, process=prior_process, measmod=measurement_model, times=time_grid
+        rng=rng, prior_process=prior_process, measmod=measurement_model, times=time_grid
     )
 
     regression_problem = problems.TimeSeriesRegressionProblem(
@@ -386,7 +386,7 @@ def pendulum(
 
     states, obs = statespace.generate_artificial_measurements(
         rng=rng,
-        process=prior_process,
+        prior_process=prior_process,
         measmod=measurement_model,
         times=time_grid,
     )
@@ -487,7 +487,7 @@ def benes_daum(
 
     states, obs = statespace.generate_artificial_measurements(
         rng=rng,
-        process=prior_process_with_linearized_dynamics,
+        prior_process=prior_process_with_linearized_dynamics,
         measmod=measurement_model,
         times=time_grid,
     )

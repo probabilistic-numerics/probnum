@@ -42,7 +42,7 @@ def test_generate_shapes(times, test_ndim, rng):
         initarg=times[0], initrv=initrv, transition=mocktrans
     )
     states, obs = statespace.generate_artificial_measurements(
-        rng, process=proc, measmod=mocktrans, times=times
+        rng, prior_process=proc, measmod=mocktrans, times=times
     )
 
     assert states.shape[0] == len(times)
