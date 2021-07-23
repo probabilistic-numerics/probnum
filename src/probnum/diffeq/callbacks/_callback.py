@@ -1,10 +1,7 @@
 """Event handler interface."""
 
 import abc
-from typing import Callable, Tuple, Union
-
-from probnum.diffeq import stepsize
-from probnum.typing import FloatArgType
+from typing import Callable, Union
 
 __all__ = ["ODESolverCallback"]
 

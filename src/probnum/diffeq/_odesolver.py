@@ -1,6 +1,7 @@
 """ODE solver interface."""
 
 from abc import ABC, abstractmethod
+from collections import abc
 from dataclasses import dataclass
 from typing import Iterable, Optional, Union
 
@@ -41,7 +42,7 @@ class ODESolver(ABC):
 
         if callbacks is not None:
             self.callbacks = (
-                callbacks if isinstance(callbacks, Iterable) else [callbacks]
+                callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
             )
         else:
             self.callbacks = None
