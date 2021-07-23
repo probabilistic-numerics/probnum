@@ -1,6 +1,8 @@
 """Tests for discrete event handlers."""
 
 
+import dataclasses
+
 import pytest
 
 from probnum import diffeq
@@ -14,14 +16,14 @@ class TestDiscreteCallback(_callback_test_interface.CallbackTest):
     def _setup(self):
         self.time_stamps = [2.0, 3.0, 4.0, 5.0]
 
-        def modify(state):
-            return diffeq.ODESolver.State(rv=2 * state.rv, t=state.t)
+        def replace(state):
+            return dataclasses.replace(state, rv=2 * state.rv)
 
         def condition(state):
             return state.t < 0
 
         self.discrete_callbacks = diffeq.callbacks.DiscreteCallback(
-            modify=modify, condition=condition
+            replace=replace, condition=condition
         )
 
         def dummy_perform_step(state, dt, steprule):

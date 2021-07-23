@@ -17,16 +17,16 @@ class DiscreteCallback(_callback.ODESolverCallback):
     # New init because condition() types are more specific.
     def __init__(
         self,
-        modify: Callable[
+        replace: Callable[
             ["probnum.diffeq.ODESolver.State"], "probnum.diffeq.ODESolver.State"
         ],
         condition: Callable[["probnum.diffeq.ODESolver.State"], Union[bool]],
     ):
-        super().__init__(modify=modify, condition=condition)
+        super().__init__(replace=replace, condition=condition)
 
     def __call__(
         self, state: "probnum.diffeq.ODESolver.State"
     ) -> "probnum.diffeq.ODESolver.State":
         if self.condition(state):
-            state = self.modify(state)
+            state = self.replace(state)
         return state

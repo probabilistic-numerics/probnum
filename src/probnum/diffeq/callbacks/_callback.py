@@ -14,13 +14,13 @@ class ODESolverCallback(abc.ABC):
 
     def __init__(
         self,
-        modify: Callable[
+        replace: Callable[
             ["probnum.diffeq.ODESolver.State"], "probnum.diffeq.ODESolver.State"
         ],
         condition: Callable[["probnum.diffeq.ODESolver.State"], Union[float, bool]],
     ):
         self.condition = condition
-        self.modify = modify
+        self.replace = replace
 
     @abc.abstractmethod
     def __call__(
