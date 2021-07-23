@@ -1,5 +1,6 @@
 """ODE solver interface."""
 
+import contextlib
 from abc import ABC, abstractmethod
 from collections import abc
 from dataclasses import dataclass
@@ -31,7 +32,6 @@ class ODESolver(ABC):
         self,
         ivp,
         order,
-        time_stamps=None,
         callbacks: Optional[
             Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
         ] = None,
@@ -47,10 +47,15 @@ class ODESolver(ABC):
             callbacks = promote_callback_type(callbacks)
         self.callbacks = callbacks
 
-        if time_stamps is not None:
-            self.time_stopper = _TimeStopper(time_stamps)
-        else:
-            self.time_stopper = None
+        # Assigned per default here. Might be overwritten (wrapped) by the `stop_at()` context manager
+        # which forces the ODE solver to incorporate certain grid points.
+        self.perform_full_step = self._perform_full_step
+
+        #
+        # if time_stamps is not None:
+        #     self.time_stopper = _TimeStopper(time_stamps)
+        # else:
+        #     self.time_stopper = None
 
     def solve(self, steprule):
         """Solve an IVP.
@@ -77,8 +82,7 @@ class ODESolver(ABC):
 
         dt = steprule.firststep
         while state.t < self.ivp.tmax:
-            if self.time_stopper is not None:
-                dt = self.time_stopper.adjust_dt_to_time_stamps(state.t, dt)
+
             state, dt = self.perform_full_step(state, dt, steprule)
 
             if self.callbacks is not None:
@@ -88,7 +92,7 @@ class ODESolver(ABC):
             self.num_steps += 1
             yield state
 
-    def perform_full_step(self, state, initial_dt, steprule):
+    def _perform_full_step(self, state, initial_dt, steprule):
         """Perform a full ODE solver step.
 
         This includes the acceptance/rejection decision as governed by error estimation
@@ -96,6 +100,7 @@ class ODESolver(ABC):
         """
         dt = initial_dt
         step_is_sufficiently_small = False
+        proposed_state = None
         while not step_is_sufficiently_small:
             proposed_state = self.attempt_step(state, dt)
 
@@ -152,6 +157,47 @@ class ODESolver(ABC):
         """
         pass
 
+    @contextlib.contextmanager
+    def stop_at(self, locations):
+        """
+
+        Examples
+        --------
+
+        Classic (no time-stops):
+
+        >>> solver = ODESolver(...)
+        >>> solution = solver.solve(...)
+
+        Time-stops:
+
+        As context:
+
+        >>> solver = ODESolver(...)
+        >>> with solver.stop_at(locations=[2.3, 2.4]):
+        ...     solver.solve(...)
+
+        Or at init:
+
+        >>> solver = ODESolver(..., time_stamps=[2.3])
+        >>> solver.solve(...)
+
+        Or at solve:
+
+        >>> solver = ODESolver(...)
+        >>> solver.solve(..., time_stamps=[2.3])
+
+        """
+        stopper = _TimeStopper(locations=locations)
+
+        old_perform_full_step_function = self.perform_full_step
+        self.perform_full_step = stopper.wrap(self.perform_full_step)
+
+        try:
+            yield
+        finally:
+            self.perform_full_step = old_perform_full_step_function
+
 
 class _TimeStopper:
     """Make the ODE solver stop at specified time-points."""
@@ -160,19 +206,25 @@ class _TimeStopper:
         self._locations = iter(locations)
         self._next_location = next(self._locations)
 
+    def wrap(self, perform_step_function):
+        def wrapped_step(state, initial_dt, steprule):
+            new_dt = self.adjust_dt_to_time_stamps(state.t, initial_dt)
+            state, dt = perform_step_function(state, new_dt, steprule)
+            self.advance_current_location_if_applicable(state)
+            return state, dt
+
+        return wrapped_step
+
     def adjust_dt_to_time_stamps(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""
 
         if t + dt > self._next_location:
             dt = self._next_location - t
-
-            # what happens if dt is caught and reduced, but the next step will be rejected?
-            # In this case, the next location will not be stopped at in the current implementation.
-            self._advance_current_location()
         return dt
 
-    def _advance_current_location(self):
-        try:
-            self._next_location = next(self._locations)
-        except StopIteration:
-            self._next_location = np.inf
+    def advance_current_location_if_applicable(self, state):
+        if state.t >= self._next_location:
+            try:
+                self._next_location = next(self._locations)
+            except StopIteration:
+                self._next_location = np.inf

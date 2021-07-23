@@ -286,7 +286,10 @@ def probsolve_ivp(
         with_smoothing=dense_output,
         initialization_routine=rk_init,
         diffusion_model=diffusion,
-        time_stamps=time_stamps,
+        # time_stamps=time_stamps,
     )
 
+    if time_stamps is not None:
+        with solver.stop_at(locations=time_stamps):
+            return solver.solve(steprule=stprl)
     return solver.solve(steprule=stprl)

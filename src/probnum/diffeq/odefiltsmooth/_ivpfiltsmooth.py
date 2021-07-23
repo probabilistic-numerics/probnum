@@ -54,7 +54,6 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         with_smoothing: bool,
         initialization_routine: initialization_routines.InitializationRoutine,
         diffusion_model: Optional[statespace.Diffusion] = None,
-        time_stamps=None,
         callbacks: Optional[
             Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
         ] = None,
@@ -75,7 +74,6 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         super().__init__(
             ivp=ivp,
             order=prior_process.transition.ordint,
-            time_stamps=time_stamps,
             callbacks=callbacks,
         )
 
