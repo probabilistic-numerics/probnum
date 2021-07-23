@@ -41,7 +41,7 @@ def test_generate_shapes(times, test_ndim, rng):
     proc = randprocs.MarkovProcess(
         initarg=times[0], initrv=initrv, transition=mocktrans
     )
-    states, obs = statespace.generate_samples(
+    states, obs = statespace.generate_artificial_measurements(
         rng, process=proc, measmod=mocktrans, times=times
     )
 

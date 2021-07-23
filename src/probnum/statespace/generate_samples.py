@@ -5,9 +5,9 @@ import numpy as np
 from .transition import Transition
 
 
-def generate_samples(
+def generate_artificial_measurements(
     rng: np.random.Generator,
-    process,
+    prior_process,
     measmod: Transition,
     times: np.ndarray,
 ):
@@ -34,7 +34,7 @@ def generate_samples(
     """
     obs = np.zeros((len(times), measmod.output_dim))
 
-    latent_states = process.sample(rng, args=times)
+    latent_states = prior_process.sample(rng, args=times)
 
     for idx, (state, t) in enumerate(zip(latent_states, times)):
         measured_rv, _ = measmod.forward_realization(state, t=t)

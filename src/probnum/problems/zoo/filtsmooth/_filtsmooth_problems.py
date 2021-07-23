@@ -132,7 +132,7 @@ def car_tracking(
         transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    states, obs = statespace.generate_samples(
+    states, obs = statespace.generate_artificial_measurements(
         rng=rng,
         process=prior_process,
         measmod=measurement_model,
@@ -238,7 +238,7 @@ def ornstein_uhlenbeck(
     prior_process = randprocs.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    states, obs = statespace.generate_samples(
+    states, obs = statespace.generate_artificial_measurements(
         rng=rng, process=prior_process, measmod=measurement_model, times=time_grid
     )
 
@@ -384,7 +384,7 @@ def pendulum(
         transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
-    states, obs = statespace.generate_samples(
+    states, obs = statespace.generate_artificial_measurements(
         rng=rng,
         process=prior_process,
         measmod=measurement_model,
@@ -485,7 +485,7 @@ def benes_daum(
         transition=linearized_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    states, obs = statespace.generate_samples(
+    states, obs = statespace.generate_artificial_measurements(
         rng=rng,
         process=prior_process_with_linearized_dynamics,
         measmod=measurement_model,
