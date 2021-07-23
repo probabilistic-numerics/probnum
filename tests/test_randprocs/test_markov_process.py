@@ -1,10 +1,9 @@
 """Tests for Markov processes."""
-import time
 
 import numpy as np
 import pytest
 
-from probnum import config, linops, randprocs, randvars, statespace
+from probnum import randprocs, randvars, statespace
 
 
 def test_gauss_markov_process_initrv_is_gaussian(
