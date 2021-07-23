@@ -165,6 +165,9 @@ class _TimeStopper:
 
         if t + dt > self._next_location:
             dt = self._next_location - t
+
+            # what happens if dt is caught and reduced, but the next step will be rejected?
+            # In this case, the next location will not be stopped at in the current implementation.
             self._advance_current_location()
         return dt
 
