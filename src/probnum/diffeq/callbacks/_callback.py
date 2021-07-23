@@ -3,7 +3,7 @@
 import abc
 from typing import Callable, Union
 
-import probnum  # pylint: disable="unused-import" (import is for types only)
+import probnum  # pylint: disable="unused-import"
 
 __all__ = ["ODESolverCallback"]
 
