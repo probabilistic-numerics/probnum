@@ -127,6 +127,15 @@ _DEFAULT_CONFIG_OPTIONS = [
             "of covariance matrices in order to make inversion numerically stable."
         ),
     ),
+    (
+        "lazy_linalg",
+        False,
+        (
+            "If True, wherever possible, LinearOperators are used instead "
+            "of Numpy arrays. LinearOperators provide lazy arithmetic and "
+            "thus memory- and runtime-efficient linear algebra operations."
+        ),
+    ),
 ]
 
 # ... and register the default configuration options.

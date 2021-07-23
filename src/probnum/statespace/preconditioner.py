@@ -11,6 +11,8 @@ except ImportError:
 import numpy as np
 import scipy.special  # for vectorised factorial
 
+from probnum import config, linops
+
 
 class Preconditioner(abc.ABC):
     """Coordinate change transformations as preconditioners in state space models.
@@ -54,6 +56,11 @@ class NordsieckLikeCoordinates(Preconditioner):
 
     def __call__(self, step):
         scaling_vector = np.abs(step) ** self.powers / self.scales
+        if config.lazy_linalg:
+            return linops.Kronecker(
+                A=linops.Identity(self.spatialdim),
+                B=linops.Scaling(factors=scaling_vector),
+            )
         return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
 
     @cached_property

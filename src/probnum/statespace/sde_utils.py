@@ -7,7 +7,7 @@ import scipy.linalg
 
 def matrix_fraction_decomposition(driftmat, dispmat, dt):
     """Matrix fraction decomposition (assuming no force)."""
-    dim = len(driftmat)
+    dim = driftmat.shape[0]
 
     if dispmat.ndim == 1:
         dispmat = dispmat.reshape((-1, 1))
