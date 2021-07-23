@@ -2,7 +2,7 @@
 
 from typing import Callable, Union
 
-import probnum
+import probnum  # pylint: disable="unused-import" (import is for types only)
 from probnum.diffeq.callbacks import _callback
 
 
