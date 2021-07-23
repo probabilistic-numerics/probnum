@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from probnum import config as probnum_config
-from probnum import randvars, statespace
+from probnum import linops, randvars, statespace
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 from .test_sde import TestLTISDE
@@ -120,6 +120,26 @@ class TestIBMLinOps(TestLTISDE, TestIntegrator):
         expected = self.G(0.0)
         received = self.transition.driftmatfun(0.0)
         np.testing.assert_allclose(received.todense(), expected.todense())
+
+    def test_discretise(self):
+        with probnum_config(lazy_linalg=True):
+            out = self.transition.discretise(dt=0.1)
+            assert isinstance(out, statespace.DiscreteLTIGaussian)
+            assert isinstance(out.state_trans_mat, linops.LinearOperator)
+            assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)
+
+    def test_discretise_no_force(self):
+        """LTISDE.discretise() works if there is zero force (there is an "if" in the
+        fct)."""
+        self.transition.forcevec = 0.0 * self.transition.forcevec
+        assert (
+            np.linalg.norm(self.transition.forcevecfun(0.0)) == 0.0
+        )  # side quest/test
+        with probnum_config(lazy_linalg=True):
+            out = self.transition.discretise(dt=0.1)
+            assert isinstance(out, statespace.DiscreteLTIGaussian)
+            assert isinstance(out.state_trans_mat, linops.LinearOperator)
+            assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)
 
 
 class TestIOUP(TestLTISDE, TestIntegrator):
