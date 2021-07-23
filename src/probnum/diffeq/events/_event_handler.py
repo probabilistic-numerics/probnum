@@ -16,19 +16,7 @@ PerformStepFunctionType = Callable[
 """Implementation of a perform_full_step() function. Interface according to ODESolver."""
 
 
-class EventHandler(abc.ABC):
-    """Interface for event handlers."""
-
-    @abc.abstractmethod
-    def __call__(
-        self, perform_step_function: PerformStepFunctionType
-    ) -> PerformStepFunctionType:
-        """Wrap a perform_full_step implementation into a version that knows event
-        handling functionality."""
-        raise NotImplementedError
-
-
-class CallbackEventHandler(EventHandler):
+class CallbackEventHandler:
     """Interface for pure callback-type events."""
 
     def __init__(
@@ -41,24 +29,8 @@ class CallbackEventHandler(EventHandler):
         self.condition = condition
         self.modify = modify
 
-    def __call__(
-        self, perform_step_function: PerformStepFunctionType
-    ) -> PerformStepFunctionType:
-        def new_perform_step_function(
-            state: "probnum.diffeq.ODESolver.State",
-            dt: FloatArgType,
-            steprule: stepsize.StepRule,
-        ) -> Tuple["probnum.diffeq.ODESolver.State", float]:
-            """Modify the state after each performed step."""
-
-            new_state, dt = perform_step_function(state, dt, steprule)
-            new_state = self.modify_state(new_state)
-            return new_state, dt
-
-        return new_perform_step_function
-
     @abc.abstractmethod
-    def modify_state(
+    def __call__(
         self, state: "probnum.diffeq.ODESolver.State"
     ) -> "probnum.diffeq.ODESolver.State":
         """Modify a state whenever a condition dictates doing so."""
@@ -85,7 +57,7 @@ class CallbackEventHandler(EventHandler):
 #
 #     def modify_state(self, state):
 #         if self.condition(state.x) < 0:
-#             composed = lambda t: self.condition(state.dense_output(t).mean)
+#             composed = lambda t: self.condition(state.dense_output(t))
 #             new_t, new_x = self.root_finding_algorithm(composed)
 #
 #             # new solver.State object including dense output!

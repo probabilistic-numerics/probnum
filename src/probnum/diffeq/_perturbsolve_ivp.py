@@ -184,17 +184,11 @@ def perturbsolve_ivp(
         errormsg = msg1 + msg2
         raise ValueError(errormsg)
 
-    # Event handling
-    if time_stamps is not None:
-        event_handler = events.TimeStopper(locations=time_stamps)
-    else:
-        event_handler = None
-
     perturbed_solver = PERTURBS[perturb](
         rng=rng,
         solver=wrapped_scipy_solver,
         noise_scale=noise_scale,
-        event_handler=event_handler,
+        time_stamps=time_stamps,
     )
 
     # Create steprule

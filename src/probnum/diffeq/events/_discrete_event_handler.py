@@ -24,7 +24,7 @@ class DiscreteEventHandler(_event_handler.CallbackEventHandler):
     ):
         super().__init__(modify=modify, condition=condition)
 
-    def modify_state(
+    def __call__(
         self, state: "probnum.diffeq.ODESolver.State"
     ) -> "probnum.diffeq.ODESolver.State":
         if self.condition(state):

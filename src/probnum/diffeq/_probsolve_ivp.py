@@ -256,12 +256,6 @@ def probsolve_ivp(
     }
     diffusion = choose_diffusion_model[diffusion_model]
 
-    # Event handling
-    if time_stamps is not None:
-        event_handler = events.TimeStopper(locations=time_stamps)
-    else:
-        event_handler = None
-
     # Create solver
     prior = statespace.IBM(
         ordint=algo_order,
@@ -292,7 +286,7 @@ def probsolve_ivp(
         with_smoothing=dense_output,
         initialization_routine=rk_init,
         diffusion_model=diffusion,
-        event_handler=event_handler,
+        time_stamps=time_stamps,
     )
 
     return solver.solve(steprule=stprl)

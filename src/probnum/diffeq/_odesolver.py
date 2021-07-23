@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Iterable, Optional, Union
 
 import numpy as np
 
@@ -17,6 +17,8 @@ class ODESolver(ABC):
     class State:
         """ODE solver states."""
 
+        # In the near future add the IVP here, too.
+
         t: float
         rv: randvars.RandomVariable
         error_estimate: Optional[np.ndarray] = None
@@ -28,24 +30,26 @@ class ODESolver(ABC):
         self,
         ivp,
         order,
-        event_handler: Optional[
-            Union[events.EventHandler, List[events.EventHandler]]
+        time_stamps=None,
+        callbacks: Optional[
+            Union[events.CallbackEventHandler, Iterable[events.CallbackEventHandler]]
         ] = None,
     ):
         self.ivp = ivp
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-        # If the event handlers are a list, the final entry (i.e. bottom entry if thought of as a stack of entries)
-        # is the outer-most event handler.
-        full_step_implementation = self._perform_full_step
-        if event_handler is not None:
-            if isinstance(event_handler, events.EventHandler):
-                event_handler = [event_handler]
+        if callbacks is not None:
+            self.callbacks = (
+                callbacks if isinstance(callbacks, Iterable) else [callbacks]
+            )
+        else:
+            self.callbacks = None
 
-            for handle in event_handler:
-                full_step_implementation = handle(full_step_implementation)
-        self.perform_full_step = full_step_implementation
+        if time_stamps is not None:
+            self.time_stopper = _TimeStopper(time_stamps)
+        else:
+            self.time_stopper = None
 
     def solve(self, steprule):
         """Solve an IVP.
@@ -72,12 +76,18 @@ class ODESolver(ABC):
 
         dt = steprule.firststep
         while state.t < self.ivp.tmax:
+            if self.time_stopper is not None:
+                dt = self.time_stopper.adjust_dt_to_time_stamps(state.t, dt)
             state, dt = self.perform_full_step(state, dt, steprule)
+
+            if self.callbacks is not None:
+                for callback in self.callbacks:
+                    state = callback(state)
+
             self.num_steps += 1
             yield state
 
-    # "private" because it may be wrapped through an event handler in the constructor.
-    def _perform_full_step(self, state, initial_dt, steprule):
+    def perform_full_step(self, state, initial_dt, steprule):
         """Perform a full ODE solver step.
 
         This includes the acceptance/rejection decision as governed by error estimation
@@ -134,3 +144,25 @@ class ODESolver(ABC):
         example: tune hyperparameters (sigma).
         """
         pass
+
+
+class _TimeStopper:
+    """Make the ODE solver stop at specified time-points."""
+
+    def __init__(self, locations: Iterable):
+        self._locations = iter(locations)
+        self._next_location = next(self._locations)
+
+    def adjust_dt_to_time_stamps(self, t, dt):
+        """Check whether the next time-point is supposed to be stopped at."""
+
+        if t + dt > self._next_location:
+            dt = self._next_location - t
+            self._advance_current_location()
+        return dt
+
+    def _advance_current_location(self):
+        try:
+            self._next_location = next(self._locations)
+        except StopIteration:
+            self._next_location = np.inf

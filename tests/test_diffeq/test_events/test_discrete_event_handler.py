@@ -31,22 +31,13 @@ class TestDiscreteEventHandler(_event_handler_test_interface.EventHandlerTest):
 
     def test_call(self):
         """Test whether __call__ wraps the function correctly."""
-        wrapped = self.discrete_events(self.dummy_perform_step)
 
         # t > 0, hence the state is not affected
         dummy_state = diffeq.ODESolver.State(rv=3.0, t=1.0)
-        non_wrapped_output = self.dummy_perform_step(
-            state=dummy_state, dt=0.1, steprule=None
-        )
-        wrapped_output = wrapped(state=dummy_state, dt=0.1, steprule=None)
-        assert non_wrapped_output[0].rv == 3.0
-        assert wrapped_output[0].rv == 3.0
+        updated = self.discrete_events(state=dummy_state)
+        assert updated.rv == 3.0
 
         # t < 0, hence the state is multiplied by two
         dummy_state = diffeq.ODESolver.State(rv=3.0, t=-1.0)
-        non_wrapped_output = self.dummy_perform_step(
-            state=dummy_state, dt=0.1, steprule=None
-        )
-        wrapped_output = wrapped(state=dummy_state, dt=0.1, steprule=None)
-        assert non_wrapped_output[0].rv == 3.0
-        assert wrapped_output[0].rv == 6.0
+        updated = self.discrete_events(state=dummy_state)
+        assert updated.rv == 6.0

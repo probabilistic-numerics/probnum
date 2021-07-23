@@ -1,6 +1,6 @@
 """Gaussian IVP filtering and smoothing."""
 
-from typing import List, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 import numpy as np
 import scipy.linalg
@@ -54,7 +54,10 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         with_smoothing: bool,
         initialization_routine: initialization_routines.InitializationRoutine,
         diffusion_model: Optional[statespace.Diffusion] = None,
-        event_handler: Union[events.EventHandler, List[events.EventHandler]] = None,
+        time_stamps=None,
+        callbacks: Optional[
+            Union[events.CallbackEventHandler, Iterable[events.CallbackEventHandler]]
+        ] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
         if not isinstance(prior_process.transition, statespace.Integrator):
@@ -70,7 +73,10 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self.initialization_routine = initialization_routine
 
         super().__init__(
-            ivp=ivp, order=prior_process.transition.ordint, event_handler=event_handler
+            ivp=ivp,
+            order=prior_process.transition.ordint,
+            time_stamps=time_stamps,
+            callbacks=callbacks,
         )
 
         # Set up the diffusion_model style: constant or piecewise constant.

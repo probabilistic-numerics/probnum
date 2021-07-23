@@ -46,7 +46,8 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         solver: scipy_wrapper.WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
         perturb_function: Callable,
-        event_handler=None,
+        time_stamps=None,
+        callbacks=None,
     ):
         def perturb_step(rng, step):
             return perturb_function(
@@ -62,7 +63,10 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.solver = solver
         self.scales = None
         super().__init__(
-            ivp=solver.ivp, order=solver.order, event_handler=event_handler
+            ivp=solver.ivp,
+            order=solver.order,
+            time_stamps=time_stamps,
+            callbacks=callbacks,
         )
 
     @classmethod
@@ -71,7 +75,8 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         rng: np.random.Generator,
         solver: scipy_wrapper.WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
-        event_handler=None,
+        time_stamps=None,
+        callbacks=None,
     ):
         pertfun = _perturbation_functions.perturb_lognormal
         return cls(
@@ -79,7 +84,8 @@ class PerturbedStepSolver(_odesolver.ODESolver):
             solver=solver,
             noise_scale=noise_scale,
             perturb_function=pertfun,
-            event_handler=event_handler,
+            time_stamps=time_stamps,
+            callbacks=callbacks,
         )
 
     @classmethod
@@ -88,7 +94,8 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         rng: np.random.Generator,
         solver: scipy_wrapper.WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
-        event_handler=None,
+        time_stamps=None,
+        callbacks=None,
     ):
         pertfun = _perturbation_functions.perturb_uniform
         return cls(
@@ -96,7 +103,8 @@ class PerturbedStepSolver(_odesolver.ODESolver):
             solver=solver,
             noise_scale=noise_scale,
             perturb_function=pertfun,
-            event_handler=event_handler,
+            time_stamps=time_stamps,
+            callbacks=callbacks,
         )
 
     def initialize(self):
