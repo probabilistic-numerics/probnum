@@ -577,10 +577,13 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
 
         with self.subTest("Damping factor check"):
-            rv.precompute_cov_cholesky(damping_factor=10.0)
-            self.assertAllClose(
-                rv.cov_cholesky, np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov)))
-            )
+            with config(lazy_linalg=False):
+                rv.precompute_cov_cholesky(damping_factor=10.0)
+                self.assertIsInstance(rv.cov_cholesky, np.ndarray)
+                self.assertAllClose(
+                    rv.cov_cholesky,
+                    np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov))),
+                )
 
         with self.subTest("Cholesky is precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
