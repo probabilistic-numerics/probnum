@@ -20,7 +20,7 @@ def car_tracking(
     rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
-    model_nu: IntArgType = 1,
+    num_prior_derivatives: IntArgType = 1,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
     step: FloatArgType = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
@@ -64,7 +64,7 @@ def car_tracking(
         Marginal measurement variance.
     process_diffusion
         Diffusion constant for the dynamics.
-    model_nu
+    num_prior_derivatives
         Order of integration for the dynamics model. Defaults to one, which corresponds
         to a Wiener velocity model.
     timespan
@@ -94,10 +94,10 @@ def car_tracking(
 
     """
     state_dim = 2
-    model_dim = state_dim * (model_nu + 1)
+    model_dim = state_dim * (num_prior_derivatives + 1)
     measurement_dim = 2
     dynamics_model = randprocs.markov.integrator.IntegratedWienerTransition(
-        num_derivatives=model_nu,
+        num_derivatives=num_prior_derivatives,
         wiener_process_dimension=state_dim,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
