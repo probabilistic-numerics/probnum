@@ -1,7 +1,4 @@
-"""Integrated processes such as the integrated Wiener process or the Matern process.
-
-This is the sucessor of the former ODEPrior.
-"""
+"""Integrated processes such as the integrated Wiener process or the Matern process."""
 
 import numpy as np
 
