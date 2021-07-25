@@ -97,7 +97,7 @@ def car_tracking(
     model_dim = state_dim * (model_nu + 1)
     measurement_dim = 2
     dynamics_model = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-        nu=model_nu,
+        num_derivatives=model_nu,
         wiener_process_dimension=state_dim,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
@@ -213,7 +213,7 @@ def ornstein_uhlenbeck(
 
     dynamics_model = (
         randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
-            nu=0,
+            num_derivatives=0,
             wiener_process_dimension=1,
             driftspeed=driftspeed,
             forward_implementation=forward_implementation,
@@ -570,7 +570,7 @@ def logistic_ode(
     t0, tmax = timespan
     logistic_ivp = diffeq.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
     dynamics_model = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-        nu=order,
+        num_derivatives=order,
         wiener_process_dimension=1,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
