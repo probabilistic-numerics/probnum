@@ -128,11 +128,11 @@ def car_tracking(
     # Set up regression problem
     time_grid = np.arange(*timespan, step=step)
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng,
         prior_process=prior_process,
         measmod=measurement_model,
@@ -237,10 +237,10 @@ def ornstein_uhlenbeck(
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng, prior_process=prior_process, measmod=measurement_model, times=time_grid
     )
 
@@ -382,11 +382,11 @@ def pendulum(
 
     if initarg is None:
         initarg = time_grid[0]
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng,
         prior_process=prior_process,
         measmod=measurement_model,
@@ -482,14 +482,14 @@ def benes_daum(
         non_linear_model=dynamics_model
     )
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    prior_process_with_linearized_dynamics = randprocs.MarkovProcess(
+    prior_process_with_linearized_dynamics = randprocs.markov.MarkovProcess(
         transition=linearized_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng,
         prior_process=prior_process_with_linearized_dynamics,
         measmod=measurement_model,
