@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs, randvars
+from probnum import config, linops, randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
 from tests.test_randprocs.test_markov.test_continuous import test_sde
 from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
@@ -41,9 +41,11 @@ def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv, dif
             diffuse=diffuse,
         )
 
-        isinstance(iwp, randprocs.markov.continuous.integrator.IntegratedWienerProcess)
-        isinstance(iwp, randprocs.markov.MarkovProcess)
-        isinstance(
+        assert isinstance(
+            iwp, randprocs.markov.continuous.integrator.IntegratedWienerProcess
+        )
+        assert isinstance(iwp, randprocs.markov.MarkovProcess)
+        assert isinstance(
             iwp.transition,
             randprocs.markov.continuous.integrator.IntegratedWienerTransition,
         )
@@ -180,18 +182,20 @@ class TestIBMLinOps(test_sde.TestLTISDE, test_integrator.TestIntegratorTransitio
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        some_ordint,
+        some_nu,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
-        self.some_ordint = some_ordint
+        self.some_nu = some_nu
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        with probnum_config(lazy_linalg=True):
-            self.transition = statespace.IBM(
-                ordint=self.some_ordint,
-                spatialdim=spatialdim,
-                forward_implementation=forw_impl_string_linear_gauss,
-                backward_implementation=backw_impl_string_linear_gauss,
+        with config(lazy_linalg=True):
+            self.transition = (
+                randprocs.markov.continuous.integrator.IntegratedWienerTransition(
+                    nu=self.some_nu,
+                    wiener_process_dimension=spatialdim,
+                    forward_implementation=forw_impl_string_linear_gauss,
+                    backward_implementation=backw_impl_string_linear_gauss,
+                )
             )
 
         self.G = lambda t: self.transition.driftmat
@@ -221,9 +225,9 @@ class TestIBMLinOps(test_sde.TestLTISDE, test_integrator.TestIntegratorTransitio
         np.testing.assert_allclose(received.todense(), expected.todense())
 
     def test_discretise(self):
-        with probnum_config(lazy_linalg=True):
+        with config(lazy_linalg=True):
             out = self.transition.discretise(dt=0.1)
-            assert isinstance(out, statespace.DiscreteLTIGaussian)
+            assert isinstance(out, randprocs.markov.discrete.DiscreteLTIGaussian)
             assert isinstance(out.state_trans_mat, linops.LinearOperator)
             assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)
 
@@ -234,8 +238,8 @@ class TestIBMLinOps(test_sde.TestLTISDE, test_integrator.TestIntegratorTransitio
         assert (
             np.linalg.norm(self.transition.forcevecfun(0.0)) == 0.0
         )  # side quest/test
-        with probnum_config(lazy_linalg=True):
+        with config(lazy_linalg=True):
             out = self.transition.discretise(dt=0.1)
-            assert isinstance(out, statespace.DiscreteLTIGaussian)
+            assert isinstance(out, randprocs.markov.discrete.DiscreteLTIGaussian)
             assert isinstance(out.state_trans_mat, linops.LinearOperator)
             assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)

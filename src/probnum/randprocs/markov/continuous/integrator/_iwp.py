@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 import scipy.special
 
-from probnum import config, randvars
+from probnum import config, linops, randvars
 from probnum.randprocs.markov import _markov_process, discrete
 from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
@@ -205,7 +205,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
                 np.eye(self.wiener_process_dimension), process_noise_cholesky_1d
             )
 
-        return discrete_transition.DiscreteLTIGaussian(
+        return discrete.DiscreteLTIGaussian(
             state_trans_mat=state_transition,
             shift_vec=empty_shift,
             proc_noise_cov_mat=process_noise,
@@ -228,7 +228,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
                 "Continuous-time transitions require a time-increment ``dt``."
             )
 
-        rv = _apply_precon(self.precon.inverse(dt), rv)
+        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
@@ -237,7 +237,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        return _apply_precon(self.precon(dt), rv), info
+        return _utils.apply_precon(self.precon(dt), rv), info
 
     def backward_rv(
         self,
@@ -255,10 +255,10 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
                 "Continuous-time transitions require a time-increment ``dt``."
             )
 
-        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
-        rv = _apply_precon(self.precon.inverse(dt), rv)
+        rv_obtained = _utils.apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            _utils.apply_precon(self.precon.inverse(dt), rv_forwarded)
             if rv_forwarded is not None
             else None
         )
@@ -277,7 +277,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             _diffusion=_diffusion,
         )
 
-        return _apply_precon(self.precon(dt), rv), info
+        return _utils.apply_precon(self.precon(dt), rv), info
 
     def discretise(self, dt):
         """Equivalent discretisation of the process.
@@ -305,7 +305,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
         )
 
-        return discrete_transition.DiscreteLTIGaussian(
+        return discrete.DiscreteLTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,

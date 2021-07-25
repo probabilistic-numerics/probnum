@@ -38,7 +38,7 @@ def test_generate_shapes(times, test_ndim, rng):
     """Output shapes are as expected."""
     mocktrans = MockTransition(dim=test_ndim)
     initrv = randvars.Constant(np.random.rand(test_ndim))
-    proc = randprocs.MarkovProcess(
+    proc = randprocs.markov.MarkovProcess(
         initarg=times[0], initrv=initrv, transition=mocktrans
     )
     states, obs = randprocs.markov.utils.generate_artificial_measurements(

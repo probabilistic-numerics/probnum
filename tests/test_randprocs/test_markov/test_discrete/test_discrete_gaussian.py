@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs, randvars
+from probnum import config, linops, randprocs, randvars
 from tests.test_randprocs.test_markov import test_transition
 
 
@@ -389,7 +389,7 @@ class TestLinearGaussianLinOps:
             self.G = lambda t: linops.aslinop(spdmat1)
             self.S = lambda t: linops.aslinop(spdmat2)
             self.v = lambda t: np.arange(test_ndim)
-            self.transition = statespace.DiscreteLinearGaussian(
+            self.transition = randprocs.markov.discrete.DiscreteLinearGaussian(
                 test_ndim,
                 test_ndim,
                 self.G,
@@ -398,7 +398,7 @@ class TestLinearGaussianLinOps:
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
-            self.sqrt_transition = statespace.DiscreteLinearGaussian(
+            self.sqrt_transition = randprocs.markov.discrete.DiscreteLinearGaussian(
                 test_ndim,
                 test_ndim,
                 self.G,

@@ -62,10 +62,10 @@ class NordsieckLikeCoordinates(Preconditioner):
         scaling_vector = np.abs(step) ** self.powers / self.scales
         if config.lazy_linalg:
             return linops.Kronecker(
-                A=linops.Identity(self.spatialdim),
+                A=linops.Identity(self.dimension),
                 B=linops.Scaling(factors=scaling_vector),
             )
-        return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
+        return np.kron(np.eye(self.dimension), np.diag(scaling_vector))
 
     @cached_property
     def inverse(self) -> "NordsieckLikeCoordinates":

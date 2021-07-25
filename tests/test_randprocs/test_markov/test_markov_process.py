@@ -22,7 +22,7 @@ def test_bad_args_shape():
         np.ones(dynamics.dimension),
         np.eye(dynamics.dimension),
     )
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         initarg=time_domain[0], initrv=initrv, transition=dynamics
     )
 
