@@ -25,8 +25,8 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     ----------
     initarg
         Initial time point.
-    nu
-        Order of the integrated process (''number of integrations'').
+    num_derivatives
+        Number of modelled derivatives of the integrated process (''order'', ''number of integrations'').
         Optional. Default is :math:`\nu=1`.
     wiener_process_dimension
         Dimension of the underlying Wiener process.

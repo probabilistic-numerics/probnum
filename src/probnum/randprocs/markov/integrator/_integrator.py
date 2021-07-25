@@ -11,14 +11,14 @@ __all__ = ["IntegratorTransition"]
 
 
 class IntegratorTransition:
-    r"""Integrator processes.
+    r"""Transitions for integrator processes.
 
     An integrator is a special kind of random process
     that models a stack of a state and its first :math:`\nu` time-derivatives.
     For instances, this includes integrated Wiener processes or Matern processes.
 
-    In ProbNum, integrators are always derived by driving :math:`d` dimensional Wiener processes.
-    We compute the transitions usually in Nordsieck-Coordinates.
+    In ProbNum, integrators are always driven by :math:`d` dimensional Wiener processes.
+    We compute the transitions usually in a preconditioned state (Nordsieck-like coordinates).
     """
 
     def __init__(self, num_derivatives, wiener_process_dimension):

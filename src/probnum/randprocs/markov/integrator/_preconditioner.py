@@ -35,8 +35,8 @@ class NordsieckLikeCoordinates(Preconditioner):
     """Nordsieck-like coordinates.
 
     Similar to Nordsieck coordinates (which store the Taylor coefficients instead of the
-    derivatives), but better for ODE filtering and smoothing. Used in
-    IntegratedWienerTransition.
+    derivatives), but better for ODE filtering and smoothing. Used in integrator-transitions, e.g. in
+    :class:`IntegratedWienerTransition`.
     """
 
     def __init__(self, powers, scales, dimension):
