@@ -3,8 +3,9 @@
 from typing import Optional, Type, Union
 
 import numpy as np
+import scipy.stats
 
-from probnum import randvars, statespace
+from probnum import randvars, statespace, utils
 from probnum.typing import ShapeArgType
 
 from . import _random_process
@@ -70,8 +71,37 @@ class MarkovProcess(_random_process.RandomProcess):
         args: _InputType,
         size: ShapeArgType = (),
     ) -> _OutputType:
-        randvar = self.__call__(args=args)
-        return randvar.sample(rng=rng, size=size)
+
+        size = utils.as_shape(size)
+        args = np.atleast_1d(args)
+        if args.ndim > 1:
+            raise ValueError(f"Invalid args shape {args.shape}")
+
+        base_measure_realizations = scipy.stats.norm.rvs(
+            size=(size + args.shape + self.initrv.shape), random_state=rng
+        )
+
+        if size == ():
+            return np.array(
+                self.transition.jointly_transform_base_measure_realization_list_forward(
+                    base_measure_realizations=base_measure_realizations,
+                    t=args,
+                    initrv=self.initrv,
+                    _diffusion_list=np.ones_like(args[:-1]),
+                )
+            )
+
+        return np.stack(
+            [
+                self.transition.jointly_transform_base_measure_realization_list_forward(
+                    base_measure_realizations=base_real,
+                    t=args,
+                    initrv=self.initrv,
+                    _diffusion_list=np.ones_like(args[:-1]),
+                )
+                for base_real in base_measure_realizations
+            ]
+        )
 
     def push_forward(
         self,
