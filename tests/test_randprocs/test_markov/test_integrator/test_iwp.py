@@ -1,4 +1,4 @@
-"""Tests for integrated Brownian motion processes."""
+"""Tests for integrated Wiener processes."""
 
 import numpy as np
 import pytest
