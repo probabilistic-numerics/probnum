@@ -47,7 +47,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
 
     Construct the prior process.
 
-    >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, wiener_process_dimension=4, nu=3)
+    >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, wiener_process_dimension=4, num_derivatives=3)
 
     Initialize with Taylor-mode autodiff.
 
@@ -70,7 +70,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
     >>> ivp = vanderpol_jax()
     >>> print(ivp.y0)
     [2. 0.]
-    >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, wiener_process_dimension=2, nu=3)
+    >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, wiener_process_dimension=2, num_derivatives=3)
 
     >>> taylor_init = TaylorModeInitialization()
     >>> improved_initrv = taylor_init(ivp=ivp, prior_process=prior_process)
@@ -106,7 +106,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
                 "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
             ) from err
 
-        order = prior_process.transition.nu
+        order = prior_process.transition.num_derivatives
 
         dt = jnp.array([1.0])
 
@@ -132,11 +132,13 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
             stacked_ode_eval = jnp.concatenate((dx_ravelled, dt))
             return stacked_ode_eval
 
-        def derivs_to_normal_randvar(derivs, nu):
+        def derivs_to_normal_randvar(derivs, num_derivatives):
             """Finalize the output in terms of creating a suitably sized random
             variable."""
             all_derivs = randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
-                np.asarray(derivs), nu=nu, wiener_process_dimension=ivp.y0.shape[0]
+                np.asarray(derivs),
+                num_derivatives=num_derivatives,
+                wiener_process_dimension=ivp.y0.shape[0],
             )
 
             # Wrap all inputs through np.asarray, because 'Normal's
@@ -153,7 +155,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
         # Corner case 1: order == 0
         derivs.extend(ivp.y0)
         if order == 0:
-            return derivs_to_normal_randvar(derivs=derivs, nu=0)
+            return derivs_to_normal_randvar(derivs=derivs, num_derivatives=0)
 
         # Corner case 2: order == 1
         initial_series = (jnp.ones_like(extended_state),)
@@ -164,7 +166,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
         )
         derivs.extend(initial_taylor_coefficient[:-1])
         if order == 1:
-            return derivs_to_normal_randvar(derivs=derivs, nu=1)
+            return derivs_to_normal_randvar(derivs=derivs, num_derivatives=1)
 
         # Order > 1
         for _ in range(1, order):
@@ -178,4 +180,4 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
                 series=(taylor_coefficients,),
             )
             derivs.extend(remaining_taylor_coefficents[-2][:-1])
-        return derivs_to_normal_randvar(derivs=derivs, nu=order)
+        return derivs_to_normal_randvar(derivs=derivs, num_derivatives=order)

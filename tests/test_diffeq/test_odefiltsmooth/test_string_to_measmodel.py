@@ -23,7 +23,7 @@ def ivp():
 def prior(ivp):
     ode_dim = ivp.dimension
     prior = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-        nu=2, wiener_process_dimension=ode_dim
+        num_derivatives=2, wiener_process_dimension=ode_dim
     )
     initrv = randvars.Normal(
         mean=np.zeros(prior.dimension),

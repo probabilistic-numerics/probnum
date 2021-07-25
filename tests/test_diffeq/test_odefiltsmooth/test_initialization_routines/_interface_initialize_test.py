@@ -24,7 +24,7 @@ class InterfaceInitializationRoutineTest(abc.ABC):
         """Construct a prior process of appropriate size."""
         prior_process = randprocs.markov.continuous.integrator.IntegratedWienerProcess(
             initarg=t0,
-            nu=order,
+            num_derivatives=order,
             wiener_process_dimension=spatialdim,
         )
         return prior_process

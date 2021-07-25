@@ -37,7 +37,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
     >>> ivp = vanderpol()
     >>> print(ivp.y0)
     [2. 0.]
-    >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, nu=3, wiener_process_dimension=2)
+    >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, num_derivatives=3, wiener_process_dimension=2)
 
     Next, we call the initialization routine.
 
@@ -94,7 +94,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         f, y0, t0, df = ivp.f, ivp.y0, ivp.t0, ivp.df
         y0 = np.asarray(y0)
         ode_dim = y0.shape[0] if y0.ndim > 0 else 1
-        order = prior_process.transition.nu
+        order = prior_process.transition.num_derivatives
 
         # order + 1 would suffice in theory, 2*order + 1 is for good measure
         # (the "+1" is a safety factor for order=1)

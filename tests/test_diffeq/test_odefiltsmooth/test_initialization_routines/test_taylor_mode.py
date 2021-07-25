@@ -32,7 +32,7 @@ class TestTaylorModeInitialization(
                 _known_initial_derivatives.THREEBODY_INITS[
                     : r2b_jax.dimension * (any_order + 1)
                 ],
-                nu=any_order,
+                num_derivatives=any_order,
                 wiener_process_dimension=r2b_jax.dimension,
             )
         )
