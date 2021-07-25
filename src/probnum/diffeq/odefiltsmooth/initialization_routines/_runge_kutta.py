@@ -29,7 +29,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
     >>> import numpy as np
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import vanderpol
-    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerProcess
+    >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
 
     Compute the initial values of the van-der-Pol problem as follows.
     First, we set up the ODE problem and the prior process.

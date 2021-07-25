@@ -255,7 +255,7 @@ def probsolve_ivp(
     diffusion = choose_diffusion_model[diffusion_model]
 
     # Create solver
-    prior_process = randprocs.markov.continuous.integrator.IntegratedWienerProcess(
+    prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
         initarg=ivp.t0,
         num_derivatives=algo_order,
         wiener_process_dimension=ivp.dimension,

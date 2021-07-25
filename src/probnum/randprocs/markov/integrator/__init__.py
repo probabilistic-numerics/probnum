@@ -23,16 +23,12 @@ __all__ = [
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-IntegratorTransition.__module__ = "probnum.randprocs.markov.continuous.integrator"
-IntegratedWienerProcess.__module__ = "probnum.randprocs.markov.continuous.integrator"
-IntegratedWienerTransition.__module__ = "probnum.randprocs.markov.continuous.integrator"
-IntegratedOrnsteinUhlenbeckProcess.__module__ = (
-    "probnum.randprocs.markov.continuous.integrator"
-)
-IntegratedOrnsteinUhlenbeckTransition.__module__ = (
-    "probnum.randprocs.markov.continuous.integrator"
-)
-MaternProcess.__module__ = "probnum.randprocs.markov.continuous.integrator"
-MaternTransition.__module__ = "probnum.randprocs.markov.continuous.integrator"
-Preconditioner.__module__ = "probnum.randprocs.markov.continuous.integrator"
-NordsieckLikeCoordinates.__module__ = "probnum.randprocs.markov.continuous.integrator"
+IntegratorTransition.__module__ = "probnum.randprocs.markov.integrator"
+IntegratedWienerProcess.__module__ = "probnum.randprocs.markov.integrator"
+IntegratedWienerTransition.__module__ = "probnum.randprocs.markov.integrator"
+IntegratedOrnsteinUhlenbeckProcess.__module__ = "probnum.randprocs.markov.integrator"
+IntegratedOrnsteinUhlenbeckTransition.__module__ = "probnum.randprocs.markov.integrator"
+MaternProcess.__module__ = "probnum.randprocs.markov.integrator"
+MaternTransition.__module__ = "probnum.randprocs.markov.integrator"
+Preconditioner.__module__ = "probnum.randprocs.markov.integrator"
+NordsieckLikeCoordinates.__module__ = "probnum.randprocs.markov.integrator"

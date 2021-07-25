@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from probnum.randprocs.markov.continuous.integrator import _integrator
+from probnum.randprocs.markov.integrator import _integrator
 from probnum.typing import IntArgType
 
 

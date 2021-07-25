@@ -180,7 +180,7 @@ def test_sampling_shapes_1d(locs, size):
     locations = np.linspace(0, 2 * np.pi, 100)
     data = 0.5 * np.random.randn(100) + np.sin(locations)
 
-    prior = randprocs.markov.continuous.integrator.IntegratedWienerTransition(0, 1)
+    prior = randprocs.markov.integrator.IntegratedWienerTransition(0, 1)
     measmod = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
     )

@@ -1,6 +1,5 @@
 """Continous-time transitions and stochastic differential equations."""
 
-from . import integrator
 from ._diffusions import ConstantDiffusion, Diffusion, PiecewiseConstantDiffusion
 from ._sde import LTISDE, SDE, LinearSDE
 from ._utils import matrix_fraction_decomposition

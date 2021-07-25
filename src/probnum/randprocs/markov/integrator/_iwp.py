@@ -12,9 +12,8 @@ import numpy as np
 import scipy.special
 
 from probnum import config, linops, randvars
-from probnum.randprocs.markov import _markov_process, discrete
-from probnum.randprocs.markov.continuous import _sde
-from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
+from probnum.randprocs.markov import _markov_process, continuous, discrete
+from probnum.randprocs.markov.integrator import _integrator, _utils
 
 
 class IntegratedWienerProcess(_markov_process.MarkovProcess):
@@ -109,7 +108,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
 
 
-class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
+class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
     def __init__(
@@ -126,7 +125,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
         )
-        _sde.LTISDE.__init__(
+        continuous.LTISDE.__init__(
             self,
             driftmat=self._driftmat,
             forcevec=self._forcevec,

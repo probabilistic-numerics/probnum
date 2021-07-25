@@ -1,8 +1,7 @@
-"""Matern processes."""
+"""Integrated Ornstein-Uhlenbeck processes."""
 import warnings
 
 import numpy as np
-import scipy.special
 
 try:
     # cached_property is only available in Python >=3.8
@@ -11,20 +10,19 @@ except ImportError:
     from cached_property import cached_property
 
 from probnum import randvars
-from probnum.randprocs.markov import _markov_process
-from probnum.randprocs.markov.continuous import _sde
-from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
+from probnum.randprocs.markov import _markov_process, continuous
+from probnum.randprocs.markov.integrator import _integrator, _utils
 
 
-class MaternProcess(_markov_process.MarkovProcess):
-    r"""Matern process.
+class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
+    r"""Integrated Ornstein-Uhlenbeck process.
 
-    Convenience access to (:math:`d` dimensional) Matern(:math:`\nu`) processes.
+    Convenience access to :math:`\nu` times integrated (:math:`d` dimensional) Ornstein-Uhlenbeck processes.
 
     Parameters
     ----------
-    lengthscale
-        Lengthscale of the Matern process.
+    driftspeed
+        Drift-speed of the underlying OrnsteinUhlenbeck process.
     initarg
         Initial time point.
     nu
@@ -59,26 +57,26 @@ class MaternProcess(_markov_process.MarkovProcess):
 
     Examples
     --------
-    >>> matern1 = MaternProcess(lengthscale=1., initarg=0.)
-    >>> print(matern1)
-    <MaternProcess with input_dim=1, output_dim=2, dtype=float64>
+    >>> ioup1 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1., initarg=0.)
+    >>> print(ioup1)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=2, dtype=float64>
 
-    >>> matern2 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=2)
-    >>> print(matern2)
-    <MaternProcess with input_dim=1, output_dim=3, dtype=float64>
+    >>> ioup2 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=2)
+    >>> print(ioup2)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=3, dtype=float64>
 
-    >>> matern3 = MaternProcess(lengthscale=1.,initarg=0., wiener_process_dimension=10)
-    >>> print(matern3)
-    <MaternProcess with input_dim=1, output_dim=20, dtype=float64>
+    >>> ioup3 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., wiener_process_dimension=10)
+    >>> print(ioup3)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=20, dtype=float64>
 
-    >>> matern4 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
-    >>> print(matern4)
-    <MaternProcess with input_dim=1, output_dim=5, dtype=float64>
+    >>> ioup4 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
+    >>> print(ioup4)
+    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=5, dtype=float64>
     """
 
     def __init__(
         self,
-        lengthscale,
+        driftspeed,
         initarg,
         num_derivatives=1,
         wiener_process_dimension=1,
@@ -87,10 +85,10 @@ class MaternProcess(_markov_process.MarkovProcess):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        matern_transition = MaternTransition(
+        ioup_transition = IntegratedOrnsteinUhlenbeckTransition(
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
-            lengthscale=lengthscale,
+            driftspeed=driftspeed,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
@@ -103,35 +101,36 @@ class MaternProcess(_markov_process.MarkovProcess):
                 scale_cholesky = 1e3
             else:
                 scale_cholesky = 1.0
-            zeros = np.zeros(matern_transition.dimension)
-            cov_cholesky = scale_cholesky * np.eye(matern_transition.dimension)
+            zeros = np.zeros(ioup_transition.dimension)
+            cov_cholesky = scale_cholesky * np.eye(ioup_transition.dimension)
             initrv = randvars.Normal(
                 mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
             )
 
-        super().__init__(transition=matern_transition, initrv=initrv, initarg=initarg)
+        super().__init__(transition=ioup_transition, initrv=initrv, initarg=initarg)
 
 
-class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
-    """Matern process in :math:`d` dimensions."""
+class IntegratedOrnsteinUhlenbeckTransition(
+    _integrator.IntegratorTransition, continuous.LTISDE
+):
+    """Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions."""
 
     def __init__(
         self,
         num_derivatives: int,
         wiener_process_dimension: int,
-        lengthscale: float,
+        driftspeed: float,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-
-        self.lengthscale = lengthscale
+        self.driftspeed = driftspeed
 
         _integrator.IntegratorTransition.__init__(
             self,
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
         )
-        _sde.LTISDE.__init__(
+        continuous.LTISDE.__init__(
             self,
             driftmat=self._driftmat,
             forcevec=self._forcevec,
@@ -142,13 +141,9 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
 
     @cached_property
     def _driftmat(self):
-        driftmat = np.diag(np.ones(self.num_derivatives), 1)
-        nu = self.num_derivatives + 0.5
-        D, lam = self.num_derivatives + 1, np.sqrt(2 * nu) / self.lengthscale
-        driftmat[-1, :] = np.array(
-            [-scipy.special.binom(D, i) * lam ** (D - i) for i in range(D)]
-        )
-        return np.kron(np.eye(self.wiener_process_dimension), driftmat)
+        driftmat_1d = np.diag(np.ones(self.num_derivatives), 1)
+        driftmat_1d[-1, -1] = -self.driftspeed
+        return np.kron(np.eye(self.wiener_process_dimension), driftmat_1d)
 
     @cached_property
     def _forcevec(self):
@@ -158,7 +153,7 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
     @cached_property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.num_derivatives + 1)
-        dispmat_1d[-1] = 1.0  # Unit diffusion
+        dispmat_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
 
     def forward_rv(

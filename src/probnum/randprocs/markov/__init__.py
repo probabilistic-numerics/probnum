@@ -1,11 +1,11 @@
 """Markov processes and probabilistic state-space model routines.
 
-This package implements continuous-discrete and discrete-discrete state
-space models, which are the basis for Bayesian filtering and smoothing,
-but also probabilistic ODE solvers.
+This package implements continuous-discrete and discrete-discrete state space models,
+which are the basis for Bayesian filtering and smoothing, but also probabilistic ODE
+solvers.
 """
 
-from . import continuous, discrete, utils
+from . import continuous, discrete, integrator, utils
 from ._markov_process import MarkovProcess
 from ._transition import Transition
 

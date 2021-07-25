@@ -14,7 +14,7 @@ class TestIntegratorTransition:
     @pytest.fixture(autouse=True)
     def _setup(self, some_nu):
         self.some_nu = some_nu
-        self.integrator = randprocs.markov.continuous.integrator.IntegratorTransition(
+        self.integrator = randprocs.markov.integrator.IntegratorTransition(
             num_derivatives=self.some_nu, wiener_process_dimension=1
         )
 
@@ -35,15 +35,15 @@ class TestIntegratorTransition:
 
         assert isinstance(
             self.integrator.precon,
-            randprocs.markov.continuous.integrator.NordsieckLikeCoordinates,
+            randprocs.markov.integrator.NordsieckLikeCoordinates,
         )
 
 
 def both_transitions_matern():
-    matern = randprocs.markov.continuous.integrator.MaternTransition(
+    matern = randprocs.markov.integrator.MaternTransition(
         num_derivatives=2, wiener_process_dimension=2, lengthscale=2.041
     )
-    matern2 = randprocs.markov.continuous.integrator.MaternTransition(
+    matern2 = randprocs.markov.integrator.MaternTransition(
         num_derivatives=2, wiener_process_dimension=2, lengthscale=2.041
     )
     matern_as_ltisde = randprocs.markov.continuous.LTISDE(
@@ -53,13 +53,11 @@ def both_transitions_matern():
 
 
 def both_transitions_ioup():
-    ioup = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
+    ioup = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
         num_derivatives=2, wiener_process_dimension=2, driftspeed=2.041
     )
-    ioup2 = (
-        randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
-            num_derivatives=2, wiener_process_dimension=2, driftspeed=2.041
-        )
+    ioup2 = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
+        num_derivatives=2, wiener_process_dimension=2, driftspeed=2.041
     )
     ioup_as_ltisde = randprocs.markov.continuous.LTISDE(
         ioup2.driftmat, ioup2.forcevec, ioup2.dispmat
@@ -68,10 +66,10 @@ def both_transitions_ioup():
 
 
 def both_transitions_ibm():
-    ibm = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
+    ibm = randprocs.markov.integrator.IntegratedWienerTransition(
         num_derivatives=2, wiener_process_dimension=1
     )
-    ibm2 = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
+    ibm2 = randprocs.markov.integrator.IntegratedWienerTransition(
         num_derivatives=2, wiener_process_dimension=1
     )
     ibm_as_ltisde = randprocs.markov.continuous.LTISDE(
@@ -158,7 +156,7 @@ def test_in_out_pair_is_not_identical(in_out_pair):
 def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
     coordwise_as_derivwise = (
-        randprocs.markov.continuous.integrator.utils.convert_coordwise_to_derivwise(
+        randprocs.markov.integrator.utils.convert_coordwise_to_derivwise(
             coordwise, some_order, some_dim
         )
     )
@@ -168,7 +166,7 @@ def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
 def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
     derivwise_as_coordwise = (
-        randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
+        randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
             derivwise, some_order, some_dim
         )
     )
@@ -177,14 +175,10 @@ def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
 
 def test_conversion_pairwise_inverse(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    as_coord = (
-        randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
-            derivwise, some_order, some_dim
-        )
+    as_coord = randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
+        derivwise, some_order, some_dim
     )
-    as_deriv_again = (
-        randprocs.markov.continuous.integrator.utils.convert_coordwise_to_derivwise(
-            as_coord, some_order, some_dim
-        )
+    as_deriv_again = randprocs.markov.integrator.utils.convert_coordwise_to_derivwise(
+        as_coord, some_order, some_dim
     )
     np.testing.assert_allclose(as_deriv_again, derivwise)

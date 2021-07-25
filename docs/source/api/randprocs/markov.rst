@@ -9,5 +9,6 @@ probnum.randprocs.markov
     :hidden:
 
     markov/continuous
+    markov/integrator
     markov/discrete
     markov/utils

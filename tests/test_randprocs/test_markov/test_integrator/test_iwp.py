@@ -6,9 +6,7 @@ import pytest
 from probnum import config, linops, randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
 from tests.test_randprocs.test_markov.test_continuous import test_sde
-from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
-    test_integrator,
-)
+from tests.test_randprocs.test_markov.test_integrator import test_integrator
 
 
 @pytest.mark.parametrize("initarg", [0.0, 2.0])
@@ -24,7 +22,7 @@ def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv, dif
         initrv = None
     if use_initrv and diffuse:
         with pytest.warns(Warning):
-            randprocs.markov.continuous.integrator.IntegratedWienerProcess(
+            randprocs.markov.integrator.IntegratedWienerProcess(
                 initarg=initarg,
                 num_derivatives=nu,
                 wiener_process_dimension=wiener_process_dimension,
@@ -33,7 +31,7 @@ def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv, dif
             )
 
     else:
-        iwp = randprocs.markov.continuous.integrator.IntegratedWienerProcess(
+        iwp = randprocs.markov.integrator.IntegratedWienerProcess(
             initarg=initarg,
             num_derivatives=nu,
             wiener_process_dimension=wiener_process_dimension,
@@ -41,13 +39,11 @@ def test_iwp_construction(initarg, nu, wiener_process_dimension, use_initrv, dif
             diffuse=diffuse,
         )
 
-        assert isinstance(
-            iwp, randprocs.markov.continuous.integrator.IntegratedWienerProcess
-        )
+        assert isinstance(iwp, randprocs.markov.integrator.IntegratedWienerProcess)
         assert isinstance(iwp, randprocs.markov.MarkovProcess)
         assert isinstance(
             iwp.transition,
-            randprocs.markov.continuous.integrator.IntegratedWienerTransition,
+            randprocs.markov.integrator.IntegratedWienerTransition,
         )
 
 
@@ -66,13 +62,11 @@ class TestIntegratedWienerTransition(
     ):
         self.some_nu = some_nu
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = (
-            randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-                num_derivatives=self.some_nu,
-                wiener_process_dimension=wiener_process_dimension,
-                forward_implementation=forw_impl_string_linear_gauss,
-                backward_implementation=backw_impl_string_linear_gauss,
-            )
+        self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
+            num_derivatives=self.some_nu,
+            wiener_process_dimension=wiener_process_dimension,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
         )
 
         self.G = lambda t: self.transition.driftmat
@@ -140,13 +134,11 @@ class TestIntegratedWienerTransitionValues:
         backw_impl_string_linear_gauss,
     ):
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = (
-            randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-                num_derivatives=2,
-                wiener_process_dimension=wiener_process_dimension,
-                forward_implementation=forw_impl_string_linear_gauss,
-                backward_implementation=backw_impl_string_linear_gauss,
-            )
+        self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
+            num_derivatives=2,
+            wiener_process_dimension=wiener_process_dimension,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
         )
 
     def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):
@@ -189,13 +181,11 @@ class TestIBMLinOps(test_sde.TestLTISDE, test_integrator.TestIntegratorTransitio
         self.some_nu = some_nu
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
         with config(lazy_linalg=True):
-            self.transition = (
-                randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-                    num_derivatives=self.some_nu,
-                    wiener_process_dimension=spatialdim,
-                    forward_implementation=forw_impl_string_linear_gauss,
-                    backward_implementation=backw_impl_string_linear_gauss,
-                )
+            self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
+                num_derivatives=self.some_nu,
+                wiener_process_dimension=spatialdim,
+                forward_implementation=forw_impl_string_linear_gauss,
+                backward_implementation=backw_impl_string_linear_gauss,
             )
 
         self.G = lambda t: self.transition.driftmat

@@ -8,7 +8,7 @@ from probnum import randprocs
 def precon():
     some_order = 3
     some_dim = 1
-    return randprocs.markov.continuous.integrator.NordsieckLikeCoordinates.from_order(
+    return randprocs.markov.integrator.NordsieckLikeCoordinates.from_order(
         some_order, some_dim
     )
 

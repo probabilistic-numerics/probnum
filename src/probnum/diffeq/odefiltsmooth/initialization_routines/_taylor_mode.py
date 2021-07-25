@@ -37,7 +37,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
     >>> import numpy as np
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
-    >>> from probnum.randprocs.markov.continuous.integrator import IntegratedWienerProcess
+    >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
 
     Compute the initial values of the restricted three-body problem as follows
 
@@ -135,10 +135,12 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
         def derivs_to_normal_randvar(derivs, num_derivatives):
             """Finalize the output in terms of creating a suitably sized random
             variable."""
-            all_derivs = randprocs.markov.continuous.integrator.utils.convert_derivwise_to_coordwise(
-                np.asarray(derivs),
-                num_derivatives=num_derivatives,
-                wiener_process_dimension=ivp.y0.shape[0],
+            all_derivs = (
+                randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
+                    np.asarray(derivs),
+                    num_derivatives=num_derivatives,
+                    wiener_process_dimension=ivp.y0.shape[0],
+                )
             )
 
             # Wrap all inputs through np.asarray, because 'Normal's

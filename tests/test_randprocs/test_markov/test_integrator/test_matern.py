@@ -1,4 +1,4 @@
-"""Tests for IntegratedOrnsteinUhlenbeckProcessTransitions."""
+"""Tests for Matern processes."""
 
 
 import numpy as np
@@ -6,19 +6,17 @@ import pytest
 
 from probnum import randprocs, randvars
 from tests.test_randprocs.test_markov.test_continuous import test_sde
-from tests.test_randprocs.test_markov.test_continuous.test_integrator import (
-    test_integrator,
-)
+from tests.test_randprocs.test_markov.test_integrator import test_integrator
 
 
-@pytest.mark.parametrize("driftspeed", [-2.0, 0.0, 2.0])
+@pytest.mark.parametrize("lengthscale", [-2.0, 2.0])
 @pytest.mark.parametrize("initarg", [0.0, 2.0])
 @pytest.mark.parametrize("nu", [0, 1, 4])
 @pytest.mark.parametrize("wiener_process_dimension", [1, 2, 3])
 @pytest.mark.parametrize("use_initrv", [True, False])
 @pytest.mark.parametrize("diffuse", [True, False])
-def test_ioup_construction(
-    driftspeed, initarg, nu, wiener_process_dimension, use_initrv, diffuse
+def test_matern_construction(
+    lengthscale, initarg, nu, wiener_process_dimension, use_initrv, diffuse
 ):
     if use_initrv:
         d = (nu + 1) * wiener_process_dimension
@@ -27,8 +25,8 @@ def test_ioup_construction(
         initrv = None
     if use_initrv and diffuse:
         with pytest.warns(Warning):
-            randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcess(
-                driftspeed=driftspeed,
+            randprocs.markov.integrator.MaternProcess(
+                lengthscale=lengthscale,
                 initarg=initarg,
                 num_derivatives=nu,
                 wiener_process_dimension=wiener_process_dimension,
@@ -37,29 +35,24 @@ def test_ioup_construction(
             )
 
     else:
-        ioup = (
-            randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcess(
-                driftspeed=driftspeed,
-                initarg=initarg,
-                num_derivatives=nu,
-                wiener_process_dimension=wiener_process_dimension,
-                initrv=initrv,
-                diffuse=diffuse,
-            )
+        matern = randprocs.markov.integrator.MaternProcess(
+            lengthscale=lengthscale,
+            initarg=initarg,
+            num_derivatives=nu,
+            wiener_process_dimension=wiener_process_dimension,
+            initrv=initrv,
+            diffuse=diffuse,
         )
 
+        isinstance(matern, randprocs.markov.integrator.MaternProcess)
+        isinstance(matern, randprocs.markov.MarkovProcess)
         isinstance(
-            ioup,
-            randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcess,
-        )
-        isinstance(ioup, randprocs.markov.MarkovProcess)
-        isinstance(
-            ioup.transition,
-            randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition,
+            matern.transition,
+            randprocs.markov.integrator.MaternTransition,
         )
 
 
-class TestIntegratedOrnsteinUhlenbeckProcessTransition(
+class TestMaternTransition(
     test_sde.TestLTISDE, test_integrator.TestIntegratorTransition
 ):
 
@@ -74,10 +67,10 @@ class TestIntegratedOrnsteinUhlenbeckProcessTransition(
     ):
         self.some_nu = some_nu
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
+        self.transition = randprocs.markov.integrator.MaternTransition(
             num_derivatives=self.some_nu,
             wiener_process_dimension=wiener_process_dimension,
-            driftspeed=1.2345,
+            lengthscale=1.2345,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )

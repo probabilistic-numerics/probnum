@@ -14,7 +14,7 @@ def test_bad_args_shape():
     order = 2
     spatialdim = 2
 
-    dynamics = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
+    dynamics = randprocs.markov.integrator.IntegratedWienerTransition(
         num_derivatives=order,
         wiener_process_dimension=spatialdim,
     )
