@@ -1,12 +1,12 @@
 """Gaussian IVP filtering and smoothing."""
 
-from typing import Iterable, Optional, Union
+from typing import Optional
 
 import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
-from probnum.diffeq import _odesolver, callbacks
+from probnum.diffeq import _odesolver
 from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialization_routines
 
 
