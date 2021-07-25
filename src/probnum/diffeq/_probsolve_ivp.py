@@ -93,11 +93,11 @@ def probsolve_ivp(
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
     algo_order
-        Order of the algorithm. This amounts to choosing the order of integration (``nu``) of an integrated Brownian motion prior.
-        For too high orders, process noise covariance matrices become singular. For integrated Wiener processes, this maximum seems to be :`\num_derivatives=11` (using standard ``float64``).
+        Order of the algorithm. This amounts to choosing the number of derivatives of an integrated Wiener process prior.
+        For too high orders, process noise covariance matrices become singular.
+        For integrated Wiener processes, this maximum seems to be ``num_derivatives=11`` (using standard ``float64``).
         It is possible that higher orders may work for you.
-        The type of prior relates to prior assumptions about the
-        derivative of the solution.
+        The type of prior relates to prior assumptions about the derivative of the solution.
         The higher the order of the algorithm, the faster the convergence, but also, the higher-dimensional (and thus the costlier) the state space.
     method : str, optional
         Which method is to be used. Default is ``EK0`` which is the
