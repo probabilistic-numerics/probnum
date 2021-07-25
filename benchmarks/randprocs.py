@@ -8,15 +8,15 @@ from probnum import config, linops, randprocs, randvars
 class MarkovProcessSampling:
     """Benchmark sampling from Markov processes."""
 
-    param_names = ["lazy_linalg", "len_trajectory", "order", "dimension"]
+    param_names = ["lazy_linalg", "len_trajectory", "num_derivatives", "dimension"]
     params = [[True, False], [10], [5], [50, 100]]
 
-    def setup(self, lazy_linalg, len_trajectory, order, dimension):
+    def setup(self, lazy_linalg, len_trajectory, num_derivatives, dimension):
         with config(lazy_linalg=lazy_linalg):
 
             dynamics = (
                 randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-                    num_derivatives=order,
+                    num_derivatives=num_derivatives,
                     wiener_process_dimension=dimension,
                     forward_implementation="classic",
                     backward_implementation="classic",
@@ -41,7 +41,7 @@ class MarkovProcessSampling:
                 random_state=rng,
             )
 
-    def time_sample(self, lazy_linalg, len_trajectory, order, dimension):
+    def time_sample(self, lazy_linalg, len_trajectory, num_derivatives, dimension):
         with config(lazy_linalg=lazy_linalg):
             self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
                 base_measure_realizations=self.base_measure_realization,
