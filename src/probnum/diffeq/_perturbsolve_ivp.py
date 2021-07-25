@@ -201,4 +201,4 @@ def perturbsolve_ivp(
     else:
         steprule = stepsize.ConstantSteps(step)
 
-    return perturbed_solver.solve(steprule=steprule, stop_at_locations=time_stamps)
+    return perturbed_solver.solve(steprule=steprule, stop_at=time_stamps)

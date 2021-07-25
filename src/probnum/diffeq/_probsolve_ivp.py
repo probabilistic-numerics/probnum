@@ -288,4 +288,4 @@ def probsolve_ivp(
         diffusion_model=diffusion,
     )
 
-    return solver.solve(steprule=stprl, stop_at_locations=time_stamps)
+    return solver.solve(steprule=stprl, stop_at=time_stamps)

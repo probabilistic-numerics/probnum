@@ -8,7 +8,11 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.diffeq import callbacks
+from probnum.diffeq import callbacks, stepsize
+from probnum.typing import FloatArgType
+
+CallbackType = Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
+"""Callback interface type."""
 
 
 class ODESolver(ABC):
@@ -36,18 +40,27 @@ class ODESolver(ABC):
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-    def solve(self, steprule, stop_at_locations=None, callbacks=None):
+    def solve(
+        self,
+        steprule: stepsize.StepRule,
+        stop_at: Iterable[FloatArgType] = None,
+        callbacks: Optional[CallbackType] = None,
+    ):
         """Solve an IVP.
 
         Parameters
         ----------
-        steprule : :class:`StepRule`
+        steprule
             Step-size selection rule, e.g. constant steps or adaptive steps.
+        stop_at
+            Locations that shall be part of the posterior grid.
+        callbacks
+            Callbacks to happen after every accepted step.
         """
         self.steprule = steprule
         times, rvs = [], []
         for state in self.solution_generator(
-            steprule, stop_at_locations=stop_at_locations, callbacks=callbacks
+            steprule, stop_at=stop_at, callbacks=callbacks
         ):
             times.append(state.t)
             rvs.append(state.rv)
@@ -55,12 +68,15 @@ class ODESolver(ABC):
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         return self.postprocess(odesol)
 
-    def solution_generator(self, steprule, stop_at_locations=None, callbacks=None):
+    def solution_generator(
+        self,
+        steprule: stepsize.StepRule,
+        stop_at: Iterable[FloatArgType] = None,
+        callbacks: Optional[CallbackType] = None,
+    ):
         """Generate ODE solver steps."""
 
-        callbacks, time_stopper = self._process_event_inputs(
-            callbacks, stop_at_locations
-        )
+        callbacks, time_stopper = self._process_event_inputs(callbacks, stop_at)
 
         state = self.initialize()
         yield state
