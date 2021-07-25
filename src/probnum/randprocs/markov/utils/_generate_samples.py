@@ -1,9 +1,7 @@
 """Convenience function(s) for state space models."""
 
 import numpy as np
-import scipy.stats
 
-from probnum import randvars
 from probnum.randprocs.markov import _transition
 
 

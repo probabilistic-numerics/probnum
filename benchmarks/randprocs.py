@@ -2,7 +2,7 @@
 import numpy as np
 import scipy.stats
 
-from probnum import config, linops, randprocs, randvars, statespace
+from probnum import config, linops, randprocs, randvars
 
 
 class MarkovProcessSampling:
@@ -13,11 +13,14 @@ class MarkovProcessSampling:
 
     def setup(self, lazy_linalg, len_trajectory, order, dimension):
         with config(lazy_linalg=lazy_linalg):
-            dynamics = statespace.IBM(
-                ordint=order,
-                spatialdim=dimension,
-                forward_implementation="classic",
-                backward_implementation="classic",
+
+            dynamics = (
+                randprocs.markov.continuous.integrator.IntegratedWienerTransition(
+                    num_derivatives=order,
+                    wiener_process_dimension=dimension,
+                    forward_implementation="classic",
+                    backward_implementation="classic",
+                )
             )
 
             measvar = 0.1024
@@ -28,7 +31,7 @@ class MarkovProcessSampling:
 
             time_domain = (0.0, float(len_trajectory))
             self.time_grid = np.arange(*time_domain)
-            self.markov_process = randprocs.MarkovProcess(
+            self.markov_process = randprocs.markov.MarkovProcess(
                 initarg=time_domain[0], initrv=initrv, transition=dynamics
             )
 
