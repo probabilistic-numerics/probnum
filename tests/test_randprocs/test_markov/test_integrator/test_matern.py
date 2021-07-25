@@ -11,15 +11,15 @@ from tests.test_randprocs.test_markov.test_integrator import test_integrator
 
 @pytest.mark.parametrize("lengthscale", [-2.0, 2.0])
 @pytest.mark.parametrize("initarg", [0.0, 2.0])
-@pytest.mark.parametrize("nu", [0, 1, 4])
+@pytest.mark.parametrize("num_derivatives", [0, 1, 4])
 @pytest.mark.parametrize("wiener_process_dimension", [1, 2, 3])
 @pytest.mark.parametrize("use_initrv", [True, False])
 @pytest.mark.parametrize("diffuse", [True, False])
 def test_matern_construction(
-    lengthscale, initarg, nu, wiener_process_dimension, use_initrv, diffuse
+    lengthscale, initarg, num_derivatives, wiener_process_dimension, use_initrv, diffuse
 ):
     if use_initrv:
-        d = (nu + 1) * wiener_process_dimension
+        d = (num_derivatives + 1) * wiener_process_dimension
         initrv = randvars.Normal(np.arange(d), np.diag(np.arange(1, d + 1)))
     else:
         initrv = None
@@ -28,7 +28,7 @@ def test_matern_construction(
             randprocs.markov.integrator.MaternProcess(
                 lengthscale=lengthscale,
                 initarg=initarg,
-                num_derivatives=nu,
+                num_derivatives=num_derivatives,
                 wiener_process_dimension=wiener_process_dimension,
                 initrv=initrv,
                 diffuse=diffuse,
@@ -38,7 +38,7 @@ def test_matern_construction(
         matern = randprocs.markov.integrator.MaternProcess(
             lengthscale=lengthscale,
             initarg=initarg,
-            num_derivatives=nu,
+            num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
             initrv=initrv,
             diffuse=diffuse,
