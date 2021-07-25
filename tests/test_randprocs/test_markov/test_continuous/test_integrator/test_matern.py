@@ -30,7 +30,7 @@ def test_matern_construction(
             randprocs.markov.continuous.integrator.MaternProcess(
                 lengthscale=lengthscale,
                 initarg=initarg,
-                nu=nu,
+                num_derivatives=nu,
                 wiener_process_dimension=wiener_process_dimension,
                 initrv=initrv,
                 diffuse=diffuse,
@@ -40,7 +40,7 @@ def test_matern_construction(
         matern = randprocs.markov.continuous.integrator.MaternProcess(
             lengthscale=lengthscale,
             initarg=initarg,
-            nu=nu,
+            num_derivatives=nu,
             wiener_process_dimension=wiener_process_dimension,
             initrv=initrv,
             diffuse=diffuse,
@@ -70,7 +70,7 @@ class TestMaternTransition(
         self.some_nu = some_nu
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = randprocs.markov.continuous.integrator.MaternTransition(
-            nu=self.some_nu,
+            num_derivatives=self.some_nu,
             wiener_process_dimension=wiener_process_dimension,
             lengthscale=1.2345,
             forward_implementation=forw_impl_string_linear_gauss,

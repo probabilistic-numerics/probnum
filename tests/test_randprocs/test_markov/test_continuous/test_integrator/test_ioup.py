@@ -30,7 +30,7 @@ def test_ioup_construction(
             randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcess(
                 driftspeed=driftspeed,
                 initarg=initarg,
-                nu=nu,
+                num_derivatives=nu,
                 wiener_process_dimension=wiener_process_dimension,
                 initrv=initrv,
                 diffuse=diffuse,
@@ -41,7 +41,7 @@ def test_ioup_construction(
             randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckProcess(
                 driftspeed=driftspeed,
                 initarg=initarg,
-                nu=nu,
+                num_derivatives=nu,
                 wiener_process_dimension=wiener_process_dimension,
                 initrv=initrv,
                 diffuse=diffuse,
@@ -75,7 +75,7 @@ class TestIntegratedOrnsteinUhlenbeckProcessTransition(
         self.some_nu = some_nu
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
-            nu=self.some_nu,
+            num_derivatives=self.some_nu,
             wiener_process_dimension=wiener_process_dimension,
             driftspeed=1.2345,
             forward_implementation=forw_impl_string_linear_gauss,

@@ -21,11 +21,11 @@ class IntegratorTransition:
     We compute the transitions usually in Nordsieck-Coordinates.
     """
 
-    def __init__(self, nu, wiener_process_dimension):
-        self.nu = nu
+    def __init__(self, num_derivatives, wiener_process_dimension):
+        self.num_derivatives = num_derivatives
         self.wiener_process_dimension = wiener_process_dimension
         self.precon = _preconditioner.NordsieckLikeCoordinates.from_order(
-            nu, wiener_process_dimension
+            num_derivatives, wiener_process_dimension
         )
 
     def proj2coord(self, coord: int) -> np.ndarray:
@@ -51,8 +51,8 @@ class IntegratorTransition:
         np.ndarray, shape=(d, d*(q+1))
             Projection matrix :math:`H_i`.
         """
-        projvec1d = np.eye(self.nu + 1)[:, coord]
-        projmat1d = projvec1d.reshape((1, self.nu + 1))
+        projvec1d = np.eye(self.num_derivatives + 1)[:, coord]
+        projmat1d = projvec1d.reshape((1, self.num_derivatives + 1))
         projmat = np.kron(np.eye(self.wiener_process_dimension), projmat1d)
         return projmat
 
@@ -76,12 +76,12 @@ class IntegratorTransition:
         :attr:`Integrator._convert_derivwise_to_coordwise`
 
         """
-        dim = (self.nu + 1) * self.wiener_process_dimension
+        dim = (self.num_derivatives + 1) * self.wiener_process_dimension
         projmat = np.zeros((dim, dim))
         E = np.eye(dim)
-        for q in range(self.nu + 1):
+        for q in range(self.num_derivatives + 1):
 
-            projmat[q :: (self.nu + 1)] = E[
+            projmat[q :: (self.num_derivatives + 1)] = E[
                 q
                 * self.wiener_process_dimension : (q + 1)
                 * self.wiener_process_dimension

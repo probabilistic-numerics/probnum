@@ -63,7 +63,7 @@ class MaternProcess(_markov_process.MarkovProcess):
     >>> print(matern1)
     <MaternProcess with input_dim=1, output_dim=2, dtype=float64>
 
-    >>> matern2 = MaternProcess(lengthscale=1.,initarg=0., nu=2)
+    >>> matern2 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=2)
     >>> print(matern2)
     <MaternProcess with input_dim=1, output_dim=3, dtype=float64>
 
@@ -71,7 +71,7 @@ class MaternProcess(_markov_process.MarkovProcess):
     >>> print(matern3)
     <MaternProcess with input_dim=1, output_dim=20, dtype=float64>
 
-    >>> matern4 = MaternProcess(lengthscale=1.,initarg=0., nu=4, wiener_process_dimension=1)
+    >>> matern4 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(matern4)
     <MaternProcess with input_dim=1, output_dim=5, dtype=float64>
     """
@@ -80,7 +80,7 @@ class MaternProcess(_markov_process.MarkovProcess):
         self,
         lengthscale,
         initarg,
-        nu=1,
+        num_derivatives=1,
         wiener_process_dimension=1,
         initrv=None,
         diffuse=False,
@@ -88,7 +88,7 @@ class MaternProcess(_markov_process.MarkovProcess):
         backward_implementation="classic",
     ):
         matern_transition = MaternTransition(
-            nu=nu,
+            num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
             lengthscale=lengthscale,
             forward_implementation=forward_implementation,
@@ -117,7 +117,7 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
 
     def __init__(
         self,
-        nu: int,
+        num_derivatives: int,
         wiener_process_dimension: int,
         lengthscale: float,
         forward_implementation="classic",
@@ -127,7 +127,9 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
         self.lengthscale = lengthscale
 
         _integrator.IntegratorTransition.__init__(
-            self, nu=nu, wiener_process_dimension=wiener_process_dimension
+            self,
+            num_derivatives=num_derivatives,
+            wiener_process_dimension=wiener_process_dimension,
         )
         _sde.LTISDE.__init__(
             self,
@@ -140,9 +142,9 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
 
     @cached_property
     def _driftmat(self):
-        driftmat = np.diag(np.ones(self.nu), 1)
-        nu = self.nu + 0.5
-        D, lam = self.nu + 1, np.sqrt(2 * nu) / self.lengthscale
+        driftmat = np.diag(np.ones(self.num_derivatives), 1)
+        nu = self.num_derivatives + 0.5
+        D, lam = self.num_derivatives + 1, np.sqrt(2 * nu) / self.lengthscale
         driftmat[-1, :] = np.array(
             [-scipy.special.binom(D, i) * lam ** (D - i) for i in range(D)]
         )
@@ -150,12 +152,12 @@ class MaternTransition(_integrator.IntegratorTransition, _sde.LTISDE):
 
     @cached_property
     def _forcevec(self):
-        force_1d = np.zeros(self.nu + 1)
+        force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @cached_property
     def _dispmat(self):
-        dispmat_1d = np.zeros(self.nu + 1)
+        dispmat_1d = np.zeros(self.num_derivatives + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
 

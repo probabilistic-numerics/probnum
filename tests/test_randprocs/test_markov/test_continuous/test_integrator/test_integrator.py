@@ -15,7 +15,7 @@ class TestIntegratorTransition:
     def _setup(self, some_nu):
         self.some_nu = some_nu
         self.integrator = randprocs.markov.continuous.integrator.IntegratorTransition(
-            nu=self.some_nu, wiener_process_dimension=1
+            num_derivatives=self.some_nu, wiener_process_dimension=1
         )
 
     def test_proj2coord(self):
@@ -41,10 +41,10 @@ class TestIntegratorTransition:
 
 def both_transitions_matern():
     matern = randprocs.markov.continuous.integrator.MaternTransition(
-        nu=2, wiener_process_dimension=2, lengthscale=2.041
+        num_derivatives=2, wiener_process_dimension=2, lengthscale=2.041
     )
     matern2 = randprocs.markov.continuous.integrator.MaternTransition(
-        nu=2, wiener_process_dimension=2, lengthscale=2.041
+        num_derivatives=2, wiener_process_dimension=2, lengthscale=2.041
     )
     matern_as_ltisde = randprocs.markov.continuous.LTISDE(
         matern2.driftmat, matern2.forcevec, matern2.dispmat
@@ -54,11 +54,11 @@ def both_transitions_matern():
 
 def both_transitions_ioup():
     ioup = randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
-        nu=2, wiener_process_dimension=2, driftspeed=2.041
+        num_derivatives=2, wiener_process_dimension=2, driftspeed=2.041
     )
     ioup2 = (
         randprocs.markov.continuous.integrator.IntegratedOrnsteinUhlenbeckTransition(
-            nu=2, wiener_process_dimension=2, driftspeed=2.041
+            num_derivatives=2, wiener_process_dimension=2, driftspeed=2.041
         )
     )
     ioup_as_ltisde = randprocs.markov.continuous.LTISDE(
@@ -69,10 +69,10 @@ def both_transitions_ioup():
 
 def both_transitions_ibm():
     ibm = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-        nu=2, wiener_process_dimension=1
+        num_derivatives=2, wiener_process_dimension=1
     )
     ibm2 = randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-        nu=2, wiener_process_dimension=1
+        num_derivatives=2, wiener_process_dimension=1
     )
     ibm_as_ltisde = randprocs.markov.continuous.LTISDE(
         ibm2.driftmat, ibm2.forcevec, ibm2.dispmat

@@ -62,7 +62,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     >>> print(iwp1)
     <IntegratedWienerProcess with input_dim=1, output_dim=2, dtype=float64>
 
-    >>> iwp2 = IntegratedWienerProcess(initarg=0., nu=2)
+    >>> iwp2 = IntegratedWienerProcess(initarg=0., num_derivatives=2)
     >>> print(iwp2)
     <IntegratedWienerProcess with input_dim=1, output_dim=3, dtype=float64>
 
@@ -70,7 +70,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     >>> print(iwp3)
     <IntegratedWienerProcess with input_dim=1, output_dim=20, dtype=float64>
 
-    >>> iwp4 = IntegratedWienerProcess(initarg=0., nu=4, wiener_process_dimension=1)
+    >>> iwp4 = IntegratedWienerProcess(initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(iwp4)
     <IntegratedWienerProcess with input_dim=1, output_dim=5, dtype=float64>
     """
@@ -78,7 +78,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     def __init__(
         self,
         initarg,
-        nu=1,
+        num_derivatives=1,
         wiener_process_dimension=1,
         initrv=None,
         diffuse=False,
@@ -86,7 +86,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         backward_implementation="classic",
     ):
         iwp_transition = IntegratedWienerTransition(
-            nu=nu,
+            num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
@@ -114,7 +114,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
 
     def __init__(
         self,
-        nu,
+        num_derivatives,
         wiener_process_dimension,
         forward_implementation="classic",
         backward_implementation="classic",
@@ -122,7 +122,9 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
         _integrator.IntegratorTransition.__init__(
-            self, nu=nu, wiener_process_dimension=wiener_process_dimension
+            self,
+            num_derivatives=num_derivatives,
+            wiener_process_dimension=wiener_process_dimension,
         )
         _sde.LTISDE.__init__(
             self,
@@ -135,7 +137,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
 
     @cached_property
     def _driftmat(self):
-        driftmat_1d = np.diag(np.ones(self.nu), 1)
+        driftmat_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.lazy_linalg:
             return linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
@@ -145,11 +147,11 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
 
     @cached_property
     def _forcevec(self):
-        return np.zeros((self.wiener_process_dimension * (self.nu + 1)))
+        return np.zeros((self.wiener_process_dimension * (self.num_derivatives + 1)))
 
     @cached_property
     def _dispmat(self):
-        dispmat_1d = np.zeros(self.nu + 1)
+        dispmat_1d = np.zeros(self.num_derivatives + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
 
         if config.lazy_linalg:
@@ -171,7 +173,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
         """
 
         state_transition_1d = np.flip(
-            scipy.linalg.pascal(self.nu + 1, kind="lower", exact=False)
+            scipy.linalg.pascal(self.num_derivatives + 1, kind="lower", exact=False)
         )
         if config.lazy_linalg:
             state_transition = linops.Kronecker(
@@ -182,7 +184,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             state_transition = np.kron(
                 np.eye(self.wiener_process_dimension), state_transition_1d
             )
-        process_noise_1d = np.flip(scipy.linalg.hilbert(self.nu + 1))
+        process_noise_1d = np.flip(scipy.linalg.hilbert(self.num_derivatives + 1))
         if config.lazy_linalg:
             process_noise = linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
@@ -192,7 +194,9 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             process_noise = np.kron(
                 np.eye(self.wiener_process_dimension), process_noise_1d
             )
-        empty_shift = np.zeros(self.wiener_process_dimension * (self.nu + 1))
+        empty_shift = np.zeros(
+            self.wiener_process_dimension * (self.num_derivatives + 1)
+        )
 
         process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
         if config.lazy_linalg:

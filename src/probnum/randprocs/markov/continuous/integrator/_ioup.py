@@ -62,7 +62,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     >>> print(ioup1)
     <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=2, dtype=float64>
 
-    >>> ioup2 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., nu=2)
+    >>> ioup2 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=2)
     >>> print(ioup2)
     <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=3, dtype=float64>
 
@@ -70,7 +70,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     >>> print(ioup3)
     <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=20, dtype=float64>
 
-    >>> ioup4 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., nu=4, wiener_process_dimension=1)
+    >>> ioup4 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(ioup4)
     <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=5, dtype=float64>
     """
@@ -79,7 +79,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
         self,
         driftspeed,
         initarg,
-        nu=1,
+        num_derivatives=1,
         wiener_process_dimension=1,
         initrv=None,
         diffuse=False,
@@ -87,7 +87,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
         backward_implementation="classic",
     ):
         ioup_transition = IntegratedOrnsteinUhlenbeckTransition(
-            nu=nu,
+            num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
             driftspeed=driftspeed,
             forward_implementation=forward_implementation,
@@ -118,7 +118,7 @@ class IntegratedOrnsteinUhlenbeckTransition(
 
     def __init__(
         self,
-        nu: int,
+        num_derivatives: int,
         wiener_process_dimension: int,
         driftspeed: float,
         forward_implementation="classic",
@@ -127,7 +127,9 @@ class IntegratedOrnsteinUhlenbeckTransition(
         self.driftspeed = driftspeed
 
         _integrator.IntegratorTransition.__init__(
-            self, nu=nu, wiener_process_dimension=wiener_process_dimension
+            self,
+            num_derivatives=num_derivatives,
+            wiener_process_dimension=wiener_process_dimension,
         )
         _sde.LTISDE.__init__(
             self,
@@ -140,18 +142,18 @@ class IntegratedOrnsteinUhlenbeckTransition(
 
     @cached_property
     def _driftmat(self):
-        driftmat_1d = np.diag(np.ones(self.nu), 1)
+        driftmat_1d = np.diag(np.ones(self.num_derivatives), 1)
         driftmat_1d[-1, -1] = -self.driftspeed
         return np.kron(np.eye(self.wiener_process_dimension), driftmat_1d)
 
     @cached_property
     def _forcevec(self):
-        force_1d = np.zeros(self.nu + 1)
+        force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @cached_property
     def _dispmat(self):
-        dispmat_1d = np.zeros(self.nu + 1)
+        dispmat_1d = np.zeros(self.num_derivatives + 1)
         dispmat_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
 
