@@ -56,14 +56,14 @@ class TestIntegratedWienerTransition(
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        some_nu,
+        some_num_derivatives,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
-        self.some_nu = some_nu
+        self.some_num_derivatives = some_num_derivatives
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
-            num_derivatives=self.some_nu,
+            num_derivatives=self.some_num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
@@ -174,15 +174,15 @@ class TestIBMLinOps(test_sde.TestLTISDE, test_integrator.TestIntegratorTransitio
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        some_nu,
+        some_num_derivatives,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
-        self.some_nu = some_nu
+        self.some_num_derivatives = some_num_derivatives
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
         with config(lazy_linalg=True):
             self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
-                num_derivatives=self.some_nu,
+                num_derivatives=self.some_num_derivatives,
                 wiener_process_dimension=spatialdim,
                 forward_implementation=forw_impl_string_linear_gauss,
                 backward_implementation=backw_impl_string_linear_gauss,

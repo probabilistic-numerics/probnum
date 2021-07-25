@@ -64,15 +64,15 @@ class TestIntegratedOrnsteinUhlenbeckProcessTransition(
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        some_nu,
+        some_num_derivatives,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
-        self.some_nu = some_nu
+        self.some_num_derivatives = some_num_derivatives
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = (
             randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
-                num_derivatives=self.some_nu,
+                num_derivatives=self.some_num_derivatives,
                 wiener_process_dimension=wiener_process_dimension,
                 driftspeed=1.2345,
                 forward_implementation=forw_impl_string_linear_gauss,

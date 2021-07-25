@@ -12,23 +12,23 @@ class TestIntegratorTransition:
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, some_nu):
-        self.some_nu = some_nu
+    def _setup(self, some_num_derivatives):
+        self.some_num_derivatives = some_num_derivatives
         self.integrator = randprocs.markov.integrator.IntegratorTransition(
-            num_derivatives=self.some_nu, wiener_process_dimension=1
+            num_derivatives=self.some_num_derivatives, wiener_process_dimension=1
         )
 
     def test_proj2coord(self):
-        base = np.zeros(self.some_nu + 1)
+        base = np.zeros(self.some_num_derivatives + 1)
         base[0] = 1
         e_0_expected = np.kron(np.eye(1), base)
         e_0 = self.integrator.proj2coord(coord=0)
         np.testing.assert_allclose(e_0, e_0_expected)
 
-        base = np.zeros(self.some_nu + 1)
+        base = np.zeros(self.some_num_derivatives + 1)
         base[-1] = 1
         e_q_expected = np.kron(np.eye(1), base)
-        e_q = self.integrator.proj2coord(coord=self.some_nu)
+        e_q = self.integrator.proj2coord(coord=self.some_num_derivatives)
         np.testing.assert_allclose(e_q, e_q_expected)
 
     def test_precon(self):
