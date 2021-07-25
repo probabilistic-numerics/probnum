@@ -19,7 +19,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     Set up an iterated component.
 
-    >>> iwp = IntegratedWienerProcess(initarg=0., nu=2, wiener_process_dimension=1)
+    >>> iwp = IntegratedWienerProcess(initarg=0., num_derivatives=2, wiener_process_dimension=1)
     >>> ekf = DiscreteEKFComponent.from_ode(logistic(t0=0., tmax=1., y0=np.array([0.1])), iwp.transition, 0.)
     >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
 
