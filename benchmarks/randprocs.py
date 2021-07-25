@@ -14,13 +14,11 @@ class MarkovProcessSampling:
     def setup(self, lazy_linalg, len_trajectory, num_derivatives, dimension):
         with config(lazy_linalg=lazy_linalg):
 
-            dynamics = (
-                randprocs.markov.continuous.integrator.IntegratedWienerTransition(
-                    num_derivatives=num_derivatives,
-                    wiener_process_dimension=dimension,
-                    forward_implementation="classic",
-                    backward_implementation="classic",
-                )
+            dynamics = randprocs.markov.integrator.IntegratedWienerTransition(
+                num_derivatives=num_derivatives,
+                wiener_process_dimension=dimension,
+                forward_implementation="classic",
+                backward_implementation="classic",
             )
 
             measvar = 0.1024
