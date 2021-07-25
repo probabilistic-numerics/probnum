@@ -31,28 +31,12 @@ class ODESolver(ABC):
         self,
         ivp,
         order,
-        time_stamps=None,
-        callbacks: Optional[
-            Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
-        ] = None,
     ):
         self.ivp = ivp
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-        def promote_callback_type(callbacks):
-            return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
-
-        if callbacks is not None:
-            callbacks = promote_callback_type(callbacks)
-        self.callbacks = callbacks
-
-        if time_stamps is not None:
-            self.time_stopper = _TimeStopper(time_stamps)
-        else:
-            self.time_stopper = None
-
-    def solve(self, steprule):
+    def solve(self, steprule, stop_at_locations=None, callbacks=None):
         """Solve an IVP.
 
         Parameters
@@ -62,31 +46,53 @@ class ODESolver(ABC):
         """
         self.steprule = steprule
         times, rvs = [], []
-        for state in self.solution_generator(steprule):
+        for state in self.solution_generator(
+            steprule, stop_at_locations=stop_at_locations, callbacks=callbacks
+        ):
             times.append(state.t)
             rvs.append(state.rv)
 
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         return self.postprocess(odesol)
 
-    def solution_generator(self, steprule):
+    def solution_generator(self, steprule, stop_at_locations=None, callbacks=None):
         """Generate ODE solver steps."""
+
+        callbacks, time_stopper = self._process_event_inputs(
+            callbacks, stop_at_locations
+        )
 
         state = self.initialize()
         yield state
 
         dt = steprule.firststep
         while state.t < self.ivp.tmax:
-            if self.time_stopper is not None:
-                dt = self.time_stopper.adjust_dt_to_time_stamps(state.t, dt)
+            if time_stopper is not None:
+                dt = time_stopper.adjust_dt_to_time_stamps(state.t, dt)
+
             state, dt = self.perform_full_step(state, dt, steprule)
 
-            if self.callbacks is not None:
-                for callback in self.callbacks:
+            if callbacks is not None:
+                for callback in callbacks:
                     state = callback(state)
 
             self.num_steps += 1
             yield state
+
+    @staticmethod
+    def _process_event_inputs(callbacks, stop_at_locations):
+        """Process callbacks and time-stamps into a format suitable for solve()."""
+
+        def promote_callback_type(callbacks):
+            return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
+
+        if callbacks is not None:
+            callbacks = promote_callback_type(callbacks)
+        if stop_at_locations is not None:
+            time_stopper = _TimeStopper(stop_at_locations)
+        else:
+            time_stopper = None
+        return callbacks, time_stopper
 
     def perform_full_step(self, state, initial_dt, steprule):
         """Perform a full ODE solver step.
@@ -163,16 +169,12 @@ class _TimeStopper:
     def adjust_dt_to_time_stamps(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""
 
+        if t >= self._next_location:
+            try:
+                self._next_location = next(self._locations)
+            except StopIteration:
+                self._next_location = np.inf
+
         if t + dt > self._next_location:
             dt = self._next_location - t
-
-            # what happens if dt is caught and reduced, but the next step will be rejected?
-            # In this case, the next location will not be stopped at in the current implementation.
-            self._advance_current_location()
         return dt
-
-    def _advance_current_location(self):
-        try:
-            self._next_location = next(self._locations)
-        except StopIteration:
-            self._next_location = np.inf

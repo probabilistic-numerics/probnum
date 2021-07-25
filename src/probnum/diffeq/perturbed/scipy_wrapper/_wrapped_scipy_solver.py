@@ -16,7 +16,7 @@ from probnum.typing import FloatArgType
 class WrappedScipyRungeKutta(_odesolver.ODESolver):
     """Wrapper for Runge-Kutta methods from SciPy."""
 
-    def __init__(self, solver: rk.RungeKutta, time_stamps=None, callbacks=None):
+    def __init__(self, solver: rk.RungeKutta):
         self.solver = solver
         self.interpolants = None
 
@@ -33,9 +33,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
             raise TypeError(
                 "Dense output interpolation of DOP853 is currently not supported. Choose a different RK-method."
             )
-        super().__init__(
-            ivp=ivp, order=solver.order, time_stamps=time_stamps, callbacks=callbacks
-        )
+        super().__init__(ivp=ivp, order=solver.order)
 
     def initialize(self):
         """Return t0 and y0 (for the solver, which might be different to ivp.y0) and

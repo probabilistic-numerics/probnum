@@ -188,7 +188,6 @@ def perturbsolve_ivp(
         rng=rng,
         solver=wrapped_scipy_solver,
         noise_scale=noise_scale,
-        time_stamps=time_stamps,
     )
 
     # Create steprule
@@ -202,4 +201,4 @@ def perturbsolve_ivp(
     else:
         steprule = stepsize.ConstantSteps(step)
 
-    return perturbed_solver.solve(steprule=steprule)
+    return perturbed_solver.solve(steprule=steprule, stop_at_locations=time_stamps)
