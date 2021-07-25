@@ -1,11 +1,13 @@
 """Discrete transitions."""
 import typing
+import warnings
+from functools import lru_cache
 from typing import Callable, Optional, Tuple
 
 import numpy as np
 import scipy.linalg
 
-from probnum import randvars
+from probnum import config, linops, randvars
 from probnum.randprocs.markov import _transition
 from probnum.randprocs.markov.discrete import _utils
 from probnum.typing import FloatArgType, IntArgType
@@ -13,17 +15,8 @@ from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
 try:
     # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property, lru_cache
+    from functools import cached_property  # pylint: disable=ungrouped-imports
 except ImportError:
-    from functools import lru_cache
-
-    from cached_property import cached_property
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property, lru_cache
-except ImportError:
-    from functools import lru_cache
 
     from cached_property import cached_property
 
@@ -266,6 +259,16 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
 
+        if config.lazy_linalg and not isinstance(rv.cov, linops.LinearOperator):
+            warnings.warn(
+                (
+                    "`forward_rv()` received np.ndarray as covariance, while "
+                    "`config.lazy_linalg` is set to `True`. This might lead "
+                    "to unexpected behavior regarding data types."
+                ),
+                RuntimeWarning,
+            )
+
         return self._forward_implementation(
             rv=rv,
             t=t,
@@ -289,6 +292,20 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         _diffusion=1.0,
         **kwargs,
     ):
+
+        if config.lazy_linalg and not (
+            isinstance(rv.cov, linops.LinearOperator)
+            and isinstance(rv_obtained.cov, linops.LinearOperator)
+        ):
+            warnings.warn(
+                (
+                    "`backward_rv()` received np.ndarray as covariance, while "
+                    "`config.lazy_linalg` is set to `True`. This might lead "
+                    "to unexpected behavior regarding data types."
+                ),
+                RuntimeWarning,
+            )
+
         return self._backward_implementation(
             rv_obtained=rv_obtained,
             rv=rv,
@@ -332,13 +349,21 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
+            if config.lazy_linalg:
+                gain = (new_cov.T.inv() @ crosscov.T).T
+            else:
+                gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
             info["gain"] = gain
         return randvars.Normal(new_mean, cov=new_cov), info
 
     def _forward_rv_sqrt(
         self, rv, t, compute_gain=False, _diffusion=1.0
     ) -> Tuple[randvars.RandomVariable, typing.Dict]:
+
+        if config.lazy_linalg:
+            raise NotImplementedError(
+                "Sqrt-implementation does not work with linops for now."
+            )
 
         H = self.state_trans_mat_fun(t)
         SR = self.proc_noise_cov_cholesky_fun(t)
@@ -374,6 +399,11 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         ``https://www.sciencedirect.com/science/article/abs/pii/S0005109805001810``.
         """
         # forwarded_rv is ignored in square-root smoothing.
+
+        if config.lazy_linalg:
+            raise NotImplementedError(
+                "Sqrt-implementation does not work with linops for now."
+            )
 
         # Smoothing updates need the gain, but
         # filtering updates "compute their own".

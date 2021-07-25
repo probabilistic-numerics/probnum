@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 import scipy.special
 
-from probnum import randvars
+from probnum import config, randvars
 from probnum.randprocs.markov import _markov_process, discrete
 from probnum.randprocs.markov.continuous import _sde
 from probnum.randprocs.markov.continuous.integrator import _integrator, _utils
@@ -136,17 +136,27 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
     @cached_property
     def _driftmat(self):
         driftmat_1d = np.diag(np.ones(self.nu), 1)
+        if config.lazy_linalg:
+            return linops.Kronecker(
+                A=linops.Identity(self.wiener_process_dimension),
+                B=linops.Matrix(A=driftmat_1d),
+            )
         return np.kron(np.eye(self.wiener_process_dimension), driftmat_1d)
 
     @cached_property
     def _forcevec(self):
-        force_1d = np.zeros(self.nu + 1)
-        return np.kron(np.ones(self.wiener_process_dimension), force_1d)
+        return np.zeros((self.wiener_process_dimension * (self.nu + 1)))
 
     @cached_property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.nu + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
+
+        if config.lazy_linalg:
+            return linops.Kronecker(
+                A=linops.Identity(self.wiener_process_dimension),
+                B=linops.Matrix(A=dispmat_1d.reshape(-1, 1)),
+            )
         return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
 
     @cached_property
@@ -163,19 +173,39 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
         state_transition_1d = np.flip(
             scipy.linalg.pascal(self.nu + 1, kind="lower", exact=False)
         )
-        state_transition = np.kron(
-            np.eye(self.wiener_process_dimension), state_transition_1d
-        )
+        if config.lazy_linalg:
+            state_transition = linops.Kronecker(
+                A=linops.Identity(self.wiener_process_dimension),
+                B=linops.aslinop(state_transition_1d),
+            )
+        else:
+            state_transition = np.kron(
+                np.eye(self.wiener_process_dimension), state_transition_1d
+            )
         process_noise_1d = np.flip(scipy.linalg.hilbert(self.nu + 1))
-        process_noise = np.kron(np.eye(self.wiener_process_dimension), process_noise_1d)
+        if config.lazy_linalg:
+            process_noise = linops.Kronecker(
+                A=linops.Identity(self.wiener_process_dimension),
+                B=linops.aslinop(process_noise_1d),
+            )
+        else:
+            process_noise = np.kron(
+                np.eye(self.wiener_process_dimension), process_noise_1d
+            )
         empty_shift = np.zeros(self.wiener_process_dimension * (self.nu + 1))
 
         process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
-        process_noise_cholesky = np.kron(
-            np.eye(self.wiener_process_dimension), process_noise_cholesky_1d
-        )
+        if config.lazy_linalg:
+            process_noise_cholesky = linops.Kronecker(
+                A=linops.Identity(self.wiener_process_dimension),
+                B=linops.aslinop(process_noise_cholesky_1d),
+            )
+        else:
+            process_noise_cholesky = np.kron(
+                np.eye(self.wiener_process_dimension), process_noise_cholesky_1d
+            )
 
-        return discrete.DiscreteLTIGaussian(
+        return discrete_transition.DiscreteLTIGaussian(
             state_trans_mat=state_transition,
             shift_vec=empty_shift,
             proc_noise_cov_mat=process_noise,
@@ -198,7 +228,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
                 "Continuous-time transitions require a time-increment ``dt``."
             )
 
-        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
@@ -207,7 +237,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        return _utils.apply_precon(self.precon(dt), rv), info
+        return _apply_precon(self.precon(dt), rv), info
 
     def backward_rv(
         self,
@@ -225,10 +255,10 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
                 "Continuous-time transitions require a time-increment ``dt``."
             )
 
-        rv_obtained = _utils.apply_precon(self.precon.inverse(dt), rv_obtained)
-        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            _utils.apply_precon(self.precon.inverse(dt), rv_forwarded)
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
             if rv_forwarded is not None
             else None
         )
@@ -247,14 +277,14 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             _diffusion=_diffusion,
         )
 
-        return _utils.apply_precon(self.precon(dt), rv), info
+        return _apply_precon(self.precon(dt), rv), info
 
     def discretise(self, dt):
         """Equivalent discretisation of the process.
 
-        Overwrites matrix-fraction decomposition in the super-class.
-        Only present for user's convenience and to maintain a clean
-        interface. Not used for forward_rv, etc..
+        Overwrites matrix-fraction decomposition in the super-class. Only present for
+        user's convenience and to maintain a clean interface. Not used for forward_rv,
+        etc..
         """
         state_trans_mat = (
             self.precon(dt)
@@ -266,16 +296,16 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, _sde.LTISDE):
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
             @ self.precon(dt).T
         )
-        zero_shift = np.zeros(len(state_trans_mat))
+        zero_shift = np.zeros(state_trans_mat.shape[0])
 
-        # The Cholesky factor of the process noise covariance matrix of the IntegratedWienerTransition
+        # The Cholesky factor of the process noise covariance matrix of the IBM
         # always exists, even for non-square root implementations.
         proc_noise_cov_cholesky = (
             self.precon(dt)
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
         )
 
-        return discrete.DiscreteLTIGaussian(
+        return discrete_transition.DiscreteLTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,

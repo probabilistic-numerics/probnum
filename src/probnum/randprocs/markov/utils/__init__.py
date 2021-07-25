@@ -1,5 +1,5 @@
 """Utility functions for Markov processes."""
 
-from ._generate_samples import generate_samples
+from ._generate_samples import generate_artificial_measurements
 
-__all__ = ["generate_samples"]
+__all__ = ["generate_artificial_measurements"]

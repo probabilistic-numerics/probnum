@@ -171,3 +171,71 @@ class TestIntegratedWienerTransitionValues:
         )
         np.testing.assert_allclose(ah_22_ibm @ real, rv.mean)
         np.testing.assert_allclose(diffusion * qh_22_ibm, rv.cov)
+
+
+class TestIBMLinOps(test_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        some_ordint,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+        self.some_ordint = some_ordint
+        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
+        with probnum_config(lazy_linalg=True):
+            self.transition = statespace.IBM(
+                ordint=self.some_ordint,
+                spatialdim=spatialdim,
+                forward_implementation=forw_impl_string_linear_gauss,
+                backward_implementation=backw_impl_string_linear_gauss,
+            )
+
+        self.G = lambda t: self.transition.driftmat
+        self.v = lambda t: self.transition.forcevec
+        self.L = lambda t: self.transition.dispmat
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    @property
+    def integrator(self):
+        return self.transition
+
+    def test_dispersionmatrix(self):
+        expected = self.L(0.0)
+        received = self.transition.dispmatfun(0.0)
+        np.testing.assert_allclose(received.todense(), expected.todense())
+
+    def test_jacobfun(self, some_normal_rv1):
+        expected = self.dg(0.0, some_normal_rv1.mean)
+        received = self.transition.jacobfun(0.0, some_normal_rv1.mean)
+        np.testing.assert_allclose(received.todense(), expected.todense())
+
+    def test_driftmatfun(self):
+        expected = self.G(0.0)
+        received = self.transition.driftmatfun(0.0)
+        np.testing.assert_allclose(received.todense(), expected.todense())
+
+    def test_discretise(self):
+        with probnum_config(lazy_linalg=True):
+            out = self.transition.discretise(dt=0.1)
+            assert isinstance(out, statespace.DiscreteLTIGaussian)
+            assert isinstance(out.state_trans_mat, linops.LinearOperator)
+            assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)
+
+    def test_discretise_no_force(self):
+        """LTISDE.discretise() works if there is zero force (there is an "if" in the
+        fct)."""
+        self.transition.forcevec = 0.0 * self.transition.forcevec
+        assert (
+            np.linalg.norm(self.transition.forcevecfun(0.0)) == 0.0
+        )  # side quest/test
+        with probnum_config(lazy_linalg=True):
+            out = self.transition.discretise(dt=0.1)
+            assert isinstance(out, statespace.DiscreteLTIGaussian)
+            assert isinstance(out.state_trans_mat, linops.LinearOperator)
+            assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)

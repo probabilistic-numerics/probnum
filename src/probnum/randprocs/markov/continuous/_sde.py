@@ -325,8 +325,8 @@ class LinearSDE(SDE):
     def _setup_vectorized_mde_forward_classic(self, initrv, _diffusion=1.0):
         """Set up forward moment differential equations (MDEs).
 
-        Compute an ODE vector field that represents the MDEs and is
-        compatible with scipy.solve_ivp.
+        Compute an ODE vector field that represents the MDEs and is compatible with
+        scipy.solve_ivp.
         """
         dim = len(initrv.mean)
 
@@ -450,8 +450,8 @@ class LinearSDE(SDE):
     def _setup_vectorized_mde_backward(self, finalrv_obtained, _diffusion=1.0):
         """Set up backward moment differential equations (MDEs).
 
-        Compute an ODE vector field that represents the MDEs and is
-        compatible with scipy.solve_ivp.
+        Compute an ODE vector field that represents the MDEs and is compatible with
+        scipy.solve_ivp.
         """
         dim = len(finalrv_obtained.mean)
 
@@ -515,7 +515,7 @@ class LTISDE(LinearSDE):
         backward_implementation="classic",
     ):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
-        dimension = len(driftmat)
+        dimension = driftmat.shape[0]
         self.driftmat = driftmat
         self.forcevec = forcevec
         self.dispmat = dispmat
