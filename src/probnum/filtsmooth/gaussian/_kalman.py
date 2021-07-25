@@ -27,8 +27,8 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
     ----------
     prior_process
         Prior Gauss-Markov process. Usually a :class:`MarkovProcess` with a :class:`Normal` initial random variable,
-        and an LTISDE transition or an IntegratorTransition, but LinearSDE, ContinuousEKFComponent,
-        or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
+        and an :class:`LTISDE` transition or an :class:`IntegratorTransition`, but :class:`LinearSDE`, :class:`ContinuousEKFComponent`,
+        or :class:`ContinuousUKFComponent` are also valid. Describes a random process in :math:`K` dimensions.
         If the transition is an integrator, `K=d*(nu+1)` for some d and nu.
     """
 
