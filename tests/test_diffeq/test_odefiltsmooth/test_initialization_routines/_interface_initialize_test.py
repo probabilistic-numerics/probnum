@@ -26,5 +26,7 @@ class InterfaceInitializationRoutineTest(abc.ABC):
             initarg=t0,
             num_derivatives=order,
             wiener_process_dimension=spatialdim,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
         )
         return prior_process
