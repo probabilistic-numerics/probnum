@@ -9,7 +9,7 @@ import scipy.linalg
 
 from probnum import config, linops, randvars
 from probnum.randprocs.markov import _transition
-from probnum.randprocs.markov.discrete import _utils
+from probnum.randprocs.markov.discrete import _condition_state
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
@@ -147,7 +147,10 @@ class DiscreteGaussian(_transition.Transition):
             )
             gain = info_forwarded["gain"]
         info = {"rv_forwarded": rv_forwarded}
-        return _utils.condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain), info
+        return (
+            _condition_state.condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain),
+            info,
+        )
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
