@@ -10,9 +10,7 @@ from probnum.typing import FloatArgType, IntArgType
 
 __all__ = ["ODEResidual"]
 
-# Implicit ODE Residuals might be done somewhere else?!
-# The advantage would be that the EK0 could throw errors as soon
-# as the to-be-linearized information operator is not the residual of an explicit ODE.
+
 class ODEResidual(_information_operator.ODEInformationOperator):
     """Information operator that measures the residual of an explicit ODE."""
 
