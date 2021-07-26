@@ -46,10 +46,6 @@ class ODEResidual(_information_operator.ODEInformationOperator):
         )
         self._residual, self._residual_jacobian = res, res_jac
 
-        # For higher order IVPs, do something along the lines of
-        # self.proj_matrices = [dummy_integrator.proj2coord(coord=deriv) for deriv in range(ivp.order + 1)]
-        # self._residual, self._residual_jacobian = self._match_residual_and_jacobian_to_ode_order(ode_order=ode_order)
-
     def _match_residual_and_jacobian_to_ode_order(
         self, ode_order: IntArgType
     ) -> Tuple[Callable, Callable]:
@@ -77,17 +73,3 @@ class ODEResidual(_information_operator.ODEInformationOperator):
     ) -> np.ndarray:
         h0, h1 = self.projection_matrices
         return h1 - self.ode.df(t, h0 @ x) @ h0
-
-    # Implementation of the residuals for higher order ODEs:
-    #
-    # def _residual_second_order_ode(self, t, x):
-    #     h0, h1, h2 = self.projection_matrices
-    #     return h2 @ x - self.ivp.f(t, h0 @ x, h1 @ x)
-    #
-    # def _residual_second_order_ode_jacobian(self, t, x):
-    #     h0, h1, h2 = self.projection_matrices
-    #     df_dx0, df_dx1 = self.ivp.df
-    #     return h1 - df_dx0(t, h0 @ x, h1 @ x) @ h0 - df_dx1(t, h0 @ x, h1 @ x) @ h1
-    #
-    # This way, the EK0 can jump right into setting all the Jacobians to zero
-    # and suddenly works out-of-the-box for higher order ODEs!
