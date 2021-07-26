@@ -1,8 +1,8 @@
 """Continous-time transitions and stochastic differential equations."""
 
 from ._diffusions import ConstantDiffusion, Diffusion, PiecewiseConstantDiffusion
+from ._mfd import matrix_fraction_decomposition
 from ._sde import LTISDE, SDE, LinearSDE
-from ._utils import matrix_fraction_decomposition
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

@@ -8,7 +8,7 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.randprocs.markov import _transition, discrete
-from probnum.randprocs.markov.continuous import _utils
+from probnum.randprocs.markov.continuous import _mfd
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import tril_to_positive_tril
 
@@ -590,7 +590,7 @@ class LTISDE(LinearSDE):
             eye = np.eye(self.dimension)
             driftmat = np.block([[self.driftmat, eye], [zeros, zeros]])
             dispmat = np.concatenate((self.dispmat, np.zeros(self.dispmat.shape)))
-            ah_stack, qh_stack, _ = _utils.matrix_fraction_decomposition(
+            ah_stack, qh_stack, _ = _mfd.matrix_fraction_decomposition(
                 driftmat, dispmat, dt
             )
             proj = np.eye(self.dimension, 2 * self.dimension)
@@ -599,7 +599,7 @@ class LTISDE(LinearSDE):
             sh = proj @ ah_stack @ proj_rev.T @ self.forcevec
             qh = proj @ qh_stack @ proj.T
         else:
-            ah, qh, _ = _utils.matrix_fraction_decomposition(
+            ah, qh, _ = _mfd.matrix_fraction_decomposition(
                 self.driftmat, self.dispmat, dt
             )
             sh = np.zeros(len(ah))
