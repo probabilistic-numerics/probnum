@@ -201,6 +201,42 @@ class Scaling(_linear_operator.LinearOperator):
         """Whether scaling is uniform / isotropic."""
         return self._scalar is not None
 
+    def _add_scaling(self, other: "Scaling") -> "Scaling":
+        if other.shape != self.shape:
+            raise ValueError(
+                "Addition of two Scaling LinearOperators is only "
+                "possible if both operands have the same shape."
+            )
+
+        return Scaling(
+            factors=self.factors + other.factors, shape=self.shape, dtype=self.dtype
+        )
+
+    def _sub_scaling(self, other: "Scaling") -> "Scaling":
+        if other.shape != self.shape:
+            raise ValueError(
+                "Subtraction of two Scaling LinearOperators is only "
+                "possible if both operands have the same shape."
+            )
+
+        return Scaling(
+            factors=self.factors - other.factors, shape=self.shape, dtype=self.dtype
+        )
+
+    def _mul_scaling(self, other: "Scaling") -> "Scaling":
+        if other.shape != self.shape:
+            raise ValueError(
+                "Multiplication of two Scaling LinearOperators is only "
+                "possible if both operands have the same shape."
+            )
+
+        return Scaling(
+            factors=self.factors * other.factors, shape=self.shape, dtype=self.dtype
+        )
+
+    def _matmul_scaling(self, other: "Scaling") -> "Scaling":
+        return self._mul_scaling(other)
+
     def _astype(self, dtype, order, casting, copy) -> "Scaling":
         if self.dtype == dtype and not copy:
             return self

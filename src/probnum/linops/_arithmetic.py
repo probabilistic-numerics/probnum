@@ -57,6 +57,11 @@ _sub_fns: _BinaryOperatorRegistryType = {}
 _mul_fns: _BinaryOperatorRegistryType = {}
 _matmul_fns: _BinaryOperatorRegistryType = {}
 
+_add_fns[(Scaling, Scaling)] = Scaling._add_scaling
+_sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
+_mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
+_matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
+
 
 def _apply(
     op_registry: _BinaryOperatorRegistryType,
