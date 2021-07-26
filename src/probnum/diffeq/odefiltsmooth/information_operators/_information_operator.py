@@ -12,9 +12,9 @@ __all__ = ["InformationOperator", "ODEInformationOperator"]
 
 
 class InformationOperator(abc.ABC):
-    r"""ODE information operators used in probabilistic ODE solvers.
+    r"""Information operators used in probabilistic ODE solvers.
 
-    ODE information operators gather information about whether a state or function solves an ODE.
+    ODE solver-related information operators gather information about whether a state or function solves an ODE.
     More specifically, an information operator maps a sample from the prior distribution
     **that is also an ODE solution** to the zero function.
 
@@ -78,7 +78,11 @@ class InformationOperator(abc.ABC):
 
 
 class ODEInformationOperator(InformationOperator):
-    """Information operators that depend on an ODE function."""
+    """Information operators that depend on an ODE function.
+
+    Other than :class:`InformationOperator`s, :class:`ODEInformationOperators` depend explicitly on an
+    :class:`InitialValueProblem`. Not all information operators that are used in ODE solvers do.
+    """
 
     def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
