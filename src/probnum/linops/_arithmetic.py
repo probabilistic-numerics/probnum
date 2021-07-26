@@ -106,18 +106,18 @@ for op_type in _AnyLinOp:
 
 def _mul_id(arg1, arg2):
     if isinstance(arg1, Identity):
-        if not isinstance(arg2, (int, float, complex, np.number, numbers.Number)):
-            return NotImplemented
-        if np.ndim(arg2) != 0:
-            return NotImplemented
-        return Scaling(factors=arg2, shape=arg1.shape, dtype=arg1.dtype)
+        if (
+            isinstance(arg2, (int, float, complex, np.number, numbers.Number))
+            and np.ndim(arg2) == 0
+        ):
+            return Scaling(factors=arg2, shape=arg1.shape, dtype=arg1.dtype)
 
     if isinstance(arg2, Identity):
-        if not isinstance(arg1, (int, float, complex, np.number, numbers.Number)):
-            return NotImplemented
-        if np.ndim(arg1) != 0:
-            return NotImplemented
-        return Scaling(factors=arg1, shape=arg2.shape, dtype=arg2.dtype)
+        if (
+            isinstance(arg1, (int, float, complex, np.number, numbers.Number))
+            and np.ndim(arg1) == 0
+        ):
+            return Scaling(factors=arg1, shape=arg2.shape, dtype=arg2.dtype)
 
     return NotImplemented
 
