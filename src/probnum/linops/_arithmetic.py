@@ -9,6 +9,7 @@ import scipy.sparse
 import probnum.utils
 from probnum.typing import ScalarArgType, ShapeArgType
 
+from ._kronecker import Kronecker
 from ._linear_operator import (  # pylint: disable=cyclic-import
     BinaryOperandType,
     LinearOperator,
@@ -61,6 +62,9 @@ _add_fns[(Scaling, Scaling)] = Scaling._add_scaling
 _sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
 _mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
 _matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
+
+_matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
+_mul_fns[(Kronecker, Kronecker)] = Kronecker._mul_kronecker
 
 
 def _apply(

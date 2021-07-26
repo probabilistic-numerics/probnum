@@ -161,6 +161,24 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return np.linalg.cond(self.todense(cache=False), p=p)
 
+    def _matmul_kronecker(self, other: "Kronecker") -> "Kronecker":
+        _A, _B = self.A, self.B
+        _C, _D = other.A, other.B
+        if not (_A.shape[1] == _C.shape[0] and _B.shape[1] == _D.shape[0]):
+            return NotImplemented
+
+        # Using (A (x) B) @ (C (x) D) = (A @ C) (x) (B @ D)
+        return Kronecker(A=_A @ _C, B=_B @ _D)
+
+    def _mul_kronecker(self, other: "Kronecker") -> "Kronecker":
+        _A, _B = self.A, self.B
+        _C, _D = other.A, other.B
+        if not (_A.shape == _C.shape and _B.shape == _D.shape):
+            return NotImplemented
+
+        # Using (A (x) B) o (C (x) D) = (A o C) (x) (B o D)
+        return Kronecker(A=_A * _C, B=_B * _D)
+
 
 def _kronecker_matmul(
     A: _linear_operator.LinearOperator,
