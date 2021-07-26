@@ -5,7 +5,7 @@ from typing import Callable, Optional
 
 import numpy as np
 
-from probnum import problems, statespace
+from probnum import problems, randprocs
 from probnum.typing import FloatArgType, IntArgType
 
 __all__ = ["InformationOperator", "ODEInformationOperator"]
@@ -60,14 +60,14 @@ class InformationOperator(abc.ABC):
                 raise ValueError(
                     "If a Cholesky function is provided, a covariance function must be provided as well."
                 )
-            return statespace.DiscreteGaussian.from_callable(
+            return randprocs.markov.discrete.DiscreteGaussian.from_callable(
                 state_trans_fun=self.__call__,
                 jacob_state_trans_fun=self.jacobian,
                 input_dim=self.input_dim,
                 output_dim=self.output_dim,
             )
 
-        return statespace.DiscreteGaussian(
+        return randprocs.markov.discrete.DiscreteGaussian(
             state_trans_fun=self.__call__,
             jacob_state_trans_fun=self.jacobian,
             proc_noise_cov_mat_fun=measurement_cov_fun,

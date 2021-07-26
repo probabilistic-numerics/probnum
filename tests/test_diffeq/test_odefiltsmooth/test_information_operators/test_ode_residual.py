@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, randvars, statespace
+from probnum import diffeq, randprocs, randvars
 from tests.test_diffeq.test_odefiltsmooth.test_information_operators import (
     _information_operator_test_inferface,
 )
@@ -42,7 +42,7 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
         # Basic functionality works
         self.info_op.incorporate_ode(ode=fitzhughnagumo)
         transition = self.info_op.as_transition()
-        assert isinstance(transition, statespace.DiscreteGaussian)
+        assert isinstance(transition, randprocs.markov.discrete.DiscreteGaussian)
 
         # meascov-fun and meascov-cholesky-fun accepted
         meascov_fun = lambda t: np.eye(self.info_op.output_dim)
@@ -51,7 +51,7 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
             measurement_cov_fun=meascov_fun,
             measurement_cov_cholesky_fun=meascov_cholesky_fun,
         )
-        assert isinstance(transition, statespace.DiscreteGaussian)
+        assert isinstance(transition, randprocs.markov.discrete.DiscreteGaussian)
         assert np.linalg.norm(transition.proc_noise_cov_cholesky_fun(0.0)) > 0.0
         assert np.linalg.norm(transition.proc_noise_cov_mat_fun(0.0)) > 0.0
 
@@ -59,7 +59,7 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
         transition = self.info_op.as_transition(
             measurement_cov_fun=meascov_fun, measurement_cov_cholesky_fun=None
         )
-        assert isinstance(transition, statespace.DiscreteGaussian)
+        assert isinstance(transition, randprocs.markov.discrete.DiscreteGaussian)
         assert np.linalg.norm(transition.proc_noise_cov_mat_fun(0.0)) > 0.0
 
         # Only meascov-cholesky-fun rejected

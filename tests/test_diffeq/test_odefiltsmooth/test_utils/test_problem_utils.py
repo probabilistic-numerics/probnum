@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, filtsmooth, problems, randvars, statespace
+from probnum import diffeq, filtsmooth, problems, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
 
 
@@ -58,18 +58,30 @@ def test_ivp_to_regression_problem(
     assert len(regprob.locations) == len(locations)
     assert len(regprob.locations) == len(locations)
     assert len(regprob.measurement_models) == len(locations)
-    assert isinstance(regprob.measurement_models[1], statespace.DiscreteGaussian)
-    assert isinstance(regprob.measurement_models[-1], statespace.DiscreteGaussian)
+    assert isinstance(
+        regprob.measurement_models[1], randprocs.markov.discrete.DiscreteGaussian
+    )
+    assert isinstance(
+        regprob.measurement_models[-1], randprocs.markov.discrete.DiscreteGaussian
+    )
 
     # Depending on the desired exclusion of the initial condition,
     # the first element in the list of measurement models should
     # be LTIGaussian (for the initial condition) or DiscreteGaussian (for the ODE)
     if exclude_initial_condition:
-        assert isinstance(regprob.measurement_models[0], statespace.DiscreteGaussian)
-        assert isinstance(regprob.measurement_models[0], statespace.DiscreteGaussian)
+        assert isinstance(
+            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteGaussian
+        )
+        assert isinstance(
+            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteGaussian
+        )
     else:
-        assert isinstance(regprob.measurement_models[0], statespace.DiscreteLTIGaussian)
-        assert isinstance(regprob.measurement_models[0], statespace.DiscreteLTIGaussian)
+        assert isinstance(
+            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteLTIGaussian
+        )
+        assert isinstance(
+            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteLTIGaussian
+        )
 
     # If the ODE measurement variance is not None, i.e. not zero,
     # the process noise covariance matrices should be non-zero.

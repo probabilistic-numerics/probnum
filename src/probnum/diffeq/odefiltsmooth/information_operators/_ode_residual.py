@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from probnum import problems, statespace
+from probnum import problems, randprocs
 from probnum.diffeq.odefiltsmooth.information_operators import _information_operator
 from probnum.typing import FloatArgType, IntArgType
 
@@ -34,8 +34,9 @@ class ODEResidual(_information_operator.ODEInformationOperator):
         super().incorporate_ode(ode=ode)
 
         # Cache the projection matrices and match the implementation to the ODE
-        dummy_integrator = statespace.Integrator(
-            ordint=self.prior_ordint, spatialdim=self.prior_spatialdim
+        dummy_integrator = randprocs.markov.integrator.IntegratorTransition(
+            num_derivatives=self.prior_ordint,
+            wiener_process_dimension=self.prior_spatialdim,
         )
         ode_order = 1  # currently everything we can do
         self.projection_matrices = [

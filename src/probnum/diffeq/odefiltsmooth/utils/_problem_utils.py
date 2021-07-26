@@ -4,7 +4,7 @@ from typing import Optional, Sequence, Union
 
 import numpy as np
 
-from probnum import problems, statespace
+from probnum import problems, randprocs
 from probnum.diffeq.odefiltsmooth import approx_strategies, information_operators
 from probnum.typing import FloatArgType
 
@@ -121,7 +121,7 @@ def _construct_measurement_models_gaussian_likelihood(
             ode_information_operator.output_dim
         )
 
-    measmod_initial_condition = statespace.DiscreteLTIGaussian(
+    measmod_initial_condition = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=transition_matrix,
         shift_vec=shift_vector,
         proc_noise_cov_mat=diff(None),
@@ -140,8 +140,10 @@ def _construct_measurement_models_dirac_likelihood(
     ode_information_operator, shift_vector, transition_matrix, approx_strategy
 ):
     """Construct measurement models for the IVP with Dirac likelihoods."""
-    measmod_initial_condition = statespace.DiscreteLTIGaussian.from_linop(
-        state_trans_mat=transition_matrix, shift_vec=shift_vector
+    measmod_initial_condition = (
+        randprocs.markov.discrete.DiscreteLTIGaussian.from_linop(
+            state_trans_mat=transition_matrix, shift_vec=shift_vector
+        )
     )
     if approx_strategy is not None:
         ode_information_operator = approx_strategy(ode_information_operator)
