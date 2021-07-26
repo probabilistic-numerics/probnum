@@ -13,7 +13,7 @@ import scipy.special
 
 from probnum import config, linops, randvars
 from probnum.randprocs.markov import _markov_process, continuous, discrete
-from probnum.randprocs.markov.integrator import _integrator, _utils
+from probnum.randprocs.markov.integrator import _integrator, _preconditioner
 
 
 class IntegratedWienerProcess(_markov_process.MarkovProcess):
@@ -231,7 +231,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
                 "Continuous-time transitions require a time-increment ``dt``."
             )
 
-        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
+        rv = _preconditioner.apply_precon(self.precon.inverse(dt), rv)
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
@@ -240,7 +240,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        return _utils.apply_precon(self.precon(dt), rv), info
+        return _preconditioner.apply_precon(self.precon(dt), rv), info
 
     def backward_rv(
         self,
@@ -258,10 +258,10 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
                 "Continuous-time transitions require a time-increment ``dt``."
             )
 
-        rv_obtained = _utils.apply_precon(self.precon.inverse(dt), rv_obtained)
-        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
+        rv_obtained = _preconditioner.apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _preconditioner.apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            _utils.apply_precon(self.precon.inverse(dt), rv_forwarded)
+            _preconditioner.apply_precon(self.precon.inverse(dt), rv_forwarded)
             if rv_forwarded is not None
             else None
         )
@@ -280,7 +280,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             _diffusion=_diffusion,
         )
 
-        return _utils.apply_precon(self.precon(dt), rv), info
+        return _preconditioner.apply_precon(self.precon(dt), rv), info
 
     def discretise(self, dt):
         """Equivalent discretisation of the process.

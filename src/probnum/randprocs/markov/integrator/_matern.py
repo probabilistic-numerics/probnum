@@ -12,7 +12,7 @@ except ImportError:
 
 from probnum import randvars
 from probnum.randprocs.markov import _markov_process, continuous
-from probnum.randprocs.markov.integrator import _integrator, _utils
+from probnum.randprocs.markov.integrator import _integrator, _preconditioner
 
 
 class MaternProcess(_markov_process.MarkovProcess):
@@ -175,7 +175,7 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
             )
 
         # Fetch things into preconditioned space
-        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
+        rv = _preconditioner.apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
         self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
@@ -189,7 +189,7 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
 
         # Undo preconditioning and return
-        rv = _utils.apply_precon(self.precon(dt), rv)
+        rv = _preconditioner.apply_precon(self.precon(dt), rv)
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
@@ -217,10 +217,10 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
             )
 
         # Fetch things into preconditioned space
-        rv_obtained = _utils.apply_precon(self.precon.inverse(dt), rv_obtained)
-        rv = _utils.apply_precon(self.precon.inverse(dt), rv)
+        rv_obtained = _preconditioner.apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _preconditioner.apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            _utils.apply_precon(self.precon.inverse(dt), rv_forwarded)
+            _preconditioner.apply_precon(self.precon.inverse(dt), rv_forwarded)
             if rv_forwarded is not None
             else None
         )
@@ -247,7 +247,7 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
 
         # Undo preconditioning and return
-        rv = _utils.apply_precon(self.precon(dt), rv)
+        rv = _preconditioner.apply_precon(self.precon(dt), rv)
         self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
         self.forcevec = self.precon(dt) @ self.forcevec
         self.dispmat = self.precon(dt) @ self.dispmat
