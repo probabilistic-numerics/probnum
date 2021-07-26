@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 import scipy.linalg
 
-from probnum import filtsmooth, problems, randprocs, randvars, utils
+from probnum import filtsmooth, randprocs, randvars, utils
 from probnum.diffeq import _odesolver, stepsize
 from probnum.diffeq.odefiltsmooth import (
     _kalman_odesolution,
