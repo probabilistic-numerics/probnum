@@ -40,7 +40,7 @@ def test_in_out_pair_is_not_identical(in_out_pair):
 def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
     coordwise_as_derivwise = (
-        randprocs.markov.integrator.utils.convert_coordwise_to_derivwise(
+        randprocs.markov.integrator.convert.convert_coordwise_to_derivwise(
             coordwise, some_order, some_dim
         )
     )
@@ -50,7 +50,7 @@ def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
 def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
     derivwise_as_coordwise = (
-        randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
+        randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
             derivwise, some_order, some_dim
         )
     )
@@ -59,10 +59,10 @@ def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
 
 def test_conversion_pairwise_inverse(in_out_pair, some_order, some_dim):
     derivwise, coordwise = in_out_pair
-    as_coord = randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
+    as_coord = randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
         derivwise, some_order, some_dim
     )
-    as_deriv_again = randprocs.markov.integrator.utils.convert_coordwise_to_derivwise(
+    as_deriv_again = randprocs.markov.integrator.convert.convert_coordwise_to_derivwise(
         as_coord, some_order, some_dim
     )
     np.testing.assert_allclose(as_deriv_again, derivwise)

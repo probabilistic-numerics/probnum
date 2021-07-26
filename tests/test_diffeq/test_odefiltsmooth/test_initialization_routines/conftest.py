@@ -31,7 +31,7 @@ def lotka_volterra_inits(lotka_volterra_testcase_order):
     vals = _known_initial_derivatives.LV_INITS[
         : lv_dim * (lotka_volterra_testcase_order + 1)
     ]
-    return randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
+    return randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
         vals,
         num_derivatives=lotka_volterra_testcase_order,
         wiener_process_dimension=lv_dim,

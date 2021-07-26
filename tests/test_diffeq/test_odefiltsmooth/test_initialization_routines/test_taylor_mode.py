@@ -27,7 +27,7 @@ class TestTaylorModeInitialization(
     def test_call(self, any_order):
         r2b_jax = diffeq_zoo.threebody_jax()
 
-        expected = randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
+        expected = randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
             _known_initial_derivatives.THREEBODY_INITS[
                 : r2b_jax.dimension * (any_order + 1)
             ],

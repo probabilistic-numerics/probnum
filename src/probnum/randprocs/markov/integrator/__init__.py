@@ -1,6 +1,6 @@
 """Transitions for integrated systems (e.g. integrated Wiener processes)."""
 
-from . import utils
+from . import convert
 from ._integrator import IntegratorTransition
 from ._ioup import (
     IntegratedOrnsteinUhlenbeckProcess,

@@ -136,7 +136,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
             """Finalize the output in terms of creating a suitably sized random
             variable."""
             all_derivs = (
-                randprocs.markov.integrator.utils.convert_derivwise_to_coordwise(
+                randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
                     np.asarray(derivs),
                     num_derivatives=num_derivatives_in_prior,
                     wiener_process_dimension=ivp.y0.shape[0],
