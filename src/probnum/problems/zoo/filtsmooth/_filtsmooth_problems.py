@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import filtsmooth, problems, randprocs, randvars, statespace
+from probnum import filtsmooth, problems, randprocs, randvars
 from probnum.typing import FloatArgType, IntArgType
 
 from .. import diffeq  # diffeq zoo
@@ -20,7 +20,7 @@ def car_tracking(
     rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
-    model_ordint: IntArgType = 1,
+    num_prior_derivatives: IntArgType = 1,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
     step: FloatArgType = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
@@ -64,7 +64,7 @@ def car_tracking(
         Marginal measurement variance.
     process_diffusion
         Diffusion constant for the dynamics.
-    model_ordint
+    num_prior_derivatives
         Order of integration for the dynamics model. Defaults to one, which corresponds
         to a Wiener velocity model.
     timespan
@@ -94,11 +94,11 @@ def car_tracking(
 
     """
     state_dim = 2
-    model_dim = state_dim * (model_ordint + 1)
+    model_dim = state_dim * (num_prior_derivatives + 1)
     measurement_dim = 2
-    dynamics_model = statespace.IBM(
-        ordint=model_ordint,
-        spatialdim=state_dim,
+    dynamics_model = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=num_prior_derivatives,
+        wiener_process_dimension=state_dim,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -109,7 +109,7 @@ def car_tracking(
     measurement_matrix = np.eye(measurement_dim, model_dim)
     measurement_cov = measurement_variance * np.eye(measurement_dim)
     measurement_cov_cholesky = np.sqrt(measurement_variance) * np.eye(measurement_dim)
-    measurement_model = statespace.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=measurement_matrix,
         shift_vec=np.zeros(measurement_dim),
         proc_noise_cov_mat=measurement_cov,
@@ -128,11 +128,11 @@ def car_tracking(
     # Set up regression problem
     time_grid = np.arange(*timespan, step=step)
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng,
         prior_process=prior_process,
         measmod=measurement_model,
@@ -211,16 +211,16 @@ def ornstein_uhlenbeck(
         Cambridge University Press, 2019
     """
 
-    dynamics_model = statespace.IOUP(
-        ordint=0,
-        spatialdim=1,
+    dynamics_model = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
+        num_derivatives=0,
+        wiener_process_dimension=1,
         driftspeed=driftspeed,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
     dynamics_model.dispmat *= process_diffusion
 
-    measurement_model = statespace.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -235,10 +235,10 @@ def ornstein_uhlenbeck(
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng, prior_process=prior_process, measmod=measurement_model, times=time_grid
     )
 
@@ -356,7 +356,7 @@ def pendulum(
         + np.diag(np.array([step ** 2 / 2]), -1)
     )
 
-    dynamics_model = statespace.DiscreteGaussian(
+    dynamics_model = randprocs.markov.discrete.DiscreteGaussian(
         input_dim=2,
         output_dim=2,
         state_trans_fun=f,
@@ -364,7 +364,7 @@ def pendulum(
         jacob_state_trans_fun=df,
     )
 
-    measurement_model = statespace.DiscreteGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteGaussian(
         input_dim=2,
         output_dim=1,
         state_trans_fun=h,
@@ -380,11 +380,11 @@ def pendulum(
 
     if initarg is None:
         initarg = time_grid[0]
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng,
         prior_process=prior_process,
         measmod=measurement_model,
@@ -462,8 +462,10 @@ def benes_daum(
     if initrv is None:
         initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
 
-    dynamics_model = statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
-    measurement_model = statespace.DiscreteLTIGaussian(
+    dynamics_model = randprocs.markov.continuous.SDE(
+        dimension=1, driftfun=f, dispmatfun=l, jacobfun=df
+    )
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -478,14 +480,14 @@ def benes_daum(
         non_linear_model=dynamics_model
     )
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    prior_process_with_linearized_dynamics = randprocs.MarkovProcess(
+    prior_process_with_linearized_dynamics = randprocs.markov.MarkovProcess(
         transition=linearized_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    states, obs = statespace.generate_artificial_measurements(
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
         rng=rng,
         prior_process=prior_process_with_linearized_dynamics,
         measmod=measurement_model,
@@ -565,9 +567,9 @@ def logistic_ode(
 
     t0, tmax = timespan
     logistic_ivp = diffeq.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
-    dynamics_model = statespace.IBM(
-        ordint=order,
-        spatialdim=1,
+    dynamics_model = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=order,
+        wiener_process_dimension=1,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -595,7 +597,7 @@ def logistic_ode(
         solution=solution,
     )
 
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
     info = dict(

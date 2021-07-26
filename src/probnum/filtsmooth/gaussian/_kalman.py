@@ -5,13 +5,13 @@ from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import problems, statespace
+from probnum import problems, randprocs
 from probnum.filtsmooth import _bayesfiltsmooth, _timeseriesposterior, optim
 from probnum.filtsmooth.gaussian import _kalmanposterior, approx
 
 # Measurement models for a Kalman filter can be all sorts of things:
 KalmanSingleMeasurementModelType = Union[
-    statespace.DiscreteLinearGaussian,
+    randprocs.markov.discrete.DiscreteLinearGaussian,
     approx.DiscreteEKFComponent,
     approx.DiscreteUKFComponent,
 ]
@@ -27,9 +27,9 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
     ----------
     prior_process
         Prior Gauss-Markov process. Usually a :class:`MarkovProcess` with a :class:`Normal` initial random variable,
-        and an LTISDE transition or an Integrator transition, but LinearSDE, ContinuousEKFComponent,
-        or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
-        If the transition is an integrator, `K=spatialdim*(ordint+1)` for some spatialdim and ordint.
+        and an :class:`LTISDE` transition or an :class:`IntegratorTransition`, but :class:`LinearSDE`, :class:`ContinuousEKFComponent`,
+        or :class:`ContinuousUKFComponent` are also valid. Describes a random process in :math:`K` dimensions.
+        If the transition is an integrator, `K=d*(nu+1)` for some d and nu.
     """
 
     def iterated_filtsmooth(

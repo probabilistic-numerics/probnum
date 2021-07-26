@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import diffeq, filtsmooth, randprocs, randvars, statespace
+from probnum import diffeq, filtsmooth, randprocs, randvars
 
 
 @pytest.fixture
@@ -22,13 +22,15 @@ def ivp():
 @pytest.fixture
 def prior(ivp):
     ode_dim = ivp.dimension
-    prior = statespace.IBM(ordint=2, spatialdim=ode_dim)
+    prior = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=2, wiener_process_dimension=ode_dim
+    )
     initrv = randvars.Normal(
         mean=np.zeros(prior.dimension),
         cov=np.eye(prior.dimension),
         cov_cholesky=np.eye(prior.dimension),
     )
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=0.0
     )
     return prior_process

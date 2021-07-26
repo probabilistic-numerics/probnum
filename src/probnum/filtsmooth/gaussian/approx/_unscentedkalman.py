@@ -9,7 +9,7 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import randprocs, randvars
 from probnum.filtsmooth.gaussian.approx import _unscentedtransform
 from probnum.typing import FloatArgType
 
@@ -38,7 +38,7 @@ class UKFComponent:
         return self.ut.sigma_points(at_this_rv)
 
 
-class ContinuousUKFComponent(UKFComponent, statespace.SDE):
+class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
     """Continuous-time unscented Kalman filter transition.
 
     Parameters
@@ -72,7 +72,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
             priorpar=priorpar,
             special_scale=special_scale,
         )
-        statespace.SDE.__init__(
+        randprocs.markov.continuous.SDE.__init__(
             self,
             non_linear_model.dimension,
             non_linear_model.driftfun,
@@ -146,7 +146,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         raise NotImplementedError("Not available (yet).")
 
 
-class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
+class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGaussian):
     """Discrete unscented Kalman filter transition."""
 
     def __init__(
@@ -164,7 +164,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
             special_scale=special_scale,
         )
 
-        statespace.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.DiscreteGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -262,7 +262,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         prior,
         evlvar=0.0,
     ):
-        discrete_model = statespace.DiscreteGaussian.from_ode(
+        discrete_model = randprocs.discrete.DiscreteGaussian.from_ode(
             ode=ode, prior=prior, evlvar=evlvar
         )
         return cls(discrete_model)

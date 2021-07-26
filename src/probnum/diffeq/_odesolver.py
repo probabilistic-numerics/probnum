@@ -8,7 +8,9 @@ class ODESolver(ABC):
 
     def __init__(self, ivp, order):
         self.ivp = ivp
-        self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
+        self.order = (
+            order  # e.g.: RK45 has order=5, IntegratedWienerTransition(nu) has order=nu
+        )
         self.num_steps = 0
 
     def solve(self, steprule):

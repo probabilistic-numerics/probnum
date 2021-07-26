@@ -1,10 +1,10 @@
 import numpy as np
 
-from probnum import statespace
+from probnum import randprocs
 from probnum.filtsmooth.optim import _stoppingcriterion
 
 
-class IteratedDiscreteComponent(statespace.Transition):
+class IteratedDiscreteComponent(randprocs.markov.Transition):
     """Iterated updates.
 
     Examples
@@ -12,22 +12,22 @@ class IteratedDiscreteComponent(statespace.Transition):
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.filtsmooth.optim import StoppingCriterion
     >>> from probnum.problems.zoo.diffeq import logistic
-    >>> from probnum.statespace import IBM
+    >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
     >>> from probnum.randvars import Constant
     >>> import numpy as np
     >>>
 
     Set up an iterated component.
 
-    >>> prior = IBM(ordint=2, spatialdim=1)
-    >>> ekf = DiscreteEKFComponent.from_ode(logistic(t0=0., tmax=1., y0=np.array([0.1])), prior, 0.)
+    >>> iwp = IntegratedWienerProcess(initarg=0., num_derivatives=2, wiener_process_dimension=1)
+    >>> ekf = DiscreteEKFComponent.from_ode(logistic(t0=0., tmax=1., y0=np.array([0.1])), iwp.transition, 0.)
     >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
 
     Generate some random variables and pseudo observations.
 
     >>> some_array = np.array([0.1, 1., 2.])
     >>> some_rv = Constant(some_array)
-    >>> rv, _ = prior.forward_realization(some_array , t=0., dt=0.1)
+    >>> rv, _ = iwp.transition.forward_realization(some_array , t=0., dt=0.1)
     >>> rv_observed, _ =  comp.forward_rv(rv, t=0.2)
     >>> rv_observed *= 0.01  # mitigate zero data
 
