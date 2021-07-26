@@ -175,38 +175,45 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                         cov.dtype, casting="safe", copy=False
                     )
 
-            if isinstance(cov, linops.SymmetricKronecker):
-                m, n = mean.shape
+            if cov_operator:
+                if isinstance(cov, linops.SymmetricKronecker):
+                    m, n = mean.shape
 
-                if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
-                    raise ValueError(
-                        "Normal distributions with symmetric Kronecker structured "
-                        "kernels must have square mean and square kernels factors with "
-                        "matching dimensions."
-                    )
+                    if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
+                        raise ValueError(
+                            "Normal distributions with symmetric Kronecker structured "
+                            "kernels must have square mean and square kernels factors with "
+                            "matching dimensions."
+                        )
 
-                if cov.identical_factors:
-                    sample = self._symmetric_kronecker_identical_factors_sample
+                    if cov.identical_factors:
+                        sample = self._symmetric_kronecker_identical_factors_sample
 
-                    # pylint: disable=redefined-variable-type
-                    compute_cov_cholesky = (
-                        self._symmetric_kronecker_identical_factors_cov_cholesky
-                    )
-            elif isinstance(cov, linops.Kronecker):
-                m, n = mean.shape
+                        # pylint: disable=redefined-variable-type
+                        compute_cov_cholesky = (
+                            self._symmetric_kronecker_identical_factors_cov_cholesky
+                        )
+                elif isinstance(cov, linops.Kronecker):
+                    m, n = mean.shape
 
-                if (
-                    m != cov.A.shape[0]
-                    or m != cov.A.shape[1]
-                    or n != cov.B.shape[0]
-                    or n != cov.B.shape[1]
-                ):
-                    raise ValueError(
-                        "Kronecker structured kernels must have factors with the same "
-                        "shape as the mean."
-                    )
+                    if (
+                        m != cov.A.shape[0]
+                        or m != cov.A.shape[1]
+                        or n != cov.B.shape[0]
+                        or n != cov.B.shape[1]
+                    ):
+                        raise ValueError(
+                            "Kronecker structured kernels must have factors with the same "
+                            "shape as the mean."
+                        )
 
-                compute_cov_cholesky = self._kronecker_cov_cholesky
+                    compute_cov_cholesky = self._kronecker_cov_cholesky
+
+                else:
+                    # This case handles all linear operators, for which no Cholesky
+                    # factorization is implemented, yet.
+                    # Computes the dense Cholesky and converts it to a LinearOperator.
+                    compute_cov_cholesky = self._dense_cov_cholesky_as_linop
 
         else:
             raise ValueError(
@@ -470,6 +477,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             dense_cov + damping_factor * np.eye(self.size, dtype=self.dtype),
             lower=True,
         )
+
+    def _dense_cov_cholesky_as_linop(
+        self, damping_factor: FloatArgType
+    ) -> linops.LinearOperator:
+        return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
 
     def _dense_sample(
         self, rng: np.random.Generator, size: ShapeType = ()

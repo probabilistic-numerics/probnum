@@ -4,7 +4,9 @@ through Taylor-method approximations, e.g. linearization."""
 import abc
 from typing import Dict, Tuple
 
-from probnum import randvars, statespace
+import numpy as np
+
+from probnum import randprocs, randvars
 
 
 class EKFComponent(abc.ABC):
@@ -105,14 +107,16 @@ class EKFComponent(abc.ABC):
         )
 
     @abc.abstractmethod
-    def linearize(self, at_this_rv: randvars.RandomVariable) -> statespace.Transition:
+    def linearize(
+        self, at_this_rv: randvars.RandomVariable
+    ) -> randprocs.markov.Transition:
         """Linearize the transition and make it tractable."""
         raise NotImplementedError
 
 
 # Order of inheritance matters, because forward and backward
 # are defined in EKFComponent, and must not be inherited from SDE.
-class ContinuousEKFComponent(EKFComponent, statespace.SDE):
+class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
     """Continuous-time extended Kalman filter transition.
 
     Parameters
@@ -137,7 +141,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         forward_implementation="classic",
     ) -> None:
 
-        statespace.SDE.__init__(
+        randprocs.markov.continuous.SDE.__init__(
             self,
             driftfun=non_linear_model.driftfun,
             dispmatfun=non_linear_model.dispmatfun,
@@ -166,7 +170,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         def driftmatfun(t):
             return dg(t, x0)
 
-        return statespace.LinearSDE(
+        return randprocs.markov.continuous.LinearSDE(
             dimension=self.non_linear_model.dimension,
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
@@ -178,7 +182,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         )
 
 
-class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
+class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
@@ -188,7 +192,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         backward_implementation="classic",
     ) -> None:
 
-        statespace.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.DiscreteGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -216,7 +220,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         def dynamicsmatfun(t):
             return dg(t, x0)
 
-        return statespace.DiscreteLinearGaussian(
+        return randprocs.markov.discrete.DiscreteLinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,

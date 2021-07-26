@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import statespace
+from probnum import randprocs
 from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines.utils import (
     _known_initial_derivatives,
 )
@@ -31,6 +31,8 @@ def lotka_volterra_inits(lotka_volterra_testcase_order):
     vals = _known_initial_derivatives.LV_INITS[
         : lv_dim * (lotka_volterra_testcase_order + 1)
     ]
-    return statespace.Integrator._convert_derivwise_to_coordwise(
-        vals, ordint=lotka_volterra_testcase_order, spatialdim=lv_dim
+    return randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
+        vals,
+        num_derivatives=lotka_volterra_testcase_order,
+        wiener_process_dimension=lv_dim,
     )

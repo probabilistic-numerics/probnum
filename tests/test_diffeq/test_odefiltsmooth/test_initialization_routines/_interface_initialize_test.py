@@ -2,9 +2,7 @@
 
 import abc
 
-import numpy as np
-
-from probnum import randprocs, randvars, statespace
+from probnum import randprocs
 
 
 class InterfaceInitializationRoutineTest(abc.ABC):
@@ -24,16 +22,11 @@ class InterfaceInitializationRoutineTest(abc.ABC):
 
     def _construct_prior_process(self, order, spatialdim, t0):
         """Construct a prior process of appropriate size."""
-        prior_transition = statespace.IBM(
-            ordint=order,
-            spatialdim=spatialdim,
+        prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
+            initarg=t0,
+            num_derivatives=order,
+            wiener_process_dimension=spatialdim,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
-        )
-        initrv = randvars.Normal(
-            np.zeros(prior_transition.dimension), np.eye(prior_transition.dimension)
-        )
-        prior_process = randprocs.MarkovProcess(
-            transition=prior_transition, initrv=initrv, initarg=t0
         )
         return prior_process

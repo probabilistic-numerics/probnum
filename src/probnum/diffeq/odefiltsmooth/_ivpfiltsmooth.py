@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 import scipy.linalg
 
-from probnum import filtsmooth, randprocs, randvars, statespace, utils
+from probnum import filtsmooth, problems, randprocs, randvars, utils
 from probnum.diffeq import _odesolver, stepsize
 from probnum.diffeq.odefiltsmooth import (
     _kalman_odesolution,
@@ -59,12 +59,15 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         approx_strategy: approx_strategies.ApproximationStrategy,
         with_smoothing: bool,
         initialization_routine: initialization_routines.InitializationRoutine,
-        diffusion_model: Optional[statespace.Diffusion] = None,
+        diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
-        if not isinstance(prior_process.transition, statespace.Integrator):
+        if not isinstance(
+            prior_process.transition,
+            randprocs.markov.integrator.IntegratorTransition,
+        ):
             raise ValueError(
-                "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
+                "Please initialise a Gaussian filter with an Integrator (see `probnum.randprocs.markov.integrator`)"
             )
 
         self.prior_process = prior_process
@@ -78,11 +81,13 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.initialization_routine = initialization_routine
-        super().__init__(steprule=steprule, order=prior_process.transition.ordint)
+        super().__init__(
+            steprule=steprule, order=prior_process.transition.num_derivatives
+        )
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
-            statespace.PiecewiseConstantDiffusion(t0=self.ivp.t0)
+            randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=self.ivp.t0)
             if diffusion_model is None
             else diffusion_model
         )
@@ -92,7 +97,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # with a global diffusion estimate. The choices here depend on the
         # employed diffusion model.
         is_dynamic = isinstance(
-            self.diffusion_model, statespace.PiecewiseConstantDiffusion
+            self.diffusion_model, randprocs.markov.continuous.PiecewiseConstantDiffusion
         )
         self._calibrate_at_each_step = is_dynamic
         self._calibrate_all_states_post_hoc = not self._calibrate_at_each_step
