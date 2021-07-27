@@ -173,7 +173,7 @@ class NonlinearGaussian(_transition.Transition):
             return h1 - ode.df(t, h0 @ x) @ h0
 
         return cls(
-            input_dim=prior.dimension,
+            input_dim=prior.state_dimension,
             output_dim=ode.dimension,
             state_trans_fun=dyna,
             jacob_state_trans_fun=jacobian,
