@@ -174,14 +174,19 @@ class IntegratedOrnsteinUhlenbeckTransition(
         rv = _preconditioner.apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
-        self.drift_matrix = (
-            self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        new_drift_matrix = self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        new_force_vector = self.precon.inverse(dt) @ self.force_vector
+        new_dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
+        new_lti_sde = continuous.LTISDE(
+            drift_matrix=new_drift_matrix,
+            force_vector=new_force_vector,
+            dispersion_matrix=new_dispersion_matrix,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
         )
-        self.force_vector = self.precon.inverse(dt) @ self.force_vector
-        self.dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
 
         # Discretise and propagate
-        discretised_model = self.discretise(dt=dt)
+        discretised_model = new_lti_sde.discretise(dt=dt)
         rv, info = discretised_model.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
@@ -191,12 +196,12 @@ class IntegratedOrnsteinUhlenbeckTransition(
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
-
-        self.drift_matrix = (
-            self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
-        )
-        self.force_vector = self.precon(dt) @ self.force_vector
-        self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
+        #
+        # self.drift_matrix = (
+        #     self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
+        # )
+        # self.force_vector = self.precon(dt) @ self.force_vector
+        # self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
 
         return rv, info
 
@@ -231,14 +236,19 @@ class IntegratedOrnsteinUhlenbeckTransition(
         )
 
         # Apply preconditioning to system matrices
-        self.drift_matrix = (
-            self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        new_drift_matrix = self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        new_force_vector = self.precon.inverse(dt) @ self.force_vector
+        new_dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
+        new_lti_sde = continuous.LTISDE(
+            drift_matrix=new_drift_matrix,
+            force_vector=new_force_vector,
+            dispersion_matrix=new_dispersion_matrix,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
         )
-        self.force_vector = self.precon.inverse(dt) @ self.force_vector
-        self.dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
 
         # Discretise and propagate
-        discretised_model = self.discretise(dt=dt)
+        discretised_model = new_lti_sde.discretise(dt=dt)
         rv, info = discretised_model.backward_rv(
             rv_obtained=rv_obtained,
             rv=rv,
@@ -250,11 +260,11 @@ class IntegratedOrnsteinUhlenbeckTransition(
 
         # Undo preconditioning and return
         rv = _preconditioner.apply_precon(self.precon(dt), rv)
-        self.drift_matrix = (
-            self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
-        )
-        self.force_vector = self.precon(dt) @ self.force_vector
-        self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
+        # self.drift_matrix = (
+        #     self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
+        # )
+        # self.force_vector = self.precon(dt) @ self.force_vector
+        # self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
         return rv, info
 
     def _duplicate(self, **changes):
