@@ -109,7 +109,7 @@ def car_tracking(
     measurement_matrix = np.eye(measurement_dim, model_dim)
     measurement_cov = measurement_variance * np.eye(measurement_dim)
     measurement_cov_cholesky = np.sqrt(measurement_variance) * np.eye(measurement_dim)
-    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=measurement_matrix,
         shift_vec=np.zeros(measurement_dim),
         proc_noise_cov_mat=measurement_cov,
@@ -220,7 +220,7 @@ def ornstein_uhlenbeck(
     )
     dynamics_model.dispmat *= process_diffusion
 
-    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -465,7 +465,7 @@ def benes_daum(
     dynamics_model = randprocs.markov.continuous.SDE(
         dimension=1, driftfun=f, dispmatfun=l, jacobfun=df
     )
-    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),

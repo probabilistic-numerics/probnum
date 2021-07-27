@@ -23,7 +23,7 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         self.G_const = spdmat1
         self.S_const = spdmat2
         self.v_const = np.arange(test_ndim)
-        self.transition = randprocs.markov.discrete.DiscreteLTIGaussian(
+        self.transition = randprocs.markov.discrete.LTIGaussian(
             self.G_const,
             self.v_const,
             self.S_const,

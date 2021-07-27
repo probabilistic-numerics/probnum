@@ -219,7 +219,7 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
     def test_discretise(self):
         with config(lazy_linalg=True):
             out = self.transition.discretise(dt=0.1)
-            assert isinstance(out, randprocs.markov.discrete.DiscreteLTIGaussian)
+            assert isinstance(out, randprocs.markov.discrete.LTIGaussian)
             assert isinstance(out.state_trans_mat, linops.LinearOperator)
             assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)
 
@@ -232,6 +232,6 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
         )  # side quest/test
         with config(lazy_linalg=True):
             out = self.transition.discretise(dt=0.1)
-            assert isinstance(out, randprocs.markov.discrete.DiscreteLTIGaussian)
+            assert isinstance(out, randprocs.markov.discrete.LTIGaussian)
             assert isinstance(out.state_trans_mat, linops.LinearOperator)
             assert isinstance(out.proc_noise_cov_mat, linops.LinearOperator)

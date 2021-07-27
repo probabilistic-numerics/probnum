@@ -21,7 +21,7 @@ except ImportError:
     from cached_property import cached_property
 
 
-class DiscreteLTIGaussian(_linear_gaussian.LinearGaussian):
+class LTIGaussian(_linear_gaussian.LinearGaussian):
     """Discrete, linear, time-invariant Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G x_i + v, S)
@@ -100,7 +100,7 @@ class DiscreteLTIGaussian(_linear_gaussian.LinearGaussian):
         proc_noise_cov_cholesky = replace_key("proc_noise_cov_cholesky")
         forward_implementation = replace_key("forward_implementation")
         backward_implementation = replace_key("backward_implementation")
-        return DiscreteLTIGaussian(
+        return LTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=shift_vec,
             proc_noise_cov_mat=proc_noise_cov_mat,

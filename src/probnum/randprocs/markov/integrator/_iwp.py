@@ -208,7 +208,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
                 np.eye(self.wiener_process_dimension), process_noise_cholesky_1d
             )
 
-        return discrete.DiscreteLTIGaussian(
+        return discrete.LTIGaussian(
             state_trans_mat=state_transition,
             shift_vec=empty_shift,
             proc_noise_cov_mat=process_noise,
@@ -308,7 +308,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
         )
 
-        return discrete.DiscreteLTIGaussian(
+        return discrete.LTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,

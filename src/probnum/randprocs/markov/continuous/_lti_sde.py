@@ -171,7 +171,7 @@ class LTISDE(_linear_sde.LinearSDE):
                 self.drift_matrix, self.dispersion_matrix, dt
             )
             sh = np.zeros(len(ah))
-        return discrete.DiscreteLTIGaussian(
+        return discrete.LTIGaussian(
             ah,
             sh,
             qh,

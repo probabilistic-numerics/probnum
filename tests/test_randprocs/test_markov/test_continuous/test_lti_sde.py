@@ -42,7 +42,7 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
 
     def test_discretise(self):
         out = self.transition.discretise(dt=0.1)
-        assert isinstance(out, randprocs.markov.discrete.DiscreteLTIGaussian)
+        assert isinstance(out, randprocs.markov.discrete.LTIGaussian)
 
     def test_discretise_no_force(self):
         """LTISDE.discretise() works if there is zero force (there is an "if" in the
@@ -54,7 +54,7 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
             np.linalg.norm(new_trans.force_vector_function(0.0)) == 0.0
         )  # side quest/test
         out = new_trans.discretise(dt=0.1)
-        assert isinstance(out, randprocs.markov.discrete.DiscreteLTIGaussian)
+        assert isinstance(out, randprocs.markov.discrete.LTIGaussian)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_rv(
