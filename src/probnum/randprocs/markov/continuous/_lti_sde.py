@@ -171,6 +171,36 @@ class LTISDE(_linear_sde.LinearSDE):
             backward_implementation=self._backward_implementation_string,
         )
 
+    def _duplicate(self, **changes):
+        """Create a new object of the same type, replacing fields with values from
+        changes."""
+
+        def replace_key(key):
+            """If the key is part of the desired changes, change appropriately.
+
+            Otherwise, take the current value.
+            """
+            try:
+                return changes[key]
+            except KeyError:
+                return getattr(self, key)
+
+        drift_matrix = replace_key("drift_matrix")
+        dispersion_matrix = replace_key("dispersion_matrix")
+        force_vector = replace_key("force_vector")
+        squared_scalar_diffusion = replace_key("squared_scalar_diffusion")
+        forward_implementation = replace_key("forward_implementation")
+        backward_implementation = replace_key("backward_implementation")
+
+        return LTISDE(
+            drift_matrix=drift_matrix,
+            dispersion_matrix=dispersion_matrix,
+            force_vector=force_vector,
+            squared_scalar_diffusion=squared_scalar_diffusion,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
+
 
 def _check_initial_state_dimensions(drift_matrix, force_vector, dispersion_matrix):
     """Checks that the matrices all align and are of proper shape.
