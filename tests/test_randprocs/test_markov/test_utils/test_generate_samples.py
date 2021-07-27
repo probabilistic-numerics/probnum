@@ -23,6 +23,9 @@ class MockTransition(randprocs.markov.Transition):
     def backward_rv(self, *args, **kwargs):
         raise NotImplementedError
 
+    def _duplicate(self, **changes):
+        raise NotImplementedError
+
 
 def times_array():
     return np.arange(0.0, 13.0, 1.0)
