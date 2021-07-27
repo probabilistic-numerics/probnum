@@ -150,33 +150,26 @@ class NonlinearGaussian(_transition.Transition):
         return np.linalg.cholesky(covmat)
 
     @classmethod
-    def from_ode(
+    def from_callable(
         cls,
-        ode,
-        prior,
-        evlvar=0.0,
+        input_dim: IntArgType,
+        output_dim: IntArgType,
+        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        jacob_state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
     ):
-
-        h0 = prior.proj2coord(coord=0)
-        h1 = prior.proj2coord(coord=1)
-
-        def dyna(t, x):
-            return h1 @ x - ode.f(t, h0 @ x)
+        """Turn a callable into a deterministic transition."""
 
         def diff(t):
-            return evlvar * np.eye(ode.dimension)
+            return np.zeros((output_dim, output_dim))
 
         def diff_cholesky(t):
-            return np.sqrt(evlvar) * np.eye(ode.dimension)
-
-        def jacobian(t, x):
-            return h1 - ode.df(t, h0 @ x) @ h0
+            return np.zeros((output_dim, output_dim))
 
         return cls(
-            input_dim=prior.state_dimension,
-            output_dim=ode.dimension,
-            state_trans_fun=dyna,
-            jacob_state_trans_fun=jacobian,
+            input_dim=input_dim,
+            output_dim=output_dim,
+            state_trans_fun=state_trans_fun,
+            jacob_state_trans_fun=jacob_state_trans_fun,
             proc_noise_cov_mat_fun=diff,
             proc_noise_cov_cholesky_fun=diff_cholesky,
         )

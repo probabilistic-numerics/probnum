@@ -103,6 +103,29 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
             backward_implementation=backward_implementation,
         )
 
+    @classmethod
+    def from_linop(
+        cls,
+        state_trans_mat: np.ndarray,
+        shift_vec: np.ndarray,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ):
+        """Turn a linear operator (or numpy array) into a deterministic transition."""
+        # Currently, this is only a numpy array.
+        # In the future, once linops are more widely adopted here, this will become a linop.
+        zero_matrix = np.zeros((state_trans_mat.shape[0], state_trans_mat.shape[0]))
+        if state_trans_mat.ndim != 2:
+            raise ValueError
+        return cls(
+            state_trans_mat=state_trans_mat,
+            shift_vec=shift_vec,
+            proc_noise_cov_mat=zero_matrix,
+            proc_noise_cov_cholesky=zero_matrix,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
+
 
 def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
     """LTI SDE model needs matrices which are compatible with each other in size."""

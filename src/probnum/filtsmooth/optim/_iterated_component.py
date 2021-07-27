@@ -13,7 +13,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.problems.zoo.diffeq import logistic
     >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
-    >>> from probnum.randprocs.markov.discrete import DiscreteGaussian
+    >>> from probnum.randprocs.markov.discrete import NonlinearGaussian
     >>> from probnum.randvars import Constant
     >>> import numpy as np
     >>>
@@ -24,7 +24,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     >>> H0, H1 = iwp.transition.proj2coord(coord=0), iwp.transition.proj2coord(coord=1)
     >>> call = lambda t, x: H1 @ x - H0 @ x * (1 - H0 @ x)
     >>> jacob = lambda t, x: H1 - (1 - 2*(H0 @ x)) @ H0
-    >>> nonlinear_model = DiscreteGaussian.from_callable(3, 1, call, jacob)
+    >>> nonlinear_model = NonlinearGaussian.from_callable(3, 1, call, jacob)
     >>> ekf = DiscreteEKFComponent(nonlinear_model)
     >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
 
