@@ -19,6 +19,7 @@ class LTISDE(_linear_sde.LinearSDE):
     .. math:: d x(t) = [G x(t) + v] d t + L d w(t).
 
     In the language of dynamic models,
+
     x(t) : state process
     G : drift matrix
     v : force term/vector
@@ -27,34 +28,51 @@ class LTISDE(_linear_sde.LinearSDE):
 
     Parameters
     ----------
-    driftmat :
+    drift_matrix :
         This is F. It is the drift matrix of the SDE.
-    forcevec :
+    force_vector :
         This is U. It is the force vector of the SDE.
-    dispmat :
+    dispersion_matrix :
         This is L. It is the dispersion matrix of the SDE.
     """
 
     def __init__(
         self,
-        driftmat: np.ndarray,
-        forcevec: np.ndarray,
-        dispmat: np.ndarray,
+        drift_matrix: np.ndarray,
+        force_vector: np.ndarray,
+        dispersion_matrix: np.ndarray,
         forward_implementation="classic",
         backward_implementation="classic",
+        _duplicate=None,
     ):
-        _check_initial_state_dimensions(driftmat, forcevec, dispmat)
-        dimension = driftmat.shape[0]
-        self.driftmat = driftmat
-        self.forcevec = forcevec
-        self.dispmat = dispmat
+        # Assert all shapes match
+        _check_initial_state_dimensions(drift_matrix, force_vector, dispersion_matrix)
+
+        # Convert input into super() compatible format and initialize super()
+        state_dimension = drift_matrix.shape[0]
+        wiener_process_dimension = dispersion_matrix.shape[1]
+
+        def drift_matrix_function(t):
+            return drift_matrix
+
+        def force_vector_function(t):
+            return force_vector
+
+        def dispersion_matrix_function(t):
+            return dispersion_matrix
+
         super().__init__(
-            dimension,
-            (lambda t: self.driftmat),
-            (lambda t: self.forcevec),
-            (lambda t: self.dispmat),
+            state_dimension=state_dimension,
+            wiener_process_dimension=wiener_process_dimension,
+            drift_matrix_function=drift_matrix_function,
+            dispersion_matrix_function=dispersion_matrix_function,
+            force_vector_function=force_vector_function,
         )
 
+        # Initialize remaining attributes
+        self.drift_matrix = drift_matrix
+        self.force_vector = force_vector
+        self.dispersion_matrix = dispersion_matrix
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
@@ -114,22 +132,24 @@ class LTISDE(_linear_sde.LinearSDE):
         which is the transition of the mild solution to the LTI SDE.
         """
 
-        if np.linalg.norm(self.forcevec) > 0:
-            zeros = np.zeros((self.dimension, self.dimension))
-            eye = np.eye(self.dimension)
-            driftmat = np.block([[self.driftmat, eye], [zeros, zeros]])
-            dispmat = np.concatenate((self.dispmat, np.zeros(self.dispmat.shape)))
-            ah_stack, qh_stack, _ = _mfd.matrix_fraction_decomposition(
-                driftmat, dispmat, dt
+        if np.linalg.norm(self.force_vector) > 0:
+            zeros = np.zeros((self.state_dimension, self.state_dimension))
+            eye = np.eye(self.state_dimension)
+            drift_matrix = np.block([[self.drift_matrix, eye], [zeros, zeros]])
+            dispersion_matrix = np.concatenate(
+                (self.dispersion_matrix, np.zeros(self.dispersion_matrix.shape))
             )
-            proj = np.eye(self.dimension, 2 * self.dimension)
+            ah_stack, qh_stack, _ = _mfd.matrix_fraction_decomposition(
+                drift_matrix, dispersion_matrix, dt
+            )
+            proj = np.eye(self.state_dimension, 2 * self.state_dimension)
             proj_rev = np.flip(proj, axis=1)
             ah = proj @ ah_stack @ proj.T
-            sh = proj @ ah_stack @ proj_rev.T @ self.forcevec
+            sh = proj @ ah_stack @ proj_rev.T @ self.force_vector
             qh = proj @ qh_stack @ proj.T
         else:
             ah, qh, _ = _mfd.matrix_fraction_decomposition(
-                self.driftmat, self.dispmat, dt
+                self.drift_matrix, self.dispersion_matrix, dt
             )
             sh = np.zeros(len(ah))
         return discrete.DiscreteLTIGaussian(
@@ -141,20 +161,22 @@ class LTISDE(_linear_sde.LinearSDE):
         )
 
 
-def _check_initial_state_dimensions(driftmat, forcevec, dispmat):
+def _check_initial_state_dimensions(drift_matrix, force_vector, dispersion_matrix):
     """Checks that the matrices all align and are of proper shape.
 
     Parameters
     ----------
-    driftmat : np.ndarray, shape=(n, n)
-    forcevec : np.ndarray, shape=(n,)
-    dispmat : np.ndarray, shape=(n, s)
+    drift_matrix : np.ndarray, shape=(n, n)
+    force_vector : np.ndarray, shape=(n,)
+    dispersion_matrix : np.ndarray, shape=(n, s)
     """
-    if driftmat.ndim != 2 or driftmat.shape[0] != driftmat.shape[1]:
-        raise ValueError("driftmatrix not of shape (n, n)")
-    if forcevec.ndim != 1:
+    if drift_matrix.ndim != 2 or drift_matrix.shape[0] != drift_matrix.shape[1]:
+        raise ValueError("drift_matrixrix not of shape (n, n)")
+    if force_vector.ndim != 1:
         raise ValueError("force not of shape (n,)")
-    if forcevec.shape[0] != driftmat.shape[1]:
-        raise ValueError("force not of shape (n,) or driftmatrix not of shape (n, n)")
-    if dispmat.ndim != 2:
+    if force_vector.shape[0] != drift_matrix.shape[1]:
+        raise ValueError(
+            "force not of shape (n,) or drift_matrixrix not of shape (n, n)"
+        )
+    if dispersion_matrix.ndim != 2:
         raise ValueError("dispersion not of shape (n, s)")

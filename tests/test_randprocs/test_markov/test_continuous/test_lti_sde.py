@@ -25,9 +25,9 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
         self.L_const = spdmat2
 
         self.transition = randprocs.markov.continuous.LTISDE(
-            self.G_const,
-            self.v_const,
-            self.L_const,
+            drift_matrix=self.G_const,
+            force_vector=self.v_const,
+            dispersion_matrix=self.L_const,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
@@ -38,6 +38,7 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
+        self.l = lambda t, x: self.L(t)
 
     def test_discretise(self):
         out = self.transition.discretise(dt=0.1)
@@ -46,9 +47,9 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
     def test_discretise_no_force(self):
         """LTISDE.discretise() works if there is zero force (there is an "if" in the
         fct)."""
-        self.transition.forcevec = 0.0 * self.transition.forcevec
+        self.transition.force_vector = 0.0 * self.transition.force_vector
         assert (
-            np.linalg.norm(self.transition.forcevecfun(0.0)) == 0.0
+            np.linalg.norm(self.transition.force_vector_function(0.0)) == 0.0
         )  # side quest/test
         out = self.transition.discretise(dt=0.1)
         assert isinstance(out, randprocs.markov.discrete.DiscreteLTIGaussian)

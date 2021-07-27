@@ -116,13 +116,20 @@ def ltisde_as_linearsde(G_const, v_const, L_const):
 
 @pytest.fixture
 def ltisde_as_linearsde_sqrt_forward_implementation(G_const, v_const, L_const):
+
     G = lambda t: G_const
     v = lambda t: v_const
     L = lambda t: L_const
-    dim = 2
 
     return randprocs.markov.continuous.LinearSDE(
-        dim, G, v, L, mde_atol=1e-12, mde_rtol=1e-12, forward_implementation="sqrt"
+        state_dimension=G_const.shape[0],
+        wiener_process_dimension=L_const.shape[1],
+        drift_matrix_function=G,
+        force_vector_function=v,
+        dispersion_matrix_function=L,
+        mde_atol=1e-12,
+        mde_rtol=1e-12,
+        forward_implementation="sqrt",
     )
 
 
