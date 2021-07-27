@@ -43,7 +43,6 @@ class LTISDE(_linear_sde.LinearSDE):
         dispersion_matrix: np.ndarray,
         forward_implementation="classic",
         backward_implementation="classic",
-        _duplicate=None,
     ):
         # Assert all shapes match
         _check_initial_state_dimensions(drift_matrix, force_vector, dispersion_matrix)
@@ -70,11 +69,23 @@ class LTISDE(_linear_sde.LinearSDE):
         )
 
         # Initialize remaining attributes
-        self.drift_matrix = drift_matrix
-        self.force_vector = force_vector
-        self.dispersion_matrix = dispersion_matrix
-        self.forward_implementation = forward_implementation
-        self.backward_implementation = backward_implementation
+        self._drift_matrix = drift_matrix
+        self._force_vector = force_vector
+        self._dispersion_matrix = dispersion_matrix
+        self._forward_implementation_string = forward_implementation
+        self._backward_implementation_string = backward_implementation
+
+    @property
+    def drift_matrix(self):
+        return self._drift_matrix
+
+    @property
+    def force_vector(self):
+        return self._force_vector
+
+    @property
+    def dispersion_matrix(self):
+        return self._dispersion_matrix
 
     def forward_rv(
         self,
@@ -156,8 +167,8 @@ class LTISDE(_linear_sde.LinearSDE):
             ah,
             sh,
             qh,
-            forward_implementation=self.forward_implementation,
-            backward_implementation=self.backward_implementation,
+            forward_implementation=self._forward_implementation_string,
+            backward_implementation=self._backward_implementation_string,
         )
 
 
