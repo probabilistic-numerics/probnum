@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from probnum import randprocs, randvars
-from tests.test_randprocs.test_markov import test_transition
 from tests.test_randprocs.test_markov.test_continuous import test_sde
 
 

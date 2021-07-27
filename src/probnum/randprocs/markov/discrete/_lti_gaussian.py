@@ -5,7 +5,6 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import randvars
 from probnum.randprocs.markov.discrete import _linear_gaussian
 
 try:

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs, randvars
+from probnum import randprocs
 from tests.test_randprocs.test_markov import test_transition
 
 
