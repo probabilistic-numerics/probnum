@@ -9,7 +9,11 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.diffeq import callbacks
+from probnum.diffeq import callbacks, stepsize
+from probnum.typing import FloatArgType
+
+CallbackType = Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
+"""Callback interface type."""
 
 
 class ODESolver(ABC):
@@ -37,62 +41,77 @@ class ODESolver(ABC):
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-        # def promote_callback_type(callbacks):
-        #     return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
-        #
-        # if callbacks is not None:
-        #     callbacks = promote_callback_type(callbacks)
-        # self.callbacks = callbacks
-
-        # Assigned per default here. Might be overwritten (wrapped) by the `stop_at()` context manager
-        # which forces the ODE solver to incorporate certain grid points.
-        self.perform_full_step = self._perform_full_step
-
-        #
-        # if time_stamps is not None:
-        #     self.time_stopper = _TimeStopper(time_stamps)
-        # else:
-        #     self.time_stopper = None
-
-    def solve(self, steprule):
+    def solve(
+        self,
+        steprule: stepsize.StepRule,
+        stop_at: Iterable[FloatArgType] = None,
+        callbacks: Optional[CallbackType] = None,
+    ):
         """Solve an IVP.
 
         Parameters
         ----------
-        steprule : :class:`StepRule`
+        steprule
             Step-size selection rule, e.g. constant steps or adaptive steps.
+        stop_at
+            Locations that shall be part of the posterior grid.
+        callbacks
+            Callbacks to happen after every accepted step.
         """
         self.steprule = steprule
 
-    def solve(self, ivp):
-        """Solve an IVP."""
-        times, rvs = [], []
-        for state in self.solution_generator(ivp):
+        for state in self.solution_generator(
+            steprule, stop_at=stop_at, callbacks=callbacks
+        ):
             times.append(state.t)
             rvs.append(state.rv)
 
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         return self.postprocess(odesol)
 
-    def solution_generator(self, ivp):
+    def solution_generator(
+        self,
+        steprule: stepsize.StepRule,
+        stop_at: Iterable[FloatArgType] = None,
+        callbacks: Optional[CallbackType] = None,
+    ):
         """Generate ODE solver steps."""
 
-        state = self.initialize(ivp)
+        callbacks, time_stopper = self._process_event_inputs(callbacks, stop_at)
+
+        state = self.initialize()
         yield state
 
         dt = steprule.firststep
         while state.t < self.ivp.tmax:
+            if time_stopper is not None:
+                dt = time_stopper.adjust_dt_to_time_stamps(state.t, dt)
 
             state, dt = self.perform_full_step(state, dt, steprule)
 
-            if self.callbacks is not None:
-                for callback in self.callbacks:
+            if callbacks is not None:
+                for callback in callbacks:
                     state = callback(state)
 
             self.num_steps += 1
             yield state
 
-    def _perform_full_step(self, state, initial_dt, steprule):
+    @staticmethod
+    def _process_event_inputs(callbacks, stop_at_locations):
+        """Process callbacks and time-stamps into a format suitable for solve()."""
+
+        def promote_callback_type(callbacks):
+            return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
+
+        if callbacks is not None:
+            callbacks = promote_callback_type(callbacks)
+        if stop_at_locations is not None:
+            time_stopper = _TimeStopper(stop_at_locations)
+        else:
+            time_stopper = None
+        return callbacks, time_stopper
+
+    def perform_full_step(self, state, initial_dt, steprule):
         """Perform a full ODE solver step.
 
         This includes the acceptance/rejection decision as governed by error estimation
@@ -157,47 +176,6 @@ class ODESolver(ABC):
         """
         pass
 
-    @contextlib.contextmanager
-    def stop_at(self, locations):
-        """
-
-        Examples
-        --------
-
-        Classic (no time-stops):
-
-        >>> solver = ODESolver(...)
-        >>> solution = solver.solve(...)
-
-        Time-stops:
-
-        As context (current implementation):
-
-        >>> solver = ODESolver(...)
-        >>> with solver.stop_at(locations=[2.3, 2.4]):
-        ...     solver.solve(...)
-
-        Or at init:
-
-        >>> solver = ODESolver(..., time_stamps=[2.3])
-        >>> solver.solve(...)
-
-        Or at solve:
-
-        >>> solver = ODESolver(...)
-        >>> solver.solve(..., time_stamps=[2.3])
-
-        """
-        stopper = _TimeStopper(locations=locations)
-
-        old_perform_full_step_function = self.perform_full_step
-        self.perform_full_step = stopper.wrap(self.perform_full_step)
-
-        try:
-            yield
-        finally:
-            self.perform_full_step = old_perform_full_step_function
-
 
 class _TimeStopper:
     """Make the ODE solver stop at specified time-points."""
@@ -206,32 +184,15 @@ class _TimeStopper:
         self._locations = iter(locations)
         self._next_location = next(self._locations)
 
-    def wrap(self, perform_step_function):
-        """Wrap a perform_step function into a perform_step function that is informed
-        about the time-stops."""
-
-        def wrapped_step(state, initial_dt, steprule):
-            new_dt = self.adjust_dt_to_time_stamps(state.t, initial_dt)
-            state, dt = perform_step_function(state, new_dt, steprule)
-
-            # This line ensures that the "current" next location is only advanced if the taken step is beyond the point.
-            # It cannot happen in adjust_dt_..., because inside perform_step, a step might be rejected for the sake of a smaller
-            # step, in which case we do not want to advance the state.
-            self.advance_current_location_if_applicable(state)
-            return state, dt
-
-        return wrapped_step
-
     def adjust_dt_to_time_stamps(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""
 
-        if t + dt > self._next_location:
-            dt = self._next_location - t
-        return dt
-
-    def advance_current_location_if_applicable(self, state):
-        if state.t >= self._next_location:
+        if t >= self._next_location:
             try:
                 self._next_location = next(self._locations)
             except StopIteration:
                 self._next_location = np.inf
+
+        if t + dt > self._next_location:
+            dt = self._next_location - t
+        return dt

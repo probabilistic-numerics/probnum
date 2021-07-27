@@ -201,7 +201,6 @@ def perturbsolve_ivp(
         rng=rng,
         solver=wrapped_scipy_solver,
         noise_scale=noise_scale,
-        time_stamps=time_stamps,
     )
 
-    return perturbed_solver.solve(ivp=ivp)
+    return perturbed_solver.solve(ivp=ivp, stop_at=time_stamps)

@@ -290,7 +290,6 @@ def probsolve_ivp(
         with_smoothing=dense_output,
         initialization_routine=rk_init,
         diffusion_model=diffusion,
-        # time_stamps=time_stamps,
     )
 
-    return solver.solve(ivp=ivp)
+    return solver.solve(ivp=ivp, stop_at=time_stamps)
