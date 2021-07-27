@@ -42,7 +42,7 @@ class Transition(abc.ABC):
     --------
     :class:`SDE`
         Markov-processes in continuous time.
-    :class:`DiscreteGaussian`
+    :class:`NonlinearGaussian`
         Markov-chains and general discrete-time transitions (likelihoods).
     """
 

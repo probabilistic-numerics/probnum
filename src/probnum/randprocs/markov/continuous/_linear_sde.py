@@ -86,7 +86,7 @@ class LinearSDE(_sde.SDE):
         ]
 
         # Once different smoothing algorithms are available,
-        # replicate the scheme from DiscreteGaussian here, in which
+        # replicate the scheme from NonlinearGaussian here, in which
         # the initialisation decides between, e.g., classic and sqrt implementations.
 
         # Store remaining functions and attributes

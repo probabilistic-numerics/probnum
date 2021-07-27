@@ -21,7 +21,7 @@ except ImportError:
     from cached_property import cached_property
 
 
-class DiscreteGaussian(_transition.Transition):
+class NonlinearGaussian(_transition.Transition):
     r"""Discrete transitions with additive Gaussian noise.
 
     .. math:: x_{i+1} \sim \mathcal{N}(g(t_i, x_i), S(t_i))
@@ -48,7 +48,7 @@ class DiscreteGaussian(_transition.Transition):
     See Also
     --------
     :class:`DiscreteModel`
-    :class:`DiscreteGaussianLinearModel`
+    :class:`NonlinearGaussianLinearModel`
     """
 
     def __init__(
@@ -124,7 +124,7 @@ class DiscreteGaussian(_transition.Transition):
 
     # Implementations that are the same for all sorts of
     # discrete Gaussian transitions, in particular shared
-    # by LinearDiscreteGaussian and e.g. DiscreteUKFComponent.
+    # by LinearNonlinearGaussian and e.g. DiscreteUKFComponent.
 
     def _backward_rv_classic(
         self,
@@ -204,7 +204,7 @@ class DiscreteGaussian(_transition.Transition):
         proc_noise_cov_mat_fun = replace_key("proc_noise_cov_mat_fun")
         jacob_state_trans_fun = replace_key("jacob_state_trans_fun")
         proc_noise_cov_cholesky_fun = replace_key("proc_noise_cov_cholesky_fun")
-        return DiscreteGaussian(
+        return NonlinearGaussian(
             input_dim=input_dim,
             output_dim=output_dim,
             state_trans_fun=state_trans_fun,

@@ -50,7 +50,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         self,
         ivp: problems.InitialValueProblem,
         prior_process: randprocs.markov.MarkovProcess,
-        measurement_model: randprocs.markov.discrete.DiscreteGaussian,
+        measurement_model: randprocs.markov.discrete.NonlinearGaussian,
         with_smoothing: bool,
         initialization_routine: initialization_routines.InitializationRoutine,
         diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
@@ -327,7 +327,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
     ):
         """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
 
-        Return a :class:`DiscreteGaussian` (:class:`DiscreteEKFComponent`) that provides
+        Return a :class:`NonlinearGaussian` (:class:`DiscreteEKFComponent`) that provides
         a tractable approximation of the transition densities based on the local defect of the ODE
 
         .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t))

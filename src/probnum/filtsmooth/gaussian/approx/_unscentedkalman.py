@@ -1,8 +1,8 @@
 """General Gaussian filters based on approximating intractable quantities with numerical
 quadrature.
 
-Examples include the unscented Kalman filter / RTS smoother which is
-based on a third degree fully symmetric rule.
+Examples include the unscented Kalman filter / RTS smoother which is based on a third
+degree fully symmetric rule.
 """
 
 from typing import Dict, Optional, Tuple
@@ -146,7 +146,7 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
         raise NotImplementedError("Not available (yet).")
 
 
-class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGaussian):
+class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaussian):
     """Discrete unscented Kalman filter transition."""
 
     def __init__(
@@ -164,7 +164,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
             special_scale=special_scale,
         )
 
-        randprocs.markov.discrete.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -217,7 +217,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
         **kwargs
     ):
 
-        # this method is inherited from DiscreteGaussian.
+        # this method is inherited from NonlinearGaussian.
         return self._backward_rv_classic(
             rv_obtained,
             rv,
@@ -240,7 +240,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
         **kwargs
     ):
 
-        # this method is inherited from DiscreteGaussian.
+        # this method is inherited from NonlinearGaussian.
         return self._backward_realization_via_backward_rv(
             realization_obtained,
             rv,
@@ -262,7 +262,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
         prior,
         evlvar=0.0,
     ):
-        discrete_model = randprocs.discrete.DiscreteGaussian.from_ode(
+        discrete_model = randprocs.discrete.NonlinearGaussian.from_ode(
             ode=ode, prior=prior, evlvar=evlvar
         )
         return cls(discrete_model)

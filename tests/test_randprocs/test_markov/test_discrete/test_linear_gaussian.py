@@ -18,8 +18,8 @@ def backw_impl_string_linear_gauss(request):
     return request.param
 
 
-class TestLinearGaussian(test_nonlinear_gaussian.TestDiscreteGaussian):
-    """Test class for linear Gaussians. Inherits tests from `TestDiscreteGaussian` but
+class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
+    """Test class for linear Gaussians. Inherits tests from `TestNonlinearGaussian` but
     overwrites the forward and backward transitions.
 
     Also tests that different forward and backward implementations yield the same
@@ -41,7 +41,7 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestDiscreteGaussian):
         self.G = lambda t: spdmat1
         self.S = lambda t: spdmat2
         self.v = lambda t: np.arange(test_ndim)
-        self.transition = randprocs.markov.discrete.DiscreteLinearGaussian(
+        self.transition = randprocs.markov.discrete.LinearGaussian(
             test_ndim,
             test_ndim,
             self.G,
@@ -262,7 +262,7 @@ class TestLinearGaussianLinOps:
             self.G = lambda t: linops.aslinop(spdmat1)
             self.S = lambda t: linops.aslinop(spdmat2)
             self.v = lambda t: np.arange(test_ndim)
-            self.transition = randprocs.markov.discrete.DiscreteLinearGaussian(
+            self.transition = randprocs.markov.discrete.LinearGaussian(
                 test_ndim,
                 test_ndim,
                 self.G,
@@ -271,7 +271,7 @@ class TestLinearGaussianLinOps:
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
-            self.sqrt_transition = randprocs.markov.discrete.DiscreteLinearGaussian(
+            self.sqrt_transition = randprocs.markov.discrete.LinearGaussian(
                 test_ndim,
                 test_ndim,
                 self.G,

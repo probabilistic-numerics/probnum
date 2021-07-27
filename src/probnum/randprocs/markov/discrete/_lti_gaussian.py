@@ -21,7 +21,7 @@ except ImportError:
     from cached_property import cached_property
 
 
-class DiscreteLTIGaussian(_linear_gaussian.DiscreteLinearGaussian):
+class DiscreteLTIGaussian(_linear_gaussian.LinearGaussian):
     """Discrete, linear, time-invariant Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G x_i + v, S)
@@ -46,7 +46,7 @@ class DiscreteLTIGaussian(_linear_gaussian.DiscreteLinearGaussian):
     See Also
     --------
     :class:`DiscreteModel`
-    :class:`DiscreteGaussianLinearModel`
+    :class:`NonlinearGaussianLinearModel`
     """
 
     def __init__(

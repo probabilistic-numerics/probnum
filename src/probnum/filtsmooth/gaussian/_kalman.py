@@ -11,7 +11,7 @@ from probnum.filtsmooth.gaussian import _kalmanposterior, approx
 
 # Measurement models for a Kalman filter can be all sorts of things:
 KalmanSingleMeasurementModelType = Union[
-    randprocs.markov.discrete.DiscreteLinearGaussian,
+    randprocs.markov.discrete.LinearGaussian,
     approx.DiscreteEKFComponent,
     approx.DiscreteUKFComponent,
 ]

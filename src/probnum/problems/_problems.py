@@ -15,7 +15,7 @@ from probnum.typing import FloatArgType
 class TimeSeriesRegressionProblem:
     r"""Time series regression problem.
 
-    Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
+    Fit a stochastic process to data, given a likelihood (realised by a :obj:`NonlinearGaussian` transition).
     Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
 
     Parameters

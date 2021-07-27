@@ -356,7 +356,7 @@ def pendulum(
         + np.diag(np.array([step ** 2 / 2]), -1)
     )
 
-    dynamics_model = randprocs.markov.discrete.DiscreteGaussian(
+    dynamics_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=2,
         state_trans_fun=f,
@@ -364,7 +364,7 @@ def pendulum(
         jacob_state_trans_fun=df,
     )
 
-    measurement_model = randprocs.markov.discrete.DiscreteGaussian(
+    measurement_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=1,
         state_trans_fun=h,

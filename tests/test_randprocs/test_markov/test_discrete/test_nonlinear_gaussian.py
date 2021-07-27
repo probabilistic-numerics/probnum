@@ -5,7 +5,7 @@ from probnum import config, linops, randprocs, randvars
 from tests.test_randprocs.test_markov import test_transition
 
 
-class TestDiscreteGaussian(test_transition.InterfaceTestTransition):
+class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
     """Tests for the discrete Gaussian class.
 
     Most of the tests are reused/overwritten in subclasses, therefore the class-
@@ -22,7 +22,7 @@ class TestDiscreteGaussian(test_transition.InterfaceTestTransition):
         self.g = lambda t, x: np.sin(x)
         self.S = lambda t: spdmat1
         self.dg = lambda t, x: np.cos(x)
-        self.transition = randprocs.markov.discrete.DiscreteGaussian(
+        self.transition = randprocs.markov.discrete.NonlinearGaussian(
             test_ndim,
             test_ndim,
             self.g,

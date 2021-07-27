@@ -182,7 +182,7 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
         )
 
 
-class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGaussian):
+class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
@@ -192,7 +192,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
         backward_implementation="classic",
     ) -> None:
 
-        randprocs.markov.discrete.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -220,7 +220,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
         def dynamicsmatfun(t):
             return dg(t, x0)
 
-        return randprocs.markov.discrete.DiscreteLinearGaussian(
+        return randprocs.markov.discrete.LinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
@@ -241,7 +241,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
+        # code is here, and not in NonlinearGaussian, because we want the option of ek0-Jacobians
 
         h0 = prior.proj2coord(coord=0)
         h1 = prior.proj2coord(coord=1)
@@ -267,7 +267,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
             jaco = jaco_ek1
         else:
             raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
-        discrete_model = randprocs.markov.discrete.DiscreteGaussian(
+        discrete_model = randprocs.markov.discrete.NonlinearGaussian(
             input_dim=prior.dimension,
             output_dim=ode.dimension,
             state_trans_fun=dyna,
