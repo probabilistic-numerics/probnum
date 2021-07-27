@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from probnum import problems, randprocs, randvars, statespace
+from probnum import problems, randprocs, randvars
 from probnum.filtsmooth import gaussian
 
 __all__ = ["filter_kalman", "smooth_rts"]
@@ -161,16 +161,18 @@ def smooth_rts(observations, locations, F, L, H, R, m0, C0, prior_model="continu
 def _setup_prior_process(F, L, m0, C0, t0, prior_model):
     zero_shift_prior = np.zeros(F.shape[0])
     if prior_model == "discrete":
-        prior = statespace.DiscreteLTIGaussian(
+        prior = randprocs.markov.discrete.DiscreteLTIGaussian(
             state_trans_mat=F, shift_vec=zero_shift_prior, proc_noise_cov_mat=L
         )
     elif prior_model == "continuous":
-        prior = statespace.LTISDE(driftmat=F, forcevec=zero_shift_prior, dispmat=L)
+        prior = randprocs.markov.continuous.LTISDE(
+            driftmat=F, forcevec=zero_shift_prior, dispmat=L
+        )
     else:
         raise ValueError
     initrv = randvars.Normal(m0, C0)
     initarg = t0
-    prior_process = randprocs.MarkovProcess(
+    prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=initarg
     )
     return prior_process
@@ -178,7 +180,7 @@ def _setup_prior_process(F, L, m0, C0, t0, prior_model):
 
 def _setup_regression_problem(H, R, observations, locations):
     zero_shift_mm = np.zeros(H.shape[0])
-    measmod = statespace.DiscreteLTIGaussian(
+    measmod = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=H, shift_vec=zero_shift_mm, proc_noise_cov_mat=R
     )
     measurement_models = [measmod] * len(locations)

@@ -51,13 +51,13 @@ def test_info_dicts(setup):
 def test_kalman_smoother_high_order_ibm(rng):
     """The highest feasible order (without damping, which we dont use) is 11.
 
-    If this test breaks, someone played with the stable square-root
-    implementations in discrete_transition: for instance,
-    solve_triangular() and cho_solve() must not be changed to inv()!
+    If this test breaks, someone played with the stable square-root implementations in
+    discrete_transition: for instance, solve_triangular() and cho_solve() must not be
+    changed to inv()!
     """
     regression_problem, info = filtsmooth_zoo.car_tracking(
         rng=rng,
-        model_ordint=11,
+        num_prior_derivatives=11,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",
@@ -82,7 +82,7 @@ def test_kalman_smoother_high_order_ibm(rng):
 def test_kalman_multiple_measurement_models(rng):
     regression_problem, info = filtsmooth_zoo.car_tracking(
         rng=rng,
-        model_ordint=4,
+        num_prior_derivatives=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",
@@ -106,7 +106,7 @@ def test_kalman_multiple_measurement_models(rng):
 def test_kalman_value_error_repeating_timepoints(rng):
     regression_problem, info = filtsmooth_zoo.car_tracking(
         rng=rng,
-        model_ordint=4,
+        num_prior_derivatives=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",

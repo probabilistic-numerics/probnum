@@ -32,20 +32,17 @@ class ODESolver(ABC):
         self,
         ivp,
         order,
-        callbacks: Optional[
-            Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
-        ] = None,
     ):
         self.ivp = ivp
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-        def promote_callback_type(callbacks):
-            return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
-
-        if callbacks is not None:
-            callbacks = promote_callback_type(callbacks)
-        self.callbacks = callbacks
+        # def promote_callback_type(callbacks):
+        #     return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
+        #
+        # if callbacks is not None:
+        #     callbacks = promote_callback_type(callbacks)
+        # self.callbacks = callbacks
 
         # Assigned per default here. Might be overwritten (wrapped) by the `stop_at()` context manager
         # which forces the ODE solver to incorporate certain grid points.
@@ -66,18 +63,21 @@ class ODESolver(ABC):
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
         self.steprule = steprule
+
+    def solve(self, ivp):
+        """Solve an IVP."""
         times, rvs = [], []
-        for state in self.solution_generator(steprule):
+        for state in self.solution_generator(ivp):
             times.append(state.t)
             rvs.append(state.rv)
 
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         return self.postprocess(odesol)
 
-    def solution_generator(self, steprule):
+    def solution_generator(self, ivp):
         """Generate ODE solver steps."""
 
-        state = self.initialize()
+        state = self.initialize(ivp)
         yield state
 
         dt = steprule.firststep
@@ -125,7 +125,7 @@ class ODESolver(ABC):
         return proposed_state, dt
 
     @abstractmethod
-    def initialize(self):
+    def initialize(self, ivp):
         """Returns t0 and y0 (for the solver, which might be different to ivp.y0)"""
         raise NotImplementedError
 

@@ -10,10 +10,10 @@ from probnum import diffeq, randvars
 
 @pytest_cases.fixture
 @pytest_cases.parametrize_with_cases(
-    "testsolver, scipysolver", cases=".test_wrapped_scipy_cases"
+    "testsolver, scipysolver, ode", cases=".test_wrapped_scipy_cases"
 )
-def solvers(testsolver, scipysolver):
-    return testsolver, scipysolver
+def solvers(testsolver, scipysolver, ode):
+    return testsolver, scipysolver, ode
 
 
 @pytest.fixture
@@ -55,12 +55,15 @@ def doprisolver():
 
 def test_init(doprisolver):
     with pytest.raises(TypeError):
-        diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(doprisolver)
+        steprule = diffeq.stepsize.ConstantSteps(0.2)  # irrelevant value
+        diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(
+            rk.DOP853, steprule=steprule
+        )
 
 
 def test_initialise(solvers):
     testsolver, scipysolver = solvers
-    state = testsolver.initialize()
+    state = testsolver.initialize(ode)
     time_scipy = scipysolver.t
     state_scipy = scipysolver.y
     np.testing.assert_allclose(state.t, time_scipy, atol=1e-13, rtol=1e-13)
@@ -68,7 +71,7 @@ def test_initialise(solvers):
 
 
 def test_step_execution(solvers):
-    testsolver, scipysolver = solvers
+    testsolver, scipysolver, ode = solvers
     scipysolver.step()
 
     # perform step of the same size
@@ -78,13 +81,14 @@ def test_step_execution(solvers):
         error_estimate=None,
         reference_state=None,
     )
+    testsolver.initialize(ode)
     dt = scipysolver.t - scipysolver.t_old
     new_state = testsolver.attempt_step(teststate, dt)
     np.testing.assert_allclose(scipysolver.y, new_state.rv.mean)
 
 
 def test_step_variables(solvers, y, start_point, stop_point):
-    testsolver, scipysolver = solvers
+    testsolver, scipysolver, ode = solvers
 
     teststate = testsolver.State(
         rv=randvars.Constant(y),
@@ -92,6 +96,7 @@ def test_step_variables(solvers, y, start_point, stop_point):
         error_estimate=None,
         reference_state=None,
     )
+    testsolver.initialize(ode)
     solver_y_new = testsolver.attempt_step(teststate, dt=stop_point - start_point)
     y_new, f_new = rk.rk_step(
         scipysolver.fun,
@@ -135,9 +140,10 @@ def test_step_variables(solvers, y, start_point, stop_point):
 
 
 def test_dense_output(solvers):
-    testsolver, scipysolver = solvers
+    testsolver, scipysolver, ode = solvers
 
     # perform steps of the same size
+    testsolver.initialise(ode)
     scipysolver.step()
     teststate = testsolver.State(
         rv=randvars.Constant(scipysolver.y_old),

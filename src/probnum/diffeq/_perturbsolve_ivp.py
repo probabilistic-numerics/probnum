@@ -170,13 +170,26 @@ def perturbsolve_ivp(
 
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
 
+    # Create steprule
+    if adaptive is True:
+        if atol is None or rtol is None:
+            raise ValueError(
+                "Please provide absolute and relative tolerance for adaptive steps."
+            )
+        firststep = step if step is not None else stepsize.propose_firststep(ivp)
+        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+    else:
+        steprule = stepsize.ConstantSteps(step)
+
     if method not in METHODS.keys():
         msg1 = f"Parameter method='{method}' is not supported. "
         msg2 = f"Possible values are {list(METHODS.keys())}."
         errormsg = msg1 + msg2
         raise ValueError(errormsg)
-    scipy_solver = METHODS[method](ivp.f, ivp.t0, ivp.y0, ivp.tmax)
-    wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(scipy_solver)
+    scipy_solver = METHODS[method]
+    wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(
+        scipy_solver, steprule=steprule
+    )
 
     if perturb not in PERTURBS.keys():
         msg1 = f"Parameter perturb='{perturb}' is not supported. "
@@ -191,15 +204,4 @@ def perturbsolve_ivp(
         time_stamps=time_stamps,
     )
 
-    # Create steprule
-    if adaptive is True:
-        if atol is None or rtol is None:
-            raise ValueError(
-                "Please provide absolute and relative tolerance for adaptive steps."
-            )
-        firststep = step if step is not None else stepsize.propose_firststep(ivp)
-        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
-    else:
-        steprule = stepsize.ConstantSteps(step)
-
-    return perturbed_solver.solve(steprule=steprule)
+    return perturbed_solver.solve(ivp=ivp)

@@ -11,10 +11,10 @@ from probnum.randvars import Constant
 class MockODESolver(diffeq.ODESolver):
     """Euler method as an ODE solver."""
 
-    def initialize(self):
+    def initialize(self, ivp):
         return self.State(
-            rv=Constant(self.ivp.y0),
-            t=self.ivp.t0,
+            rv=Constant(ivp.y0),
+            t=ivp.t0,
             error_estimate=np.nan,
             reference_state=None,
         )
@@ -40,16 +40,16 @@ class ODESolverTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        y0 = np.array([0.3])
-        ivp = logistic(t0=0, tmax=4, y0=y0)
+        step = 0.2
+        steprule = diffeq.stepsize.ConstantSteps(step)
         euler_order = 1
-        self.solver = MockODESolver(ivp, order=euler_order)
-        self.step = 0.2
+        self.solver = MockODESolver(steprule=steprule, order=euler_order)
 
     def test_solve(self):
-        steprule = diffeq.stepsize.ConstantSteps(self.step)
+        y0 = np.array([0.3])
+        ivp = logistic(t0=0, tmax=4, y0=y0)
         odesol = self.solver.solve(
-            steprule=steprule,
+            ivp=ivp,
         )  # this is the actual part of the test
 
         # quick check that the result is sensible

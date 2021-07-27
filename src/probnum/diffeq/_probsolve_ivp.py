@@ -10,7 +10,7 @@ References
 
 import numpy as np
 
-from probnum import problems, randprocs, randvars, statespace
+from probnum import problems, randprocs
 from probnum.diffeq import odefiltsmooth, stepsize
 
 __all__ = ["probsolve_ivp"]
@@ -94,11 +94,11 @@ def probsolve_ivp(
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
     algo_order
-        Order of the algorithm. This amounts to choosing the order of integration (``ordint``) of an integrated Brownian motion prior.
-        For too high orders, process noise covariance matrices become singular. For IBM, this maximum seems to be :`q=11` (using standard ``float64``).
+        Order of the algorithm. This amounts to choosing the number of derivatives of an integrated Wiener process prior.
+        For too high orders, process noise covariance matrices become singular.
+        For integrated Wiener processes, this maximum seems to be ``num_derivatives=11`` (using standard ``float64``).
         It is possible that higher orders may work for you.
-        The type of prior relates to prior assumptions about the
-        derivative of the solution.
+        The type of prior relates to prior assumptions about the derivative of the solution.
         The higher the order of the algorithm, the faster the convergence, but also, the higher-dimensional (and thus the costlier) the state space.
     method : str, optional
         Which method is to be used. Default is ``EK0`` which is the
@@ -241,9 +241,9 @@ def probsolve_ivp(
                 "Please provide absolute and relative tolerance for adaptive steps."
             )
         firststep = step if step is not None else stepsize.propose_firststep(ivp)
-        stprl = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
-        stprl = stepsize.ConstantSteps(step)
+        steprule = stepsize.ConstantSteps(step)
 
     # Construct diffusion model.
     diffusion_model = diffusion_model.lower()
@@ -251,45 +251,46 @@ def probsolve_ivp(
         raise ValueError("Diffusion model is not supported.")
 
     choose_diffusion_model = {
-        "constant": statespace.ConstantDiffusion(),
-        "dynamic": statespace.PiecewiseConstantDiffusion(t0=ivp.t0),
+        "constant": randprocs.markov.continuous.ConstantDiffusion(),
+        "dynamic": randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=ivp.t0),
     }
     diffusion = choose_diffusion_model[diffusion_model]
 
     # Create solver
-    prior = statespace.IBM(
-        ordint=algo_order,
-        spatialdim=ivp.dimension,
+    prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
+        initarg=ivp.t0,
+        num_derivatives=algo_order,
+        wiener_process_dimension=ivp.dimension,
+        diffuse=True,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    initrv = randvars.Normal(
-        mean=np.zeros(prior.dimension),
-        cov=1e6 * np.eye(prior.dimension),
-        cov_cholesky=1e3 * np.eye(prior.dimension),
-    )
-    prior_process = randprocs.MarkovProcess(
-        transition=prior, initrv=initrv, initarg=ivp.t0
+
+    info_op = odefiltsmooth.information_operators.ODEResidual(
+        num_prior_derivatives=prior_process.transition.num_derivatives,
+        ode_dimension=prior_process.transition.wiener_process_dimension,
     )
 
-    if method.upper() not in ["EK0", "EK1"]:
+    choose_method = {
+        "EK0": odefiltsmooth.approx_strategies.EK0(),
+        "EK1": odefiltsmooth.approx_strategies.EK1(),
+    }
+    method = method.upper()
+    if method not in choose_method.keys():
         raise ValueError("Method is not supported.")
-    measmod = odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
-        method, ivp, prior_process
-    )
+    approx_strategy = choose_method[method]
 
     rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+
     solver = odefiltsmooth.GaussianIVPFilter(
-        ivp=ivp,
-        prior_process=prior_process,
-        measurement_model=measmod,
+        steprule,
+        prior_process,
+        information_operator=info_op,
+        approx_strategy=approx_strategy,
         with_smoothing=dense_output,
         initialization_routine=rk_init,
         diffusion_model=diffusion,
         # time_stamps=time_stamps,
     )
 
-    if time_stamps is not None:
-        with solver.stop_at(locations=time_stamps):
-            return solver.solve(steprule=stprl)
-    return solver.solve(steprule=stprl)
+    return solver.solve(ivp=ivp)

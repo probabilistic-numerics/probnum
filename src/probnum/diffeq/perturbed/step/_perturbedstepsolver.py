@@ -62,12 +62,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.perturb_step = perturb_step
         self.solver = solver
         self.scales = None
-        super().__init__(
-            ivp=solver.ivp,
-            order=solver.order,
-            time_stamps=time_stamps,
-            callbacks=callbacks,
-        )
+        super().__init__(steprule=solver.steprule, order=solver.order)
 
     @classmethod
     def construct_with_lognormal_perturbation(
@@ -107,10 +102,10 @@ class PerturbedStepSolver(_odesolver.ODESolver):
             callbacks=callbacks,
         )
 
-    def initialize(self):
+    def initialize(self, ivp):
         """Initialise and reset the solver."""
         self.scales = []
-        return self.solver.initialize()
+        return self.solver.initialize(ivp)
 
     def attempt_step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
         """Perturb the original stopping point.
