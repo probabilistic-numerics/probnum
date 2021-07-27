@@ -239,9 +239,9 @@ def probsolve_ivp(
                 "Please provide absolute and relative tolerance for adaptive steps."
             )
         firststep = step if step is not None else stepsize.propose_firststep(ivp)
-        stprl = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
-        stprl = stepsize.ConstantSteps(step)
+        steprule = stepsize.ConstantSteps(step)
 
     # Construct diffusion model.
     diffusion_model = diffusion_model.lower()
@@ -264,20 +264,30 @@ def probsolve_ivp(
         backward_implementation="sqrt",
     )
 
-    if method.upper() not in ["EK0", "EK1"]:
-        raise ValueError("Method is not supported.")
-    measmod = odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
-        method, ivp, prior_process
+    info_op = odefiltsmooth.information_operators.ODEResidual(
+        num_prior_derivatives=prior_process.transition.num_derivatives,
+        ode_dimension=prior_process.transition.wiener_process_dimension,
     )
 
+    choose_method = {
+        "EK0": odefiltsmooth.approx_strategies.EK0(),
+        "EK1": odefiltsmooth.approx_strategies.EK1(),
+    }
+    method = method.upper()
+    if method not in choose_method.keys():
+        raise ValueError("Method is not supported.")
+    approx_strategy = choose_method[method]
+
     rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+
     solver = odefiltsmooth.GaussianIVPFilter(
-        ivp=ivp,
-        prior_process=prior_process,
-        measurement_model=measmod,
+        steprule,
+        prior_process,
+        information_operator=info_op,
+        approx_strategy=approx_strategy,
         with_smoothing=dense_output,
         initialization_routine=rk_init,
         diffusion_model=diffusion,
     )
 
-    return solver.solve(steprule=stprl)
+    return solver.solve(ivp=ivp)

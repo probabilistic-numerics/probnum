@@ -6,47 +6,38 @@ from abc import ABC, abstractmethod
 class ODESolver(ABC):
     """Interface for ODE solvers in ProbNum."""
 
-    def __init__(self, ivp, order):
-        self.ivp = ivp
-        self.order = (
-            order  # e.g.: RK45 has order=5, IntegratedWienerTransition(nu) has order=nu
-        )
+    def __init__(self, order, steprule):
+        self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
-
-    def solve(self, steprule):
-        """Solve an IVP.
-
-        Parameters
-        ----------
-        steprule : :class:`StepRule`
-            Step-size selection rule, e.g. constant steps or adaptive steps.
-        """
         self.steprule = steprule
+
+    def solve(self, ivp):
+        """Solve an IVP."""
         times, rvs = [], []
-        for t, rv in self.solution_generator(steprule):
+        for t, rv in self.solution_generator(ivp):
             times.append(t)
             rvs.append(rv)
 
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         return self.postprocess(odesol)
 
-    def solution_generator(self, steprule):
+    def solution_generator(self, ivp):
         """Generate ODE solver steps."""
 
-        t, current_rv = self.initialise()
+        t, current_rv = self.initialise(ivp)
 
         yield t, current_rv
-        stepsize = steprule.firststep
+        stepsize = self.steprule.firststep
 
         while t < self.ivp.tmax:
 
             t_new = t + stepsize
             proposed_rv, errorest, reference_state = self.step(t, t_new, current_rv)
-            internal_norm = steprule.errorest_to_norm(
+            internal_norm = self.steprule.errorest_to_norm(
                 errorest=errorest,
                 reference_state=reference_state,
             )
-            if steprule.is_accepted(internal_norm):
+            if self.steprule.is_accepted(internal_norm):
                 self.num_steps += 1
                 self.method_callback(
                     time=t_new, current_guess=proposed_rv, current_error=errorest
@@ -56,13 +47,13 @@ class ODESolver(ABC):
 
                 yield t, current_rv
 
-            suggested_stepsize = steprule.suggest(
+            suggested_stepsize = self.steprule.suggest(
                 stepsize, internal_norm, localconvrate=self.order + 1
             )
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
     @abstractmethod
-    def initialise(self):
+    def initialise(self, ivp):
         """Returns t0 and y0 (for the solver, which might be different to ivp.y0)"""
         raise NotImplementedError
 

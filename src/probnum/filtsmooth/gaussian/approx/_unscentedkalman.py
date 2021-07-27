@@ -255,15 +255,3 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
     @property
     def dimension(self) -> int:
         return self.ut.dimension
-
-    @classmethod
-    def from_ode(
-        cls,
-        ode,
-        prior,
-        evlvar=0.0,
-    ):
-        discrete_model = randprocs.discrete.NonlinearGaussian.from_ode(
-            ode=ode, prior=prior, evlvar=evlvar
-        )
-        return cls(discrete_model)
