@@ -71,7 +71,8 @@ class DiscreteLTIGaussian(_linear_gaussian.DiscreteLinearGaussian):
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
-
+        self.forward_implementation = forward_implementation
+        self.backward_implementation = backward_implementation
         self.state_trans_mat = state_trans_mat
         self.shift_vec = shift_vec
         self.proc_noise_cov_mat = proc_noise_cov_mat
@@ -85,6 +86,28 @@ class DiscreteLTIGaussian(_linear_gaussian.DiscreteLinearGaussian):
         if self._proc_noise_cov_cholesky is not None:
             return self._proc_noise_cov_cholesky
         return np.linalg.cholesky(self.proc_noise_cov_mat)
+
+    def _duplicate(self, **changes):
+        def replace_key(key):
+            try:
+                return changes[key]
+            except KeyError:
+                return getattr(self, key)
+
+        state_trans_mat = replace_key("state_trans_mat")
+        shift_vec = replace_key("shift_vec")
+        proc_noise_cov_mat = replace_key("proc_noise_cov_mat")
+        proc_noise_cov_cholesky = replace_key("proc_noise_cov_cholesky")
+        forward_implementation = replace_key("forward_implementation")
+        backward_implementation = replace_key("backward_implementation")
+        return DiscreteLTIGaussian(
+            state_trans_mat=state_trans_mat,
+            shift_vec=shift_vec,
+            proc_noise_cov_mat=proc_noise_cov_mat,
+            proc_noise_cov_cholesky=proc_noise_cov_cholesky,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )
 
 
 def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
