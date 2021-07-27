@@ -5,7 +5,7 @@ import pytest
 
 from probnum import config, linops, randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
-from tests.test_randprocs.test_markov.test_continuous import test_sde
+from tests.test_randprocs.test_markov.test_continuous import test_lti_sde
 from tests.test_randprocs.test_markov.test_integrator import test_integrator
 
 
@@ -50,7 +50,7 @@ def test_iwp_construction(
 
 
 class TestIntegratedWienerTransition(
-    test_sde.TestLTISDE, test_integrator.TestIntegratorTransition
+    test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTransition
 ):
 
     # Replacement for an __init__ in the pytest language. See:
@@ -169,7 +169,7 @@ class TestIntegratedWienerTransitionValues:
         np.testing.assert_allclose(diffusion * qh_22_ibm, rv.cov)
 
 
-class TestIBMLinOps(test_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
+class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined

@@ -8,12 +8,12 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.randprocs.markov import _transition, discrete
-from probnum.randprocs.markov.continuous import _mfd
+from probnum.randprocs.markov.continuous import _linear_sde, _mfd
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import tril_to_positive_tril
 
 
-class LTISDE(LinearSDE):
+class LTISDE(_linear_sde.LinearSDE):
     """Linear time-invariant continuous Markov models of the form.
 
     .. math:: d x(t) = [G x(t) + v] d t + L d w(t).

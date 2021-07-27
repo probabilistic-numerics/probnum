@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from probnum import randprocs, randvars
-from tests.test_randprocs.test_markov.test_continuous import test_sde
+from tests.test_randprocs.test_markov.test_continuous import test_lti_sde
 from tests.test_randprocs.test_markov.test_integrator import test_integrator
 
 
@@ -53,7 +53,7 @@ def test_matern_construction(
 
 
 class TestMaternTransition(
-    test_sde.TestLTISDE, test_integrator.TestIntegratorTransition
+    test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTransition
 ):
 
     # Replacement for an __init__ in the pytest language. See:

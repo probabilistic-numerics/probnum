@@ -3,9 +3,10 @@ import pytest
 
 from probnum import randprocs, randvars
 from tests.test_randprocs.test_markov import test_transition
+from tests.test_randprocs.test_markov.test_continuous import test_linear_sde
 
 
-class TestLTISDE(TestLinearSDE):
+class TestLTISDE(test_linear_sde.TestLinearSDE):
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined

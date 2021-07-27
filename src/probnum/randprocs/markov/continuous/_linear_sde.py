@@ -8,12 +8,12 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.randprocs.markov import _transition, discrete
-from probnum.randprocs.markov.continuous import _mfd
+from probnum.randprocs.markov.continuous import _mfd, _sde
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import tril_to_positive_tril
 
 
-class LinearSDE(SDE):
+class LinearSDE(_sde.SDE):
     """Linear stochastic differential equation (SDE),
 
     .. math:: d x(t) = [G(t) x(t) + v(t)] d t + L(t) x(t) d w(t).
