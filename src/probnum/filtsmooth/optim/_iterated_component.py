@@ -159,3 +159,22 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
             return self.attr
         else:
             return getattr(self._component, attr)
+
+    def _duplicate(self, **changes):
+        def replace_key(key):
+            """If the key is part of the desired changes, change appropriately.
+
+            Otherwise, take the current value.
+            """
+            try:
+                return changes[key]
+            except KeyError:
+                return getattr(self, key)
+
+        component = replace_key("component")
+        stopcrit = replace_key("stopcrit")
+
+        return IteratedDiscreteComponent(
+            component=component,
+            stopcrit=stopcrit,
+        )

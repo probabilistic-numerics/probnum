@@ -456,14 +456,18 @@ def benes_daum(
     def df(t, x):
         return 1.0 - np.tanh(x) ** 2
 
-    def l(t):
+    def l(t, x):
         return process_diffusion * np.ones((1, 1))
 
     if initrv is None:
         initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
 
     dynamics_model = randprocs.markov.continuous.SDE(
-        dimension=1, driftfun=f, dispersion_matrix_function=l, jacobfun=df
+        state_dimension=1,
+        wiener_process_dimension=1,
+        drift_function=f,
+        dispersion_function=l,
+        drift_jacobian=df,
     )
     measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=np.eye(1),

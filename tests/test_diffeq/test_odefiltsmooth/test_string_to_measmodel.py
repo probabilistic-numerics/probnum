@@ -26,9 +26,9 @@ def prior(ivp):
         num_derivatives=2, wiener_process_dimension=ode_dim
     )
     initrv = randvars.Normal(
-        mean=np.zeros(prior.dimension),
-        cov=np.eye(prior.dimension),
-        cov_cholesky=np.eye(prior.dimension),
+        mean=np.zeros(prior.state_dimension),
+        cov=np.eye(prior.state_dimension),
+        cov_cholesky=np.eye(prior.state_dimension),
     )
     prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=0.0
@@ -67,7 +67,7 @@ def test_true_mean_ek(string, ivp, prior):
     received = diffeq.odefiltsmooth.GaussianIVPFilter.string_to_measurement_model(
         string, ivp, prior
     )
-    some_real = 1.0 + 0.01 * np.random.rand(prior.transition.dimension)
+    some_real = 1.0 + 0.01 * np.random.rand(prior.transition.state_dimension)
     some_time = 1.0 + 0.01 * np.random.rand()
     received, _ = received.forward_realization(some_real, some_time)
 

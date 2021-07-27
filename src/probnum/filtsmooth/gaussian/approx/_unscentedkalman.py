@@ -74,10 +74,11 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
         )
         randprocs.markov.continuous.SDE.__init__(
             self,
-            non_linear_model.dimension,
-            non_linear_model.driftfun,
-            non_linear_model.dispersion_matrix_function,
-            non_linear_model.jacobfun,
+            state_dimension=non_linear_model.state_dimension,
+            wiener_process_dimension=non_linear_model.wiener_process_dimension,
+            drift_function=non_linear_model.drift_function,
+            dispersion_function=non_linear_model.dispersion_function,
+            drift_jacobian=non_linear_model.drift_jacobian,
         )
         self.mde_atol = mde_atol
         self.mde_rtol = mde_rtol
