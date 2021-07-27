@@ -22,15 +22,15 @@ class LinearSDE(_sde.SDE):
 
     Parameters
     ----------
-    driftmatfun :
+    drift_matrix_function :
         This is G = G(t). The evaluations of this function are called
         the driftmatrix of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcevecfun :
+    force_vector_function :
         This is v = v(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatfun :
+    dispersion_matrix_function :
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
@@ -41,19 +41,40 @@ class LinearSDE(_sde.SDE):
     mde_solver
         Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
         Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+    forward_implementation
+        Implementation style for forward transitions.
     """
 
     def __init__(
         self,
-        dimension: IntArgType,
-        driftmatfun: Callable[[FloatArgType], np.ndarray],
-        forcevecfun: Callable[[FloatArgType], np.ndarray],
-        dispmatfun: Callable[[FloatArgType], np.ndarray],
+        state_dimension: IntArgType,
+        wiener_process_dimension: IntArgType,
+        drift_matrix_function: Callable[[FloatArgType], np.ndarray],
+        force_vector_function: Callable[[FloatArgType], np.ndarray],
+        dispersion_matrix_function: Callable[[FloatArgType], np.ndarray],
         mde_atol: Optional[FloatArgType] = 1e-6,
         mde_rtol: Optional[FloatArgType] = 1e-6,
         mde_solver: Optional[str] = "RK45",
         forward_implementation: Optional[str] = "classic",
     ):
+
+        # Transform functions to be SDE-compatible and initialize super().
+        def drift_function(t, x):
+            return drift_matrix_function(t) @ x + force_vector_function(t)
+
+        def drift_jacobian(t, x):
+            return drift_matrix_function(t)
+
+        def dispersion_function(t, x):
+            return dispersion_matrix_function(t)
+
+        super().__init__(
+            state_dimension=state_dimension,
+            wiener_process_dimension=wiener_process_dimension,
+            drift_function=drift_function,
+            drift_jacobian=drift_jacobian,
+            dispersion_function=dispersion_function,
+        )
 
         # Choose implementation for forward transitions
         choose_mde_forward_implementation = {
@@ -68,18 +89,14 @@ class LinearSDE(_sde.SDE):
         # replicate the scheme from DiscreteGaussian here, in which
         # the initialisation decides between, e.g., classic and sqrt implementations.
 
-        self.driftmatfun = driftmatfun
-        self.forcevecfun = forcevecfun
-        super().__init__(
-            dimension=dimension,
-            driftfun=(lambda t, x: self.driftmatfun(t) @ x + self.forcevecfun(t)),
-            dispmatfun=dispmatfun,
-            jacobfun=(lambda t, x: self.driftmatfun(t)),
-        )
-
+        # Store remaining functions and attributes
+        self.drift_matrix_function = drift_matrix_function
+        self.force_vector_function = force_vector_function
+        self.dispersion_matrix_function = dispersion_matrix_function
         self.mde_atol = mde_atol
         self.mde_rtol = mde_rtol
         self.mde_solver = mde_solver
+        self.forward_implementation = forward_implementation
 
     def forward_rv(
         self,
@@ -250,9 +267,9 @@ class LinearSDE(_sde.SDE):
             cov = cov_flat.reshape((dim, dim))
 
             # Apply iteration
-            G = self.driftmatfun(t)
-            u = self.forcevecfun(t)
-            L = self.dispmatfun(t)
+            G = self.drift_matrix_function(t)
+            u = self.force_vector_function(t)
+            L = self.dispersion_matrix_function(t)
             new_mean = G @ mean + u
             new_cov = G @ cov + cov @ G.T + _diffusion * L @ L.T
 
@@ -334,9 +351,9 @@ class LinearSDE(_sde.SDE):
             cov_cholesky = cov_cholesky_flat.reshape((dim, dim))
 
             # Apply iteration
-            G = self.driftmatfun(t)
-            u = self.forcevecfun(t)
-            L = self.dispmatfun(t)
+            G = self.drift_matrix_function(t)
+            u = self.force_vector_function(t)
+            L = self.dispersion_matrix_function(t)
 
             new_mean = G @ mean + u
             G_bar = scipy.linalg.solve_triangular(
@@ -375,9 +392,9 @@ class LinearSDE(_sde.SDE):
             cov = cov_flat.reshape((dim, dim))
 
             # Apply iteration
-            G = self.driftmatfun(t)
-            u = self.forcevecfun(t)
-            L = self.dispmatfun(t)
+            G = self.drift_matrix_function(t)
+            u = self.force_vector_function(t)
+            L = self.dispersion_matrix_function(t)
 
             mde_forward_sol_cov_mat = mde_forward_sol_cov(t)
             mde_forward_sol_mean_vec = mde_forward_sol_mean(t)

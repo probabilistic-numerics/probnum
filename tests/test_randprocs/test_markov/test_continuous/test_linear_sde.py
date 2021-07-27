@@ -17,20 +17,30 @@ class TestLinearSDE(test_sde.TestSDE):
         self.v = lambda t: np.arange(test_ndim)
         self.L = lambda t: spdmat2
         self.transition = randprocs.markov.continuous.LinearSDE(
-            test_ndim, self.G, self.v, self.L
+            state_dimension=test_ndim,
+            wiener_process_dimension=test_ndim,
+            drift_matrix_function=self.G,
+            force_vector_function=self.v,
+            dispersion_matrix_function=self.L,
         )
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
+        self.l = lambda t, x: self.L(t)
 
     def test_driftmatfun(self):
         expected = self.G(0.0)
-        received = self.transition.driftmatfun(0.0)
+        received = self.transition.drift_matrix_function(0.0)
         np.testing.assert_allclose(expected, received)
 
     def test_forcevecfun(self):
         expected = self.v(0.0)
-        received = self.transition.forcevecfun(0.0)
+        received = self.transition.force_vector_function(0.0)
+        np.testing.assert_allclose(expected, received)
+
+    def test_dispmatfun(self):
+        expected = self.L(0.0)
+        received = self.transition.dispersion_matrix_function(0.0)
         np.testing.assert_allclose(expected, received)
 
     def test_forward_rv(self, some_normal_rv1):
@@ -92,10 +102,15 @@ def ltisde_as_linearsde(G_const, v_const, L_const):
     G = lambda t: G_const
     v = lambda t: v_const
     L = lambda t: L_const
-    dim = 2
 
     return randprocs.markov.continuous.LinearSDE(
-        dim, G, v, L, mde_atol=1e-12, mde_rtol=1e-12
+        state_dimension=G_const.shape[0],
+        wiener_process_dimension=L_const.shape[1],
+        drift_matrix_function=G,
+        force_vector_function=v,
+        dispersion_matrix_function=L,
+        mde_atol=1e-12,
+        mde_rtol=1e-12,
     )
 
 
