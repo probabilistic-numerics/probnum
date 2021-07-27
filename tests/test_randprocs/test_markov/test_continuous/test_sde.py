@@ -13,27 +13,31 @@ class TestSDE(test_transition.InterfaceTestTransition):
     def _setup(self, test_ndim, spdmat1):
 
         self.g = lambda t, x: np.sin(x)
-        self.L = lambda t: spdmat1
+        self.l = lambda t, x: spdmat1
         self.dg = lambda t, x: np.cos(x)
         self.transition = randprocs.markov.continuous.SDE(
-            test_ndim, self.g, self.L, self.dg
+            state_dimension=test_ndim,
+            wiener_process_dimension=test_ndim,
+            drift_function=self.g,
+            dispersion_function=self.l,
+            drift_jacobian=self.dg,
         )
 
     # Test access to system matrices
 
     def test_drift(self, some_normal_rv1):
         expected = self.g(0.0, some_normal_rv1.mean)
-        received = self.transition.driftfun(0.0, some_normal_rv1.mean)
+        received = self.transition.drift_function(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
-    def test_dispersionmatrix(self):
-        expected = self.L(0.0)
-        received = self.transition.dispmatfun(0.0)
+    def test_dispersionmatrix(self, some_normal_rv1):
+        expected = self.l(0.0, some_normal_rv1.mean)
+        received = self.transition.dispersion_function(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
     def test_jacobfun(self, some_normal_rv1):
         expected = self.dg(0.0, some_normal_rv1.mean)
-        received = self.transition.jacobfun(0.0, some_normal_rv1.mean)
+        received = self.transition.drift_jacobian(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
     # Test forward and backward implementations
@@ -62,5 +66,8 @@ class TestSDE(test_transition.InterfaceTestTransition):
     def test_output_dim(self, test_ndim):
         assert self.transition.output_dim == test_ndim
 
-    def test_dimension(self, test_ndim):
-        assert self.transition.dimension == test_ndim
+    def test_state_dimension(self, test_ndim):
+        assert self.transition.state_dimension == test_ndim
+
+    def test_wiener_process_dimension(self, test_ndim):
+        assert self.transition.wiener_process_dimension == test_ndim

@@ -14,25 +14,29 @@ from probnum.utils.linalg import tril_to_positive_tril
 
 
 class SDE(_transition.Transition):
-    """Stochastic differential equation.
-
-    .. math:: d x(t) = g(t, x(t)) d t + L(t) d w(t),
-
-    driven by a Wiener process with unit diffusion.
+    r"""Stochastic differential equation.
+    .. math:: d x(t) = g(t, x(t)) d t + l(t, x(t)) d w(t),
+    driven by a Wiener process :math:`w` with isotropic diffusion :math:`\Gamma(t) = \gamma(t) I_d`.
     """
 
     def __init__(
         self,
-        dimension: IntArgType,
-        driftfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        dispmatfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        jacobfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        state_dimension: IntArgType,
+        wiener_process_dimension: IntArgType,
+        drift_function: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        dispersion_function: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        drift_jacobian: Optional[Callable[[FloatArgType, np.ndarray], np.ndarray]],
     ):
-        self.dimension = dimension
-        self.driftfun = driftfun
-        self.dispmatfun = dispmatfun
-        self.jacobfun = jacobfun
-        super().__init__(input_dim=dimension, output_dim=dimension)
+        super().__init__(input_dim=state_dimension, output_dim=state_dimension)
+
+        # Mandatory arguments
+        self.state_dimension = state_dimension
+        self.wiener_process_dimension = wiener_process_dimension
+        self.drift_function = drift_function
+        self.dispersion_function = dispersion_function
+
+        # Optional arguments
+        self.drift_jacobian = drift_jacobian
 
     def forward_realization(
         self,
