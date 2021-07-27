@@ -90,13 +90,22 @@ class LinearSDE(_sde.SDE):
         # the initialisation decides between, e.g., classic and sqrt implementations.
 
         # Store remaining functions and attributes
-        self.drift_matrix_function = drift_matrix_function
-        self.force_vector_function = force_vector_function
-        self.dispersion_matrix_function = dispersion_matrix_function
-        self.mde_atol = mde_atol
-        self.mde_rtol = mde_rtol
-        self.mde_solver = mde_solver
-        self.forward_implementation = forward_implementation
+        self._drift_matrix_function = drift_matrix_function
+        self._force_vector_function = force_vector_function
+        self._dispersion_matrix_function = dispersion_matrix_function
+        self._mde_atol = mde_atol
+        self._mde_rtol = mde_rtol
+        self._mde_solver = mde_solver
+        self._forward_implementation_string = forward_implementation
+
+    def drift_matrix_function(self, t):
+        return self._drift_matrix_function(t)
+
+    def force_vector_function(self, t):
+        return self._force_vector_function(t)
+
+    def dispersion_matrix_function(self, t):
+        return self._dispersion_matrix_function(t)
 
     def forward_rv(
         self,
@@ -199,9 +208,9 @@ class LinearSDE(_sde.SDE):
             mde,
             (t, t + dt),
             y0,
-            method=self.mde_solver,
-            atol=self.mde_atol,
-            rtol=self.mde_rtol,
+            method=self._mde_solver,
+            atol=self._mde_atol,
+            rtol=self._mde_rtol,
             dense_output=True,
         )
         y_end = sol.y[:, -1]
@@ -231,9 +240,9 @@ class LinearSDE(_sde.SDE):
             mde,
             (t + dt, t),
             y0,
-            method=self.mde_solver,
-            atol=self.mde_atol,
-            rtol=self.mde_rtol,
+            method=self._mde_solver,
+            atol=self._mde_atol,
+            rtol=self._mde_rtol,
             args=(mde_forward_sol_mean, mde_forward_sol_cov),
             dense_output=True,
         )
