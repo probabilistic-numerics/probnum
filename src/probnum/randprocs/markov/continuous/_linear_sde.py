@@ -107,6 +107,22 @@ class LinearSDE(_sde.SDE):
     def dispersion_matrix_function(self, t):
         return self._dispersion_matrix_function(t)
 
+    @property
+    def mde_atol(self):
+        return self._mde_atol
+
+    @property
+    def mde_rtol(self):
+        return self._mde_rtol
+
+    @property
+    def mde_solver(self):
+        return self._mde_solver
+
+    @property
+    def forward_implementation(self):
+        return self._forward_implementation_string
+
     def forward_rv(
         self,
         rv,
