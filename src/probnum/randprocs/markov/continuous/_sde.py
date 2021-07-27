@@ -135,14 +135,10 @@ class SDE(_transition.Transition):
         drift_function = replace_key("drift_function")
         dispersion_function = replace_key("dispersion_function")
         drift_jacobian = replace_key("drift_jacobian")
-        squared_scalar_diffusion_function = replace_key(
-            "squared_scalar_diffusion_function"
-        )
         return SDE(
             state_dimension=state_dimension,
             wiener_process_dimension=wiener_process_dimension,
             drift_function=drift_function,
             dispersion_function=dispersion_function,
             drift_jacobian=drift_jacobian,
-            squared_scalar_diffusion_function=squared_scalar_diffusion_function,
         )

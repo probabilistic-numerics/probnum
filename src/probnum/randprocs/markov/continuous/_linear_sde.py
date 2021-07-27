@@ -443,9 +443,6 @@ class LinearSDE(_sde.SDE):
         drift_matrix_function = replace_key("drift_matrix_function")
         dispersion_matrix_function = replace_key("dispersion_matrix_function")
         force_vector_function = replace_key("force_vector_function")
-        squared_scalar_diffusion_function = replace_key(
-            "squared_scalar_diffusion_function"
-        )
 
         mde_atol = replace_key("mde_atol")
         mde_rtol = replace_key("mde_rtol")
@@ -458,7 +455,6 @@ class LinearSDE(_sde.SDE):
             drift_matrix_function=drift_matrix_function,
             dispersion_matrix_function=dispersion_matrix_function,
             force_vector_function=force_vector_function,
-            squared_scalar_diffusion_function=squared_scalar_diffusion_function,
             mde_atol=mde_atol,
             mde_rtol=mde_rtol,
             mde_solver=mde_solver,

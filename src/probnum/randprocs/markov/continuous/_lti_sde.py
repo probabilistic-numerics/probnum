@@ -87,6 +87,14 @@ class LTISDE(_linear_sde.LinearSDE):
     def dispersion_matrix(self):
         return self._dispersion_matrix
 
+    @property
+    def forward_implementation(self):
+        return self._forward_implementation_string
+
+    @property
+    def backward_implementation(self):
+        return self._backward_implementation_string
+
     def forward_rv(
         self,
         rv,
@@ -188,7 +196,6 @@ class LTISDE(_linear_sde.LinearSDE):
         drift_matrix = replace_key("drift_matrix")
         dispersion_matrix = replace_key("dispersion_matrix")
         force_vector = replace_key("force_vector")
-        squared_scalar_diffusion = replace_key("squared_scalar_diffusion")
         forward_implementation = replace_key("forward_implementation")
         backward_implementation = replace_key("backward_implementation")
 
@@ -196,7 +203,6 @@ class LTISDE(_linear_sde.LinearSDE):
             drift_matrix=drift_matrix,
             dispersion_matrix=dispersion_matrix,
             force_vector=force_vector,
-            squared_scalar_diffusion=squared_scalar_diffusion,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
