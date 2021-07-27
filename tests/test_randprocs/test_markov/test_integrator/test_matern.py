@@ -75,9 +75,9 @@ class TestMaternTransition(
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
-        self.G = lambda t: self.transition.driftmat
-        self.v = lambda t: self.transition.forcevec
-        self.L = lambda t: self.transition.dispmat
+        self.G = lambda t: self.transition.drift_matrix
+        self.v = lambda t: self.transition.force_vector
+        self.L = lambda t: self.transition.dispersion_matrix
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)

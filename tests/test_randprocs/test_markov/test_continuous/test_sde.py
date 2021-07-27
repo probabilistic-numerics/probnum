@@ -35,7 +35,7 @@ class TestSDE(test_transition.InterfaceTestTransition):
         received = self.transition.dispersion_function(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
-    def test_jacobfun(self, some_normal_rv1):
+    def test_drift_jacobian(self, some_normal_rv1):
         expected = self.dg(0.0, some_normal_rv1.mean)
         received = self.transition.drift_jacobian(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)

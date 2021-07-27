@@ -28,17 +28,17 @@ class TestLinearSDE(test_sde.TestSDE):
         self.dg = lambda t, x: self.G(t)
         self.l = lambda t, x: self.L(t)
 
-    def test_driftmatfun(self):
+    def test_drift_matrix_function(self):
         expected = self.G(0.0)
         received = self.transition.drift_matrix_function(0.0)
         np.testing.assert_allclose(expected, received)
 
-    def test_forcevecfun(self):
+    def test_force_vector_function(self):
         expected = self.v(0.0)
         received = self.transition.force_vector_function(0.0)
         np.testing.assert_allclose(expected, received)
 
-    def test_dispmatfun(self):
+    def test_dispersion_matrix_function(self):
         expected = self.L(0.0)
         received = self.transition.dispersion_matrix_function(0.0)
         np.testing.assert_allclose(expected, received)
