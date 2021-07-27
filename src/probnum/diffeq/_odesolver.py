@@ -1,6 +1,5 @@
 """ODE solver interface."""
 
-import contextlib
 from abc import ABC, abstractmethod
 from collections import abc
 from dataclasses import dataclass
@@ -8,7 +7,7 @@ from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import randvars
+from probnum import problems, randvars
 from probnum.diffeq import callbacks, stepsize
 from probnum.typing import FloatArgType
 
@@ -23,7 +22,7 @@ class ODESolver(ABC):
     class State:
         """ODE solver states."""
 
-        # In the near future add the IVP here, too.
+        ivp: problems.InitialValueProblem
 
         t: float
         rv: randvars.RandomVariable
@@ -34,16 +33,16 @@ class ODESolver(ABC):
 
     def __init__(
         self,
-        ivp,
+        steprule,
         order,
     ):
-        self.ivp = ivp
+        self.steprule = steprule
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
     def solve(
         self,
-        steprule: stepsize.StepRule,
+        ivp: problems.InitialValueProblem,
         stop_at: Iterable[FloatArgType] = None,
         callbacks: Optional[CallbackType] = None,
     ):
@@ -58,11 +57,8 @@ class ODESolver(ABC):
         callbacks
             Callbacks to happen after every accepted step.
         """
-        self.steprule = steprule
-
-        for state in self.solution_generator(
-            steprule, stop_at=stop_at, callbacks=callbacks
-        ):
+        times, rvs = [], []
+        for state in self.solution_generator(ivp, stop_at=stop_at, callbacks=callbacks):
             times.append(state.t)
             rvs.append(state.rv)
 
@@ -71,7 +67,7 @@ class ODESolver(ABC):
 
     def solution_generator(
         self,
-        steprule: stepsize.StepRule,
+        ivp: problems.InitialValueProblem,
         stop_at: Iterable[FloatArgType] = None,
         callbacks: Optional[CallbackType] = None,
     ):
@@ -79,15 +75,17 @@ class ODESolver(ABC):
 
         callbacks, time_stopper = self._process_event_inputs(callbacks, stop_at)
 
-        state = self.initialize()
+        state = self.initialize(ivp)
         yield state
 
-        dt = steprule.firststep
-        while state.t < self.ivp.tmax:
+        dt = self.steprule.firststep
+
+        # Use state.ivp in case a callback modifies the IVP
+        while state.t < state.ivp.tmax:
             if time_stopper is not None:
                 dt = time_stopper.adjust_dt_to_time_stamps(state.t, dt)
 
-            state, dt = self.perform_full_step(state, dt, steprule)
+            state, dt = self.perform_full_step(state, dt)
 
             if callbacks is not None:
                 for callback in callbacks:
@@ -100,8 +98,8 @@ class ODESolver(ABC):
     def _process_event_inputs(callbacks, stop_at_locations):
         """Process callbacks and time-stamps into a format suitable for solve()."""
 
-        def promote_callback_type(callbacks):
-            return callbacks if isinstance(callbacks, abc.Iterable) else [callbacks]
+        def promote_callback_type(cbs):
+            return cbs if isinstance(cbs, abc.Iterable) else [cbs]
 
         if callbacks is not None:
             callbacks = promote_callback_type(callbacks)
@@ -111,7 +109,7 @@ class ODESolver(ABC):
             time_stopper = None
         return callbacks, time_stopper
 
-    def perform_full_step(self, state, initial_dt, steprule):
+    def perform_full_step(self, state, initial_dt):
         """Perform a full ODE solver step.
 
         This includes the acceptance/rejection decision as governed by error estimation
@@ -124,20 +122,20 @@ class ODESolver(ABC):
             proposed_state = self.attempt_step(state, dt)
 
             # Acceptance/Rejection due to the step-rule
-            internal_norm = steprule.errorest_to_norm(
+            internal_norm = self.steprule.errorest_to_norm(
                 errorest=proposed_state.error_estimate,
                 reference_state=proposed_state.reference_state,
             )
-            step_is_sufficiently_small = steprule.is_accepted(internal_norm)
-            suggested_dt = steprule.suggest(
+            step_is_sufficiently_small = self.steprule.is_accepted(internal_norm)
+            suggested_dt = self.steprule.suggest(
                 dt, internal_norm, localconvrate=self.order + 1
             )
 
             # Get a new step-size for the next step
             if step_is_sufficiently_small:
-                dt = min(suggested_dt, self.ivp.tmax - proposed_state.t)
+                dt = min(suggested_dt, state.ivp.tmax - proposed_state.t)
             else:
-                dt = min(suggested_dt, self.ivp.tmax - state.t)
+                dt = min(suggested_dt, state.ivp.tmax - state.t)
 
         # This line of code is unnecessary?!
         self.method_callback(state)
