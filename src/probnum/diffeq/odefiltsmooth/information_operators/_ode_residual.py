@@ -16,7 +16,6 @@ class ODEResidual(_information_operator.ODEInformationOperator):
 
     def __init__(self, num_prior_derivatives: IntArgType, ode_dimension: IntArgType):
         integrator_dimension = ode_dimension * (num_prior_derivatives + 1)
-        ode_dimension = ode_dimension
         super().__init__(input_dim=integrator_dimension, output_dim=ode_dimension)
         # Store remaining attributes
         self.num_prior_derivatives = num_prior_derivatives
