@@ -130,8 +130,8 @@ def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
         or proc_noise_cov_mat.shape[0] != proc_noise_cov_mat.shape[1]
     ):
         raise TypeError(
-            f"Dimension of dynamat, forcevec and diffmat do not align. "
-            f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
-            f"Received: dynamat.shape={state_trans_mat.shape}, forcevec.shape={shift_vec.shape}, "
+            f"Dimension of dynamat, force_vector and diffmat do not align. "
+            f"Expected: dynamat.shape=(N,*), force_vector.shape=(N,), diffmat.shape=(N, N).     "
+            f"Received: dynamat.shape={state_trans_mat.shape}, force_vector.shape={shift_vec.shape}, "
             f"proc_noise_cov_mat.shape={proc_noise_cov_mat.shape}."
         )

@@ -166,7 +166,7 @@ def _setup_prior_process(F, L, m0, C0, t0, prior_model):
         )
     elif prior_model == "continuous":
         prior = randprocs.markov.continuous.LTISDE(
-            driftmat=F, forcevec=zero_shift_prior, dispmat=L
+            drift_matrix=F, force_vector=zero_shift_prior, dispersion_matrix=L
         )
     else:
         raise ValueError

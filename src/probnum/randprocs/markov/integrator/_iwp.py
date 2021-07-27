@@ -127,38 +127,38 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._driftmat,
-            force_vector=self._forcevec,
-            dispersion_matrix=self._dispmat,
+            drift_matrix=self._drift_matrix,
+            force_vector=self._force_vector,
+            dispersion_matrix=self._dispersion_matrix,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
     @cached_property
-    def _driftmat(self):
-        driftmat_1d = np.diag(np.ones(self.num_derivatives), 1)
+    def _drift_matrix(self):
+        drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.lazy_linalg:
             return linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
-                B=linops.Matrix(A=driftmat_1d),
+                B=linops.Matrix(A=drift_matrix_1d),
             )
-        return np.kron(np.eye(self.wiener_process_dimension), driftmat_1d)
+        return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
     @cached_property
-    def _forcevec(self):
+    def _force_vector(self):
         return np.zeros((self.wiener_process_dimension * (self.num_derivatives + 1)))
 
     @cached_property
-    def _dispmat(self):
-        dispmat_1d = np.zeros(self.num_derivatives + 1)
-        dispmat_1d[-1] = 1.0  # Unit diffusion
+    def _dispersion_matrix(self):
+        dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
+        dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
         if config.lazy_linalg:
             return linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
-                B=linops.Matrix(A=dispmat_1d.reshape(-1, 1)),
+                B=linops.Matrix(A=dispersion_matrix_1d.reshape(-1, 1)),
             )
-        return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
+        return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
 
     @cached_property
     def equivalent_discretisation_preconditioned(self):
@@ -315,4 +315,30 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             proc_noise_cov_cholesky=proc_noise_cov_cholesky,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.forward_implementation,
+        )
+
+    def duplicate(self, **changes):
+        """Create a new object of the same type, replacing fields with values from
+        changes."""
+
+        def replace_key(key):
+            """If the key is part of the desired changes, change appropriately.
+
+            Otherwise, take the current value.
+            """
+            try:
+                return changes[key]
+            except KeyError:
+                return getattr(self, key)
+
+        num_derivatives = replace_key("num_derivatives")
+        wiener_process_dimension = replace_key("wiener_process_dimension")
+        forward_implementation = replace_key("forward_implementation")
+        backward_implementation = replace_key("backward_implementation")
+
+        return IntegratedWienerTransition(
+            num_derivatives=num_derivatives,
+            wiener_process_dimension=wiener_process_dimension,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
         )

@@ -76,7 +76,7 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
             self,
             non_linear_model.dimension,
             non_linear_model.driftfun,
-            non_linear_model.dispmatfun,
+            non_linear_model.dispersion_matrix_function,
             non_linear_model.jacobfun,
         )
         self.mde_atol = mde_atol

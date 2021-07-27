@@ -144,7 +144,7 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
         randprocs.markov.continuous.SDE.__init__(
             self,
             driftfun=non_linear_model.driftfun,
-            dispmatfun=non_linear_model.dispmatfun,
+            dispersion_matrix_function=non_linear_model.dispersion_matrix_function,
             jacobfun=non_linear_model.jacobfun,
             dimension=non_linear_model.dimension,
         )
@@ -164,17 +164,17 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
 
         x0 = at_this_rv.mean
 
-        def forcevecfun(t):
+        def force_vector_function(t):
             return g(t, x0) - dg(t, x0) @ x0
 
-        def driftmatfun(t):
+        def drift_matrix_function(t):
             return dg(t, x0)
 
         return randprocs.markov.continuous.LinearSDE(
             dimension=self.non_linear_model.dimension,
-            driftmatfun=driftmatfun,
-            forcevecfun=forcevecfun,
-            dispmatfun=self.non_linear_model.dispmatfun,
+            drift_matrix_function=drift_matrix_function,
+            force_vector_function=force_vector_function,
+            dispersion_matrix_function=self.non_linear_model.dispersion_matrix_function,
             mde_atol=self.mde_atol,
             mde_rtol=self.mde_rtol,
             mde_solver=self.mde_solver,
@@ -214,7 +214,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
 
         x0 = at_this_rv.mean
 
-        def forcevecfun(t):
+        def force_vector_function(t):
             return g(t, x0) - dg(t, x0) @ x0
 
         def dynamicsmatfun(t):
@@ -224,7 +224,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
-            shift_vec_fun=forcevecfun,
+            shift_vec_fun=force_vector_function,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
             proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
             forward_implementation=self.forward_implementation,

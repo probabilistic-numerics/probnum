@@ -132,33 +132,33 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._driftmat,
-            force_vector=self._forcevec,
-            dispersion_matrix=self._dispmat,
+            drift_matrix=self._drift_matrix,
+            force_vector=self._force_vector,
+            dispersion_matrix=self._dispersion_matrix,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
     @cached_property
-    def _driftmat(self):
-        driftmat = np.diag(np.ones(self.num_derivatives), 1)
+    def _drift_matrix(self):
+        drift_matrix = np.diag(np.ones(self.num_derivatives), 1)
         nu = self.num_derivatives + 0.5
         D, lam = self.num_derivatives + 1, np.sqrt(2 * nu) / self.lengthscale
-        driftmat[-1, :] = np.array(
+        drift_matrix[-1, :] = np.array(
             [-scipy.special.binom(D, i) * lam ** (D - i) for i in range(D)]
         )
-        return np.kron(np.eye(self.wiener_process_dimension), driftmat)
+        return np.kron(np.eye(self.wiener_process_dimension), drift_matrix)
 
     @cached_property
-    def _forcevec(self):
+    def _force_vector(self):
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @cached_property
-    def _dispmat(self):
-        dispmat_1d = np.zeros(self.num_derivatives + 1)
-        dispmat_1d[-1] = 1.0  # Unit diffusion
-        return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
+    def _dispersion_matrix(self):
+        dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
+        dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
+        return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
 
     def forward_rv(
         self,
@@ -178,9 +178,11 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         rv = _preconditioner.apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
-        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
-        self.forcevec = self.precon.inverse(dt) @ self.forcevec
-        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+        self.drift_matrix = (
+            self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        )
+        self.force_vector = self.precon.inverse(dt) @ self.force_vector
+        self.dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -194,9 +196,11 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
-        self.forcevec = self.precon(dt) @ self.forcevec
-        self.dispmat = self.precon(dt) @ self.dispmat
+        self.drift_matrix = (
+            self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
+        )
+        self.force_vector = self.precon(dt) @ self.force_vector
+        self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
 
         return rv, info
 
@@ -231,9 +235,11 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
 
         # Apply preconditioning to system matrices
-        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
-        self.forcevec = self.precon.inverse(dt) @ self.forcevec
-        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+        self.drift_matrix = (
+            self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        )
+        self.force_vector = self.precon.inverse(dt) @ self.force_vector
+        self.dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -248,7 +254,34 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
 
         # Undo preconditioning and return
         rv = _preconditioner.apply_precon(self.precon(dt), rv)
-        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
-        self.forcevec = self.precon(dt) @ self.forcevec
-        self.dispmat = self.precon(dt) @ self.dispmat
+        self.drift_matrix = (
+            self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
+        )
+        self.force_vector = self.precon(dt) @ self.force_vector
+        self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
         return rv, info
+
+    def _duplicate(self, **changes):
+        def replace_key(key):
+            """If the key is part of the desired changes, change appropriately.
+
+            Otherwise, take the current value.
+            """
+            try:
+                return changes[key]
+            except KeyError:
+                return getattr(self, key)
+
+        num_derivatives = replace_key("num_derivatives")
+        wiener_process_dimension = replace_key("wiener_process_dimension")
+        lengthscale = replace_key("lengthscale")
+        forward_implementation = replace_key("forward_implementation")
+        backward_implementation = replace_key("backward_implementation")
+
+        return MaternTransition(
+            num_derivatives=num_derivatives,
+            wiener_process_dimension=wiener_process_dimension,
+            lengthscale=lengthscale,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
+        )

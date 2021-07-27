@@ -24,7 +24,7 @@ class LinearSDE(_sde.SDE):
     ----------
     drift_matrix_function :
         This is G = G(t). The evaluations of this function are called
-        the driftmatrix of the SDE.
+        the drift matrix of the SDE.
         Returns np.ndarray with shape=(n, n)
     force_vector_function :
         This is v = v(t). Evaluations of this function are called
