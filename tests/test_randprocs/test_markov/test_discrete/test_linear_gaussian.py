@@ -3,6 +3,7 @@ import pytest
 
 from probnum import config, linops, randprocs, randvars
 from tests.test_randprocs.test_markov import test_transition
+from tests.test_randprocs.test_markov.test_discrete import test_nonlinear_gaussian
 
 
 @pytest.fixture(params=["classic", "sqrt"])
@@ -17,7 +18,7 @@ def backw_impl_string_linear_gauss(request):
     return request.param
 
 
-class TestLinearGaussian(TestDiscreteGaussian):
+class TestLinearGaussian(test_nonlinear_gaussian.TestDiscreteGaussian):
     """Test class for linear Gaussians. Inherits tests from `TestDiscreteGaussian` but
     overwrites the forward and backward transitions.
 
