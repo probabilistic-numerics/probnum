@@ -132,9 +132,9 @@ class IntegratedOrnsteinUhlenbeckTransition(
         )
         continuous.LTISDE.__init__(
             self,
-            driftmat=self._driftmat,
-            forcevec=self._forcevec,
-            dispmat=self._dispmat,
+            drift_matrix=self._driftmat,
+            force_vector=self._forcevec,
+            dispersion_matrix=self._dispmat,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
