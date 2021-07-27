@@ -101,8 +101,8 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
                 scale_cholesky = 1e3
             else:
                 scale_cholesky = 1.0
-            zeros = np.zeros(ioup_transition.dimension)
-            cov_cholesky = scale_cholesky * np.eye(ioup_transition.dimension)
+            zeros = np.zeros(ioup_transition.state_dimension)
+            cov_cholesky = scale_cholesky * np.eye(ioup_transition.state_dimension)
             initrv = randvars.Normal(
                 mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
             )

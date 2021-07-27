@@ -86,7 +86,11 @@ class TestIntegratedOrnsteinUhlenbeckProcessTransition(
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
+        self.l = lambda t, x: self.L(t)
 
     @property
     def integrator(self):
         return self.transition
+
+    def test_wiener_process_dimension(self, test_ndim):
+        assert self.transition.wiener_process_dimension == 1
