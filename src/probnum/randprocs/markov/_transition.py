@@ -425,6 +425,20 @@ class Transition(abc.ABC):
             out_samples.append(curr_sample)
         return out_samples
 
+    def duplicate(self, **changes):
+        # Wrap duplication into appropriate type checks.
+        duplicated = self._duplicate(**changes)
+
+        # Safeguard against inheritance of the duplication functionality
+        # which is no actual duplication hence we pretend it is not implemented.
+        if type(duplicated) is not type(self):
+            raise NotImplementedError("duplication is not implemented.")
+        return duplicated
+
+    @abc.abstractmethod
+    def _duplicate(self, **changes):
+        raise NotImplementedError
+
     # Utility functions that are used surprisingly often:
     #
     # Call forward/backward transitions of realisations by
