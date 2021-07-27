@@ -32,13 +32,32 @@ class SDE(_transition.Transition):
         super().__init__(input_dim=state_dimension, output_dim=state_dimension)
 
         # Mandatory arguments
-        self.state_dimension = state_dimension
-        self.wiener_process_dimension = wiener_process_dimension
-        self.drift_function = drift_function
-        self.dispersion_function = dispersion_function
+        self._state_dimension = state_dimension
+        self._wiener_process_dimension = wiener_process_dimension
+        self._drift_function = drift_function
+        self._dispersion_function = dispersion_function
 
         # Optional arguments
-        self.drift_jacobian = drift_jacobian
+        self._drift_jacobian = drift_jacobian
+
+    @property
+    def state_dimension(self):
+        return self._state_dimension
+
+    @property
+    def wiener_process_dimension(self):
+        return self._wiener_process_dimension
+
+    def drift_function(self, t, x):
+        return self._drift_function(t, x)
+
+    def dispersion_function(self, t, x):
+        return self._dispersion_function(t, x)
+
+    def drift_jacobian(self, t, x):
+        if self._drift_jacobian is not None:
+            return self._drift_jacobian(t, x)
+        raise NotImplementedError("Jacobian not provided.")
 
     def forward_realization(
         self,
