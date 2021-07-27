@@ -101,7 +101,6 @@ def car_tracking(
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
-    #    dynamics_model.dispersion_matrix *= process_diffusion
 
     discrete_dynamics_model = dynamics_model.discretise(dt=step)
 
@@ -217,7 +216,6 @@ def ornstein_uhlenbeck(
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
-    # dynamics_model.dispersion_matrix *= process_diffusion
 
     measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=np.eye(1),

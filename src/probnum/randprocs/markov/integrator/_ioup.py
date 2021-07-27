@@ -196,12 +196,6 @@ class IntegratedOrnsteinUhlenbeckTransition(
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
-        #
-        # self.drift_matrix = (
-        #     self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
-        # )
-        # self.force_vector = self.precon(dt) @ self.force_vector
-        # self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
 
         return rv, info
 
@@ -260,11 +254,6 @@ class IntegratedOrnsteinUhlenbeckTransition(
 
         # Undo preconditioning and return
         rv = _preconditioner.apply_precon(self.precon(dt), rv)
-        # self.drift_matrix = (
-        #     self.precon(dt) @ self.drift_matrix @ self.precon.inverse(dt)
-        # )
-        # self.force_vector = self.precon(dt) @ self.force_vector
-        # self.dispersion_matrix = self.precon(dt) @ self.dispersion_matrix
         return rv, info
 
     def _duplicate(self, **changes):
