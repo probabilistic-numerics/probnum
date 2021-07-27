@@ -1,13 +1,13 @@
 """Wrapper class of scipy.integrate. for RK23 and RK45.
 
-Dense-output can not be used for DOP853, if you use other RK-methods,
-make sure, that the current implementation works for them.
+Dense-output can not be used for DOP853, if you use other RK-methods, make sure, that
+the current implementation works for them.
 """
 import numpy as np
 from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import problems, randvars
+from probnum import randvars
 from probnum.diffeq import _odesolver
 from probnum.diffeq.perturbed.scipy_wrapper import _wrapped_scipy_odesolution
 from probnum.typing import FloatArgType
@@ -16,26 +16,22 @@ from probnum.typing import FloatArgType
 class WrappedScipyRungeKutta(_odesolver.ODESolver):
     """Wrapper for Runge-Kutta methods from SciPy."""
 
-    def __init__(self, solver: rk.RungeKutta):
-        self.solver = solver
+    def __init__(self, solver_type: rk.RungeKutta, steprule):
+        self.solver_type = solver_type
         self.interpolants = None
 
-        # ProbNum ODESolver needs an ivp
-        ivp = problems.InitialValueProblem(
-            t0=self.solver.t,
-            tmax=self.solver.t_bound,
-            y0=self.solver.y,
-            f=self.solver._fun,
-        )
+        # Filled in later
+        self.solver = None
+        self.ivp = None
 
         # Dopri853 as implemented in SciPy computes the dense output differently.
-        if isinstance(solver, rk.DOP853):
+        if issubclass(solver_type, rk.DOP853):
             raise TypeError(
                 "Dense output interpolation of DOP853 is currently not supported. Choose a different RK-method."
             )
-        super().__init__(ivp=ivp, order=solver.order)
+        super().__init__(steprule=steprule, order=solver_type.order)
 
-    def initialise(self):
+    def initialise(self, ivp):
         """Return t0 and y0 (for the solver, which might be different to ivp.y0) and
         initialize the solver. Reset the solver when solving the ODE multiple times,
         i.e. explicitly setting y_old, t, y and f to the respective initial values,
@@ -48,6 +44,8 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         self.ivp.initrv: randvars.RandomVariable
             initial random variable
         """
+        self.solver = self.solver_type(ivp.f, ivp.t0, ivp.y0, ivp.tmax)
+        self.ivp = ivp
 
         self.interpolants = []
         self.solver.y_old = None

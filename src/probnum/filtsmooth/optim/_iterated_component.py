@@ -9,10 +9,11 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     Examples
     --------
-    >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.filtsmooth.optim import StoppingCriterion
+    >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.problems.zoo.diffeq import logistic
     >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
+    >>> from probnum.randprocs.markov.discrete import DiscreteGaussian
     >>> from probnum.randvars import Constant
     >>> import numpy as np
     >>>
@@ -20,7 +21,11 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     Set up an iterated component.
 
     >>> iwp = IntegratedWienerProcess(initarg=0., num_derivatives=2, wiener_process_dimension=1)
-    >>> ekf = DiscreteEKFComponent.from_ode(logistic(t0=0., tmax=1., y0=np.array([0.1])), iwp.transition, 0.)
+    >>> H0, H1 = iwp.transition.proj2coord(coord=0), iwp.transition.proj2coord(coord=1)
+    >>> call = lambda t, x: H1 @ x - H0 @ x * (1 - H0 @ x)
+    >>> jacob = lambda t, x: H1 - (1 - 2*(H0 @ x)) @ H0
+    >>> nonlinear_model = DiscreteGaussian.from_callable(3, 1, call, jacob)
+    >>> ekf = DiscreteEKFComponent(nonlinear_model)
     >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
 
     Generate some random variables and pseudo observations.
@@ -37,16 +42,16 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     3
     >>> out, info = comp.forward_realization(some_array,some_rv,)
     >>> print(out.mean)
-    [0.73]
+    [0.91]
 
     But its backward values are different, because of the iteration.
 
     >>> out_ekf, _ = ekf.backward_rv(rv_observed, rv)
     >>> print(out_ekf.mean)
-    [ 0.18392711  0.504723   -8.429155  ]
+    [  0.17081493   0.15351366 -13.73607367]
     >>> out_iterated, _ = comp.backward_rv(rv_observed, rv)
     >>> print(out_iterated.mean)
-    [ 0.18201288  0.45367681 -9.1948478 ]
+    [  0.17076427   0.15194483 -13.76505168]
     """
 
     def __init__(

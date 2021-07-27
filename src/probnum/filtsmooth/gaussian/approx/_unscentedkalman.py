@@ -1,8 +1,8 @@
 """General Gaussian filters based on approximating intractable quantities with numerical
 quadrature.
 
-Examples include the unscented Kalman filter / RTS smoother which is
-based on a third degree fully symmetric rule.
+Examples include the unscented Kalman filter / RTS smoother which is based on a third
+degree fully symmetric rule.
 """
 
 from typing import Dict, Optional, Tuple
@@ -254,15 +254,3 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
     @property
     def dimension(self) -> int:
         return self.ut.dimension
-
-    @classmethod
-    def from_ode(
-        cls,
-        ode,
-        prior,
-        evlvar=0.0,
-    ):
-        discrete_model = randprocs.discrete.DiscreteGaussian.from_ode(
-            ode=ode, prior=prior, evlvar=evlvar
-        )
-        return cls(discrete_model)

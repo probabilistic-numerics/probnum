@@ -10,10 +10,10 @@ from probnum import diffeq, randvars
 
 @pytest_cases.fixture
 @pytest_cases.parametrize_with_cases(
-    "testsolver, scipysolver", cases=".test_wrapped_scipy_cases"
+    "testsolver, scipysolver, ode", cases=".test_wrapped_scipy_cases"
 )
-def solvers(testsolver, scipysolver):
-    return testsolver, scipysolver
+def solvers(testsolver, scipysolver, ode):
+    return testsolver, scipysolver, ode
 
 
 @pytest.fixture
@@ -55,12 +55,15 @@ def doprisolver():
 
 def test_init(doprisolver):
     with pytest.raises(TypeError):
-        diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(doprisolver)
+        steprule = diffeq.stepsize.ConstantSteps(0.2)  # irrelevant value
+        diffeq.perturbed.scipy_wrapper.WrappedScipyRungeKutta(
+            rk.DOP853, steprule=steprule
+        )
 
 
 def test_initialise(solvers):
-    testsolver, scipysolver = solvers
-    time, state = testsolver.initialise()
+    testsolver, scipysolver, ode = solvers
+    time, state = testsolver.initialise(ode)
     time_scipy = scipysolver.t
     state_scipy = scipysolver.y
     np.testing.assert_allclose(time, time_scipy, atol=1e-13, rtol=1e-13)
@@ -68,10 +71,11 @@ def test_initialise(solvers):
 
 
 def test_step_execution(solvers):
-    testsolver, scipysolver = solvers
+    testsolver, scipysolver, ode = solvers
     scipysolver.step()
 
     # perform step of the same size
+    testsolver.initialise(ode)
     random_var, error_est, _ = testsolver.step(
         scipysolver.t_old,
         scipysolver.t,
@@ -81,7 +85,9 @@ def test_step_execution(solvers):
 
 
 def test_step_variables(solvers, y, start_point, stop_point):
-    testsolver, scipysolver = solvers
+    testsolver, scipysolver, ode = solvers
+
+    testsolver.initialise(ode)
     solver_y_new, solver_error_estimation, _ = testsolver.step(
         start_point, stop_point, randvars.Constant(y)
     )
@@ -127,9 +133,10 @@ def test_step_variables(solvers, y, start_point, stop_point):
 
 
 def test_dense_output(solvers):
-    testsolver, scipysolver = solvers
+    testsolver, scipysolver, ode = solvers
 
     # perform steps of the same size
+    testsolver.initialise(ode)
     scipysolver.step()
     y, *_ = testsolver.step(
         scipysolver.t_old,

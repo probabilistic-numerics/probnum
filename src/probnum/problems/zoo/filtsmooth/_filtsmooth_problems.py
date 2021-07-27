@@ -2,10 +2,9 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import filtsmooth, problems, randprocs, randvars
+from probnum import diffeq, filtsmooth, problems, randprocs, randvars
+from probnum.problems.zoo import diffeq as diffeq_zoo
 from probnum.typing import FloatArgType, IntArgType
-
-from .. import diffeq  # diffeq zoo
 
 __all__ = [
     "benes_daum",
@@ -512,6 +511,7 @@ def logistic_ode(
     initrv: Optional[randvars.RandomVariable] = None,
     evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
     ek0_or_ek1: IntArgType = 1,
+    exclude_initial_condition: bool = True,
     order: IntArgType = 3,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
@@ -536,6 +536,9 @@ def logistic_ode(
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
     ek0_or_ek1
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
+    exclude_initial_condition
+        Whether the resulting regression problem should exclude (i.e. not contain) the initial condition of the ODE.
+        Optional. Default is True, which means that the initial condition is omitted.
     order
         Order of integration for the Integrated Brownian Motion prior of the solver.
     forward_implementation
@@ -566,40 +569,43 @@ def logistic_ode(
         evlvar = np.zeros((1, 1))
 
     t0, tmax = timespan
-    logistic_ivp = diffeq.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
+
+    # Generate ODE regression problem
+    logistic_ivp = diffeq_zoo.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
+    time_grid = np.arange(*timespan, step=step)
+    ode_residual = diffeq.odefiltsmooth.information_operators.ODEResidual(
+        num_prior_derivatives=order, ode_dimension=logistic_ivp.dimension
+    )
+    if ek0_or_ek1 == 0:
+        ek = diffeq.odefiltsmooth.approx_strategies.EK0()
+    else:
+        ek = diffeq.odefiltsmooth.approx_strategies.EK1()
+    regression_problem = diffeq.odefiltsmooth.utils.ivp_to_regression_problem(
+        ivp=logistic_ivp,
+        locations=time_grid,
+        ode_information_operator=ode_residual,
+        approx_strategy=ek,
+        ode_measurement_variance=evlvar,
+        exclude_initial_condition=exclude_initial_condition,
+    )
+
+    # Generate prior process
+    if initrv is None:
+        initmean = np.array([0.1, 0, 0.0, 0.0])
+        initcov = np.diag([0.0, 1.0, 1.0, 1.0])
+        initrv = randvars.Normal(initmean, initcov)
     dynamics_model = randprocs.markov.integrator.IntegratedWienerTransition(
         num_derivatives=order,
         wiener_process_dimension=1,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
-    measurement_model = filtsmooth.gaussian.approx.DiscreteEKFComponent.from_ode(
-        logistic_ivp,
-        prior=dynamics_model,
-        evlvar=evlvar,
-        ek0_or_ek1=ek0_or_ek1,
-        forward_implementation=forward_implementation,
-        backward_implementation=backward_implementation,
-    )
-
-    if initrv is None:
-        initmean = np.array([0.1, 0, 0.0, 0.0])
-        initcov = np.diag([0.0, 1.0, 1.0, 1.0])
-        initrv = randvars.Normal(initmean, initcov)
-
-    # Generate zero-data
-    time_grid = np.arange(*timespan, step=step)
-    solution = logistic_ivp.solution(time_grid)
-    regression_problem = problems.TimeSeriesRegressionProblem(
-        observations=np.zeros(shape=(time_grid.size, 1)),
-        locations=time_grid,
-        measurement_models=measurement_model,
-        solution=solution,
-    )
 
     prior_process = randprocs.markov.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
+
+    # Return problems and info
     info = dict(
         ivp=logistic_ivp,
         prior_process=prior_process,

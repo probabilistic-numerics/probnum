@@ -4,8 +4,6 @@ through Taylor-method approximations, e.g. linearization."""
 import abc
 from typing import Dict, Tuple
 
-import numpy as np
-
 from probnum import randprocs, randvars
 
 
@@ -229,54 +227,4 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
             proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
-        )
-
-    @classmethod
-    def from_ode(
-        cls,
-        ode,
-        prior,
-        evlvar=0.0,
-        ek0_or_ek1=0,
-        forward_implementation="classic",
-        backward_implementation="classic",
-    ):
-        # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
-
-        h0 = prior.proj2coord(coord=0)
-        h1 = prior.proj2coord(coord=1)
-
-        def dyna(t, x):
-            return h1 @ x - ode.f(t, h0 @ x)
-
-        def diff(t):
-            return evlvar * np.eye(ode.dimension)
-
-        def diff_cholesky(t):
-            return np.sqrt(evlvar) * np.eye(ode.dimension)
-
-        def jaco_ek1(t, x):
-            return h1 - ode.df(t, h0 @ x) @ h0
-
-        def jaco_ek0(t, x):
-            return h1
-
-        if ek0_or_ek1 == 0:
-            jaco = jaco_ek0
-        elif ek0_or_ek1 == 1:
-            jaco = jaco_ek1
-        else:
-            raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
-        discrete_model = randprocs.markov.discrete.DiscreteGaussian(
-            input_dim=prior.dimension,
-            output_dim=ode.dimension,
-            state_trans_fun=dyna,
-            proc_noise_cov_mat_fun=diff,
-            jacob_state_trans_fun=jaco,
-            proc_noise_cov_cholesky_fun=diff_cholesky,
-        )
-        return cls(
-            discrete_model,
-            forward_implementation=forward_implementation,
-            backward_implementation=backward_implementation,
         )
