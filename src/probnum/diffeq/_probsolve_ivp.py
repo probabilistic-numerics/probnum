@@ -265,8 +265,8 @@ def probsolve_ivp(
     )
 
     info_op = odefiltsmooth.information_operators.ODEResidual(
-        prior_ordint=prior_process.transition.num_derivatives,
-        prior_spatialdim=prior_process.transition.wiener_process_dimension,
+        num_prior_derivatives=prior_process.transition.num_derivatives,
+        ode_dimension=prior_process.transition.wiener_process_dimension,
     )
 
     choose_method = {

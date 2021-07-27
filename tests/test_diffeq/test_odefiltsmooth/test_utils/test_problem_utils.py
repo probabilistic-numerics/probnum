@@ -16,7 +16,7 @@ def locations():
 @pytest.fixture
 def ode_information_operator():
     op = diffeq.odefiltsmooth.information_operators.ODEResidual(
-        prior_ordint=3, prior_spatialdim=2
+        num_prior_derivatives=3, ode_dimension=2
     )
     return op
 

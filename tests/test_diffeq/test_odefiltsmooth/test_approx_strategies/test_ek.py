@@ -14,7 +14,7 @@ class TestEK0(_approx_test_interface.ApproximationStrategyTest):
     def _setup(self):
         self.approx_strategy = diffeq.odefiltsmooth.approx_strategies.EK0()
         self.info_op = diffeq.odefiltsmooth.information_operators.ODEResidual(
-            prior_ordint=3, prior_spatialdim=2
+            num_prior_derivatives=3, ode_dimension=2
         )
 
     def test_call(self, fitzhughnagumo):
@@ -40,7 +40,7 @@ class TestEK1(_approx_test_interface.ApproximationStrategyTest):
     def _setup(self):
         self.approx_strategy = diffeq.odefiltsmooth.approx_strategies.EK1()
         self.info_op = diffeq.odefiltsmooth.information_operators.ODEResidual(
-            prior_ordint=3, prior_spatialdim=2
+            num_prior_derivatives=3, ode_dimension=2
         )
 
     def test_call(self, fitzhughnagumo):

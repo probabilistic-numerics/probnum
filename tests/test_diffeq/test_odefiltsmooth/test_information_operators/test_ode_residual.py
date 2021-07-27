@@ -12,11 +12,11 @@ from tests.test_diffeq.test_odefiltsmooth.test_information_operators import (
 class TestODEResidual(_information_operator_test_inferface.ODEInformationOperatorTest):
     @pytest.fixture(autouse=True)
     def _setup(self):
-        prior_ordint = 3
-        prior_spatialdim = 2
+        num_prior_derivatives = 3
+        ode_dimension = 2
 
         self.info_op = diffeq.odefiltsmooth.information_operators.ODEResidual(
-            prior_ordint=prior_ordint, prior_spatialdim=prior_spatialdim
+            num_prior_derivatives=num_prior_derivatives, ode_dimension=ode_dimension
         )
         self.initial_rv = randvars.Normal(
             mean=np.arange(self.info_op.input_dim), cov=np.eye(self.info_op.input_dim)

@@ -14,18 +14,18 @@ __all__ = ["ODEResidual"]
 class ODEResidual(_information_operator.ODEInformationOperator):
     """Information operator that measures the residual of an explicit ODE."""
 
-    def __init__(self, prior_ordint: IntArgType, prior_spatialdim: IntArgType):
-        integrator_dimension = prior_spatialdim * (prior_ordint + 1)
-        expected_ode_dimension = prior_spatialdim
-        super().__init__(
-            input_dim=integrator_dimension, output_dim=expected_ode_dimension
-        )
+    def __init__(self, num_prior_derivatives: IntArgType, ode_dimension: IntArgType):
+        integrator_dimension = ode_dimension * (num_prior_derivatives + 1)
+        ode_dimension = ode_dimension
+        super().__init__(input_dim=integrator_dimension, output_dim=ode_dimension)
+        # Store remaining attributes
+        self.num_prior_derivatives = num_prior_derivatives
+        self.ode_dimension = ode_dimension
 
         # Prepare caching the projection matrices
         self.projection_matrices = None
-        self.prior_ordint = prior_ordint
-        self.prior_spatialdim = prior_spatialdim
 
+        # These will be assigned once the ODE has been seen
         self._residual = None
         self._residual_jacobian = None
 
@@ -35,8 +35,8 @@ class ODEResidual(_information_operator.ODEInformationOperator):
 
         # Cache the projection matrices and match the implementation to the ODE
         dummy_integrator = randprocs.markov.integrator.IntegratorTransition(
-            num_derivatives=self.prior_ordint,
-            wiener_process_dimension=self.prior_spatialdim,
+            num_derivatives=self.num_prior_derivatives,
+            wiener_process_dimension=self.ode_dimension,
         )
         ode_order = 1  # currently everything we can do
         self.projection_matrices = [

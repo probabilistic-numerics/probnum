@@ -75,8 +75,8 @@ class EK0(_approx_strategy.ApproximationStrategy):
 
         # From here onwards, mimic the EK1 implementation.
         ek0_information_operator = information_operators.ODEResidual(
-            prior_ordint=information_operator.prior_ordint,
-            prior_spatialdim=information_operator.prior_spatialdim,
+            num_prior_derivatives=information_operator.num_prior_derivatives,
+            ode_dimension=information_operator.ode_dimension,
         )
         ek0_information_operator.incorporate_ode(ode=new_ivp)
         return information_operators.LocallyLinearizedInformationOperator(
