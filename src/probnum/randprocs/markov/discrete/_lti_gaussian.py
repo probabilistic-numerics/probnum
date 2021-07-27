@@ -1,17 +1,12 @@
 """Discrete, linear, time-invariant Gaussian transitions."""
-import typing
-import warnings
-from functools import lru_cache
-from typing import Callable, Optional, Tuple
+
+
+from typing import Optional
 
 import numpy as np
-import scipy.linalg
 
-from probnum import config, linops, randvars
-from probnum.randprocs.markov import _transition
-from probnum.randprocs.markov.discrete import _condition_state, _linear_gaussian
-from probnum.typing import FloatArgType, IntArgType
-from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
+from probnum import randvars
+from probnum.randprocs.markov.discrete import _linear_gaussian
 
 try:
     # functools.cached_property is only available in Python >=3.8

@@ -1,16 +1,10 @@
 """LTI SDE models as transitions."""
 import functools
-from typing import Callable, Optional
 
 import numpy as np
-import scipy.integrate
-import scipy.linalg
 
-from probnum import randvars
-from probnum.randprocs.markov import _transition, discrete
+from probnum.randprocs.markov import discrete
 from probnum.randprocs.markov.continuous import _linear_sde, _mfd
-from probnum.typing import FloatArgType, IntArgType
-from probnum.utils.linalg import tril_to_positive_tril
 
 
 class LTISDE(_linear_sde.LinearSDE):
