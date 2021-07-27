@@ -9,7 +9,7 @@ import scipy.linalg
 
 from probnum import config, linops, randvars
 from probnum.randprocs.markov import _transition
-from probnum.randprocs.markov.discrete import _condition_state
+from probnum.randprocs.markov.discrete import _condition_state, _nonlinear_gaussian
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
@@ -21,7 +21,7 @@ except ImportError:
     from cached_property import cached_property
 
 
-class DiscreteLinearGaussian(DiscreteGaussian):
+class DiscreteLinearGaussian(_nonlinear_gaussian.DiscreteGaussian):
     """Discrete, linear Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G(t_i) x_i + v(t_i), S(t_i))

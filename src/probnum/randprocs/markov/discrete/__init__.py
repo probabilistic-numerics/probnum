@@ -1,11 +1,9 @@
 """Discrete-time transitions."""
 
 from ._condition_state import condition_state_on_measurement, condition_state_on_rv
-from ._discrete_gaussian import (
-    DiscreteGaussian,
-    DiscreteLinearGaussian,
-    DiscreteLTIGaussian,
-)
+from ._linear_gaussian import DiscreteLinearGaussian
+from ._lti_gaussian import DiscreteLTIGaussian
+from ._nonlinear_gaussian import DiscreteGaussian
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
