@@ -201,6 +201,18 @@ class Scaling(_linear_operator.LinearOperator):
         """Whether scaling is uniform / isotropic."""
         return self._scalar is not None
 
+    def __eq__(self, other: _linear_operator.LinearOperator) -> bool:
+        if self._is_type_shape_dtype_equal(other):
+            return False
+
+        if self.is_isotropic and other.is_isotropic:
+            return self.scalar == other.scalar
+
+        if not self.is_isotropic and not self.is_isotropic:
+            return np.all(self.factors == other.factors)
+
+        return False
+
     def _add_scaling(self, other: "Scaling") -> "Scaling":
         if other.shape != self.shape:
             raise ValueError(
