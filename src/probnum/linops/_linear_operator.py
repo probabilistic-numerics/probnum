@@ -1012,6 +1012,13 @@ class Matrix(LinearOperator):
         except RuntimeError as err:
             raise np.linalg.LinAlgError(str(err)) from err
 
+    def _matmul_matrix(self, other: "Matrix") -> "Matrix":
+        # TODO: Switch via config option
+        if not self.shape[1] == other.shape[0]:
+            raise ValueError(f"Matmul shape mismatch {self.shape} x {other.shape}")
+
+        return Matrix(A=self.A @ other.A)
+
 
 class Identity(LinearOperator):
     """The identity operator.
