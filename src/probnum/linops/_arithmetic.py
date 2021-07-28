@@ -94,37 +94,108 @@ _sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
 _mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
 _matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
 
+for op_type in _AnyLinOp:
+    _add_fns[(op_type, Scaling)] = (
+        lambda op, scaling: op if scaling._scalar == 0.0 else NotImplemented
+    )
+    _add_fns[(Scaling, op_type)] = (
+        lambda scaling, op: op if scaling._scalar == 0.0 else NotImplemented
+    )
+    _sub_fns[(Scaling, op_type)] = (
+        lambda scaling, op: op if scaling._scalar == 0.0 else NotImplemented
+    )
+    _sub_fns[(op_type, Scaling)] = (
+        lambda op, scaling: op if scaling._scalar == 0.0 else NotImplemented
+    )
+
+# ScaledLinearOperator
+def _matmul_scaled_op(scaled, anylinop):
+    return scaled._scalar * (scaled._linop @ anylinop)
+
+
+def _matmul_op_scaled(anylinop, scaled):
+    return scaled._scalar * (anylinop @ scaled._linop)
+
+
+for op_type in _AnyLinOp:
+    _matmul_fns[(ScaledLinearOperator, op_type)] = _matmul_scaled_op
+    _matmul_fns[(op_type, ScaledLinearOperator)] = _matmul_op_scaled
+
+
 # Kronecker
+
+_add_fns[(Kronecker, Kronecker)] = Kronecker._add_kronecker
+_sub_fns[(Kronecker, Kronecker)] = Kronecker._sub_kronecker
+
+
+def _matmul_scaling_kronecker(scaling: Scaling, kronecker: Kronecker) -> Kronecker:
+    if scaling.is_isotropic:
+        return Kronecker(A=scaling.scalar * kronecker.A, B=kronecker.B)
+    return NotImplemented
+
+
+def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kronecker:
+    if scaling.is_isotropic:
+        return Kronecker(A=scaling.scalar * kronecker.A, B=kronecker.B)
+    return NotImplemented
+
+
 _matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
 _mul_fns[(Kronecker, Kronecker)] = Kronecker._mul_kronecker
+
+_mul_fns[("scalar", Kronecker)] = lambda sc, kr: Kronecker(A=sc * kr.A, B=kr.B)
+_mul_fns[(Kronecker, "scalar")] = lambda kr, sc: Kronecker(A=sc * kr.A, B=kr.B)
+_matmul_fns[(Kronecker, Scaling)] = _matmul_kronecker_scaling
+_matmul_fns[(Scaling, Kronecker)] = _matmul_scaling_kronecker
+
+# Matrix
+def _matmul_scaling_matrix(scaling: Scaling, matrix: Matrix) -> Matrix:
+    if scaling.shape[1] != matrix.shape[0]:
+        return NotImplemented
+
+    return Matrix(A=np.multiply(scaling.factors[:, np.newaxis], matrix.A))
+
+
+def _matmul_matrix_scaling(matrix: Matrix, scaling: Scaling) -> Matrix:
+    if matrix.shape[1] != scaling.shape[0]:
+        return NotImplemented
+
+    return Matrix(A=np.multiply(matrix.A, scaling.factors))
+
+
+def _mul_matrix_scalar(mat, scalar) -> Union[type(NotImplemented), Matrix]:
+    if np.isscalar(scalar):
+        return Matrix(A=scalar * mat.A)
+
+    return NotImplemented
+
+
+def _mul_scalar_matrix(scalar, mat) -> Union[type(NotImplemented), Matrix]:
+    if np.isscalar(scalar):
+        return Matrix(A=scalar * mat.A)
+
+    return NotImplemented
+
+
+_mul_fns[(Matrix, "scalar")] = _mul_matrix_scalar
+_mul_fns[("scalar", Matrix)] = _mul_scalar_matrix
+
+_matmul_fns[(Matrix, Matrix)] = Matrix._matmul_matrix
+_matmul_fns[(Scaling, Matrix)] = _matmul_scaling_matrix
+_matmul_fns[(Matrix, Scaling)] = _matmul_matrix_scaling
+
 
 # Identity
 for op_type in _AnyLinOp:
     _matmul_fns[(Identity, op_type)] = lambda idty, other: other
     _matmul_fns[(op_type, Identity)] = lambda other, idty: other
 
-
-def _mul_id(arg1, arg2):
-    if isinstance(arg1, Identity):
-        if (
-            isinstance(arg2, (int, float, complex, np.number, numbers.Number))
-            and np.ndim(arg2) == 0
-        ):
-            return Scaling(factors=arg2, shape=arg1.shape, dtype=arg1.dtype)
-
-    if isinstance(arg2, Identity):
-        if (
-            isinstance(arg1, (int, float, complex, np.number, numbers.Number))
-            and np.ndim(arg1) == 0
-        ):
-            return Scaling(factors=arg1, shape=arg2.shape, dtype=arg2.dtype)
-
-    return NotImplemented
-
-
-for sc_type in [int, float, complex, np.number, numbers.Number]:
-    _mul_fns[(Identity, sc_type)] = _mul_id
-    _mul_fns[(sc_type, Identity)] = _mul_id
+_mul_fns[(Identity, "scalar")] = lambda idty, sc: Scaling(
+    sc, shape=idty.shape, dtype=idty.dtype
+)
+_mul_fns[("scalar", Identity)] = lambda sc, idty: Scaling(
+    sc, shape=idty.shape, dtype=idty.dtype
+)
 
 
 def _apply(
@@ -138,7 +209,17 @@ def _apply(
         ]
     ] = None,
 ) -> Union[LinearOperator, type(NotImplemented)]:
-    key = (type(op1), type(op2))
+    if np.isscalar(op1):
+        key1 = "scalar"
+    else:
+        key1 = type(op1)
+
+    if np.isscalar(op2):
+        key2 = "scalar"
+    else:
+        key2 = type(op2)
+
+    key = (key1, key2)
 
     if key in op_registry:
         res = op_registry[key](op1, op2)
