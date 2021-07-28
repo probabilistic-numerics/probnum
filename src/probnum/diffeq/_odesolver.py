@@ -6,8 +6,8 @@ from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import problems, randvars
-from probnum.diffeq import callbacks, stepsize
+from probnum import problems
+from probnum.diffeq import callbacks
 from probnum.typing import FloatArgType
 
 CallbackType = Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
