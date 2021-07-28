@@ -2,7 +2,7 @@
 
 import pytest
 
-from probnum import filtsmooth, statespace
+from probnum import filtsmooth, randprocs
 
 from ._linearization_test_interface import InterfaceDiscreteLinearizationTest
 
@@ -11,7 +11,9 @@ class TestContinuousUKFComponent:
     """Implementation incomplete, hence check that an error is raised."""
 
     def test_notimplementederror(self):
-        sde = statespace.SDE(1, None, None, None)  # content is irrelevant.
+        sde = randprocs.markov.continuous.SDE(
+            1, None, None, None
+        )  # content is irrelevant.
         with pytest.raises(NotImplementedError):
             filtsmooth.gaussian.approx.ContinuousUKFComponent(sde)
 

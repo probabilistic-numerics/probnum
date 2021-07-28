@@ -4,7 +4,7 @@ from typing import Iterable, Union
 
 import numpy as np
 
-from probnum import problems, randprocs, randvars, statespace
+from probnum import problems, randprocs, randvars
 from probnum.filtsmooth import _bayesfiltsmooth
 from probnum.filtsmooth.particle import (
     _importance_distributions,
@@ -14,10 +14,12 @@ from probnum.typing import FloatArgType, IntArgType
 
 # Terribly long variable names, but internal only, so no worries.
 ParticleFilterMeasurementModelArgType = Union[
-    statespace.DiscreteGaussian, Iterable[statespace.DiscreteGaussian]
+    randprocs.markov.discrete.DiscreteGaussian,
+    Iterable[randprocs.markov.discrete.DiscreteGaussian],
 ]
 ParticleFilterLinearisedMeasurementModelArgType = Union[
-    statespace.DiscreteGaussian, Iterable[statespace.DiscreteGaussian]
+    randprocs.markov.discrete.DiscreteGaussian,
+    Iterable[randprocs.markov.discrete.DiscreteGaussian],
 ]
 
 
@@ -61,7 +63,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
 
     def __init__(
         self,
-        prior_process: randprocs.MarkovProcess,
+        prior_process: randprocs.markov.MarkovProcess,
         importance_distribution: _importance_distributions.ImportanceDistribution,
         num_particles: IntArgType,
         rng: np.random.Generator,

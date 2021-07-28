@@ -1,33 +1,38 @@
 import numpy as np
 
-from probnum import statespace
+from probnum import randprocs
 from probnum.filtsmooth.optim import _stoppingcriterion
 
 
-class IteratedDiscreteComponent(statespace.Transition):
+class IteratedDiscreteComponent(randprocs.markov.Transition):
     """Iterated updates.
 
     Examples
     --------
-    >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.filtsmooth.optim import StoppingCriterion
+    >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.problems.zoo.diffeq import logistic
-    >>> from probnum.statespace import IBM
+    >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
+    >>> from probnum.randprocs.markov.discrete import DiscreteGaussian
     >>> from probnum.randvars import Constant
     >>> import numpy as np
     >>>
 
     Set up an iterated component.
 
-    >>> prior = IBM(ordint=2, spatialdim=1)
-    >>> ekf = DiscreteEKFComponent.from_ode(logistic(t0=0., tmax=1., y0=np.array([0.1])), prior, 0.)
+    >>> iwp = IntegratedWienerProcess(initarg=0., num_derivatives=2, wiener_process_dimension=1)
+    >>> H0, H1 = iwp.transition.proj2coord(coord=0), iwp.transition.proj2coord(coord=1)
+    >>> call = lambda t, x: H1 @ x - H0 @ x * (1 - H0 @ x)
+    >>> jacob = lambda t, x: H1 - (1 - 2*(H0 @ x)) @ H0
+    >>> nonlinear_model = DiscreteGaussian.from_callable(3, 1, call, jacob)
+    >>> ekf = DiscreteEKFComponent(nonlinear_model)
     >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
 
     Generate some random variables and pseudo observations.
 
     >>> some_array = np.array([0.1, 1., 2.])
     >>> some_rv = Constant(some_array)
-    >>> rv, _ = prior.forward_realization(some_array , t=0., dt=0.1)
+    >>> rv, _ = iwp.transition.forward_realization(some_array , t=0., dt=0.1)
     >>> rv_observed, _ =  comp.forward_rv(rv, t=0.2)
     >>> rv_observed *= 0.01  # mitigate zero data
 
@@ -37,16 +42,16 @@ class IteratedDiscreteComponent(statespace.Transition):
     3
     >>> out, info = comp.forward_realization(some_array,some_rv,)
     >>> print(out.mean)
-    [0.73]
+    [0.91]
 
     But its backward values are different, because of the iteration.
 
     >>> out_ekf, _ = ekf.backward_rv(rv_observed, rv)
     >>> print(out_ekf.mean)
-    [ 0.18392711  0.504723   -8.429155  ]
+    [  0.17081493   0.15351366 -13.73607367]
     >>> out_iterated, _ = comp.backward_rv(rv_observed, rv)
     >>> print(out_iterated.mean)
-    [ 0.18201288  0.45367681 -9.1948478 ]
+    [  0.17076427   0.15194483 -13.76505168]
     """
 
     def __init__(

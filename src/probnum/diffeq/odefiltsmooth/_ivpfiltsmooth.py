@@ -5,9 +5,14 @@ from typing import Optional
 import numpy as np
 import scipy.linalg
 
-from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
-from probnum.diffeq import _odesolver
-from probnum.diffeq.odefiltsmooth import _kalman_odesolution, initialization_routines
+from probnum import filtsmooth, randprocs, randvars, utils
+from probnum.diffeq import _odesolver, stepsize
+from probnum.diffeq.odefiltsmooth import (
+    _kalman_odesolution,
+    approx_strategies,
+    information_operators,
+    initialization_routines,
+)
 
 
 class GaussianIVPFilter(_odesolver.ODESolver):
@@ -48,30 +53,41 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
     def __init__(
         self,
-        ivp: problems.InitialValueProblem,
-        prior_process: randprocs.MarkovProcess,
-        measurement_model: statespace.DiscreteGaussian,
+        steprule: stepsize.StepRule,
+        prior_process: randprocs.markov.MarkovProcess,
+        information_operator: information_operators.ODEInformationOperator,
+        approx_strategy: approx_strategies.ApproximationStrategy,
         with_smoothing: bool,
         initialization_routine: initialization_routines.InitializationRoutine,
-        diffusion_model: Optional[statespace.Diffusion] = None,
+        diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
-        if not isinstance(prior_process.transition, statespace.Integrator):
+        if not isinstance(
+            prior_process.transition,
+            randprocs.markov.integrator.IntegratorTransition,
+        ):
             raise ValueError(
-                "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
+                "Please initialise a Gaussian filter with an Integrator (see `probnum.randprocs.markov.integrator`)"
             )
 
         self.prior_process = prior_process
-        self.measurement_model = measurement_model
+
+        self.information_operator = information_operator
+        self.approx_strategy = approx_strategy
+
+        # Filled in in initialize(), once the ODE has been seen.
+        self.measurement_model = None
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.initialization_routine = initialization_routine
-        super().__init__(ivp=ivp, order=prior_process.transition.ordint)
+        super().__init__(
+            steprule=steprule, order=prior_process.transition.num_derivatives
+        )
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
-            statespace.PiecewiseConstantDiffusion(t0=self.ivp.t0)
+            randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=self.ivp.t0)
             if diffusion_model is None
             else diffusion_model
         )
@@ -81,7 +97,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # with a global diffusion estimate. The choices here depend on the
         # employed diffusion model.
         is_dynamic = isinstance(
-            self.diffusion_model, statespace.PiecewiseConstantDiffusion
+            self.diffusion_model, randprocs.markov.continuous.PiecewiseConstantDiffusion
         )
         self._calibrate_at_each_step = is_dynamic
         self._calibrate_all_states_post_hoc = not self._calibrate_at_each_step
@@ -90,12 +106,21 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # or from any other state.
         self._reference_coordinates = _reference_coordinates
 
-    def initialise(self):
+    def initialise(self, ivp):
+        self.information_operator.incorporate_ode(ode=ivp)
         initrv = self.initialization_routine(
-            ivp=self.ivp, prior_process=self.prior_process
+            ivp=self.ivp,
+            prior_process=self.prior_process,
         )
 
+        self.measurement_model = self.approx_strategy(
+            self.information_operator
+        ).as_transition()
         return self.ivp.t0, initrv
+
+    @property
+    def ivp(self):
+        return self.information_operator.ode
 
     def step(self, t, t_new, current_rv):
         r"""Gaussian IVP filter step as nonlinear Kalman filtering with zero data.
@@ -317,45 +342,3 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             )
 
         return _kalman_odesolution.KalmanODESolution(kalman_posterior)
-
-    @staticmethod
-    def string_to_measurement_model(
-        measurement_model_string, ivp, prior_process, measurement_noise_covariance=0.0
-    ):
-        """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
-
-        Return a :class:`DiscreteGaussian` (:class:`DiscreteEKFComponent`) that provides
-        a tractable approximation of the transition densities based on the local defect of the ODE
-
-        .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t))
-
-        and user-specified measurement noise covariance :math:`R`. Almost always, the measurement noise covariance is zero.
-        """
-        measurement_model_string = measurement_model_string.upper()
-
-        # While "UK" is not available in probsolve_ivp (because it is not recommended)
-        # It is an option in this function here, because there is no obvious reason to restrict
-        # the options in this lower level function.
-        choose_meas_model = {
-            "EK0": filtsmooth.gaussian.approx.DiscreteEKFComponent.from_ode(
-                ivp,
-                prior=prior_process.transition,
-                ek0_or_ek1=0,
-                evlvar=measurement_noise_covariance,
-                forward_implementation="sqrt",
-                backward_implementation="sqrt",
-            ),
-            "EK1": filtsmooth.gaussian.approx.DiscreteEKFComponent.from_ode(
-                ivp,
-                prior=prior_process.transition,
-                ek0_or_ek1=1,
-                evlvar=measurement_noise_covariance,
-                forward_implementation="sqrt",
-                backward_implementation="sqrt",
-            ),
-        }
-
-        if measurement_model_string not in choose_meas_model.keys():
-            raise ValueError("Type of measurement model not supported.")
-
-        return choose_meas_model[measurement_model_string]
