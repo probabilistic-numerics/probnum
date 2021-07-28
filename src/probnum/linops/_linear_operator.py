@@ -563,6 +563,16 @@ class LinearOperator:
 
         return mul(other, self)
 
+    def _is_type_shape_dtype_equal(self, other: "LinearOperator") -> bool:
+        return (
+            type(self) == type(other)
+            and self.shape == other.shape
+            and self.dtype == other.dtype
+        )
+
+    def __eq__(self, other: "LinearOperator") -> bool:
+        raise NotImplementedError
+
     def __matmul__(
         self, other: BinaryOperandType
     ) -> Union["LinearOperator", np.ndarray]:
@@ -1019,6 +1029,12 @@ class Matrix(LinearOperator):
 
         return Matrix(A=self.A @ other.A)
 
+    def __eq__(self, other: LinearOperator) -> bool:
+        if self._is_type_shape_dtype_equal(other):
+            return False
+
+        return np.all(self.A == other.A)
+
 
 class Identity(LinearOperator):
     """The identity operator.
@@ -1086,3 +1102,6 @@ class Identity(LinearOperator):
             return self
         else:
             return Identity(self.shape, dtype=dtype)
+
+    def __eq__(self, other: LinearOperator) -> bool:
+        return self._is_type_shape_dtype_equal(other)
