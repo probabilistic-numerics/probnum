@@ -18,15 +18,15 @@ class DiscreteCallback(_callback.ODESolverCallback):
     def __init__(
         self,
         replace: Callable[
-            ["probnum.diffeq.ODESolver.State"], "probnum.diffeq.ODESolver.State"
+            ["probnum.diffeq.ODESolverState"], "probnum.diffeq.ODESolverState"
         ],
-        condition: Callable[["probnum.diffeq.ODESolver.State"], Union[bool]],
+        condition: Callable[["probnum.diffeq.ODESolverState"], Union[bool]],
     ):
         super().__init__(replace=replace, condition=condition)
 
     def __call__(
-        self, state: "probnum.diffeq.ODESolver.State"
-    ) -> "probnum.diffeq.ODESolver.State":
+        self, state: "probnum.diffeq.ODESolverState"
+    ) -> "probnum.diffeq.ODESolverState":
         if self.condition(state):
             state = self.replace(state)
         return state

@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 from collections import abc
-from dataclasses import dataclass
 from typing import Iterable, Optional, Union
 
 import numpy as np
@@ -17,19 +16,6 @@ CallbackType = Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCa
 
 class ODESolver(ABC):
     """Interface for ODE solvers in ProbNum."""
-
-    @dataclass
-    class State:
-        """ODE solver states."""
-
-        ivp: problems.InitialValueProblem
-
-        t: float
-        rv: randvars.RandomVariable
-        error_estimate: Optional[np.ndarray] = None
-
-        # The reference state is used for relative error estimation
-        reference_state: Optional[np.ndarray] = None
 
     def __init__(
         self,

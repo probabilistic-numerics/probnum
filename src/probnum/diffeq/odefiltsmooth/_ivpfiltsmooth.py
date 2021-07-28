@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, randprocs, randvars, utils
-from probnum.diffeq import _odesolver, stepsize
+from probnum.diffeq import _odesolver, _odesolver_state, stepsize
 from probnum.diffeq.odefiltsmooth import (
     _kalman_odesolution,
     approx_strategies,
@@ -116,7 +116,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             ivp=ivp,
             prior_process=self.prior_process,
         )
-        state = self.State(
+        state = _odesolver_state.ODESolverState(
             ivp=ivp, t=ivp.t0, rv=initrv, error_estimate=None, reference_state=None
         )
         return state
@@ -239,7 +239,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
                 cov=state.rv.cov.copy(),
                 cov_cholesky=state.rv.cov_cholesky.copy(),
             )
-            state = self.State(
+            state = _odesolver_state.ODESolverState(
                 ivp=state.ivp,
                 rv=np.nan * new_rv,
                 t=t_new,
@@ -301,7 +301,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         )
 
         t_new = state.t + dt
-        state = self.State(
+        state = _odesolver_state.ODESolverState(
             ivp=state.ivp,
             rv=filt_rv,
             t=t_new,

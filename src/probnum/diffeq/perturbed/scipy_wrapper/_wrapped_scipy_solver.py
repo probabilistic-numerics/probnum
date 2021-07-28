@@ -8,7 +8,7 @@ from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import randvars
-from probnum.diffeq import _odesolver
+from probnum.diffeq import _odesolver, _odesolver_state
 from probnum.diffeq.perturbed.scipy_wrapper import _wrapped_scipy_odesolution
 from probnum.typing import FloatArgType
 
@@ -53,7 +53,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         self.solver.t = self.ivp.t0
         self.solver.y = self.ivp.y0
         self.solver.f = self.solver.fun(self.solver.t, self.solver.y)
-        state = self.State(
+        state = _odesolver_state.ODESolverState(
             ivp=ivp,
             rv=randvars.Constant(self.ivp.y0),
             t=self.ivp.t0,
@@ -62,7 +62,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         )
         return state
 
-    def attempt_step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
+    def attempt_step(self, state: _odesolver_state.ODESolverState, dt: FloatArgType):
         """Perform one ODE-step from start to stop and set variables to the
         corresponding values.
 
@@ -77,7 +77,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
 
         Returns
         -------
-        _odesolver.ODESolver.State
+        _odesolver_state.ODESolverState
             New state.
         """
 
@@ -97,7 +97,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         # solve().
         error_estimation = self.solver._estimate_error(self.solver.K, dt)
         y_new_as_rv = randvars.Constant(y_new)
-        new_state = self.State(
+        new_state = _odesolver_state.ODESolverState(
             ivp=state.ivp,
             rv=y_new_as_rv,
             t=state.t + dt,

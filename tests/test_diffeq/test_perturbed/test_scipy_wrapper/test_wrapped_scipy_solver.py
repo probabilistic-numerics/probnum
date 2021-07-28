@@ -75,7 +75,7 @@ def test_step_execution(solvers):
     scipysolver.step()
 
     # perform step of the same size
-    teststate = testsolver.State(
+    teststate = diffeq.ODESolverState(
         ivp=ode,
         rv=randvars.Constant(scipysolver.y_old),
         t=scipysolver.t_old,
@@ -91,7 +91,7 @@ def test_step_execution(solvers):
 def test_step_variables(solvers, y, start_point, stop_point):
     testsolver, scipysolver, ode = solvers
 
-    teststate = testsolver.State(
+    teststate = diffeq.ODESolverState(
         ivp=ode,
         rv=randvars.Constant(y),
         t=start_point,
@@ -147,7 +147,7 @@ def test_dense_output(solvers):
     # perform steps of the same size
     testsolver.initialize(ode)
     scipysolver.step()
-    teststate = testsolver.State(
+    teststate = diffeq.ODESolverState(
         ivp=ode,
         rv=randvars.Constant(scipysolver.y_old),
         t=scipysolver.t_old,

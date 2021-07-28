@@ -65,7 +65,7 @@ def test_step(solvers, start_point, stop_point, y):
     _, perturbedsolver, ode = solvers
     perturbedsolver.initialize(ode)
 
-    test_state = perturbedsolver.State(
+    test_state = diffeq.ODESolverState(
         ivp=ode, rv=y, t=start_point, error_estimate=None, reference_state=None
     )
     step_after_first_step = perturbedsolver.attempt_step(
@@ -76,7 +76,7 @@ def test_step(solvers, start_point, stop_point, y):
     )
 
     perturbedsolver.initialize(ode)
-    test_state = perturbedsolver.State(
+    test_state = diffeq.ODESolverState(
         ivp=ode, rv=y, t=start_point, error_estimate=None, reference_state=None
     )
 

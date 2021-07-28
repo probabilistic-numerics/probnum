@@ -5,7 +5,7 @@ from typing import Callable
 import numpy as np
 
 from probnum import _randomvariablelist
-from probnum.diffeq import _odesolver
+from probnum.diffeq import _odesolver, _odesolver_state
 from probnum.diffeq.perturbed import scipy_wrapper
 from probnum.diffeq.perturbed.step import (
     _perturbation_functions,
@@ -97,7 +97,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.scales = []
         return self.solver.initialize(ivp)
 
-    def attempt_step(self, state: _odesolver.ODESolver.State, dt: FloatArgType):
+    def attempt_step(self, state: _odesolver_state.ODESolverState, dt: FloatArgType):
         """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original
@@ -112,7 +112,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
 
         Returns
         -------
-        _odesolver.ODESolver.State
+        _odesolver_state.ODESolverState
             New state.
         """
         noisy_step = self.perturb_step(self.rng, dt)
@@ -121,7 +121,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.scales.append(scale)
 
         t_new = state.t + dt
-        state = self.State(
+        state = _odesolver_state.ODESolverState(
             ivp=state.ivp,
             rv=new_state.rv,
             t=t_new,

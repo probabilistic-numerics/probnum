@@ -12,7 +12,7 @@ class MockODESolver(diffeq.ODESolver):
     """Euler method as an ODE solver."""
 
     def initialize(self, ivp):
-        return self.State(
+        return diffeq.ODESolverState(
             ivp=ivp,
             rv=Constant(ivp.y0),
             t=ivp.t0,
@@ -25,7 +25,7 @@ class MockODESolver(diffeq.ODESolver):
         xnew = x + dt * state.ivp.f(t, x)
 
         # return nan as error estimate to ensure that it is not used
-        new_state = self.State(
+        new_state = diffeq.ODESolverState(
             ivp=state.ivp,
             rv=Constant(xnew),
             t=t + dt,

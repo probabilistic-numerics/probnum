@@ -14,16 +14,16 @@ class ODESolverCallback(abc.ABC):
     def __init__(
         self,
         replace: Callable[
-            ["probnum.diffeq.ODESolver.State"], "probnum.diffeq.ODESolver.State"
+            ["probnum.diffeq.ODESolverState"], "probnum.diffeq.ODESolverState"
         ],
-        condition: Callable[["probnum.diffeq.ODESolver.State"], Union[float, bool]],
+        condition: Callable[["probnum.diffeq.ODESolverState"], Union[float, bool]],
     ):
         self.condition = condition
         self.replace = replace
 
     @abc.abstractmethod
     def __call__(
-        self, state: "probnum.diffeq.ODESolver.State"
-    ) -> "probnum.diffeq.ODESolver.State":
+        self, state: "probnum.diffeq.ODESolverState"
+    ) -> "probnum.diffeq.ODESolverState":
         """Modify a state whenever a condition dictates doing so."""
         raise NotImplementedError
