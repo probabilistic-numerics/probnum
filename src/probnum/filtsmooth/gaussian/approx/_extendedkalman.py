@@ -4,9 +4,7 @@ through Taylor-method approximations, e.g. linearization."""
 import abc
 from typing import Dict, Tuple
 
-import numpy as np
-
-from probnum import randvars, statespace
+from probnum import randprocs, randvars
 
 
 class EKFComponent(abc.ABC):
@@ -107,14 +105,16 @@ class EKFComponent(abc.ABC):
         )
 
     @abc.abstractmethod
-    def linearize(self, at_this_rv: randvars.RandomVariable) -> statespace.Transition:
+    def linearize(
+        self, at_this_rv: randvars.RandomVariable
+    ) -> randprocs.markov.Transition:
         """Linearize the transition and make it tractable."""
         raise NotImplementedError
 
 
 # Order of inheritance matters, because forward and backward
 # are defined in EKFComponent, and must not be inherited from SDE.
-class ContinuousEKFComponent(EKFComponent, statespace.SDE):
+class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
     """Continuous-time extended Kalman filter transition.
 
     Parameters
@@ -139,7 +139,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         forward_implementation="classic",
     ) -> None:
 
-        statespace.SDE.__init__(
+        randprocs.markov.continuous.SDE.__init__(
             self,
             driftfun=non_linear_model.driftfun,
             dispmatfun=non_linear_model.dispmatfun,
@@ -168,7 +168,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         def driftmatfun(t):
             return dg(t, x0)
 
-        return statespace.LinearSDE(
+        return randprocs.markov.continuous.LinearSDE(
             dimension=self.non_linear_model.dimension,
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
@@ -180,7 +180,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         )
 
 
-class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
+class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
@@ -190,7 +190,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         backward_implementation="classic",
     ) -> None:
 
-        statespace.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.DiscreteGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -218,7 +218,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         def dynamicsmatfun(t):
             return dg(t, x0)
 
-        return statespace.DiscreteLinearGaussian(
+        return randprocs.markov.discrete.DiscreteLinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
@@ -227,55 +227,4 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
-        )
-
-    @classmethod
-    def from_ode(
-        cls,
-        ode,
-        prior,
-        evlvar=0.0,
-        ek0_or_ek1=0,
-        forward_implementation="classic",
-        backward_implementation="classic",
-    ):
-        # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
-
-        spatialdim = prior.spatialdim
-        h0 = prior.proj2coord(coord=0)
-        h1 = prior.proj2coord(coord=1)
-
-        def dyna(t, x):
-            return h1 @ x - ode.f(t, h0 @ x)
-
-        def diff(t):
-            return evlvar * np.eye(spatialdim)
-
-        def diff_cholesky(t):
-            return np.sqrt(evlvar) * np.eye(spatialdim)
-
-        def jaco_ek1(t, x):
-            return h1 - ode.df(t, h0 @ x) @ h0
-
-        def jaco_ek0(t, x):
-            return h1
-
-        if ek0_or_ek1 == 0:
-            jaco = jaco_ek0
-        elif ek0_or_ek1 == 1:
-            jaco = jaco_ek1
-        else:
-            raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
-        discrete_model = statespace.DiscreteGaussian(
-            input_dim=prior.dimension,
-            output_dim=ode.dimension,
-            state_trans_fun=dyna,
-            proc_noise_cov_mat_fun=diff,
-            jacob_state_trans_fun=jaco,
-            proc_noise_cov_cholesky_fun=diff_cholesky,
-        )
-        return cls(
-            discrete_model,
-            forward_implementation=forward_implementation,
-            backward_implementation=backward_implementation,
         )

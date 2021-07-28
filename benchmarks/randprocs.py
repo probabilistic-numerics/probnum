@@ -2,20 +2,21 @@
 import numpy as np
 import scipy.stats
 
-from probnum import config, linops, randprocs, randvars, statespace
+from probnum import config, linops, randprocs, randvars
 
 
 class MarkovProcessSampling:
     """Benchmark sampling from Markov processes."""
 
-    param_names = ["lazy_linalg", "len_trajectory", "order", "dimension"]
+    param_names = ["lazy_linalg", "len_trajectory", "num_derivatives", "dimension"]
     params = [[True, False], [10], [5], [50, 100]]
 
-    def setup(self, lazy_linalg, len_trajectory, order, dimension):
+    def setup(self, lazy_linalg, len_trajectory, num_derivatives, dimension):
         with config(lazy_linalg=lazy_linalg):
-            dynamics = statespace.IBM(
-                ordint=order,
-                spatialdim=dimension,
+
+            dynamics = randprocs.markov.integrator.IntegratedWienerTransition(
+                num_derivatives=num_derivatives,
+                wiener_process_dimension=dimension,
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
@@ -28,7 +29,7 @@ class MarkovProcessSampling:
 
             time_domain = (0.0, float(len_trajectory))
             self.time_grid = np.arange(*time_domain)
-            self.markov_process = randprocs.MarkovProcess(
+            self.markov_process = randprocs.markov.MarkovProcess(
                 initarg=time_domain[0], initrv=initrv, transition=dynamics
             )
 
@@ -38,7 +39,7 @@ class MarkovProcessSampling:
                 random_state=rng,
             )
 
-    def time_sample(self, lazy_linalg, len_trajectory, order, dimension):
+    def time_sample(self, lazy_linalg, len_trajectory, num_derivatives, dimension):
         with config(lazy_linalg=lazy_linalg):
             self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
                 base_measure_realizations=self.base_measure_realization,

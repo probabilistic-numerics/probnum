@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import scipy.integrate as sci
 
-from probnum import filtsmooth, problems, randprocs, randvars, statespace
+from probnum import filtsmooth, problems, randprocs, randvars
 from probnum.diffeq.odefiltsmooth.initialization_routines import _initialization_routine
 from probnum.typing import FloatArgType
 
@@ -28,9 +28,8 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
 
     >>> import numpy as np
     >>> from probnum.randvars import Normal
-    >>> from probnum.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
-    >>> from probnum.randprocs import MarkovProcess
+    >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
 
     Compute the initial values of the van-der-Pol problem as follows.
     First, we set up the ODE problem and the prior process.
@@ -38,9 +37,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
     >>> ivp = vanderpol()
     >>> print(ivp.y0)
     [2. 0.]
-    >>> prior = IBM(ordint=3, spatialdim=2)
-    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=ivp.t0)
+    >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, num_derivatives=3, wiener_process_dimension=2)
 
     Next, we call the initialization routine.
 
@@ -62,7 +59,9 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         super().__init__(is_exact=False, requires_jax=False)
 
     def __call__(
-        self, ivp: problems.InitialValueProblem, prior_process: randprocs.MarkovProcess
+        self,
+        ivp: problems.InitialValueProblem,
+        prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
         """Compute the initial distribution.
 
@@ -95,7 +94,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         f, y0, t0, df = ivp.f, ivp.y0, ivp.t0, ivp.df
         y0 = np.asarray(y0)
         ode_dim = y0.shape[0] if y0.ndim > 0 else 1
-        order = prior_process.transition.ordint
+        order = prior_process.transition.num_derivatives
 
         # order + 1 would suffice in theory, 2*order + 1 is for good measure
         # (the "+1" is a safety factor for order=1)
@@ -115,7 +114,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         proj_to_y = prior_process.transition.proj2coord(coord=0)
         zeros_shift = np.zeros(ode_dim)
         zeros_cov = np.zeros((ode_dim, ode_dim))
-        measmod_scipy = statespace.DiscreteLTIGaussian(
+        measmod_scipy = randprocs.markov.discrete.DiscreteLTIGaussian(
             proj_to_y,
             zeros_shift,
             zeros_cov,
@@ -137,7 +136,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         zeros_cov = np.zeros(
             (len(projmat_initial_conditions), len(projmat_initial_conditions))
         )
-        measmod_initcond = statespace.DiscreteLTIGaussian(
+        measmod_initcond = randprocs.markov.discrete.DiscreteLTIGaussian(
             projmat_initial_conditions,
             zeros_shift,
             zeros_cov,

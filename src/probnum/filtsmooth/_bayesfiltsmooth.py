@@ -8,6 +8,6 @@ class BayesFiltSmooth:
 
     def __init__(
         self,
-        prior_process: randprocs.MarkovProcess,
+        prior_process: randprocs.markov.MarkovProcess,
     ):
         self.prior_process = prior_process
