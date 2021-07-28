@@ -46,12 +46,12 @@ def list_of_randvars():
 
 def test_initialise(solvers):
     testsolver, perturbedsolver, ode = solvers
-    time_scipy, state_scipy = testsolver.initialize(ode)
-    time, state = perturbedsolver.initialize(ode)
+    state_scipy = testsolver.initialize(ode)
+    state_perturbed = perturbedsolver.initialize(ode)
 
-    np.testing.assert_allclose(time, time_scipy, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(state_perturbed.t, state_scipy.t, atol=1e-14, rtol=1e-14)
     np.testing.assert_allclose(
-        state.mean[0], state_scipy.mean[0], atol=1e-14, rtol=1e-14
+        state_perturbed.rv.mean[0], state_scipy.rv.mean[0], atol=1e-14, rtol=1e-14
     )
 
 
@@ -66,7 +66,7 @@ def test_step(solvers, start_point, stop_point, y):
     perturbedsolver.initialize(ode)
 
     test_state = perturbedsolver.State(
-        rv=y, t=start_point, error_estimate=None, reference_state=None
+        ivp=ode, rv=y, t=start_point, error_estimate=None, reference_state=None
     )
     step_after_first_step = perturbedsolver.attempt_step(
         test_state, dt=stop_point - start_point
@@ -75,9 +75,9 @@ def test_step(solvers, start_point, stop_point, y):
         step_after_first_step, dt=stop_point - start_point
     )
 
-    perturbedsolver.initialize()
+    perturbedsolver.initialize(ode)
     test_state = perturbedsolver.State(
-        rv=y, t=start_point, error_estimate=None, reference_state=None
+        ivp=ode, rv=y, t=start_point, error_estimate=None, reference_state=None
     )
 
     step_after_first_step = perturbedsolver.attempt_step(

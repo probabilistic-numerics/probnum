@@ -113,11 +113,11 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         ).as_transition()
 
         initrv = self.initialization_routine(
-            ivp=self.ivp,
+            ivp=ivp,
             prior_process=self.prior_process,
         )
         state = self.State(
-            t=self.ivp.t0, rv=initrv, error_estimate=None, reference_state=None
+            ivp=ivp, t=ivp.t0, rv=initrv, error_estimate=None, reference_state=None
         )
         return state
 
@@ -240,6 +240,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
                 cov_cholesky=state.rv.cov_cholesky.copy(),
             )
             state = self.State(
+                ivp=state.ivp,
                 rv=np.nan * new_rv,
                 t=t_new,
                 error_estimate=local_errors,
@@ -301,6 +302,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
         t_new = state.t + dt
         state = self.State(
+            ivp=state.ivp,
             rv=filt_rv,
             t=t_new,
             error_estimate=local_errors,

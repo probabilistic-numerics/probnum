@@ -62,7 +62,7 @@ def test_init(doprisolver):
 
 
 def test_initialise(solvers):
-    testsolver, scipysolver = solvers
+    testsolver, scipysolver, ode = solvers
     state = testsolver.initialize(ode)
     time_scipy = scipysolver.t
     state_scipy = scipysolver.y
@@ -76,6 +76,7 @@ def test_step_execution(solvers):
 
     # perform step of the same size
     teststate = testsolver.State(
+        ivp=ode,
         rv=randvars.Constant(scipysolver.y_old),
         t=scipysolver.t_old,
         error_estimate=None,
@@ -91,6 +92,7 @@ def test_step_variables(solvers, y, start_point, stop_point):
     testsolver, scipysolver, ode = solvers
 
     teststate = testsolver.State(
+        ivp=ode,
         rv=randvars.Constant(y),
         t=start_point,
         error_estimate=None,
@@ -143,9 +145,10 @@ def test_dense_output(solvers):
     testsolver, scipysolver, ode = solvers
 
     # perform steps of the same size
-    testsolver.initialise(ode)
+    testsolver.initialize(ode)
     scipysolver.step()
     teststate = testsolver.State(
+        ivp=ode,
         rv=randvars.Constant(scipysolver.y_old),
         t=scipysolver.t_old,
         error_estimate=None,

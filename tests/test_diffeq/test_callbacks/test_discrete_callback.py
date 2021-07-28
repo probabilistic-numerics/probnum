@@ -35,11 +35,11 @@ class TestDiscreteCallback(_callback_test_interface.CallbackTest):
         """Test whether __call__ wraps the function correctly."""
 
         # t > 0, hence the state is not affected
-        dummy_state = diffeq.ODESolver.State(rv=3.0, t=1.0)
+        dummy_state = diffeq.ODESolver.State(ivp=None, rv=3.0, t=1.0)
         updated = self.discrete_callbacks(state=dummy_state)
         assert updated.rv == 3.0
 
         # t < 0, hence the state is multiplied by two
-        dummy_state = diffeq.ODESolver.State(rv=3.0, t=-1.0)
+        dummy_state = diffeq.ODESolver.State(ivp=None, rv=3.0, t=-1.0)
         updated = self.discrete_callbacks(state=dummy_state)
         assert updated.rv == 6.0

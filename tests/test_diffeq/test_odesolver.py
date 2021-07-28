@@ -13,6 +13,7 @@ class MockODESolver(diffeq.ODESolver):
 
     def initialize(self, ivp):
         return self.State(
+            ivp=ivp,
             rv=Constant(ivp.y0),
             t=ivp.t0,
             error_estimate=np.nan,
@@ -21,11 +22,15 @@ class MockODESolver(diffeq.ODESolver):
 
     def attempt_step(self, state, dt):
         t, x = state.t, state.rv.mean
-        xnew = x + dt * self.ivp.f(t, x)
+        xnew = x + dt * state.ivp.f(t, x)
 
         # return nan as error estimate to ensure that it is not used
         new_state = self.State(
-            rv=Constant(xnew), t=t + dt, error_estimate=np.nan, reference_state=xnew
+            ivp=state.ivp,
+            rv=Constant(xnew),
+            t=t + dt,
+            error_estimate=np.nan,
+            reference_state=xnew,
         )
         return new_state
 
@@ -53,7 +58,7 @@ class ODESolverTestCase(unittest.TestCase):
         )  # this is the actual part of the test
 
         # quick check that the result is sensible
-        self.assertAlmostEqual(odesol.locations[-1], self.solver.ivp.tmax)
+        self.assertAlmostEqual(odesol.locations[-1], ivp.tmax)
         self.assertAlmostEqual(odesol.states[-1].mean[0], 1.0, places=2)
 
 

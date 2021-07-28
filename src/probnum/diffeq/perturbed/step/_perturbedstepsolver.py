@@ -122,6 +122,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
 
         t_new = state.t + dt
         state = self.State(
+            ivp=state.ivp,
             rv=new_state.rv,
             t=t_new,
             error_estimate=new_state.error_estimate,

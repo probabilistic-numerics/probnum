@@ -54,6 +54,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         self.solver.y = self.ivp.y0
         self.solver.f = self.solver.fun(self.solver.t, self.solver.y)
         state = self.State(
+            ivp=ivp,
             rv=randvars.Constant(self.ivp.y0),
             t=self.ivp.t0,
             error_estimate=None,
@@ -97,6 +98,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         error_estimation = self.solver._estimate_error(self.solver.K, dt)
         y_new_as_rv = randvars.Constant(y_new)
         new_state = self.State(
+            ivp=state.ivp,
             rv=y_new_as_rv,
             t=state.t + dt,
             error_estimate=error_estimation,
