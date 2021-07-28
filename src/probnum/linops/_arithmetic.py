@@ -190,12 +190,8 @@ for op_type in _AnyLinOp:
     _matmul_fns[(Identity, op_type)] = lambda idty, other: other
     _matmul_fns[(op_type, Identity)] = lambda other, idty: other
 
-_mul_fns[(Identity, "scalar")] = lambda idty, sc: Scaling(
-    sc, shape=idty.shape, dtype=idty.dtype
-)
-_mul_fns[("scalar", Identity)] = lambda sc, idty: Scaling(
-    sc, shape=idty.shape, dtype=idty.dtype
-)
+_mul_fns[(Identity, "scalar")] = lambda idty, sc: Scaling(sc, shape=idty.shape)
+_mul_fns[("scalar", Identity)] = lambda sc, idty: Scaling(sc, shape=idty.shape)
 
 
 def _apply(
