@@ -108,6 +108,24 @@ for op_type in _AnyLinOp:
         lambda op, scaling: op if scaling._scalar == 0.0 else NotImplemented
     )
 
+
+def _mul_scalar_scaling(scalar: ScalarArgType, scaling: Scaling) -> Scaling:
+    if scaling.is_isotropic:
+        return Scaling(scalar * scaling.scalar, shape=scaling.shape)
+
+    return Scaling(scalar * scaling.factors, shape=scaling.shape)
+
+
+def _mul_scaling_scalar(scaling: Scaling, scalar: ScalarArgType) -> Scaling:
+    if scaling.is_isotropic:
+        return Scaling(scalar * scaling.scalar, shape=scaling.shape)
+
+    return Scaling(scalar * scaling.factors, shape=scaling.shape)
+
+
+_mul_fns[("scalar", Scaling)] = _mul_scalar_scaling
+_mul_fns[(Scaling, "scalar")] = _mul_scaling_scalar
+
 # ScaledLinearOperator
 def _matmul_scaled_op(scaled, anylinop):
     return scaled._scalar * (scaled._linop @ anylinop)
