@@ -6,6 +6,7 @@ import numpy as np
 from probnum.typing import DTypeArgType
 
 from . import _linear_operator, _utils
+from ._scaling import Scaling
 
 
 class Symmetrize(_linear_operator.LinearOperator):
@@ -178,6 +179,38 @@ class Kronecker(_linear_operator.LinearOperator):
 
         # Using (A (x) B) o (C (x) D) = (A o C) (x) (B o D)
         return Kronecker(A=_A * _C, B=_B * _D)
+
+    def _add_kronecker(
+        self, other: "Kronecker"
+    ) -> Union[type(NotImplemented), "Kronecker"]:
+
+        if self.A == other.A and self.B == other.B:
+            return Kronecker(A=2 * self.A, B=other.B)
+
+        if self.A == other.A:
+            return Kronecker(A=self.A, B=self.B + other.B)
+
+        if self.B == other.B:
+            return Kronecker(A=self.A + other.A, B=other.B)
+
+        return NotImplemented
+
+    def _sub_kronecker(
+        self, other: "Kronecker"
+    ) -> Union[type(NotImplemented), "Kronecker"]:
+
+        if self.A == other.A and self.B == other.B:
+            return Kronecker(
+                A=Scaling(0.0, shape=self.A.shape), B=Scaling(0.0, shape=self.B.shape)
+            )
+
+        if self.A == other.A:
+            return Kronecker(A=self.A, B=self.B - other.B)
+
+        if self.B == other.B:
+            return Kronecker(A=self.A - other.A, B=other.B)
+
+        return NotImplemented
 
 
 def _kronecker_matmul(
