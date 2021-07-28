@@ -117,28 +117,28 @@ def test_step_variables(solvers, y, start_point, stop_point):
         scipysolver.K, stop_point - start_point
     )
     np.testing.assert_allclose(
-        solver_y_new.error_estimate, scipy_error_estimation, atol=1e-14, rtol=1e-14
+        solver_y_new.error_estimate, scipy_error_estimation, atol=1e-13, rtol=1e-13
     )
 
     # locations are correct
     np.testing.assert_allclose(
-        testsolver.solver.t_old, start_point, atol=1e-14, rtol=1e-14
+        testsolver.solver.t_old, start_point, atol=1e-13, rtol=1e-13
     )
-    np.testing.assert_allclose(testsolver.solver.t, stop_point, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(testsolver.solver.t, stop_point, atol=1e-13, rtol=1e-13)
     np.testing.assert_allclose(
         testsolver.solver.h_previous,
         stop_point - start_point,
-        atol=1e-14,
-        rtol=1e-14,
+        atol=1e-13,
+        rtol=1e-13,
     )
 
     # evaluations are correct
-    np.testing.assert_allclose(testsolver.solver.y_old, y, atol=1e-14, rtol=1e-14)
-    np.testing.assert_allclose(testsolver.solver.y, y_new, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(testsolver.solver.y_old, y, atol=1e-13, rtol=1e-13)
+    np.testing.assert_allclose(testsolver.solver.y, y_new, atol=1e-13, rtol=1e-13)
     np.testing.assert_allclose(
-        testsolver.solver.h_abs, stop_point - start_point, atol=1e-14, rtol=1e-14
+        testsolver.solver.h_abs, stop_point - start_point, atol=1e-13, rtol=1e-13
     )
-    np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-13, rtol=1e-13)
 
 
 def test_dense_output(solvers):
@@ -176,8 +176,8 @@ def test_dense_output(solvers):
         np.testing.assert_allclose(
             test_dense,
             ref_dense,
-            atol=1e-14,
-            rtol=1e-14,
+            atol=1e-13,
+            rtol=1e-13,
         )
 
 
