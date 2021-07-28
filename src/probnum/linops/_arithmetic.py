@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
-from probnum.typing import ShapeArgType
+from probnum.typing import ScalarArgType, ShapeArgType
 
 from ._arithmetic_fallbacks import (
     NegatedLinearOperator,
@@ -154,7 +154,7 @@ def _matmul_scaling_kronecker(scaling: Scaling, kronecker: Kronecker) -> Kroneck
 
 def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kronecker:
     if scaling.is_isotropic:
-        return Kronecker(A=scaling.scalar * kronecker.A, B=kronecker.B)
+        return Kronecker(A=kronecker.A, B=kronecker.B * scaling.scalar)
     return NotImplemented
 
 
@@ -162,7 +162,7 @@ _matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
 _mul_fns[(Kronecker, Kronecker)] = Kronecker._mul_kronecker
 
 _mul_fns[("scalar", Kronecker)] = lambda sc, kr: Kronecker(A=sc * kr.A, B=kr.B)
-_mul_fns[(Kronecker, "scalar")] = lambda kr, sc: Kronecker(A=sc * kr.A, B=kr.B)
+_mul_fns[(Kronecker, "scalar")] = lambda kr, sc: Kronecker(A=kr.A, B=kr.B * sc)
 _matmul_fns[(Kronecker, Scaling)] = _matmul_kronecker_scaling
 _matmul_fns[(Scaling, Kronecker)] = _matmul_scaling_kronecker
 
