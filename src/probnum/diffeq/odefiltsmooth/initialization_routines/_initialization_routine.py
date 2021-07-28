@@ -26,7 +26,9 @@ class InitializationRoutine(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, ivp: problems.InitialValueProblem, prior_process: randprocs.MarkovProcess
+        self,
+        ivp: problems.InitialValueProblem,
+        prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
         raise NotImplementedError
 
