@@ -1030,7 +1030,7 @@ class Matrix(LinearOperator):
         return Matrix(A=self.A @ other.A)
 
     def __eq__(self, other: LinearOperator) -> bool:
-        if self._is_type_shape_dtype_equal(other):
+        if not self._is_type_shape_dtype_equal(other):
             return False
 
         return np.all(self.A == other.A)
@@ -1105,3 +1105,47 @@ class Identity(LinearOperator):
 
     def __eq__(self, other: LinearOperator) -> bool:
         return self._is_type_shape_dtype_equal(other)
+
+
+class Selection(LinearOperator):
+    def __init__(self, indices, shape):
+        self._indices = probnum.utils.as_shape(indices)  # TODO
+        assert len(self._indices) == shape[0] or len(self._indices) == shape[1]
+
+        super().__init__(
+            dtype=np.uint8,  # TODO
+            shape=shape,
+            matmul=lambda x: _selection_matmul(self.indices, x),
+            rmatmul=lambda x: _selection_rmatmul(self.indices, x),
+            todense=lambda: self._todense(),
+            transpose=lambda: Selection(
+                indices, shape=(self.shape[1], self.shape[0])
+            ),  # TODO
+        )
+
+    @property
+    def indices(self):
+        return self._indices
+
+    def _todense(self):
+        res = np.eye(self.shape[1], self.shape[1])
+        return _selection_matmul(self, res)
+
+    def _matmul_selection(
+        self, other: "Selection"
+    ) -> Union[type(NotImplemented), "Identity"]:
+
+        if (self.shape[-1] == other.shape[-2]) and np.all(
+            self.indices == other.indices
+        ):
+            return Identity(shape=(self.shape[-2], other.shape[-1]))
+
+        return NotImplemented
+
+
+def _selection_matmul(indices, M):
+    return np.take(M, indices=indices, axis=-2)
+
+
+def _selection_rmatmul(indices, M):
+    return np.take(M, indices=indices, axis=-1)
