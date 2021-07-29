@@ -1,5 +1,4 @@
 """Linear operator arithmetic."""
-import numbers
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np

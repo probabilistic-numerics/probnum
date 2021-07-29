@@ -565,7 +565,7 @@ class LinearOperator:
 
     def _is_type_shape_dtype_equal(self, other: "LinearOperator") -> bool:
         return (
-            type(self) == type(other)
+            isinstance(self, type(other))
             and self.shape == other.shape
             and self.dtype == other.dtype
         )
