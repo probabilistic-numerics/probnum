@@ -13,8 +13,7 @@ Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate o
 """
 
 from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
-from ._linear_operator import Identity, LinearOperator, Matrix
-from ._scaling import Scaling
+from ._scaling import Scaling, Zero
 from ._utils import LinearOperatorLike, aslinop
 
 # Public classes and functions. Order is reflected in documentation.

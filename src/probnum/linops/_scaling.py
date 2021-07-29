@@ -202,7 +202,7 @@ class Scaling(_linear_operator.LinearOperator):
         return self._scalar is not None
 
     def __eq__(self, other: _linear_operator.LinearOperator) -> bool:
-        if self._is_type_shape_dtype_equal(other):
+        if not self._is_type_shape_dtype_equal(other):
             return False
 
         if self.is_isotropic and other.is_isotropic:
@@ -317,3 +317,32 @@ class Scaling(_linear_operator.LinearOperator):
             )
         else:
             return np.linalg.cond(self.todense(cache=False), p=p)
+
+
+class Zero(_linear_operator.LinearOperator):
+    def __init__(self, shape, dtype=np.float64):
+
+        zero = np.zeros(shape=(), dtype=dtype)
+        matmul = lambda x: zero * x
+        rmatmul = lambda x: zero * x
+        apply = lambda x, axis: zero * x
+        todense = lambda: np.zeros(shape=shape, dtype=dtype)
+        rank = lambda: np.intp(0)
+        eigvals = lambda: np.full(shape[0], zero, dtype=dtype)
+        det = lambda: (zero.astype(dtype, copy=False) ** shape[0])
+
+        trace = lambda: zero
+
+        super().__init__(
+            shape,
+            dtype=dtype,
+            matmul=matmul,
+            rmatmul=rmatmul,
+            apply=apply,
+            todense=todense,
+            transpose=lambda: self,
+            rank=rank,
+            eigvals=eigvals,
+            det=det,
+            trace=trace,
+        )
