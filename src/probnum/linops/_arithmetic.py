@@ -21,12 +21,13 @@ from ._linear_operator import (
     Identity,
     LinearOperator,
     Matrix,
+    Selection,
     TransposedLinearOperator,
     _ConjugateLinearOperator,
     _InverseLinearOperator,
     _TypeCastLinearOperator,
 )
-from ._scaling import Scaling
+from ._scaling import Scaling, Zero
 
 _AnyLinOp = [
     NegatedLinearOperator,
@@ -44,6 +45,9 @@ _AnyLinOp = [
     _InverseLinearOperator,
     _TypeCastLinearOperator,
     Scaling,
+    Selection,
+    Zero,
+    Kronecker,
 ]
 
 
@@ -147,13 +151,19 @@ _sub_fns[(Kronecker, Kronecker)] = Kronecker._sub_kronecker
 
 def _matmul_scaling_kronecker(scaling: Scaling, kronecker: Kronecker) -> Kronecker:
     if scaling.is_isotropic:
-        return Kronecker(A=scaling.scalar * kronecker.A, B=kronecker.B)
+        if ("scalar", type(kronecker.A)) in _mul_fns:
+            return Kronecker(A=scaling.scalar * kronecker.A, B=kronecker.B)
+        if ("scalar", type(kronecker.B)) in _mul_fns:
+            return Kronecker(A=kronecker.A, B=scaling.scalar * kronecker.B)
     return NotImplemented
 
 
 def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kronecker:
     if scaling.is_isotropic:
-        return Kronecker(A=kronecker.A, B=kronecker.B * scaling.scalar)
+        if (type(kronecker.B), "scalar") in _mul_fns:
+            return Kronecker(A=kronecker.A, B=kronecker.B * scaling.scalar)
+        if (type(kronecker.A), "scalar") in _mul_fns:
+            return Kronecker(A=kronecker.A, B=kronecker.B * scaling.scalar)
     return NotImplemented
 
 
@@ -209,6 +219,46 @@ for op_type in _AnyLinOp:
 
 _mul_fns[(Identity, "scalar")] = lambda idty, sc: Scaling(sc, shape=idty.shape)
 _mul_fns[("scalar", Identity)] = lambda sc, idty: Scaling(sc, shape=idty.shape)
+
+
+# Selection
+_matmul_fns[(Selection, Selection)] = Selection._matmul_selection
+
+# Zero
+def _matmul_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
+    if z.shape[1] != op.shape[0]:
+        raise ValueError(f"shape mismatch")  # TODO
+
+    return Zero(shape=(z.shape[0], op.shape[1]))
+
+
+def _matmul_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
+    if z.shape[0] != op.shape[1]:
+        raise ValueError(f"shape mismatch")  # TODO
+
+    return Zero(shape=(op.shape[0], z.shape[1]))
+
+
+def _add_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"shape mismatch")  # TODO
+
+    return op
+
+
+def _add_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"shape mismatch")  # TODO
+
+    return op
+
+
+for op_type in _AnyLinOp:
+    _matmul_fns[(Zero, op_type)] = _matmul_zero_anylinop
+    _matmul_fns[(op_type, Zero)] = _matmul_anylinop_zero
+    _add_fns[(Zero, op_type)] = _add_zero_anylinop
+    _add_fns[(op_type, Zero)] = _add_anylinop_zero
+    # TODO scalar mult
 
 
 def _apply(
