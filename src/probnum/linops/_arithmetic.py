@@ -97,20 +97,6 @@ _sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
 _mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
 _matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
 
-for op_type in _AnyLinOp:
-    _add_fns[(op_type, Scaling)] = (
-        lambda op, scaling: op if scaling._scalar == 0.0 else NotImplemented
-    )
-    _add_fns[(Scaling, op_type)] = (
-        lambda scaling, op: op if scaling._scalar == 0.0 else NotImplemented
-    )
-    _sub_fns[(Scaling, op_type)] = (
-        lambda scaling, op: op if scaling._scalar == 0.0 else NotImplemented
-    )
-    _sub_fns[(op_type, Scaling)] = (
-        lambda op, scaling: op if scaling._scalar == 0.0 else NotImplemented
-    )
-
 
 def _mul_scalar_scaling(scalar: ScalarArgType, scaling: Scaling) -> Scaling:
     if scaling.is_isotropic:
