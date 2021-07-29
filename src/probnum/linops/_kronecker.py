@@ -190,9 +190,6 @@ class Kronecker(_linear_operator.LinearOperator):
         self, other: "Kronecker"
     ) -> Union[type(NotImplemented), "Kronecker"]:
 
-        if self.A == other.A and self.B == other.B:
-            return Kronecker(A=2 * self.A, B=other.B)
-
         if self.A == other.A:
             return Kronecker(A=self.A, B=self.B + other.B)
 
