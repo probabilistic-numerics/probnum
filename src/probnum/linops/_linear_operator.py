@@ -7,7 +7,7 @@ import scipy.linalg
 import scipy.sparse.linalg
 
 import probnum.utils
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, NotImplementedType, ScalarArgType, ShapeArgType
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
@@ -785,6 +785,9 @@ class TransposedLinearOperator(LinearOperator):
     ) -> "LinearOperator":
         return self._linop.astype(dtype, order=order, casting=casting, copy=copy).T
 
+    def __repr__(self) -> str:
+        return f"Transpose of {self._linop}"
+
 
 class AdjointLinearOperator(LinearOperator):
     def __init__(
@@ -869,6 +872,9 @@ class _InverseLinearOperator(LinearOperator):
             det=lambda: 1 / self._linop.det(),
             logabsdet=lambda: -self._linop.logabsdet(),
         )
+
+    def __repr__(self) -> str:
+        return f"Inverse of {self._linop}"
 
     @property
     def factorization(self):
@@ -1109,18 +1115,22 @@ class Identity(LinearOperator):
 
 class Selection(LinearOperator):
     def __init__(self, indices, shape):
+        if np.ndim(indices) > 1:
+            raise ValueError(f"bla")  # TODO
         self._indices = probnum.utils.as_shape(indices)  # TODO
-        assert len(self._indices) == shape[0] or len(self._indices) == shape[1]
+        assert shape[0] <= shape[1]
+        assert len(self._indices) == shape[0]
 
         super().__init__(
             dtype=np.uint8,  # TODO
             shape=shape,
             matmul=lambda x: _selection_matmul(self.indices, x),
-            rmatmul=lambda x: _selection_rmatmul(self.indices, x),
             todense=lambda: self._todense(),
-            transpose=lambda: Selection(
-                indices, shape=(self.shape[1], self.shape[0])
-            ),  # TODO
+            transpose=lambda: Embedding(
+                take_indices=np.arange(len(self._indices)),
+                put_indices=self._indices,
+                shape=(self.shape[1], self.shape[0]),
+            ),
         )
 
     @property
@@ -1129,23 +1139,49 @@ class Selection(LinearOperator):
 
     def _todense(self):
         res = np.eye(self.shape[1], self.shape[1])
-        return _selection_matmul(self, res)
-
-    def _matmul_selection(
-        self, other: "Selection"
-    ) -> Union[type(NotImplemented), "Identity"]:
-
-        if (self.shape[-1] == other.shape[-2]) and np.all(
-            self.indices == other.indices
-        ):
-            return Identity(shape=(self.shape[-2], other.shape[-1]))
-
-        return NotImplemented
+        return _selection_matmul(self.indices, res)
 
 
 def _selection_matmul(indices, M):
     return np.take(M, indices=indices, axis=-2)
 
 
-def _selection_rmatmul(indices, M):
-    return np.take(M, indices=indices, axis=-1)
+class Embedding(LinearOperator):
+    def __init__(self, take_indices, put_indices, shape, fill_value=0.0):
+        self._take_indices = probnum.utils.as_shape(take_indices)  # TODO
+        self._put_indices = probnum.utils.as_shape(put_indices)  # TODO
+        self._fill_value = fill_value  # TODO
+
+        super().__init__(
+            dtype=np.uint8,  # TODO
+            shape=shape,
+            matmul=lambda x: _embedding_matmul(self, x),
+            todense=lambda: self._todense(),
+            transpose=lambda: Selection(
+                indices=put_indices, shape=(self.shape[1], self.shape[0])
+            ),
+        )
+
+    def _todense(self):
+        res = np.eye(self.shape[1], self.shape[1])
+        return _embedding_matmul(self, res)
+
+
+def _embedding_matmul(embedding, M):
+    res_shape = np.array(M.shape)
+    res_shape[-2] = embedding.shape[0]
+    res = np.full(shape=tuple(res_shape), fill_value=embedding._fill_value)
+    # print(f"Take indices {embedding._take_indices}")
+    # print(f"Put indices {embedding._put_indices}")
+    # print(f"Res, {res}")
+    # res[np.array(embedding._put_indices).reshape(-1, 1)] = M[embedding._take_indices]
+    # TODO
+    # take_from_M = np.take_along_axis(
+    #     M, indices=np.array(embedding._put_indices), axis=-2
+    # )
+    take_from_M = M[..., np.array(embedding._put_indices), :]
+    # np.put_along_axis(
+    #     res, indices=np.array(embedding._put_indices), values=take_from_M, axis=-2
+    # )
+    res[..., np.array(embedding._put_indices), :] = take_from_M
+    return res
