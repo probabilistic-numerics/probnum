@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum.typing import DTypeArgType
+from probnum.typing import DTypeArgType, NotImplementedType
 
 from . import _linear_operator, _utils
 from ._scaling import Scaling
@@ -188,7 +188,7 @@ class Kronecker(_linear_operator.LinearOperator):
 
     def _add_kronecker(
         self, other: "Kronecker"
-    ) -> Union[type(NotImplemented), "Kronecker"]:
+    ) -> Union[NotImplementedType, "Kronecker"]:
 
         if self.A == other.A:
             return Kronecker(A=self.A, B=self.B + other.B)
@@ -200,7 +200,7 @@ class Kronecker(_linear_operator.LinearOperator):
 
     def _sub_kronecker(
         self, other: "Kronecker"
-    ) -> Union[type(NotImplemented), "Kronecker"]:
+    ) -> Union[NotImplementedType, "Kronecker"]:
 
         if self.A == other.A and self.B == other.B:
             return Kronecker(

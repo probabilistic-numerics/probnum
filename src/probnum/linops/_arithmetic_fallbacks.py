@@ -5,7 +5,7 @@ from typing import Tuple, Union
 import numpy as np
 
 import probnum.utils
-from probnum.typing import ScalarArgType
+from probnum.typing import NotImplementedType, ScalarArgType
 
 from ._linear_operator import BinaryOperandType, LinearOperator
 
@@ -47,6 +47,15 @@ class ScaledLinearOperator(LinearOperator):
 
         return ScaledLinearOperator(self._linop.inv(), 1.0 / self._scalar)
 
+    def __mul__(self, other: BinaryOperandType) -> "LinearOperator":
+        if np.isscalar(other):
+            return ScaledLinearOperator(linop=self._linop, scalar=self._scalar * other)
+
+        return super().__mul__(other)
+
+    def __repr__(self) -> str:
+        return f"{self._scalar} * {self._linop}"
+
 
 class NegatedLinearOperator(ScaledLinearOperator):
     def __init__(self, linop: LinearOperator):
@@ -54,6 +63,9 @@ class NegatedLinearOperator(ScaledLinearOperator):
 
     def __neg__(self) -> "LinearOperator":
         return self._linop
+
+    def __repr__(self) -> str:
+        return f"-{self._linop}"
 
 
 class SumLinearOperator(LinearOperator):
@@ -100,6 +112,12 @@ class SumLinearOperator(LinearOperator):
     def __neg__(self):
         return SumLinearOperator(*(-summand for summand in self._summands))
 
+    def __repr__(self):
+        res = "SumLinearOperator [\n"
+        for s in self._summands:
+            res += f"\t{s}, \n"
+        return res + "]"
+
     @staticmethod
     def _expand_sum_ops(*summands: LinearOperator) -> Tuple[LinearOperator, ...]:
         expanded_summands = []
@@ -115,7 +133,7 @@ class SumLinearOperator(LinearOperator):
 
 def _mul_fallback(
     op1: BinaryOperandType, op2: BinaryOperandType
-) -> Union[LinearOperator, type(NotImplemented)]:
+) -> Union[LinearOperator, NotImplementedType]:
     res = NotImplemented
 
     if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):
@@ -195,10 +213,16 @@ class ProductLinearOperator(LinearOperator):
 
         return tuple(expanded_factors)
 
+    def __repr__(self):
+        res = "ProductLinearOperator [\n"
+        for s in self._factors:
+            res += f"\t{s}, \n"
+        return res + "]"
+
 
 def _matmul_fallback(
     op1: BinaryOperandType, op2: BinaryOperandType
-) -> Union[LinearOperator, type(NotImplemented)]:
+) -> Union[LinearOperator, NotImplementedType]:
     res = NotImplemented
 
     if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):

@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
-from probnum.typing import ScalarArgType, ShapeArgType
+from probnum.typing import NotImplementedType, ScalarArgType, ShapeArgType
 
 from ._arithmetic_fallbacks import (
     NegatedLinearOperator,
@@ -18,6 +18,7 @@ from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import (
     AdjointLinearOperator,
     BinaryOperandType,
+    Embedding,
     Identity,
     LinearOperator,
     Matrix,
@@ -46,6 +47,7 @@ _AnyLinOp = [
     _TypeCastLinearOperator,
     Scaling,
     Selection,
+    Embedding,
     Zero,
     Kronecker,
 ]
@@ -81,7 +83,7 @@ def matmul(op1: LinearOperator, op2: LinearOperator) -> LinearOperator:
 ########################################################################################
 
 _BinaryOperatorType = Callable[
-    [LinearOperator, LinearOperator], Union[LinearOperator, type(NotImplemented)]
+    [LinearOperator, LinearOperator], Union[LinearOperator, NotImplementedType]
 ]
 _BinaryOperatorRegistryType = Dict[Tuple[type, type], _BinaryOperatorType]
 
@@ -91,13 +93,11 @@ _sub_fns: _BinaryOperatorRegistryType = {}
 _mul_fns: _BinaryOperatorRegistryType = {}
 _matmul_fns: _BinaryOperatorRegistryType = {}
 
+########################################################################################
+# Fill Arithmetics Registries
+########################################################################################
+
 # Scaling
-_add_fns[(Scaling, Scaling)] = Scaling._add_scaling
-_sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
-_mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
-_matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
-
-
 def _mul_scalar_scaling(scalar: ScalarArgType, scaling: Scaling) -> Scaling:
     if scaling.is_isotropic:
         return Scaling(scalar * scaling.scalar, shape=scaling.shape)
@@ -114,6 +114,10 @@ def _mul_scaling_scalar(scaling: Scaling, scalar: ScalarArgType) -> Scaling:
 
 _mul_fns[("scalar", Scaling)] = _mul_scalar_scaling
 _mul_fns[(Scaling, "scalar")] = _mul_scaling_scalar
+_add_fns[(Scaling, Scaling)] = Scaling._add_scaling
+_sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
+_mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
+_matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
 
 # ScaledLinearOperator
 def _matmul_scaled_op(scaled, anylinop):
@@ -127,39 +131,63 @@ def _matmul_op_scaled(anylinop, scaled):
 for op_type in _AnyLinOp:
     _matmul_fns[(ScaledLinearOperator, op_type)] = _matmul_scaled_op
     _matmul_fns[(op_type, ScaledLinearOperator)] = _matmul_op_scaled
+    _matmul_fns[(NegatedLinearOperator, op_type)] = _matmul_scaled_op
+    _matmul_fns[(op_type, NegatedLinearOperator)] = _matmul_op_scaled
 
 
 # Kronecker
 
-_add_fns[(Kronecker, Kronecker)] = Kronecker._add_kronecker
-_sub_fns[(Kronecker, Kronecker)] = Kronecker._sub_kronecker
-
 
 def _matmul_scaling_kronecker(scaling: Scaling, kronecker: Kronecker) -> Kronecker:
     if scaling.is_isotropic:
-        if ("scalar", type(kronecker.A)) in _mul_fns:
-            return Kronecker(A=scaling.scalar * kronecker.A, B=kronecker.B)
-        if ("scalar", type(kronecker.B)) in _mul_fns:
-            return Kronecker(A=kronecker.A, B=scaling.scalar * kronecker.B)
+        return scaling.scalar * kronecker
     return NotImplemented
 
 
 def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kronecker:
     if scaling.is_isotropic:
-        if (type(kronecker.B), "scalar") in _mul_fns:
-            return Kronecker(A=kronecker.A, B=kronecker.B * scaling.scalar)
-        if (type(kronecker.A), "scalar") in _mul_fns:
-            return Kronecker(A=kronecker.A, B=kronecker.B * scaling.scalar)
+        return kronecker * scaling.scalar
     return NotImplemented
+
+
+def _mul_scalar_kronecker(scalar: ScalarArgType, kronecker: Kronecker) -> Kronecker:
+
+    prefer_A = ("scalar", type(kronecker.A)) in _mul_fns
+    prefer_B = ("scalar", type(kronecker.B)) in _mul_fns
+
+    if prefer_A and not prefer_B:
+        return Kronecker(A=scalar * kronecker.A, B=kronecker.B)
+
+    if prefer_B and not prefer_A:
+        return Kronecker(A=kronecker.A, B=scalar * kronecker.B)
+
+    return Kronecker(A=scalar * kronecker.A, B=kronecker.B)
+
+
+def _mul_kronecker_scalar(kronecker: Kronecker, scalar: ScalarArgType) -> Kronecker:
+
+    prefer_A = (type(kronecker.A), "scalar") in _mul_fns
+    prefer_B = (type(kronecker.B), "scalar") in _mul_fns
+
+    if prefer_A and not prefer_B:
+        return Kronecker(A=kronecker.A * scalar, B=kronecker.B)
+
+    if prefer_B and not prefer_A:
+        return Kronecker(A=kronecker.A, B=kronecker.B * scalar)
+
+    return Kronecker(A=kronecker.A, B=kronecker.B * scalar)
 
 
 _matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
 _mul_fns[(Kronecker, Kronecker)] = Kronecker._mul_kronecker
+_add_fns[(Kronecker, Kronecker)] = Kronecker._add_kronecker
+_sub_fns[(Kronecker, Kronecker)] = Kronecker._sub_kronecker
 
-_mul_fns[("scalar", Kronecker)] = lambda sc, kr: Kronecker(A=sc * kr.A, B=kr.B)
-_mul_fns[(Kronecker, "scalar")] = lambda kr, sc: Kronecker(A=kr.A, B=kr.B * sc)
+_mul_fns[("scalar", Kronecker)] = _mul_scalar_kronecker
+_mul_fns[(Kronecker, "scalar")] = _mul_kronecker_scalar
 _matmul_fns[(Kronecker, Scaling)] = _matmul_kronecker_scaling
 _matmul_fns[(Scaling, Kronecker)] = _matmul_scaling_kronecker
+
 
 # Matrix
 def _matmul_scaling_matrix(scaling: Scaling, matrix: Matrix) -> Matrix:
@@ -176,14 +204,14 @@ def _matmul_matrix_scaling(matrix: Matrix, scaling: Scaling) -> Matrix:
     return Matrix(A=np.multiply(matrix.A, scaling.factors))
 
 
-def _mul_matrix_scalar(mat, scalar) -> Union[type(NotImplemented), Matrix]:
+def _mul_matrix_scalar(mat, scalar) -> Union[NotImplementedType, Matrix]:
     if np.isscalar(scalar):
         return Matrix(A=scalar * mat.A)
 
     return NotImplemented
 
 
-def _mul_scalar_matrix(scalar, mat) -> Union[type(NotImplemented), Matrix]:
+def _mul_scalar_matrix(scalar, mat) -> Union[NotImplementedType, Matrix]:
     if np.isscalar(scalar):
         return Matrix(A=scalar * mat.A)
 
@@ -192,7 +220,6 @@ def _mul_scalar_matrix(scalar, mat) -> Union[type(NotImplemented), Matrix]:
 
 _mul_fns[(Matrix, "scalar")] = _mul_matrix_scalar
 _mul_fns[("scalar", Matrix)] = _mul_scalar_matrix
-
 _matmul_fns[(Matrix, Matrix)] = Matrix._matmul_matrix
 _matmul_fns[(Scaling, Matrix)] = _matmul_scaling_matrix
 _matmul_fns[(Matrix, Scaling)] = _matmul_matrix_scaling
@@ -203,12 +230,31 @@ for op_type in _AnyLinOp:
     _matmul_fns[(Identity, op_type)] = lambda idty, other: other
     _matmul_fns[(op_type, Identity)] = lambda other, idty: other
 
-_mul_fns[(Identity, "scalar")] = lambda idty, sc: Scaling(sc, shape=idty.shape)
-_mul_fns[("scalar", Identity)] = lambda sc, idty: Scaling(sc, shape=idty.shape)
+
+# Selection / Embedding
+def _matmul_selection_embedding(
+    selection: Selection, embedding: Embedding
+) -> Union[NotImplementedType, Identity]:
+
+    if (embedding.shape[-1] == selection.shape[-2]) and np.all(
+        selection.indices == embedding._put_indices
+    ):
+        return Identity(shape=(selection.shape[-2], embedding.shape[-1]))
+
+    return NotImplemented
 
 
-# Selection
-_matmul_fns[(Selection, Selection)] = Selection._matmul_selection
+def _matmul_embedding_selection(
+    embedding: Embedding, selection: Selection
+) -> Union[NotImplementedType, Selection]:
+    if (selection.shape[-1] == embedding.shape[-2]) and np.all(
+        embedding.put_indices == selection.indices
+    ):
+        return Selection()
+
+
+_matmul_fns[(Selection, Embedding)] = _matmul_selection_embedding
+# Embedding @ Selection would be Projection
 
 # Zero
 def _matmul_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
@@ -239,12 +285,32 @@ def _add_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
     return op
 
 
+def _sub_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"shape mismatch")  # TODO
+
+    return -op
+
+
+def _sub_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"shape mismatch")  # TODO
+
+    return op
+
+
 for op_type in _AnyLinOp:
     _matmul_fns[(Zero, op_type)] = _matmul_zero_anylinop
     _matmul_fns[(op_type, Zero)] = _matmul_anylinop_zero
     _add_fns[(Zero, op_type)] = _add_zero_anylinop
     _add_fns[(op_type, Zero)] = _add_anylinop_zero
-    # TODO scalar mult
+    _sub_fns[(Zero, op_type)] = _sub_zero_anylinop
+    _sub_fns[(op_type, Zero)] = _sub_anylinop_zero
+
+
+########################################################################################
+# Apply
+########################################################################################
 
 
 def _apply(
@@ -254,10 +320,10 @@ def _apply(
     fallback_operator: Optional[
         Callable[
             [LinearOperator, LinearOperator],
-            Union[LinearOperator, type(NotImplemented)],
+            Union[LinearOperator, NotImplementedType],
         ]
     ] = None,
-) -> Union[LinearOperator, type(NotImplemented)]:
+) -> Union[LinearOperator, NotImplementedType]:
     if np.isscalar(op1):
         key1 = "scalar"
     else:
