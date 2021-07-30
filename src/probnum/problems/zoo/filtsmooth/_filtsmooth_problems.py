@@ -2,8 +2,9 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import diffeq, filtsmooth, problems, randvars, statespace
-from probnum.type import FloatArgType, IntArgType
+from probnum import diffeq, filtsmooth, problems, randprocs, randvars
+from probnum.problems.zoo import diffeq as diffeq_zoo
+from probnum.typing import FloatArgType, IntArgType
 
 __all__ = [
     "benes_daum",
@@ -15,9 +16,10 @@ __all__ = [
 
 
 def car_tracking(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
-    model_ordint: IntArgType = 1,
+    num_prior_derivatives: IntArgType = 1,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
     step: FloatArgType = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
@@ -55,11 +57,13 @@ def car_tracking(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     process_diffusion
         Diffusion constant for the dynamics.
-    model_ordint
+    num_prior_derivatives
         Order of integration for the dynamics model. Defaults to one, which corresponds
         to a Wiener velocity model.
     timespan
@@ -68,17 +72,19 @@ def car_tracking(
         Step size of the time grid.
     initrv
         Initial random variable.
+    forward_implementation
+        Implementation of the forward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    backward_implementation
+        Implementation of the backward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
     References
     ----------
@@ -87,11 +93,11 @@ def car_tracking(
 
     """
     state_dim = 2
-    model_dim = state_dim * (model_ordint + 1)
+    model_dim = state_dim * (num_prior_derivatives + 1)
     measurement_dim = 2
-    dynamics_model = statespace.IBM(
-        ordint=model_ordint,
-        spatialdim=state_dim,
+    dynamics_model = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=num_prior_derivatives,
+        wiener_process_dimension=state_dim,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -102,7 +108,7 @@ def car_tracking(
     measurement_matrix = np.eye(measurement_dim, model_dim)
     measurement_cov = measurement_variance * np.eye(measurement_dim)
     measurement_cov_cholesky = np.sqrt(measurement_variance) * np.eye(measurement_dim)
-    measurement_model = statespace.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=measurement_matrix,
         shift_vec=np.zeros(measurement_dim),
         proc_noise_cov_mat=measurement_cov,
@@ -120,25 +126,30 @@ def car_tracking(
 
     # Set up regression problem
     time_grid = np.arange(*timespan, step=step)
-    states, obs = statespace.generate_samples(
-        dynmod=discrete_dynamics_model,
-        measmod=measurement_model,
-        initrv=initrv,
-        times=time_grid,
-    )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+
+    prior_process = randprocs.markov.MarkovProcess(
+        transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    statespace_components = dict(
-        dynamics_model=discrete_dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
+        rng=rng,
+        prior_process=prior_process,
+        measmod=measurement_model,
+        times=time_grid,
     )
-    return regression_problem, statespace_components
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
+    )
+
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def ornstein_uhlenbeck(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1,
     driftspeed: FloatArgType = 0.21,
     process_diffusion: FloatArgType = 0.5,
@@ -165,6 +176,8 @@ def ornstein_uhlenbeck(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     driftspeed
@@ -175,18 +188,20 @@ def ornstein_uhlenbeck(
         Time grid for the filtering/smoothing problem.
     initrv
         Initial random variable.
+    forward_implementation
+        Implementation of the forward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    backward_implementation
+        Implementation of the backward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
 
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
 
     References
@@ -195,16 +210,16 @@ def ornstein_uhlenbeck(
         Cambridge University Press, 2019
     """
 
-    dynamics_model = statespace.IOUP(
-        ordint=0,
-        spatialdim=1,
+    dynamics_model = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
+        num_derivatives=0,
+        wiener_process_dimension=1,
         driftspeed=driftspeed,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
     dynamics_model.dispmat *= process_diffusion
 
-    measurement_model = statespace.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -218,26 +233,32 @@ def ornstein_uhlenbeck(
     # Set up regression problem
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
-    states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
+
+    prior_process = randprocs.markov.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
+        rng=rng, prior_process=prior_process, measmod=measurement_model, times=time_grid
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
-    return regression_problem, statespace_components
+
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def pendulum(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1024,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
     step: FloatArgType = 0.0075,
     initrv: Optional[randvars.RandomVariable] = None,
+    initarg: Optional[float] = None,
 ):
     r"""Filtering/smoothing setup for a (noisy) pendulum.
 
@@ -275,6 +296,8 @@ def pendulum(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     timespan
@@ -283,17 +306,16 @@ def pendulum(
         Step size of the time grid.
     initrv
         Initial random variable.
+    initarg
+        Initial time point of the prior process.
+        Optional. Default is the left boundary of timespan.
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
 
     References
@@ -314,17 +336,17 @@ def pendulum(
         return np.array([y1, y2])
 
     def df(t, x):
-        x1, x2 = x
+        x1, _ = x
         y1 = [1, step]
         y2 = [-g * np.cos(x1) * step, 1]
         return np.array([y1, y2])
 
     def h(t, x):
-        x1, x2 = x
+        x1, _ = x
         return np.array([np.sin(x1)])
 
     def dh(t, x):
-        x1, x2 = x
+        x1, _ = x
         return np.array([[np.cos(x1), 0.0]])
 
     process_noise_cov = (
@@ -333,7 +355,7 @@ def pendulum(
         + np.diag(np.array([step ** 2 / 2]), -1)
     )
 
-    dynamics_model = statespace.DiscreteGaussian(
+    dynamics_model = randprocs.markov.discrete.DiscreteGaussian(
         input_dim=2,
         output_dim=2,
         state_trans_fun=f,
@@ -341,7 +363,7 @@ def pendulum(
         jacob_state_trans_fun=df,
     )
 
-    measurement_model = statespace.DiscreteGaussian(
+    measurement_model = randprocs.markov.discrete.DiscreteGaussian(
         input_dim=2,
         output_dim=1,
         state_trans_fun=h,
@@ -354,21 +376,32 @@ def pendulum(
 
     # Generate data
     time_grid = np.arange(*timespan, step=step)
-    states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
+
+    if initarg is None:
+        initarg = time_grid[0]
+    prior_process = randprocs.markov.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=initarg
     )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
+        rng=rng,
+        prior_process=prior_process,
+        measmod=measurement_model,
+        times=time_grid,
     )
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
-    return regression_problem, statespace_components
+
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def benes_daum(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1,
     process_diffusion: FloatArgType = 1.0,
     time_grid: Optional[np.ndarray] = None,
@@ -390,6 +423,8 @@ def benes_daum(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     process_diffusion
@@ -402,17 +437,13 @@ def benes_daum(
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
+    info
+        Dictionary containing additional information like the prior process.
 
     Notes
     -----
-    In order to generate observations for the returned ``RegressionProblem`` object,
+    In order to generate observations for the returned ``TimeSeriesRegressionProblem`` object,
     the non-linear Beneš SDE has to be linearized.
     Here, a ``ContinuousEKFComponent`` is used, which corresponds to a first-order
     linearization as used in the extended Kalman filter.
@@ -425,13 +456,15 @@ def benes_daum(
         return 1.0 - np.tanh(x) ** 2
 
     def l(t):
-        return process_diffusion * np.ones(1)
+        return process_diffusion * np.ones((1, 1))
 
     if initrv is None:
         initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
 
-    dynamics_model = statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
-    measurement_model = statespace.DiscreteLTIGaussian(
+    dynamics_model = randprocs.markov.continuous.SDE(
+        dimension=1, driftfun=f, dispmatfun=l, jacobfun=df
+    )
+    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -442,25 +475,32 @@ def benes_daum(
         time_grid = np.arange(0.0, 4.0, step=0.2)
     # The non-linear dynamics are linearized according to an EKF in order
     # to generate samples.
-    linearized_dynamics_model = filtsmooth.ContinuousEKFComponent(
+    linearized_dynamics_model = filtsmooth.gaussian.approx.ContinuousEKFComponent(
         non_linear_model=dynamics_model
     )
-    states, obs = statespace.generate_samples(
-        dynmod=linearized_dynamics_model,
-        measmod=measurement_model,
-        initrv=initrv,
-        times=time_grid,
+
+    prior_process = randprocs.markov.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+    prior_process_with_linearized_dynamics = randprocs.markov.MarkovProcess(
+        transition=linearized_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    states, obs = randprocs.markov.utils.generate_artificial_measurements(
+        rng=rng,
+        prior_process=prior_process_with_linearized_dynamics,
+        measmod=measurement_model,
+        times=time_grid,
     )
-    return regression_problem, statespace_components
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
+    )
+
+    info = dict(prior_process=prior_process)
+    return regression_problem, info
 
 
 def logistic_ode(
@@ -471,6 +511,7 @@ def logistic_ode(
     initrv: Optional[randvars.RandomVariable] = None,
     evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
     ek0_or_ek1: IntArgType = 1,
+    exclude_initial_condition: bool = True,
     order: IntArgType = 3,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
@@ -495,21 +536,24 @@ def logistic_ode(
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
     ek0_or_ek1
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
+    exclude_initial_condition
+        Whether the resulting regression problem should exclude (i.e. not contain) the initial condition of the ODE.
+        Optional. Default is True, which means that the initial condition is omitted.
     order
         Order of integration for the Integrated Brownian Motion prior of the solver.
+    forward_implementation
+        Implementation of the forward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
+    backward_implementation
+        Implementation of the backward transitions inside prior and measurement model.
+        Optional. Default is `classic`. For improved numerical stability, use `sqrt`.
 
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and zero-observations.
-
-    statespace_components
-        Dictionary containing
-
-        * dynamics model
-        * measurement model
-        * initial random variable
-        * The initial value problem based on the logistic ODE.
+        ``TimeSeriesRegressionProblem`` object with time points and zero-observations.
+    info
+        Dictionary containing additional information like the prior process.
 
     See Also
     --------
@@ -524,42 +568,46 @@ def logistic_ode(
     if evlvar is None:
         evlvar = np.zeros((1, 1))
 
-    logistic_ivp = diffeq.logistic(
-        timespan=timespan, initrv=randvars.Constant(y0), params=params
+    t0, tmax = timespan
+
+    # Generate ODE regression problem
+    logistic_ivp = diffeq_zoo.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
+    time_grid = np.arange(*timespan, step=step)
+    ode_residual = diffeq.odefiltsmooth.information_operators.ODEResidual(
+        num_prior_derivatives=order, ode_dimension=logistic_ivp.dimension
     )
-    dynamics_model = statespace.IBM(
-        ordint=order,
-        spatialdim=1,
-        forward_implementation=forward_implementation,
-        backward_implementation=backward_implementation,
-    )
-    measurement_model = filtsmooth.DiscreteEKFComponent.from_ode(
-        logistic_ivp,
-        prior=dynamics_model,
-        evlvar=evlvar,
-        ek0_or_ek1=ek0_or_ek1,
-        forward_implementation=forward_implementation,
-        backward_implementation=backward_implementation,
+    if ek0_or_ek1 == 0:
+        ek = diffeq.odefiltsmooth.approx_strategies.EK0()
+    else:
+        ek = diffeq.odefiltsmooth.approx_strategies.EK1()
+    regression_problem = diffeq.odefiltsmooth.utils.ivp_to_regression_problem(
+        ivp=logistic_ivp,
+        locations=time_grid,
+        ode_information_operator=ode_residual,
+        approx_strategy=ek,
+        ode_measurement_variance=evlvar,
+        exclude_initial_condition=exclude_initial_condition,
     )
 
+    # Generate prior process
     if initrv is None:
         initmean = np.array([0.1, 0, 0.0, 0.0])
         initcov = np.diag([0.0, 1.0, 1.0, 1.0])
         initrv = randvars.Normal(initmean, initcov)
-
-    # Generate zero-data
-    time_grid = np.arange(*timespan, step=step)
-    solution = logistic_ivp.solution(time_grid)
-    regression_problem = problems.RegressionProblem(
-        observations=np.zeros(shape=(time_grid.size, 1)),
-        locations=time_grid,
-        solution=solution,
+    dynamics_model = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=order,
+        wiener_process_dimension=1,
+        forward_implementation=forward_implementation,
+        backward_implementation=backward_implementation,
     )
 
-    statespace_components = dict(
-        dynamics_model=dynamics_model,
-        measurement_model=measurement_model,
-        initrv=initrv,
+    prior_process = randprocs.markov.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
+
+    # Return problems and info
+    info = dict(
         ivp=logistic_ivp,
+        prior_process=prior_process,
     )
-    return regression_problem, statespace_components
+    return regression_problem, info

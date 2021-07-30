@@ -4,11 +4,24 @@ import itertools
 import unittest
 
 import numpy as np
+import pytest
 import scipy.stats
 
 import probnum
 from probnum import linops, randvars
 from tests.testing import NumpyAssertions
+
+
+def test_rng_not_generator_raises_error():
+
+    # dummy random variable that implements a sample method.
+    rv = randvars.Normal(0.0, 1.0)
+
+    # incorrect random number generator (np.random.Generator is expected)
+    rng = np.random.RandomState(seed=1)
+
+    with pytest.raises(TypeError):
+        rv.sample(rng=rng)
 
 
 class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
@@ -17,7 +30,7 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self) -> None:
         """Scalars, arrays, linear operators and random variables for tests."""
         # Seed
-        np.random.seed(42)
+        self.rng = np.random.default_rng(42)
 
         # Random variable instantiation
         self.scalars = [0, int(1), 0.1, np.nan, np.inf]
@@ -104,7 +117,11 @@ class ArithmeticTestCase(RandomVariableTestCase):
         """Multiplication of random variables with scalar constants."""
         for (alpha, rv) in list(itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
-                z = alpha * rv
+                if np.isinf(alpha):
+                    with self.assertWarns(RuntimeWarning):
+                        z = alpha * rv
+                else:
+                    z = alpha * rv
                 self.assertEqual(z.shape, rv.shape)
                 self.assertIsInstance(z, randvars.RandomVariable)
 
@@ -113,6 +130,8 @@ class ArithmeticTestCase(RandomVariableTestCase):
         for alpha, rv in list(itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
                 z = alpha + rv
+                self.assertEqual(z.shape, rv.shape)
+
                 z = rv - alpha
                 self.assertEqual(z.shape, rv.shape)
 
@@ -170,22 +189,12 @@ class ArithmeticTestCase(RandomVariableTestCase):
                     msg="Covariances of random variables do not match.",
                 )
 
-    # Random seed
-    def test_keep_fixed_seed(self):
-        """Arithmetic operation between two random variables with different seeds retain
-        a fixed seed."""
-        x = randvars.Normal(0, 1, random_state=0)
-        y = randvars.Normal(0, 1, random_state=1)
-        z = x + y
-        self.assertIsNotNone(z.random_state)
-
 
 class ShapeTestCase(RandomVariableTestCase):
     """Test methods related to the shape of a random variable or its realizations."""
 
     def test_reshape(self):
         """Reshape a random variable and test for correct output shape."""
-        np.random.seed(42)
         for rv in self.randvars2x2:
             for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
                 with self.subTest():
@@ -193,7 +202,9 @@ class ShapeTestCase(RandomVariableTestCase):
                         reshaped_rv = rv.reshape(newshape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
-                        self.assertEqual(reshaped_rv.sample(size=1).shape, shape)
+                        self.assertEqual(
+                            reshaped_rv.sample(rng=self.rng, size=1).shape, shape
+                        )
                     except NotImplementedError:
                         pass
         for rv in self.randvars2d:
@@ -203,7 +214,9 @@ class ShapeTestCase(RandomVariableTestCase):
                         reshaped_rv = rv.reshape(newshape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
-                        self.assertEqual(reshaped_rv.sample(size=1).shape, shape)
+                        self.assertEqual(
+                            reshaped_rv.sample(rng=self.rng, size=1).shape, shape
+                        )
                     except NotImplementedError:
                         pass
 

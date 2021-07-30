@@ -1,0 +1,165 @@
+@article{larkin1972gaussian,
+  title={Gaussian measure in {H}ilbert space and applications in numerical analysis},
+  author={Larkin, F. M.},
+  journal={Rocky Mountain Journal of Mathematics},
+  volume={2},
+  number={3},
+  year={1972},
+  pages={379--422},
+  abstract = {The numerical analyst is often called upon to estimate a function from a very limited knowledge of its properties (e.g. a finite number of ordinate values). This problem may be made well posed in a variety of ways, but an attractive approach is to regard the required function as a member of a linear space on which a probability measure is constructed, and then use established techniques of probability theory and statistics in order to infer properties of the function from the given information. This formulation agrees with established theory, for the problem of optimal linear approximation (using a Gaussian probability distribution), and also permits the estimation of nonlinear functionals, as well as extension to the case of "noisy" data.}
+}
+
+
+
+
+@article{diaconis1988bayesian,
+  title =	 {Bayesian numerical analysis},
+  author =	 {Diaconis, Persi},
+  journal =	 {Statistical decision theory and related topics IV},
+  volume =	 {1},
+  pages =	 {163--175},
+  year =	 {1988},
+  publisher =	 {Springer-Verlag, New York},
+  file =   {../assets/pdf/Diaconis_1988.pdf},
+  notes = {This text is arguably the first to very explicitly discuss the notion of "Bayesian Numerics".}
+}
+
+@article{o1992some,
+  title={Some {B}ayesian numerical analysis},
+  author={O’Hagan, Anthony},
+  journal={Bayesian Statistics},
+  volume={4},
+  number={345--363},
+  pages={4--2},
+  file ={../assets/pdf/OHagan1991.pdf},
+  year={1992}
+}
+
+
+
+
+
+
+@article{HenOsbGirRSPA2015,
+  author = {Hennig, Philipp and Osborne, Michael A. and Girolami, Mark},
+  title = {Probabilistic numerics and uncertainty in computations},
+  volume = {471},
+  number = {2179},
+  year = {2015},
+  publisher = {The Royal Society},
+  journal = {Proceedings of the Royal Society of London A: Mathematical, Physical and Engineering Sciences},
+  abstract = {We deliver a call to arms for probabilistic numerical methods: algorithms for
+numerical tasks, including linear algebra, integration, optimization and
+solving differential equations, that return uncertainties in their
+calculations. Such uncertainties, arising from the loss of precision induced by
+numerical calculation with limited time or hardware, are important for much
+contemporary science and industry. Within applications such as climate science
+and astrophysics, the need to make decisions on the basis of computations with
+large and complex data has led to a renewed focus on the management of
+numerical uncertainty. We describe how several seminal classic numerical
+methods can be interpreted naturally as probabilistic inference. We then show
+that the probabilistic view suggests new algorithms that can flexibly be
+adapted to suit application specifics, while delivering improved empirical
+performance. We provide concrete illustrations of the benefits of probabilistic
+numeric algorithms on real scientific problems from astrometry and astronomical
+imaging, while highlighting open problems with these new algorithms. Finally,
+we describe how probabilistic numerical methods provide a coherent framework
+for identifying the uncertainty in calculations performed with a combination of
+numerical algorithms (e.g. both numerical optimisers and differential equation
+solvers), potentially allowing the diagnosis (and control) of error sources in
+computations.},
+  link = {http://rspa.royalsocietypublishing.org/content/471/2179/20150142},
+  file = {http://rspa.royalsocietypublishing.org/content/royprsa/471/2179/20150142.full.pdf}
+}
+
+@incollection{Owhadi-Scovel-TowardsMachineWald,
+  author = {Houman Owhadi and Clint Scovel},
+  title = {Toward Machine {W}ald},
+  booktitle = {Springer Handbook of Uncertainty Quantification},
+  year = 2016,
+  pages = {1--35},
+  abstract = {The past century has seen a steady increase in the need of estimating and predicting complex systems and making (possibly critical) decisions with limited information. Although computers have made possible the numerical evaluation of sophisticated statistical models, these models are still designed by humans because there is currently no known recipe or algorithm for dividing the design of a statistical model into a sequence of arithmetic operations. Indeed enabling computers to think as humans, especially when faced with uncertainty, is challenging in several major ways: (1) Finding optimal statistical models remains to be formulated as a well-posed problem when information on the system of interest is incomplete and comes in the form of a complex combination of sample data, partial knowledge of constitutive relations and a limited description of the distribution of input random variables. (2) The space of admissible scenarios along with the space of relevant information, assumptions, and/or beliefs, tends to be infinite dimensional, whereas calculus on a computer is necessarily discrete and finite. With this purpose, this paper explores the foundations of a rigorous framework for the scientific computation of optimal statistical estimators/models and reviews their connections with decision theory, machine learning, Bayesian inference, stochastic optimization, robust optimization, optimal uncertainty quantification, and information-based complexity.},
+  publisher = {Springer},
+  link = {http://arxiv.org/abs/1508.02449},
+  file = {http://arxiv.org/pdf/1508.02449v2.pdf}
+}
+
+@ARTICLE{2017arXiv170203673C,
+   author = {{Cockayne}, J. and {Oates}, C. and {Sullivan}, T. and {Girolami}, M.
+  },
+    title = "{{B}ayesian Probabilistic Numerical Methods}",
+  journal = {ArXiv e-prints},
+   volume = {stat.ME 1702.03673},
+     year = 2017,
+    month = feb,
+    link = {https://arxiv.org/abs/1702.03673},
+    file = {https://arxiv.org/pdf/1702.03673.pdf},
+    abstract = {The emergent field of probabilistic numerics has thus far lacked rigorous statistical principals. This paper establishes Bayesian probabilistic numerical methods as those which can be cast as solutions to certain Bayesian inverse problems, albeit problems that are non-standard. This allows us to establish general conditions under which Bayesian probabilistic numerical methods are well-defined, encompassing both non-linear and non-Gaussian models. For general computation, a numerical approximation scheme is developed and its asymptotic convergence is established. The theoretical development is then extended to pipelines of computation, wherein probabilistic numerical methods are composed to solve more challenging numerical tasks. The contribution highlights an important research frontier at the interface of numerical analysis and uncertainty quantification, with some illustrative applications presented.}
+}
+
+@article{owhadi_universal_2017,
+  title = {Universal {Scalable} {Robust} {Solvers} from {Computational} {Information} {Games} and fast eigenspace adapted {Multiresolution} {Analysis}},
+  url = {http://arxiv.org/abs/1703.10761},
+  abstract = {We show how the discovery of robust scalable numerical solvers for arbitrary bounded linear operators can be automated as a Game Theory problem by reformulating the process of computing with partial information and limited resources as that of playing underlying hierarchies of adversarial information games. When the solution space is a Banach space \$B\$ endowed with a quadratic norm \${\textbackslash}{\textbar}{\textbackslash}cdot{\textbackslash}{\textbar}\$, the optimal measure (mixed strategy) for such games (e.g. the adversarial recovery of \$u{\textbackslash}in B\$, given partial measurements \$[{\textbackslash}phi\_i, u]\$ with \${\textbackslash}phi\_i{\textbackslash}in B{\textasciicircum}*\$, using relative error in \${\textbackslash}{\textbar}{\textbackslash}cdot{\textbackslash}{\textbar}\$-norm as a loss) is a centered Gaussian field \${\textbackslash}xi\$ solely determined by the norm \${\textbackslash}{\textbar}{\textbackslash}cdot{\textbackslash}{\textbar}\$, whose conditioning (on measurements) produces optimal bets. When measurements are hierarchical, the process of conditioning this Gaussian field produces a hierarchy of elementary bets (gamblets). These gamblets generalize the notion of Wavelets and Wannier functions in the sense that they are adapted to the norm \${\textbackslash}{\textbar}{\textbackslash}cdot{\textbackslash}{\textbar}\$ and induce a multi-resolution decomposition of \$B\$ that is adapted to the eigensubspaces of the operator defining the norm \${\textbackslash}{\textbar}{\textbackslash}cdot{\textbackslash}{\textbar}\$. When the operator is localized, we show that the resulting gamblets are localized both in space and frequency and introduce the Fast Gamblet Transform (FGT) with rigorous accuracy and (near-linear) complexity estimates. As the FFT can be used to solve and diagonalize arbitrary PDEs with constant coefficients, the FGT can be used to decompose a wide range of continuous linear operators (including arbitrary continuous linear bijections from \$H{\textasciicircum}s\_0\$ to \$H{\textasciicircum}\{-s\}\$ or to \$L{\textasciicircum}2\$) into a sequence of independent linear systems with uniformly bounded condition numbers and leads to \${\textbackslash}mathcal\{O\}(N {\textbackslash}operatorname\{polylog\} N)\$ solvers and eigenspace adapted Multiresolution Analysis (resulting in near linear complexity approximation of all eigensubspaces).},
+  urldate = {2017-09-10},
+  journal = {arXiv:1703.10761 [math, stat]},
+  author = {Owhadi, Houman and Scovel, Clint},
+  month = mar,
+  year = {2017},
+  keywords = {68T99, 65T60, 65M55, 65N55, 65F99, 65N75, 62C99, 62C20, 62C10, 42C40, 60G42, 68Q25, 15A18, 35Q91, Mathematics - Analysis of PDEs, Mathematics - Numerical Analysis, Statistics - Machine Learning},
+  annote = {Comment: 142 pages. 14 Figures. Presented at AFOSR (Aug 2016), DARPA (Sep 2016), IPAM (Apr 3, 2017), Hausdorff (April 13, 2017) and ICERM (June 5, 2017)},
+  file = {https://arxiv.org/pdf/1703.10761.pdf}
+}
+
+
+@article{owhadi_conditioning_2015,
+  title = {Conditioning {Gaussian} measure on {Hilbert} space},
+  url = {http://arxiv.org/abs/1506.04208},
+  abstract = {For a Gaussian measure on a separable Hilbert space with covariance operator \$C\$, we show that the family of conditional measures associated with conditioning on a closed subspace \$S{\textasciicircum}\{{\textbackslash}perp\}\$ are Gaussian with covariance operator the short \${\textbackslash}mathcal\{S\}(C)\$ of the operator \$C\$ to \$S\$. We provide two proofs. The first uses the theory of Gaussian Hilbert spaces and a characterization of the shorted operator by Andersen and Trapp. The second uses recent developments by Corach, Maestripieri and Stojanoff on the relationship between the shorted operator and \$C\$-symmetric oblique projections onto \$S{\textasciicircum}\{{\textbackslash}perp\}\$. To obtain the assertion when such projections do not exist, we develop an approximation result for the shorted operator by showing, for any positive operator \$A\$, how to construct a sequence of approximating operators \$A{\textasciicircum}\{n\}\$ which possess \$A{\textasciicircum}\{n\}\$-symmetric oblique projections onto \$S{\textasciicircum}\{{\textbackslash}perp\}\$ such that the sequence of shorted operators \${\textbackslash}mathcal\{S\}(A{\textasciicircum}\{n\})\$ converges to \${\textbackslash}mathcal\{S\}(A)\$ in the weak operator topology. This result combined with the martingale convergence of random variables associated with the corresponding approximations \$C{\textasciicircum}\{n\}\$ establishes the main assertion in general. Moreover, it in turn strengthens the approximation theorem for shorted operator when the operator is trace class; then the sequence of shorted operators \${\textbackslash}mathcal\{S\}(A{\textasciicircum}\{n\})\$ converges to \${\textbackslash}mathcal\{S\}(A)\$ in trace norm.},
+  urldate = {2017-09-10},
+  journal = {arXiv:1506.04208 [math]},
+  author = {Owhadi, Houman and Scovel, Clint},
+  month = jun,
+  year = {2015},
+  note = {arXiv: 1506.04208},
+  keywords = {28C20, Mathematics - Probability},
+  file = {https://arxiv.org/pdf/1506.04208.pdf}
+}
+
+
+@ARTICLE{2019arXiv190104457O,
+       author = {{Oates}, C.~J. and {Sullivan}, T.~J.},
+        title = "{A Modern Retrospective on Probabilistic Numerics}",
+      journal = {arXiv e-prints},
+         year = "2019",
+        month = "Jan",
+       volume = {1901.04457},
+ primaryClass = {math.NA},
+      abstract = {This article attempts to cast the emergence of probabilistic numerics as a mathematical-statistical research field within its historical context and to explore how its gradual development can be related to modern formal treatments and applications. We highlight in particular the parallel contributions of Sul'din and Larkin in the 1960s and how their pioneering early ideas have reached a degree of maturity in the intervening period, mediated by paradigms such as average-case analysis and information-based complexity. We provide a subjective assessment of the state of research in probabilistic numerics and highlight some difficulties to be addressed by future works.},
+      link = {https://arxiv.org/abs/1901.04457},
+      file = {https://arxiv.org/pdf/1901.04457.pdf}
+}
+
+@ARTICLE{2019arXiv190104326O,
+       author = {{Oates}, Chris. J. and {Cockayne}, Jon and {Prangle}, Dennis and
+         {Sullivan}, T.~J. and {Girolami}, Mark},
+        title = "{Optimality Criteria for Probabilistic Numerical Methods}",
+      journal = {arXiv e-prints},
+         year = "2019",
+        month = "Jan",
+        volume = {1901.04326},
+        abstract = {It is well understood that Bayesian decision theory and average case analysis are essentially identical. However, if one is interested in performing uncertainty quantification for a numerical task, it can be argued that the decision-theoretic framework is neither appropriate nor sufficient. To this end, we consider an alternative optimality criterion from Bayesian experimental design and study its implied optimal information in the numerical context. This information is demonstrated to differ, in general, from the information that would be used in an average-case-optimal numerical method. The explicit connection to Bayesian experimental design suggests several distinct regimes in which optimal probabilistic numerical methods can be developed.},
+        link = {https://arxiv.org/abs/1901.04326},
+        file = {https://arxiv.org/pdf/1901.04326.pdf}
+}
+
+@article{teymur2021black,
+        title={Black Box Probabilistic Numerics},
+        author={Teymur, Onur and Foley, Christopher N and Breen, Philip G and Karvonen, Toni and Oates, Chris J},
+        journal = {arXiv e-prints},
+        year={2021},
+        volume = {2106.13718},
+        abstract = {Probabilistic numerics casts numerical tasks, such the numerical solution of differential equations, as inference problems to be solved. One approach is to model the unknown quantity of interest as a random variable, and to constrain this variable using data generated during the course of a traditional numerical method. However, data may be nonlinearly related to the quantity of interest, rendering the proper conditioning of random variables difficult and limiting the range of numerical tasks that can be addressed. Instead, this paper proposes to construct probabilistic numerical methods based only on the final output from a traditional method. A convergent sequence of approximations to the quantity of interest constitute a dataset, from which the limiting quantity of interest can be extrapolated, in a probabilistic analogue of Richardson's deferred approach to the limit. This black box approach (1) massively expands the range of tasks to which probabilistic numerics can be applied, (2) inherits the features and performance of state-of-the-art numerical methods, and (3) enables provably higher orders of convergence to be achieved. Applications are presented for nonlinear ordinary and partial differential equations, as well as for eigenvalue problems-a setting for which no probabilistic numerical methods have yet been developed.},
+        link = {https://arxiv.org/abs/2106.13718},
+        file = {https://arxiv.org/pdf/2106.13718.pdf}
+}

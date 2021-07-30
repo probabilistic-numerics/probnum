@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats
 
 from probnum.randvars import Normal
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType
 
 
 class IntegrationMeasure(abc.ABC):
@@ -51,17 +51,17 @@ class IntegrationMeasure(abc.ABC):
 
     def sample(
         self,
+        rng: np.random.Generator,
         n_sample: IntArgType,
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
 
         Parameters
         ----------
+        rng :
+            Random number generator
         n_sample :
             Number of points to be sampled
-        random_state :
-            Random state of the random variable corresponding to the integration measure.
 
         Returns
         -------
@@ -69,9 +69,9 @@ class IntegrationMeasure(abc.ABC):
             *shape=(n_sample,) or (n_sample,dim)* -- Sampled points
         """
         # pylint: disable=no-member
-        self.random_variable.random_state = random_state
         return np.reshape(
-            self.random_variable.sample(size=n_sample), newshape=(n_sample, self.dim)
+            self.random_variable.sample(rng=rng, size=n_sample),
+            newshape=(n_sample, self.dim),
         )
 
     def _set_dimension_domain(
@@ -190,12 +190,10 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def sample(
         self,
+        rng: np.random.Generator,
         n_sample: IntArgType,
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
-        return self.random_variable.rvs(
-            size=(n_sample, self.dim), random_state=random_state
-        )
+        return self.random_variable.rvs(size=(n_sample, self.dim), random_state=rng)
 
 
 # pylint: disable=too-few-public-methods

@@ -59,11 +59,11 @@ def test_cov_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
 
 
 def test_evaluated_random_process_is_random_variable(
-    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
+    random_process: randprocs.RandomProcess, rng: np.random.Generator
 ):
     """Test whether evaluating a random process returns a random variable."""
     n_inputs_args0 = 10
-    args0 = random_state.normal(size=(n_inputs_args0, random_process.input_dim))
+    args0 = rng.normal(size=(n_inputs_args0, random_process.input_dim))
     y0 = random_process(args0)
 
     assert isinstance(y0, randvars.RandomVariable), (
@@ -73,11 +73,11 @@ def test_evaluated_random_process_is_random_variable(
 
 @pytest.mark.xfail(reason="Not yet implemented for random processes.")
 def test_samples_are_callables(
-    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
+    random_process: randprocs.RandomProcess, rng: np.random.Generator
 ):
     """When not specifying inputs to the sample method it should return ``size`` number
     of callables."""
-    assert callable(random_process.sample(random_state=random_state))
+    assert callable(random_process.sample(rng=rng))
 
 
 @pytest.mark.xfail(reason="Not yet implemented for random processes.")
@@ -91,12 +91,12 @@ def test_sample_paths_are_deterministic_functions(
 
 
 def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
-    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
+    random_process: randprocs.RandomProcess, rng: np.random.Generator
 ):
     """Check whether the evaluated mean and covariance function of a random process is
     equivalent to the mean and covariance of the evaluated random process as a random
     variable."""
-    x = random_state.normal(size=(10, random_process.input_dim))
+    x = rng.normal(size=(10, random_process.input_dim))
 
     np.testing.assert_allclose(
         random_process(x).mean,

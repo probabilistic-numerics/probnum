@@ -37,12 +37,14 @@ def cholesky_update(
 
     >>> from probnum.utils.linalg import cholesky_update
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
+    >>> import numpy as np
 
     Compute the Cholesky-factor of a sum of SPD matrices.
 
-    >>> C1 = random_spd_matrix(5)
+    >>> rng = np.random.default_rng(seed=3)
+    >>> C1 = random_spd_matrix(rng, dim=5)
     >>> S1 = np.linalg.cholesky(C1)
-    >>> C2 = random_spd_matrix(5)
+    >>> C2 = random_spd_matrix(rng, dim=5)
     >>> S2 = np.linalg.cholesky(C2)
     >>> C = C1 + C2
     >>> S = cholesky_update(S1, S2)

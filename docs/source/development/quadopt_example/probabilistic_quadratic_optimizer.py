@@ -7,7 +7,7 @@ import numpy as np
 import probnum as pn
 import probnum.utils as _utils
 from probnum import linops, randvars
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+from probnum.typing import FloatArgType, IntArgType
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation
@@ -73,7 +73,6 @@ class ProbabilisticQuadraticOptimizer:
     >>> from quadopt_example.belief_updates import gaussian_belief_update
     >>> from quadopt_example.stopping_criteria import maximum_iterations
     >>>
-    >>> np.random.seed(42)
     >>>
     >>> # Custom stopping criterion based on residual
     >>> def residual(

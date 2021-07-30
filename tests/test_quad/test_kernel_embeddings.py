@@ -7,7 +7,7 @@ import pytest
 from scipy.linalg import sqrtm
 from scipy.special import roots_legendre
 
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 
 
 # Auxiliary functions
@@ -75,7 +75,7 @@ def test_kernel_variance_float(kernel_embedding):
 # Tests for squared exponential kernel and Gaussian measure
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["gauss"])
-def test_kernel_mean_gaussian_measure(kernel_embedding, num_data):
+def test_kernel_mean_gaussian_measure(kernel_embedding, num_data, rng):
     """Test kernel means for the Gaussian measure against Gauss-Hermite tensor product
     rule."""
     n_gh = 10
@@ -86,7 +86,7 @@ def test_kernel_mean_gaussian_measure(kernel_embedding, num_data):
         cov=kernel_embedding.measure.cov,
     )
 
-    x = kernel_embedding.measure.sample(num_data)
+    x = kernel_embedding.measure.sample(rng, num_data)
     num_kernel_means = kernel_embedding.kernel(x, x_gh) @ w_gh
     true_kernel_means = kernel_embedding.kernel_mean(x)
     np.testing.assert_allclose(
@@ -117,7 +117,7 @@ def test_kernel_var_gaussian_measure(kernel_embedding):
 # Tests for squared exponential kernel and Lebesgue measure
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
-def test_kernel_mean_lebesgue_measure(kernel_embedding, num_data):
+def test_kernel_mean_lebesgue_measure(kernel_embedding, num_data, rng):
     """Test kernel means for the Lebesgue measure against Gauss-Legendre tensor product
     rule."""
     n_gl = 10
@@ -128,7 +128,7 @@ def test_kernel_mean_lebesgue_measure(kernel_embedding, num_data):
         normalized=kernel_embedding.measure.normalized,
     )
 
-    x = kernel_embedding.measure.sample(num_data)
+    x = kernel_embedding.measure.sample(rng, num_data)
     num_kernel_means = kernel_embedding.kernel(x, x_gl) @ w_gl
     true_kernel_means = kernel_embedding.kernel_mean(x)
     np.testing.assert_allclose(

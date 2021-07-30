@@ -1,8 +1,14 @@
 import numpy as np
 import pytest
 
-from probnum import diffeq, filtsmooth, problems, randvars, statespace, utils
+import probnum.problems.zoo.diffeq as diffeq_zoo
+from probnum import diffeq, randvars
 from probnum._randomvariablelist import _RandomVariableList
+
+
+@pytest.fixture
+def rng():
+    return np.random.default_rng(seed=42)
 
 
 @pytest.fixture
@@ -18,11 +24,11 @@ def timespan():
 @pytest.fixture
 def posterior(stepsize, timespan):
     """Kalman smoothing posterior."""
-    initrv = randvars.Constant(20 * np.ones(2))
-    ivp = diffeq.ode.lotkavolterra(timespan, initrv)
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
+    t0, tmax = timespan
+    y0 = 20 * np.ones(2)
+    ivp = diffeq_zoo.lotkavolterra(t0=t0, tmax=tmax, y0=y0)
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
     return diffeq.probsolve_ivp(f, t0, tmax, y0, step=stepsize, adaptive=False)
 
 
@@ -127,9 +133,9 @@ OUT_OF_DOMAIN_DENSE_LOCS = np.arange(0.0, 500.0, 25.0)
 
 @pytest.mark.parametrize("locs", [None, IN_DOMAIN_DENSE_LOCS, OUT_OF_DOMAIN_DENSE_LOCS])
 @pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
-def test_sampling_shapes(posterior, locs, size):
+def test_sampling_shapes(posterior, locs, size, rng):
     """Shape of the returned samples matches expectation."""
-    samples = posterior.sample(t=locs, size=size)
+    samples = posterior.sample(rng=rng, t=locs, size=size)
 
     if isinstance(size, int):
         size = (size,)
@@ -150,38 +156,3 @@ def test_transform_base_measure_realizations_raises_error(posterior):
     realizations, but refers to KalmanPosterior instead."""
     with pytest.raises(NotImplementedError):
         posterior.transform_base_measure_realizations(None)
-
-
-@pytest.mark.parametrize("locs", [np.arange(0.0, 0.5, 0.025)])
-@pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
-def test_sampling_shapes_1d(locs, size):
-    """Make the sampling tests for a 1d posterior."""
-    locations = np.linspace(0, 2 * np.pi, 100)
-    data = 0.5 * np.random.randn(100) + np.sin(locations)
-
-    prior = statespace.IBM(0, 1)
-    measmod = statespace.DiscreteLTIGaussian(
-        state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
-    )
-    initrv = randvars.Normal(np.zeros(1), np.eye(1))
-
-    kalman = filtsmooth.Kalman(prior, measmod, initrv)
-    regression_problem = problems.RegressionProblem(
-        observations=data, locations=locations
-    )
-    posterior, _ = kalman.filtsmooth(regression_problem)
-
-    size = utils.as_shape(size)
-    if locs is None:
-        base_measure_reals = np.random.randn(*(size + posterior.locations.shape + (1,)))
-        samples = posterior.transform_base_measure_realizations(
-            base_measure_reals, t=posterior.locations
-        )
-    else:
-        locs = np.union1d(locs, posterior.locations)
-        base_measure_reals = np.random.randn(*(size + (len(locs),)) + (1,))
-        samples = posterior.transform_base_measure_realizations(
-            base_measure_reals, t=locs
-        )
-
-    assert samples.shape == base_measure_reals.shape

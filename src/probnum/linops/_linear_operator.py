@@ -7,11 +7,13 @@ import scipy.linalg
 import scipy.sparse.linalg
 
 import probnum.utils
-from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
 ]
+
+# pylint: disable="too-many-lines"
 
 
 class LinearOperator:
@@ -27,7 +29,7 @@ class LinearOperator:
     :class:`LinearOperator`, that defers linear operations to the original operators and
     combines the results.
 
-    To construct a concrete class:`LinearOperator`, either pass appropriate callables to
+    To construct a concrete :class:`LinearOperator`, either pass appropriate callables to
     the constructor of this class, or subclass it.
 
     A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and
@@ -157,18 +159,33 @@ class LinearOperator:
 
     @property
     def shape(self) -> Tuple[int, int]:
+        """Shape of the linear operator.
+
+        Defined as a tuple of the output and input dimension of
+        operator.
+        """
         return self.__shape
 
     @property
     def ndim(self) -> int:
+        """Number of linear operator dimensions.
+
+        Defined analogously to :attr:`numpy.ndarray.ndim`.
+        """
         return 2
 
     @property
+    def size(self) -> int:
+        return np.prod(self.__shape)
+
+    @property
     def dtype(self) -> np.dtype:
+        """Data type of the linear operator."""
         return self.__dtype
 
     @property
     def is_square(self) -> bool:
+        """Whether input dimension matches output dimension."""
         return self.shape[0] == self.shape[1]
 
     def __repr__(self) -> str:
@@ -213,6 +230,21 @@ class LinearOperator:
         subok: bool = True,
         copy: bool = True,
     ) -> "LinearOperator":
+        """Cast a linear operator to a different ``dtype``.
+
+        Parameters
+        ----------
+        dtype:
+            Data type to which the linear operator is cast.
+        order:
+            Memory layout order of the result.
+        casting:
+            Controls what kind of data casting may occur.
+        subok:
+            If True, then sub-classes will be passed-through (default). False is currently not supported for linear operators.
+        copy:
+            Whether to return a new linear operator, even if ``dtype`` is the same.
+        """
         dtype = np.dtype(dtype)
 
         if not np.can_cast(self.dtype, dtype, casting=casting):
@@ -368,10 +400,10 @@ class LinearOperator:
             return np.log(np.abs(self.det()))
 
     def trace(self) -> np.number:
-        """Trace of the linear operator.
+        r"""Trace of the linear operator.
 
-        Computes the trace of a square linear operator :math:`\\text{tr}(A) =
-        \\sum_{i-1}^n A_ii`.
+        Computes the trace of a square linear operator :math:`\text{tr}(A) =
+        \sum_{i-1}^n A_{ii}`.
 
         Returns
         -------
@@ -380,7 +412,8 @@ class LinearOperator:
 
         Raises
         ------
-        LinAlgError : If :meth:`trace` is called on a non-square matrix.
+        LinAlgError :
+            If :meth:`trace` is called on a non-square matrix.
         """
         if self.__trace_cache is None:
             if not self.is_square:
@@ -421,6 +454,7 @@ class LinearOperator:
         return NegatedLinearOperator(self)
 
     def conjugate(self) -> "LinearOperator":
+        """Complex conjugate linear operator."""
         if np.issubdtype(self.dtype, np.complexfloating):
             if self.__conjugate is None:
                 return _ConjugateLinearOperator(self)
@@ -430,9 +464,11 @@ class LinearOperator:
         return self
 
     def conj(self) -> "LinearOperator":
+        """Complex conjugate linear operator."""
         return self.conjugate()
 
     def adjoint(self) -> "LinearOperator":
+        """Hermitian adjoint."""
         if self.__adjoint is None:
             return self._adjoint_fallback()
 
@@ -447,6 +483,7 @@ class LinearOperator:
 
     @property
     def H(self) -> "LinearOperator":
+        """Hermitian adjoint."""
         return self.adjoint()
 
     def transpose(self) -> "LinearOperator":
@@ -474,6 +511,7 @@ class LinearOperator:
 
     @property
     def T(self) -> "LinearOperator":
+        """Transposed linear operator."""
         return self.transpose()
 
     def inv(self) -> "LinearOperator":
@@ -615,6 +653,13 @@ class LinearOperator:
     def broadcast_matvec(
         cls, matvec: Callable[[np.ndarray], np.ndarray]
     ) -> Callable[[np.ndarray], np.ndarray]:
+        """Broadcasting for a (implicitly defined) matrix-vector product.
+
+        Convenience function / decorator to broadcast the definition of
+        a matrix-vector product. This can be used to easily construct a
+        new linear operator only from a matrix-vector product.
+        """
+
         def _matmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2 and x.shape[1] == 1:
                 return matvec(x[:, 0])[:, np.newaxis]
@@ -627,6 +672,14 @@ class LinearOperator:
     def broadcast_matmat(
         cls, matmat: Callable[[np.ndarray], np.ndarray]
     ) -> Callable[[np.ndarray], np.ndarray]:
+        """Broadcasting for a (implicitly defined) matrix-matrix product.
+
+        Convenience function / decorator to broadcast the definition of
+        a matrix-matrix product to vectors. This can be used to easily
+        construct a new linear operator only from a matrix-matrix
+        product.
+        """
+
         def _matmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2:
                 return matmat(x)
@@ -800,8 +853,8 @@ class _InverseLinearOperator(LinearOperator):
             dtype=self._linop._inexact_dtype,
             matmul=LinearOperator.broadcast_matmat(self._matmat),
             rmatmul=lambda x: tmatmul(x[..., np.newaxis])[..., 0],
-            transpose=lambda x: TransposedLinearOperator(self, matmul=tmatmul),
-            adjoint=lambda x: AdjointLinearOperator(self, matmul=hmatmul),
+            transpose=lambda: TransposedLinearOperator(self, matmul=tmatmul),
+            adjoint=lambda: AdjointLinearOperator(self, matmul=hmatmul),
             inverse=lambda: self._linop,
             det=lambda: 1 / self._linop.det(),
             logabsdet=lambda: -self._linop.logabsdet(),
@@ -904,7 +957,7 @@ class Matrix(LinearOperator):
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
             rmatmul = LinearOperator.broadcast_rmatmat(lambda x: x @ self.A)
             todense = self.A.toarray
-            inverse = lambda: Matrix(scipy.sparse.linalg.inv(self.A))
+            inverse = self._sparse_inv
             trace = lambda: self.A.diagonal().sum()
         else:
             self.A = np.asarray(A)
@@ -952,6 +1005,12 @@ class Matrix(LinearOperator):
             return self
 
         return Matrix(A_astype)
+
+    def _sparse_inv(self) -> "Matrix":
+        try:
+            return Matrix(scipy.sparse.linalg.inv(self.A.tocsc()))
+        except RuntimeError as err:
+            raise np.linalg.LinAlgError(str(err)) from err
 
 
 class Identity(LinearOperator):

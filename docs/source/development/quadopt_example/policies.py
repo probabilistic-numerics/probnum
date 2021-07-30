@@ -5,13 +5,13 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum import randvars
-from probnum.type import FloatArgType, RandomStateArgType
+from probnum.typing import FloatArgType
 
 
 def explore_exploit_policy(
     fun: Callable[[FloatArgType], FloatArgType],
     fun_params0: randvars.RandomVariable,
-    random_state: RandomStateArgType = None,
+    rng: np.random.Generator,
 ) -> float:
     """Policy exploring around the estimate of the minimum based on the certainty about
     the parameters.
@@ -22,24 +22,18 @@ def explore_exploit_policy(
         One-dimensional objective function.
     fun_params0 :
         Belief over the parameters of the quadratic objective.
-    random_state :
-        Random state of the policy. If None (or np.random), the global np.random state
-        is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
+    rng :
+        Random number generator.
     """
     a0, b0, _ = fun_params0
-    return (
-        -b0.mean / a0.mean
-        + randvars.Normal(
-            0, np.trace(fun_params0.cov), random_state=random_state
-        ).sample()
-    )
+    sample = randvars.Normal(0, np.trace(fun_params0.cov)).sample(rng=rng)
+    return -b0.mean / a0.mean + sample
 
 
 def stochastic_policy(
     fun: Callable[[FloatArgType], FloatArgType],
     fun_params0: randvars.RandomVariable,
-    random_state: RandomStateArgType = None,
+    rng: np.random.Generator,
 ) -> float:
     """Policy returning a random action.
 
@@ -49,9 +43,7 @@ def stochastic_policy(
         One-dimensional objective function.
     fun_params0 :
         Belief over the parameters of the quadratic objective.
-    random_state :
-        Random state of the policy. If None (or np.random), the global np.random state
-        is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
+    rng :
+        Random number generator.
     """
-    return randvars.Normal(mean=0.0, cov=1.0, random_state=random_state).sample()
+    return randvars.Normal(mean=0.0, cov=1.0).sample(rng=rng)

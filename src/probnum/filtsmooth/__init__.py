@@ -6,48 +6,20 @@ sequential model. The two operations differ by what information they
 use. Filtering considers all observations up to a given point, while
 smoothing takes the entire set of observations into account.
 """
-
-from .bayesfiltsmooth import BayesFiltSmooth
-from .gaussfiltsmooth import (
-    ContinuousEKFComponent,
-    ContinuousUKFComponent,
-    DiscreteEKFComponent,
-    DiscreteUKFComponent,
-    EKFComponent,
-    FilteringPosterior,
-    IteratedDiscreteComponent,
-    Kalman,
-    KalmanPosterior,
-    SmoothingPosterior,
-    StoppingCriterion,
-    UKFComponent,
-    UnscentedTransform,
-)
-from .particlefiltsmooth import (
-    ParticleFilter,
-    ParticleFilterPosterior,
-    effective_number_of_events,
-)
-from .timeseriesposterior import TimeSeriesPosterior
+from . import gaussian, particle, utils
+from ._bayesfiltsmooth import BayesFiltSmooth
+from ._kalman_filter_smoother import filter_kalman, smooth_rts
+from ._timeseriesposterior import TimeSeriesPosterior
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
+    "filter_kalman",
+    "smooth_rts",
     "BayesFiltSmooth",
-    "Kalman",
-    "EKFComponent",
-    "ContinuousEKFComponent",
-    "DiscreteEKFComponent",
-    "UKFComponent",
-    "ContinuousUKFComponent",
-    "DiscreteUKFComponent",
-    "UnscentedTransform",
     "TimeSeriesPosterior",
-    "KalmanPosterior",
-    "FilteringPosterior",
-    "SmoothingPosterior",
-    "StoppingCriterion",
-    "IteratedDiscreteComponent",
-    "ParticleFilter",
-    "ParticleFilterPosterior",
-    "effective_number_of_events",
 ]
+
+# Set correct module paths (for superclasses).
+# Corrects links and module paths in documentation.
+BayesFiltSmooth.__module__ = "probnum.filtsmooth"
+TimeSeriesPosterior.__module__ = "probnum.filtsmooth"

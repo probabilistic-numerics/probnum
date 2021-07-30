@@ -1,0 +1,145 @@
+@book{poincare1896,
+  address = {Paris},
+  author = {H. Poincar{\'e}},
+  publisher = {Gauthier-Villars},
+  title  = {{Calcul des probabilit{\'e}s}},
+  year   = {1896},
+  notes  = {Likely the first text explicitly discussing the notion of computation as inference. The introduction (§1.7) contains the following insightful, albeit informal, sentence:
+
+  Une question de probabilités ne se pose que par suite de notre ignorance: il n’y aurait place que pour la certitude si nous connaissions toutes les données du problème. D’autre part, notre ignorance ne doit pas être complète, sans quoi nous ne pourrions rien évaluer. Une classification s’opérerait donc suivant le plus ou moins de profondeur de notre ignorance.
+
+  Ainsi la probabilité pour que la sixième décimale d’un nombre dans une table de logarithmes soit égale à 6 est a priori de 1/10; en réalité, toutes les données du problème sont bien déterminées, et, si nous voulions nous en donner la peine, nous connaîtrions exactement cette probabilité. De même, dans les interpolations, dans le calcul des intégrales définies par la méthode de Cotes ou celle de Gauss, etc.
+
+  Further along, in chapter XV, page 292, he constructs a (basic) version of the Wiener integral from scratch and applies it to interpolation problems (in the beginning of that chapter he reviews the problem of interpolating an unknown function over a known basis of polynomials using classical deterministic methods, in the second part he assumes that the coefficients in the basis are Gaussian and treats interpolation points as data in an inference problem). [Many thanks to Houman Owhadi for pointing out this second reference.]
+  }
+}
+
+@article{kac1940gaussian,
+  title =	 {The Gaussian law of errors in the theory of additive number
+                  theoretic functions},
+  author =	 {Erd{\"o}s, P. and Kac, M.},
+  journal =	 {American Journal of Mathematics},
+  pages =	 {738--742},
+  year =	 1940,
+  link =	 {http://www.jstor.org/stable/2371483}
+}
+
+@article{kac1949distributions,
+  title =	 {On distributions of certain {W}iener functionals},
+  author =	 {Kac, M.},
+  journal =	 {Transactions of the AMS},
+  volume =	 65,
+  number =	 1,
+  pages =	 {1--13},
+  year =	 1949,
+  link =	 {http://www.jstor.org/stable/1990512}
+}
+
+@article{sul1959wiener,
+  title={Wiener measure and its applications to approximation methods. I},
+  author={Sul'din, Al'bert Valentinovich},
+  journal={Izvestiya Vysshikh Uchebnykh Zavedenii. Matematika},
+  number={6},
+  pages={145--158},
+  year={1959},
+  publisher={Kazan (Volga region) Federal University}
+}
+
+@article{sul1960wiener,
+  title={Wiener measure and its applications to approximation methods. II},
+  author={Sul'din, Al'bert Valentinovich},
+  journal={Izvestiya Vysshikh Uchebnykh Zavedenii. Matematika},
+  number={5},
+  pages={165--179},
+  year={1960},
+  publisher={Kazan (Volga region) Federal University}
+}
+
+@article{ajne1960naagra,
+  title={N{\aa}gra till{\"a}mpningar av statistiska id{\'e}er p{\aa} numerisk integration},
+  author={Ajna, Bj{\"o}rn and Dalenius, Tore},
+  journal={Nordisk Matematisk Tidskrift},
+  pages={145--152},
+  year={1960},
+  abstract = {[translation by JSTOR]: The usual approximation of a definite integral by a finite sum is applied in the more general case $\underset{-\mathrm{\infty }}{\overset{\mathrm{\infty }}{\int }}\mathrm{g}\left(\mathrm{t}\right)\mathrm{d}\mathrm{F}\left(\mathrm{t}\right)\approx \sum _{\mathrm{k}=1}^{\mathrm{n}}{\mathrm{w}}_{\mathrm{k}}\mathrm{g}\left({\mathrm{t}}_{\mathrm{k}}\right)$, where $F(t)$ is a known distribution function. Interpreting $\mathrm{W}\left(\mathrm{t}\right)=\sum _{{\mathrm{t}}_{\mathrm{k}}\leqq \mathrm{t}}{\mathrm{w}}_{\mathrm{k}}$ as a discrete probability distribution, this can be adjusted to the given distribution $F(t)$ by well known statistical methods. It turns out that the criterion of Kolmogorov-Smirnov and Smirnov's $\omega_2$-test both lead to the so-called tangent-method approximation of ordinary integrals, whereas the moment-method leads to Gaussian numerical integration.},
+  link = {http://www.jstor.org/stable/24524717}
+}
+
+@book{sard1963linear,
+  title={Linear approximation},
+  author={Sard, Arthur},
+  year={1963},
+  publisher={American Mathematical Society},
+  address = {Providence, R.I.},
+  notes = {Towards the end of this book, Sard introduces the probability concepts of his time (Wiener and Kolmogorov) into the classical theory of linear approximation. [Many thanks to Houman Owhadi for this reference.]}
+}
+
+@article{kimeldorf1970correspondence,
+ title={A correspondence between Bayesian estimation on stochastic processes and smoothing by splines},
+ author={Kimeldorf, George S and Wahba, Grace},
+ journal={The Annals of Mathematical Statistics},
+ volume={41},
+ number={2},
+ pages={495--502},
+ year={1970},
+ link={http://www.jstor.org/stable/pdf/2239347.pdf},
+ notes={This seminal paper points out that splines can be interpreted as the posterior mean functions of certain Gaussian processes. The paper does not explicitly make the connection to the use of splines in numerics -- which means that many classic numerical methods in various areas can be interpreted as average-case Gaussian inference rules -- but later authors, most notably Diaconis, make it clear that they got the idea.}
+}
+
+@inproceedings{Kadane1985a,
+author = {J. B. Kadane and G. W. Wasilkowski},
+abstract = {Relations between average case epsilon-complexity and Bayesian statistics are discussed. An algorithm corresponds to a decision function, and the choice of information to the choice of an experiment. Adaptive information in epsilon-complexity theory corresponds to the concept of sequential experiment. Some results are reported, giving epsilon-complexity and minimax-Bayesian interpretations for factor analysis. Results from epsilon-complexity are used to establish the optimal sequential design is no better than optimal nonsequential design for that problem.},
+booktitle = {Bayesian Statistics 2, Proceedings of the Second Valencia International Meeting},
+number = {July},
+pages = {361--374},
+title = {{Average case epsilon-complexity in computer science: A Bayesian view}},
+year = {1985},
+link = {http://academiccommons.columbia.edu/catalog/ac%3A140709}
+}
+
+@article{Kadane1985b,
+abstract = {I borrow themes from statistics - especially the Bayesian ideas underlying average case analysis and ideas of sequential design of experiments - to discuss when parallel computation is likely to be an attractive technique.},
+author = {J. B. Kadane},
+journal = {Journal of Complexity},
+pages = {256--263},
+title = {{Parallel and Sequential Computation: A Statistician's View}},
+volume = {1},
+year = {1985},
+link = {http://www.sciencedirect.com/science/article/pii/0885064X85900147}
+}
+
+@article{kopanov1994probabilistic,
+  title={Probabilistic Analysis of Methods for Numerical Integration},
+  author={Kopanov, P},
+  journal={Dokladi na Bulgarskata Akademia na Naukite},
+  volume={47},
+  number={4},
+  pages={17--20},
+  year={1994},
+  file = {../assets/pdf/Kopanov_1994.pdf}
+}
+
+@article{kopanov1995trapezoidal,
+  title={On the Optimality of the Trapezoidal Method when Integrating the Wiener Process},
+  author={Kopanov, P},
+  journal={Journal of Applied Statistical Science},
+  volume={2},
+  number={4},
+  pages={397--403},
+  year={1995},
+  file = {../assets/pdf/Kopanov_1995.pdf},
+  abstract = {This paper deals with methods for approximate calculation of integrals of stochastic processes. It is shown that, when integrating the Wiener process, the classical trapezoidal method is optimal if variance is taken as a criterion.}
+}
+
+
+@article{kopanov1996rate,
+  title={Rate of Convergence for the Approximate Integration of the Wiener Process},
+  author={Kopanov, P},
+  journal={Mathematica Balkanica},
+  volume={10},
+  number={1},
+  pages={83--88},
+  year={1996},
+  file = {../assets/pdf/Kopanov_1996.pdf},
+  abstract = {We consider approximate methods for calculation of integral of the Wiener process and find the rate of convergence.}
+}

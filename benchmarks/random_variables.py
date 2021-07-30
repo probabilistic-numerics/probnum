@@ -2,7 +2,6 @@
 
 import numpy as np
 
-from benchmarks.benchmark_utils import SPD_MATRIX_5x5
 from probnum import linops
 from probnum import randvars as rvs
 
@@ -14,6 +13,17 @@ RV_NAMES = [
     "symmatrixvar_normal",
     "operatorvar_normal",
 ]
+
+
+SPD_MATRIX_5x5 = np.array(
+    [
+        [2.3, -2.3, 3.5, 4.2, 1.8],
+        [-2.3, 3.0, -3.5, -4.8, -1.9],
+        [3.5, -3.5, 6.9, 5.8, 0.8],
+        [4.2, -4.8, 5.8, 10.1, 6.3],
+        [1.8, -1.9, 0.8, 6.3, 12.1],
+    ]
+)
 
 
 def get_randvar(rv_name):
@@ -78,14 +88,14 @@ class Sampling:
     params = [RV_NAMES]
 
     def setup(self, randvar):
-        np.random.seed(42)
+        self.rng = np.random.default_rng(seed=2)
         self.n_samples = 1000
         self.randvar = get_randvar(rv_name=randvar)
 
     def time_sample(self, randvar):
         """Times sampling from this distribution."""
-        self.randvar.sample(self.n_samples)
+        self.randvar.sample(rng=self.rng, size=self.n_samples)
 
     def peakmem_sample(self, randvar):
         """Peak memory of sampling process."""
-        self.randvar.sample(self.n_samples)
+        self.randvar.sample(rng=self.rng, size=self.n_samples)
