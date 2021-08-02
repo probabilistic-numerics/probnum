@@ -225,6 +225,18 @@ _matmul_fns[(Scaling, Matrix)] = _matmul_scaling_matrix
 _matmul_fns[(Matrix, Scaling)] = _matmul_matrix_scaling
 
 
+_matmul_fns[(Selection, Matrix)] = lambda sel, mat: Matrix(sel @ mat.A)
+_matmul_fns[(Embedding, Matrix)] = lambda emb, mat: Matrix(emb @ mat.A)
+_matmul_fns[(Matrix, Selection)] = lambda mat, sel: Matrix(mat.A @ sel)
+_matmul_fns[(Matrix, Embedding)] = lambda mat, emb: Matrix(mat.A @ emb)
+
+_add_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A + mat2.A)
+_sub_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A - mat2.A)
+
+_matmul_fns[(Matrix, _InverseLinearOperator)] = lambda mat, inv: Matrix(mat.A @ inv)
+_matmul_fns[(_InverseLinearOperator, Matrix)] = lambda inv, mat: Matrix(inv @ mat.A)
+
+
 # Identity
 for op_type in _AnyLinOp:
     _matmul_fns[(Identity, op_type)] = lambda idty, other: other

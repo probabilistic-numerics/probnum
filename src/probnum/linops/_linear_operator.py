@@ -1041,6 +1041,9 @@ class Matrix(LinearOperator):
 
         return np.all(self.A == other.A)
 
+    def __neg__(self) -> "Matrix":
+        return Matrix(-self.A)
+
 
 class Identity(LinearOperator):
     """The identity operator.
