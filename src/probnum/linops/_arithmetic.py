@@ -256,15 +256,6 @@ def _matmul_selection_embedding(
     return NotImplemented
 
 
-def _matmul_embedding_selection(
-    embedding: Embedding, selection: Selection
-) -> Union[NotImplementedType, Selection]:
-    if (selection.shape[-1] == embedding.shape[-2]) and np.all(
-        embedding.put_indices == selection.indices
-    ):
-        return Selection()
-
-
 _matmul_fns[(Selection, Embedding)] = _matmul_selection_embedding
 # Embedding @ Selection would be Projection
 
