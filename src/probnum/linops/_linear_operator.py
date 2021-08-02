@@ -1117,15 +1117,23 @@ class Identity(LinearOperator):
 
 
 class Selection(LinearOperator):
-    def __init__(self, indices, shape):
+    def __init__(self, indices, shape, dtype=np.double):
         if np.ndim(indices) > 1:
-            raise ValueError("bla")  # TODO
-        self._indices = probnum.utils.as_shape(indices)  # TODO
-        assert shape[0] <= shape[1]
+            raise ValueError(
+                "Selection LinOp expects an integer or (1D) iterable of "
+                f"integers. Received {type(indices)} with shape {np.shape(indices)}."
+            )
+        if shape[0] > shape[1]:
+            raise ValueError(
+                f"Invalid shape {shape} for Selection LinOp. If the "
+                "output-dimension (shape[0]) is larger than the input-dimension "
+                "(shape[1]), consider using `Embedding`."
+            )
+        self._indices = probnum.utils.as_shape(indices)
         assert len(self._indices) == shape[0]
 
         super().__init__(
-            dtype=np.uint8,  # TODO
+            dtype=dtype,
             shape=shape,
             matmul=lambda x: _selection_matmul(self.indices, x),
             todense=self._todense,
@@ -1150,13 +1158,35 @@ def _selection_matmul(indices, M):
 
 
 class Embedding(LinearOperator):
-    def __init__(self, take_indices, put_indices, shape, fill_value=0.0):
-        self._take_indices = probnum.utils.as_shape(take_indices)  # TODO
-        self._put_indices = probnum.utils.as_shape(put_indices)  # TODO
-        self._fill_value = fill_value  # TODO
+    def __init__(
+        self, take_indices, put_indices, shape, fill_value=0.0, dtype=np.double
+    ):
+        if np.ndim(take_indices) > 1:
+            raise ValueError(
+                "Embedding LinOp expects an integer or (1D) iterable of "
+                f"integers. Received {type(take_indices)} with shape "
+                f"{np.shape(take_indices)}."
+            )
+        if np.ndim(put_indices) > 1:
+            raise ValueError(
+                "Embedding LinOp expects an integer or (1D) iterable of "
+                f"integers. Received {type(put_indices)} with shape "
+                f"{np.shape(put_indices)}."
+            )
+
+        if shape[0] < shape[1]:
+            raise ValueError(
+                f"Invalid shape {shape} for Embedding LinOp. If the "
+                "output-dimension (shape[0]) is smaller than the input-dimension "
+                "(shape[1]), consider using `Selection`."
+            )
+
+        self._take_indices = probnum.utils.as_shape(take_indices)
+        self._put_indices = probnum.utils.as_shape(put_indices)
+        self._fill_value = fill_value
 
         super().__init__(
-            dtype=np.uint8,  # TODO
+            dtype=dtype,
             shape=shape,
             matmul=lambda x: _embedding_matmul(self, x),
             todense=self._todense,
@@ -1174,17 +1204,6 @@ def _embedding_matmul(embedding, M):
     res_shape = np.array(M.shape)
     res_shape[-2] = embedding.shape[0]
     res = np.full(shape=tuple(res_shape), fill_value=embedding._fill_value)
-    # print(f"Take indices {embedding._take_indices}")
-    # print(f"Put indices {embedding._put_indices}")
-    # print(f"Res, {res}")
-    # res[np.array(embedding._put_indices).reshape(-1, 1)] = M[embedding._take_indices]
-    # TODO
-    # take_from_M = np.take_along_axis(
-    #     M, indices=np.array(embedding._put_indices), axis=-2
-    # )
     take_from_M = M[..., np.array(embedding._put_indices), :]
-    # np.put_along_axis(
-    #     res, indices=np.array(embedding._put_indices), values=take_from_M, axis=-2
-    # )
     res[..., np.array(embedding._put_indices), :] = take_from_M
     return res

@@ -262,42 +262,42 @@ _matmul_fns[(Selection, Embedding)] = _matmul_selection_embedding
 # Zero
 def _matmul_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
     if z.shape[1] != op.shape[0]:
-        raise ValueError("shape mismatch")  # TODO
+        raise ValueError(f"matmul received invalid shapes {z.shape} @ {op.shape}"
 
     return Zero(shape=(z.shape[0], op.shape[1]))
 
 
 def _matmul_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
-    if z.shape[0] != op.shape[1]:
-        raise ValueError("shape mismatch")  # TODO
+    if op.shape[1] != z.shape[0]:
+        raise ValueError(f"matmul received invalid shapes {op.shape} @ {z.shape}"
 
     return Zero(shape=(op.shape[0], z.shape[1]))
 
 
 def _add_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
     if z.shape != op.shape:
-        raise ValueError("shape mismatch")  # TODO
+        raise ValueError(f"add received invalid shapes {z.shape} + {op.shape}")
 
     return op
 
 
 def _add_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
     if z.shape != op.shape:
-        raise ValueError("shape mismatch")  # TODO
+        raise ValueError(f"add received invalid shapes {op.shape} + {z.shape}")
 
     return op
 
 
 def _sub_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
     if z.shape != op.shape:
-        raise ValueError("shape mismatch")  # TODO
+        raise ValueError(f"sub received invalid shapes {op.shape} - {z.shape}")
 
     return -op
 
 
 def _sub_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
     if z.shape != op.shape:
-        raise ValueError("shape mismatch")  # TODO
+        raise ValueError(f"sub received invalid shapes {op.shape} - {z.shape}")
 
     return op
 
