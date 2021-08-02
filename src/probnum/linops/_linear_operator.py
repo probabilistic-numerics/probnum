@@ -7,7 +7,7 @@ import scipy.linalg
 import scipy.sparse.linalg
 
 import probnum.utils
-from probnum.typing import DTypeArgType, NotImplementedType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
@@ -1119,7 +1119,7 @@ class Identity(LinearOperator):
 class Selection(LinearOperator):
     def __init__(self, indices, shape):
         if np.ndim(indices) > 1:
-            raise ValueError(f"bla")  # TODO
+            raise ValueError("bla")  # TODO
         self._indices = probnum.utils.as_shape(indices)  # TODO
         assert shape[0] <= shape[1]
         assert len(self._indices) == shape[0]
@@ -1128,7 +1128,7 @@ class Selection(LinearOperator):
             dtype=np.uint8,  # TODO
             shape=shape,
             matmul=lambda x: _selection_matmul(self.indices, x),
-            todense=lambda: self._todense(),
+            todense=self._todense,
             transpose=lambda: Embedding(
                 take_indices=np.arange(len(self._indices)),
                 put_indices=self._indices,
@@ -1159,7 +1159,7 @@ class Embedding(LinearOperator):
             dtype=np.uint8,  # TODO
             shape=shape,
             matmul=lambda x: _embedding_matmul(self, x),
-            todense=lambda: self._todense(),
+            todense=self._todense,
             transpose=lambda: Selection(
                 indices=put_indices, shape=(self.shape[1], self.shape[0])
             ),
