@@ -87,7 +87,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
-            randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=self.ivp.t0)
+            randprocs.markov.continuous.PiecewiseConstantDiffusion(
+                t0=prior_process.initarg
+            )
             if diffusion_model is None
             else diffusion_model
         )

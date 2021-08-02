@@ -1,14 +1,13 @@
 """Test the ODE filter on a more granular level.
 
-The tests in here go through probsolve_ivp(), but do not directly test
-the interface, but the implementation. Therefore this test module is
-named w.r.t. ivpfiltsmooth.py.
+The tests in here go through probsolve_ivp(), but do not directly test the interface,
+but the implementation. Therefore this test module is named w.r.t. ivpfiltsmooth.py.
 """
 import numpy as np
 import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import diffeq
+from probnum import diffeq, randprocs
 
 
 @pytest.fixture
@@ -119,3 +118,35 @@ def test_convergence_error(ivp, algo_order):
     np.testing.assert_allclose(
         err_small_step, expected_decay * err_large_step, rtol=0.95
     )
+
+
+def test_callback(ivp, step):
+    d = ivp.dimension
+    nu = 1
+
+    steprule = diffeq.stepsize.ConstantSteps(step)
+    prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
+        initarg=ivp.t0, num_derivatives=nu, wiener_process_dimension=d
+    )
+    info_op = diffeq.odefiltsmooth.information_operators.ODEResidual(
+        num_prior_derivatives=nu, ode_dimension=d
+    )
+    approx = diffeq.odefiltsmooth.approx_strategies.EK0()
+    with_smoothing = True
+    init_strat = diffeq.odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+    solver = diffeq.odefiltsmooth.GaussianIVPFilter(
+        steprule=steprule,
+        prior_process=prior_process,
+        information_operator=info_op,
+        approx_strategy=approx,
+        with_smoothing=with_smoothing,
+        initialization_routine=init_strat,
+    )
+
+    t0, tmax = ivp.t0, ivp.tmax
+    t = 0.5 * (t0 + tmax)
+    replace = lambda x: x
+    condition = lambda state: state.t == t
+    callback = diffeq.callbacks.DiscreteCallback(replace=replace, condition=condition)
+
+    solver.solve(ivp, stop_at=[t], callbacks=callback)
