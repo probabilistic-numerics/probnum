@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
+from probnum import config
 from probnum.typing import NotImplementedType, ScalarArgType, ShapeArgType
 
 from ._arithmetic_fallbacks import (
@@ -233,8 +234,9 @@ _matmul_fns[(Matrix, Embedding)] = lambda mat, emb: Matrix(mat.A @ emb)
 _add_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A + mat2.A)
 _sub_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A - mat2.A)
 
-_matmul_fns[(Matrix, _InverseLinearOperator)] = lambda mat, inv: Matrix(mat.A @ inv)
-_matmul_fns[(_InverseLinearOperator, Matrix)] = lambda inv, mat: Matrix(inv @ mat.A)
+if config.collapse_dense_matrix_linop_products:
+    _matmul_fns[(Matrix, _InverseLinearOperator)] = lambda mat, inv: Matrix(mat.A @ inv)
+    _matmul_fns[(_InverseLinearOperator, Matrix)] = lambda inv, mat: Matrix(inv @ mat.A)
 
 
 # Identity
@@ -262,14 +264,14 @@ _matmul_fns[(Selection, Embedding)] = _matmul_selection_embedding
 # Zero
 def _matmul_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
     if z.shape[1] != op.shape[0]:
-        raise ValueError(f"matmul received invalid shapes {z.shape} @ {op.shape}"
+        raise ValueError(f"matmul received invalid shapes {z.shape} @ {op.shape}")
 
     return Zero(shape=(z.shape[0], op.shape[1]))
 
 
 def _matmul_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
     if op.shape[1] != z.shape[0]:
-        raise ValueError(f"matmul received invalid shapes {op.shape} @ {z.shape}"
+        raise ValueError(f"matmul received invalid shapes {op.shape} @ {z.shape}")
 
     return Zero(shape=(op.shape[0], z.shape[1]))
 

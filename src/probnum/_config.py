@@ -134,6 +134,13 @@ _DEFAULT_CONFIG_OPTIONS = [
             "of arrays. LinearOperators define a matrix-vector product implicitly without instantiating the full matrix in memory. This makes them memory- and runtime-efficient for linear algebra operations."
         ),
     ),
+    (
+        "collapse_dense_matrix_linop_products",
+        True,
+        "If True, the matmul operation applied to two Matrix-LinearOperators will "
+        "again yield a Matrix-LinearOperator with the computed matrix-matrix product,"
+        " instead of a ProductLinearOperator.",
+    ),
 ]
 
 # ... and register the default configuration options.
