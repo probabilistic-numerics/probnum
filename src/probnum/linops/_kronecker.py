@@ -471,3 +471,90 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
+
+
+class IdentityKronecker(_linear_operator.LinearOperator):
+    def __init__(self, num_blocks: int, B: _utils.LinearOperatorLike):
+        self.A = _linear_operator.Identity(num_blocks)
+        self.B = _utils.aslinop(B)
+
+        if self.B.is_square:
+            # det(A (x) B) = det(A)^n * det(B)^m
+            det = lambda: (self.B.det() ** self.A.shape[0])
+            logabsdet = lambda: (self.A.shape[0] * self.B.logabsdet())
+            trace = lambda: self.A.trace() * self.B.trace()
+        else:
+            det = None
+            logabsdet = None
+            trace = None
+
+        super().__init__(
+            dtype=np.result_type(self.A.dtype, self.B.dtype),
+            shape=(
+                num_blocks * self.B.shape[0],
+                num_blocks * self.B.shape[1],
+            ),
+            matmul=lambda x: _kronecker_matmul(
+                self.A, self.B, x
+            ),  # TODO: is there a more efficient way?
+            rmatmul=lambda x: _kronecker_rmatmul(
+                self.A, self.B, x
+            ),  # TODO: is there a more efficient way?
+            todense=lambda: np.kron(
+                self.A.todense(cache=False), self.B.todense(cache=False)
+            ),
+            conjugate=lambda: Kronecker(A=self.A.conj(), B=self.B.conj()),
+            # (A (x) B)^T = A^T (x) B^T
+            transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
+            # (A (x) B)^H = A^H (x) B^H
+            adjoint=lambda: Kronecker(A=self.A.H, B=self.B.H),
+            # (A (x) B)^-1 = A^-1 (x) B^-1
+            inverse=lambda: IdentityKronecker(num_blocks, B=self.B.inv()),
+            rank=lambda: self.A.rank() * self.B.rank(),
+            cond=self._cond,
+            det=det,
+            logabsdet=logabsdet,
+            trace=trace,
+        )
+
+    def _matmul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
+        _A, _B = self.A, self.B
+        _C, _D = other.A, other.B
+        if not (_A.shape == _C.shape and _B.shape[1] == _D.shape[0]):
+            raise ValueError(
+                f"Matmul shape mismatch {_A.shape} x {_C.shape} "
+                f"or {_B.shape} x {_D.shape}"
+            )
+
+        # Using (A (x) B) @ (C (x) D) = (A @ C) (x) (B @ D)
+        return IdentityKronecker(A=_A, B=_B @ _D)
+
+    def _mul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
+        _A, _B = self.A, self.B
+        _C, _D = other.A, other.B
+        if not (_A.shape == _C.shape and _B.shape == _D.shape):
+            raise ValueError(
+                f"Matmul shape mismatch {_A.shape} x {_C.shape} "
+                f"or {_B.shape} x {_D.shape}"
+            )
+
+        # Using (A (x) B) o (C (x) D) = (A o C) (x) (B o D)
+        return IdentityKronecker(A=_A, B=_B * _D)
+
+    def _add_idkronecker(
+        self, other: "IdentityKronecker"
+    ) -> Union[NotImplementedType, "IdentityKronecker"]:
+
+        if self.A.shape == other.A.shape:
+            return IdentityKronecker(A=self.A, B=self.B + other.B)
+
+        return NotImplemented
+
+    def _sub_idkronecker(
+        self, other: "IdentityKronecker"
+    ) -> Union[NotImplementedType, "IdentityKronecker"]:
+
+        if self.A.shape == other.A.shape:
+            return IdentityKronecker(A=self.A, B=self.B - other.B)
+
+        return NotImplemented

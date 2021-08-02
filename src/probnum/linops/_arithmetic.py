@@ -15,7 +15,7 @@ from ._arithmetic_fallbacks import (
     _matmul_fallback,
     _mul_fallback,
 )
-from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
+from ._kronecker import IdentityKronecker, Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import (
     AdjointLinearOperator,
     BinaryOperandType,
@@ -189,6 +189,51 @@ _mul_fns[(Kronecker, "scalar")] = _mul_kronecker_scalar
 _matmul_fns[(Kronecker, Scaling)] = _matmul_kronecker_scaling
 _matmul_fns[(Scaling, Kronecker)] = _matmul_scaling_kronecker
 
+
+# IdentityKronecker
+
+
+def _matmul_scaling_idkronecker(
+    scaling: Scaling, idkronecker: IdentityKronecker
+) -> IdentityKronecker:
+    if scaling.is_isotropic:
+        return scaling.scalar * idkronecker
+    return NotImplemented
+
+
+def _matmul_idkronecker_scaling(
+    idkronecker: IdentityKronecker, scaling: Scaling
+) -> IdentityKronecker:
+    if scaling.is_isotropic:
+        return idkronecker * scaling.scalar
+    return NotImplemented
+
+
+def _mul_scalar_idkronecker(
+    scalar: ScalarArgType, idkronecker: IdentityKronecker
+) -> IdentityKronecker:
+
+    return IdentityKronecker(A=idkronecker.A, B=scalar * idkronecker.B)
+
+
+def _mul_idkronecker_scalar(
+    idkronecker: IdentityKronecker, scalar: ScalarArgType
+) -> IdentityKronecker:
+
+    return IdentityKronecker(A=idkronecker.A, B=idkronecker.B * scalar)
+
+
+_matmul_fns[
+    (IdentityKronecker, IdentityKronecker)
+] = IdentityKronecker._matmul_idkronecker
+_mul_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._mul_idkronecker
+_add_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._add_idkronecker
+_sub_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._sub_idkronecker
+
+_mul_fns[("scalar", IdentityKronecker)] = _mul_scalar_idkronecker
+_mul_fns[(IdentityKronecker, "scalar")] = _mul_idkronecker_scalar
+_matmul_fns[(IdentityKronecker, Scaling)] = _matmul_idkronecker_scaling
+_matmul_fns[(Scaling, IdentityKronecker)] = _matmul_scaling_idkronecker
 
 # Matrix
 def _matmul_scaling_matrix(scaling: Scaling, matrix: Matrix) -> Matrix:
