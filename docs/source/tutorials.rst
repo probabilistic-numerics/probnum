@@ -86,7 +86,7 @@ distribution. A probabilistic numerical method takes random variables as inputs 
 .. nbgallery::
    :caption: Probability
 
-   tutorials/prob/random_variables
+   tutorials/prob/random_variables_quickstart
 
 
 .. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?style=flat-square&logo=Jupyter&logoColor=white
