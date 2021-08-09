@@ -4,7 +4,7 @@ import abc
 from typing import Optional
 
 from probnum import filtsmooth
-from probnum.diffeq.odefiltsmooth.information_operators import _information_operator
+from probnum.diffeq.odefilter.information_operators import _information_operator
 
 __all__ = ["ApproximateInformationOperator"]
 

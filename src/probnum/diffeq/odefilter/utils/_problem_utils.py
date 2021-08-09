@@ -5,7 +5,7 @@ from typing import Optional, Sequence, Union
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.diffeq.odefiltsmooth import approx_strategies, information_operators
+from probnum.diffeq.odefilter import approx_strategies, information_operators
 from probnum.typing import FloatArgType
 
 __all__ = ["ivp_to_regression_problem"]

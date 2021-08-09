@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from probnum import diffeq, randprocs, randvars
-from tests.test_diffeq.test_odefiltsmooth.test_information_operators import (
+from tests.test_diffeq.test_odefilter.test_information_operators import (
     _information_operator_test_inferface,
 )
 
@@ -15,7 +15,7 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
         num_prior_derivatives = 3
         ode_dimension = 2
 
-        self.info_op = diffeq.odefiltsmooth.information_operators.ODEResidual(
+        self.info_op = diffeq.odefilter.information_operators.ODEResidual(
             num_prior_derivatives=num_prior_derivatives, ode_dimension=ode_dimension
         )
         self.initial_rv = randvars.Normal(

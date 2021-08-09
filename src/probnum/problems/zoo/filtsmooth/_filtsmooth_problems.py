@@ -573,14 +573,14 @@ def logistic_ode(
     # Generate ODE regression problem
     logistic_ivp = diffeq_zoo.logistic(t0=t0, tmax=tmax, y0=y0, params=params)
     time_grid = np.arange(*timespan, step=step)
-    ode_residual = diffeq.odefiltsmooth.information_operators.ODEResidual(
+    ode_residual = diffeq.odefilter.information_operators.ODEResidual(
         num_prior_derivatives=order, ode_dimension=logistic_ivp.dimension
     )
     if ek0_or_ek1 == 0:
-        ek = diffeq.odefiltsmooth.approx_strategies.EK0()
+        ek = diffeq.odefilter.approx_strategies.EK0()
     else:
-        ek = diffeq.odefiltsmooth.approx_strategies.EK1()
-    regression_problem = diffeq.odefiltsmooth.utils.ivp_to_regression_problem(
+        ek = diffeq.odefilter.approx_strategies.EK1()
+    regression_problem = diffeq.odefilter.utils.ivp_to_regression_problem(
         ivp=logistic_ivp,
         locations=time_grid,
         ode_information_operator=ode_residual,

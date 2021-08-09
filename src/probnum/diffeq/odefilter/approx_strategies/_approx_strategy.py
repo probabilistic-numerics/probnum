@@ -2,7 +2,7 @@
 
 import abc
 
-from probnum.diffeq.odefiltsmooth import information_operators
+from probnum.diffeq.odefilter import information_operators
 
 
 class ApproximationStrategy(abc.ABC):

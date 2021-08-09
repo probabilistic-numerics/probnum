@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from probnum import diffeq, randvars
-from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines import (
+from tests.test_diffeq.test_odefilter.test_initialization_routines import (
     _interface_initialize_test,
 )
 
@@ -14,7 +14,7 @@ class TestRungeKuttaInitialization(
     @pytest.fixture(autouse=True)
     def _setup(self):
         self.rk_init = (
-            diffeq.odefiltsmooth.initialization_routines.RungeKuttaInitialization(
+            diffeq.odefilter.initialization_routines.RungeKuttaInitialization(
                 dt=1e-1, method="RK45"
             )
         )

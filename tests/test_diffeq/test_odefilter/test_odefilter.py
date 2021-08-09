@@ -128,13 +128,13 @@ def test_callback(ivp, step):
     prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
         initarg=ivp.t0, num_derivatives=nu, wiener_process_dimension=d
     )
-    info_op = diffeq.odefiltsmooth.information_operators.ODEResidual(
+    info_op = diffeq.odefilter.information_operators.ODEResidual(
         num_prior_derivatives=nu, ode_dimension=d
     )
-    approx = diffeq.odefiltsmooth.approx_strategies.EK0()
+    approx = diffeq.odefilter.approx_strategies.EK0()
     with_smoothing = True
-    init_strat = diffeq.odefiltsmooth.initialization_routines.RungeKuttaInitialization()
-    solver = diffeq.odefiltsmooth.ODEFilter(
+    init_strat = diffeq.odefilter.initialization_routines.RungeKuttaInitialization()
+    solver = diffeq.odefilter.ODEFilter(
         steprule=steprule,
         prior_process=prior_process,
         information_operator=info_op,

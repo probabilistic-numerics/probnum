@@ -18,12 +18,12 @@ __all__ = [
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
-InformationOperator.__module__ = "probnum.diffeq.odefiltsmooth.information_operators"
-ODEInformationOperator.__module__ = "probnum.diffeq.odefiltsmooth.information_operators"
-ODEResidual.__module__ = "probnum.diffeq.odefiltsmooth.information_operators"
+InformationOperator.__module__ = "probnum.diffeq.odefilter.information_operators"
+ODEInformationOperator.__module__ = "probnum.diffeq.odefilter.information_operators"
+ODEResidual.__module__ = "probnum.diffeq.odefilter.information_operators"
 ApproximateInformationOperator.__module__ = (
-    "probnum.diffeq.odefiltsmooth.information_operators"
+    "probnum.diffeq.odefilter.information_operators"
 )
 LocallyLinearizedInformationOperator.__module__ = (
-    "probnum.diffeq.odefiltsmooth.information_operators"
+    "probnum.diffeq.odefilter.information_operators"
 )

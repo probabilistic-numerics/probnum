@@ -7,7 +7,7 @@ import scipy.linalg
 
 from probnum import filtsmooth, randprocs, randvars, utils
 from probnum.diffeq import _odesolver, _odesolver_state, stepsize
-from probnum.diffeq.odefiltsmooth import (
+from probnum.diffeq.odefilter import (
     _kalman_odesolution,
     approx_strategies,
     information_operators,

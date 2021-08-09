@@ -7,8 +7,8 @@ from typing import Optional
 import numpy as np
 
 from probnum import problems
-from probnum.diffeq.odefiltsmooth import information_operators
-from probnum.diffeq.odefiltsmooth.approx_strategies import _approx_strategy
+from probnum.diffeq.odefilter import information_operators
+from probnum.diffeq.odefilter.approx_strategies import _approx_strategy
 
 
 class EK1(_approx_strategy.ApproximationStrategy):

@@ -1,5 +1,5 @@
 """Known derivatives of initial values for ODE example problems that are used to test
-the methods in diffeq/odefiltsmooth/initialize.py.
+the methods in diffeq/odefilter/initialize.py.
 
 Other than in the ``Integrator`` objects, which stores values coordinate-wise, that is, as ``(y1,
 dy1, ddy1, ..., y2, dy2, ddy2, ...)``,  the values here are stored derivative-wise, that is, as

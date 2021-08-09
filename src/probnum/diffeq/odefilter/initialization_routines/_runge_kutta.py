@@ -7,7 +7,7 @@ import numpy as np
 import scipy.integrate as sci
 
 from probnum import filtsmooth, problems, randprocs, randvars
-from probnum.diffeq.odefiltsmooth.initialization_routines import _initialization_routine
+from probnum.diffeq.odefilter.initialization_routines import _initialization_routine
 from probnum.typing import FloatArgType
 
 

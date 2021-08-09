@@ -1,4 +1,4 @@
-"""Test for utility functions for odefiltsmooth problem conversion."""
+"""Test for utility functions for odefilter problem conversion."""
 
 
 import numpy as np
@@ -15,7 +15,7 @@ def locations():
 
 @pytest.fixture
 def ode_information_operator():
-    op = diffeq.odefiltsmooth.information_operators.ODEResidual(
+    op = diffeq.odefilter.information_operators.ODEResidual(
         num_prior_derivatives=3, ode_dimension=2
     )
     return op
@@ -30,8 +30,8 @@ def ode_information_operator():
     "approx_strategy",
     [
         None,
-        diffeq.odefiltsmooth.approx_strategies.EK0(),
-        diffeq.odefiltsmooth.approx_strategies.EK1(),
+        diffeq.odefilter.approx_strategies.EK0(),
+        diffeq.odefilter.approx_strategies.EK1(),
     ],
 )
 def test_ivp_to_regression_problem(
@@ -44,7 +44,7 @@ def test_ivp_to_regression_problem(
 ):
     """Test all possible parametrizations of ivp_to_regression_problem."""
     # Call function
-    regprob = diffeq.odefiltsmooth.utils.ivp_to_regression_problem(
+    regprob = diffeq.odefilter.utils.ivp_to_regression_problem(
         ivp=ivp,
         locations=locations,
         ode_information_operator=ode_information_operator,

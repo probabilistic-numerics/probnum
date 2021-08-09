@@ -13,12 +13,6 @@ __all__ = [
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
-InitializationRoutine.__module__ = (
-    "probnum.diffeq.odefiltsmooth.initialization_routines"
-)
-RungeKuttaInitialization.__module__ = (
-    "probnum.diffeq.odefiltsmooth.initialization_routines"
-)
-TaylorModeInitialization.__module__ = (
-    "probnum.diffeq.odefiltsmooth.initialization_routines"
-)
+InitializationRoutine.__module__ = "probnum.diffeq.odefilter.initialization_routines"
+RungeKuttaInitialization.__module__ = "probnum.diffeq.odefilter.initialization_routines"
+TaylorModeInitialization.__module__ = "probnum.diffeq.odefilter.initialization_routines"

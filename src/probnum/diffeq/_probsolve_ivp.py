@@ -11,7 +11,7 @@ References
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.diffeq import odefiltsmooth, stepsize
+from probnum.diffeq import odefilter, stepsize
 
 __all__ = ["probsolve_ivp"]
 
@@ -266,23 +266,23 @@ def probsolve_ivp(
         backward_implementation="sqrt",
     )
 
-    info_op = odefiltsmooth.information_operators.ODEResidual(
+    info_op = odefilter.information_operators.ODEResidual(
         num_prior_derivatives=prior_process.transition.num_derivatives,
         ode_dimension=prior_process.transition.wiener_process_dimension,
     )
 
     choose_method = {
-        "EK0": odefiltsmooth.approx_strategies.EK0(),
-        "EK1": odefiltsmooth.approx_strategies.EK1(),
+        "EK0": odefilter.approx_strategies.EK0(),
+        "EK1": odefilter.approx_strategies.EK1(),
     }
     method = method.upper()
     if method not in choose_method.keys():
         raise ValueError("Method is not supported.")
     approx_strategy = choose_method[method]
 
-    rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+    rk_init = odefilter.initialization_routines.RungeKuttaInitialization()
 
-    solver = odefiltsmooth.ODEFilter(
+    solver = odefilter.ODEFilter(
         steprule,
         prior_process,
         information_operator=info_op,

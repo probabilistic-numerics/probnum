@@ -4,10 +4,10 @@ import pytest
 
 from probnum import diffeq, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
-from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines import (
+from tests.test_diffeq.test_odefilter.test_initialization_routines import (
     _interface_initialize_test,
 )
-from tests.test_diffeq.test_odefiltsmooth.test_initialization_routines.utils import (
+from tests.test_diffeq.test_odefilter.test_initialization_routines.utils import (
     _decorators,
     _known_initial_derivatives,
 )
@@ -19,7 +19,7 @@ class TestTaylorModeInitialization(
     @pytest.fixture(autouse=True)
     def _setup(self):
         self.taylor_init = (
-            diffeq.odefiltsmooth.initialization_routines.TaylorModeInitialization()
+            diffeq.odefilter.initialization_routines.TaylorModeInitialization()
         )
 
     @pytest.mark.parametrize("any_order", [0, 1, 2, 3])

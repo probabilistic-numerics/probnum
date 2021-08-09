@@ -5,7 +5,7 @@
 import numpy as np
 
 from probnum import problems, randprocs, randvars
-from probnum.diffeq.odefiltsmooth.initialization_routines import _initialization_routine
+from probnum.diffeq.odefilter.initialization_routines import _initialization_routine
 
 
 class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
