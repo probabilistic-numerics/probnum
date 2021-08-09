@@ -69,7 +69,7 @@ class ODESolver(ABC):
         # Use state.ivp in case a callback modifies the IVP
         while state.t < state.ivp.tmax:
             if time_stopper is not None:
-                dt = time_stopper.adjust_dt_to_time_stamps(state.t, dt)
+                dt = time_stopper.adjust_dt_to_time_stops(state.t, dt)
 
             state, dt = self.perform_full_step(state, dt)
 
@@ -168,7 +168,7 @@ class _TimeStopper:
         self._locations = iter(locations)
         self._next_location = next(self._locations)
 
-    def adjust_dt_to_time_stamps(self, t, dt):
+    def adjust_dt_to_time_stops(self, t, dt):
         """Check whether the next time-point is supposed to be stopped at."""
 
         if t >= self._next_location:

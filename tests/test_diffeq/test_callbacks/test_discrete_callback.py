@@ -14,7 +14,7 @@ class TestDiscreteCallback(_callback_test_interface.CallbackTest):
 
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.time_stamps = [2.0, 3.0, 4.0, 5.0]
+        self.time_stops = [2.0, 3.0, 4.0, 5.0]
 
         def replace(state):
             return dataclasses.replace(state, rv=2 * state.rv)

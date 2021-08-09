@@ -34,7 +34,7 @@ def perturbsolve_ivp(
     atol=1e-6,
     rtol=1e-3,
     step=None,
-    time_stamps=None,
+    time_stops=None,
 ):
     r"""Solve an initial value problem with a perturbation-based probabilistic ODE solver.
 
@@ -92,7 +92,7 @@ def perturbsolve_ivp(
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
-    time_stamps: np.ndarray
+    time_stops: np.ndarray
         Time-stamps at which to store the computed solution. Optional. Default is None.
 
     Examples
@@ -203,4 +203,4 @@ def perturbsolve_ivp(
         noise_scale=noise_scale,
     )
 
-    return perturbed_solver.solve(ivp=ivp, stop_at=time_stamps)
+    return perturbed_solver.solve(ivp=ivp, stop_at=time_stops)
