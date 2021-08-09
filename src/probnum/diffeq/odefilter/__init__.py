@@ -1,8 +1,8 @@
 """ODE Filtering."""
 
 from . import utils
-from ._kalman_odesolution import KalmanODESolution
 from ._odefilter import ODEFilter
+from ._odefilter_solution import KalmanODESolution
 
 __all__ = ["ODEFilter", "KalmanODESolution"]
 

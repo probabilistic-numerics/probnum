@@ -8,7 +8,7 @@ import scipy.linalg
 from probnum import filtsmooth, randprocs, randvars, utils
 from probnum.diffeq import _odesolver, _odesolver_state, stepsize
 from probnum.diffeq.odefilter import (
-    _kalman_odesolution,
+    _odefilter_solution,
     approx_strategies,
     information_operators,
     initialization_routines,
@@ -322,7 +322,7 @@ class ODEFilter(_odesolver.ODESolver):
             diffusion_model=self.diffusion_model,
         )
 
-        return _kalman_odesolution.KalmanODESolution(kalman_posterior)
+        return _odefilter_solution.KalmanODESolution(kalman_posterior)
 
     def postprocess(self, odesol):
         """If specified (at initialisation), smooth the filter output."""
@@ -365,4 +365,4 @@ class ODEFilter(_odesolver.ODESolver):
                 diffusion_model=self.diffusion_model,
             )
 
-        return _kalman_odesolution.KalmanODESolution(kalman_posterior)
+        return _odefilter_solution.KalmanODESolution(kalman_posterior)
