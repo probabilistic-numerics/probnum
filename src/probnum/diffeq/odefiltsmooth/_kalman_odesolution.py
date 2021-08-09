@@ -11,7 +11,7 @@ from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
 
 class KalmanODESolution(_odesolution.ODESolution):
-    """Probabilistic ODE solution corresponding to the :class:`GaussianIVPFilter`.
+    """Probabilistic ODE solution corresponding to the :class:`ODEFilter`.
 
     Recall that in ProbNum, Gaussian filtering and smoothing is generally named "Kalman".
 
@@ -23,7 +23,7 @@ class KalmanODESolution(_odesolution.ODESolution):
 
     See Also
     --------
-    GaussianIVPFilter : ODE solver that behaves like a Gaussian filter.
+    ODEFilter : ODE solver that behaves like a Gaussian filter.
     KalmanPosterior : Posterior over states after Gaussian filtering/smoothing.
 
     Examples
@@ -74,7 +74,7 @@ class KalmanODESolution(_odesolution.ODESolution):
         self.kalman_posterior = kalman_posterior
 
         # Pre-compute projection matrices.
-        # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'.
+        # The prior must be an integrator, if not, an error is thrown in 'ODEFilter'.
         self.proj_to_y = self.kalman_posterior.transition.proj2coord(coord=0)
         self.proj_to_dy = self.kalman_posterior.transition.proj2coord(coord=1)
 

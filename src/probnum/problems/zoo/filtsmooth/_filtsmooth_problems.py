@@ -533,9 +533,9 @@ def logistic_ode(
     initrv
         Initial random variable of the probabilistic ODE solver
     evlvar
-        See :py:class:`probnum.diffeq.GaussianIVPFilter`
+        See :py:class:`probnum.diffeq.ODEFilter`
     ek0_or_ek1
-        See :py:class:`probnum.diffeq.GaussianIVPFilter`
+        See :py:class:`probnum.diffeq.ODEFilter`
     exclude_initial_condition
         Whether the resulting regression problem should exclude (i.e. not contain) the initial condition of the ODE.
         Optional. Default is True, which means that the initial condition is omitted.
@@ -557,7 +557,7 @@ def logistic_ode(
 
     See Also
     --------
-    :py:class:`probnum.diffeq.GaussianIVPFilter`
+    :py:class:`probnum.diffeq.ODEFilter`
 
     """
 

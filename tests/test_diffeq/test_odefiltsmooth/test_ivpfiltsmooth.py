@@ -134,7 +134,7 @@ def test_callback(ivp, step):
     approx = diffeq.odefiltsmooth.approx_strategies.EK0()
     with_smoothing = True
     init_strat = diffeq.odefiltsmooth.initialization_routines.RungeKuttaInitialization()
-    solver = diffeq.odefiltsmooth.GaussianIVPFilter(
+    solver = diffeq.odefiltsmooth.ODEFilter(
         steprule=steprule,
         prior_process=prior_process,
         information_operator=info_op,

@@ -50,7 +50,7 @@ def probsolve_ivp(
 
     This function turns a prior-string into an :class:`ODEPrior`, a
     method-string into a filter/smoother of class :class:`GaussFiltSmooth`, creates a
-    :class:`GaussianIVPFilter` object and calls the :meth:`solve()` method. For
+    :class:`ODEFilter` object and calls the :meth:`solve()` method. For
     advanced usage we recommend to do this process manually which
     enables advanced methods of tuning the algorithm.
 
@@ -149,7 +149,7 @@ def probsolve_ivp(
 
     See Also
     --------
-    GaussianIVPFilter : Solve IVPs with Gaussian filtering and smoothing
+    ODEFilter : Solve IVPs with Gaussian filtering and smoothing
     KalmanODESolution : Solution of ODE problems based on Gaussian filtering and smoothing.
 
     References
@@ -282,7 +282,7 @@ def probsolve_ivp(
 
     rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
 
-    solver = odefiltsmooth.GaussianIVPFilter(
+    solver = odefiltsmooth.ODEFilter(
         steprule,
         prior_process,
         information_operator=info_op,

@@ -9,7 +9,7 @@ class ApproximationStrategy(abc.ABC):
     """Interface for approximation strategies.
 
     Turn an information operator into an approximate information operator that converts
-    into a :class:`GaussianIVPFilter` compatible :class:`Transition`.
+    into a :class:`ODEFilter` compatible :class:`Transition`.
     """
 
     def __call__(
