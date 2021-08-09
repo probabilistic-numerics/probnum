@@ -30,6 +30,7 @@ def probsolve_ivp(
     rtol=1e-2,
     step=None,
     diffusion_model="dynamic",
+    time_stops=None,
 ):
     r"""Solve an initial value problem with a filtering-based probabilistic ODE solver.
 
@@ -125,7 +126,8 @@ def probsolve_ivp(
         which implement different styles of
         online calibration of the underlying diffusion [5]_.
         Optional. Default is ``'dynamic'``.
-
+    time_stops: np.ndarray
+        Time-points through which the solver must step. Optional. Default is None.
 
     Returns
     -------
@@ -290,4 +292,4 @@ def probsolve_ivp(
         diffusion_model=diffusion,
     )
 
-    return solver.solve(ivp=ivp)
+    return solver.solve(ivp=ivp, stop_at=time_stops)
