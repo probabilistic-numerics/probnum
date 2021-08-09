@@ -93,7 +93,7 @@ def perturbsolve_ivp(
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
     time_stops: np.ndarray
-        Time-stamps at which to store the computed solution. Optional. Default is None.
+        Time-points through which the solver must step. Optional. Default is None.
 
     Examples
     --------

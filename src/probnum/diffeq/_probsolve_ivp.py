@@ -127,7 +127,7 @@ def probsolve_ivp(
         online calibration of the underlying diffusion [5]_.
         Optional. Default is ``'dynamic'``.
     time_stops: np.ndarray
-        Time-stamps at which to store the computed solution. Optional. Default is None.
+        Time-points through which the solver must step. Optional. Default is None.
 
     Returns
     -------

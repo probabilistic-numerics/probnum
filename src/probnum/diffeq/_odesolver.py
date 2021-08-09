@@ -36,10 +36,10 @@ class ODESolver(ABC):
 
         Parameters
         ----------
-        steprule
-            Step-size selection rule, e.g. constant steps or adaptive steps.
+        ivp
+            Initial value problem.
         stop_at
-            Locations that shall be part of the posterior grid.
+            Time-points through which the solver must step. Optional. Default is None.
         callbacks
             Callbacks to happen after every accepted step.
         """
