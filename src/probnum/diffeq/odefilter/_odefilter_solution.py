@@ -10,7 +10,7 @@ from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
 from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
 
-class KalmanODESolution(_odesolution.ODESolution):
+class ODEFilterSolution(_odesolution.ODESolution):
     """Probabilistic ODE solution corresponding to the :class:`ODEFilter`.
 
     Recall that in ProbNum, Gaussian filtering and smoothing is generally named "Kalman".
@@ -107,7 +107,7 @@ class KalmanODESolution(_odesolution.ODESolution):
     ) -> np.ndarray:
 
         samples = self.kalman_posterior.sample(rng=rng, t=t, size=size)
-        # Project the samples down to the "true" KalmanODESolution dimensions
+        # Project the samples down to the "true" ODEFilterSolution dimensions
         # (which are a subset of the KalmanPosterior dimensions)
         ode_samples = np.einsum("dq,...q->...d", self.proj_to_y, samples)
 
@@ -119,8 +119,8 @@ class KalmanODESolution(_odesolution.ODESolution):
         t: DenseOutputLocationArgType = None,
     ) -> np.ndarray:
         errormsg = (
-            "The KalmanODESolution does not implement transformation of realizations of a base measure."
-            "Try `KalmanODESolution.kalman_posterior.transform_base_measure_realizations` instead."
+            "The ODEFilterSolution does not implement transformation of realizations of a base measure."
+            "Try `ODEFilterSolution.kalman_posterior.transform_base_measure_realizations` instead."
         )
 
         raise NotImplementedError(errormsg)
@@ -132,7 +132,7 @@ class KalmanODESolution(_odesolution.ODESolution):
             return self
 
         # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.
-        return KalmanODESolution(
+        return ODEFilterSolution(
             kalman_posterior=self.kalman_posterior.filtering_posterior
         )
 

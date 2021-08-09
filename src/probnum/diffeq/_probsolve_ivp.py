@@ -131,7 +131,7 @@ def probsolve_ivp(
 
     Returns
     -------
-    solution : KalmanODESolution
+    solution : ODEFilterSolution
         Solution of the ODE problem.
 
         Can be evaluated at and sampled from at arbitrary grid points.
@@ -150,7 +150,7 @@ def probsolve_ivp(
     See Also
     --------
     ODEFilter : Solve IVPs with Gaussian filtering and smoothing
-    KalmanODESolution : Solution of ODE problems based on Gaussian filtering and smoothing.
+    ODEFilterSolution : Solution of ODE problems based on Gaussian filtering and smoothing.
 
     References
     ----------

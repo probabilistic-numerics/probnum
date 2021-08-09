@@ -3,7 +3,7 @@ import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum.diffeq import probsolve_ivp
-from probnum.diffeq.odefilter import KalmanODESolution
+from probnum.diffeq.odefilter import ODEFilterSolution
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def test_adaptive_solver_successful(
         time_stops=time_stops,
     )
     # Successful return value as documented
-    assert isinstance(sol, KalmanODESolution)
+    assert isinstance(sol, ODEFilterSolution)
 
     # Adaptive steps are not evenly distributed
     step_diff = np.diff(sol.locations)

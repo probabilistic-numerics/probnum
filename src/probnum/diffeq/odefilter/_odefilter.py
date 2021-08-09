@@ -322,7 +322,7 @@ class ODEFilter(_odesolver.ODESolver):
             diffusion_model=self.diffusion_model,
         )
 
-        return _odefilter_solution.KalmanODESolution(kalman_posterior)
+        return _odefilter_solution.ODEFilterSolution(kalman_posterior)
 
     def postprocess(self, odesol):
         """If specified (at initialisation), smooth the filter output."""
@@ -365,4 +365,4 @@ class ODEFilter(_odesolver.ODESolver):
                 diffusion_model=self.diffusion_model,
             )
 
-        return _odefilter_solution.KalmanODESolution(kalman_posterior)
+        return _odefilter_solution.ODEFilterSolution(kalman_posterior)

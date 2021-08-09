@@ -152,7 +152,7 @@ def test_sampling_shapes(posterior, locs, size, rng):
 
 
 def test_transform_base_measure_realizations_raises_error(posterior):
-    """The KalmanODESolution does not implement transformation of base measure
+    """The ODEFilterSolution does not implement transformation of base measure
     realizations, but refers to KalmanPosterior instead."""
     with pytest.raises(NotImplementedError):
         posterior.transform_base_measure_realizations(None)
