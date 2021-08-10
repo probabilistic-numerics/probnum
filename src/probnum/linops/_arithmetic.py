@@ -38,6 +38,7 @@ _AnyLinOp = [
     SumLinearOperator,
     AdjointLinearOperator,
     Identity,
+    IdentityKronecker,
     LinearOperator,
     Matrix,
     TransposedLinearOperator,
@@ -213,14 +214,18 @@ def _mul_scalar_idkronecker(
     scalar: ScalarArgType, idkronecker: IdentityKronecker
 ) -> IdentityKronecker:
 
-    return IdentityKronecker(A=idkronecker.A, B=scalar * idkronecker.B)
+    return IdentityKronecker(
+        num_blocks=idkronecker.num_blocks, B=scalar * idkronecker.B
+    )
 
 
 def _mul_idkronecker_scalar(
     idkronecker: IdentityKronecker, scalar: ScalarArgType
 ) -> IdentityKronecker:
 
-    return IdentityKronecker(A=idkronecker.A, B=idkronecker.B * scalar)
+    return IdentityKronecker(
+        num_blocks=idkronecker.num_blocks, B=idkronecker.B * scalar
+    )
 
 
 _matmul_fns[
@@ -234,6 +239,9 @@ _mul_fns[("scalar", IdentityKronecker)] = _mul_scalar_idkronecker
 _mul_fns[(IdentityKronecker, "scalar")] = _mul_idkronecker_scalar
 _matmul_fns[(IdentityKronecker, Scaling)] = _matmul_idkronecker_scaling
 _matmul_fns[(Scaling, IdentityKronecker)] = _matmul_scaling_idkronecker
+
+_matmul_fns[(Kronecker, IdentityKronecker)] = Kronecker._matmul_kronecker
+_matmul_fns[(IdentityKronecker, Kronecker)] = Kronecker._matmul_kronecker
 
 # Matrix
 def _matmul_scaling_matrix(scaling: Scaling, matrix: Matrix) -> Matrix:
@@ -279,9 +287,21 @@ _matmul_fns[(Matrix, Embedding)] = lambda mat, emb: Matrix(mat.A @ emb)
 _add_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A + mat2.A)
 _sub_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A - mat2.A)
 
-if config.collapse_dense_matrix_linop_products:
-    _matmul_fns[(Matrix, _InverseLinearOperator)] = lambda mat, inv: Matrix(mat.A @ inv)
-    _matmul_fns[(_InverseLinearOperator, Matrix)] = lambda inv, mat: Matrix(inv @ mat.A)
+
+def _matmul_matrix_inverse(mat: Matrix, inverse: _InverseLinearOperator) -> Matrix:
+    if config.lazy_matrix_matrix_matmul:
+        return Matrix(mat.A @ inverse)
+    return NotImplemented
+
+
+def _matmul_inverse_matrix(inverse: _InverseLinearOperator, mat: Matrix) -> Matrix:
+    if config.lazy_matrix_matrix_matmul:
+        return Matrix(mat.A @ inverse)
+    return NotImplemented
+
+
+_matmul_fns[(Matrix, _InverseLinearOperator)] = _matmul_matrix_inverse
+_matmul_fns[(_InverseLinearOperator, Matrix)] = _matmul_inverse_matrix
 
 
 # Identity

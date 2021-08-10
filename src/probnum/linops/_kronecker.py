@@ -475,6 +475,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
 class IdentityKronecker(_linear_operator.LinearOperator):
     def __init__(self, num_blocks: int, B: _utils.LinearOperatorLike):
+        self._num_blocks = num_blocks
         self.A = _linear_operator.Identity(num_blocks)
         self.B = _utils.aslinop(B)
 
@@ -503,11 +504,11 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             todense=lambda: np.kron(
                 self.A.todense(cache=False), self.B.todense(cache=False)
             ),
-            conjugate=lambda: Kronecker(A=self.A.conj(), B=self.B.conj()),
-            # (A (x) B)^T = A^T (x) B^T
-            transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
+            conjugate=lambda: IdentityKronecker(self._num_blocks, B=self.B.conj()),
+            # (A (x) B)^T = A (x) B^T
+            transpose=lambda: IdentityKronecker(self._num_blocks, B=self.B.T),
             # (A (x) B)^H = A^H (x) B^H
-            adjoint=lambda: Kronecker(A=self.A.H, B=self.B.H),
+            adjoint=lambda: IdentityKronecker(self._num_blocks, B=self.B.H),
             # (A (x) B)^-1 = A^-1 (x) B^-1
             inverse=lambda: IdentityKronecker(num_blocks, B=self.B.inv()),
             rank=lambda: self.A.rank() * self.B.rank(),
@@ -516,6 +517,10 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             logabsdet=logabsdet,
             trace=trace,
         )
+
+    @property
+    def num_blocks(self):
+        return self._num_blocks
 
     def _matmul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
         _A, _B = self.A, self.B
@@ -527,7 +532,7 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             )
 
         # Using (A (x) B) @ (C (x) D) = (A @ C) (x) (B @ D)
-        return IdentityKronecker(A=_A, B=_B @ _D)
+        return IdentityKronecker(num_blocks=self._num_blocks, B=_B @ _D)
 
     def _mul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
         _A, _B = self.A, self.B
@@ -539,14 +544,14 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             )
 
         # Using (A (x) B) o (C (x) D) = (A o C) (x) (B o D)
-        return IdentityKronecker(A=_A, B=_B * _D)
+        return IdentityKronecker(num_blocks=self._num_blocks, B=_B * _D)
 
     def _add_idkronecker(
         self, other: "IdentityKronecker"
     ) -> Union[NotImplementedType, "IdentityKronecker"]:
 
         if self.A.shape == other.A.shape:
-            return IdentityKronecker(A=self.A, B=self.B + other.B)
+            return IdentityKronecker(num_blocks=self._num_blocks, B=self.B + other.B)
 
         return NotImplemented
 
@@ -555,6 +560,12 @@ class IdentityKronecker(_linear_operator.LinearOperator):
     ) -> Union[NotImplementedType, "IdentityKronecker"]:
 
         if self.A.shape == other.A.shape:
-            return IdentityKronecker(A=self.A, B=self.B - other.B)
+            return IdentityKronecker(num_blocks=self._num_blocks, B=self.B - other.B)
 
         return NotImplemented
+
+    def _cond(self, p) -> np.inexact:
+        if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
+            return self.A.cond(p=p) * self.B.cond(p=p)
+
+        return np.linalg.cond(self.todense(cache=False), p=p)
