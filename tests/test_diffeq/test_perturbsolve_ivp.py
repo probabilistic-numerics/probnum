@@ -21,8 +21,9 @@ def ivp():
 @pytest.mark.parametrize("noise_scale", [0.01, 100])
 @pytest.mark.parametrize("step", [0.01, None])
 @pytest.mark.parametrize("tolerance", [0.1, np.array([0.09, 0.10])])
+@pytest.mark.parametrize("time_stops", [[0.15, 0.16], None])
 def test_adaptive_solver_successful(
-    rng, ivp, method, perturb, noise_scale, step, tolerance
+    rng, ivp, method, perturb, noise_scale, step, tolerance, time_stops
 ):
     """The solver terminates successfully for all sorts of parametrizations."""
     sol = diffeq.perturbsolve_ivp(
@@ -38,6 +39,7 @@ def test_adaptive_solver_successful(
         rtol=tolerance,
         method=method,
         step=step,
+        time_stops=time_stops,
     )
     # Successful return value as documented
     assert isinstance(sol, diffeq.ODESolution)
@@ -46,6 +48,10 @@ def test_adaptive_solver_successful(
     step_diff = np.diff(sol.locations)
     step_ratio = np.amin(step_diff) / np.amax(step_diff)
     assert step_ratio < 0.5
+
+    if time_stops is not None:
+        for t in time_stops:
+            assert t in sol.locations
 
 
 def test_wrong_method_raises_error(ivp):
