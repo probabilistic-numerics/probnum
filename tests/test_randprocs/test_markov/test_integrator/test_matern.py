@@ -79,6 +79,10 @@ class TestMaternTransition(
         self.v = lambda t: self.transition.force_vector
         self.L = lambda t: self.transition.dispersion_matrix
 
+        self.G_const = self.transition.drift_matrix
+        self.v_const = self.transition.force_vector
+        self.L_const = self.transition.dispersion_matrix
+
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
         self.l = lambda t, x: self.L(t)
