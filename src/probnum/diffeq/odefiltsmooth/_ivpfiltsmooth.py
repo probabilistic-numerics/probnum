@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import filtsmooth, randprocs, randvars, utils
-from probnum.diffeq import _odesolver, stepsize
+from probnum.diffeq import _odesolver, _odesolver_state, stepsize
 from probnum.diffeq.odefiltsmooth import (
     _kalman_odesolution,
     approx_strategies,
@@ -87,7 +87,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
-            randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=self.ivp.t0)
+            randprocs.markov.continuous.PiecewiseConstantDiffusion(
+                t0=prior_process.initarg
+            )
             if diffusion_model is None
             else diffusion_model
         )
@@ -106,23 +108,22 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # or from any other state.
         self._reference_coordinates = _reference_coordinates
 
-    def initialise(self, ivp):
+    def initialize(self, ivp):
         self.information_operator.incorporate_ode(ode=ivp)
-        initrv = self.initialization_routine(
-            ivp=self.ivp,
-            prior_process=self.prior_process,
-        )
-
         self.measurement_model = self.approx_strategy(
             self.information_operator
         ).as_transition()
-        return self.ivp.t0, initrv
 
-    @property
-    def ivp(self):
-        return self.information_operator.ode
+        initrv = self.initialization_routine(
+            ivp=ivp,
+            prior_process=self.prior_process,
+        )
+        state = _odesolver_state.ODESolverState(
+            ivp=ivp, t=ivp.t0, rv=initrv, error_estimate=None, reference_state=None
+        )
+        return state
 
-    def step(self, t, t_new, current_rv):
+    def attempt_step(self, state, dt):
         r"""Gaussian IVP filter step as nonlinear Kalman filtering with zero data.
 
         It goes as follows:
@@ -173,27 +174,26 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         # We use the mathematical symbol `Phi` (and later, `H`), because this makes it easier to read for us.
         # The system matrix H of the measurement model can be accessed after the first forward_*,
         # therefore we read it off further below.
-        dt = t_new - t
         discrete_dynamics = self.prior_process.transition.discretise(dt)
         Phi = discrete_dynamics.state_trans_mat
 
         # Split the current RV into a deterministic part and a noisy part.
         # This split is necessary for efficient calibration; see docstring.
-        error_free_state = current_rv.mean.copy()
+        error_free_state = state.rv.mean.copy()
         noisy_component = randvars.Normal(
-            mean=np.zeros(current_rv.shape),
-            cov=current_rv.cov.copy(),
-            cov_cholesky=current_rv.cov_cholesky.copy(),
+            mean=np.zeros(state.rv.shape),
+            cov=state.rv.cov.copy(),
+            cov_cholesky=state.rv.cov_cholesky.copy(),
         )
 
         # Compute the measurements for the error-free component
         pred_rv_error_free, _ = self.prior_process.transition.forward_realization(
-            error_free_state, t=t, dt=dt
+            error_free_state, t=state.t, dt=dt
         )
         meas_rv_error_free, _ = self.measurement_model.forward_rv(
-            pred_rv_error_free, t=t
+            pred_rv_error_free, t=state.t + dt
         )
-        H = self.measurement_model.linearized_model.state_trans_mat_fun(t=t)
+        H = self.measurement_model.linearized_model.state_trans_mat_fun(t=state.t + dt)
 
         # Compute the measurements for the full components.
         # Since the means of noise-free and noisy measurements coincide,
@@ -213,7 +213,9 @@ class GaussianIVPFilter(_odesolver.ODESolver):
 
         # Estimate local diffusion_model and error
         local_diffusion = self.diffusion_model.estimate_locally(
-            meas_rv=meas_rv, meas_rv_assuming_zero_previous_cov=meas_rv_error_free, t=t
+            meas_rv=meas_rv,
+            meas_rv_assuming_zero_previous_cov=meas_rv_error_free,
+            t=state.t + dt,
         )
 
         local_errors = np.sqrt(local_diffusion) * np.sqrt(
@@ -222,7 +224,7 @@ class GaussianIVPFilter(_odesolver.ODESolver):
         proj = self.prior_process.transition.proj2coord(
             coord=self._reference_coordinates
         )
-        reference_values = np.abs(proj @ current_rv.mean)
+        reference_values = np.abs(proj @ state.rv.mean)
 
         # Overwrite the acceptance/rejection step here, because we need control over
         # Appending or not appending the diffusion (and because the computations below
@@ -231,12 +233,27 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             errorest=local_errors,
             reference_state=reference_values,
         )
+
         if not self.steprule.is_accepted(internal_norm):
-            return np.nan * current_rv, local_errors, reference_values
+            t_new = state.t + dt
+            new_rv = randvars.Normal(
+                mean=state.rv.mean.copy(),
+                cov=state.rv.cov.copy(),
+                cov_cholesky=state.rv.cov_cholesky.copy(),
+            )
+            state = _odesolver_state.ODESolverState(
+                ivp=state.ivp,
+                rv=np.nan * new_rv,
+                t=t_new,
+                error_estimate=local_errors,
+                reference_state=reference_values,
+            )
+
+            return state
 
         # Now we can be certain that the step will be accepted. In this case
         # we update the diffusion model and continue the rest of the iteration.,
-        self.diffusion_model.update_in_place(local_diffusion, t=t)
+        self.diffusion_model.update_in_place(local_diffusion, t=state.t)
 
         if self._calibrate_at_each_step:
             # With the updated diffusion, we need to re-compute the covariances of the
@@ -285,8 +302,15 @@ class GaussianIVPFilter(_odesolver.ODESolver):
             zero_data, pred_rv, rv_forwarded=meas_rv, gain=gain
         )
 
-        # Lets finally extract reference values, and the job is done.
-        return filt_rv, local_errors, reference_values
+        t_new = state.t + dt
+        state = _odesolver_state.ODESolverState(
+            ivp=state.ivp,
+            rv=filt_rv,
+            t=t_new,
+            error_estimate=local_errors,
+            reference_state=reference_values,
+        )
+        return state
 
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
