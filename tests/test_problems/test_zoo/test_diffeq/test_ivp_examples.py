@@ -38,18 +38,19 @@ def test_eval(ivp):
 
 @all_odes
 def test_df0(ivp):
+    rng = np.random.default_rng(seed=2)
     if ivp.df is not None:
         step = 1e-6
 
-        time = ivp.t0 + 0.1 * np.random.rand()
-        direction = step * (1.0 + 0.1 * np.random.rand(len(ivp.y0)))
+        time = ivp.t0 + 0.1 * rng.uniform()
+        direction = step * (1.0 + 0.1 * rng.uniform(size=len(ivp.y0)))
         increment = step * direction
-        point = ivp.y0 + 0.1 * np.random.rand(len(ivp.y0))
+        point = ivp.y0 + 0.5 * rng.uniform(size=len(ivp.y0))
 
         fd_approx = (
             ivp.f(time, point + increment) - ivp.f(time, point - increment)
         ) / (2.0 * step)
 
         np.testing.assert_allclose(
-            fd_approx, ivp.df(time, point) @ direction, rtol=1e-3, atol=1e-3
+            fd_approx, ivp.df(time, point) @ direction, rtol=1e-7, atol=1e-7
         )
