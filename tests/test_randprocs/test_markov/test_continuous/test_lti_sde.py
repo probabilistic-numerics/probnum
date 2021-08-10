@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from probnum import randprocs, randvars
+from probnum.problems.zoo import linalg as linalg_zoo
 from tests.test_randprocs.test_markov.test_continuous import test_linear_sde
 
 
@@ -123,3 +124,36 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
         np.testing.assert_allclose(
             self.transition.dispersion_matrix_function(dummy_time), L
         )
+
+    def test_duplicate_with_changed_coordinates(self):
+
+        rng = np.random.default_rng(seed=2)
+        spectrum1 = 1 + 0.25 * rng.uniform(size=len(self.G_const))
+        spectrum2 = 1 + 0.25 * rng.uniform(size=len(self.G_const))
+        P1 = np.diag(spectrum1)
+        P2 = np.diag(spectrum2)
+        P1inv = np.diag(1.0 / spectrum1)
+        P2inv = np.diag(1.0 / spectrum2)
+
+        # for now
+        self.transition.force_vector = np.zeros(len(self.transition.force_vector))
+        new_trans = self.transition.duplicate_with_changed_coordinates(
+            outgoing=P1, incoming=P2
+        )
+
+        vector = rng.uniform(size=len(self.G_const))
+        transformed_vector = P2inv @ vector
+
+        assert np.linalg.norm(new_trans.force_vector) == 0.0
+        disc1 = self.transition.discretise(0.2)
+        disc2 = new_trans.discretise(0.2)
+
+        print(P1 @ disc1.state_trans_mat @ P2, disc2.state_trans_mat)
+
+        forw_classic, _ = self.transition.forward_realization(vector, t=0.1, dt=0.15)
+        forw_transformed, _ = new_trans.forward_realization(
+            transformed_vector, t=0.1, dt=0.15
+        )
+
+        raise RuntimeError("What is going on here?!")
+        np.testing.assert_allclose(forw_classic.mean, P1inv @ forw_transformed.mean)

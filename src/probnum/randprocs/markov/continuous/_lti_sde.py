@@ -233,6 +233,15 @@ class LTISDE(_linear_sde.LinearSDE):
             backward_implementation=backward_implementation,
         )
 
+    def duplicate_with_changed_coordinates(self, outgoing, incoming):
+
+        F, v, L = self.drift_matrix, self.force_vector, self.dispersion_matrix
+        duplicated = self.duplicate()
+        duplicated.drift_matrix = outgoing @ F.copy() @ incoming
+        duplicated.force_vector = outgoing @ v.copy()
+        duplicated.dispersion_matrix = outgoing @ L.copy()
+        return duplicated
+
 
 def _check_initial_state_dimensions(drift_matrix, force_vector, dispersion_matrix):
     """Checks that the matrices all align and are of proper shape.
