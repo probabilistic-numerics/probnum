@@ -118,22 +118,23 @@ class SDE(_transition.Transition):
     ):
         raise NotImplementedError("Not available.")
 
-    def _duplicate(self, **changes):
-        def replace_key(key):
-            try:
-                return changes[key]
-            except KeyError:
-                return getattr(self, key)
-
-        state_dimension = replace_key("state_dimension")
-        wiener_process_dimension = replace_key("wiener_process_dimension")
-        drift_function = replace_key("drift_function")
-        dispersion_function = replace_key("dispersion_function")
-        drift_jacobian = replace_key("drift_jacobian")
-        return SDE(
-            state_dimension=state_dimension,
-            wiener_process_dimension=wiener_process_dimension,
-            drift_function=drift_function,
-            dispersion_function=dispersion_function,
-            drift_jacobian=drift_jacobian,
-        )
+    #
+    # def _duplicate(self, **changes):
+    #     def replace_key(key):
+    #         try:
+    #             return changes[key]
+    #         except KeyError:
+    #             return getattr(self, key)
+    #
+    #     state_dimension = replace_key("state_dimension")
+    #     wiener_process_dimension = replace_key("wiener_process_dimension")
+    #     drift_function = replace_key("drift_function")
+    #     dispersion_function = replace_key("dispersion_function")
+    #     drift_jacobian = replace_key("drift_jacobian")
+    #     return SDE(
+    #         state_dimension=state_dimension,
+    #         wiener_process_dimension=wiener_process_dimension,
+    #         drift_function=drift_function,
+    #         dispersion_function=dispersion_function,
+    #         drift_jacobian=drift_jacobian,
+    #     )

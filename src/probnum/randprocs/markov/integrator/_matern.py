@@ -260,27 +260,28 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         rv = _preconditioner.apply_precon(self.precon(dt), rv)
         return rv, info
 
-    def _duplicate(self, **changes):
-        def replace_key(key):
-            """If the key is part of the desired changes, change appropriately.
-
-            Otherwise, take the current value.
-            """
-            try:
-                return changes[key]
-            except KeyError:
-                return getattr(self, key)
-
-        num_derivatives = replace_key("num_derivatives")
-        wiener_process_dimension = replace_key("wiener_process_dimension")
-        lengthscale = replace_key("lengthscale")
-        forward_implementation = replace_key("forward_implementation")
-        backward_implementation = replace_key("backward_implementation")
-
-        return MaternTransition(
-            num_derivatives=num_derivatives,
-            wiener_process_dimension=wiener_process_dimension,
-            lengthscale=lengthscale,
-            forward_implementation=forward_implementation,
-            backward_implementation=backward_implementation,
-        )
+    #
+    # def _duplicate(self, **changes):
+    #     def replace_key(key):
+    #         """If the key is part of the desired changes, change appropriately.
+    #
+    #         Otherwise, take the current value.
+    #         """
+    #         try:
+    #             return changes[key]
+    #         except KeyError:
+    #             return getattr(self, key)
+    #
+    #     num_derivatives = replace_key("num_derivatives")
+    #     wiener_process_dimension = replace_key("wiener_process_dimension")
+    #     lengthscale = replace_key("lengthscale")
+    #     forward_implementation = replace_key("forward_implementation")
+    #     backward_implementation = replace_key("backward_implementation")
+    #
+    #     return MaternTransition(
+    #         num_derivatives=num_derivatives,
+    #         wiener_process_dimension=wiener_process_dimension,
+    #         lengthscale=lengthscale,
+    #         forward_implementation=forward_implementation,
+    #         backward_implementation=backward_implementation,
+    #     )

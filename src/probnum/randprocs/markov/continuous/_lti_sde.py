@@ -59,7 +59,7 @@ class LTISDE(_linear_sde.LinearSDE):
             wiener_process_dimension=wiener_process_dimension,
             drift_matrix_function=drift_matrix_function,
             dispersion_matrix_function=dispersion_matrix_function,
-            force_vector_function=self._force_vector_function,
+            force_vector_function=force_vector_function,
         )
 
         # Assert all shapes match and store matrices.
@@ -77,49 +77,52 @@ class LTISDE(_linear_sde.LinearSDE):
     def drift_matrix(self):
         return self._drift_matrix
 
-    @drift_matrix.setter
-    def drift_matrix(self, drift_matrix):
-        if self._drift_matrix.shape != drift_matrix.shape:
-            msg1 = "The shape of the new drift_matrix attribute does not match the shape of the old attribute."
-            msg2 = (
-                f"{self._drift_matrix.shape} expected. {drift_matrix.shape} received."
-            )
-            raise ValueError(msg1 + msg2)
-        self._drift_matrix = drift_matrix
+    #
+    # @drift_matrix.setter
+    # def drift_matrix(self, drift_matrix):
+    #     if self._drift_matrix.shape != drift_matrix.shape:
+    #         msg1 = "The shape of the new drift_matrix attribute does not match the shape of the old attribute."
+    #         msg2 = (
+    #             f"{self._drift_matrix.shape} expected. {drift_matrix.shape} received."
+    #         )
+    #         raise ValueError(msg1 + msg2)
+    #     self._drift_matrix = drift_matrix
 
     @property
     def force_vector(self):
         return self._force_vector
 
-    @force_vector.setter
-    def force_vector(self, force_vector):
-        if self._force_vector.shape != force_vector.shape:
-            msg1 = "The shape of the new force_vector attribute does not match the shape of the old attribute."
-            msg2 = (
-                f"{self._force_vector.shape} expected. {force_vector.shape} received."
-            )
-            raise ValueError(msg1 + msg2)
-        self._force_vector = force_vector
+    #
+    # @force_vector.setter
+    # def force_vector(self, force_vector):
+    #     if self._force_vector.shape != force_vector.shape:
+    #         msg1 = "The shape of the new force_vector attribute does not match the shape of the old attribute."
+    #         msg2 = (
+    #             f"{self._force_vector.shape} expected. {force_vector.shape} received."
+    #         )
+    #         raise ValueError(msg1 + msg2)
+    #     self._force_vector = force_vector
 
     @property
     def dispersion_matrix(self):
         return self._dispersion_matrix
 
-    @dispersion_matrix.setter
-    def dispersion_matrix(self, dispersion_matrix):
-        if self._dispersion_matrix.shape != dispersion_matrix.shape:
-            msg1 = "The shape of the new dispersion_matrix attribute does not match the shape of the old attribute."
-            msg2 = f"{self._dispersion_matrix.shape} expected. {dispersion_matrix.shape} received."
-            raise ValueError(msg1 + msg2)
-        self._dispersion_matrix = dispersion_matrix
-
-    @property
-    def forward_implementation(self):
-        return self._forward_implementation_string
-
-    @property
-    def backward_implementation(self):
-        return self._backward_implementation_string
+    #
+    # @dispersion_matrix.setter
+    # def dispersion_matrix(self, dispersion_matrix):
+    #     if self._dispersion_matrix.shape != dispersion_matrix.shape:
+    #         msg1 = "The shape of the new dispersion_matrix attribute does not match the shape of the old attribute."
+    #         msg2 = f"{self._dispersion_matrix.shape} expected. {dispersion_matrix.shape} received."
+    #         raise ValueError(msg1 + msg2)
+    #     self._dispersion_matrix = dispersion_matrix
+    #
+    # @property
+    # def forward_implementation(self):
+    #     return self._forward_implementation_string
+    #
+    # @property
+    # def backward_implementation(self):
+    #     return self._backward_implementation_string
 
     def forward_rv(
         self,
