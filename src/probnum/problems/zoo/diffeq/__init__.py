@@ -4,7 +4,7 @@
 from ._ivp_examples import (
     fitzhughnagumo,
     logistic,
-    lorenz,
+    lorenz63,
     lotkavolterra,
     rigidbody,
     seir,
@@ -21,7 +21,7 @@ __all__ = [
     "seir",
     "threebody",
     "vanderpol",
-    "lorenz",
+    "lorenz63",
     "rigidbody",
     "threebody_jax",
     "vanderpol_jax",

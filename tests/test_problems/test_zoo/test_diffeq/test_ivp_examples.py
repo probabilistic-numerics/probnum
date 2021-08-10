@@ -12,7 +12,7 @@ ODE_LIST = [
     diffeqzoo.logistic(),
     diffeqzoo.seir(),
     diffeqzoo.fitzhughnagumo(),
-    diffeqzoo.lorenz(),
+    diffeqzoo.lorenz63(),
 ]
 
 all_odes = pytest.mark.parametrize("ivp", ODE_LIST)

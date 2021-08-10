@@ -10,7 +10,7 @@ __all__ = [
     "logistic",
     "lotkavolterra",
     "seir",
-    "lorenz",
+    "lorenz63",
 ]
 
 
@@ -436,10 +436,10 @@ def seir(t0=0.0, tmax=200.0, y0=None, params=(0.3, 0.3, 0.1)):
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
 
 
-def lorenz(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
-    r"""Initial value problem (IVP) based on the Lorenz system.
+def lorenz63(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
+    r"""Initial value problem (IVP) based on the Lorenz63 system.
 
-    The Lorenz system is defined through
+    The Lorenz63 system is defined through
 
     .. math::
 
@@ -468,7 +468,7 @@ def lorenz(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing the Lorenz system with the prescribed
+        InitialValueProblem object describing the Lorenz63 system with the prescribed
         configuration.
     """
     if y0 is None:
