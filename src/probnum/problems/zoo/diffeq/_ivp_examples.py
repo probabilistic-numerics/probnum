@@ -11,6 +11,7 @@ __all__ = [
     "lotkavolterra",
     "seir",
     "lorenz63",
+    "lorenz96",
 ]
 
 
@@ -471,6 +472,23 @@ def lorenz63(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
         InitialValueProblem object describing the Lorenz63 system with the prescribed
         configuration.
     """
+    if y0 is None:
+        y0 = np.array([0.0, 1.0, 1.05])
+
+    def rhs(t, y, params=params):
+        a, b, c = params
+        y1, y2, y3 = y
+        return np.array([a * (y2 - y1), y1 * (b - y3) - y2, y1 * y2 - c * y3])
+
+    def jac(t, y, params=params):
+        a, b, c = params
+        y1, y2, y3 = y
+        return np.array([[-a, a, 0], [b - y3, -1, -y1], [y2, y1, -c]])
+
+    return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
+
+
+def lorenz96(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
     if y0 is None:
         y0 = np.array([0.0, 1.0, 1.05])
 

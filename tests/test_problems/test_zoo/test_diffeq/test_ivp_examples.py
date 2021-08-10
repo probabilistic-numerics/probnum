@@ -13,6 +13,7 @@ ODE_LIST = [
     diffeqzoo.seir(),
     diffeqzoo.fitzhughnagumo(),
     diffeqzoo.lorenz63(),
+    diffeqzoo.lorenz96(),
 ]
 
 all_odes = pytest.mark.parametrize("ivp", ODE_LIST)
