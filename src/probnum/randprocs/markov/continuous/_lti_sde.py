@@ -115,14 +115,14 @@ class LTISDE(_linear_sde.LinearSDE):
     #         msg2 = f"{self._dispersion_matrix.shape} expected. {dispersion_matrix.shape} received."
     #         raise ValueError(msg1 + msg2)
     #     self._dispersion_matrix = dispersion_matrix
-    #
-    # @property
-    # def forward_implementation(self):
-    #     return self._forward_implementation_string
-    #
-    # @property
-    # def backward_implementation(self):
-    #     return self._backward_implementation_string
+
+    @property
+    def forward_implementation(self):
+        return self._forward_implementation_string
+
+    @property
+    def backward_implementation(self):
+        return self._backward_implementation_string
 
     def forward_rv(
         self,

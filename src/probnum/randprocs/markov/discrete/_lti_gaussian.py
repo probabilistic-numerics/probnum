@@ -81,27 +81,28 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
             return self._proc_noise_cov_cholesky
         return np.linalg.cholesky(self.proc_noise_cov_mat)
 
-    def _duplicate(self, **changes):
-        def replace_key(key):
-            try:
-                return changes[key]
-            except KeyError:
-                return getattr(self, key)
-
-        state_trans_mat = replace_key("state_trans_mat")
-        shift_vec = replace_key("shift_vec")
-        proc_noise_cov_mat = replace_key("proc_noise_cov_mat")
-        proc_noise_cov_cholesky = replace_key("proc_noise_cov_cholesky")
-        forward_implementation = replace_key("forward_implementation")
-        backward_implementation = replace_key("backward_implementation")
-        return LTIGaussian(
-            state_trans_mat=state_trans_mat,
-            shift_vec=shift_vec,
-            proc_noise_cov_mat=proc_noise_cov_mat,
-            proc_noise_cov_cholesky=proc_noise_cov_cholesky,
-            forward_implementation=forward_implementation,
-            backward_implementation=backward_implementation,
-        )
+    #
+    # def _duplicate(self, **changes):
+    #     def replace_key(key):
+    #         try:
+    #             return changes[key]
+    #         except KeyError:
+    #             return getattr(self, key)
+    #
+    #     state_trans_mat = replace_key("state_trans_mat")
+    #     shift_vec = replace_key("shift_vec")
+    #     proc_noise_cov_mat = replace_key("proc_noise_cov_mat")
+    #     proc_noise_cov_cholesky = replace_key("proc_noise_cov_cholesky")
+    #     forward_implementation = replace_key("forward_implementation")
+    #     backward_implementation = replace_key("backward_implementation")
+    #     return LTIGaussian(
+    #         state_trans_mat=state_trans_mat,
+    #         shift_vec=shift_vec,
+    #         proc_noise_cov_mat=proc_noise_cov_mat,
+    #         proc_noise_cov_cholesky=proc_noise_cov_cholesky,
+    #         forward_implementation=forward_implementation,
+    #         backward_implementation=backward_implementation,
+    #     )
 
     @classmethod
     def from_linop(

@@ -28,6 +28,7 @@ class InterfaceTestTransition(abc.ABC):
     def test_output_dim(self, *args, **kwargs):
         raise NotImplementedError
 
-    def test_duplicate(self):
-        new = self.transition.duplicate()
-        assert type(new) is type(self.transition)
+    #
+    # def test_duplicate(self):
+    #     new = self.transition.duplicate()
+    #     assert type(new) is type(self.transition)

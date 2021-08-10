@@ -174,24 +174,25 @@ class NonlinearGaussian(_transition.Transition):
             proc_noise_cov_cholesky_fun=diff_cholesky,
         )
 
-    def _duplicate(self, **changes):
-        def replace_key(key):
-            try:
-                return changes[key]
-            except KeyError:
-                return getattr(self, key)
-
-        input_dim = replace_key("input_dim")
-        output_dim = replace_key("output_dim")
-        state_trans_fun = replace_key("state_trans_fun")
-        proc_noise_cov_mat_fun = replace_key("proc_noise_cov_mat_fun")
-        jacob_state_trans_fun = replace_key("jacob_state_trans_fun")
-        proc_noise_cov_cholesky_fun = replace_key("proc_noise_cov_cholesky_fun")
-        return NonlinearGaussian(
-            input_dim=input_dim,
-            output_dim=output_dim,
-            state_trans_fun=state_trans_fun,
-            proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
-            jacob_state_trans_fun=jacob_state_trans_fun,
-            proc_noise_cov_cholesky_fun=proc_noise_cov_cholesky_fun,
-        )
+    #
+    # def _duplicate(self, **changes):
+    #     def replace_key(key):
+    #         try:
+    #             return changes[key]
+    #         except KeyError:
+    #             return getattr(self, key)
+    #
+    #     input_dim = replace_key("input_dim")
+    #     output_dim = replace_key("output_dim")
+    #     state_trans_fun = replace_key("state_trans_fun")
+    #     proc_noise_cov_mat_fun = replace_key("proc_noise_cov_mat_fun")
+    #     jacob_state_trans_fun = replace_key("jacob_state_trans_fun")
+    #     proc_noise_cov_cholesky_fun = replace_key("proc_noise_cov_cholesky_fun")
+    #     return NonlinearGaussian(
+    #         input_dim=input_dim,
+    #         output_dim=output_dim,
+    #         state_trans_fun=state_trans_fun,
+    #         proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
+    #         jacob_state_trans_fun=jacob_state_trans_fun,
+    #         proc_noise_cov_cholesky_fun=proc_noise_cov_cholesky_fun,
+    #     )
