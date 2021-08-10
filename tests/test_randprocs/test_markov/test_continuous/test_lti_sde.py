@@ -48,7 +48,7 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
         """LTISDE.discretise() works if there is zero force (there is an "if" in the
         fct)."""
         new_trans = self.transition.duplicate()
-        new_trans.force_vector = np.zeros(len(new_trans.force_vector))
+        new_trans.force_vector = np.zeros(new_trans.force_vector.shape[0])
 
         # Sanity checks: if this does not work, the test is meaningless
         np.testing.assert_allclose(new_trans.force_vector_function(0.0), 0.0)
@@ -76,10 +76,10 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
 
         # 2. Wrong shape raises error
         with pytest.raises(ValueError):
-            self.transition.drift_matrix = np.arange(len(self.G_const))
+            self.transition.drift_matrix = np.arange(self.G_const.shape[0])
 
         # 3. Setting works as expected
-        I_dxd = np.eye(len(self.G_const))
+        I_dxd = np.eye(self.G_const.shape[0])
         self.transition.drift_matrix = I_dxd
         np.testing.assert_allclose(self.transition.drift_matrix, I_dxd)
 
@@ -95,10 +95,10 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
 
         # 2. Wrong shape raises error
         with pytest.raises(ValueError):
-            self.transition.force_vector = np.arange(len(self.G_const) - 2)
+            self.transition.force_vector = np.arange(self.G_const.shape[0] - 2)
 
         # 3. Setting works as expected
-        v = 1 + 0.1 * np.random.rand(len(self.G_const))
+        v = 1 + 0.1 * np.random.rand(self.G_const.shape[0])
         self.transition.force_vector = v
         np.testing.assert_allclose(self.transition.force_vector, v)
 
@@ -112,7 +112,7 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
 
         # 2. Wrong shape raises error
         with pytest.raises(ValueError):
-            self.transition.dispersion_matrix = np.arange(len(self.L_const))
+            self.transition.dispersion_matrix = np.arange(self.L_const.shape[0])
 
         # 3. Setting works as expected
         L = 1 + 0.1 * np.random.rand(*self.L_const.shape)

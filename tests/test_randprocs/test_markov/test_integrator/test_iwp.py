@@ -75,6 +75,10 @@ class TestIntegratedWienerTransition(
         self.v = lambda t: self.transition.force_vector
         self.L = lambda t: self.transition.dispersion_matrix
 
+        self.G_const = self.transition.drift_matrix
+        self.v_const = self.transition.force_vector
+        self.L_const = self.transition.dispersion_matrix
+
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
         self.l = lambda t, x: self.L(t)
@@ -112,6 +116,10 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
         self.v = lambda t: self.transition.force_vector
         self.L = lambda t: self.transition.dispersion_matrix
 
+        self.G_const = self.transition.drift_matrix
+        self.v_const = self.transition.force_vector
+        self.L_const = self.transition.dispersion_matrix
+
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
         self.l = lambda t, x: self.L(t)
@@ -147,6 +155,61 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
         expected = self.L(0.0)
         received = self.transition.dispersion_matrix_function(0.0)
         np.testing.assert_allclose(expected.todense(), received.todense())
+
+    def test_drift_matrix(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(self.transition.drift_matrix, self.G_const)
+
+        # 2. Wrong shape raises error
+        with pytest.raises(ValueError):
+            self.transition.drift_matrix = np.arange(self.G_const.shape[0])
+
+        # 3. Setting works as expected
+        I_dxd = np.eye(self.G_const.shape[0])
+        self.transition.drift_matrix = I_dxd
+        np.testing.assert_allclose(self.transition.drift_matrix, I_dxd)
+
+        # 4. super() is updated correctly
+        dummy_time = 0.1  # value does not matter.
+        np.testing.assert_allclose(
+            self.transition.drift_matrix_function(dummy_time), I_dxd
+        )
+
+    def test_force_vector(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(self.transition.force_vector, self.v_const)
+
+        # 2. Wrong shape raises error
+        with pytest.raises(ValueError):
+            self.transition.force_vector = np.arange(self.G_const.shape[0] - 2)
+
+        # 3. Setting works as expected
+        v = 1 + 0.1 * np.random.rand(self.G_const.shape[0])
+        self.transition.force_vector = v
+        np.testing.assert_allclose(self.transition.force_vector, v)
+
+        # 4. super() is updated correctly
+        dummy_time = 0.1  # value does not matter.
+        np.testing.assert_allclose(self.transition.force_vector_function(dummy_time), v)
+
+    def test_dispersion_matrix(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(self.transition.dispersion_matrix, self.L_const)
+
+        # 2. Wrong shape raises error
+        with pytest.raises(ValueError):
+            self.transition.dispersion_matrix = np.arange(self.L_const.shape[0])
+
+        # 3. Setting works as expected
+        L = 1 + 0.1 * np.random.rand(*self.L_const.shape)
+        self.transition.dispersion_matrix = L
+        np.testing.assert_allclose(self.transition.dispersion_matrix, L)
+
+        # 4. super() is updated correctly
+        dummy_time = 0.1  # value does not matter.
+        np.testing.assert_allclose(
+            self.transition.dispersion_matrix_function(dummy_time), L
+        )
 
 
 @pytest.fixture
