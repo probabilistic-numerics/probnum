@@ -135,8 +135,8 @@ _DEFAULT_CONFIG_OPTIONS = [
         ),
     ),
     (
-        "collapse_dense_matrix_linop_products",
-        True,
+        "lazy_matrix_matrix_matmul",
+        False,
         "If True, the matmul operation applied to two Matrix-LinearOperators will "
         "again yield a Matrix-LinearOperator with the computed matrix-matrix product,"
         " instead of a ProductLinearOperator.",
