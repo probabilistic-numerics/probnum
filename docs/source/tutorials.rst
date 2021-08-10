@@ -48,6 +48,7 @@ the uncertainty introduced by discretization.
    tutorials/odes/adaptive_steps_odefilter
    tutorials/odes/uncertainties_odefilters
    tutorials/odes/odesolvers_from_scratch
+   tutorials/odes/event_handling
 
 
 Bayesian Filtering and Smoothing
@@ -74,7 +75,7 @@ ProbNum implements (finite-dimensional) linear operators in a memory-efficient m
 .. nbgallery::
    :caption: Linear Operators
 
-   tutorials/linalg/linear_operators
+   tutorials/linops/linear_operators
 
 
 Probability
@@ -86,7 +87,7 @@ distribution. A probabilistic numerical method takes random variables as inputs 
 .. nbgallery::
    :caption: Probability
 
-   tutorials/prob/random_variables
+   tutorials/prob/random_variables_quickstart
 
 
 .. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?style=flat-square&logo=Jupyter&logoColor=white

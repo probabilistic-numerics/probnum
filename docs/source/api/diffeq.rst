@@ -12,3 +12,4 @@ probnum.diffeq
     diffeq/odefiltsmooth
     diffeq/perturbed
     diffeq/stepsize
+    diffeq/callbacks

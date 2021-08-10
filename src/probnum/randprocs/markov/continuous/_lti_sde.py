@@ -38,48 +38,80 @@ class LTISDE(_linear_sde.LinearSDE):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        # Assert all shapes match
-        _check_initial_state_dimensions(drift_matrix, force_vector, dispersion_matrix)
 
         # Convert input into super() compatible format and initialize super()
         state_dimension = drift_matrix.shape[0]
         wiener_process_dimension = dispersion_matrix.shape[1]
 
+        # Point to attributes, to make sure that changes to self.drift_matrix
+        # are reflected in this function.
         def drift_matrix_function(t):
-            return drift_matrix
+            return self.drift_matrix
 
         def force_vector_function(t):
-            return force_vector
+            return self.force_vector
 
         def dispersion_matrix_function(t):
-            return dispersion_matrix
+            return self.dispersion_matrix
 
         super().__init__(
             state_dimension=state_dimension,
             wiener_process_dimension=wiener_process_dimension,
             drift_matrix_function=drift_matrix_function,
             dispersion_matrix_function=dispersion_matrix_function,
-            force_vector_function=force_vector_function,
+            force_vector_function=self._force_vector_function,
         )
 
-        # Initialize remaining attributes
+        # Assert all shapes match and store matrices.
+        _check_initial_state_dimensions(drift_matrix, force_vector, dispersion_matrix)
         self._drift_matrix = drift_matrix
         self._force_vector = force_vector
         self._dispersion_matrix = dispersion_matrix
         self._forward_implementation_string = forward_implementation
         self._backward_implementation_string = backward_implementation
 
+    def _force_vector_function(self, t):
+        return self.force_vector
+
     @property
     def drift_matrix(self):
         return self._drift_matrix
+
+    @drift_matrix.setter
+    def drift_matrix(self, drift_matrix):
+        if self._drift_matrix.shape != drift_matrix.shape:
+            msg1 = "The shape of the new drift_matrix attribute does not match the shape of the old attribute."
+            msg2 = (
+                f"{self._drift_matrix.shape} expected. {drift_matrix.shape} received."
+            )
+            raise ValueError(msg1 + msg2)
+        self._drift_matrix = drift_matrix
 
     @property
     def force_vector(self):
         return self._force_vector
 
+    @force_vector.setter
+    def force_vector(self, force_vector):
+        if self._force_vector.shape != force_vector.shape:
+            msg1 = "The shape of the new force_vector attribute does not match the shape of the old attribute."
+            msg2 = (
+                f"{self._force_vector.shape} expected. {force_vector.shape} received."
+            )
+            raise ValueError(msg1 + msg2)
+        self._force_vector = force_vector
+
     @property
     def dispersion_matrix(self):
         return self._dispersion_matrix
+
+    @dispersion_matrix.setter
+    def dispersion_matrix(self, dispersion_matrix):
+        if self._dispersion_matrix.shape != dispersion_matrix.shape:
+            msg1 = "The shape of the new dispersion_matrix attribute does not match the shape of the old attribute."
+            msg2 = f"{self._dispersion_matrix.shape} expected. {dispersion_matrix.shape} received."
+            raise ValueError(msg1 + msg2)
+        self._dispersion_matrix = dispersion_matrix
 
     @property
     def forward_implementation(self):
@@ -171,34 +203,6 @@ class LTISDE(_linear_sde.LinearSDE):
             qh,
             forward_implementation=self._forward_implementation_string,
             backward_implementation=self._backward_implementation_string,
-        )
-
-    def _duplicate(self, **changes):
-        """Create a new object of the same type, replacing fields with values from
-        changes."""
-
-        def replace_key(key):
-            """If the key is part of the desired changes, change appropriately.
-
-            Otherwise, take the current value.
-            """
-            try:
-                return changes[key]
-            except KeyError:
-                return getattr(self, key)
-
-        drift_matrix = replace_key("drift_matrix")
-        dispersion_matrix = replace_key("dispersion_matrix")
-        force_vector = replace_key("force_vector")
-        forward_implementation = replace_key("forward_implementation")
-        backward_implementation = replace_key("backward_implementation")
-
-        return LTISDE(
-            drift_matrix=drift_matrix,
-            dispersion_matrix=dispersion_matrix,
-            force_vector=force_vector,
-            forward_implementation=forward_implementation,
-            backward_implementation=backward_implementation,
         )
 
 

@@ -1,6 +1,7 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
+import copy
 
 import numpy as np
 
@@ -425,19 +426,11 @@ class Transition(abc.ABC):
             out_samples.append(curr_sample)
         return out_samples
 
-    def duplicate(self, **changes):
-        # Wrap duplication into appropriate type checks.
-        duplicated = self._duplicate(**changes)
+    def duplicate(self):
 
-        # Safeguard against inheritance of the duplication functionality
-        # which is no actual duplication hence we pretend it is not implemented.
-        if type(duplicated) is not type(self):
-            raise NotImplementedError("duplication is not implemented.")
-        return duplicated
-
-    @abc.abstractmethod
-    def _duplicate(self, **changes):
-        raise NotImplementedError
+        # Make a deepcopy -- otherwise, internal references are weirdly messed up
+        copied = copy.deepcopy(self)
+        return copied
 
     # Utility functions that are used surprisingly often:
     #

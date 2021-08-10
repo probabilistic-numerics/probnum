@@ -75,6 +75,10 @@ class TestIntegratedWienerTransition(
         self.v = lambda t: self.transition.force_vector
         self.L = lambda t: self.transition.dispersion_matrix
 
+        self.G_const = self.transition.drift_matrix
+        self.v_const = self.transition.force_vector
+        self.L_const = self.transition.dispersion_matrix
+
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
         self.l = lambda t, x: self.L(t)
@@ -85,6 +89,45 @@ class TestIntegratedWienerTransition(
 
     def test_wiener_process_dimension(self, test_ndim):
         assert self.transition.wiener_process_dimension == 1
+
+    def test_drift_matrix(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(self.transition.drift_matrix, self.G_const)
+
+        # 2. Attribute cannot be set from the outside.
+        with pytest.raises(TypeError):
+            some_value = 1.0  # does not matter what this value is.
+            self.transition.drift_matrix = some_value
+
+    def test_force_vector(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(self.transition.force_vector, self.v_const)
+
+        # 2. Attribute cannot be set from the outside.
+        with pytest.raises(TypeError):
+            some_value = 1.0  # does not matter what this value is.
+            self.transition.force_vector = some_value
+
+    def test_dispersion_matrix(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(self.transition.dispersion_matrix, self.L_const)
+
+        # 2. Attribute cannot be set from the outside.
+        with pytest.raises(TypeError):
+            some_value = 1.0  # does not matter what this value is.
+            self.transition.dispersion_matrix = some_value
+
+    def test_discretise_no_force(self):
+        """LTISDE.discretise() works if there is zero force (there is an "if" in the
+        fct)."""
+
+        # Sanity checks: if this does not work, the test is meaningless
+        np.testing.assert_allclose(self.transition.force_vector_function(0.0), 0.0)
+        np.testing.assert_allclose(self.transition.force_vector, 0.0)
+
+        # Test discretisation
+        out = self.transition.discretise(dt=0.1)
+        assert isinstance(out, randprocs.markov.discrete.LTIGaussian)
 
 
 class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTransition):
@@ -111,6 +154,10 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
         self.G = lambda t: self.transition.drift_matrix
         self.v = lambda t: self.transition.force_vector
         self.L = lambda t: self.transition.dispersion_matrix
+
+        self.G_const = self.transition.drift_matrix
+        self.v_const = self.transition.force_vector
+        self.L_const = self.transition.dispersion_matrix
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
@@ -147,6 +194,48 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
         expected = self.L(0.0)
         received = self.transition.dispersion_matrix_function(0.0)
         np.testing.assert_allclose(expected.todense(), received.todense())
+
+    def test_drift_matrix(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(
+            self.transition.drift_matrix.todense(), self.G_const.todense()
+        )
+
+        # 2. Attribute cannot be set from the outside.
+        with pytest.raises(TypeError):
+            some_value = 1.0  # does not matter what this value is.
+            self.transition.drift_matrix = some_value
+
+    def test_force_vector(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(self.transition.force_vector, self.v_const)
+
+        # 2. Attribute cannot be set from the outside.
+        with pytest.raises(TypeError):
+            some_value = 1.0  # does not matter what this value is.
+            self.transition.force_vector = some_value
+
+    def test_dispersion_matrix(self):
+        # 1. Access works as expected.
+        np.testing.assert_allclose(
+            self.transition.dispersion_matrix.todense(), self.L_const.todense()
+        )
+
+        # 2. Attribute cannot be set from the outside.
+        with pytest.raises(TypeError):
+            some_value = 1.0  # does not matter what this value is.
+            self.transition.dispersion_matrix = some_value
+
+    def test_discretise_no_force(self):
+        """LTISDE.discretise() works if there is zero force (there is an "if" in the
+        fct)."""
+        # Sanity checks: if this does not work, the test is meaningless
+        np.testing.assert_allclose(self.transition.force_vector_function(0.0), 0.0)
+        np.testing.assert_allclose(self.transition.force_vector, 0.0)
+
+        # Test discretisation
+        out = self.transition.discretise(dt=0.1)
+        assert isinstance(out, randprocs.markov.discrete.LTIGaussian)
 
 
 @pytest.fixture

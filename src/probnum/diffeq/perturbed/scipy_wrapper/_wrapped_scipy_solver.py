@@ -8,7 +8,7 @@ from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import randvars
-from probnum.diffeq import _odesolver
+from probnum.diffeq import _odesolver, _odesolver_state
 from probnum.diffeq.perturbed.scipy_wrapper import _wrapped_scipy_odesolution
 from probnum.typing import FloatArgType
 
@@ -29,9 +29,10 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
             raise TypeError(
                 "Dense output interpolation of DOP853 is currently not supported. Choose a different RK-method."
             )
+
         super().__init__(steprule=steprule, order=solver_type.order)
 
-    def initialise(self, ivp):
+    def initialize(self, ivp):
         """Return t0 and y0 (for the solver, which might be different to ivp.y0) and
         initialize the solver. Reset the solver when solving the ODE multiple times,
         i.e. explicitly setting y_old, t, y and f to the respective initial values,
@@ -52,11 +53,16 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         self.solver.t = self.ivp.t0
         self.solver.y = self.ivp.y0
         self.solver.f = self.solver.fun(self.solver.t, self.solver.y)
-        return self.ivp.t0, randvars.Constant(self.ivp.y0)
+        state = _odesolver_state.ODESolverState(
+            ivp=ivp,
+            rv=randvars.Constant(self.ivp.y0),
+            t=self.ivp.t0,
+            error_estimate=None,
+            reference_state=None,
+        )
+        return state
 
-    def step(
-        self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
-    ):
+    def attempt_step(self, state: _odesolver_state.ODESolverState, dt: FloatArgType):
         """Perform one ODE-step from start to stop and set variables to the
         corresponding values.
 
@@ -64,27 +70,21 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
 
         Parameters
         ----------
-        start : float
-            starting location of the step
-        stop : float
-            stopping location of the step
-        current : :obj:`list` of :obj:`RandomVariable`
-            current state of the ODE.
+        state
+            Current state of the ODE solver.
+        dt
+            Step-size.
 
         Returns
         -------
-        random_var : randvars.RandomVariable
-            Estimated states of the discrete-time solution.
-        error_estimation : float
-            estimated error after having performed the step.
+        _odesolver_state.ODESolverState
+            New state.
         """
 
-        y = current.mean
-        dt = stop - start
         y_new, f_new = rk.rk_step(
             self.solver.fun,
-            start,
-            y,
+            state.t,
+            state.rv.mean,
             self.solver.f,
             dt,
             self.solver.A,
@@ -97,16 +97,24 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         # solve().
         error_estimation = self.solver._estimate_error(self.solver.K, dt)
         y_new_as_rv = randvars.Constant(y_new)
+        new_state = _odesolver_state.ODESolverState(
+            ivp=state.ivp,
+            rv=y_new_as_rv,
+            t=state.t + dt,
+            error_estimate=error_estimation,
+            reference_state=state.rv.mean,
+        )
 
         # Update the solver settings. This part is copied from scipy's _step_impl().
         self.solver.h_previous = dt
-        self.solver.y_old = current
-        self.solver.t_old = start
-        self.solver.t = stop
+        self.solver.y_old = state.rv.mean
+        self.solver.t_old = state.t
+        self.solver.t = state.t + dt
         self.solver.y = y_new
         self.solver.h_abs = dt
         self.solver.f = f_new
-        return y_new_as_rv, error_estimation, y
+
+        return new_state
 
     def rvlist_to_odesol(self, times: np.array, rvs: np.array):
         """Create a ScipyODESolution object which is a subclass of
@@ -117,7 +125,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         )
         return probnum_solution
 
-    def method_callback(self, time, current_guess, current_error):
+    def method_callback(self, state):
         """Call dense output after each step and store the interpolants."""
         dense = self.dense_output()
         self.interpolants.append(dense)
@@ -131,7 +139,5 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
             Interpolant between the last and current location.
         """
         Q = self.solver.K.T.dot(self.solver.P)
-        sol = rk.RkDenseOutput(
-            self.solver.t_old, self.solver.t, self.solver.y_old.mean, Q
-        )
+        sol = rk.RkDenseOutput(self.solver.t_old, self.solver.t, self.solver.y_old, Q)
         return sol
