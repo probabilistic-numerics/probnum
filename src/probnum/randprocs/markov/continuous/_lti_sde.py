@@ -70,9 +70,6 @@ class LTISDE(_linear_sde.LinearSDE):
         self._forward_implementation_string = forward_implementation
         self._backward_implementation_string = backward_implementation
 
-    def _force_vector_function(self, t):
-        return self.force_vector
-
     @property
     def drift_matrix(self):
         return self._drift_matrix

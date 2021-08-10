@@ -1,7 +1,6 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
-import copy
 
 import numpy as np
 
