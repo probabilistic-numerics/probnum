@@ -425,13 +425,6 @@ class Transition(abc.ABC):
             out_samples.append(curr_sample)
         return out_samples
 
-    #
-    # def duplicate(self):
-    #
-    #     # Make a deepcopy -- otherwise, internal references are weirdly messed up
-    #     copied = copy.deepcopy(self)
-    #     return copied
-
     # Utility functions that are used surprisingly often:
     #
     # Call forward/backward transitions of realisations by

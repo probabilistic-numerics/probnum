@@ -347,30 +347,3 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             forward_implementation=self.forward_implementation,
             backward_implementation=self.forward_implementation,
         )
-
-    #
-    # def duplicate(self, **changes):
-    #     """Create a new object of the same type, replacing fields with values from
-    #     changes."""
-    #
-    #     def replace_key(key):
-    #         """If the key is part of the desired changes, change appropriately.
-    #
-    #         Otherwise, take the current value.
-    #         """
-    #         try:
-    #             return changes[key]
-    #         except KeyError:
-    #             return getattr(self, key)
-    #
-    #     num_derivatives = replace_key("num_derivatives")
-    #     wiener_process_dimension = replace_key("wiener_process_dimension")
-    #     forward_implementation = replace_key("forward_implementation")
-    #     backward_implementation = replace_key("backward_implementation")
-    #
-    #     return IntegratedWienerTransition(
-    #         num_derivatives=num_derivatives,
-    #         wiener_process_dimension=wiener_process_dimension,
-    #         forward_implementation=forward_implementation,
-    #         backward_implementation=backward_implementation,
-    #     )
