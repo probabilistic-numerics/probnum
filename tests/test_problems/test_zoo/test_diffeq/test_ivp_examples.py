@@ -54,3 +54,16 @@ def test_df0(ivp):
         np.testing.assert_allclose(
             fd_approx, ivp.df(time, point) @ direction, rtol=1e-7, atol=1e-7
         )
+
+
+def test_lorenz96_too_few_variables():
+    """The number of variables in the lorenz96 system must be at least 4."""
+    # Sanity checks: these should pass
+    diffeqzoo.lorenz96(num_variables=4)
+    diffeqzoo.lorenz96(y0=np.ones(4))
+
+    # These should raise exceptions
+    with pytest.raises(ValueError):
+        diffeqzoo.lorenz96(num_variables=3)
+    with pytest.raises(ValueError):
+        diffeqzoo.lorenz96(y0=np.ones(3))
