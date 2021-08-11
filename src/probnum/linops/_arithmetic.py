@@ -152,31 +152,13 @@ def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kroneck
 
 
 def _mul_scalar_kronecker(scalar: ScalarArgType, kronecker: Kronecker) -> Kronecker:
-
-    prefer_A = ("scalar", type(kronecker.A)) in _mul_fns
-    prefer_B = ("scalar", type(kronecker.B)) in _mul_fns
-
-    if prefer_A and not prefer_B:
-        return Kronecker(A=scalar * kronecker.A, B=kronecker.B)
-
-    if prefer_B and not prefer_A:
-        return Kronecker(A=kronecker.A, B=scalar * kronecker.B)
-
-    return Kronecker(A=scalar * kronecker.A, B=kronecker.B)
+    sqrt_scalar = np.sqrt(scalar)
+    return Kronecker(A=sqrt_scalar * kronecker.A, B=sqrt_scalar * kronecker.B)
 
 
 def _mul_kronecker_scalar(kronecker: Kronecker, scalar: ScalarArgType) -> Kronecker:
-
-    prefer_A = (type(kronecker.A), "scalar") in _mul_fns
-    prefer_B = (type(kronecker.B), "scalar") in _mul_fns
-
-    if prefer_A and not prefer_B:
-        return Kronecker(A=kronecker.A * scalar, B=kronecker.B)
-
-    if prefer_B and not prefer_A:
-        return Kronecker(A=kronecker.A, B=kronecker.B * scalar)
-
-    return Kronecker(A=kronecker.A, B=kronecker.B * scalar)
+    sqrt_scalar = np.sqrt(scalar)
+    return Kronecker(A=sqrt_scalar * kronecker.A, B=sqrt_scalar * kronecker.B)
 
 
 _matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
