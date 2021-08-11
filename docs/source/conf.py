@@ -127,7 +127,7 @@ nbsphinx_allow_errors = True
 
 # Whether to execute notebooks before conversion or not.
 # Possible values: 'always', 'never', 'auto' (default).
-nbsphinx_execute = "never"
+nbsphinx_execute = "auto"
 
 # List of arguments to be passed to the kernel that executes the notebooks:
 nbsphinx_execute_arguments = [
