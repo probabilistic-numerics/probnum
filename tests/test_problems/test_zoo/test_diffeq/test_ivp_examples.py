@@ -52,7 +52,7 @@ def test_df0(ivp):
         ) / (2.0 * step)
 
         np.testing.assert_allclose(
-            fd_approx, ivp.df(time, point) @ direction, rtol=1e-7, atol=1e-7
+            fd_approx, ivp.df(time, point) @ direction, rtol=1e-4, atol=1e-4
         )
 
 
