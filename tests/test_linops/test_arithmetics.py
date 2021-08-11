@@ -20,10 +20,8 @@ from probnum.linops._kronecker import (
 )
 from probnum.linops._linear_operator import (
     AdjointLinearOperator,
-    BinaryOperandType,
     Embedding,
     Identity,
-    LinearOperator,
     Matrix,
     Selection,
     TransposedLinearOperator,
@@ -36,6 +34,7 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 
 
 def get_linop(linop_type):
+    # pylint: disable=too-many-return-statements
     if linop_type is Kronecker:
         return linop_type(np.random.rand(2, 2), np.random.rand(2, 2))
     elif linop_type is IdentityKronecker:
