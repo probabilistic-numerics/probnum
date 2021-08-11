@@ -9,7 +9,7 @@ probnum.diffeq
 .. toctree::
     :hidden:
 
-    diffeq/odefiltsmooth
+    diffeq/odefilter
     diffeq/perturbed
     diffeq/stepsize
     diffeq/callbacks
