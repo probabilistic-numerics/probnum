@@ -1,5 +1,6 @@
 """Tests for linear operator arithmetics."""
 
+import itertools
 import operator
 
 import numpy as np
@@ -33,18 +34,28 @@ from probnum.linops._scaling import Scaling, Zero
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 
+def _aslist(arg):
+    try:
+        return list(arg)
+    except TypeError:
+        return [arg]
+
+
 def get_linop(linop_type):
     # pylint: disable=too-many-return-statements
     if linop_type is Kronecker:
-        return linop_type(np.random.rand(2, 2), np.random.rand(2, 2))
+        return Kronecker(np.random.rand(2, 2), np.random.rand(2, 2))
     elif linop_type is IdentityKronecker:
-        return linop_type(2, np.random.rand(2, 2))
+        return IdentityKronecker(2, np.random.rand(2, 2))
     elif linop_type is Zero or linop_type is Identity:
         return linop_type(shape=(4, 4))
     elif linop_type is Scaling:
-        return linop_type(factors=np.random.rand(4))
+        return (
+            Scaling(factors=np.random.rand(4)),
+            Scaling(factors=3.14 * np.ones(4)),
+        )
     elif linop_type is Matrix:
-        return linop_type(np.random.rand(4, 4))
+        return Matrix(np.random.rand(4, 4))
     elif linop_type is _InverseLinearOperator:
         _posdef_randmat = random_spd_matrix(rng=np.random.default_rng(123), dim=4)
         return Matrix(_posdef_randmat).inv()
@@ -106,16 +117,18 @@ def test_arithmetics(op):
             # Checked seperatly
             continue
 
-        linop1 = get_linop(l_type)
-        linop2 = get_linop(r_type)
+        linops1 = get_linop(l_type)
+        linops2 = get_linop(r_type)
 
-        res_linop = op(linop1, linop2)
-        assert res_linop.ndim == 2
+        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
 
-        if isinstance(l_type, str) and l_type == "scalar":
-            assert res_linop.shape == linop2.shape
-        elif isinstance(r_type, str) and r_type == "scalar":
-            assert res_linop.shape == linop1.shape
-        else:
-            assert res_linop.shape[0] == linop1.shape[0]
-            assert res_linop.shape[1] == linop2.shape[1]
+            res_linop = op(linop1, linop2)
+            assert res_linop.ndim == 2
+
+            if isinstance(l_type, str) and l_type == "scalar":
+                assert res_linop.shape == linop2.shape
+            elif isinstance(r_type, str) and r_type == "scalar":
+                assert res_linop.shape == linop1.shape
+            else:
+                assert res_linop.shape[0] == linop1.shape[0]
+                assert res_linop.shape[1] == linop2.shape[1]
