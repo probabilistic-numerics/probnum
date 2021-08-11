@@ -35,9 +35,10 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 
 
 def _aslist(arg):
+    """Converts anything to a list. Non-iterables become single-element lists."""
     try:
         return list(arg)
-    except TypeError:
+    except TypeError:  # excepts TypeError: '<type>' object is not iterable
         return [arg]
 
 
@@ -52,7 +53,7 @@ def get_linop(linop_type):
     elif linop_type is Scaling:
         return (
             Scaling(factors=np.random.rand(4)),
-            Scaling(factors=3.14 * np.ones(4)),
+            Scaling(factors=3.14),
         )
     elif linop_type is Matrix:
         return Matrix(np.random.rand(4, 4))
