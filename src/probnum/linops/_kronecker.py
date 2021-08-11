@@ -174,18 +174,6 @@ class Kronecker(_linear_operator.LinearOperator):
         # Using (A (x) B) @ (C (x) D) = (A @ C) (x) (B @ D)
         return Kronecker(A=_A @ _C, B=_B @ _D)
 
-    def _mul_kronecker(self, other: "Kronecker") -> "Kronecker":
-        _A, _B = self.A, self.B
-        _C, _D = other.A, other.B
-        if not (_A.shape == _C.shape and _B.shape == _D.shape):
-            raise ValueError(
-                f"Matmul shape mismatch {_A.shape} x {_C.shape} "
-                f"or {_B.shape} x {_D.shape}"
-            )
-
-        # Using (A (x) B) o (C (x) D) = (A o C) (x) (B o D)
-        return Kronecker(A=_A * _C, B=_B * _D)
-
     def _add_kronecker(
         self, other: "Kronecker"
     ) -> Union[NotImplementedType, "Kronecker"]:
@@ -533,18 +521,6 @@ class IdentityKronecker(_linear_operator.LinearOperator):
 
         # Using (A (x) B) @ (C (x) D) = (A @ C) (x) (B @ D)
         return IdentityKronecker(num_blocks=self._num_blocks, B=_B @ _D)
-
-    def _mul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
-        _A, _B = self.A, self.B
-        _C, _D = other.A, other.B
-        if not (_A.shape == _C.shape and _B.shape == _D.shape):
-            raise ValueError(
-                f"Matmul shape mismatch {_A.shape} x {_C.shape} "
-                f"or {_B.shape} x {_D.shape}"
-            )
-
-        # Using (A (x) B) o (C (x) D) = (A o C) (x) (B o D)
-        return IdentityKronecker(num_blocks=self._num_blocks, B=_B * _D)
 
     def _add_idkronecker(
         self, other: "IdentityKronecker"

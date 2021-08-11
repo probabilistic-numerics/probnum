@@ -39,7 +39,6 @@ _AnyLinOp = [
     AdjointLinearOperator,
     Identity,
     IdentityKronecker,
-    LinearOperator,
     Matrix,
     TransposedLinearOperator,
     SymmetricKronecker,
@@ -181,7 +180,6 @@ def _mul_kronecker_scalar(kronecker: Kronecker, scalar: ScalarArgType) -> Kronec
 
 
 _matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
-_mul_fns[(Kronecker, Kronecker)] = Kronecker._mul_kronecker
 _add_fns[(Kronecker, Kronecker)] = Kronecker._add_kronecker
 _sub_fns[(Kronecker, Kronecker)] = Kronecker._sub_kronecker
 
@@ -231,7 +229,6 @@ def _mul_idkronecker_scalar(
 _matmul_fns[
     (IdentityKronecker, IdentityKronecker)
 ] = IdentityKronecker._matmul_idkronecker
-_mul_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._mul_idkronecker
 _add_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._add_idkronecker
 _sub_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._sub_idkronecker
 
