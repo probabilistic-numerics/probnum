@@ -11,7 +11,7 @@ References
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.diffeq import odefiltsmooth, stepsize
+from probnum.diffeq import odefilter, stepsize
 
 __all__ = ["probsolve_ivp"]
 
@@ -30,6 +30,7 @@ def probsolve_ivp(
     rtol=1e-2,
     step=None,
     diffusion_model="dynamic",
+    time_stops=None,
 ):
     r"""Solve an initial value problem with a filtering-based probabilistic ODE solver.
 
@@ -49,7 +50,7 @@ def probsolve_ivp(
 
     This function turns a prior-string into an :class:`ODEPrior`, a
     method-string into a filter/smoother of class :class:`GaussFiltSmooth`, creates a
-    :class:`GaussianIVPFilter` object and calls the :meth:`solve()` method. For
+    :class:`ODEFilter` object and calls the :meth:`solve()` method. For
     advanced usage we recommend to do this process manually which
     enables advanced methods of tuning the algorithm.
 
@@ -125,11 +126,12 @@ def probsolve_ivp(
         which implement different styles of
         online calibration of the underlying diffusion [5]_.
         Optional. Default is ``'dynamic'``.
-
+    time_stops: np.ndarray
+        Time-points through which the solver must step. Optional. Default is None.
 
     Returns
     -------
-    solution : KalmanODESolution
+    solution : ODEFilterSolution
         Solution of the ODE problem.
 
         Can be evaluated at and sampled from at arbitrary grid points.
@@ -147,8 +149,8 @@ def probsolve_ivp(
 
     See Also
     --------
-    GaussianIVPFilter : Solve IVPs with Gaussian filtering and smoothing
-    KalmanODESolution : Solution of ODE problems based on Gaussian filtering and smoothing.
+    ODEFilter : Solve IVPs with Gaussian filtering and smoothing
+    ODEFilterSolution : Solution of ODE problems based on Gaussian filtering and smoothing.
 
     References
     ----------
@@ -264,23 +266,23 @@ def probsolve_ivp(
         backward_implementation="sqrt",
     )
 
-    info_op = odefiltsmooth.information_operators.ODEResidual(
+    info_op = odefilter.information_operators.ODEResidual(
         num_prior_derivatives=prior_process.transition.num_derivatives,
         ode_dimension=prior_process.transition.wiener_process_dimension,
     )
 
     choose_method = {
-        "EK0": odefiltsmooth.approx_strategies.EK0(),
-        "EK1": odefiltsmooth.approx_strategies.EK1(),
+        "EK0": odefilter.approx_strategies.EK0(),
+        "EK1": odefilter.approx_strategies.EK1(),
     }
     method = method.upper()
     if method not in choose_method.keys():
         raise ValueError("Method is not supported.")
     approx_strategy = choose_method[method]
 
-    rk_init = odefiltsmooth.initialization_routines.RungeKuttaInitialization()
+    rk_init = odefilter.initialization_routines.RungeKuttaInitialization()
 
-    solver = odefiltsmooth.GaussianIVPFilter(
+    solver = odefilter.ODEFilter(
         steprule,
         prior_process,
         information_operator=info_op,
@@ -290,4 +292,4 @@ def probsolve_ivp(
         diffusion_model=diffusion,
     )
 
-    return solver.solve(ivp=ivp)
+    return solver.solve(ivp=ivp, stop_at=time_stops)

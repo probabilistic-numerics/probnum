@@ -63,11 +63,11 @@ def test_init(doprisolver):
 
 def test_initialise(solvers):
     testsolver, scipysolver, ode = solvers
-    time, state = testsolver.initialise(ode)
+    state = testsolver.initialize(ode)
     time_scipy = scipysolver.t
     state_scipy = scipysolver.y
-    np.testing.assert_allclose(time, time_scipy, atol=1e-13, rtol=1e-13)
-    np.testing.assert_allclose(state.mean[0], state_scipy[0], atol=1e-13, rtol=1e-13)
+    np.testing.assert_allclose(state.t, time_scipy, atol=1e-13, rtol=1e-13)
+    np.testing.assert_allclose(state.rv.mean[0], state_scipy[0], atol=1e-13, rtol=1e-13)
 
 
 def test_step_execution(solvers):
@@ -75,22 +75,31 @@ def test_step_execution(solvers):
     scipysolver.step()
 
     # perform step of the same size
-    testsolver.initialise(ode)
-    random_var, error_est, _ = testsolver.step(
-        scipysolver.t_old,
-        scipysolver.t,
-        randvars.Constant(scipysolver.y_old),
+    teststate = diffeq.ODESolverState(
+        ivp=ode,
+        rv=randvars.Constant(scipysolver.y_old),
+        t=scipysolver.t_old,
+        error_estimate=None,
+        reference_state=None,
     )
-    np.testing.assert_allclose(scipysolver.y, random_var.mean)
+    testsolver.initialize(ode)
+    dt = scipysolver.t - scipysolver.t_old
+    new_state = testsolver.attempt_step(teststate, dt)
+    np.testing.assert_allclose(scipysolver.y, new_state.rv.mean)
 
 
 def test_step_variables(solvers, y, start_point, stop_point):
     testsolver, scipysolver, ode = solvers
 
-    testsolver.initialise(ode)
-    solver_y_new, solver_error_estimation, _ = testsolver.step(
-        start_point, stop_point, randvars.Constant(y)
+    teststate = diffeq.ODESolverState(
+        ivp=ode,
+        rv=randvars.Constant(y),
+        t=start_point,
+        error_estimate=None,
+        reference_state=None,
     )
+    testsolver.initialize(ode)
+    solver_y_new = testsolver.attempt_step(teststate, dt=stop_point - start_point)
     y_new, f_new = rk.rk_step(
         scipysolver.fun,
         start_point,
@@ -108,46 +117,51 @@ def test_step_variables(solvers, y, start_point, stop_point):
         scipysolver.K, stop_point - start_point
     )
     np.testing.assert_allclose(
-        solver_error_estimation, scipy_error_estimation, atol=1e-14, rtol=1e-14
+        solver_y_new.error_estimate, scipy_error_estimation, atol=1e-13, rtol=1e-13
     )
 
     # locations are correct
     np.testing.assert_allclose(
-        testsolver.solver.t_old, start_point, atol=1e-14, rtol=1e-14
+        testsolver.solver.t_old, start_point, atol=1e-13, rtol=1e-13
     )
-    np.testing.assert_allclose(testsolver.solver.t, stop_point, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(testsolver.solver.t, stop_point, atol=1e-13, rtol=1e-13)
     np.testing.assert_allclose(
         testsolver.solver.h_previous,
         stop_point - start_point,
-        atol=1e-14,
-        rtol=1e-14,
+        atol=1e-13,
+        rtol=1e-13,
     )
 
     # evaluations are correct
-    np.testing.assert_allclose(testsolver.solver.y_old.mean, y, atol=1e-14, rtol=1e-14)
-    np.testing.assert_allclose(testsolver.solver.y, y_new, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(testsolver.solver.y_old, y, atol=1e-13, rtol=1e-13)
+    np.testing.assert_allclose(testsolver.solver.y, y_new, atol=1e-13, rtol=1e-13)
     np.testing.assert_allclose(
-        testsolver.solver.h_abs, stop_point - start_point, atol=1e-14, rtol=1e-14
+        testsolver.solver.h_abs, stop_point - start_point, atol=1e-13, rtol=1e-13
     )
-    np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-13, rtol=1e-13)
 
 
 def test_dense_output(solvers):
     testsolver, scipysolver, ode = solvers
 
     # perform steps of the same size
-    testsolver.initialise(ode)
+    testsolver.initialize(ode)
     scipysolver.step()
-    y, *_ = testsolver.step(
-        scipysolver.t_old,
-        scipysolver.t,
-        randvars.Constant(scipysolver.y_old),
+    teststate = diffeq.ODESolverState(
+        ivp=ode,
+        rv=randvars.Constant(scipysolver.y_old),
+        t=scipysolver.t_old,
+        error_estimate=None,
+        reference_state=None,
+    )
+    state = testsolver.attempt_step(
+        state=teststate, dt=scipysolver.t - scipysolver.t_old
     )
 
     # sanity check: the steps are the same
     # (this is contained in a different test already, but if this one
     # does not work, the dense output test below is meaningless)
-    np.testing.assert_allclose(scipysolver.y, y.mean)
+    np.testing.assert_allclose(scipysolver.y, state.rv.mean)
 
     testsolver_dense = testsolver.dense_output()
     scipy_dense = scipysolver._dense_output_impl()
@@ -162,8 +176,8 @@ def test_dense_output(solvers):
         np.testing.assert_allclose(
             test_dense,
             ref_dense,
-            atol=1e-14,
-            rtol=1e-14,
+            atol=1e-13,
+            rtol=1e-13,
         )
 
 
