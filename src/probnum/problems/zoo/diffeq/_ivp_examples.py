@@ -464,7 +464,7 @@ def lorenz63(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
     y0
         *(shape=(3, ))* -- Initial value. Default is ``[0., 1., 1.05]``.
     params
-        Parameter of the Lotka-Volterra model. Default is ``(0.2, 0.2, 3.0)``.
+        Parameter of the Lorenz63 model. Default is ``(10.0, 28.0, 8.0 / 3.0)``.
 
     Returns
     -------
@@ -512,7 +512,7 @@ def lorenz96(t0=0.0, tmax=30.0, y0=None, num_variables=5, params=(8.0,)):
         (and the number of variables is inferred from the dimension of the initial value).
         If not, the initial value
     params
-        Parameter of the Lotka-Volterra model. Default is ``(0.2, 0.2, 3.0)``.
+        Parameter(s) of the Lorenz96 model. Default is ``(8,)``.
 
     Returns
     -------
