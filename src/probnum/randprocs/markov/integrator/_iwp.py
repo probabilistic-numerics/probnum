@@ -160,37 +160,6 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             )
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
 
-    #
-    # @property
-    # def drift_matrix(self):
-    #     return self._drift_matrix
-    #
-    # @drift_matrix.setter
-    # def drift_matrix(self, drift_matrix):
-    #     raise TypeError(
-    #         f"{self.__class__} does not support assignment of drift_matrix."
-    #     )
-    #
-    # @property
-    # def force_vector(self):
-    #     return self._force_vector
-    #
-    # @force_vector.setter
-    # def force_vector(self, force_vector):
-    #     raise TypeError(
-    #         f"{self.__class__} does not support assignment of force_vector."
-    #     )
-    #
-    # @property
-    # def dispersion_matrix(self):
-    #     return self._dispersion_matrix
-    #
-    # @dispersion_matrix.setter
-    # def dispersion_matrix(self, dispersion_matrix):
-    #     raise TypeError(
-    #         f"{self.__class__} does not support assignment of dispersion_matrix."
-    #     )
-
     @cached_property
     def equivalent_discretisation_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE.
