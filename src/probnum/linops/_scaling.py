@@ -124,6 +124,8 @@ class Scaling(_linear_operator.LinearOperator):
 
             trace = lambda: self.shape[0] * self._scalar
         elif np.ndim(factors) == 1:
+            if np.all(factors == factors[0]):
+                self._scalar = factors[0]
             # Anisotropic scaling
             self._factors = np.asarray(factors, dtype=dtype)
             self._factors.setflags(write=False)
