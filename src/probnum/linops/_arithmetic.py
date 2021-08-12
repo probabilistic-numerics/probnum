@@ -253,22 +253,8 @@ def _matmul_matrix_scaling(matrix: Matrix, scaling: Scaling) -> Matrix:
     return Matrix(A=np.multiply(matrix.A, scaling.factors))
 
 
-def _mul_matrix_scalar(mat, scalar) -> Union[NotImplementedType, Matrix]:
-    if np.isscalar(scalar):
-        return Matrix(A=scalar * mat.A)
-
-    return NotImplemented
-
-
-def _mul_scalar_matrix(scalar, mat) -> Union[NotImplementedType, Matrix]:
-    if np.isscalar(scalar):
-        return Matrix(A=scalar * mat.A)
-
-    return NotImplemented
-
-
-_mul_fns[(Matrix, "scalar")] = _mul_matrix_scalar
-_mul_fns[("scalar", Matrix)] = _mul_scalar_matrix
+_mul_fns[(Matrix, "scalar")] = lambda mat, scal: Matrix(A=scal * mat.A)
+_mul_fns[("scalar", Matrix)] = lambda scal, mat: Matrix(A=scal * mat.A)
 _matmul_fns[(Matrix, Matrix)] = Matrix._matmul_matrix
 _matmul_fns[(Scaling, Matrix)] = _matmul_scaling_matrix
 _matmul_fns[(Matrix, Scaling)] = _matmul_matrix_scaling
