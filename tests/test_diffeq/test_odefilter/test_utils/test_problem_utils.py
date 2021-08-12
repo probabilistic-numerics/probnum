@@ -59,28 +59,28 @@ def test_ivp_to_regression_problem(
     assert len(regprob.locations) == len(locations)
     assert len(regprob.measurement_models) == len(locations)
     assert isinstance(
-        regprob.measurement_models[1], randprocs.markov.discrete.DiscreteGaussian
+        regprob.measurement_models[1], randprocs.markov.discrete.NonlinearGaussian
     )
     assert isinstance(
-        regprob.measurement_models[-1], randprocs.markov.discrete.DiscreteGaussian
+        regprob.measurement_models[-1], randprocs.markov.discrete.NonlinearGaussian
     )
 
     # Depending on the desired exclusion of the initial condition,
     # the first element in the list of measurement models should
-    # be LTIGaussian (for the initial condition) or DiscreteGaussian (for the ODE)
+    # be LTIGaussian (for the initial condition) or NonlinearGaussian (for the ODE)
     if exclude_initial_condition:
         assert isinstance(
-            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteGaussian
+            regprob.measurement_models[0], randprocs.markov.discrete.NonlinearGaussian
         )
         assert isinstance(
-            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteGaussian
+            regprob.measurement_models[0], randprocs.markov.discrete.NonlinearGaussian
         )
     else:
         assert isinstance(
-            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteLTIGaussian
+            regprob.measurement_models[0], randprocs.markov.discrete.LTIGaussian
         )
         assert isinstance(
-            regprob.measurement_models[0], randprocs.markov.discrete.DiscreteLTIGaussian
+            regprob.measurement_models[0], randprocs.markov.discrete.LTIGaussian
         )
 
     # If the ODE measurement variance is not None, i.e. not zero,
@@ -95,8 +95,8 @@ def test_ivp_to_regression_problem(
 
     # If an approximation strategy is passed, the output should be an EKF component
     # which should suppoert forward_rv().
-    # If not, the output is a generic DiscreteGaussian (which has been tested for above.
-    # Recall that DiscreteEKFComponent implements DiscreteGaussian.)
+    # If not, the output is a generic NonlinearGaussian (which has been tested for above.
+    # Recall that DiscreteEKFComponent implements NonlinearGaussian.)
     if approx_strategy is not None:
         assert isinstance(
             regprob.measurement_models[1],

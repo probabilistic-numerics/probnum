@@ -114,7 +114,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         proj_to_y = prior_process.transition.proj2coord(coord=0)
         zeros_shift = np.zeros(ode_dim)
         zeros_cov = np.zeros((ode_dim, ode_dim))
-        measmod_scipy = randprocs.markov.discrete.DiscreteLTIGaussian(
+        measmod_scipy = randprocs.markov.discrete.LTIGaussian(
             proj_to_y,
             zeros_shift,
             zeros_cov,
@@ -136,7 +136,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         zeros_cov = np.zeros(
             (len(projmat_initial_conditions), len(projmat_initial_conditions))
         )
-        measmod_initcond = randprocs.markov.discrete.DiscreteLTIGaussian(
+        measmod_initcond = randprocs.markov.discrete.LTIGaussian(
             projmat_initial_conditions,
             zeros_shift,
             zeros_cov,

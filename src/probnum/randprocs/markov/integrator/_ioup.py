@@ -101,8 +101,8 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
                 scale_cholesky = 1e3
             else:
                 scale_cholesky = 1.0
-            zeros = np.zeros(ioup_transition.dimension)
-            cov_cholesky = scale_cholesky * np.eye(ioup_transition.dimension)
+            zeros = np.zeros(ioup_transition.state_dimension)
+            cov_cholesky = scale_cholesky * np.eye(ioup_transition.state_dimension)
             initrv = randvars.Normal(
                 mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
             )
@@ -132,29 +132,29 @@ class IntegratedOrnsteinUhlenbeckTransition(
         )
         continuous.LTISDE.__init__(
             self,
-            driftmat=self._driftmat,
-            forcevec=self._forcevec,
-            dispmat=self._dispmat,
+            drift_matrix=self._drift_matrix,
+            force_vector=self._force_vector,
+            dispersion_matrix=self._dispersion_matrix,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
     @cached_property
-    def _driftmat(self):
-        driftmat_1d = np.diag(np.ones(self.num_derivatives), 1)
-        driftmat_1d[-1, -1] = -self.driftspeed
-        return np.kron(np.eye(self.wiener_process_dimension), driftmat_1d)
+    def _drift_matrix(self):
+        drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
+        drift_matrix_1d[-1, -1] = -self.driftspeed
+        return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
     @cached_property
-    def _forcevec(self):
+    def _force_vector(self):
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @cached_property
-    def _dispmat(self):
-        dispmat_1d = np.zeros(self.num_derivatives + 1)
-        dispmat_1d[-1] = 1.0  # Unit Diffusion
-        return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
+    def _dispersion_matrix(self):
+        dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
+        dispersion_matrix_1d[-1] = 1.0  # Unit Diffusion
+        return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
 
     def forward_rv(
         self,
@@ -174,12 +174,19 @@ class IntegratedOrnsteinUhlenbeckTransition(
         rv = _preconditioner.apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
-        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
-        self.forcevec = self.precon.inverse(dt) @ self.forcevec
-        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+        new_drift_matrix = self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        new_force_vector = self.precon.inverse(dt) @ self.force_vector
+        new_dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
+        new_lti_sde = continuous.LTISDE(
+            drift_matrix=new_drift_matrix,
+            force_vector=new_force_vector,
+            dispersion_matrix=new_dispersion_matrix,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
+        )
 
         # Discretise and propagate
-        discretised_model = self.discretise(dt=dt)
+        discretised_model = new_lti_sde.discretise(dt=dt)
         rv, info = discretised_model.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
@@ -189,10 +196,6 @@ class IntegratedOrnsteinUhlenbeckTransition(
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
-
-        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
-        self.forcevec = self.precon(dt) @ self.forcevec
-        self.dispmat = self.precon(dt) @ self.dispmat
 
         return rv, info
 
@@ -227,12 +230,19 @@ class IntegratedOrnsteinUhlenbeckTransition(
         )
 
         # Apply preconditioning to system matrices
-        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
-        self.forcevec = self.precon.inverse(dt) @ self.forcevec
-        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+        new_drift_matrix = self.precon.inverse(dt) @ self.drift_matrix @ self.precon(dt)
+        new_force_vector = self.precon.inverse(dt) @ self.force_vector
+        new_dispersion_matrix = self.precon.inverse(dt) @ self.dispersion_matrix
+        new_lti_sde = continuous.LTISDE(
+            drift_matrix=new_drift_matrix,
+            force_vector=new_force_vector,
+            dispersion_matrix=new_dispersion_matrix,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
+        )
 
         # Discretise and propagate
-        discretised_model = self.discretise(dt=dt)
+        discretised_model = new_lti_sde.discretise(dt=dt)
         rv, info = discretised_model.backward_rv(
             rv_obtained=rv_obtained,
             rv=rv,
@@ -244,7 +254,4 @@ class IntegratedOrnsteinUhlenbeckTransition(
 
         # Undo preconditioning and return
         rv = _preconditioner.apply_precon(self.precon(dt), rv)
-        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
-        self.forcevec = self.precon(dt) @ self.forcevec
-        self.dispmat = self.precon(dt) @ self.dispmat
         return rv, info
