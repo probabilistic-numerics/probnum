@@ -166,7 +166,7 @@ class ProductLinearOperator(LinearOperator):
         ):
             raise ValueError(
                 f"Shape mismatch: Cannot multiply linear operators with shapes "
-                f"{' x '.join(factor.shape for factor in factors)}."
+                f"{' x '.join(str(factor.shape) for factor in factors)}."
             )
 
         self._factors = ProductLinearOperator._expand_prod_ops(*factors)

@@ -1,7 +1,6 @@
 """Tests for linear operator arithmetics."""
 
 import itertools
-import operator
 
 import numpy as np
 import pytest
@@ -45,18 +44,26 @@ def _aslist(arg):
 def get_linop(linop_type):
     # pylint: disable=too-many-return-statements
     if linop_type is Kronecker:
-        return Kronecker(np.random.rand(2, 2), np.random.rand(2, 2))
+        return (
+            Kronecker(np.random.rand(2, 2), np.random.rand(2, 2)),
+            Kronecker(np.random.rand(4, 3), np.random.rand(2, 3)),
+        )
     elif linop_type is IdentityKronecker:
-        return IdentityKronecker(2, np.random.rand(2, 2))
+        return (
+            IdentityKronecker(2, np.random.rand(2, 2)),
+            IdentityKronecker(3, np.random.rand(3, 4)),
+        )
     elif linop_type is Zero or linop_type is Identity:
-        return linop_type(shape=(4, 4))
+        return (linop_type(shape=(4, 4)), linop_type(shape=(3, 3)))
     elif linop_type is Scaling:
         return (
             Scaling(factors=np.random.rand(4)),
             Scaling(factors=3.14, shape=(4, 4)),
+            Scaling(factors=np.random.rand(6), shape=(6, 6)),
+            Scaling(factors=3.14, shape=(3, 3)),
         )
     elif linop_type is Matrix:
-        return Matrix(np.random.rand(4, 4))
+        return (Matrix(np.random.rand(4, 4)), Matrix(np.random.rand(6, 3)))
     elif linop_type is _InverseLinearOperator:
         _posdef_randmat = random_spd_matrix(rng=np.random.default_rng(123), dim=4)
         return Matrix(_posdef_randmat).inv()
@@ -96,19 +103,9 @@ def get_linop(linop_type):
         raise TypeError(f"Don't know what to do with type {linop_type}.")
 
 
-@pytest.mark.parametrize(
-    "op", [operator.matmul, operator.mul, operator.add, operator.sub]
-)
-def test_arithmetics(op):
+def test_matmul():
 
-    registry = {
-        operator.matmul: _matmul_fns,
-        operator.mul: _mul_fns,
-        operator.add: _add_fns,
-        operator.sub: _sub_fns,
-    }[op]
-
-    for (l_type, r_type) in registry.keys():
+    for (l_type, r_type) in _matmul_fns.keys():
         if (
             l_type is Selection
             or l_type is Embedding
@@ -123,13 +120,19 @@ def test_arithmetics(op):
 
         for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
 
-            res_linop = op(linop1, linop2)
-            assert res_linop.ndim == 2
-
-            if isinstance(l_type, str) and l_type == "scalar":
-                assert res_linop.shape == linop2.shape
-            elif isinstance(r_type, str) and r_type == "scalar":
-                assert res_linop.shape == linop1.shape
+            if linop1.shape[1] != linop2.shape[0]:
+                with pytest.raises(ValueError):
+                    res_linop = linop1 @ linop2
+                    print(res_linop)
+                    print(linop1, linop2)
             else:
-                assert res_linop.shape[0] == linop1.shape[0]
-                assert res_linop.shape[1] == linop2.shape[1]
+                res_linop = linop1 @ linop2
+                assert res_linop.ndim == 2
+
+                if isinstance(l_type, str) and l_type == "scalar":
+                    assert res_linop.shape == linop2.shape
+                elif isinstance(r_type, str) and r_type == "scalar":
+                    assert res_linop.shape == linop1.shape
+                else:
+                    assert res_linop.shape[0] == linop1.shape[0]
+                    assert res_linop.shape[1] == linop2.shape[1]

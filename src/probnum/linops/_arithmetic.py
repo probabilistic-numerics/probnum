@@ -140,12 +140,22 @@ for op_type in _AnyLinOp:
 
 
 def _matmul_scaling_kronecker(scaling: Scaling, kronecker: Kronecker) -> Kronecker:
+    if scaling.shape[1] != kronecker.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {scaling.shape} @ {kronecker.shape}"
+        )
+
     if scaling.is_isotropic:
         return scaling.scalar * kronecker
     return NotImplemented
 
 
 def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kronecker:
+    if kronecker.shape[1] != scaling.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {kronecker.shape} @ {scaling.shape}"
+        )
+
     if scaling.is_isotropic:
         return kronecker * scaling.scalar
     return NotImplemented
@@ -177,6 +187,12 @@ _matmul_fns[(Scaling, Kronecker)] = _matmul_scaling_kronecker
 def _matmul_scaling_idkronecker(
     scaling: Scaling, idkronecker: IdentityKronecker
 ) -> IdentityKronecker:
+
+    if scaling.shape[1] != idkronecker.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {scaling.shape} @ {idkronecker.shape}"
+        )
+
     if scaling.is_isotropic:
         return scaling.scalar * idkronecker
     return NotImplemented
@@ -185,6 +201,12 @@ def _matmul_scaling_idkronecker(
 def _matmul_idkronecker_scaling(
     idkronecker: IdentityKronecker, scaling: Scaling
 ) -> IdentityKronecker:
+
+    if idkronecker.shape[1] != scaling.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {idkronecker.shape} @ {scaling.shape}"
+        )
+
     if scaling.is_isotropic:
         return idkronecker * scaling.scalar
     return NotImplemented
@@ -224,16 +246,10 @@ _matmul_fns[(IdentityKronecker, Kronecker)] = Kronecker._matmul_kronecker
 
 # Matrix
 def _matmul_scaling_matrix(scaling: Scaling, matrix: Matrix) -> Matrix:
-    if scaling.shape[1] != matrix.shape[0]:
-        return NotImplemented
-
     return Matrix(A=np.multiply(scaling.factors[:, np.newaxis], matrix.A))
 
 
 def _matmul_matrix_scaling(matrix: Matrix, scaling: Scaling) -> Matrix:
-    if matrix.shape[1] != scaling.shape[0]:
-        return NotImplemented
-
     return Matrix(A=np.multiply(matrix.A, scaling.factors))
 
 
@@ -284,9 +300,23 @@ _matmul_fns[(_InverseLinearOperator, Matrix)] = _matmul_inverse_matrix
 
 
 # Identity
+def _matmul_id_any(idty: Identity, anyop: LinearOperator) -> LinearOperator:
+    if idty.shape[1] != anyop.shape[0]:
+        raise ValueError(f"matmul received invalid shapes {idty.shape} @ {anyop.shape}")
+
+    return anyop
+
+
+def _matmul_any_id(anyop: LinearOperator, idty: Identity) -> LinearOperator:
+    if anyop.shape[1] != idty.shape[0]:
+        raise ValueError(f"matmul received invalid shapes {anyop.shape} @ {idty.shape}")
+
+    return anyop
+
+
 for op_type in _AnyLinOp:
-    _matmul_fns[(Identity, op_type)] = lambda idty, other: other
-    _matmul_fns[(op_type, Identity)] = lambda other, idty: other
+    _matmul_fns[(Identity, op_type)] = _matmul_id_any
+    _matmul_fns[(op_type, Identity)] = _matmul_any_id
 
 
 # Selection / Embedding
