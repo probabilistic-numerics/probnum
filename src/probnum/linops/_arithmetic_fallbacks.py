@@ -47,12 +47,6 @@ class ScaledLinearOperator(LinearOperator):
 
         return ScaledLinearOperator(self._linop.inv(), 1.0 / self._scalar)
 
-    def __mul__(self, other: BinaryOperandType) -> "LinearOperator":
-        if np.isscalar(other):
-            return ScaledLinearOperator(linop=self._linop, scalar=self._scalar * other)
-
-        return super().__mul__(other)
-
     def __repr__(self) -> str:
         return f"{self._scalar} * {self._linop}"
 
@@ -72,11 +66,6 @@ class SumLinearOperator(LinearOperator):
     """Sum of two linear operators."""
 
     def __init__(self, *summands: LinearOperator):
-        if not all(isinstance(summand, LinearOperator) for summand in summands):
-            raise TypeError("All summands must be `LinearOperator`s")
-
-        if len(summands) < 2:
-            raise ValueError("There must be at least two summands")
 
         if not all(summand.shape == summands[0].shape for summand in summands):
             raise ValueError("All summands must have the same shape")
@@ -136,9 +125,7 @@ def _mul_fallback(
 ) -> Union[LinearOperator, NotImplementedType]:
     res = NotImplemented
 
-    if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):
-        pass  # TODO: Implement generic Hadamard product
-    elif isinstance(op1, LinearOperator):
+    if isinstance(op1, LinearOperator):
         if np.ndim(op2) == 0:
             res = ScaledLinearOperator(op1, op2)
     elif isinstance(op2, LinearOperator):
@@ -154,11 +141,6 @@ class ProductLinearOperator(LinearOperator):
     """(Operator) Product of two linear operators."""
 
     def __init__(self, *factors: LinearOperator):
-        if not all(isinstance(factor, LinearOperator) for factor in factors):
-            raise TypeError("All factors must be `LinearOperator`s")
-
-        if len(factors) < 2:
-            raise ValueError("There must be at least two factors")
 
         if not all(
             lfactor.shape[1] == rfactor.shape[0]
