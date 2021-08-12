@@ -242,10 +242,17 @@ def test_kronecker_matmul():
 def test_selection_embedding():
     sel = get_linop(Selection)
     emb = get_linop(Embedding)
+    emb2 = Embedding(
+        take_indices=emb._take_indices, put_indices=emb._put_indices, shape=(5, 3)
+    )
 
-    product = sel @ emb
-    assert product.shape[0] == sel.shape[0]
-    assert product.shape[1] == emb.shape[1]
+    product1 = sel @ emb
+    assert product1.shape[0] == sel.shape[0]
+    assert product1.shape[1] == emb.shape[1]
+
+    product2 = sel @ emb2
+    assert product2.shape[0] == sel.shape[0]
+    assert product2.shape[1] == emb2.shape[1]
 
 
 def test_lazy_matrix_matrix_matmul_option():

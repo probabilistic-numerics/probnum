@@ -131,9 +131,6 @@ def _mul_fallback(
     elif isinstance(op2, LinearOperator):
         if np.ndim(op1) == 0:
             res = ScaledLinearOperator(op2, op1)
-    else:
-        raise TypeError("At least one of the two operands must be a `LinearOperator`.")
-
     return res
 
 
