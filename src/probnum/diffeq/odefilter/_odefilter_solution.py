@@ -75,8 +75,12 @@ class ODEFilterSolution(_odesolution.ODESolution):
 
         # Pre-compute projection matrices.
         # The prior must be an integrator, if not, an error is thrown in 'ODEFilter'.
-        self.proj_to_y = self.kalman_posterior.transition.proj2coord(coord=0)
-        self.proj_to_dy = self.kalman_posterior.transition.proj2coord(coord=1)
+        self.proj_to_y = self.kalman_posterior.transition.derivative_selection_operator(
+            derivative=0
+        )
+        self.proj_to_dy = (
+            self.kalman_posterior.transition.derivative_selection_operator(derivative=1)
+        )
 
         states = _randomvariablelist._RandomVariableList(
             [_project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.states]

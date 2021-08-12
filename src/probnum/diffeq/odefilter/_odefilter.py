@@ -64,7 +64,7 @@ class ODEFilter(_odesolver.ODESolver):
     ):
         if not isinstance(
             prior_process.transition,
-            randprocs.markov.integrator.IntegratorTransition,
+            randprocs.markov.integrator.IntegratorMixIn,
         ):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see `probnum.randprocs.markov.integrator`)"
@@ -221,8 +221,8 @@ class ODEFilter(_odesolver.ODESolver):
         local_errors = np.sqrt(local_diffusion) * np.sqrt(
             np.diag(meas_rv_error_free.cov)
         )
-        proj = self.prior_process.transition.proj2coord(
-            coord=self._reference_coordinates
+        proj = self.prior_process.transition.derivative_selection_operator(
+            derivative=self._reference_coordinates
         )
         reference_values = np.abs(proj @ state.rv.mean)
 

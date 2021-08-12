@@ -56,7 +56,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
 
     Print the results.
 
-    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
+    >>> print(prior_process.transition.derivative_selection_operator(derivative=0) @ improved_initrv.mean)
     [ 0.994       0.          0.         -2.00158511]
     >>> print(improved_initrv.mean)
     [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
@@ -77,7 +77,7 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
 
     Print the results.
 
-    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
+    >>> print(prior_process.transition.derivative_selection_operator(derivative=0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(improved_initrv.mean)
     [    2.     0.    -2.    60.     0.    -2.    60. -1798.]

@@ -43,7 +43,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
 
     >>> rk_init = RungeKuttaInitialization()
     >>> improved_initrv = rk_init(ivp=ivp, prior_process=prior_process)
-    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
+    >>> print(prior_process.transition.derivative_selection_operator(derivative=0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(np.round(improved_initrv.mean, 1))
     [    2.      0.     -2.     58.2     0.     -2.     60.  -1745.7]
@@ -111,7 +111,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         )
 
         # Measurement model for SciPy observations
-        proj_to_y = prior_process.transition.proj2coord(coord=0)
+        proj_to_y = prior_process.transition.derivative_selection_operator(derivative=0)
         zeros_shift = np.zeros(ode_dim)
         zeros_cov = np.zeros((ode_dim, ode_dim))
         measmod_scipy = randprocs.markov.discrete.LTIGaussian(
@@ -124,9 +124,13 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         )
 
         # Measurement model for initial condition observations
-        proj_to_dy = prior_process.transition.proj2coord(coord=1)
+        proj_to_dy = prior_process.transition.derivative_selection_operator(
+            derivative=1
+        )
         if df is not None and order > 1:
-            proj_to_ddy = prior_process.transition.proj2coord(coord=2)
+            proj_to_ddy = prior_process.transition.derivative_selection_operator(
+                derivative=2
+            )
             projmat_initial_conditions = np.vstack((proj_to_y, proj_to_dy, proj_to_ddy))
             initial_data = np.hstack((y0, f(t0, y0), df(t0, y0) @ f(t0, y0)))
         else:

@@ -33,13 +33,14 @@ class ODEResidual(_information_operator.ODEInformationOperator):
         super().incorporate_ode(ode=ode)
 
         # Cache the projection matrices and match the implementation to the ODE
-        dummy_integrator = randprocs.markov.integrator.IntegratorTransition(
+        dummy_integrator = randprocs.markov.integrator.IntegratedWienerTransition(
             num_derivatives=self.num_prior_derivatives,
             wiener_process_dimension=self.ode_dimension,
         )
         ode_order = 1  # currently everything we can do
         self.projection_matrices = [
-            dummy_integrator.proj2coord(coord=deriv) for deriv in range(ode_order + 1)
+            dummy_integrator.derivative_selection_operator(derivative=deriv)
+            for deriv in range(ode_order + 1)
         ]
         res, res_jac = self._match_residual_and_jacobian_to_ode_order(
             ode_order=ode_order
