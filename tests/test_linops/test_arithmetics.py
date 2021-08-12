@@ -123,8 +123,6 @@ def test_matmul():
             if linop1.shape[1] != linop2.shape[0]:
                 with pytest.raises(ValueError):
                     res_linop = linop1 @ linop2
-                    print(res_linop)
-                    print(linop1, linop2)
             else:
                 res_linop = linop1 @ linop2
                 assert res_linop.ndim == 2
@@ -136,3 +134,100 @@ def test_matmul():
                 else:
                     assert res_linop.shape[0] == linop1.shape[0]
                     assert res_linop.shape[1] == linop2.shape[1]
+
+
+def test_mul():
+
+    for (l_type, r_type) in _mul_fns.keys():
+        if (
+            l_type is Selection
+            or l_type is Embedding
+            or r_type is Selection
+            or r_type is Embedding
+        ):
+            # Checked seperatly
+            continue
+
+        linops1 = get_linop(l_type)
+        linops2 = get_linop(r_type)
+
+        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
+
+            if isinstance(l_type, str) and l_type == "scalar":
+                res_linop = linop1 * linop2
+                assert res_linop.shape == linop2.shape
+            elif isinstance(r_type, str) and r_type == "scalar":
+                res_linop = linop1 * linop2
+                assert res_linop.shape == linop1.shape
+            else:
+                if linop1.shape != linop2.shape:
+                    with pytest.raises(ValueError):
+                        res_linop = linop1 * linop2
+                else:
+                    res_linop = linop1 * linop2
+                    assert res_linop.shape == linop1.shape == linop2.shape
+
+
+def test_add():
+
+    for (l_type, r_type) in _add_fns.keys():
+        if (
+            l_type is Selection
+            or l_type is Embedding
+            or r_type is Selection
+            or r_type is Embedding
+        ):
+            # Checked seperatly
+            continue
+
+        linops1 = get_linop(l_type)
+        linops2 = get_linop(r_type)
+
+        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
+
+            if linop1.shape != linop2.shape:
+                with pytest.raises(ValueError):
+                    res_linop = linop1 + linop2
+            else:
+                res_linop = linop1 + linop2
+                assert res_linop.shape == linop1.shape == linop2.shape
+
+
+def test_sub():
+
+    for (l_type, r_type) in _sub_fns.keys():
+        if (
+            l_type is Selection
+            or l_type is Embedding
+            or r_type is Selection
+            or r_type is Embedding
+        ):
+            # Checked seperatly
+            continue
+
+        linops1 = get_linop(l_type)
+        linops2 = get_linop(r_type)
+
+        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
+
+            if linop1.shape != linop2.shape:
+                with pytest.raises(ValueError):
+                    res_linop = linop1 - linop2
+            else:
+                res_linop = linop1 - linop2
+                assert res_linop.shape == linop1.shape == linop2.shape
+
+
+def test_kronecker_matmul():
+    # Checks the case in which the shapes of the Kronecker-structured matrices
+    # are valid in itself but the respective Kronecker factors (k1.A @ k2.A and/or
+    # k1.B @ k2.B) have invalid shapes for matmul.
+    k1 = Kronecker(np.random.rand(4, 2), np.random.rand(2, 3))  # (8, 6)
+    k2 = Kronecker(np.random.rand(3, 2), np.random.rand(2, 3))  # (6, 6)
+
+    # Even though the shapes fit, and Kronecker @ Kronecker = Kronecker ....
+    assert k1.shape[1] == k2.shape[0]
+
+    # The result does not have a Kronecker structure
+    res = k1 @ k2
+    assert not isinstance(res, Kronecker)
