@@ -21,7 +21,8 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     Set up an iterated component.
 
     >>> iwp = IntegratedWienerProcess(initarg=0., num_derivatives=2, wiener_process_dimension=1)
-    >>> H0, H1 = iwp.transition.proj2coord(coord=0), iwp.transition.proj2coord(coord=1)
+    >>> H0 = iwp.transition.derivative_selection_operator(derivative=0)
+    >>> H1 = iwp.transition.derivative_selection_operator(derivative=1)
     >>> call = lambda t, x: H1 @ x - H0 @ x * (1 - H0 @ x)
     >>> jacob = lambda t, x: H1 - (1 - 2*(H0 @ x)) @ H0
     >>> nonlinear_model = NonlinearGaussian.from_callable(3, 1, call, jacob)
