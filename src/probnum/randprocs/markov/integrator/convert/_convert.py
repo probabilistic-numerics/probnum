@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from probnum.randprocs.markov.integrator import _integrator
+from probnum.randprocs.markov.integrator import _iwp
 from probnum.typing import IntArgType
 
 
@@ -22,10 +22,14 @@ def convert_derivwise_to_coordwise(
     wiener_process_dimension:
         Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
     """
-    projmat = _integrator.IntegratorMixIn(
-        num_derivatives, wiener_process_dimension
-    )._derivwise2coordwise_projmat
-    return projmat @ state
+    dummy_integrator = _iwp.IntegratedWienerTransition(
+        num_derivatives=num_derivatives,
+        wiener_process_dimension=wiener_process_dimension,
+    )
+
+    return dummy_integrator.reorder_state(
+        state, current_ordering="derivative", target_ordering="coordinate"
+    )
 
 
 def convert_coordwise_to_derivwise(
@@ -44,7 +48,11 @@ def convert_coordwise_to_derivwise(
     wiener_process_dimension:
         Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
     """
-    projmat = _integrator.IntegratorMixIn(
-        num_derivatives, wiener_process_dimension
-    )._coordwise2derivwise_projmat
-    return projmat @ state
+    dummy_integrator = _iwp.IntegratedWienerTransition(
+        num_derivatives=num_derivatives,
+        wiener_process_dimension=wiener_process_dimension,
+    )
+
+    return dummy_integrator.reorder_state(
+        state, current_ordering="coordinate", target_ordering="derivative"
+    )
