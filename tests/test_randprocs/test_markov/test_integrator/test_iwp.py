@@ -246,6 +246,15 @@ def test_iwp_transition_drift_matrix_values():
     np.testing.assert_allclose(F, expected)
 
 
+def test_iwp_transition_force_vector_values():
+    u = randprocs.markov.integrator.IntegratedWienerTransition._iwp_force_vector(
+        num_derivatives=2,
+        wiener_process_dimension=1,
+    )
+    expected = np.array([0.0, 0.0, 0.0])
+    np.testing.assert_allclose(u, expected)
+
+
 class TestIntegratedWienerTransitionValues:
 
     # Replacement for an __init__ in the pytest language. See:
