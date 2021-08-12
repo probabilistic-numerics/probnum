@@ -231,3 +231,12 @@ def test_kronecker_matmul():
     # The result does not have a Kronecker structure
     res = k1 @ k2
     assert not isinstance(res, Kronecker)
+
+
+def test_selection_embedding():
+    sel = get_linop(Selection)
+    emb = get_linop(Embedding)
+
+    product = sel @ emb
+    assert product.shape[0] == sel.shape[0]
+    assert product.shape[1] == emb.shape[1]
