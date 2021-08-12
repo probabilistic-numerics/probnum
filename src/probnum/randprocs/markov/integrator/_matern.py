@@ -130,35 +130,38 @@ class MaternTransition(_integrator.IntegratorMixIn, continuous.LTISDE):
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
         )
+
+        # Aliases for better readability
+        l, n, d = lengthscale, num_derivatives, wiener_process_dimension
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._matern_drift_matrix(l, n, d),
+            force_vector=self._matern_force_vector(n, d),
+            dispersion_matrix=self._matern_dispersion_matrix(n, d),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):
-        drift_matrix = np.diag(np.ones(self.num_derivatives), 1)
-        nu = self.num_derivatives + 0.5
-        D, lam = self.num_derivatives + 1, np.sqrt(2 * nu) / self.lengthscale
+    @staticmethod
+    def _matern_drift_matrix(lengthscale, num_derivatives, wiener_process_dimension):
+        drift_matrix = np.diag(np.ones(num_derivatives), 1)
+        nu = num_derivatives + 0.5
+        D, lam = num_derivatives + 1, np.sqrt(2 * nu) / lengthscale
         drift_matrix[-1, :] = np.array(
             [-scipy.special.binom(D, i) * lam ** (D - i) for i in range(D)]
         )
-        return np.kron(np.eye(self.wiener_process_dimension), drift_matrix)
+        return np.kron(np.eye(wiener_process_dimension), drift_matrix)
 
-    @cached_property
-    def _force_vector(self):
-        force_1d = np.zeros(self.num_derivatives + 1)
-        return np.kron(np.ones(self.wiener_process_dimension), force_1d)
+    @staticmethod
+    def _matern_force_vector(num_derivatives, wiener_process_dimension):
+        force_1d = np.zeros(num_derivatives + 1)
+        return np.kron(np.ones(wiener_process_dimension), force_1d)
 
-    @cached_property
-    def _dispersion_matrix(self):
-        dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
+    @staticmethod
+    def _matern_dispersion_matrix(num_derivatives, wiener_process_dimension):
+        dispersion_matrix_1d = np.zeros(num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
-        return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
+        return np.kron(np.eye(wiener_process_dimension), dispersion_matrix_1d).T
 
     def forward_rv(
         self,

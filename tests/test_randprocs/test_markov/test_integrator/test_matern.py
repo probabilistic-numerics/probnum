@@ -93,3 +93,65 @@ class TestMaternTransition(
 
     def test_wiener_process_dimension(self, test_ndim):
         assert self.transition.wiener_process_dimension == 1
+
+
+def test_matern_transition_drift_matrix_values():
+    F = randprocs.markov.integrator.MaternTransition._matern_drift_matrix(
+        lengthscale=0.1,
+        num_derivatives=2,
+        wiener_process_dimension=1,
+    )
+    l = np.sqrt(5) / 0.1
+    expected = np.array(
+        [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [-(l ** 3), -3 * l ** 2, -3 * l]]
+    )
+    np.testing.assert_allclose(F, expected)
+
+    I = np.eye(3)
+    F = randprocs.markov.integrator.MaternTransition._matern_drift_matrix(
+        lengthscale=0.1,
+        num_derivatives=2,
+        wiener_process_dimension=3,
+    )
+    expected = np.kron(I, expected)
+    np.testing.assert_allclose(F, expected)
+
+
+def test_matern_transition_force_vector_values():
+    u = randprocs.markov.integrator.MaternTransition._matern_force_vector(
+        num_derivatives=2,
+        wiener_process_dimension=1,
+    )
+    expected = np.array([0.0, 0.0, 0.0])
+    np.testing.assert_allclose(u, expected)
+
+    I = np.ones(3)
+    u = randprocs.markov.integrator.MaternTransition._matern_force_vector(
+        num_derivatives=2,
+        wiener_process_dimension=3,
+    )
+    expected = np.kron(I, expected)
+    np.testing.assert_allclose(u, expected)
+
+
+def test_matern_transition_dispersion_matrix_values():
+    L = randprocs.markov.integrator.MaternTransition._matern_dispersion_matrix(
+        num_derivatives=2,
+        wiener_process_dimension=1,
+    )
+    expected = np.array(
+        [
+            [0.0],
+            [0.0],
+            [1.0],
+        ]
+    )
+    np.testing.assert_allclose(L, expected)
+
+    I = np.eye(3)
+    L = randprocs.markov.integrator.MaternTransition._matern_dispersion_matrix(
+        num_derivatives=2,
+        wiener_process_dimension=3,
+    )
+    expected = np.kron(I, expected)
+    np.testing.assert_allclose(L, expected)
