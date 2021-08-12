@@ -163,13 +163,15 @@ class Kronecker(_linear_operator.LinearOperator):
         return np.linalg.cond(self.todense(cache=False), p=p)
 
     def _matmul_kronecker(self, other: "Kronecker") -> "Kronecker":
+        if self.shape[1] != other.shape[0]:
+            raise ValueError(
+                f"matmul received invalid shapes {self.shape} @ {other.shape}"
+            )
+
         _A, _B = self.A, self.B
         _C, _D = other.A, other.B
         if not (_A.shape[1] == _C.shape[0] and _B.shape[1] == _D.shape[0]):
-            raise ValueError(
-                f"Matmul shape mismatch {_A.shape} x {_C.shape} "
-                f"or {_B.shape} x {_D.shape}"
-            )
+            return NotImplemented
 
         # Using (A (x) B) @ (C (x) D) = (A @ C) (x) (B @ D)
         return Kronecker(A=_A @ _C, B=_B @ _D)
@@ -511,13 +513,15 @@ class IdentityKronecker(_linear_operator.LinearOperator):
         return self._num_blocks
 
     def _matmul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
+        if self.shape[1] != other.shape[0]:
+            raise ValueError(
+                f"matmul received invalid shapes {self.shape} @ {other.shape}"
+            )
+
         _A, _B = self.A, self.B
         _C, _D = other.A, other.B
-        if not (_A.shape == _C.shape and _B.shape[1] == _D.shape[0]):
-            raise ValueError(
-                f"Matmul shape mismatch {_A.shape} x {_C.shape} "
-                f"or {_B.shape} x {_D.shape}"
-            )
+        if not (_A.shape[1] == _C.shape[0] and _B.shape[1] == _D.shape[0]):
+            return NotImplemented
 
         # Using (A (x) B) @ (C (x) D) = (A @ C) (x) (B @ D)
         return IdentityKronecker(num_blocks=self._num_blocks, B=_B @ _D)
