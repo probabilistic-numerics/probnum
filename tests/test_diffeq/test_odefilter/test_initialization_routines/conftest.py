@@ -31,8 +31,10 @@ def lotka_volterra_inits(lotka_volterra_testcase_order):
     vals = _known_initial_derivatives.LV_INITS[
         : lv_dim * (lotka_volterra_testcase_order + 1)
     ]
-    return randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
-        vals,
+
+    # We let an IWP reorder the states for us.
+    dummy_integrator = randprocs.markov.integrator.IntegratedWienerTransition(
         num_derivatives=lotka_volterra_testcase_order,
         wiener_process_dimension=lv_dim,
     )
+    return dummy_integrator.reorder_state(vals, "derivative", "coordinate")

@@ -132,34 +132,30 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
             stacked_ode_eval = jnp.concatenate((dx_ravelled, dt))
             return stacked_ode_eval
 
-        def derivs_to_normal_randvar(derivs, num_derivatives_in_prior):
+        def derivatives_to_normal_randvar(derivatives):
             """Finalize the output in terms of creating a suitably sized random
             variable."""
-            all_derivs = (
-                randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
-                    np.asarray(derivs),
-                    num_derivatives=num_derivatives_in_prior,
-                    wiener_process_dimension=ivp.y0.shape[0],
-                )
+            all_derivatives = prior_process.transition.reorder_state(
+                state=np.asarray(derivatives),
+                current_ordering="derivative",
+                target_ordering="coordinate",
             )
 
             # Wrap all inputs through np.asarray, because 'Normal's
             # do not like JAX 'DeviceArray's
             return randvars.Normal(
-                mean=np.asarray(all_derivs),
-                cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
-                cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+                mean=np.asarray(all_derivatives),
+                cov=np.asarray(jnp.diag(jnp.zeros(len(derivatives)))),
+                cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivatives)))),
             )
 
         extended_state = jnp.concatenate((jnp.ravel(ivp.y0), jnp.array([ivp.t0])))
-        derivs = []
+        derivatives = []
 
         # Corner case 1: num_derivatives == 0
-        derivs.extend(ivp.y0)
+        derivatives.extend(ivp.y0)
         if num_derivatives == 0:
-            return derivs_to_normal_randvar(
-                derivs=derivs, num_derivatives_in_prior=num_derivatives
-            )
+            return derivatives_to_normal_randvar(derivatives=derivatives)
 
         # Corner case 2: num_derivatives == 1
         initial_series = (jnp.ones_like(extended_state),)
@@ -168,11 +164,9 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
             primals=(extended_state,),
             series=(initial_series,),
         )
-        derivs.extend(initial_taylor_coefficient[:-1])
+        derivatives.extend(initial_taylor_coefficient[:-1])
         if num_derivatives == 1:
-            return derivs_to_normal_randvar(
-                derivs=derivs, num_derivatives_in_prior=num_derivatives
-            )
+            return derivatives_to_normal_randvar(derivatives=derivatives)
 
         # Order > 1
         for _ in range(1, num_derivatives):
@@ -185,7 +179,5 @@ class TaylorModeInitialization(_initialization_routine.InitializationRoutine):
                 primals=(extended_state,),
                 series=(taylor_coefficients,),
             )
-            derivs.extend(remaining_taylor_coefficents[-2][:-1])
-        return derivs_to_normal_randvar(
-            derivs=derivs, num_derivatives_in_prior=num_derivatives
-        )
+            derivatives.extend(remaining_taylor_coefficents[-2][:-1])
+        return derivatives_to_normal_randvar(derivatives=derivatives)

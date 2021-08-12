@@ -26,14 +26,15 @@ class TestTaylorModeInitialization(
     @_decorators.only_if_jax_available
     def test_call(self, any_order):
         r2b_jax = diffeq_zoo.threebody_jax()
-
-        expected = randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
-            _known_initial_derivatives.THREEBODY_INITS[
-                : r2b_jax.dimension * (any_order + 1)
-            ],
+        # We let an IWP reorder the states for us.
+        dummy_integrator = randprocs.markov.integrator.IntegratedWienerTransition(
             num_derivatives=any_order,
             wiener_process_dimension=r2b_jax.dimension,
         )
+        vals = _known_initial_derivatives.THREEBODY_INITS[
+            : r2b_jax.dimension * (any_order + 1)
+        ]
+        expected = dummy_integrator.reorder_state(vals, "derivative", "coordinate")
 
         prior_process = self._construct_prior_process(
             order=any_order, spatialdim=r2b_jax.dimension, t0=r2b_jax.t0
