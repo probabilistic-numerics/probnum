@@ -267,3 +267,18 @@ def test_lazy_matrix_matrix_matmul_option():
         assert isinstance(inv @ mat2, Matrix)
         assert isinstance(mat1 @ transposed, Matrix)
         assert isinstance(transposed @ mat2, Matrix)
+
+
+def test_equality():
+    scalings = get_linop(Scaling)
+    int_scaling = Scaling(2, shape=(4, 4))
+    for s1, s2 in itertools.product(scalings, _aslist(scalings) + [int_scaling]):
+        if (
+            s1.shape == s2.shape
+            and s1.dtype == s2.dtype
+            and np.all(s1.todense() == s2.todense())
+        ):
+            assert s1 == s2
+
+        else:
+            assert s1 != s2
