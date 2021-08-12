@@ -53,7 +53,7 @@ def get_linop(linop_type):
     elif linop_type is Scaling:
         return (
             Scaling(factors=np.random.rand(4)),
-            Scaling(factors=3.14),
+            Scaling(factors=3.14, shape=(4, 4)),
         )
     elif linop_type is Matrix:
         return Matrix(np.random.rand(4, 4))
