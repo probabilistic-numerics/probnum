@@ -3,12 +3,6 @@ import warnings
 
 import numpy as np
 
-try:
-    # cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 from probnum import randvars
 from probnum.randprocs.markov import _markov_process, continuous
 from probnum.randprocs.markov.integrator import _integrator, _preconditioner
