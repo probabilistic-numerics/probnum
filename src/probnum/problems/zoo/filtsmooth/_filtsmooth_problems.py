@@ -101,14 +101,13 @@ def car_tracking(
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
-    dynamics_model.dispmat *= process_diffusion
 
     discrete_dynamics_model = dynamics_model.discretise(dt=step)
 
     measurement_matrix = np.eye(measurement_dim, model_dim)
     measurement_cov = measurement_variance * np.eye(measurement_dim)
     measurement_cov_cholesky = np.sqrt(measurement_variance) * np.eye(measurement_dim)
-    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=measurement_matrix,
         shift_vec=np.zeros(measurement_dim),
         proc_noise_cov_mat=measurement_cov,
@@ -217,9 +216,8 @@ def ornstein_uhlenbeck(
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
-    dynamics_model.dispmat *= process_diffusion
 
-    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
@@ -355,7 +353,7 @@ def pendulum(
         + np.diag(np.array([step ** 2 / 2]), -1)
     )
 
-    dynamics_model = randprocs.markov.discrete.DiscreteGaussian(
+    dynamics_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=2,
         state_trans_fun=f,
@@ -363,7 +361,7 @@ def pendulum(
         jacob_state_trans_fun=df,
     )
 
-    measurement_model = randprocs.markov.discrete.DiscreteGaussian(
+    measurement_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=1,
         state_trans_fun=h,
@@ -455,16 +453,20 @@ def benes_daum(
     def df(t, x):
         return 1.0 - np.tanh(x) ** 2
 
-    def l(t):
+    def l(t, x):
         return process_diffusion * np.ones((1, 1))
 
     if initrv is None:
         initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
 
     dynamics_model = randprocs.markov.continuous.SDE(
-        dimension=1, driftfun=f, dispmatfun=l, jacobfun=df
+        state_dimension=1,
+        wiener_process_dimension=1,
+        drift_function=f,
+        dispersion_function=l,
+        drift_jacobian=df,
     )
-    measurement_model = randprocs.markov.discrete.DiscreteLTIGaussian(
+    measurement_model = randprocs.markov.discrete.LTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),

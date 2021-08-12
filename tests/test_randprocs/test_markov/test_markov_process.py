@@ -19,8 +19,8 @@ def test_bad_args_shape():
         wiener_process_dimension=spatialdim,
     )
     initrv = randvars.Normal(
-        np.ones(dynamics.dimension),
-        np.eye(dynamics.dimension),
+        np.ones(dynamics.state_dimension),
+        np.eye(dynamics.state_dimension),
     )
     prior_process = randprocs.markov.MarkovProcess(
         initarg=time_domain[0], initrv=initrv, transition=dynamics

@@ -74,10 +74,11 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
         )
         randprocs.markov.continuous.SDE.__init__(
             self,
-            non_linear_model.dimension,
-            non_linear_model.driftfun,
-            non_linear_model.dispmatfun,
-            non_linear_model.jacobfun,
+            state_dimension=non_linear_model.state_dimension,
+            wiener_process_dimension=non_linear_model.wiener_process_dimension,
+            drift_function=non_linear_model.drift_function,
+            dispersion_function=non_linear_model.dispersion_function,
+            drift_jacobian=non_linear_model.drift_jacobian,
         )
         self.mde_atol = mde_atol
         self.mde_rtol = mde_rtol
@@ -146,7 +147,7 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
         raise NotImplementedError("Not available (yet).")
 
 
-class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGaussian):
+class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaussian):
     """Discrete unscented Kalman filter transition."""
 
     def __init__(
@@ -164,7 +165,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
             special_scale=special_scale,
         )
 
-        randprocs.markov.discrete.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -217,7 +218,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
         **kwargs
     ):
 
-        # this method is inherited from DiscreteGaussian.
+        # this method is inherited from NonlinearGaussian.
         return self._backward_rv_classic(
             rv_obtained,
             rv,
@@ -240,7 +241,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.DiscreteGauss
         **kwargs
     ):
 
-        # this method is inherited from DiscreteGaussian.
+        # this method is inherited from NonlinearGaussian.
         return self._backward_realization_via_backward_rv(
             realization_obtained,
             rv,
