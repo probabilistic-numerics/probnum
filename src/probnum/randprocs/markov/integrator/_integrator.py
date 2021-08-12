@@ -68,6 +68,38 @@ class IntegratorMixIn:
         )
         return selection_matrix
 
+    def reorder_state(self, state, current_ordering, target_ordering):
+        """Change e.g. coordinate-wise ordering to derivative-wise ordering."""
+        reorder_function = {
+            (
+                "coordinate",
+                "derivative",
+            ): self._reorder_state_from_coordinate_to_derivative,
+            (
+                "derivative",
+                "coordinate",
+            ): self._reorder_state_from_derivative_to_coordinate,
+        }
+        try:
+            return reorder_function[(current_ordering, target_ordering)](state=state)
+        except KeyError:
+            msg1 = "Reordering is not supported for given keys"
+            msg2 = f" '{current_ordering}' and '{target_ordering}'. "
+            msg3 = "Only combinations of 'derivative' and 'coordinate' are supported."
+            raise ValueError(msg1 + msg2 + msg3)
+
+    def _reorder_state_from_derivative_to_coordinate(self, state):
+        d, dim = self.wiener_process_dimension, self.state_dimension
+        stride = lambda i: np.arange(start=i, stop=dim, step=d).reshape((-1, 1))
+        indices = np.vstack([stride(i) for i in range(d)])[:, 0]
+        return state[indices]
+
+    def _reorder_state_from_coordinate_to_derivative(self, state):
+        n, dim = self.num_derivatives, self.state_dimension
+        stride = lambda i: np.arange(start=i, stop=dim, step=(n + 1)).reshape((-1, 1))
+        indices = np.vstack([stride(i) for i in range(n + 1)])[:, 0]
+        return state[indices]
+
     @property
     def _derivwise2coordwise_projmat(self) -> np.ndarray:
         r"""Projection matrix to change the ordering of the state representation in an :class:`Integrator` from coordinate-wise to derivative-wise representation.

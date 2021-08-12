@@ -53,8 +53,9 @@ def test_only_coordinate_ordering_valid():
 def test_select_derivative_from_coordinate_ordering():
     """Extract the :math:`i`th derivative from a state."""
 
-    transition = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
-        driftspeed=0.1, num_derivatives=1, wiener_process_dimension=3
+    # Dummy transition that uses the Mixin
+    transition = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=1, wiener_process_dimension=3
     )
     state_in_coordinate_ordering = np.array(["y1", "dy1", "y2", "dy2", "y3", "dy3"])
 
@@ -80,10 +81,10 @@ def test_select_derivative_from_coordinate_ordering():
 def test_derivative_selection_operator_from_coordinate_ordering():
     """Extract the :math:`i`th derivative from a state."""
 
-    transition = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
-        driftspeed=0.1, num_derivatives=1, wiener_process_dimension=3
+    # Dummy transition that uses the Mixin
+    transition = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=1, wiener_process_dimension=3
     )
-    state_in_coordinate_ordering = np.array(["y1", "dy1", "y2", "dy2", "y3", "dy3"])
 
     # sanity check for different orderings, refactor this test.
     assert transition.state_ordering == "coordinate"
@@ -109,3 +110,30 @@ def test_derivative_selection_operator_from_coordinate_ordering():
         ]
     )
     np.testing.assert_allclose(received2, expected2)
+
+
+def test_reorder_states():
+    arr = np.array(["y1", "y2", "y3", "dy1", "dy2", "dy3"])
+
+    # Dummy transition that uses the IntegratorMixIn
+    transition = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=1, wiener_process_dimension=3
+    )
+
+    new_arr = transition.reorder_state(
+        arr, current_ordering="derivative", target_ordering="coordinate"
+    )
+    expected = np.array(["y1", "dy1", "y2", "dy2", "y3", "dy3"])
+    for r, e in zip(new_arr, expected):
+        assert r == e
+
+    old_arr = transition.reorder_state(
+        new_arr, current_ordering="coordinate", target_ordering="derivative"
+    )
+    for r, e in zip(old_arr, arr):
+        assert r == e
+
+    with pytest.raises(ValueError):
+        transition.reorder_state(
+            arr, current_ordering="derivative", target_ordering="something"
+        )
