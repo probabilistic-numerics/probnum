@@ -34,3 +34,6 @@ class IntegratorMixInTestMixIn:
             self.transition.precon,
             randprocs.markov.integrator.NordsieckLikeCoordinates,
         )
+
+    def test_state_ordering(self):
+        assert self.transition.state_ordering in ["coordinate", "derivative"]

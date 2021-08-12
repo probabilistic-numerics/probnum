@@ -99,6 +99,9 @@ class TestIntegratedOrnsteinUhlenbeckProcessTransition(
     def test_wiener_process_dimension(self, test_ndim):
         assert self.transition.wiener_process_dimension == 1
 
+    def test_state_ordering_default(self):
+        assert self.transition.state_ordering == "coordinate"
+
 
 def test_ioup_transition_drift_matrix_values():
     F = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition._ioup_drift_matrix(

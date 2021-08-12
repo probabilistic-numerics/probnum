@@ -102,6 +102,9 @@ class TestIntegratedWienerTransition(
         out = self.transition.discretise(dt=0.1)
         assert isinstance(out, randprocs.markov.discrete.LTIGaussian)
 
+    def test_state_ordering_default(self):
+        assert self.transition.state_ordering == "coordinate"
+
 
 class TestIBMLinOps(
     test_lti_sde.TestLTISDE, integrator_test_mixin.IntegratorMixInTestMixIn

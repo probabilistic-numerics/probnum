@@ -138,6 +138,7 @@ class IntegratedOrnsteinUhlenbeckTransition(
         _integrator.IntegratorMixIn.__init__(
             self,
             num_derivatives=num_derivatives,
+            state_ordering="coordinate",
         )
 
     @staticmethod
