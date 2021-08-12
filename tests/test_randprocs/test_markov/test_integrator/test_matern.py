@@ -6,7 +6,7 @@ import pytest
 
 from probnum import randprocs, randvars
 from tests.test_randprocs.test_markov.test_continuous import test_lti_sde
-from tests.test_randprocs.test_markov.test_integrator import test_integrator
+from tests.test_randprocs.test_markov.test_integrator import integrator_test_mixin
 
 
 @pytest.mark.parametrize("lengthscale", [-2.0, 2.0])
@@ -53,7 +53,7 @@ def test_matern_construction(
 
 
 class TestMaternTransition(
-    test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTransition
+    test_lti_sde.TestLTISDE, integrator_test_mixin.IntegratorMixInTestMixIn
 ):
 
     # Replacement for an __init__ in the pytest language. See:

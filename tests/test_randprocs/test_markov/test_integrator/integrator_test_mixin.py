@@ -5,7 +5,7 @@ from probnum import randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
 
 
-class TestIntegratorTransition:
+class IntegratorMixInTestMixIn:
     """An integrator should be usable as is, but its tests are also useful for
     IntegratedWienerTransition(, IntegratedOrnsteinUhlenbeckProcessTransition, etc."""
 
