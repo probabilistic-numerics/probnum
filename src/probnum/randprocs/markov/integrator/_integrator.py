@@ -70,23 +70,28 @@ class IntegratorMixIn:
 
     def reorder_state(self, state, current_ordering, target_ordering):
         """Change e.g. coordinate-wise ordering to derivative-wise ordering."""
-        reorder_function = {
-            (
-                "coordinate",
-                "derivative",
-            ): self._reorder_state_from_coordinate_to_derivative,
-            (
-                "derivative",
-                "coordinate",
-            ): self._reorder_state_from_derivative_to_coordinate,
-        }
-        try:
-            return reorder_function[(current_ordering, target_ordering)](state=state)
-        except KeyError:
+
+        # Check for admissibility of inputs
+        supported_orders = ["derivative", "coordinate"]
+        current_ok = current_ordering in supported_orders
+        target_ok = target_ordering in supported_orders
+        if not current_ok or not target_ok:
             msg1 = "Reordering is not supported for given keys"
             msg2 = f" '{current_ordering}' and '{target_ordering}'. "
             msg3 = "Only combinations of 'derivative' and 'coordinate' are supported."
             raise ValueError(msg1 + msg2 + msg3)
+
+        # Early exit if no reordering is to be done
+        if current_ordering == target_ordering:
+            return state
+
+        if current_ordering == "coordinate":
+            assert target_ordering == "derivative"
+            return self._reorder_state_from_coordinate_to_derivative(state=state)
+
+        assert current_ordering == "derivative"
+        assert target_ordering == "coordinate"
+        return self._reorder_state_from_derivative_to_coordinate(state=state)
 
     def _reorder_state_from_derivative_to_coordinate(self, state):
         d, dim = self.wiener_process_dimension, self.state_dimension

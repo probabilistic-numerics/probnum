@@ -137,3 +137,19 @@ def test_reorder_states():
         transition.reorder_state(
             arr, current_ordering="derivative", target_ordering="something"
         )
+
+
+def test_reorder_states_identity():
+    arr = np.array(["y1", "y2", "y3", "dy1", "dy2", "dy3"])
+
+    # Dummy transition that uses the IntegratorMixIn
+    transition = randprocs.markov.integrator.IntegratedWienerTransition(
+        num_derivatives=1, wiener_process_dimension=3
+    )
+
+    for ordering in ["derivative", "coordinate"]:
+        new_arr = transition.reorder_state(
+            arr, current_ordering=ordering, target_ordering=ordering
+        )
+        for r, e in zip(new_arr, arr):
+            assert r == e
