@@ -24,6 +24,9 @@ class IntegratorMixIn:
 
     def __init__(self, num_derivatives, state_ordering="coordinate"):
 
+        if state_ordering != "coordinate":
+            raise ValueError("ProbNum only supports coordinate-wise ordering")
+
         self._num_derivatives = num_derivatives
         self._precon = _preconditioner.NordsieckLikeCoordinates.from_order(
             num_derivatives, self.wiener_process_dimension
@@ -43,6 +46,8 @@ class IntegratorMixIn:
         return self._precon
 
     def select_derivative(self, state, derivative):
+
+        # Once we allow changed orderings, extend this functionality here.
         assert self.state_ordering == "coordinate"
 
         derivative_indices = np.arange(
@@ -51,7 +56,15 @@ class IntegratorMixIn:
         return np.take(state, indices=derivative_indices)
 
     def derivative_selection_operator(self, derivative):
-        return self.proj2coord(coord=derivative)
+
+        selection_unit_vector = np.eye(self.num_derivatives + 1)[:, derivative]
+        selection_unit_vector_as_matrix = selection_unit_vector.reshape(
+            (1, self.num_derivatives + 1)
+        )
+        selection_matrix = np.kron(
+            np.eye(self.wiener_process_dimension), selection_unit_vector_as_matrix
+        )
+        return selection_matrix
 
     def proj2coord(self, coord: int) -> np.ndarray:
         """Projection matrix to :math:`i` th coordinates.
@@ -76,6 +89,7 @@ class IntegratorMixIn:
         np.ndarray, shape=(d, d*(q+1))
             Projection matrix :math:`H_i`.
         """
+        raise RuntimeError
         projvec1d = np.eye(self.num_derivatives + 1)[:, coord]
         projmat1d = projvec1d.reshape((1, self.num_derivatives + 1))
         projmat = np.kron(np.eye(self.wiener_process_dimension), projmat1d)

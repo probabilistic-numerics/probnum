@@ -6,7 +6,7 @@ import pytest
 from probnum import config, randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
 from tests.test_randprocs.test_markov.test_continuous import test_lti_sde
-from tests.test_randprocs.test_markov.test_integrator import integrator_test_mixin
+from tests.test_randprocs.test_markov.test_integrator import test_integrator_mixin
 
 
 @pytest.mark.parametrize("initarg", [0.0, 2.0])
@@ -50,7 +50,7 @@ def test_iwp_construction(
 
 
 class TestIntegratedWienerTransition(
-    test_lti_sde.TestLTISDE, integrator_test_mixin.IntegratorMixInTestMixIn
+    test_lti_sde.TestLTISDE, test_integrator_mixin.IntegratorMixInTestMixIn
 ):
 
     # Replacement for an __init__ in the pytest language. See:
@@ -107,7 +107,7 @@ class TestIntegratedWienerTransition(
 
 
 class TestIBMLinOps(
-    test_lti_sde.TestLTISDE, integrator_test_mixin.IntegratorMixInTestMixIn
+    test_lti_sde.TestLTISDE, test_integrator_mixin.IntegratorMixInTestMixIn
 ):
 
     # Replacement for an __init__ in the pytest language. See:
