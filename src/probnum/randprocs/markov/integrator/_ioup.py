@@ -130,31 +130,32 @@ class IntegratedOrnsteinUhlenbeckTransition(
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
         )
+        s, n, d = driftspeed, num_derivatives, wiener_process_dimension
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._ioup_drift_matrix(s, n, d),
+            force_vector=self._ioup_force_vector(n, d),
+            dispersion_matrix=self._ioup_dispersion_matrix(n, d),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):
-        drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
-        drift_matrix_1d[-1, -1] = -self.driftspeed
-        return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
+    @staticmethod
+    def _ioup_drift_matrix(driftspeed, num_derivatives, wiener_process_dimension):
+        drift_matrix_1d = np.diag(np.ones(num_derivatives), 1)
+        drift_matrix_1d[-1, -1] = -driftspeed
+        return np.kron(np.eye(wiener_process_dimension), drift_matrix_1d)
 
-    @cached_property
-    def _force_vector(self):
-        force_1d = np.zeros(self.num_derivatives + 1)
-        return np.kron(np.ones(self.wiener_process_dimension), force_1d)
+    @staticmethod
+    def _ioup_force_vector(num_derivatives, wiener_process_dimension):
+        force_1d = np.zeros(num_derivatives + 1)
+        return np.kron(np.ones(wiener_process_dimension), force_1d)
 
-    @cached_property
-    def _dispersion_matrix(self):
-        dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
+    @staticmethod
+    def _ioup_dispersion_matrix(num_derivatives, wiener_process_dimension):
+        dispersion_matrix_1d = np.zeros(num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit Diffusion
-        return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
+        return np.kron(np.eye(wiener_process_dimension), dispersion_matrix_1d).T
 
     def forward_rv(
         self,
