@@ -132,7 +132,7 @@ class IntegratedWienerTransition(_integrator.IntegratorMixIn, continuous.LTISDE)
             self,
             drift_matrix=self._iwp_drift_matrix(n, d),
             force_vector=self._iwp_force_vector(n, d),
-            dispersion_matrix=self._dispersion_matrix,
+            dispersion_matrix=self._iwp_dispersion_matrix(n, d),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
@@ -151,17 +151,17 @@ class IntegratedWienerTransition(_integrator.IntegratorMixIn, continuous.LTISDE)
     def _iwp_force_vector(num_derivatives, wiener_process_dimension):
         return np.zeros((wiener_process_dimension * (num_derivatives + 1)))
 
-    @cached_property
-    def _dispersion_matrix(self):
-        dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
+    @staticmethod
+    def _iwp_dispersion_matrix(num_derivatives, wiener_process_dimension):
+        dispersion_matrix_1d = np.zeros(num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
         if config.lazy_linalg:
             return linops.Kronecker(
-                A=linops.Identity(self.wiener_process_dimension),
+                A=linops.Identity(wiener_process_dimension),
                 B=linops.Matrix(A=dispersion_matrix_1d.reshape(-1, 1)),
             )
-        return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
+        return np.kron(np.eye(wiener_process_dimension), dispersion_matrix_1d).T
 
     @cached_property
     def equivalent_discretisation_preconditioned(self):
