@@ -5,6 +5,7 @@ import itertools
 import numpy as np
 import pytest
 
+from probnum import config
 from probnum.linops._arithmetic import _add_fns, _matmul_fns, _mul_fns, _sub_fns
 from probnum.linops._arithmetic_fallbacks import (
     NegatedLinearOperator,
@@ -240,3 +241,24 @@ def test_selection_embedding():
     product = sel @ emb
     assert product.shape[0] == sel.shape[0]
     assert product.shape[1] == emb.shape[1]
+
+
+def test_lazy_matrix_matrix_matmul_option():
+    mat1 = get_linop(Matrix)[0]
+    mat2 = get_linop(Matrix)[0]
+    inv = get_linop(_InverseLinearOperator)
+    transposed = get_linop(TransposedLinearOperator)
+
+    with config(lazy_matrix_matrix_matmul=False):
+        assert isinstance(mat1 @ mat2, ProductLinearOperator)
+        assert isinstance(mat1 @ inv, ProductLinearOperator)
+        assert isinstance(inv @ mat2, ProductLinearOperator)
+        assert isinstance(mat1 @ transposed, ProductLinearOperator)
+        assert isinstance(transposed @ mat2, ProductLinearOperator)
+
+    with config(lazy_matrix_matrix_matmul=True):
+        assert isinstance(mat1 @ mat2, Matrix)
+        assert isinstance(mat1 @ inv, Matrix)
+        assert isinstance(inv @ mat2, Matrix)
+        assert isinstance(mat1 @ transposed, Matrix)
+        assert isinstance(transposed @ mat2, Matrix)

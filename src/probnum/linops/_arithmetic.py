@@ -269,20 +269,26 @@ _add_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A + mat2.A)
 _sub_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A - mat2.A)
 
 
-def _matmul_matrix_inverse(mat: Matrix, inverse: _InverseLinearOperator) -> Matrix:
+def _matmul_matrix_wrapped(
+    mat: Matrix, wrapped: Union[_InverseLinearOperator, TransposedLinearOperator]
+) -> Union[Matrix, NotImplementedType]:
     if config.lazy_matrix_matrix_matmul:
-        return Matrix(mat.A @ inverse)
+        return Matrix(mat.A @ wrapped)
     return NotImplemented
 
 
-def _matmul_inverse_matrix(inverse: _InverseLinearOperator, mat: Matrix) -> Matrix:
+def _matmul_wrapped_matrix(
+    wrapped: Union[_InverseLinearOperator, TransposedLinearOperator], mat: Matrix
+) -> Union[Matrix, NotImplementedType]:
     if config.lazy_matrix_matrix_matmul:
-        return Matrix(mat.A @ inverse)
+        return Matrix(wrapped @ mat.A)
     return NotImplemented
 
 
-_matmul_fns[(Matrix, _InverseLinearOperator)] = _matmul_matrix_inverse
-_matmul_fns[(_InverseLinearOperator, Matrix)] = _matmul_inverse_matrix
+_matmul_fns[(Matrix, _InverseLinearOperator)] = _matmul_matrix_wrapped
+_matmul_fns[(_InverseLinearOperator, Matrix)] = _matmul_wrapped_matrix
+_matmul_fns[(Matrix, TransposedLinearOperator)] = _matmul_matrix_wrapped
+_matmul_fns[(TransposedLinearOperator, Matrix)] = _matmul_wrapped_matrix
 
 
 # Identity
