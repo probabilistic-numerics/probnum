@@ -125,11 +125,12 @@ class IntegratedWienerTransition(_integrator.IntegratorMixIn, continuous.LTISDE)
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,
         )
+
+        # aliases for easier readability below
+        n, d = num_derivatives, wiener_process_dimension
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._iwp_drift_matrix(
-                num_derivatives, wiener_process_dimension
-            ),
+            drift_matrix=self._iwp_drift_matrix(n, d),
             force_vector=self._force_vector,
             dispersion_matrix=self._dispersion_matrix,
             forward_implementation=forward_implementation,
