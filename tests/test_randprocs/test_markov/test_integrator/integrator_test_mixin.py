@@ -6,8 +6,14 @@ from probnum.problems.zoo import linalg as linalg_zoo
 
 
 class IntegratorMixInTestMixIn:
-    """An integrator should be usable as is, but its tests are also useful for
-    IntegratedWienerTransition(, IntegratedOrnsteinUhlenbeckProcessTransition, etc."""
+    def test_uses_mixin(self):
+        assert isinstance(self.transition, randprocs.markov.integrator.IntegratorMixIn)
+
+    def test_num_derivatives(self):
+
+        # Check for > 0, because we do not know how many the test cases generate.
+        # If this property does not exist, however, this test will fail.
+        assert self.transition.num_derivatives > 0
 
     def test_proj2coord(self):
         base = np.zeros(self.transition.num_derivatives + 1)
