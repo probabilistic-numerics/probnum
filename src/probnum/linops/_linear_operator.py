@@ -1199,14 +1199,13 @@ class Embedding(LinearOperator):
         )
 
     def _todense(self):
-        res = np.eye(self.shape[1], self.shape[1])
-        return _embedding_matmul(self, res)
+        return self.T.todense().T
 
 
 def _embedding_matmul(embedding, M):
     res_shape = np.array(M.shape)
     res_shape[-2] = embedding.shape[0]
     res = np.full(shape=tuple(res_shape), fill_value=embedding._fill_value)
-    take_from_M = M[..., np.array(embedding._put_indices), :]
+    take_from_M = M[..., np.array(embedding._take_indices), :]
     res[..., np.array(embedding._put_indices), :] = take_from_M
     return res
