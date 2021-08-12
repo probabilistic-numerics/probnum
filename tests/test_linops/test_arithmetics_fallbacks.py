@@ -3,11 +3,8 @@
 import numpy as np
 import pytest
 
-from probnum.linops._arithmetic_fallbacks import (
-    NegatedLinearOperator,
-    ProductLinearOperator,
+from probnum.linops._arithmetic_fallbacks import (  # NegatedLinearOperator,; ProductLinearOperator,; SumLinearOperator,
     ScaledLinearOperator,
-    SumLinearOperator,
 )
 from probnum.linops._linear_operator import Matrix
 from probnum.problems.zoo.linalg import random_spd_matrix

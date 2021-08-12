@@ -1,4 +1,5 @@
 """Tests for linear operator arithmetics."""
+# pylint: disable=consider-iterating-dictionary
 
 import itertools
 
