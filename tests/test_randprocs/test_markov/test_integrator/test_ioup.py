@@ -160,3 +160,65 @@ def test_ioup_transition_dispersion_matrix_values():
     )
     expected = np.kron(I, expected)
     np.testing.assert_allclose(L, expected)
+
+
+# Test for the extraction method in the IntegratorMixIn
+def test_select_derivative_from_coordinate_ordering():
+    """Extract the :math:`i`th derivative from a state."""
+
+    transition = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
+        driftspeed=0.1, num_derivatives=1, wiener_process_dimension=3
+    )
+    state_in_coordinate_ordering = np.array(["y1", "dy1", "y2", "dy2", "y3", "dy3"])
+
+    # sanity check for different orderings, refactor this test.
+    assert transition.state_ordering == "coordinate"
+
+    received1 = transition.select_derivative(
+        state=state_in_coordinate_ordering, derivative=0
+    )
+    expected1 = np.array(["y1", "y2", "y3"])
+
+    for r, e in zip(received1, expected1):
+        assert r == e
+
+    received2 = transition.select_derivative(
+        state=state_in_coordinate_ordering, derivative=1
+    )
+    expected2 = ["dy1", "dy2", "dy3"]
+    for r, e in zip(received2, expected2):
+        assert r == e
+
+
+def test_derivative_selection_operator_from_coordinate_ordering():
+    """Extract the :math:`i`th derivative from a state."""
+
+    transition = randprocs.markov.integrator.IntegratedOrnsteinUhlenbeckTransition(
+        driftspeed=0.1, num_derivatives=1, wiener_process_dimension=3
+    )
+    state_in_coordinate_ordering = np.array(["y1", "dy1", "y2", "dy2", "y3", "dy3"])
+
+    # sanity check for different orderings, refactor this test.
+    assert transition.state_ordering == "coordinate"
+
+    received1 = transition.derivative_selection_operator(derivative=0)
+    assert isinstance(received1, np.ndarray)
+    expected1 = np.array(
+        [
+            [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+        ]
+    )
+    np.testing.assert_allclose(received1, expected1)
+
+    received2 = transition.derivative_selection_operator(derivative=1)
+    assert isinstance(received2, np.ndarray)
+    expected2 = np.array(
+        [
+            [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+        ]
+    )
+    np.testing.assert_allclose(received2, expected2)

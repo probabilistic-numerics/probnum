@@ -42,6 +42,17 @@ class IntegratorMixIn:
     def precon(self):
         return self._precon
 
+    def select_derivative(self, state, derivative):
+        assert self.state_ordering == "coordinate"
+
+        derivative_indices = np.arange(
+            start=derivative, stop=self.state_dimension, step=(self.num_derivatives + 1)
+        )
+        return np.take(state, indices=derivative_indices)
+
+    def derivative_selection_operator(self, derivative):
+        return self.proj2coord(coord=derivative)
+
     def proj2coord(self, coord: int) -> np.ndarray:
         """Projection matrix to :math:`i` th coordinates.
 
