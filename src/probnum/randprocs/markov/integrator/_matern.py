@@ -111,7 +111,7 @@ class MaternProcess(_markov_process.MarkovProcess):
         super().__init__(transition=matern_transition, initrv=initrv, initarg=initarg)
 
 
-class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
+class MaternTransition(_integrator.IntegratorMixIn, continuous.LTISDE):
     """Matern process in :math:`d` dimensions."""
 
     def __init__(
@@ -125,7 +125,7 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
 
         self.lengthscale = lengthscale
 
-        _integrator.IntegratorTransition.__init__(
+        _integrator.IntegratorMixIn.__init__(
             self,
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,

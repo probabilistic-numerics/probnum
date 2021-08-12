@@ -111,7 +111,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
 
 
 class IntegratedOrnsteinUhlenbeckTransition(
-    _integrator.IntegratorTransition, continuous.LTISDE
+    _integrator.IntegratorMixIn, continuous.LTISDE
 ):
     """Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions."""
 
@@ -125,7 +125,7 @@ class IntegratedOrnsteinUhlenbeckTransition(
     ):
         self.driftspeed = driftspeed
 
-        _integrator.IntegratorTransition.__init__(
+        _integrator.IntegratorMixIn.__init__(
             self,
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,

@@ -108,7 +108,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
 
 
-class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LTISDE):
+class IntegratedWienerTransition(_integrator.IntegratorMixIn, continuous.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
     def __init__(
@@ -120,7 +120,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
     ):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
-        _integrator.IntegratorTransition.__init__(
+        _integrator.IntegratorMixIn.__init__(
             self,
             num_derivatives=num_derivatives,
             wiener_process_dimension=wiener_process_dimension,

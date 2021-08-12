@@ -22,7 +22,7 @@ def convert_derivwise_to_coordwise(
     wiener_process_dimension:
         Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
     """
-    projmat = _integrator.IntegratorTransition(
+    projmat = _integrator.IntegratorMixIn(
         num_derivatives, wiener_process_dimension
     )._derivwise2coordwise_projmat
     return projmat @ state
@@ -44,7 +44,7 @@ def convert_coordwise_to_derivwise(
     wiener_process_dimension:
         Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
     """
-    projmat = _integrator.IntegratorTransition(
+    projmat = _integrator.IntegratorMixIn(
         num_derivatives, wiener_process_dimension
     )._coordwise2derivwise_projmat
     return projmat @ state

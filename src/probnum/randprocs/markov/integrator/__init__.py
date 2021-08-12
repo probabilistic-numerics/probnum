@@ -1,7 +1,7 @@
 """Transitions for integrated systems (e.g. integrated Wiener processes)."""
 
 from . import convert
-from ._integrator import IntegratorTransition
+from ._integrator import IntegratorMixIn
 from ._ioup import (
     IntegratedOrnsteinUhlenbeckProcess,
     IntegratedOrnsteinUhlenbeckTransition,
@@ -11,7 +11,7 @@ from ._matern import MaternProcess, MaternTransition
 from ._preconditioner import NordsieckLikeCoordinates, Preconditioner
 
 __all__ = [
-    "IntegratorTransition",
+    "IntegratorMixIn",
     "IntegratedWienerProcess",
     "IntegratedWienerTransition",
     "IntegratedOrnsteinUhlenbeckProcess",
@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-IntegratorTransition.__module__ = "probnum.randprocs.markov.integrator"
+IntegratorMixIn.__module__ = "probnum.randprocs.markov.integrator"
 IntegratedWienerProcess.__module__ = "probnum.randprocs.markov.integrator"
 IntegratedWienerTransition.__module__ = "probnum.randprocs.markov.integrator"
 IntegratedOrnsteinUhlenbeckProcess.__module__ = "probnum.randprocs.markov.integrator"

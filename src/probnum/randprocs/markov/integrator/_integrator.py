@@ -4,18 +4,22 @@ import numpy as np
 
 from probnum.randprocs.markov.integrator import _preconditioner
 
-__all__ = ["IntegratorTransition"]
+__all__ = ["IntegratorMixIn"]
 
 
-class IntegratorTransition:
-    r"""Transitions for integrator processes.
+class IntegratorMixIn:
+    r"""MixIn for integrators: joint models of a state and a number of its derivatives.
 
     An integrator is a special kind of random process
     that models a stack of a state and its first :math:`\nu` time-derivatives.
     For instances, this includes integrated Wiener processes or Matern processes.
 
     In ProbNum, integrators are always driven by :math:`d` dimensional Wiener processes.
-    We compute the transitions usually in a preconditioned state (Nordsieck-like coordinates).
+
+    The present MixIn provides the following additional functionality:
+        * Projection to the coordinate of interest (the zeroth derivative)
+        * Availability of preconditioning
+        * Reordering of states: derivative-wise to coordinate-wise
     """
 
     def __init__(self, num_derivatives, wiener_process_dimension):
