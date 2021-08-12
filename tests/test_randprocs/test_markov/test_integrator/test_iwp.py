@@ -245,6 +245,14 @@ def test_iwp_transition_drift_matrix_values():
     expected = np.array([[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 0.0]])
     np.testing.assert_allclose(F, expected)
 
+    I = np.eye(3)
+    F = randprocs.markov.integrator.IntegratedWienerTransition._iwp_drift_matrix(
+        num_derivatives=2,
+        wiener_process_dimension=3,
+    )
+    expected = np.kron(I, expected)
+    np.testing.assert_allclose(F, expected)
+
 
 def test_iwp_transition_force_vector_values():
     u = randprocs.markov.integrator.IntegratedWienerTransition._iwp_force_vector(
@@ -252,6 +260,14 @@ def test_iwp_transition_force_vector_values():
         wiener_process_dimension=1,
     )
     expected = np.array([0.0, 0.0, 0.0])
+    np.testing.assert_allclose(u, expected)
+
+    I = np.ones(3)
+    u = randprocs.markov.integrator.IntegratedWienerTransition._iwp_force_vector(
+        num_derivatives=2,
+        wiener_process_dimension=3,
+    )
+    expected = np.kron(I, expected)
     np.testing.assert_allclose(u, expected)
 
 
@@ -267,6 +283,14 @@ def test_iwp_transition_dispersion_matrix_values():
             [1.0],
         ]
     )
+    np.testing.assert_allclose(L, expected)
+
+    I = np.eye(3)
+    L = randprocs.markov.integrator.IntegratedWienerTransition._iwp_dispersion_matrix(
+        num_derivatives=2,
+        wiener_process_dimension=3,
+    )
+    expected = np.kron(I, expected)
     np.testing.assert_allclose(L, expected)
 
 
