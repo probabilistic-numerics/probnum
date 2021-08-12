@@ -238,11 +238,10 @@ def normal_rv3x3(spdmat3x3):
 
 
 def test_iwp_transition_drift_matrix_values():
-    iwp = randprocs.markov.integrator.IntegratedWienerTransition(
+    F = randprocs.markov.integrator.IntegratedWienerTransition._iwp_drift_matrix(
         num_derivatives=2,
         wiener_process_dimension=1,
     )
-    F = iwp._iwp_drift_matrix()
     expected = np.array([[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 0.0]])
     np.testing.assert_allclose(F, expected)
 

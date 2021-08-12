@@ -127,21 +127,24 @@ class IntegratedWienerTransition(_integrator.IntegratorMixIn, continuous.LTISDE)
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._iwp_drift_matrix(),
+            drift_matrix=self._iwp_drift_matrix(
+                num_derivatives, wiener_process_dimension
+            ),
             force_vector=self._force_vector,
             dispersion_matrix=self._dispersion_matrix,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    def _iwp_drift_matrix(self):
-        drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
+    @staticmethod
+    def _iwp_drift_matrix(num_derivatives, wiener_process_dimension):
+        drift_matrix_1d = np.diag(np.ones(num_derivatives), 1)
         if config.lazy_linalg:
             return linops.Kronecker(
-                A=linops.Identity(self.wiener_process_dimension),
+                A=linops.Identity(wiener_process_dimension),
                 B=linops.Matrix(A=drift_matrix_1d),
             )
-        return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
+        return np.kron(np.eye(wiener_process_dimension), drift_matrix_1d)
 
     @cached_property
     def _force_vector(self):
