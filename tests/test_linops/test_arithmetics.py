@@ -239,6 +239,21 @@ def test_kronecker_matmul():
     assert not isinstance(res, Kronecker)
 
 
+def test_idkronecker_matmul():
+    # Checks the case in which the shapes of the Kronecker-structured matrices
+    # are valid in itself but the respective Kronecker factors (k1.A @ k2.A and/or
+    # k1.B @ k2.B) have invalid shapes for matmul.
+    k1 = IdentityKronecker(4, np.random.rand(2, 3))  # (8, 12)
+    k2 = IdentityKronecker(2, np.random.rand(6, 2))  # (12, 4)
+
+    # Even though the shapes fit, and IdentityKronecker @ IdentityKronecker = IdentityKronecker ....
+    assert k1.shape[1] == k2.shape[0]
+
+    # The result does not have a IdentityKronecker structure
+    res = k1 @ k2
+    assert not isinstance(res, IdentityKronecker)
+
+
 def test_selection_embedding():
     sel = get_linop(Selection)
     emb = get_linop(Embedding)

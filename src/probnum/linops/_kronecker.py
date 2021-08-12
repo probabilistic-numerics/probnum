@@ -6,7 +6,6 @@ import numpy as np
 from probnum.typing import DTypeArgType, NotImplementedType
 
 from . import _linear_operator, _utils
-from ._scaling import Scaling
 
 
 class Symmetrize(_linear_operator.LinearOperator):
