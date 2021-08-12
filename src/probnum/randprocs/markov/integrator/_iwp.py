@@ -118,13 +118,6 @@ class IntegratedWienerTransition(_integrator.IntegratorMixIn, continuous.LTISDE)
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        # initialise BOTH superclasses' inits.
-        # I don't like it either, but it does the job.
-        _integrator.IntegratorMixIn.__init__(
-            self,
-            num_derivatives=num_derivatives,
-            wiener_process_dimension=wiener_process_dimension,
-        )
 
         # aliases for easier readability below
         n, d = num_derivatives, wiener_process_dimension
@@ -135,6 +128,11 @@ class IntegratedWienerTransition(_integrator.IntegratorMixIn, continuous.LTISDE)
             dispersion_matrix=self._iwp_dispersion_matrix(n, d),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
+        )
+
+        _integrator.IntegratorMixIn.__init__(
+            self,
+            num_derivatives=num_derivatives,
         )
 
     @staticmethod

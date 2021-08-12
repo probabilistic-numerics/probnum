@@ -125,11 +125,6 @@ class IntegratedOrnsteinUhlenbeckTransition(
     ):
         self.driftspeed = driftspeed
 
-        _integrator.IntegratorMixIn.__init__(
-            self,
-            num_derivatives=num_derivatives,
-            wiener_process_dimension=wiener_process_dimension,
-        )
         s, n, d = driftspeed, num_derivatives, wiener_process_dimension
         continuous.LTISDE.__init__(
             self,
@@ -138,6 +133,11 @@ class IntegratedOrnsteinUhlenbeckTransition(
             dispersion_matrix=self._ioup_dispersion_matrix(n, d),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
+        )
+
+        _integrator.IntegratorMixIn.__init__(
+            self,
+            num_derivatives=num_derivatives,
         )
 
     @staticmethod

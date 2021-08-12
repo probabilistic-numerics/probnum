@@ -125,12 +125,6 @@ class MaternTransition(_integrator.IntegratorMixIn, continuous.LTISDE):
 
         self.lengthscale = lengthscale
 
-        _integrator.IntegratorMixIn.__init__(
-            self,
-            num_derivatives=num_derivatives,
-            wiener_process_dimension=wiener_process_dimension,
-        )
-
         # Aliases for better readability
         l, n, d = lengthscale, num_derivatives, wiener_process_dimension
         continuous.LTISDE.__init__(
@@ -140,6 +134,11 @@ class MaternTransition(_integrator.IntegratorMixIn, continuous.LTISDE):
             dispersion_matrix=self._matern_dispersion_matrix(n, d),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
+        )
+
+        _integrator.IntegratorMixIn.__init__(
+            self,
+            num_derivatives=num_derivatives,
         )
 
     @staticmethod

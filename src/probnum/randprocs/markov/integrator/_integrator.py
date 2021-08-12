@@ -22,21 +22,16 @@ class IntegratorMixIn:
         * Reordering of states: derivative-wise to coordinate-wise
     """
 
-    def __init__(self, num_derivatives, wiener_process_dimension):
+    def __init__(self, num_derivatives):
 
         self._num_derivatives = num_derivatives
-        self._wiener_process_dimension = wiener_process_dimension
         self._precon = _preconditioner.NordsieckLikeCoordinates.from_order(
-            num_derivatives, wiener_process_dimension
+            num_derivatives, self.wiener_process_dimension
         )
 
     @property
     def num_derivatives(self):
         return self._num_derivatives
-
-    @property
-    def wiener_process_dimension(self):
-        return self._wiener_process_dimension
 
     @property
     def precon(self):
