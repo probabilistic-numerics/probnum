@@ -46,9 +46,13 @@ def _aslist(arg):
 def get_linop(linop_type):
     # pylint: disable=too-many-return-statements
     if linop_type is Kronecker:
+        _A1 = np.random.rand(2, 2)
+        _B1 = np.random.rand(2, 3)
         return (
-            Kronecker(np.random.rand(2, 2), np.random.rand(2, 2)),
-            Kronecker(np.random.rand(4, 3), np.random.rand(2, 3)),
+            Kronecker(_A1, np.random.rand(2, 2)),
+            Kronecker(np.random.rand(4, 3), _B1),
+            Kronecker(_A1, np.random.rand(2, 2)),
+            Kronecker(np.random.rand(2, 2), _B1),
         )
     elif linop_type is IdentityKronecker:
         return (
