@@ -510,7 +510,6 @@ def lorenz96(t0=0.0, tmax=30.0, y0=None, num_variables=5, params=(8.0,)):
     num_variables
         Number of variables in the model. If `y0` is specified, this argument is ignored
         (and the number of variables is inferred from the dimension of the initial value).
-        If not, the initial value
     params
         Parameter(s) of the Lorenz96 model. Default is ``(8,)``.
 
