@@ -54,7 +54,6 @@ disable = [
 ]
 # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 
-
 [tool.pylint.format]
 max-line-length = "88"
 
