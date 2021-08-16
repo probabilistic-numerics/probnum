@@ -37,7 +37,7 @@ exclude = '''
 )/
 '''
 
-
+# Pylint configuration
 [tool.pylint.messages_control]
 disable = [
     # Exceptions suggested by Black:
@@ -51,27 +51,30 @@ disable = [
     # In functions/methods which are part of the public API, we often change the type of argument variables when normalizing inputs for internal processing,
     # e.g. we might use `pn.utils.as_numpy_scalar` to cast a `float` into a `np.double` or a `np.ndarray` into a `RandomVariable` by using `pn.randvars.asrandvar`.
     "redefined-variable-type",
+    # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 ]
-# Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 
 [tool.pylint.format]
 max-line-length = "88"
 
 [tool.pylint.master]
-extension-pkg-whitelist = "numpy"
-# Extensions that might be of interest in the future:
-# pylint.extensions.check_elif,
-# pylint.extensions.docparams,
-load-plugins = """
-pylint.extensions.docstyle,
-pylint.extensions.mccabe,
-pylint.extensions.redefined_variable_type,
-pylint.extensions.overlapping_exceptions,
-"""
+extension-pkg-whitelist = [
+    "numpy",
+]
+load-plugins = [
+    "pylint.extensions.docstyle",
+    "pylint.extensions.mccabe",
+    "pylint.extensions.redefined_variable_type",
+    "pylint.extensions.overlapping_exceptions",
+    # Extensions that might be of interest in the future:
+    # "pylint.extensions.check_elif",
+    # "pylint.extensions.docparams",
+]
 
 [tool.pylint.design]
 max-complexity = "14"
 
+# isort configuration
 [tool.isort]
 multi_line_output = "3"
 include_trailing_comma = "true"
