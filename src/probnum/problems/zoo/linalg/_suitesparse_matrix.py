@@ -231,9 +231,9 @@ class SuiteSparseMatrix(linops.Matrix):
         buffer.seek(0)
         if verbose:
             print("Extracting file archive.")
-        tar = tarfile.open(fileobj=buffer, mode="r:gz")
 
-        return scipy.io.mmread(tar.extractfile(tar.getmembers()[0]))
+        with tarfile.open(fileobj=buffer, mode="r:gz") as tar:
+            return scipy.io.mmread(tar.extractfile(tar.getmembers()[0]))
 
     @staticmethod
     def _html_header() -> str:

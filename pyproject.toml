@@ -39,48 +39,21 @@ exclude = '''
 
 
 [tool.pylint.messages_control]
-# Exceptions suggested from Black: bad-continuation, bad-whitespace
-disable = """
-invalid-name,
-fixme,
-
-bad-continuation,
-
-no-else-return,
-no-else-raise,
-
-no-member,
-
-redefined-variable-type,
-
-abstract-class-instantiated,
-too-many-locals,
-too-few-public-methods,
-too-many-arguments,
-unused-argument,
-missing-module-docstring,
-missing-function-docstring,
-duplicate-code,
-protected-access,
-no-self-use,
-arguments-differ,
-attribute-defined-outside-init,
-too-many-statements,
-too-many-instance-attributes,
-too-complex,
-too-many-lines,
-redefined-builtin,
-abstract-method,
-too-many-branches,
-line-too-long,
-missing-class-docstring,
-unnecessary-pass,
-unused-variable,
-redefined-outer-name,
-function-redefined,
-import-error
-"""
+disable = [
+    # Exceptions suggested by Black:
+    # https://github.com/psf/black/blob/7f75fe3669ebf0627b1b0476a6d02047e909b959/docs/compatible_configs.md#black-compatible-configurations
+    "bad-continuation",
+    "bad-whitespace",
+    # We allow TODO comments in the following format: `# TODO (#[ISSUE NUMBER]): This needs to be done.`
+    "fixme",
+    # We want to use "mathematical notation" to name some of our variables, e.g. `A` for matrices
+    "invalid-name",
+    # In functions/methods which are part of the public API, we often change the type of argument variables when normalizing inputs for internal processing,
+    # e.g. we might use `pn.utils.as_numpy_scalar` to cast a `float` into a `np.double` or a `np.ndarray` into a `RandomVariable` by using `pn.randvars.asrandvar`.
+    "redefined-variable-type",
+]
 # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
+
 
 [tool.pylint.format]
 max-line-length = "88"
