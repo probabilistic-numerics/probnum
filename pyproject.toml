@@ -48,9 +48,6 @@ disable = [
     "fixme",
     # We want to use "mathematical notation" to name some of our variables, e.g. `A` for matrices
     "invalid-name",
-    # In functions/methods which are part of the public API, we often change the type of argument variables when normalizing inputs for internal processing,
-    # e.g. we might use `pn.utils.as_numpy_scalar` to cast a `float` into a `np.double` or a `np.ndarray` into a `RandomVariable` by using `pn.randvars.asrandvar`.
-    "redefined-variable-type",
 ]
 
 [tool.pylint.format]
@@ -63,7 +60,6 @@ extension-pkg-whitelist = [
 load-plugins = [
     "pylint.extensions.docstyle",
     "pylint.extensions.mccabe",
-    "pylint.extensions.redefined_variable_type",
     "pylint.extensions.docparams",
     "pylint.extensions.check_elif",
     "pylint.extensions.overlapping_exceptions",
