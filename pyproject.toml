@@ -58,11 +58,11 @@ extension-pkg-whitelist = [
     "numpy",
 ]
 load-plugins = [
-    "pylint.extensions.docstyle",
-    "pylint.extensions.mccabe",
-    "pylint.extensions.docparams",
     "pylint.extensions.check_elif",
+    "pylint.extensions.docparams",
+    "pylint.extensions.docstyle",
     "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.mccabe",
 ]
 
 [tool.pylint.design]
