@@ -65,10 +65,9 @@ load-plugins = [
     "pylint.extensions.docstyle",
     "pylint.extensions.mccabe",
     "pylint.extensions.redefined_variable_type",
+    "pylint.extensions.docparams",
+    "pylint.extensions.check_elif",
     "pylint.extensions.overlapping_exceptions",
-    # Extensions that might be of interest in the future:
-    # "pylint.extensions.check_elif",
-    # "pylint.extensions.docparams",
 ]
 
 [tool.pylint.design]
