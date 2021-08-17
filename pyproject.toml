@@ -51,7 +51,6 @@ disable = [
     # In functions/methods which are part of the public API, we often change the type of argument variables when normalizing inputs for internal processing,
     # e.g. we might use `pn.utils.as_numpy_scalar` to cast a `float` into a `np.double` or a `np.ndarray` into a `RandomVariable` by using `pn.randvars.asrandvar`.
     "redefined-variable-type",
-    # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 ]
 
 [tool.pylint.format]

@@ -37,7 +37,7 @@ except AssertionError:
        python script (`./github/workflows/pylint_check.py`) if the message should only
        be disabled in the short term.
     If you are not sure what exactly you are supposed to do, or if you think that this
-    message is wrong please feel free to ping @marvinpfoertner or @nathanaelbosch.
+    message is wrong please feel free to open an issue on GitHub.
     """
     )
 
