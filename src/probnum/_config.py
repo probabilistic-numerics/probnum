@@ -4,8 +4,7 @@ from typing import Any
 
 
 class Configuration:
-    r"""
-    Configuration over which some mechanics of ProbNum can be controlled dynamically.
+    r"""Configuration by which some mechanics of ProbNum can be controlled dynamically.
 
     ProbNum provides some configurations together with default values. These
     are listed in the tables below.

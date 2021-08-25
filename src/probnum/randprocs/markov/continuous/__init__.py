@@ -1,8 +1,10 @@
 """Continous-time transitions and stochastic differential equations."""
 
 from ._diffusions import ConstantDiffusion, Diffusion, PiecewiseConstantDiffusion
+from ._linear_sde import LinearSDE
+from ._lti_sde import LTISDE
 from ._mfd import matrix_fraction_decomposition
-from ._sde import LTISDE, SDE, LinearSDE
+from ._sde import SDE
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -22,3 +24,4 @@ LTISDE.__module__ = "probnum.randprocs.markov.continuous"
 Diffusion.__module__ = "probnum.randprocs.markov.continuous"
 ConstantDiffusion.__module__ = "probnum.randprocs.markov.continuous"
 PiecewiseConstantDiffusion.__module__ = "probnum.randprocs.markov.continuous"
+matrix_fraction_decomposition.__module__ = "probnum.randprocs.markov.continuous"

@@ -2,80 +2,7 @@ import numpy as np
 import pytest
 
 from probnum import config, linops, randprocs, randvars
-from tests.test_randprocs.test_markov import test_transition
-
-
-class TestDiscreteGaussian(test_transition.InterfaceTestTransition):
-    """Tests for the discrete Gaussian class.
-
-    Most of the tests are reused/overwritten in subclasses, therefore the class-
-    structure. Unfortunately, testing the product space of all combinations (different
-    subclasses, different implementations, etc.) generates a lot of tests that are
-    executed.
-    """
-
-    # Replacement for an __init__ in the pytest language. See:
-    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
-    @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, spdmat1):
-
-        self.g = lambda t, x: np.sin(x)
-        self.S = lambda t: spdmat1
-        self.dg = lambda t, x: np.cos(x)
-        self.transition = randprocs.markov.discrete.DiscreteGaussian(
-            test_ndim,
-            test_ndim,
-            self.g,
-            self.S,
-            self.dg,
-            None,
-        )
-
-    # Test access to system matrices
-
-    def test_state_transition(self, some_normal_rv1):
-        received = self.transition.state_trans_fun(0.0, some_normal_rv1.mean)
-        expected = self.g(0.0, some_normal_rv1.mean)
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise(self):
-        received = self.transition.proc_noise_cov_mat_fun(0.0)
-        expected = self.S(0.0)
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cholesky(self):
-        received = self.transition.proc_noise_cov_cholesky_fun(0.0)
-        expected = np.linalg.cholesky(self.transition.proc_noise_cov_mat_fun(0.0))
-        np.testing.assert_allclose(received, expected)
-
-    def test_jacobian(self, some_normal_rv1):
-        received = self.transition.jacob_state_trans_fun(0.0, some_normal_rv1.mean)
-        expected = self.dg(0.0, some_normal_rv1.mean)
-        np.testing.assert_allclose(received, expected)
-
-    # Test forward and backward implementations
-
-    def test_forward_rv(self, some_normal_rv1):
-        with pytest.raises(NotImplementedError):
-            self.transition.forward_rv(some_normal_rv1, 0.0)
-
-    def test_forward_realization(self, some_normal_rv1):
-        out, _ = self.transition.forward_realization(some_normal_rv1.mean, 0.0)
-        assert isinstance(out, randvars.Normal)
-
-    def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
-        with pytest.raises(NotImplementedError):
-            self.transition.backward_rv(some_normal_rv1, some_normal_rv2)
-
-    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
-        with pytest.raises(NotImplementedError):
-            self.transition.backward_realization(some_normal_rv1.mean, some_normal_rv2)
-
-    def test_input_dim(self, test_ndim):
-        assert self.transition.input_dim == test_ndim
-
-    def test_output_dim(self, test_ndim):
-        assert self.transition.output_dim == test_ndim
+from tests.test_randprocs.test_markov.test_discrete import test_nonlinear_gaussian
 
 
 @pytest.fixture(params=["classic", "sqrt"])
@@ -90,8 +17,8 @@ def backw_impl_string_linear_gauss(request):
     return request.param
 
 
-class TestLinearGaussian(TestDiscreteGaussian):
-    """Test class for linear Gaussians. Inherits tests from `TestDiscreteGaussian` but
+class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
+    """Test class for linear Gaussians. Inherits tests from `TestNonlinearGaussian` but
     overwrites the forward and backward transitions.
 
     Also tests that different forward and backward implementations yield the same
@@ -113,7 +40,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
         self.G = lambda t: spdmat1
         self.S = lambda t: spdmat2
         self.v = lambda t: np.arange(test_ndim)
-        self.transition = randprocs.markov.discrete.DiscreteLinearGaussian(
+        self.transition = randprocs.markov.discrete.LinearGaussian(
             test_ndim,
             test_ndim,
             self.G,
@@ -314,61 +241,6 @@ class TestLinearGaussian(TestDiscreteGaussian):
         np.testing.assert_allclose(out_joseph.cov, out_sqrt.cov)
 
 
-class TestLTIGaussian(TestLinearGaussian):
-
-    # Replacement for an __init__ in the pytest language. See:
-    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
-    @pytest.fixture(autouse=True)
-    def _setup(
-        self,
-        test_ndim,
-        spdmat1,
-        spdmat2,
-        forw_impl_string_linear_gauss,
-        backw_impl_string_linear_gauss,
-    ):
-
-        self.G_const = spdmat1
-        self.S_const = spdmat2
-        self.v_const = np.arange(test_ndim)
-        self.transition = randprocs.markov.discrete.DiscreteLTIGaussian(
-            self.G_const,
-            self.v_const,
-            self.S_const,
-            forward_implementation=forw_impl_string_linear_gauss,
-            backward_implementation=backw_impl_string_linear_gauss,
-        )
-
-        # Compatibility with superclass' test
-        self.G = lambda t: self.G_const
-        self.S = lambda t: self.S_const
-        self.v = lambda t: self.v_const
-        self.g = lambda t, x: self.G(t) @ x + self.v(t)
-        self.dg = lambda t, x: self.G(t)
-
-    # Test access to system matrices
-
-    def test_state_transition_mat(self):
-        received = self.transition.state_trans_mat
-        expected = self.G_const
-        np.testing.assert_allclose(received, expected)
-
-    def test_shift_vec(self):
-        received = self.transition.shift_vec
-        expected = self.v_const
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cov_mat(self):
-        received = self.transition.proc_noise_cov_mat
-        expected = self.S_const
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cov_cholesky(self):
-        received = self.transition.proc_noise_cov_cholesky
-        expected = np.linalg.cholesky(self.S_const)
-        np.testing.assert_allclose(received, expected)
-
-
 class TestLinearGaussianLinOps:
     """Test class for linear Gaussians using LinearOperators where possible.
 
@@ -389,7 +261,7 @@ class TestLinearGaussianLinOps:
             self.G = lambda t: linops.aslinop(spdmat1)
             self.S = lambda t: linops.aslinop(spdmat2)
             self.v = lambda t: np.arange(test_ndim)
-            self.transition = randprocs.markov.discrete.DiscreteLinearGaussian(
+            self.transition = randprocs.markov.discrete.LinearGaussian(
                 test_ndim,
                 test_ndim,
                 self.G,
@@ -398,7 +270,7 @@ class TestLinearGaussianLinOps:
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
-            self.sqrt_transition = randprocs.markov.discrete.DiscreteLinearGaussian(
+            self.sqrt_transition = randprocs.markov.discrete.LinearGaussian(
                 test_ndim,
                 test_ndim,
                 self.G,

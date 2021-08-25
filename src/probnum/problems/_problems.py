@@ -15,7 +15,7 @@ from probnum.typing import FloatArgType
 class TimeSeriesRegressionProblem:
     r"""Time series regression problem.
 
-    Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
+    Fit a stochastic process to data, given a likelihood (realised by a :obj:`NonlinearGaussian` transition).
     Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
 
     Parameters
@@ -35,11 +35,11 @@ class TimeSeriesRegressionProblem:
     >>> from probnum import randprocs
     >>> obs = [11.4123, -15.5123]
     >>> loc = [0.1, 0.2]
-    >>> model = randprocs.markov.discrete.DiscreteLTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
+    >>> model = randprocs.markov.discrete.LTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
     >>> measurement_models = [model, model]
     >>> rp = TimeSeriesRegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp
-    TimeSeriesRegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
+    TimeSeriesRegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[LTIGaussian(input_dim=1, output_dim=1), LTIGaussian(input_dim=1, output_dim=1)], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
 
@@ -48,7 +48,7 @@ class TimeSeriesRegressionProblem:
     >>> len(rp)
     2
     >>> rp[0]
-    (0.1, 11.4123, DiscreteLTIGaussian(input_dim=1, output_dim=1))
+    (0.1, 11.4123, LTIGaussian(input_dim=1, output_dim=1))
     """
 
     # The types are 'Sequence' (e.g. lists, tuples) or 'ndarray',

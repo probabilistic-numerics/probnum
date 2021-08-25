@@ -189,7 +189,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     if cov.identical_factors:
                         sample = self._symmetric_kronecker_identical_factors_sample
 
-                        # pylint: disable=redefined-variable-type
                         compute_cov_cholesky = (
                             self._symmetric_kronecker_identical_factors_cov_cholesky
                         )

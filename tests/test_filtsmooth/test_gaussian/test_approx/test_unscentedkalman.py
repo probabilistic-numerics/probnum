@@ -12,7 +12,7 @@ class TestContinuousUKFComponent:
 
     def test_notimplementederror(self):
         sde = randprocs.markov.continuous.SDE(
-            1, None, None, None
+            1, 1, None, None, None
         )  # content is irrelevant.
         with pytest.raises(NotImplementedError):
             filtsmooth.gaussian.approx.ContinuousUKFComponent(sde)
