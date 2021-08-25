@@ -47,7 +47,7 @@ def both_transitions_matern():
         num_derivatives=2, wiener_process_dimension=2, lengthscale=2.041
     )
     matern_as_ltisde = randprocs.markov.continuous.LTISDE(
-        matern2.driftmat, matern2.forcevec, matern2.dispmat
+        matern2.drift_matrix, matern2.force_vector, matern2.dispersion_matrix
     )
     return matern, matern_as_ltisde
 
@@ -60,7 +60,7 @@ def both_transitions_ioup():
         num_derivatives=2, wiener_process_dimension=2, driftspeed=2.041
     )
     ioup_as_ltisde = randprocs.markov.continuous.LTISDE(
-        ioup2.driftmat, ioup2.forcevec, ioup2.dispmat
+        ioup2.drift_matrix, ioup2.force_vector, ioup2.dispersion_matrix
     )
     return ioup, ioup_as_ltisde
 
@@ -73,7 +73,7 @@ def both_transitions_ibm():
         num_derivatives=2, wiener_process_dimension=1
     )
     ibm_as_ltisde = randprocs.markov.continuous.LTISDE(
-        ibm2.driftmat, ibm2.forcevec, ibm2.dispmat
+        ibm2.drift_matrix, ibm2.force_vector, ibm2.dispersion_matrix
     )
     return ibm, ibm_as_ltisde
 
@@ -84,7 +84,7 @@ def both_transitions_ibm():
 )
 def test_same_forward_outputs(both_transitions, diffusion):
     trans1, trans2 = both_transitions
-    real = 1 + 0.1 * np.random.rand(trans1.dimension)
+    real = 1 + 0.1 * np.random.rand(trans1.state_dimension)
     out_1, info1 = trans1.forward_realization(
         real, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion
     )
@@ -103,9 +103,9 @@ def test_same_forward_outputs(both_transitions, diffusion):
 )
 def test_same_backward_outputs(both_transitions, diffusion, rng):
     trans1, trans2 = both_transitions
-    real = 1 + 0.1 * np.random.rand(trans1.dimension)
-    real2 = 1 + 0.1 * np.random.rand(trans1.dimension)
-    cov = linalg_zoo.random_spd_matrix(rng, dim=trans1.dimension)
+    real = 1 + 0.1 * np.random.rand(trans1.state_dimension)
+    real2 = 1 + 0.1 * np.random.rand(trans1.state_dimension)
+    cov = linalg_zoo.random_spd_matrix(rng, dim=trans1.state_dimension)
     rv = randvars.Normal(real2, cov)
     out_1, info1 = trans1.backward_realization(
         real, rv, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion

@@ -14,12 +14,12 @@ from probnum.typing import FloatArgType, IntArgType
 
 # Terribly long variable names, but internal only, so no worries.
 ParticleFilterMeasurementModelArgType = Union[
-    randprocs.markov.discrete.DiscreteGaussian,
-    Iterable[randprocs.markov.discrete.DiscreteGaussian],
+    randprocs.markov.discrete.NonlinearGaussian,
+    Iterable[randprocs.markov.discrete.NonlinearGaussian],
 ]
 ParticleFilterLinearisedMeasurementModelArgType = Union[
-    randprocs.markov.discrete.DiscreteGaussian,
-    Iterable[randprocs.markov.discrete.DiscreteGaussian],
+    randprocs.markov.discrete.NonlinearGaussian,
+    Iterable[randprocs.markov.discrete.NonlinearGaussian],
 ]
 
 
@@ -27,8 +27,8 @@ def effective_number_of_events(categ_rv: randvars.Categorical) -> float:
     """Approximate effective number of events in the support of a categorical random
     variable.
 
-    In a particle filter, this is used as the effective number of
-    particles which may indicate the need for resampling.
+    In a particle filter, this is used as the effective number of particles which may
+    indicate the need for resampling.
     """
     return 1.0 / np.sum(categ_rv.probabilities ** 2)
 

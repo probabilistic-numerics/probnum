@@ -187,7 +187,7 @@ class Scaling(_linear_operator.LinearOperator):
         Scaling factors on the diagonal of the matrix representation.
         """
         if self._factors is None:
-            self._factors = np.full(self.shape[0], self._scalar, dtype=self._dtype)
+            self._factors = np.full(self.shape[0], self._scalar, dtype=self.dtype)
 
         return self._factors
 

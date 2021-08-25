@@ -1,191 +1,18 @@
-"""Discrete transitions."""
+"""Discrete, linear Gaussian transitions."""
 import typing
 import warnings
-from functools import lru_cache
 from typing import Callable, Optional, Tuple
 
 import numpy as np
 import scipy.linalg
 
 from probnum import config, linops, randvars
-from probnum.randprocs.markov import _transition
-from probnum.randprocs.markov.discrete import _condition_state
+from probnum.randprocs.markov.discrete import _nonlinear_gaussian
 from probnum.typing import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property  # pylint: disable=ungrouped-imports
-except ImportError:
 
-    from cached_property import cached_property
-
-
-class DiscreteGaussian(_transition.Transition):
-    r"""Discrete transitions with additive Gaussian noise.
-
-    .. math:: x_{i+1} \sim \mathcal{N}(g(t_i, x_i), S(t_i))
-
-    for some (potentially non-linear) dynamics :math:`g: \mathbb{R}^m \rightarrow \mathbb{R}^n` and process noise covariance matrix :math:`S`.
-
-    Parameters
-    ----------
-    input_dim
-        Dimension of the support of :math:`g` (in terms of :math:`x`), i.e. the input dimension.
-    output_dim
-        Dimension of the image of :math:`g`, i.e. the output dimension.
-    state_trans_fun :
-        State transition function :math:`g=g(t, x)`. Signature: ``state_trans_fun(t, x)``.
-    proc_noise_cov_mat_fun :
-        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
-    jacob_state_trans_fun :
-        Jacobian of the state transition function :math:`g` (with respect to :math:`x`), :math:`Jg=Jg(t, x)`.
-        Signature: ``jacob_state_trans_fun(t, x)``.
-    proc_noise_cov_cholesky_fun :
-        Cholesky factor of the process noise covariance matrix function :math:`\sqrt{S}=\sqrt{S}(t)`. Signature: ``proc_noise_cov_cholesky_fun(t)``.
-
-
-    See Also
-    --------
-    :class:`DiscreteModel`
-    :class:`DiscreteGaussianLinearModel`
-    """
-
-    def __init__(
-        self,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
-        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
-        jacob_state_trans_fun: Optional[
-            Callable[[FloatArgType, np.ndarray], np.ndarray]
-        ] = None,
-        proc_noise_cov_cholesky_fun: Optional[
-            Callable[[FloatArgType], np.ndarray]
-        ] = None,
-    ):
-        self.state_trans_fun = state_trans_fun
-        self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
-
-        # "Private", bc. if None, overwritten by the property with the same name
-        self._proc_noise_cov_cholesky_fun = proc_noise_cov_cholesky_fun
-
-        def dummy_if_no_jacobian(t, x):
-            raise NotImplementedError
-
-        self.jacob_state_trans_fun = (
-            jacob_state_trans_fun
-            if jacob_state_trans_fun is not None
-            else dummy_if_no_jacobian
-        )
-        super().__init__(input_dim=input_dim, output_dim=output_dim)
-
-    def forward_realization(
-        self, realization, t, compute_gain=False, _diffusion=1.0, **kwargs
-    ):
-
-        newmean = self.state_trans_fun(t, realization)
-        newcov = _diffusion * self.proc_noise_cov_mat_fun(t)
-
-        return randvars.Normal(newmean, newcov), {}
-
-    def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
-        raise NotImplementedError("Not available")
-
-    def backward_realization(
-        self,
-        realization_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-        raise NotImplementedError("Not available")
-
-    def backward_rv(
-        self,
-        rv_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-
-        # Should we use the _backward_rv_classic here?
-        # It is only intractable bc. forward_rv is intractable
-        # and assuming its forward formula would yield a valid
-        # gain, the backward formula would be valid.
-        # This is the case for the UKF, for instance.
-        raise NotImplementedError("Not available")
-
-    # Implementations that are the same for all sorts of
-    # discrete Gaussian transitions, in particular shared
-    # by LinearDiscreteGaussian and e.g. DiscreteUKFComponent.
-
-    def _backward_rv_classic(
-        self,
-        rv_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        _diffusion=None,
-        _linearise_at=None,
-    ):
-
-        if rv_forwarded is None or gain is None:
-            rv_forwarded, info_forwarded = self.forward_rv(
-                rv,
-                t=t,
-                compute_gain=True,
-                _diffusion=_diffusion,
-                _linearise_at=_linearise_at,
-            )
-            gain = info_forwarded["gain"]
-        info = {"rv_forwarded": rv_forwarded}
-        return (
-            _condition_state.condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain),
-            info,
-        )
-
-    @lru_cache(maxsize=None)
-    def proc_noise_cov_cholesky_fun(self, t):
-        if self._proc_noise_cov_cholesky_fun is not None:
-            return self._proc_noise_cov_cholesky_fun(t)
-        covmat = self.proc_noise_cov_mat_fun(t)
-        return np.linalg.cholesky(covmat)
-
-    @classmethod
-    def from_callable(
-        cls,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
-        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        jacob_state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-    ):
-        """Turn a callable into a deterministic transition."""
-
-        def diff(t):
-            return np.zeros((output_dim, output_dim))
-
-        def diff_cholesky(t):
-            return np.zeros((output_dim, output_dim))
-
-        return cls(
-            input_dim=input_dim,
-            output_dim=output_dim,
-            state_trans_fun=state_trans_fun,
-            jacob_state_trans_fun=jacob_state_trans_fun,
-            proc_noise_cov_mat_fun=diff,
-            proc_noise_cov_cholesky_fun=diff_cholesky,
-        )
-
-
-class DiscreteLinearGaussian(DiscreteGaussian):
+class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
     """Discrete, linear Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G(t_i) x_i + v(t_i), S(t_i))
@@ -206,7 +33,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     See Also
     --------
     :class:`DiscreteModel`
-    :class:`DiscreteGaussianLinearModel`
+    :class:`NonlinearGaussianLinearModel`
     """
 
     def __init__(
@@ -331,7 +158,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         )
 
     # Forward and backward implementations
-    # _backward_rv_classic is inherited from DiscreteGaussian
+    # _backward_rv_classic is inherited from NonlinearGaussian
 
     def _forward_rv_classic(
         self, rv, t, compute_gain=False, _diffusion=1.0
@@ -486,119 +313,3 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
         info = {"rv_forwarded": rv_forwarded}
         return randvars.Normal(new_mean, new_cov), info
-
-
-class DiscreteLTIGaussian(DiscreteLinearGaussian):
-    """Discrete, linear, time-invariant Gaussian transition models of the form.
-
-    .. math:: x_{i+1} \\sim \\mathcal{N}(G x_i + v, S)
-
-    for some dynamics matrix :math:`G`, force vector :math:`v`,
-    and diffusion matrix :math:`S`.
-
-    Parameters
-    ----------
-    state_trans_mat :
-        State transition matrix :math:`G`.
-    shift_vec :
-        Shift vector :math:`v`.
-    proc_noise_cov_mat :
-        Process noise covariance matrix :math:`S`.
-
-    Raises
-    ------
-    TypeError
-        If state_trans_mat, shift_vec and proc_noise_cov_mat have incompatible shapes.
-
-    See Also
-    --------
-    :class:`DiscreteModel`
-    :class:`DiscreteGaussianLinearModel`
-    """
-
-    def __init__(
-        self,
-        state_trans_mat: np.ndarray,
-        shift_vec: np.ndarray,
-        proc_noise_cov_mat: np.ndarray,
-        proc_noise_cov_cholesky: Optional[np.ndarray] = None,
-        forward_implementation="classic",
-        backward_implementation="classic",
-    ):
-        _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
-        output_dim, input_dim = state_trans_mat.shape
-
-        super().__init__(
-            input_dim,
-            output_dim,
-            state_trans_mat_fun=lambda t: state_trans_mat,
-            shift_vec_fun=lambda t: shift_vec,
-            proc_noise_cov_mat_fun=lambda t: proc_noise_cov_mat,
-            proc_noise_cov_cholesky_fun=lambda t: proc_noise_cov_cholesky,
-            forward_implementation=forward_implementation,
-            backward_implementation=backward_implementation,
-        )
-
-        self.state_trans_mat = state_trans_mat
-        self.shift_vec = shift_vec
-        self.proc_noise_cov_mat = proc_noise_cov_mat
-        self._proc_noise_cov_cholesky = proc_noise_cov_cholesky
-
-    def proc_noise_cov_cholesky_fun(self, t):
-        return self.proc_noise_cov_cholesky
-
-    @cached_property
-    def proc_noise_cov_cholesky(self):
-        if self._proc_noise_cov_cholesky is not None:
-            return self._proc_noise_cov_cholesky
-        return np.linalg.cholesky(self.proc_noise_cov_mat)
-
-    @classmethod
-    def from_linop(
-        cls,
-        state_trans_mat: np.ndarray,
-        shift_vec: np.ndarray,
-        forward_implementation="classic",
-        backward_implementation="classic",
-    ):
-        """Turn a linear operator (or numpy array) into a deterministic transition."""
-        # Currently, this is only a numpy array.
-        # In the future, once linops are more widely adopted here, this will become a linop.
-        zero_matrix = np.zeros((state_trans_mat.shape[0], state_trans_mat.shape[0]))
-        if state_trans_mat.ndim != 2:
-            raise ValueError
-        return cls(
-            state_trans_mat=state_trans_mat,
-            shift_vec=shift_vec,
-            proc_noise_cov_mat=zero_matrix,
-            proc_noise_cov_cholesky=zero_matrix,
-            forward_implementation=forward_implementation,
-            backward_implementation=backward_implementation,
-        )
-
-
-def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
-    """LTI SDE model needs matrices which are compatible with each other in size."""
-    if state_trans_mat.ndim != 2:
-        raise TypeError(
-            f"dynamat.ndim=2 expected. dynamat.ndim={state_trans_mat.ndim} received."
-        )
-    if shift_vec.ndim != 1:
-        raise TypeError(
-            f"shift_vec.ndim=1 expected. shift_vec.ndim={shift_vec.ndim} received."
-        )
-    if proc_noise_cov_mat.ndim != 2:
-        raise TypeError(
-            f"proc_noise_cov_mat.ndim=2 expected. proc_noise_cov_mat.ndim={proc_noise_cov_mat.ndim} received."
-        )
-    if (
-        state_trans_mat.shape[0] != shift_vec.shape[0]
-        or shift_vec.shape[0] != proc_noise_cov_mat.shape[0]
-        or proc_noise_cov_mat.shape[0] != proc_noise_cov_mat.shape[1]
-    ):
-        raise TypeError(
-            f"Dimension of dynamat, forcevec and diffmat do not align. "
-            f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
-            f"Received: dynamat.shape={state_trans_mat.shape}, forcevec.shape={shift_vec.shape}, "
-            f"proc_noise_cov_mat.shape={proc_noise_cov_mat.shape}."
-        )

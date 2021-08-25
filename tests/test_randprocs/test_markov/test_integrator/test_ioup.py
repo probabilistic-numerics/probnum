@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from probnum import randprocs, randvars
-from tests.test_randprocs.test_markov.test_continuous import test_sde
+from tests.test_randprocs.test_markov.test_continuous import test_lti_sde
 from tests.test_randprocs.test_markov.test_integrator import test_integrator
 
 
@@ -56,7 +56,7 @@ def test_ioup_construction(
 
 
 class TestIntegratedOrnsteinUhlenbeckProcessTransition(
-    test_sde.TestLTISDE, test_integrator.TestIntegratorTransition
+    test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTransition
 ):
 
     # Replacement for an __init__ in the pytest language. See:
@@ -80,13 +80,21 @@ class TestIntegratedOrnsteinUhlenbeckProcessTransition(
             )
         )
 
-        self.G = lambda t: self.transition.driftmat
-        self.v = lambda t: self.transition.forcevec
-        self.L = lambda t: self.transition.dispmat
+        self.G = lambda t: self.transition.drift_matrix
+        self.v = lambda t: self.transition.force_vector
+        self.L = lambda t: self.transition.dispersion_matrix
+
+        self.G_const = self.transition.drift_matrix
+        self.v_const = self.transition.force_vector
+        self.L_const = self.transition.dispersion_matrix
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
+        self.l = lambda t, x: self.L(t)
 
     @property
     def integrator(self):
         return self.transition
+
+    def test_wiener_process_dimension(self, test_ndim):
+        assert self.transition.wiener_process_dimension == 1

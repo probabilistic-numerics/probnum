@@ -23,8 +23,8 @@ class MarkovProcessSampling:
 
             measvar = 0.1024
             initrv = randvars.Normal(
-                np.ones(dynamics.dimension),
-                measvar * linops.Identity(dynamics.dimension),
+                np.ones(dynamics.state_dimension),
+                measvar * linops.Identity(dynamics.state_dimension),
             )
 
             time_domain = (0.0, float(len_trajectory))
