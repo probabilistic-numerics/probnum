@@ -1,0 +1,6 @@
+_build/
+_rst/
+
+# sphinx_automodapi
+source/automod/
+source/api/automod/
