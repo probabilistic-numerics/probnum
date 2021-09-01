@@ -1,85 +1,48 @@
 from pathlib import Path
 
 TOXINI_FILE = Path("tox.ini")
-PYPROJECTTOML_FILE = Path("pyproject.toml")
-GLOBAL_DISABLES = {
-    "invalid-name",
-    "fixme",
-    "bad-continuation",
-    "no-else-raise",
-    "no-else-return",
-    "no-member",
-    "redefined-variable-type",
-}
+GLOBAL_DISABLES = {}
 
 
 # Parse ./tox.ini
 tox_lines = TOXINI_FILE.read_text().splitlines()
 tox_pylint_lines = [
-    l for l in tox_lines if l.strip().startswith("pylint") and "--disable" in l
+    l for l in tox_lines if l.strip().startswith("pylint src") and "--disable" in l
 ]
-tox_disables = {i for l in tox_pylint_lines for i in l.split('"')[1].split(",")}
-
-
-# Parse ./pyproject.toml
-pyproject_lines = PYPROJECTTOML_FILE.read_text().splitlines()
-is_in_disable_string = False
-pyproject_disables = set()
-for line in pyproject_lines:
-    if is_in_disable_string and line.startswith('"""'):
-        is_in_disable_string = False
-
-    if is_in_disable_string and line:
-        pyproject_disables.add(line.strip().strip(","))
-
-    if line.startswith("disable"):
-        is_in_disable_string = True
+tox_global_disables = {m for m in tox_pylint_lines[0].split('"')[1].split(",")}
+tox_per_package_disables = {
+    m for l in tox_pylint_lines[1:] for m in l.split('"')[1].split(",")
+}
 
 
 # Check correctness and raise errors
 try:
-    in_pyproject_butnot_tox = pyproject_disables.difference(tox_disables).difference(
-        GLOBAL_DISABLES
-    )
-    assert not in_pyproject_butnot_tox
+    global_but_not_per_package = tox_global_disables.difference(
+        tox_per_package_disables
+    ).difference(GLOBAL_DISABLES)
+    assert not global_but_not_per_package
 except AssertionError:
     raise Exception(
         f"""
-    The following pylint messages seem to be disabled in `./pyproject.toml`, but not in
-    any of the pylint calls in `./tox.ini`: {in_pyproject_butnot_tox}. This could have
-    two reasons with different solutions:
-    1. You fixed one or many pylint errors in one of the modules and there is no module
-       left that needs this specific message disabled. Then, please also remove it from
-       the `./pyproject.toml` file such that pylint uses the most up-to-date
-       configuration file.
-    2. You added a new global exception to `./pyproject.toml` after deciding that this
-       is a message that we do not want to enforce anywhere currently. Then, please add
-       this exception also to the `GLOBAL_DISABLES` variable in this this python script
-       (`./github/workflows/pylint_check.py`).
-
+    The following pylint messages seem to be disabled in the global linting pass, but
+    not in the per-package linting passes in `./tox.ini`: {global_but_not_per_package}.
+    This could have two reasons with different solutions:
+    1. You fixed one or many pylint errors in one of the packages and there is no
+       package left that needs this specific message disabled. Then, please also remove
+       it from the global linting pass in `tox.ini` such that pylint runs in the
+       strictest configuration possible.
+    2. You decided to disable a message in the global linting pass in `./tox.ini`..
+       In this case either add it to the list of messages that should be disabled in the
+       long term (`pyproject.toml`) or add it to the `GLOBAL_DISABLES` variable in this
+       python script (`./github/workflows/pylint_check.py`) if the message should only
+       be disabled in the short term.
     If you are not sure what exactly you are supposed to do, or if you think that this
-    message is wrong please feel free to ping @nathanaelbosch.
-    """
-    )
-
-
-try:
-    in_tox_butnot_pyproject = tox_disables.difference(pyproject_disables)
-    assert not in_tox_butnot_pyproject
-except AssertionError:
-    raise Exception(
-        f"""
-    The following pylint messages seem to be disabled in `./tox.ini`, but not in
-    `./pyproject.toml`: {in_tox_butnot_pyproject}. Please make sure to add them to
-    `./pyproject.toml` such that pylint does not raise any warnings that are not
-    supposed to be fixed right now.
-
-    If you are not sure what exactly you are supposed to do, or if you think that this
-    message is wrong please feel free to ping @nathanaelbosch.
+    message is wrong please feel free to open an issue on GitHub.
     """
     )
 
 
 print(
-    "The pylint exceptions in `./tox.ini` and `./pyproject.toml` seem to be correctly synchronized."
+    "The disabled pylint messages of the global and per-package linting passes in "
+    "`./tox.ini` seem to be correctly synchronized."
 )

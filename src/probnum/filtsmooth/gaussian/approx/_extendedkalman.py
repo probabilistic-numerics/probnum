@@ -141,10 +141,11 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
 
         randprocs.markov.continuous.SDE.__init__(
             self,
-            driftfun=non_linear_model.driftfun,
-            dispmatfun=non_linear_model.dispmatfun,
-            jacobfun=non_linear_model.jacobfun,
-            dimension=non_linear_model.dimension,
+            state_dimension=non_linear_model.state_dimension,
+            wiener_process_dimension=non_linear_model.wiener_process_dimension,
+            drift_function=non_linear_model.drift_function,
+            dispersion_function=non_linear_model.dispersion_function,
+            drift_jacobian=non_linear_model.drift_jacobian,
         )
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
@@ -157,22 +158,27 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
     def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
 
-        g = self.non_linear_model.driftfun
-        dg = self.non_linear_model.jacobfun
+        g = self.non_linear_model.drift_function
+        dg = self.non_linear_model.drift_jacobian
+        l = self.non_linear_model.dispersion_function
 
         x0 = at_this_rv.mean
 
-        def forcevecfun(t):
+        def force_vector_function(t):
             return g(t, x0) - dg(t, x0) @ x0
 
-        def driftmatfun(t):
+        def drift_matrix_function(t):
             return dg(t, x0)
 
+        def dispersion_matrix_function(t):
+            return l(t, x0)
+
         return randprocs.markov.continuous.LinearSDE(
-            dimension=self.non_linear_model.dimension,
-            driftmatfun=driftmatfun,
-            forcevecfun=forcevecfun,
-            dispmatfun=self.non_linear_model.dispmatfun,
+            state_dimension=self.non_linear_model.state_dimension,
+            wiener_process_dimension=self.non_linear_model.wiener_process_dimension,
+            drift_matrix_function=drift_matrix_function,
+            force_vector_function=force_vector_function,
+            dispersion_matrix_function=dispersion_matrix_function,
             mde_atol=self.mde_atol,
             mde_rtol=self.mde_rtol,
             mde_solver=self.mde_solver,
@@ -180,7 +186,7 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
         )
 
 
-class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGaussian):
+class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
@@ -190,7 +196,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
         backward_implementation="classic",
     ) -> None:
 
-        randprocs.markov.discrete.DiscreteGaussian.__init__(
+        randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -212,17 +218,17 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.DiscreteGauss
 
         x0 = at_this_rv.mean
 
-        def forcevecfun(t):
+        def force_vector_function(t):
             return g(t, x0) - dg(t, x0) @ x0
 
         def dynamicsmatfun(t):
             return dg(t, x0)
 
-        return randprocs.markov.discrete.DiscreteLinearGaussian(
+        return randprocs.markov.discrete.LinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
-            shift_vec_fun=forcevecfun,
+            shift_vec_fun=force_vector_function,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
             proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
             forward_implementation=self.forward_implementation,

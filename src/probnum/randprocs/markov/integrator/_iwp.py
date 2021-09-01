@@ -99,8 +99,8 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
                 scale_cholesky = 1e3
             else:
                 scale_cholesky = 1.0
-            zeros = np.zeros(iwp_transition.dimension)
-            cov_cholesky = scale_cholesky * np.eye(iwp_transition.dimension)
+            zeros = np.zeros(iwp_transition.state_dimension)
+            cov_cholesky = scale_cholesky * np.eye(iwp_transition.state_dimension)
             initrv = randvars.Normal(
                 mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
             )
@@ -127,38 +127,38 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
         continuous.LTISDE.__init__(
             self,
-            driftmat=self._driftmat,
-            forcevec=self._forcevec,
-            dispmat=self._dispmat,
+            drift_matrix=self._drift_matrix,
+            force_vector=self._force_vector,
+            dispersion_matrix=self._dispersion_matrix,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
     @cached_property
-    def _driftmat(self):
-        driftmat_1d = np.diag(np.ones(self.num_derivatives), 1)
+    def _drift_matrix(self):
+        drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.lazy_linalg:
             return linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
-                B=linops.Matrix(A=driftmat_1d),
+                B=linops.Matrix(A=drift_matrix_1d),
             )
-        return np.kron(np.eye(self.wiener_process_dimension), driftmat_1d)
+        return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
     @cached_property
-    def _forcevec(self):
+    def _force_vector(self):
         return np.zeros((self.wiener_process_dimension * (self.num_derivatives + 1)))
 
     @cached_property
-    def _dispmat(self):
-        dispmat_1d = np.zeros(self.num_derivatives + 1)
-        dispmat_1d[-1] = 1.0  # Unit diffusion
+    def _dispersion_matrix(self):
+        dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
+        dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
         if config.lazy_linalg:
             return linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
-                B=linops.Matrix(A=dispmat_1d.reshape(-1, 1)),
+                B=linops.Matrix(A=dispersion_matrix_1d.reshape(-1, 1)),
             )
-        return np.kron(np.eye(self.wiener_process_dimension), dispmat_1d).T
+        return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
 
     @cached_property
     def equivalent_discretisation_preconditioned(self):
@@ -208,7 +208,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
                 np.eye(self.wiener_process_dimension), process_noise_cholesky_1d
             )
 
-        return discrete.DiscreteLTIGaussian(
+        return discrete.LTIGaussian(
             state_trans_mat=state_transition,
             shift_vec=empty_shift,
             proc_noise_cov_mat=process_noise,
@@ -308,7 +308,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
         )
 
-        return discrete.DiscreteLTIGaussian(
+        return discrete.LTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,

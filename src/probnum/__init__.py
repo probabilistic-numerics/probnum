@@ -7,14 +7,15 @@ This approach captures uncertainty arising from finite computational
 resources and stochastic input.
 """
 
-from pkg_resources import DistributionNotFound, get_distribution
+# isort: off
 
 # Global Configuration
+# The global configuration registry. Can be used as a context manager to create local
+# contexts in which configuration is temporarily overwritten. This object contains
+# unguarded global state and is hence not thread-safe!
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
-"""The global configuration registry. Can be used as a context manager to create local
-contexts in which configuration is temporarily overwritten. This object contains
-unguarded global state and is hence not thread-safe!"""
+# isort: on
 
 from . import (
     diffeq,
@@ -29,6 +30,7 @@ from . import (
     utils,
 )
 from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
+from ._version import version as __version__
 from .randvars import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
@@ -39,12 +41,3 @@ __all__ = [
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"
-
-try:
-    # Change here if project is renamed and does not equal the package name
-    dist_name = __name__
-    __version__ = get_distribution(dist_name).version
-except DistributionNotFound:
-    __version__ = "unknown"
-finally:
-    del get_distribution, DistributionNotFound

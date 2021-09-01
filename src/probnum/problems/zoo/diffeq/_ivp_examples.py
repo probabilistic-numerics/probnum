@@ -10,7 +10,8 @@ __all__ = [
     "logistic",
     "lotkavolterra",
     "seir",
-    "lorenz",
+    "lorenz63",
+    "lorenz96",
 ]
 
 
@@ -436,10 +437,10 @@ def seir(t0=0.0, tmax=200.0, y0=None, params=(0.3, 0.3, 0.1)):
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
 
 
-def lorenz(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
-    r"""Initial value problem (IVP) based on the Lorenz system.
+def lorenz63(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
+    r"""Initial value problem (IVP) based on the Lorenz63 system.
 
-    The Lorenz system is defined through
+    The Lorenz63 system is defined through
 
     .. math::
 
@@ -463,12 +464,12 @@ def lorenz(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
     y0
         *(shape=(3, ))* -- Initial value. Default is ``[0., 1., 1.05]``.
     params
-        Parameter of the Lotka-Volterra model. Default is ``(0.2, 0.2, 3.0)``.
+        Parameter of the Lorenz63 model. Default is ``(10.0, 28.0, 8.0 / 3.0)``.
 
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing the Lorenz system with the prescribed
+        InitialValueProblem object describing the Lorenz63 system with the prescribed
         configuration.
     """
     if y0 is None:
@@ -485,3 +486,59 @@ def lorenz(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
         return np.array([[-a, a, 0], [b - y3, -1, -y1], [y2, y1, -c]])
 
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
+
+
+def lorenz96(t0=0.0, tmax=30.0, y0=None, num_variables=5, params=(8.0,)):
+    r"""Initial value problem (IVP) based on the Lorenz96 system.
+
+    The Lorenz96 system is defined through
+
+    .. math::
+
+        f_i(t, y) = (y_{i+1} - y_{i-2}) * y_{i-1} - y_i + F
+
+    for some parameter :math:`(F,)`. Default is :math:`(F,)=(8,)`.
+
+    Parameters
+    ----------
+    t0
+        Initial time. Default is 0.0
+    tmax
+        Final time. Default is 20.0
+    y0
+        *(shape=(N, ))* -- Initial value. Default is ``[1/F, ..., 1/F]``. `N` is the number of variables in the model.
+    num_variables
+        Number of variables in the model. If `y0` is specified, this argument is ignored
+        (and the number of variables is inferred from the dimension of the initial value).
+    params
+        Parameter(s) of the Lorenz96 model. Default is ``(8,)``.
+
+    Returns
+    -------
+    InitialValueProblem
+        InitialValueProblem object describing the Lorenz96 system with the prescribed
+        configuration.
+    """
+
+    (constant_forcing,) = params
+
+    if y0 is None:
+        if num_variables < 4:
+            raise ValueError("The number of variables must be at least 4.")
+        y0 = np.ones(num_variables) * constant_forcing
+    else:
+        if len(y0) < 4:
+            raise ValueError(
+                "The number of variables (i.e. the length of the initial vector) must be at least 4."
+            )
+
+    def lorenz96_f_vec(t, y, c=constant_forcing):
+        """Lorenz 96 model with constant forcing."""
+
+        A = np.roll(y, shift=-1)
+        B = np.roll(y, shift=2)
+        C = np.roll(y, shift=1)
+        D = y
+        return (A - B) * C - D + c
+
+    return InitialValueProblem(f=lorenz96_f_vec, t0=t0, tmax=tmax, y0=y0)

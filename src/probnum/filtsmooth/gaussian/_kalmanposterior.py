@@ -1,7 +1,7 @@
 """Posterior over states after applying (Extended/Unscented) Kalman filtering/smoothing.
 
-Contains the discrete time and function outputs. Provides dense output
-by being callable. Can function values can also be accessed by indexing.
+Contains the discrete time and function outputs. Provides dense output by being
+callable. Can function values can also be accessed by indexing.
 """
 import abc
 from typing import Iterable, Optional, Union
@@ -20,7 +20,7 @@ from probnum.typing import (
 )
 
 GaussMarkovPriorTransitionArgType = Union[
-    randprocs.markov.discrete.DiscreteLinearGaussian,
+    randprocs.markov.discrete.LinearGaussian,
     approx.DiscreteEKFComponent,
     approx.DiscreteUKFComponent,
     randprocs.markov.continuous.LinearSDE,

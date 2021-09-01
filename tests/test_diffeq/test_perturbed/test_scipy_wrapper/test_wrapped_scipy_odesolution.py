@@ -18,7 +18,7 @@ def test_locations(solution_case):
     testsolution, scipysolution, ode = solution_case
     scipy_t = scipysolution.ts
     probnum_t = testsolution.locations
-    np.testing.assert_allclose(scipy_t, probnum_t, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(scipy_t, probnum_t, atol=1e-13, rtol=1e-13)
 
 
 def test_call_isscalar(solution_case):
@@ -35,11 +35,11 @@ def test_states(solution_case):
     testsolution, scipysolution, ode = solution_case
     scipy_states = np.array(scipysolution(scipysolution.ts)).T
     probnum_states = np.array(testsolution.states.mean)
-    np.testing.assert_allclose(scipy_states, probnum_states, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(scipy_states, probnum_states, atol=1e-13, rtol=1e-13)
 
 
 def test_call(solution_case):
     testsolution, scipysolution, ode = solution_case
     scipy_call = scipysolution(scipysolution.ts)
     probnum_call = testsolution(scipysolution.ts).mean.T
-    np.testing.assert_allclose(scipy_call, probnum_call, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(scipy_call, probnum_call, atol=1e-13, rtol=1e-13)

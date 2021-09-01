@@ -3,7 +3,7 @@ import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum.diffeq import probsolve_ivp
-from probnum.diffeq.odefiltsmooth import KalmanODESolution
+from probnum.diffeq.odefilter import ODEFilterSolution
 
 
 @pytest.fixture
@@ -21,8 +21,16 @@ def ivp():
 @pytest.mark.parametrize("step", [0.01, None])
 @pytest.mark.parametrize("diffusion_model", ["constant", "dynamic"])
 @pytest.mark.parametrize("tolerance", [0.1, np.array([0.09, 0.10])])
+@pytest.mark.parametrize("time_stops", [[0.15, 0.16], None])
 def test_adaptive_solver_successful(
-    ivp, method, algo_order, dense_output, step, diffusion_model, tolerance
+    ivp,
+    method,
+    algo_order,
+    dense_output,
+    step,
+    diffusion_model,
+    tolerance,
+    time_stops,
 ):
     """The solver terminates successfully for all sorts of parametrizations."""
     f = ivp.f
@@ -43,14 +51,19 @@ def test_adaptive_solver_successful(
         method=method,
         dense_output=dense_output,
         step=step,
+        time_stops=time_stops,
     )
     # Successful return value as documented
-    assert isinstance(sol, KalmanODESolution)
+    assert isinstance(sol, ODEFilterSolution)
 
     # Adaptive steps are not evenly distributed
     step_diff = np.diff(sol.locations)
     step_ratio = np.amin(step_diff) / np.amax(step_diff)
     assert step_ratio < 0.5
+
+    if time_stops is not None:
+        for t in time_stops:
+            assert t in sol.locations
 
 
 def test_wrong_method_raises_error(ivp):

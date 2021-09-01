@@ -32,9 +32,9 @@ def setup_solver(y0, ode, perturbfun, steprule):
     ],
 )
 @pytest.mark.parametrize("steprule", [_ADAPTIVE_STEPS, _CONSTANT_STEPS])
-def case_lorenz(perturbfun, steprule):
+def case_lorenz63(perturbfun, steprule):
     y0 = np.array([0.0, 1.0, 1.05])
-    ode = diffeq_zoo.lorenz(t0=0.0, tmax=1.0, y0=y0)
+    ode = diffeq_zoo.lorenz63(t0=0.0, tmax=1.0, y0=y0)
     return setup_solver(y0, ode, perturbfun, steprule=steprule)
 
 
