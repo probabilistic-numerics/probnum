@@ -30,7 +30,7 @@ ProbNum provides a family of linear solvers, which infer either the inverse syst
 .. nbgallery::
    :caption: Linear Solvers
 
-   tutorials/linalg/linear_systems
+   tutorials/linalg/linear_solvers_quickstart
    tutorials/linalg/galerkin_method
 
 
