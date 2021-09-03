@@ -17,4 +17,5 @@ class ProjResidualInfoOp(LinearSolverInfoOp):
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> np.ndarray:
+        r"""Projected residual :math:`s_i^\top (A x_i - b)` of the linear system."""
         return solver_state.action @ solver_state.residual
