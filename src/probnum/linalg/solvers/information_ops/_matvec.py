@@ -7,7 +7,7 @@ from ._linear_solver_info_op import LinearSolverInfoOp
 
 
 class MatVecInfoOp(LinearSolverInfoOp):
-    r"""Matrix-vector product :math:`s_i \mapsto As_i` with the system matrix.
+    r"""Matrix-vector product :math:`s_i \mapsto A s_i` with the system matrix.
 
     Obtain information about a linear system by multiplying an action :math:`s_i`
     with the system matrix giving :math:`y_i = A s_i`.
