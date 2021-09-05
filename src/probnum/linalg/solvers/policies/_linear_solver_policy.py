@@ -17,8 +17,10 @@ class LinearSolverPolicy(abc.ABC):
     See Also
     --------
     ConjugateDirectionsPolicy : Policy returning :math:`A`-conjugate actions.
+    RandomUnitVectorPolicy : Policy returning random standard unit vectors.
     """
 
+    @abc.abstractmethod
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> np.ndarray:

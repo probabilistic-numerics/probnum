@@ -14,3 +14,8 @@ probnum.linalg.solvers
     :hidden:
 
     solvers.policies
+
+.. toctree::
+    :hidden:
+
+    solvers.information_ops
