@@ -1,5 +1,7 @@
 """Test cases defined by information operators."""
 
+from pytest_cases import case
+
 from probnum.linalg.solvers import information_ops
 
 

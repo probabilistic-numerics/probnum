@@ -7,7 +7,7 @@ from ._linear_solver_info_op import LinearSolverInfoOp
 
 
 class MatVecInfoOp(LinearSolverInfoOp):
-    r"""Matrix-vector product :math:`s_i \mapsto As_i` with the system matrix.
+    r"""Matrix-vector product :math:`s_i \mapsto A s_i` with the system matrix.
 
     Obtain information about a linear system by multiplying an action :math:`s_i`
     with the system matrix giving :math:`y_i = A s_i`.
@@ -16,4 +16,5 @@ class MatVecInfoOp(LinearSolverInfoOp):
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> np.ndarray:
+        r"""Matrix vector product with the system matrix :math:`A`."""
         return solver_state.problem.A @ solver_state.action

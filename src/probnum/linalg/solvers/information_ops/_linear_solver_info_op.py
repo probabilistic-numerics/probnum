@@ -9,8 +9,7 @@ import probnum  # pylint: disable="unused-import"
 class LinearSolverInfoOp(abc.ABC):
     r"""Information operator of a (probabilistic) linear solver.
 
-    For a given action, the information operator collects information about the linear system
-    to be solved.
+    For a given action, the information operator collects information about the linear system to be solved.
 
     See Also
     --------
@@ -28,5 +27,10 @@ class LinearSolverInfoOp(abc.ABC):
         ----------
         solver_state :
             Current state of the linear solver.
+
+        Returns
+        -------
+        observation :
+            Returns an observation of the linear system.
         """
         raise NotImplementedError

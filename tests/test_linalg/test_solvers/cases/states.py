@@ -23,7 +23,7 @@ prior = linalg.solvers.beliefs.LinearSystemBelief(
     x=(Ainv @ b[:, None]).reshape(
         (n,)
     ),  # TODO: This can be replaced by Ainv @ b once https://github.com/probabilistic-numerics/probnum/issues/456 is fixed
-    b=randvars.Constant(linsys.b),
+    b=b,
 )
 
 
