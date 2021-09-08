@@ -230,7 +230,7 @@ class ODEFilter(_odesolver.ODESolver):
         # Appending or not appending the diffusion (and because the computations below
         # are sufficiently costly such that skipping them here will have a positive impact).
         internal_norm = self.steprule.errorest_to_norm(
-            errorest=local_errors,
+            errorest=dt * local_errors,
             reference_state=reference_values,
         )
 
