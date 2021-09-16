@@ -16,7 +16,7 @@ cases_states = case_modules + ".states"
 )
 @parametrize_with_cases("state", cases=cases_states, glob="*converged")
 def test_has_converged(
-    stop_crit: stopping_criteria.LinearSolverStoppingCriterion,
+    stop_crit: stopping_criteria.LinearSolverStopCrit,
     state: ProbabilisticLinearSolverState,
 ):
     assert stop_crit(solver_state=state)

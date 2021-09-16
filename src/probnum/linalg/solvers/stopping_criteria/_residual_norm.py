@@ -5,10 +5,10 @@ import numpy as np
 import probnum
 from probnum.typing import ScalarArgType
 
-from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
+from ._linear_solver_stopping_criterion import LinearSolverStopCrit
 
 
-class ResidualNormStopCrit(LinearSolverStoppingCriterion):
+class ResidualNormStopCrit(LinearSolverStopCrit):
     r"""Residual stopping criterion.
 
     Terminate when the euclidean norm of the residual :math:`r_{i} = A x_{i} - b` is
@@ -34,7 +34,13 @@ class ResidualNormStopCrit(LinearSolverStoppingCriterion):
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> bool:
+        """Check whether the residual norm is smaller than the specified tolerance.
 
+        Parameters
+        ----------
+        solver_state :
+            Current state of the linear solver.
+        """
         residual_norm = np.linalg.norm(solver_state.residual, ord=2)
         b_norm = np.linalg.norm(solver_state.problem.b, ord=2)
         return residual_norm <= self.atol or residual_norm <= self.rtol * b_norm

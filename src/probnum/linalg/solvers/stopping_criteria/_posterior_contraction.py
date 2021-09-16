@@ -5,10 +5,10 @@ import numpy as np
 import probnum  # pylint: disable="unused-import"
 from probnum.typing import ScalarArgType
 
-from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
+from ._linear_solver_stopping_criterion import LinearSolverStopCrit
 
 
-class PosteriorContractionStopCrit(LinearSolverStoppingCriterion):
+class PosteriorContractionStopCrit(LinearSolverStopCrit):
     r"""Posterior contraction stopping criterion.
 
     Terminate when the uncertainty about the quantity of interest :math:`q` is
@@ -39,7 +39,14 @@ class PosteriorContractionStopCrit(LinearSolverStoppingCriterion):
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> bool:
+        """Check whether the uncertainty about the quantity of interest is smaller than
+        the specified tolerance.
 
+        Parameters
+        ----------
+        solver_state :
+            Current state of the linear solver.
+        """
         trace_cov_qoi = getattr(solver_state.belief, self.qoi).cov.trace()
         b_norm = np.linalg.norm(solver_state.problem.b, ord=2)
 

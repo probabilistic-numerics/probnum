@@ -16,5 +16,11 @@ class MatVecInfoOp(LinearSolverInfoOp):
     def __call__(
         self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
     ) -> np.ndarray:
-        r"""Matrix vector product with the system matrix :math:`A`."""
+        r"""Matrix vector product with the system matrix :math:`A`.
+
+        Parameters
+        ----------
+        solver_state :
+            Current state of the linear solver.
+        """
         return solver_state.problem.A @ solver_state.action

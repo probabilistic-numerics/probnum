@@ -14,7 +14,7 @@ cases_states = case_modules + ".states"
 @parametrize_with_cases("stop_crit", cases=cases_stopping_criteria)
 @parametrize_with_cases("state", cases=cases_states)
 def test_returns_bool(
-    stop_crit: stopping_criteria.LinearSolverStoppingCriterion,
+    stop_crit: stopping_criteria.LinearSolverStopCrit,
     state: ProbabilisticLinearSolverState,
 ):
     assert stop_crit(solver_state=state) in [True, False]

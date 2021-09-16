@@ -27,10 +27,5 @@ class LinearSolverInfoOp(abc.ABC):
         ----------
         solver_state :
             Current state of the linear solver.
-
-        Returns
-        -------
-        observation :
-            Returns an observation of the linear system.
         """
         raise NotImplementedError
