@@ -8,7 +8,7 @@ import probnum  # pylint: disable="unused-import"
 class LinearSolverStoppingCriterion(abc.ABC):
     r"""Stopping criterion of a (probabilistic) linear solver.
 
-    Checks whether the linear solver has converged for a given :class:`~probnum.linalg.solvers.ProbabilisticLinearSolverState`.
+    Checks whether quantities tracked by the :class:`~probnum.linalg.solvers.ProbabilisticLinearSolverState` meet a desired terminal condition.
 
     See Also
     --------
