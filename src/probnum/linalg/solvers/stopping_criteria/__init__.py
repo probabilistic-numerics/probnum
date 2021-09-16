@@ -1,4 +1,4 @@
-"""Stopping criteria of probabilistic linear solvers determining termination."""
+"""Stopping criteria for probabilistic linear solvers"""
 
 from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 from ._maxiter import MaxIterationsStopCrit
