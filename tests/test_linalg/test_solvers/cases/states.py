@@ -13,13 +13,17 @@ linsys = random_linear_system(
 )
 
 # Prior
+Ainv = randvars.Normal(
+    mean=linops.Identity(n), cov=linops.SymmetricKronecker(linops.Identity(n))
+)
+b = randvars.Constant(linsys.b)
 prior = linalg.solvers.beliefs.LinearSystemBelief(
     A=randvars.Constant(linsys.A),
-    Ainv=None,
-    x=randvars.Normal(
-        mean=np.zeros(linsys.A.shape[1]), cov=linops.Identity(shape=linsys.A.shape)
-    ),
-    b=randvars.Constant(linsys.b),
+    Ainv=Ainv,
+    x=(Ainv @ b[:, None]).reshape(
+        (n,)
+    ),  # TODO: This can be replaced by Ainv @ b once https://github.com/probabilistic-numerics/probnum/issues/456 is fixed
+    b=b,
 )
 
 
@@ -44,3 +48,19 @@ def case_state(
     initial_state.action = rng.standard_normal(size=initial_state.problem.A.shape[1])
 
     return initial_state
+
+
+def case_state_converged(
+    rng: np.random.Generator,
+):
+    """State of a linear solver, which has converged at initialization."""
+    belief = linalg.solvers.beliefs.LinearSystemBelief(
+        A=randvars.Constant(linsys.A),
+        Ainv=randvars.Constant(linops.aslinop(linsys.A).inv().todense()),
+        x=randvars.Constant(linsys.solution),
+        b=randvars.Constant(linsys.b),
+    )
+    state = linalg.solvers.ProbabilisticLinearSolverState(
+        problem=linsys, prior=belief, rng=rng
+    )
+    return state
