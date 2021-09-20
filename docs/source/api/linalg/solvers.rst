@@ -19,3 +19,8 @@ probnum.linalg.solvers
     :hidden:
 
     solvers.information_ops
+
+.. toctree::
+    :hidden:
+
+    solvers.stopping_criteria
