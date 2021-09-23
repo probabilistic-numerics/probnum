@@ -6,9 +6,9 @@ from typing import Generic, Optional, Tuple, TypeVar, Union
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.typing import IntArgType, ShapeArgType, ShapeType
+from probnum.typing import IntArgType, ShapeType
 
-_InputType = TypeVar("InputType")
+_InputType = TypeVar("_InputType")
 
 
 class Kernel(Generic[_InputType], abc.ABC):
@@ -61,7 +61,6 @@ class Kernel(Generic[_InputType], abc.ABC):
            [1.        , 1.33333333, 1.66666667, 2.        ]])
     """
 
-    # pylint: disable="invalid-name"
     def __init__(
         self,
         input_dim: IntArgType,
@@ -73,9 +72,11 @@ class Kernel(Generic[_InputType], abc.ABC):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
-    @abc.abstractmethod
     def __call__(
-        self, x0: _InputType, x1: Optional[_InputType] = None
+        self,
+        x0: _InputType,
+        x1: Optional[_InputType] = None,
+        squeeze_output_dim: bool = True,
     ) -> Union[np.ndarray, np.float_]:
         """Evaluate the kernel.
 
@@ -98,7 +99,17 @@ class Kernel(Generic[_InputType], abc.ABC):
             output_dim)* -- Kernel evaluated at ``x0`` and ``x1`` or kernel matrix
             containing pairwise evaluations for all observations in ``x0`` (and ``x1``).
         """
-        raise NotImplementedError
+
+        x0, x1, broadcast_input_shape = self._check_and_reshape_inputs(x0, x1)
+
+        cov = self._evaluate(x0, x1)
+
+        assert cov.shape == broadcast_input_shape[:-2] + 2 * (self._output_dim,)
+
+        if self.output_dim == 1 and squeeze_output_dim:
+            cov = np.squeeze(cov, axis=[-2, -1])
+
+        return cov
 
     @property
     def input_dim(self) -> int:
@@ -119,6 +130,14 @@ class Kernel(Generic[_InputType], abc.ABC):
         output_dim)*.
         """
         return self._output_dim
+
+    @abc.abstractmethod
+    def _evaluate(
+        self,
+        x0: _InputType,
+        x1: Optional[_InputType] = None,
+    ) -> Union[np.ndarray, np.float_]:
+        pass
 
     def _check_and_reshape_inputs(
         self,
@@ -153,122 +172,36 @@ class Kernel(Generic[_InputType], abc.ABC):
             If input shapes of x0 and x1 do not match the kernel input dimension or
             each other.
         """
-        # pylint: disable="too-many-boolean-expressions"
 
-        # Check and promote shapes
-        x0 = np.asarray(x0)
-        if x1 is None:
-            if (
-                (x0.ndim == 0 and self.input_dim > 1)  # Scalar input
-                or (x0.ndim == 1 and x0.shape[0] != self.input_dim)  # Vector input
-                or (x0.ndim >= 2 and x0.shape[1] != self.input_dim)  # Matrix input
-            ):
+        err_msg = (
+            "`{0}` does not broadcast to the kernel's input dimension "
+            f"{self.input_dim} along the last axis, since "
+            "`{0}.shape = {1}`."
+        )
+
+        x0 = np.atleast_1d(x0)
+
+        if x0.shape[-1] not in (self.input_dim, 1):
+            # This will never be called if the original input was a scalar
+            raise ValueError(err_msg.format("x0", x0.shape))
+
+        broadcast_input_shape = x0.shape
+
+        if x1 is not None:
+            x1 = np.atleast_1d(x1)
+
+            if x1.shape[-1] not in (self.input_dim, 1):
+                # This will never be called if the original input was a scalar
+                raise ValueError(err_msg.format("x1", x1.shape))
+
+            try:
+                # Ironically, `np.broadcast_arrays(...).shape` seems to be more
+                # efficient than `np.broadcast_shapes`
+                broadcast_input_shape = np.broadcast_arrays(x0, x1).shape
+            except ValueError as v:
                 raise ValueError(
-                    f"Argument shape x0.shape={x0.shape} does not match "
-                    "kernel input dimension."
-                )
+                    f"The input arrays `x0` and `x1` with shapes {x0.shape} and "
+                    f"{x1.shape} can not be broadcast to a common shape."
+                ) from v
 
-            # Determine correct shape for the kernel matrix as the output of __call__
-            kernshape = self._get_shape_kernelmatrix(
-                x0_shape=x0.shape, x1_shape=x0.shape
-            )
-
-            return np.atleast_2d(x0), None, kernshape
-        else:
-            x1 = np.asarray(x1)
-            err_msg = (
-                f"Argument shapes x0.shape={x0.shape} and x1.shape="
-                f"{x1.shape} do not match kernel input dimension "
-                f"{self.input_dim}. Try passing either two vectors or two "
-                "matrices with the second dimension equal to the kernel input "
-                "dimension."
-            )
-
-            # Promote unequal shapes
-            if x0.ndim < 2 and x1.ndim == 2:
-                x0 = np.atleast_2d(x0)
-            if x1.ndim < 2 and x0.ndim == 2:
-                x1 = np.atleast_2d(x1)
-            if x0.ndim != x1.ndim:  # Shape mismatch
-                raise ValueError(err_msg)
-
-            # Check shapes
-            if (
-                (x0.ndim == 0 and self.input_dim > 1)  # Scalar input
-                or (
-                    x0.ndim == 1  # Vector input
-                    and not (x0.shape[0] == x1.shape[0] == self.input_dim)
-                )
-                or (
-                    x0.ndim == 2  # Matrix input
-                    and not (x0.shape[1] == x1.shape[1] == self.input_dim)
-                )
-            ):
-                raise ValueError(err_msg)
-
-            # Determine correct shape for the kernel matrix as the output of __call__
-            kernshape = self._get_shape_kernelmatrix(
-                x0_shape=x0.shape, x1_shape=x1.shape
-            )
-
-            return np.atleast_2d(x0), np.atleast_2d(x1), kernshape
-
-    def _get_shape_kernelmatrix(
-        self,
-        x0_shape: ShapeArgType,
-        x1_shape: ShapeArgType,
-    ) -> ShapeType:
-        """Determine the shape of the kernel matrix based on the given arguments.
-
-        Determine the correct shape of the covariance function evaluated at the given
-        input arguments. If inputs are vectors the output is a numpy scalar if the
-        output dimension of the kernel is 1, otherwise *shape=(output_dim,
-        output_dim)*. If inputs represent multiple observations, then the resulting
-        matrix has *shape=(n0, n1) or (n0, n1, output_dim, output_dim)*.
-
-        Parameters
-        ----------
-        x0_shape :
-            Shape of the first input to the covariance function.
-        x1_shape :
-            Shape of the second input to the covariance function.
-        """
-        if len(x0_shape) <= 1 and len(x1_shape) <= 1:
-            if self.output_dim == 1:
-                kern_shape = 0
-            else:
-                kern_shape = ()
-        else:
-            kern_shape = (x0_shape[0], x1_shape[0])
-
-        if self.output_dim > 1:
-            kern_shape += (
-                self.output_dim,
-                self.output_dim,
-            )
-
-        return _utils.as_shape(kern_shape)
-
-    @staticmethod
-    def _reshape_kernelmatrix(
-        kerneval: np.ndarray, newshape: ShapeArgType
-    ) -> np.ndarray:
-        """Reshape the evaluation of the covariance function.
-
-        Reshape the given evaluation of the covariance function to the correct shape,
-        determined by the inputs x0 and x1. This method is designed to be called by
-        subclasses of :class:`Kernel` in their :meth:`__call__` function to ensure
-        the returned quantity has the correct shape independent of the implementation of
-        the kernel.
-
-        Parameters:
-        -----------
-        kerneval
-            Covariance function evaluated at ``x0`` and ``x1``.
-        newshape :
-            New shape of the evaluation of the covariance function.
-        """
-        if newshape[0] == 0:
-            return _utils.as_numpy_scalar(kerneval.squeeze())
-        else:
-            return kerneval.reshape(newshape)
+        return x0, x1, broadcast_input_shape

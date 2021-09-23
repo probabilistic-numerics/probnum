@@ -69,42 +69,37 @@ class Matern(Kernel[_InputType]):
 
         super().__init__(input_dim=input_dim, output_dim=1)
 
-    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-
-        x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
-
-        # Compute pairwise euclidean distances ||x0 - x1|| / l
+    def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         if x1 is None:
-            pdists = scipy.spatial.distance.squareform(
-                scipy.spatial.distance.pdist(x0 / self.lengthscale, metric="euclidean")
+            dists = np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=x0.shape[:-1],
             )
         else:
-            pdists = scipy.spatial.distance.cdist(
-                x0 / self.lengthscale, x1 / self.lengthscale, metric="euclidean"
-            )
+            dists = np.linalg.norm(x0 - x1, ord=2, axis=-1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
-            kernmat = np.exp(-pdists)
+            kernmat = np.exp(-1.0 / self.lengthscale * dists)
         elif self.nu == 1.5:
-            scaled_pdists = np.sqrt(3) * pdists
-            kernmat = (1.0 + scaled_pdists) * np.exp(-scaled_pdists)
+            scaled_dists = -np.sqrt(3) / self.lengthscale * dists
+            kernmat = (1.0 + scaled_dists) * np.exp(-scaled_dists)
         elif self.nu == 2.5:
-            scaled_pdists = np.sqrt(5) * pdists
-            kernmat = (1.0 + scaled_pdists + scaled_pdists ** 2 / 3.0) * np.exp(
-                -scaled_pdists
+            scaled_dists = np.sqrt(5) / self.lengthscale * dists
+            kernmat = (1.0 + scaled_dists + scaled_dists ** 2 / 3.0) * np.exp(
+                -scaled_dists
             )
         elif self.nu == np.inf:
-            kernmat = np.exp(-(pdists ** 2) / 2.0)
+            kernmat = np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * dists ** 2)
         else:
             # The modified Bessel function K_nu is not defined for z=0
-            pdists[pdists == 0.0] += np.finfo(float).eps
-            scaled_pdists = np.sqrt(2 * self.nu) * pdists
+            dists[dists == 0.0] += np.finfo(dists.dtype).eps
+            scaled_dists = np.sqrt(2 * self.nu) / self.lengthscale * dists
             kernmat = (
                 2 ** (1.0 - self.nu)
                 / scipy.special.gamma(self.nu)
-                * scaled_pdists ** self.nu
-                * scipy.special.kv(self.nu, scaled_pdists)
+                * scaled_dists ** self.nu
+                * scipy.special.kv(self.nu, scaled_dists)
             )
 
-        return Kernel._reshape_kernelmatrix(kernmat, newshape=kernshape)
+        return kernmat[..., None, None]

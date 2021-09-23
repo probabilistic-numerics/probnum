@@ -59,21 +59,16 @@ class RatQuad(Kernel[_InputType]):
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
         super().__init__(input_dim=input_dim, output_dim=1)
 
-    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-
-        x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
-
-        # Compute pairwise euclidean distances ||x0 - x1|| / l
+    def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         if x1 is None:
-            pdists = scipy.spatial.distance.squareform(
-                scipy.spatial.distance.pdist(x0 / self.lengthscale, metric="euclidean")
-            )
-        else:
-            pdists = scipy.spatial.distance.cdist(
-                x0 / self.lengthscale, x1 / self.lengthscale, metric="euclidean"
+            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=x0.shape[:-1] + (1, 1),
             )
 
-        # Kernel matrix
-        kernmat = (1.0 + pdists ** 2 / (2.0 * self.alpha)) ** (-self.alpha)
+        sqdists = np.sum((x0 - x1) ** 2, axis=-1)
+        kernmat = (
+            1.0 + sqdists / (2.0 * self.alpha * self.lengthscale ** 2)
+        ) ** -self.alpha
 
-        return Kernel._reshape_kernelmatrix(kernmat, newshape=kernshape)
+        return kernmat[..., None, None]
