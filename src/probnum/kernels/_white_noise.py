@@ -33,7 +33,7 @@ class WhiteNoise(Kernel[_InputType]):
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         if x1 is None:
-            kernmat = np.full_like(x0, self._sigma_sq)
+            kernmat = np.full_like(x0[..., 0], self._sigma_sq)
         else:
             kernmat = self._sigma_sq * np.all(x0 == x1, axis=-1)
 

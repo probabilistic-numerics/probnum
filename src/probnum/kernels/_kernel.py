@@ -77,7 +77,7 @@ class Kernel(Generic[_InputType], abc.ABC):
         x0: _InputType,
         x1: Optional[_InputType] = None,
         squeeze_output_dim: bool = True,
-    ) -> Union[np.ndarray, np.float_]:
+    ) -> np.ndarray:
         """Evaluate the kernel.
 
         Computes the covariance function at ``x0`` and ``x1``. If the inputs have
@@ -104,10 +104,10 @@ class Kernel(Generic[_InputType], abc.ABC):
 
         cov = self._evaluate(x0, x1)
 
-        assert cov.shape == broadcast_input_shape[:-2] + 2 * (self._output_dim,)
+        assert cov.shape == broadcast_input_shape[:-1] + 2 * (self._output_dim,)
 
         if self.output_dim == 1 and squeeze_output_dim:
-            cov = np.squeeze(cov, axis=[-2, -1])
+            cov = np.squeeze(cov, axis=(-2, -1))
 
         return cov
 
@@ -195,9 +195,9 @@ class Kernel(Generic[_InputType], abc.ABC):
                 raise ValueError(err_msg.format("x1", x1.shape))
 
             try:
-                # Ironically, `np.broadcast_arrays(...).shape` seems to be more
-                # efficient than `np.broadcast_shapes`
-                broadcast_input_shape = np.broadcast_arrays(x0, x1).shape
+                # Ironically, `np.broadcast_arrays` seems to be more efficient than
+                # `np.broadcast_shapes`
+                broadcast_input_shape = np.broadcast_arrays(x0, x1)[0].shape
             except ValueError as v:
                 raise ValueError(
                     f"The input arrays `x0` and `x1` with shapes {x0.shape} and "

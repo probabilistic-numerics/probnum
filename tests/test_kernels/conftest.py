@@ -109,4 +109,7 @@ def kernmat(
     kernel: kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
 ) -> np.ndarray:
     """Kernel evaluated at the data."""
-    return kernel(x0=x0, x1=x1)
+    if x1 is None:
+        return kernel(x0)
+
+    return kernel(x0=x0[:, None, :], x1=x1[None, :, :])

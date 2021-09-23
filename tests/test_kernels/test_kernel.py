@@ -10,8 +10,7 @@ import probnum.utils as _utils
 
 def test_1d_data(kernel: kernels.Kernel, x0_1d: np.ndarray, input_dim: int):
     """Test handling of 1d data."""
-    kernmat = kernel(x0_1d)
-    assert isinstance(kernmat, (float, np.float_))
+    assert np.ndim(kernel(x0_1d)) == 0
 
 
 def test_shape(
@@ -21,11 +20,13 @@ def test_shape(
 
     # Check shape
     if x1 is None:
-        x1 = x0
-    if (x0.ndim == 0 and x1.ndim == 0) or (x0.ndim == 1 and x1.ndim == 1):
-        kern_shape = ()
+        kern_shape = x0.shape[:-1]
     else:
-        kern_shape = (x0.shape[0], x1.shape[0])
+        if (x0.ndim == 0 and x1.ndim == 0) or (x0.ndim == 1 and x1.ndim == 1):
+            kern_shape = ()
+        else:
+            kern_shape = (x0.shape[0], x1.shape[0])
+
     if kernel.output_dim > 1:
         kern_shape += (kernel.output_dim, kernel.output_dim)
 
