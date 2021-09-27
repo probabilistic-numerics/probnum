@@ -15,18 +15,27 @@ _InputType = np.ndarray
 
 
 class Matern(Kernel[_InputType]):
-    """Matern kernel.
+    r"""Matern kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = \\frac{1}{\\Gamma(\\nu)2^{
-    \\nu-1}}\\big(\\frac{\\sqrt{2\\nu}}{l} \\lVert x_0 , x_1\\rVert \\big)^\\nu
-    K_\\nu\\big(\\frac{\\sqrt{2\\nu}}{l} \\lVert x_0 , x_1 \\rVert \\big)`, where
-    :math:`K_\\nu` is a modified Bessel function. The Matern
-    kernel generalizes the :class:`~probnum.kernels.ExpQuad` kernel
-    via its additional parameter :math:`\\nu` controlling the smoothness of the
-    function. For :math:`\\nu \\rightarrow \\infty` the Matern kernel converges to
-    the :class:`~probnum.kernels.ExpQuad` kernel. A Gaussian process
-    with Matern covariance function is :math:`\\lceil \\nu \\rceil - 1` times
-    differentiable.
+    Covariance function defined by
+
+    .. math::
+        :nowrap:
+
+        \begin{equation}
+            k(x_0, x_1)
+            =
+            \frac{1}{\Gamma(\nu) 2^{\nu - 1}}
+            \left( \frac{\sqrt{2 \nu}}{l} \lVert x_0 - x_1 \rVert_2 \right)^\nu
+            K_\nu \left( \frac{\sqrt{2 \nu}}{l} \lVert x_0 - x_1 \rVert_2 \right),
+        \end{equation}
+
+    where :math:`K_\nu` is a modified Bessel function. The Matern kernel generalizes the
+    :class:`~probnum.kernels.ExpQuad` kernel via its additional parameter :math:`\nu`
+    controlling the smoothness of the function. For :math:`\nu \rightarrow \infty`
+    the Matern kernel converges to the :class:`~probnum.kernels.ExpQuad` kernel. A
+    Gaussian process with Matern covariance function is :math:`\lceil \nu \rceil - 1`
+    times differentiable.
 
     Parameters
     ----------
@@ -60,7 +69,6 @@ class Matern(Kernel[_InputType]):
         lengthscale: ScalarArgType = 1.0,
         nu: ScalarArgType = 1.5,
     ):
-        # pylint: disable="invalid-name"
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
         if not self.lengthscale > 0:
             raise ValueError(f"Lengthscale l={self.lengthscale} must be positive.")
