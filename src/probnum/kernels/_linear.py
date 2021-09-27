@@ -33,7 +33,8 @@ class Linear(Kernel[_InputType]):
     >>> import numpy as np
     >>> from probnum.kernels import Linear
     >>> K = Linear(input_dim=2)
-    >>> K(np.array([[1, 2], [2, 3]]))
+    >>> xs = np.array([[1, 2], [2, 3]])
+    >>> K(xs[:, None, :], xs[None, :, :])
     array([[ 5.,  8.],
            [ 8., 13.]])
     """

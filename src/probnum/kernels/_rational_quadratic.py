@@ -41,7 +41,8 @@ class RatQuad(Kernel[_InputType]):
     >>> import numpy as np
     >>> from probnum.kernels import RatQuad
     >>> K = RatQuad(input_dim=1, lengthscale=0.1, alpha=3)
-    >>> K(np.linspace(0, 1, 3)[:, None])
+    >>> xs = np.linspace(0, 1, 3)[:, None]
+    >>> K(xs[:, None, :], xs[None, :, :])
     array([[1.00000000e+00, 7.25051190e-03, 1.81357765e-04],
            [7.25051190e-03, 1.00000000e+00, 7.25051190e-03],
            [1.81357765e-04, 7.25051190e-03, 1.00000000e+00]])

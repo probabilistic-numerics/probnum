@@ -39,22 +39,18 @@ class Kernel(Generic[_InputType], abc.ABC):
     ...         self.constant = constant
     ...         super().__init__(input_dim=1, output_dim=1)
     ...
-    ...     def __call__(self, x0, x1=None):
-    ...         # Check and reshape inputs
-    ...         x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
-    ...
-    ...         # Compute kernel matrix
+    ...     def _evaluate(self, x0, x1=None):
     ...         if x1 is None:
     ...             x1 = x0
-    ...         kernmat = x0 @ x1.T + self.constant
     ...
-    ...         return Kernel._reshape_kernelmatrix(kernmat, newshape=kernshape)
+    ...         return np.sum(x0 * x1, axis=-1)[..., None, None] + self.constant
 
     We can now evaluate the kernel like so.
 
     >>> import numpy as np
     >>> k = CustomLinearKernel(constant=1.0)
-    >>> k(np.linspace(0, 1, 4)[:, None])
+    >>> xs = np.linspace(0, 1, 4)[:, None]
+    >>> k(xs[:, None, :], xs[None, :, :])
     array([[1.        , 1.        , 1.        , 1.        ],
            [1.        , 1.11111111, 1.22222222, 1.33333333],
            [1.        , 1.22222222, 1.44444444, 1.66666667],

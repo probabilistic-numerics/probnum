@@ -35,7 +35,8 @@ class Polynomial(Kernel[_InputType]):
     >>> import numpy as np
     >>> from probnum.kernels import Polynomial
     >>> K = Polynomial(input_dim=2, constant=1.0, exponent=3)
-    >>> K(np.array([[1, -1], [-1, 0]]))
+    >>> xs = np.array([[1, -1], [-1, 0]])
+    >>> K(xs[:, None, :], xs[None, :, :])
     array([[27.,  0.],
            [ 0.,  8.]])
     """
