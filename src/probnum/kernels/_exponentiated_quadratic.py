@@ -7,12 +7,12 @@ import numpy as np
 import probnum.utils as _utils
 from probnum.typing import IntArgType, ScalarArgType
 
-from ._kernel import Kernel
+from ._kernel import IsotropicMixin, Kernel
 
 _InputType = np.ndarray
 
 
-class ExpQuad(Kernel[_InputType]):
+class ExpQuad(Kernel[_InputType], IsotropicMixin):
     """Exponentiated quadratic / RBF kernel.
 
     Covariance function defined by :math:`k(x_0, x_1) = \\exp \\big(-\\frac{\\lVert
@@ -55,7 +55,7 @@ class ExpQuad(Kernel[_InputType]):
                 shape=x0.shape[:-1] + (1, 1),
             )
 
-        sqdists = np.sum((x0 - x1) ** 2, axis=-1)
+        sqdists = self._squared_euclidean_distances(x0, x1)
         kernmat = np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * sqdists)
 
         return kernmat[..., None, None]

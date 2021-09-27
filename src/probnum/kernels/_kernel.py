@@ -201,3 +201,59 @@ class Kernel(Generic[_InputType], abc.ABC):
                 ) from v
 
         return x0, x1, broadcast_input_shape
+
+    def _euclidean_inner_products(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> np.ndarray:
+        """Implementation of the Euclidean inner product, which supports kernel
+        broadcasting semantics."""
+        prods = x0 ** 2 if x1 is None else x0 * x1
+
+        if prods.shape[-1] == 1:
+            return self.input_dim * prods[..., 0]
+
+        return np.sum(prods, axis=-1)
+
+
+class IsotropicMixin:
+    r"""Mixin for isotropic kernels.
+
+    An isotropic kernel is a kernel which only depends on the Euclidean norm of the
+    distance between the arguments, i.e.
+
+    .. math ::
+
+        k(x_0, x_1) = k(\lVert x_0 - x_1 \rVert_2).
+
+    Hence, all isotropic kernels are stationary.
+    """
+
+    def _squared_euclidean_distances(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> np.ndarray:
+        """Implementation of the squared Euclidean distance, which supports kernel
+        broadcasting semantics."""
+        if x1 is None:
+            return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=x0.shape[:-1],
+            )
+
+        sqdiffs = (x0 - x1) ** 2
+
+        if sqdiffs.shape[-1] == 1:
+            return self.input_dim * sqdiffs[..., 0]
+
+        return np.sum(sqdiffs, axis=-1)
+
+    def _euclidean_distances(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> np.ndarray:
+        """Implementation of the Euclidean distance, which supports kernel
+        broadcasting semantics."""
+        sqdists = self._squared_euclidean_distances(x0, x1)
+
+        if x1 is None:
+            return sqdists
+
+        return np.sqrt(sqdists)

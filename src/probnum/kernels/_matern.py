@@ -9,12 +9,12 @@ import scipy.special
 import probnum.utils as _utils
 from probnum.typing import IntArgType, ScalarArgType
 
-from ._kernel import Kernel
+from ._kernel import IsotropicMixin, Kernel
 
 _InputType = np.ndarray
 
 
-class Matern(Kernel[_InputType]):
+class Matern(Kernel[_InputType], IsotropicMixin):
     r"""Matern kernel.
 
     Covariance function defined by
@@ -79,13 +79,7 @@ class Matern(Kernel[_InputType]):
         super().__init__(input_dim=input_dim, output_dim=1)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        if x1 is None:
-            dists = np.zeros_like(  # pylint: disable=unexpected-keyword-arg
-                x0,
-                shape=x0.shape[:-1],
-            )
-        else:
-            dists = np.linalg.norm(x0 - x1, ord=2, axis=-1)
+        dists = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:

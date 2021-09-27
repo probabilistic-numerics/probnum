@@ -8,12 +8,12 @@ import scipy.spatial.distance
 import probnum.utils as _utils
 from probnum.typing import IntArgType, ScalarArgType
 
-from ._kernel import Kernel
+from ._kernel import IsotropicMixin, Kernel
 
 _InputType = np.ndarray
 
 
-class RatQuad(Kernel[_InputType]):
+class RatQuad(Kernel[_InputType], IsotropicMixin):
     """Rational quadratic kernel.
 
     Covariance function defined by :math:`k(x_0, x_1) = \\big(1 + \\frac{\\lVert x_0 -
@@ -67,7 +67,7 @@ class RatQuad(Kernel[_InputType]):
                 shape=x0.shape[:-1] + (1, 1),
             )
 
-        sqdists = np.sum((x0 - x1) ** 2, axis=-1)
+        sqdists = self._squared_euclidean_distances(x0, x1)
         kernmat = (
             1.0 + sqdists / (2.0 * self.alpha * self.lengthscale ** 2)
         ) ** -self.alpha

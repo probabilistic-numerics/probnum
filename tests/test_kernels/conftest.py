@@ -118,14 +118,23 @@ def fixture_kernel_naive(kernel: pn.kernels.Kernel):
         x1: np.ndarray = None,
         squeeze_output_dim: bool = True,
     ):
-        x0 = np.atleast_1d(x0)
+        x0, x1, _ = np.broadcast_arrays(
+            x0,
+            x0 if x1 is None else x1,
+            # This broadcasts x0 and x1 to have `input_dim` elements along their last
+            # dimensions
+            np.empty_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=(kernel.input_dim,),
+            ),
+        )
 
-        if x1 is None:
-            x1 = x0
-        else:
-            x1 = np.atleast_1d(x1)
+        assert x0.shape == x1.shape
+        assert x0.shape[-1] == kernel.input_dim and x1.shape[-1] == kernel.input_dim
 
         K = kernel_vectorized(x0, x1, squeeze_output_dim=False)
+
+        assert K.shape[-2:] == 2 * (kernel.output_dim,)
 
         if kernel.output_dim == 1 and squeeze_output_dim:
             K = K.squeeze((-2, -1))

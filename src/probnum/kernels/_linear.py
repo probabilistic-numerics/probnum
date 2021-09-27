@@ -44,9 +44,6 @@ class Linear(Kernel[_InputType]):
         super().__init__(input_dim=input_dim, output_dim=1)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        if x1 is None:
-            x1 = x0
-
-        kernmat = np.sum(x0 * x1, axis=-1) + self.constant
+        kernmat = self._euclidean_inner_products(x0, x1) + self.constant
 
         return kernmat[..., None, None]
