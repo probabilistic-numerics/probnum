@@ -80,7 +80,9 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         )
 
     def __call__(self, args: _InputType) -> randvars.Normal:
-        return randvars.Normal(mean=self.mean(args), cov=self.cov(args))
+        return randvars.Normal(
+            mean=self.mean(args), cov=self.cov(args[:, None, :], args[None, :, :])
+        )
 
     def mean(self, args: _InputType) -> _OutputType:
         return self._meanfun(args)

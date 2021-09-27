@@ -107,7 +107,7 @@ def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
 
     np.testing.assert_allclose(
         random_process(x).cov,
-        random_process.cov(x),
+        random_process.cov(x[:, None, :], x[None, :, :]),
         err_msg=f"Covariance of evaluated {repr(random_process)} does not match the "
         f"random process mean function evaluated.",
     )

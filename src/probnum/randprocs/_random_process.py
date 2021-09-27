@@ -173,17 +173,16 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             process at ``args``.
         """
         try:
-            cov = self.cov(args0=args)
-            if cov.ndim < 2:
-                return cov
-            elif cov.ndim == 2:
-                return np.diag(cov)
-            else:
-                return np.vstack(
-                    [np.diagonal(cov[:, :, i, i]) for i in range(self.output_dim)]
-                ).T
+            var = self.cov(args0=args)
         except NotImplementedError as exc:
             raise NotImplementedError from exc
+
+        if var.ndim == args.ndim - 1:
+            return var
+
+        assert var.ndim == args.ndim + 1 and var.shape[-2:] == 2 * (self.output_dim,)
+
+        return np.diagonal(var, axis1=-2, axis2=-1)
 
     def std(self, args: _InputType) -> _OutputType:
         """Standard deviation function.
