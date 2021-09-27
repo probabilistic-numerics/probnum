@@ -38,7 +38,7 @@ class ExpQuad(Kernel[_InputType], IsotropicMixin):
     >>> from probnum.kernels import ExpQuad
     >>> K = ExpQuad(input_dim=1, lengthscale=0.1)
     >>> xs = np.linspace(0, 1, 3)[:, None]
-    >>> K(xs[:, None, :], xs[None, :, :])
+    >>> K.matrix(xs)
     array([[1.00000000e+00, 3.72665317e-06, 1.92874985e-22],
            [3.72665317e-06, 1.00000000e+00, 3.72665317e-06],
            [1.92874985e-22, 3.72665317e-06, 1.00000000e+00]])

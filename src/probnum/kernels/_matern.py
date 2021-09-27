@@ -57,7 +57,7 @@ class Matern(Kernel[_InputType], IsotropicMixin):
     >>> from probnum.kernels import Matern
     >>> K = Matern(input_dim=1, lengthscale=0.1, nu=2.5)
     >>> xs = np.linspace(0, 1, 3)[:, None]
-    >>> K(xs[:, None, :], xs[None, :, :])
+    >>> K.matrix(xs)
     array([[1.00000000e+00, 7.50933789e-04, 3.69569622e-08],
            [7.50933789e-04, 1.00000000e+00, 7.50933789e-04],
            [3.69569622e-08, 7.50933789e-04, 1.00000000e+00]])

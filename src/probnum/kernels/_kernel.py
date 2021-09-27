@@ -50,7 +50,7 @@ class Kernel(Generic[_InputType], abc.ABC):
     >>> import numpy as np
     >>> k = CustomLinearKernel(constant=1.0)
     >>> xs = np.linspace(0, 1, 4)[:, None]
-    >>> k(xs[:, None, :], xs[None, :, :])
+    >>> k.matrix(xs)
     array([[1.        , 1.        , 1.        , 1.        ],
            [1.        , 1.11111111, 1.22222222, 1.33333333],
            [1.        , 1.22222222, 1.44444444, 1.66666667],
@@ -71,7 +71,7 @@ class Kernel(Generic[_InputType], abc.ABC):
     def __call__(
         self,
         x0: _InputType,
-        x1: Optional[_InputType] = None,
+        x1: Optional[_InputType],
         squeeze_output_dim: bool = True,
     ) -> np.ndarray:
         """Evaluate the kernel.
@@ -106,6 +106,33 @@ class Kernel(Generic[_InputType], abc.ABC):
             cov = np.squeeze(cov, axis=(-2, -1))
 
         return cov
+
+    def matrix(
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray] = None,
+        squeeze_output_dim: bool = True,
+    ) -> np.ndarray:
+        x0 = np.array(x0)
+        x1 = x0 if x1 is None else np.array(x1)
+
+        # Shape checking
+        errmsg = (
+            "`{argname}` must have shape `(N, D)` or `(D,)`, where `D` is the input "
+            f"dimension of the kernel (D = {self.input_dim}), but an array with shape "
+            "`{shape}` was given."
+        )
+
+        if not (1 <= x0.ndim <= 2 and x0.shape[-1] == self.input_dim):
+            raise ValueError(errmsg.format(argname="x0", shape=x0.shape))
+
+        if not (1 <= x1.ndim <= 2 and x1.shape[-1] == self.input_dim):
+            raise ValueError(errmsg.format(argname="x1", shape=x1.shape))
+
+        # Pairwise kernel evaluation
+        return self(
+            x0[:, None, :], x1[None, :, :], squeeze_output_dim=squeeze_output_dim
+        )
 
     @property
     def input_dim(self) -> int:

@@ -155,6 +155,28 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         """  # pylint: disable=trailing-whitespace
         raise NotImplementedError
 
+    def covmatrix(
+        self, args0: _InputType, args1: Optional[_InputType] = None
+    ) -> _OutputType:
+        args0 = np.array(args0)
+        args1 = args0 if args1 is None else np.array(args1)
+
+        # Shape checking
+        errmsg = (
+            "`{argname}` must have shape `(N, D)` or `(D,)`, where `D` is the input "
+            f"dimension of the random process (D = {self.input_dim}), but an array "
+            "with shape `{shape}` was given."
+        )
+
+        if not (1 <= args0.ndim <= 2 and args0.shape[-1] == self.input_dim):
+            raise ValueError(errmsg.format(argname="args0", shape=args0.shape))
+
+        if not (1 <= args1.ndim <= 2 and args1.shape[-1] == self.input_dim):
+            raise ValueError(errmsg.format(argname="args1", shape=args1.shape))
+
+        # Pairwise kernel evaluation
+        return self.cov(args0[:, None, :], args1[None, :, :])
+
     def var(self, args: _InputType) -> _OutputType:
         """Variance function.
 

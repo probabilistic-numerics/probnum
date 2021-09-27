@@ -34,7 +34,7 @@ class Linear(Kernel[_InputType]):
     >>> from probnum.kernels import Linear
     >>> K = Linear(input_dim=2)
     >>> xs = np.array([[1, 2], [2, 3]])
-    >>> K(xs[:, None, :], xs[None, :, :])
+    >>> K.matrix(xs)
     array([[ 5.,  8.],
            [ 8., 13.]])
     """

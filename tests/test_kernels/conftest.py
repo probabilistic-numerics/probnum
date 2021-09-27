@@ -115,7 +115,7 @@ def fixture_kernel_naive(kernel: pn.kernels.Kernel):
 
     def _kernel_naive(
         x0: np.ndarray,
-        x1: np.ndarray = None,
+        x1: np.ndarray,
         squeeze_output_dim: bool = True,
     ):
         x0, x1, _ = np.broadcast_arrays(
@@ -150,9 +150,9 @@ def kernmat(
 ) -> np.ndarray:
     """Kernel evaluated at the data."""
     if x1 is None:
-        return kernel(x0)
+        return kernel(x0, None)
 
-    return kernel(x0=x0[:, None, :], x1=x1[None, :, :])
+    return kernel.matrix(x0, x1)
 
 
 @pytest.fixture
@@ -161,6 +161,6 @@ def kernmat_naive(
 ) -> np.ndarray:
     """Kernel evaluated at the data."""
     if x1 is None:
-        return kernel_naive(x0)
+        return kernel_naive(x0, None)
 
     return kernel_naive(x0=x0[:, None, :], x1=x1[None, :, :])

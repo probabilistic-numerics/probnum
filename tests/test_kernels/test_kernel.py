@@ -11,7 +11,7 @@ from probnum.typing import ShapeType
 
 def test_1d_data(kernel: pn.kernels.Kernel, x0_1d: np.ndarray):
     """Test handling of 1d data."""
-    assert kernel(x0_1d).shape == ()
+    assert kernel(x0_1d, None).shape == ()
     assert kernel(x0_1d, x0_1d).shape == ()
 
 
@@ -37,17 +37,10 @@ def test_type(kernmat: np.ndarray):
 
 
 def test_kernel_matrix_against_naive(
-    x0: np.ndarray,
-    x1: Optional[np.ndarray],
-    kernel_naive,
     kernmat: np.ndarray,
+    kernmat_naive: np.ndarray,
 ):
     """Test the computation of the kernel matrix against a naive computation."""
-
-    if x1 is None:
-        kernmat_naive = kernel_naive(x0)
-    else:
-        kernmat_naive = kernel_naive(x0[:, None, :], x1[None, :, :])
 
     np.testing.assert_allclose(
         kernmat,
@@ -72,7 +65,7 @@ def test_wrong_input_dimension(kernel: pn.kernels.Kernel, shape: ShapeType):
     input_shape = shape + (kernel.input_dim + 1,)
 
     with pytest.raises(ValueError):
-        kernel(np.zeros(input_shape))
+        kernel(np.zeros(input_shape), None)
 
     with pytest.raises(ValueError):
         kernel(np.ones(input_shape), np.zeros(input_shape))

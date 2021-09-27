@@ -91,7 +91,7 @@ class BayesianQuadrature:
         # compute integral mean and variance
         # Define kernel embedding
         kernel_embedding = KernelEmbedding(self.kernel, measure)
-        gram = self.kernel(nodes[:, None, :], nodes[None, :, :])
+        gram = self.kernel.matrix(nodes)
         kernel_mean = kernel_embedding.kernel_mean(nodes)
         initial_error = kernel_embedding.kernel_variance()
 
