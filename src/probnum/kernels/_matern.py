@@ -93,7 +93,8 @@ class Matern(Kernel[_InputType]):
             kernmat = np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * dists ** 2)
         else:
             # The modified Bessel function K_nu is not defined for z=0
-            dists[dists == 0.0] += np.finfo(dists.dtype).eps
+            dists = np.maximum(dists, np.finfo(dists.dtype).eps)
+
             scaled_dists = np.sqrt(2 * self.nu) / self.lengthscale * dists
             kernmat = (
                 2 ** (1.0 - self.nu)

@@ -1,79 +1,101 @@
 """Test cases for kernels."""
 
+from typing import Optional
+
 import numpy as np
 import pytest
-import scipy.spatial
 
-import probnum.kernels as kernels
-import probnum.utils as _utils
+import probnum as pn
+from probnum.typing import ShapeType
 
 
-def test_1d_data(kernel: kernels.Kernel, x0_1d: np.ndarray, input_dim: int):
+def test_1d_data(kernel: pn.kernels.Kernel, x0_1d: np.ndarray):
     """Test handling of 1d data."""
-    assert np.ndim(kernel(x0_1d)) == 0
+    assert kernel(x0_1d).shape == ()
+    assert kernel(x0_1d, x0_1d).shape == ()
 
 
 def test_shape(
-    kernel: kernels.Kernel, kernmat: np.ndarray, x0: np.ndarray, x1: np.ndarray
+    kernel: pn.kernels.Kernel,
+    x0: np.ndarray,
+    x1: Optional[np.ndarray],
+    kernmat: np.ndarray,
+    kernmat_naive: np.ndarray,
 ):
     """Test the shape of a kernel evaluated at sets of inputs."""
 
-    # Check shape
-    if x1 is None:
-        kern_shape = x0.shape[:-1]
-    else:
-        if (x0.ndim == 0 and x1.ndim == 0) or (x0.ndim == 1 and x1.ndim == 1):
-            kern_shape = ()
-        else:
-            kern_shape = (x0.shape[0], x1.shape[0])
-
-    if kernel.output_dim > 1:
-        kern_shape += (kernel.output_dim, kernel.output_dim)
-
-    assert kernmat.shape == kern_shape, (
-        f"Kernel {type(kernel)} does not have the "
-        f"right shape if evaluated at inputs of x0.shape={x0.shape} and x1.shape={x1.shape}."
+    assert kernmat.shape == kernmat_naive.shape, (
+        f"Kernel {type(kernel)} does not have the right shape if evaluated at inputs "
+        f"with x0.shape={x0.shape}"
+        + ("" if x1 is None else f"and x1.shape={x1.shape}.")
     )
 
 
 def test_type(kernmat: np.ndarray):
     """Check whether a kernel evaluates to a numpy scalar or array."""
-    assert isinstance(kernmat, np.ndarray) or np.isscalar(kernmat)
+    assert isinstance(kernmat, (np.ndarray, np.number))
 
 
 def test_kernel_matrix_against_naive(
-    kernel: kernels.Kernel, kernmat: np.ndarray, x0: np.ndarray, x1: np.ndarray
+    x0: np.ndarray,
+    x1: Optional[np.ndarray],
+    kernel_naive,
+    kernmat: np.ndarray,
 ):
     """Test the computation of the kernel matrix against a naive computation."""
+
     if x1 is None:
-        x1 = x0
+        kernmat_naive = kernel_naive(x0)
+    else:
+        kernmat_naive = kernel_naive(x0[:, None, :], x1[None, :, :])
+
     np.testing.assert_allclose(
         kernmat,
-        scipy.spatial.distance.cdist(
-            x0,
-            x1,
-            metric=lambda x0, x1, k=kernel: _utils.as_numpy_scalar(k(x0, x1).item()),
-        ),
+        kernmat_naive,
         rtol=10 ** -12,
         atol=10 ** -12,
     )
 
 
-@pytest.mark.parametrize("input_dim", [2], indirect=True)
 @pytest.mark.parametrize(
-    "x0,x1",
+    "shape",
     [
-        (1, 1),
-        (1.0, np.array([1.0, 0.0])),
-        (np.array([1.0, 0.0, 0.2]), np.array([1.0, 0.0, 2.3])),
-        (np.array([[1.0]]), np.array([[1.0, -1.0]])),
+        (),
+        (1,),
+        (10,),
+        (1, 10),
+        (4, 25),
     ],
 )
-def test_misshaped_input(
-    kernel: kernels.Kernel, input_dim: int, x0: np.ndarray, x1: np.ndarray
+def test_wrong_input_dimension(kernel: pn.kernels.Kernel, shape: ShapeType):
+    """Test whether passing an input with the wrong input dimension raises an error."""
+    input_shape = shape + (kernel.input_dim + 1,)
+
+    with pytest.raises(ValueError):
+        kernel(np.zeros(input_shape))
+
+    with pytest.raises(ValueError):
+        kernel(np.ones(input_shape), np.zeros(input_shape))
+
+
+@pytest.mark.parametrize(
+    "x0_shape,x1_shape",
+    [
+        ((2,), (8,)),
+        ((2, 5), (3, 5)),
+        ((4, 4), (4, 2)),
+    ],
+)
+def test_broadcasting_error(
+    kernel: pn.kernels.Kernel,
+    x0_shape: np.ndarray,
+    x1_shape: np.ndarray,
 ):
-    """Test whether misshaped/mismatched input raises an error."""
+    """Test whether an error is raised if the inputs can not be broadcast to a common
+    shape."""
+
     with pytest.raises(ValueError):
-        kernel(x0, x1)
-    with pytest.raises(ValueError):
-        kernel(x0)
+        kernel(
+            np.zeros(x0_shape + (kernel.input_dim,)),
+            np.ones(x1_shape + (kernel.input_dim,)),
+        )
