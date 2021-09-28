@@ -46,16 +46,12 @@ class ExpQuad(Kernel[_InputType], IsotropicMixin):
 
     def __init__(self, input_dim: IntArgType, lengthscale: ScalarArgType = 1.0):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        super().__init__(input_dim=input_dim, output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=None)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         if x1 is None:
-            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
-                x0,
-                shape=x0.shape[:-1] + (1, 1),
-            )
+            return np.ones_like(x0[..., 0])
 
         sqdists = self._squared_euclidean_distances(x0, x1)
-        kernmat = np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * sqdists)
 
-        return kernmat[..., None, None]
+        return np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * sqdists)

@@ -41,9 +41,7 @@ class Linear(Kernel[_InputType]):
 
     def __init__(self, input_dim: IntArgType, constant: ScalarArgType = 0.0):
         self.constant = _utils.as_numpy_scalar(constant)
-        super().__init__(input_dim=input_dim, output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=None)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        kernmat = self._euclidean_inner_products(x0, x1) + self.constant
-
-        return kernmat[..., None, None]
+        return self._euclidean_inner_products(x0, x1) + self.constant

@@ -48,11 +48,16 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def __init__(
         self,
         input_dim: IntArgType,
-        output_dim: IntArgType,
+        output_dim: Optional[IntArgType],
         dtype: DTypeArgType,
     ):
         self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
-        self._output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+
+        self._output_dim = None
+
+        if output_dim is not None:
+            self._output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+
         self._dtype = np.dtype(dtype)
 
     def __repr__(self) -> str:

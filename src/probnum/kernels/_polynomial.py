@@ -49,10 +49,7 @@ class Polynomial(Kernel[_InputType]):
     ):
         self.constant = _utils.as_numpy_scalar(constant)
         self.exponent = _utils.as_numpy_scalar(exponent)
-        super().__init__(input_dim=input_dim, output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=None)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        kernmat = self._euclidean_inner_products(x0, x1) + self.constant
-        kernmat = kernmat ** self.exponent
-
-        return kernmat[..., None, None]
+        return (self._euclidean_inner_products(x0, x1) + self.constant) ** self.exponent

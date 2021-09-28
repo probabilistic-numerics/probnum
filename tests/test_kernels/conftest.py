@@ -109,14 +109,11 @@ def fixture_kernel_naive(kernel: pn.kernels.Kernel):
     """Naive implementation of kernel broadcasting which applies the kernel function to
     scalar arguments while looping over the first dimensions of the inputs explicitly.
     Can be used as a reference implementation of kernel broadcasting."""
-    kernel_vectorized = np.vectorize(
-        kernel, signature="(d),(d)->(o,o)", excluded={"squeeze_output_dim"}
-    )
+    kernel_vectorized = np.vectorize(kernel, signature="(d),(d)->()")
 
     def _kernel_naive(
         x0: np.ndarray,
         x1: np.ndarray,
-        squeeze_output_dim: bool = True,
     ):
         x0, x1, _ = np.broadcast_arrays(
             x0,
@@ -132,14 +129,7 @@ def fixture_kernel_naive(kernel: pn.kernels.Kernel):
         assert x0.shape == x1.shape
         assert x0.shape[-1] == kernel.input_dim and x1.shape[-1] == kernel.input_dim
 
-        K = kernel_vectorized(x0, x1, squeeze_output_dim=False)
-
-        assert K.shape[-2:] == 2 * (kernel.output_dim,)
-
-        if kernel.output_dim == 1 and squeeze_output_dim:
-            K = K.squeeze((-2, -1))
-
-        return K
+        return kernel_vectorized(x0, x1)
 
     return _kernel_naive
 

@@ -37,13 +37,10 @@ class Kernel(Generic[_InputType], abc.ABC):
     ...
     ...     def __init__(self, constant=0.0):
     ...         self.constant = constant
-    ...         super().__init__(input_dim=1, output_dim=1)
+    ...         super().__init__(input_dim=1, output_dim=None)
     ...
     ...     def _evaluate(self, x0, x1=None):
-    ...         if x1 is None:
-    ...             x1 = x0
-    ...
-    ...         return np.sum(x0 * x1, axis=-1)[..., None, None] + self.constant
+    ...         return self._euclidean_inner_products(x0, x1) + self.constant
 
     We can now evaluate the kernel like so.
 
@@ -60,10 +57,14 @@ class Kernel(Generic[_InputType], abc.ABC):
     def __init__(
         self,
         input_dim: IntArgType,
-        output_dim: IntArgType = 1,
+        output_dim: Optional[IntArgType] = None,
     ):
-        self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
-        self._output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+        self._input_dim = int(input_dim)
+
+        self._output_dim = None
+
+        if output_dim is not None:
+            self._output_dim = int(output_dim)
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
@@ -72,46 +73,75 @@ class Kernel(Generic[_InputType], abc.ABC):
         self,
         x0: _InputType,
         x1: Optional[_InputType],
-        squeeze_output_dim: bool = True,
     ) -> np.ndarray:
         """Evaluate the kernel.
 
-        Computes the covariance function at ``x0`` and ``x1``. If the inputs have
-        more than one dimension the covariance function is evaluated pairwise for all
-        observations determined by the first dimension of ``x0`` and ``x1``. If
-        only ``x0`` is given the kernel matrix :math:`K=k(X_0, X_0)` is computed.
+        The inputs are broadcast to a common shape following the "kernel broadcasting"
+        rules outlined in the "Notes" section.
 
         Parameters
         ----------
         x0 :
-            *shape=(input_dim,) or (n0, input_dim)* -- First input.
+            An array of shape ``()`` or ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is
+            either ``1`` or :attr:`input_dim`, whose entries will be passed to the first
+            argument of the kernel.
         x1 :
-            *shape=(input_dim,) or (n1, input_dim)* -- Second input.
+            An array of shape ``()`` or ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is
+            either ``1`` or :attr:`input_dim`, whose entries will be
+            passed to the second argument of the kernel. Can also be set to ``None``,
+            in which case the function will be have as if ``x1 = x0``.
 
         Returns
         -------
-        cov :
-            *shape=(), (output_dim, output_dim) or (n0, n1) or (n0, n1, output_dim,
-            output_dim)* -- Kernel evaluated at ``x0`` and ``x1`` or kernel matrix
-            containing pairwise evaluations for all observations in ``x0`` (and ``x1``).
+        k_x0_x1 :
+            The kernel evaluated at ``x0`` and ``x1``.
+            If :attr:`output_dim` is ``None``, this method returns array of shape
+            ``(Lk, ..., L2, L1)`` whose entry at index ``(ik, ..., i2, i1)`` contains
+            the kernel evaluation ``k(x0[ik, ..., i2, i1, :], x1[il, ..., i2, i1, :])``,
+            while for a positive integer :attr:`output_dim`, it returns an array of
+            shape ``(output_dim, output_dim, Lk, ..., L2, L1)`` whose entry at index
+            ``(j, l, ik, ..., i2, i1)`` contains the evaluation
+            ``k[j, l](x0[ik, ..., i2, i1, :], x1[il, ..., i2, i1, :])`` of the
+            (cross-)covariance ``k[j, l]`` between outputs `j` and `l`
+            (assuming that ``x0`` and ``x1`` have been broadcast according to the rules
+            described in the "Notes" section).
+
+        Raises
+        ------
+        TODO
+
+        See Also
+        --------
+        matrix: TODO
+        diag: TODO
+
+        Notes
+        -----
+        A :class:`Kernel` operates on its two inputs by a slightly modified version of
+        Numpy's broadcasting rules. First of all, the operation of the kernel is
+        vectorized over all but the last dimension, applying standard broadcasting
+        rules. An input with shape ``()`` is promoted to an input with shape ``(1,)``.
+        Additionally, a `1` along the last axis of an input is interpreted as a (set of)
+        point(s) with equal coordinates in all input dimensions. We refer to this
+        modified set of broadcasting rules as "kernel broadcasting".
+
+        Examples
+        --------
+        See class docstring: :class:`Kernel`.
         """
 
-        x0, x1, broadcast_input_shape = self._check_and_reshape_inputs(x0, x1)
+        x0, x1, _, output_shape = self._kernel_broadcasting(x0, x1)
 
-        cov = self._evaluate(x0, x1)
+        k_x0_x1 = self._evaluate(x0, x1)
 
-        assert cov.shape == broadcast_input_shape[:-1] + 2 * (self._output_dim,)
+        assert k_x0_x1.shape == output_shape
 
-        if self.output_dim == 1 and squeeze_output_dim:
-            cov = np.squeeze(cov, axis=(-2, -1))
-
-        return cov
+        return k_x0_x1
 
     def matrix(
         self,
         x0: np.ndarray,
         x1: Optional[np.ndarray] = None,
-        squeeze_output_dim: bool = True,
     ) -> np.ndarray:
         x0 = np.array(x0)
         x1 = x0 if x1 is None else np.array(x1)
@@ -130,9 +160,10 @@ class Kernel(Generic[_InputType], abc.ABC):
             raise ValueError(errmsg.format(argname="x1", shape=x1.shape))
 
         # Pairwise kernel evaluation
-        return self(
-            x0[:, None, :], x1[None, :, :], squeeze_output_dim=squeeze_output_dim
-        )
+        return self(x0[:, None, :], x1[None, :, :])
+
+    def diag(self, x):
+        pass
 
     @property
     def input_dim(self) -> int:
@@ -145,7 +176,7 @@ class Kernel(Generic[_InputType], abc.ABC):
         return self._input_dim
 
     @property
-    def output_dim(self) -> int:
+    def output_dim(self) -> Optional[int]:
         """Dimension of the evaluated covariance function.
 
         The resulting evaluated kernel :math:`k(x_0, x_1) \\in
@@ -162,11 +193,11 @@ class Kernel(Generic[_InputType], abc.ABC):
     ) -> Union[np.ndarray, np.float_]:
         pass
 
-    def _check_and_reshape_inputs(
+    def _kernel_broadcasting(
         self,
         x0: _InputType,
         x1: Optional[_InputType] = None,
-    ) -> Tuple[np.ndarray, Optional[np.ndarray], ShapeType]:
+    ) -> Tuple[np.ndarray, Optional[np.ndarray], ShapeType, ShapeType]:
         """Check and transform inputs of the covariance function.
 
         Checks the shape of the inputs to the covariance function and
@@ -227,7 +258,12 @@ class Kernel(Generic[_InputType], abc.ABC):
                     f"{x1.shape} can not be broadcast to a common shape."
                 ) from v
 
-        return x0, x1, broadcast_input_shape
+        output_shape = broadcast_input_shape[:-1]
+
+        if self.output_dim is not None:
+            output_shape = 2 * (self.output_dim,) + output_shape
+
+        return x0, x1, broadcast_input_shape, output_shape
 
     def _euclidean_inner_products(
         self, x0: np.ndarray, x1: Optional[np.ndarray]

@@ -76,34 +76,35 @@ class Matern(Kernel[_InputType], IsotropicMixin):
         if not self.nu > 0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
-        super().__init__(input_dim=input_dim, output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=None)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         dists = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
-            kernmat = np.exp(-1.0 / self.lengthscale * dists)
-        elif self.nu == 1.5:
+            return np.exp(-1.0 / self.lengthscale * dists)
+
+        if self.nu == 1.5:
             scaled_dists = -np.sqrt(3) / self.lengthscale * dists
-            kernmat = (1.0 + scaled_dists) * np.exp(-scaled_dists)
-        elif self.nu == 2.5:
+            return (1.0 + scaled_dists) * np.exp(-scaled_dists)
+
+        if self.nu == 2.5:
             scaled_dists = np.sqrt(5) / self.lengthscale * dists
-            kernmat = (1.0 + scaled_dists + scaled_dists ** 2 / 3.0) * np.exp(
+            return (1.0 + scaled_dists + scaled_dists ** 2 / 3.0) * np.exp(
                 -scaled_dists
             )
-        elif self.nu == np.inf:
-            kernmat = np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * dists ** 2)
-        else:
-            # The modified Bessel function K_nu is not defined for z=0
-            dists = np.maximum(dists, np.finfo(dists.dtype).eps)
 
-            scaled_dists = np.sqrt(2 * self.nu) / self.lengthscale * dists
-            kernmat = (
-                2 ** (1.0 - self.nu)
-                / scipy.special.gamma(self.nu)
-                * scaled_dists ** self.nu
-                * scipy.special.kv(self.nu, scaled_dists)
-            )
+        if self.nu == np.inf:
+            return np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * dists ** 2)
 
-        return kernmat[..., None, None]
+        # The modified Bessel function K_nu is not defined for z=0
+        dists = np.maximum(dists, np.finfo(dists.dtype).eps)
+
+        scaled_dists = np.sqrt(2 * self.nu) / self.lengthscale * dists
+        return (
+            2 ** (1.0 - self.nu)
+            / scipy.special.gamma(self.nu)
+            * scaled_dists ** self.nu
+            * scipy.special.kv(self.nu, scaled_dists)
+        )

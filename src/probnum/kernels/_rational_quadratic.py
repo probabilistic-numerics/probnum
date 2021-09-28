@@ -58,18 +58,14 @@ class RatQuad(Kernel[_InputType], IsotropicMixin):
         self.alpha = _utils.as_numpy_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
-        super().__init__(input_dim=input_dim, output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=None)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         if x1 is None:
-            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
-                x0,
-                shape=x0.shape[:-1] + (1, 1),
-            )
+            return np.ones_like(x0[..., 0])
 
         sqdists = self._squared_euclidean_distances(x0, x1)
-        kernmat = (
+
+        return (
             1.0 + sqdists / (2.0 * self.alpha * self.lengthscale ** 2)
         ) ** -self.alpha
-
-        return kernmat[..., None, None]

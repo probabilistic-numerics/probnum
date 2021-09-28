@@ -29,12 +29,10 @@ class WhiteNoise(Kernel[_InputType]):
     def __init__(self, input_dim: IntArgType, sigma: ScalarArgType = 1.0):
         self.sigma = _utils.as_numpy_scalar(sigma)
         self._sigma_sq = self.sigma ** 2
-        super().__init__(input_dim=input_dim, output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=None)
 
     def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         if x1 is None:
-            kernmat = np.full_like(x0[..., 0], self._sigma_sq)
-        else:
-            kernmat = self._sigma_sq * np.all(x0 == x1, axis=-1)
+            return np.full_like(x0[..., 0], self._sigma_sq)
 
-        return kernmat[..., None, None]
+        return self._sigma_sq * np.all(x0 == x1, axis=-1)

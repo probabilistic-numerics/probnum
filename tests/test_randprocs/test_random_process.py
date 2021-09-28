@@ -10,7 +10,7 @@ from probnum import randprocs, randvars
 
 def test_output_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether evaluations of the random process have the correct shape."""
-    if random_process.output_dim == 1:
+    if random_process.output_dim is None:
         assert random_process(args0).ndim == 1
     else:
         assert random_process(args0).shape[1] == random_process.output_dim
@@ -18,7 +18,7 @@ def test_output_shape(random_process: randprocs.RandomProcess, args0: np.ndarray
 
 def test_mean_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the mean of the random process has the correct shape."""
-    if random_process.output_dim == 1:
+    if random_process.output_dim is None:
         assert random_process.mean(args0).ndim == 1
     else:
         assert random_process.mean(args0).shape[1] == random_process.output_dim
@@ -26,7 +26,7 @@ def test_mean_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
 
 def test_var_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the variance of the random process has the correct shape."""
-    if random_process.output_dim == 1:
+    if random_process.output_dim is None:
         assert random_process.var(args0).ndim == 1
     else:
         assert random_process.var(args0).shape[1] == random_process.output_dim
@@ -35,7 +35,7 @@ def test_var_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
 def test_std_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the standard deviation of the random process has the correct
     shape."""
-    if random_process.output_dim == 1:
+    if random_process.output_dim is None:
         assert random_process.std(args0).ndim == 1
     else:
         assert random_process.std(args0).shape[1] == random_process.output_dim
@@ -44,17 +44,14 @@ def test_std_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
 def test_cov_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the covariance of the random process has the correct shape."""
     n = args0.shape[0]
-    if random_process.output_dim == 1:
-        assert (
-            random_process.cov(args0).shape == (n, n)
-            or random_process.cov(args0).ndim < 2
-        )
+    if random_process.output_dim is None:
+        assert random_process.covmatrix(args0).shape == (n, n)
     else:
-        assert random_process.cov(args0).shape == (
-            n,
-            n,
+        assert random_process.covmatrix(args0).shape == (
             random_process.output_dim,
             random_process.output_dim,
+            n,
+            n,
         )
 
 
