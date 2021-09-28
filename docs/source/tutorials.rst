@@ -75,7 +75,7 @@ ProbNum implements (finite-dimensional) linear operators in a memory-efficient m
 .. nbgallery::
    :caption: Linear Operators
 
-   tutorials/linops/linear_operators
+   tutorials/linops/linear_operators_quickstart
 
 
 Probability
