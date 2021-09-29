@@ -12,7 +12,7 @@ from ._kernel import Kernel
 _InputType = np.ndarray
 
 
-class Polynomial(Kernel[_InputType]):
+class Polynomial(Kernel):
     """Polynomial kernel.
 
     Covariance function defined by :math:`k(x_0, x_1) = (x_0^\\top x_1 + c)^q`.

@@ -12,7 +12,7 @@ from ._kernel import Kernel
 _InputType = np.ndarray
 
 
-class WhiteNoise(Kernel[_InputType]):
+class WhiteNoise(Kernel):
     """White noise kernel.
 
     Kernel representing independent and identically distributed white noise :math:`k(

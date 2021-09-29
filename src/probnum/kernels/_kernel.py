@@ -1,24 +1,44 @@
 """Kernel / covariance function."""
 
 import abc
-from typing import Generic, Optional, Tuple, TypeVar, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
-import probnum.utils as _utils
-from probnum.typing import IntArgType, ShapeType
-
-_InputType = TypeVar("_InputType")
+from probnum.typing import ArrayLike, IntArgType, ShapeType
 
 
-class Kernel(Generic[_InputType], abc.ABC):
-    """Kernel / covariance function.
+class Kernel(abc.ABC):
+    r"""(Cross-)covariance function(s)
 
-    Abstract base class for kernels / covariance functions. Kernels are a
-    generalization of a positive-definite function or matrix. They
-    typically define the covariance function of a random process and thus describe
-    its spatial or temporal variation. If evaluated at two sets of points a kernel
-    gives the covariance of the random process at these locations.
+    Abstract base class representing one or multiple (cross-)covariance function(s),
+    also known as kernels.
+    A cross-covariance function
+
+    .. math::
+        k_{fg} \colon \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}} \to \mathbb{R}
+
+    is a function of two arguments :math:`x_0` and :math:`x_1`, which represents the
+    covariance between two evaluations :math:`f(x_0)` and :math:`g(x_1)` of two
+    scalar-valued random processes :math:`f` and :math:`g` (or, equivalently, two
+    outputs :math:`h_i(x_0)` and :math:`h_j(x_1)` of a vector-valued random process
+    :math:`h`).
+    If :math:`f = g`, then the cross-covariance function is also referred to as a
+    covariance function, in which case it must be symmetric and positive
+    (semi-)definite.
+
+    An instance of a :class:`Kernel` can compute multiple different (cross-)covariance
+    functions on the same pair of inputs simultaneously. For instance, it can be used to
+    compute the full covariance matrix
+
+    .. math::
+        :nowrap:
+
+        \begin{equation}
+            C \colon \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}}
+            \to \mathbb{R}^{d_\text{out} \times d_\text{out}},
+            C_{ij}(x_0, x_1) := k_{ij}(x_0, x_1)
+        \end{equation}
 
     Parameters
     ----------
@@ -71,9 +91,9 @@ class Kernel(Generic[_InputType], abc.ABC):
 
     def __call__(
         self,
-        x0: _InputType,
-        x1: Optional[_InputType],
-    ) -> np.ndarray:
+        x0: ArrayLike,
+        x1: Optional[ArrayLike],
+    ) -> Union[np.ndarray, np.floating]:
         """Evaluate the kernel.
 
         The inputs are broadcast to a common shape following the "kernel broadcasting"
@@ -81,11 +101,11 @@ class Kernel(Generic[_InputType], abc.ABC):
 
         Parameters
         ----------
-        x0 :
+        x0 : array-like
             An array of shape ``()`` or ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is
             either ``1`` or :attr:`input_dim`, whose entries will be passed to the first
             argument of the kernel.
-        x1 :
+        x1 : array-like
             An array of shape ``()`` or ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is
             either ``1`` or :attr:`input_dim`, whose entries will be
             passed to the second argument of the kernel. Can also be set to ``None``,
@@ -93,7 +113,7 @@ class Kernel(Generic[_InputType], abc.ABC):
 
         Returns
         -------
-        k_x0_x1 :
+        k_x0_x1 : np.ndarray
             The kernel evaluated at ``x0`` and ``x1``.
             If :attr:`output_dim` is ``None``, this method returns array of shape
             ``(Lk, ..., L2, L1)`` whose entry at index ``(ik, ..., i2, i1)`` contains
@@ -108,12 +128,13 @@ class Kernel(Generic[_InputType], abc.ABC):
 
         Raises
         ------
-        TODO
+        ValueError
+            If the inputs can not be "kernel broadcast" to a common shape.
 
         See Also
         --------
-        matrix: TODO
-        diag: TODO
+        matrix: Convenience function to compute a kernel matrix, i.e. a matrix of
+            pairwise evaluations of the kernel on two sets of points.
 
         Notes
         -----
@@ -122,7 +143,8 @@ class Kernel(Generic[_InputType], abc.ABC):
         vectorized over all but the last dimension, applying standard broadcasting
         rules. An input with shape ``()`` is promoted to an input with shape ``(1,)``.
         Additionally, a `1` along the last axis of an input is interpreted as a (set of)
-        point(s) with equal coordinates in all input dimensions. We refer to this
+        point(s) with equal coordinates in all input dimensions, i.e. the inputs are
+        broadcast to :attr:`input_dim` dimensions along the last axis. We refer to this
         modified set of broadcasting rules as "kernel broadcasting".
 
         Examples
@@ -130,8 +152,15 @@ class Kernel(Generic[_InputType], abc.ABC):
         See class docstring: :class:`Kernel`.
         """
 
-        x0, x1, _, output_shape = self._kernel_broadcasting(x0, x1)
+        # Shape checking
+        x0 = np.atleast_1d(x0)
 
+        if x1 is not None:
+            x1 = np.atleast_1d(x1)
+
+        _, output_shape = self._kernel_broadcast_shapes(x0, x1)
+
+        # Evaluate the kernel
         k_x0_x1 = self._evaluate(x0, x1)
 
         assert k_x0_x1.shape == output_shape
@@ -162,9 +191,6 @@ class Kernel(Generic[_InputType], abc.ABC):
         # Pairwise kernel evaluation
         return self(x0[:, None, :], x1[None, :, :])
 
-    def diag(self, x):
-        pass
-
     @property
     def input_dim(self) -> int:
         """Dimension of arguments of the covariance function.
@@ -188,21 +214,22 @@ class Kernel(Generic[_InputType], abc.ABC):
     @abc.abstractmethod
     def _evaluate(
         self,
-        x0: _InputType,
-        x1: Optional[_InputType] = None,
+        x0: ArrayLike,
+        x1: Optional[ArrayLike] = None,
     ) -> Union[np.ndarray, np.float_]:
         pass
 
-    def _kernel_broadcasting(
+    def _kernel_broadcast_shapes(
         self,
-        x0: _InputType,
-        x1: Optional[_InputType] = None,
-    ) -> Tuple[np.ndarray, Optional[np.ndarray], ShapeType, ShapeType]:
-        """Check and transform inputs of the covariance function.
+        x0: np.ndarray,
+        x1: Optional[np.ndarray] = None,
+    ) -> Tuple[ShapeType, ShapeType]:
+        """Applies the "kernel broadcasting" rules to the input shapes.
 
-        Checks the shape of the inputs to the covariance function and
-        transforms the inputs into two-dimensional :class:`numpy.ndarray`s such that
-        inputs are stacked row-wise.
+        A description of the "kernel broadcasting" rules can be found in the docstring
+        of :meth:`Kernel.__call__`.
+        Appropriate exceptions are raised if the shapes can not be "kernel broadcast" to
+        a common shape.
 
         Parameters
         ----------
@@ -213,40 +240,34 @@ class Kernel(Generic[_InputType], abc.ABC):
 
         Returns
         -------
-        x0 :
-            First input to the covariance function.
-        x1 :
-            Second input to the covariance function.
-        kernshape :
-            Shape of the evaluation of the covariance function.
+        broadcast_input_shape : tuple of int
+            Shape of the inputs after applying "kernel broadcasting".
+        output_shape: tuple of int
+            Shape of the output array for the given inputs.
 
         Raises
         -------
-        ValueError :
-            If input shapes of x0 and x1 do not match the kernel input dimension or
-            each other.
+        ValueError
+            If the inputs can not be "kernel broadcast" to a common shape.
         """
 
+        # Determine the input shape after kernel broadcasting
         err_msg = (
-            "`{0}` does not broadcast to the kernel's input dimension "
+            "`{argname}` can not be broadcast to the kernel's input dimension "
             f"{self.input_dim} along the last axis, since "
-            "`{0}.shape = {1}`."
+            "`{argname}.shape = {shape}`."
         )
-
-        x0 = np.atleast_1d(x0)
 
         if x0.shape[-1] not in (self.input_dim, 1):
             # This will never be called if the original input was a scalar
-            raise ValueError(err_msg.format("x0", x0.shape))
+            raise ValueError(err_msg.format(argname="x0", shape=x0.shape))
 
         broadcast_input_shape = x0.shape
 
         if x1 is not None:
-            x1 = np.atleast_1d(x1)
-
             if x1.shape[-1] not in (self.input_dim, 1):
                 # This will never be called if the original input was a scalar
-                raise ValueError(err_msg.format("x1", x1.shape))
+                raise ValueError(err_msg.format(argname="x1", shape=x1.shape))
 
             try:
                 # Ironically, `np.broadcast_arrays` seems to be more efficient than
@@ -258,12 +279,16 @@ class Kernel(Generic[_InputType], abc.ABC):
                     f"{x1.shape} can not be broadcast to a common shape."
                 ) from v
 
+        if broadcast_input_shape[-1] == 1:
+            broadcast_input_shape[-1] = self.input_dim
+
+        # Determine the output shape
         output_shape = broadcast_input_shape[:-1]
 
         if self.output_dim is not None:
             output_shape = 2 * (self.output_dim,) + output_shape
 
-        return x0, x1, broadcast_input_shape, output_shape
+        return broadcast_input_shape, output_shape
 
     def _euclidean_inner_products(
         self, x0: np.ndarray, x1: Optional[np.ndarray]

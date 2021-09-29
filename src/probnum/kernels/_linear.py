@@ -9,10 +9,8 @@ from probnum.typing import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 
-_InputType = np.ndarray
 
-
-class Linear(Kernel[_InputType]):
+class Linear(Kernel):
     """Linear kernel.
 
     Linear covariance function defined by :math:`k(x_0, x_1) = x_0^\\top x_1 + c`.
@@ -43,5 +41,5 @@ class Linear(Kernel[_InputType]):
         self.constant = _utils.as_numpy_scalar(constant)
         super().__init__(input_dim=input_dim, output_dim=None)
 
-    def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         return self._euclidean_inner_products(x0, x1) + self.constant

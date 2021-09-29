@@ -11,10 +11,8 @@ from probnum.typing import IntArgType, ScalarArgType
 
 from ._kernel import IsotropicMixin, Kernel
 
-_InputType = np.ndarray
 
-
-class Matern(Kernel[_InputType], IsotropicMixin):
+class Matern(Kernel, IsotropicMixin):
     r"""Matern kernel.
 
     Covariance function defined by
@@ -78,7 +76,7 @@ class Matern(Kernel[_InputType], IsotropicMixin):
 
         super().__init__(input_dim=input_dim, output_dim=None)
 
-    def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         dists = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability

@@ -13,7 +13,7 @@ from ._kernel import IsotropicMixin, Kernel
 _InputType = np.ndarray
 
 
-class RatQuad(Kernel[_InputType], IsotropicMixin):
+class RatQuad(Kernel, IsotropicMixin):
     """Rational quadratic kernel.
 
     Covariance function defined by :math:`k(x_0, x_1) = \\big(1 + \\frac{\\lVert x_0 -
