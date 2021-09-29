@@ -46,7 +46,7 @@ class ExpQuad(Kernel, IsotropicMixin):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
         super().__init__(input_dim=input_dim, output_dim=None)
 
-    def _evaluate(self, x0:lnp.ndarray:
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:
             return np.ones_like(x0[..., 0])
 
