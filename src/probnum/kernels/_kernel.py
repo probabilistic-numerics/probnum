@@ -269,9 +269,7 @@ class Kernel(abc.ABC):
         """
 
         x0 = np.array(x0)
-
-        if x1 is not None:
-            x1 = np.array(x1)
+        x1 = x0 if x1 is None else np.array(x1)
 
         # Shape checking
         errmsg = (
