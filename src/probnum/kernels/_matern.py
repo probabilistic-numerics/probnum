@@ -40,10 +40,10 @@ class Matern(Kernel, IsotropicMixin):
     input_dim :
         Input dimension of the kernel.
     lengthscale :
-        Lengthscale of the kernel. Describes the input scale on which the process
-        varies.
+        Lengthscale :math:`l` of the kernel. Describes the input scale on which the
+        process varies.
     nu :
-        Hyperparameter controlling differentiability.
+        Hyperparameter :math:`\nu` controlling differentiability.
 
     See Also
     --------
@@ -74,7 +74,7 @@ class Matern(Kernel, IsotropicMixin):
         if not self.nu > 0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
-        super().__init__(input_dim=input_dim, output_dim=None)
+        super().__init__(input_dim=input_dim)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         dists = self._euclidean_distances(x0, x1)

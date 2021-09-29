@@ -11,10 +11,10 @@ from ._kernel import IsotropicMixin, Kernel
 
 
 class ExpQuad(Kernel, IsotropicMixin):
-    """Exponentiated quadratic / RBF kernel.
+    r"""Exponentiated quadratic / RBF kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = \\exp \\big(-\\frac{\\lVert
-    x_0 - x_1 \\rVert^2}{2l^2}\\big)`. This kernel is also known as the squared
+    Covariance function defined by :math:`k(x_0, x_1) = \exp \big(-\frac{\lVert
+    x_0 - x_1 \rVert^2}{2l^2}\big)`. This kernel is also known as the squared
     exponential or radial basis function kernel.
 
     Parameters
@@ -22,8 +22,8 @@ class ExpQuad(Kernel, IsotropicMixin):
     input_dim :
         Input dimension of the kernel.
     lengthscale
-        Lengthscale of the kernel. Describes the input scale on which the process
-        varies.
+        Lengthscale :math:`l` of the kernel. Describes the input scale on which the
+        process varies.
 
     See Also
     --------
@@ -44,7 +44,7 @@ class ExpQuad(Kernel, IsotropicMixin):
 
     def __init__(self, input_dim: IntArgType, lengthscale: ScalarArgType = 1.0):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        super().__init__(input_dim=input_dim, output_dim=None)
+        super().__init__(input_dim=input_dim)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:

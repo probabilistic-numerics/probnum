@@ -71,11 +71,19 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
                 "The covariance functions must be implemented as a " "`Kernel`."
             )
 
+        if cov.shape != () and not (
+            len(cov.shape) == 2 and cov.shape[0] == cov.shape[1]
+        ):
+            raise ValueError(
+                "Only kernels with shape `()` or `(D, D)` are allowed as covariance "
+                "functions of random processes."
+            )
+
         self._meanfun = mean
         self._covfun = cov
         super().__init__(
             input_dim=cov.input_dim,
-            output_dim=cov.output_dim,
+            output_dim=None if cov.shape == () else cov.shape[0],
             dtype=np.dtype(np.float_),
         )
 

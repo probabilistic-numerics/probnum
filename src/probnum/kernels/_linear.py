@@ -11,9 +11,9 @@ from ._kernel import Kernel
 
 
 class Linear(Kernel):
-    """Linear kernel.
+    r"""Linear kernel.
 
-    Linear covariance function defined by :math:`k(x_0, x_1) = x_0^\\top x_1 + c`.
+    Linear covariance function defined by :math:`k(x_0, x_1) = x_0^\top x_1 + c`.
 
     Parameters
     ----------
@@ -39,7 +39,7 @@ class Linear(Kernel):
 
     def __init__(self, input_dim: IntArgType, constant: ScalarArgType = 0.0):
         self.constant = _utils.as_numpy_scalar(constant)
-        super().__init__(input_dim=input_dim, output_dim=None)
+        super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
         return self._euclidean_inner_products(x0, x1) + self.constant

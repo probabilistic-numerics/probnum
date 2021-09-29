@@ -9,13 +9,11 @@ from probnum.typing import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 
-_InputType = np.ndarray
-
 
 class Polynomial(Kernel):
-    """Polynomial kernel.
+    r"""Polynomial kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = (x_0^\\top x_1 + c)^q`.
+    Covariance function defined by :math:`k(x_0, x_1) = (x_0^\top x_1 + c)^q`.
 
     Parameters
     ----------
@@ -49,7 +47,7 @@ class Polynomial(Kernel):
     ):
         self.constant = _utils.as_numpy_scalar(constant)
         self.exponent = _utils.as_numpy_scalar(exponent)
-        super().__init__(input_dim=input_dim, output_dim=None)
+        super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         return (self._euclidean_inner_products(x0, x1) + self.constant) ** self.exponent

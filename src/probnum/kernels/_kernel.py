@@ -1,11 +1,12 @@
 """Kernel / covariance function."""
 
 import abc
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 
-from probnum.typing import ArrayLike, IntArgType, ShapeType
+from probnum import utils as _pn_utils
+from probnum.typing import ArrayLike, IntArgType, ShapeArgType, ShapeType
 
 
 class Kernel(abc.ABC):
@@ -16,7 +17,13 @@ class Kernel(abc.ABC):
     A cross-covariance function
 
     .. math::
-        k_{fg} \colon \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}} \to \mathbb{R}
+        :nowrap:
+
+        \begin{equation}
+            k_{fg} \colon
+            \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}}
+            \to \mathbb{R}
+        \end{equation}
 
     is a function of two arguments :math:`x_0` and :math:`x_1`, which represents the
     covariance between two evaluations :math:`f(x_0)` and :math:`g(x_1)` of two
@@ -35,56 +42,104 @@ class Kernel(abc.ABC):
         :nowrap:
 
         \begin{equation}
-            C \colon \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}}
+            C^f \colon
+            \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}}
             \to \mathbb{R}^{d_\text{out} \times d_\text{out}},
-            C_{ij}(x_0, x_1) := k_{ij}(x_0, x_1)
+            C^f_{f_i f_j}(x_0, x_1) := k_{f_i f_j}(x_0, x_1)
         \end{equation}
+
+    of the vector-valued random process :math:`f`. To this end, we understand any
+    :class:`Kernel` with a non-empty :attr:`shape` as a tensor with the given
+    :attr:`shape`, which contains different (cross-)covariance functions as its entries.
 
     Parameters
     ----------
     input_dim :
         Input dimension of the kernel.
-    output_dim :
-        Output dimension of the kernel.
+    shape :
+        If ``shape`` is set to ``()``, the :class:`Kernel` instance represents a
+        single (cross-)covariance function. Otherwise, i.e. if ``shape`` is non-empty,
+        the :class:`Kernel` instance represents a tensor of (cross-)covariance
+        functions whose shape is given by ``shape``.
 
     Examples
     --------
-    Kernels are implemented by subclassing this abstract base class.
 
-    >>> from probnum.kernels import Kernel
-    ...
-    >>> class CustomLinearKernel(Kernel):
-    ...
-    ...     def __init__(self, constant=0.0):
-    ...         self.constant = constant
-    ...         super().__init__(input_dim=1, output_dim=None)
-    ...
-    ...     def _evaluate(self, x0, x1=None):
-    ...         return self._euclidean_inner_products(x0, x1) + self.constant
+    >>> D = 3
+    >>> k = pn.kernels.Linear(input_dim=D)
 
-    We can now evaluate the kernel like so.
+    Generate input points
 
-    >>> import numpy as np
-    >>> k = CustomLinearKernel(constant=1.0)
-    >>> xs = np.linspace(0, 1, 4)[:, None]
+    >>> xs = np.repeat(np.linspace(0, 1, 4)[:, None], D, axis=-1)
+    >>> xs.shape
+    (4, 3)
+    >>> xs
+    array([[0.        , 0.        , 0.        ],
+           [0.33333333, 0.33333333, 0.33333333],
+           [0.66666667, 0.66666667, 0.66666667],
+           [1.        , 1.        , 1.        ]])
+
+    We can compute kernel matrices like so:
+
     >>> k.matrix(xs)
-    array([[1.        , 1.        , 1.        , 1.        ],
-           [1.        , 1.11111111, 1.22222222, 1.33333333],
-           [1.        , 1.22222222, 1.44444444, 1.66666667],
-           [1.        , 1.33333333, 1.66666667, 2.        ]])
+    array([[0.        , 0.        , 0.        , 0.        ],
+           [0.        , 0.33333333, 0.66666667, 1.        ],
+           [0.        , 0.66666667, 1.33333333, 2.        ],
+           [0.        , 1.        , 2.        , 3.        ]])
+
+    Inputs to :meth:`Kernel.__call__` are broadcast according to the "kernel
+    broadcasting" rules detailed in the "Notes" section of the :meth:`Kernel._call__`
+    documentation.
+
+    >>> k(xs[:, None, :], xs[None, :, :])  # same as `.matrix`
+    array([[0.        , 0.        , 0.        , 0.        ],
+           [0.        , 0.33333333, 0.66666667, 1.        ],
+           [0.        , 0.66666667, 1.33333333, 2.        ],
+           [0.        , 1.        , 2.        , 3.        ]])
+
+    A shape of ``1`` along the last axis is broadcast to :attr:`input_dim`.
+
+    >>> xs_d1 = xs[:, [0]]
+    >>> xs_d1.shape
+    (4, 1)
+    >>> xs_d1
+    array([[0.        ],
+           [0.33333333],
+           [0.66666667],
+           [1.        ]])
+    >>> k(xs_d1[:, None, :], xs_d1[None, :, :])  # same as `.matrix`
+    array([[0.        , 0.        , 0.        , 0.        ],
+           [0.        , 0.33333333, 0.66666667, 1.        ],
+           [0.        , 0.66666667, 1.33333333, 2.        ],
+           [0.        , 1.        , 2.        , 3.        ]])
+    >>> k(xs[:, None, :], xs_d1[None, :, :])  # same as `.matrix`
+    array([[0.        , 0.        , 0.        , 0.        ],
+           [0.        , 0.33333333, 0.66666667, 1.        ],
+           [0.        , 0.66666667, 1.33333333, 2.        ],
+           [0.        , 1.        , 2.        , 3.        ]])
+
+    No broadcasting is applied if both inputs have the same shape. For instance, one can
+    efficiently compute just the diagonal of the kernel matrix via
+
+    >>> k(xs, xs)
+    array([0.        , 0.33333333, 1.33333333, 3.        ])
+    >>> k(xs, None)  # x1 = None is an efficient way to set x1 = x0
+    array([0.        , 0.33333333, 1.33333333, 3.        ])
+
+    and the diagonal above the main diagonal of the kernel matrix is retrieved through
+
+    >>> k(xs[:-1, :], xs[1:, :])
+    array([0.        , 0.66666667, 2.        ])
     """
 
     def __init__(
         self,
         input_dim: IntArgType,
-        output_dim: Optional[IntArgType] = None,
+        shape: ShapeArgType = (),
     ):
         self._input_dim = int(input_dim)
 
-        self._output_dim = None
-
-        if output_dim is not None:
-            self._output_dim = int(output_dim)
+        self._shape = _pn_utils.as_shape(shape)
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
@@ -94,7 +149,7 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike],
     ) -> Union[np.ndarray, np.floating]:
-        """Evaluate the kernel.
+        """Evaluate the (cross-)covariance function(s).
 
         The inputs are broadcast to a common shape following the "kernel broadcasting"
         rules outlined in the "Notes" section.
@@ -113,18 +168,19 @@ class Kernel(abc.ABC):
 
         Returns
         -------
-        k_x0_x1 : np.ndarray
-            The kernel evaluated at ``x0`` and ``x1``.
-            If :attr:`output_dim` is ``None``, this method returns array of shape
+        k_x0_x1 : numpy.ndarray
+            The (cross-)covariance function(s) evaluated at ``x0`` and ``x1``.
+            If :attr:`shape` is ``()``, this method returns an array of shape
             ``(Lk, ..., L2, L1)`` whose entry at index ``(ik, ..., i2, i1)`` contains
-            the kernel evaluation ``k(x0[ik, ..., i2, i1, :], x1[il, ..., i2, i1, :])``,
-            while for a positive integer :attr:`output_dim`, it returns an array of
-            shape ``(output_dim, output_dim, Lk, ..., L2, L1)`` whose entry at index
-            ``(j, l, ik, ..., i2, i1)`` contains the evaluation
-            ``k[j, l](x0[ik, ..., i2, i1, :], x1[il, ..., i2, i1, :])`` of the
-            (cross-)covariance ``k[j, l]`` between outputs `j` and `l`
-            (assuming that ``x0`` and ``x1`` have been broadcast according to the rules
-            described in the "Notes" section).
+            the evaluation of the (cross-)covariance function at the inputs
+            ``x0[ik, ..., i2, i1, :] and ``x1[il, ..., i2, i1, :])``.
+            For any non-empty :attr:`shape`, it returns an array of shape
+            ``(Sl, ..., S2, S1, Lk, ..., L2, L1)``, where ``S`` is :attr:`shape`, whose
+            entry at index ``(sl, ..., s2, s1, ik, ..., i2, i1)`` contains
+            evaluation of the (cross-)covariance function at index ``(sl, ..., s2, s1)``
+            at the inputs ``x0[ik, ..., i2, i1, :]`` and ``x1[ik, ..., i2, i1, :]``.
+            Above, we assume that ``x0`` and ``x1`` have been broadcast according to the
+            rules described in the "Notes" section.
 
         Raises
         ------
@@ -149,31 +205,73 @@ class Kernel(abc.ABC):
 
         Examples
         --------
-        See class docstring: :class:`Kernel`.
+        See documentation of class :class:`Kernel`.
         """
 
-        # Shape checking
         x0 = np.atleast_1d(x0)
 
         if x1 is not None:
             x1 = np.atleast_1d(x1)
 
-        _, output_shape = self._kernel_broadcast_shapes(x0, x1)
+        # Shape checking
+        broadcast_input_shape = self._kernel_broadcast_shapes(x0, x1)
 
         # Evaluate the kernel
         k_x0_x1 = self._evaluate(x0, x1)
 
-        assert k_x0_x1.shape == output_shape
+        assert k_x0_x1.shape == self._shape + broadcast_input_shape[:-1]
 
         return k_x0_x1
 
     def matrix(
         self,
-        x0: np.ndarray,
-        x1: Optional[np.ndarray] = None,
+        x0: ArrayLike,
+        x1: Optional[ArrayLike] = None,
     ) -> np.ndarray:
+        """A convenience function for computing a kernel matrix for two sets of inputs.
+
+        This is syntactic sugar for ``k(x0[:, None, :], x1[None, :, :])``. Hence, it
+        computes the matrix of pairwise covariances between two sets of input points.
+        If ``k`` represents a covariance function, then the resulting matrix will be
+        positive (semi-)definite for ``x0 == x1``.
+
+        Parameters
+        ----------
+        x0 : array-like
+            First set of inputs to the (cross-)covariance function as an array of shape
+            ``(M, D)``, where ``D`` is either 1 or :attr:`input_dim`.
+        x1 : array-like
+            Optional second set of inputs to the (cross-)covariance function as an array
+            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_dim`.
+            If ``x1`` is not specified, the function behaves as if ``x1 = x0``.
+
+        Returns
+        -------
+        kernmat : numpy.ndarray
+            The matrix / stack of matrices containing the pairwise evaluations of the
+            (cross-)covariance function(s) on ``x0`` and ``x1`` as an array of shape
+            ``(M, N)`` if :attr:`shape` is ``()`` or
+            ``(S[l - 1], ..., S[1], S[0], M, N)``, where ``S`` is :attr:`shape` if
+            :attr:`shape` is non-empty.
+
+        Raises
+        ------
+        ValueError
+            If the shapes of the inputs don't match the specification.
+
+        See Also
+        --------
+        __call__: Evaluate the kernel more flexibly.
+
+        Examples
+        --------
+        See documentation of class :class:`Kernel`.
+        """
+
         x0 = np.array(x0)
-        x1 = x0 if x1 is None else np.array(x1)
+
+        if x1 is not None:
+            x1 = np.array(x1)
 
         # Shape checking
         errmsg = (
@@ -193,37 +291,30 @@ class Kernel(abc.ABC):
 
     @property
     def input_dim(self) -> int:
-        """Dimension of arguments of the covariance function.
-
-        The dimension of inputs to the covariance function :math:`k : \\mathbb{R}^{
-        d_{in}} \\times \\mathbb{R}^{d_{in}} \\rightarrow
-        \\mathbb{R}^{d_{out} \\times d_{out}}`.
-        """
+        """Dimension of arguments of the covariance function."""
         return self._input_dim
 
     @property
-    def output_dim(self) -> Optional[int]:
-        """Dimension of the evaluated covariance function.
-
-        The resulting evaluated kernel :math:`k(x_0, x_1) \\in
-        \\mathbb{R}^{d_{out} \\times d_{out}}` has *shape=(output_dim,
-        output_dim)*.
-        """
-        return self._output_dim
+    def shape(self) -> ShapeType:
+        """If :attr:`shape` is ``()``, the :class:`Kernel` instance represents a
+        single (cross-)covariance function. Otherwise, i.e. if :attr:`shape` is
+        non-empty, the :class:`Kernel` instance represents a tensor of
+        (cross-)covariance functions whose shape is given by ``shape``."""
+        return self._shape
 
     @abc.abstractmethod
     def _evaluate(
         self,
         x0: ArrayLike,
-        x1: Optional[ArrayLike] = None,
+        x1: Optional[ArrayLike],
     ) -> Union[np.ndarray, np.float_]:
-        pass
+        """TODO"""
 
     def _kernel_broadcast_shapes(
         self,
         x0: np.ndarray,
         x1: Optional[np.ndarray] = None,
-    ) -> Tuple[ShapeType, ShapeType]:
+    ) -> ShapeType:
         """Applies the "kernel broadcasting" rules to the input shapes.
 
         A description of the "kernel broadcasting" rules can be found in the docstring
@@ -242,8 +333,6 @@ class Kernel(abc.ABC):
         -------
         broadcast_input_shape : tuple of int
             Shape of the inputs after applying "kernel broadcasting".
-        output_shape: tuple of int
-            Shape of the output array for the given inputs.
 
         Raises
         -------
@@ -251,7 +340,6 @@ class Kernel(abc.ABC):
             If the inputs can not be "kernel broadcast" to a common shape.
         """
 
-        # Determine the input shape after kernel broadcasting
         err_msg = (
             "`{argname}` can not be broadcast to the kernel's input dimension "
             f"{self.input_dim} along the last axis, since "
@@ -280,15 +368,9 @@ class Kernel(abc.ABC):
                 ) from v
 
         if broadcast_input_shape[-1] == 1:
-            broadcast_input_shape[-1] = self.input_dim
+            broadcast_input_shape = broadcast_input_shape[:-1] + (self.input_dim,)
 
-        # Determine the output shape
-        output_shape = broadcast_input_shape[:-1]
-
-        if self.output_dim is not None:
-            output_shape = 2 * (self.output_dim,) + output_shape
-
-        return broadcast_input_shape, output_shape
+        return broadcast_input_shape
 
     def _euclidean_inner_products(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
@@ -303,7 +385,7 @@ class Kernel(abc.ABC):
         return np.sum(prods, axis=-1)
 
 
-class IsotropicMixin:
+class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     r"""Mixin for isotropic kernels.
 
     An isotropic kernel is a kernel which only depends on the Euclidean norm of the

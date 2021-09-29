@@ -3,22 +3,19 @@
 from typing import Optional
 
 import numpy as np
-import scipy.spatial.distance
 
 import probnum.utils as _utils
 from probnum.typing import IntArgType, ScalarArgType
 
 from ._kernel import IsotropicMixin, Kernel
 
-_InputType = np.ndarray
-
 
 class RatQuad(Kernel, IsotropicMixin):
-    """Rational quadratic kernel.
+    r"""Rational quadratic kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = \\big(1 + \\frac{\\lVert x_0 -
-    x_1 \\rVert^2}{2\\alpha l^2}\\big)^{-\\alpha}`, where :math:`\\alpha > 0`. For
-    :math:`\\alpha \\rightarrow \\infty` the rational quadratic kernel converges to the
+    Covariance function defined by :math:`k(x_0, x_1) = \big(1 + \frac{\lVert x_0 -
+    x_1 \rVert^2}{2\alpha l^2}\big)^{-\alpha}`, where :math:`\alpha > 0`. For
+    :math:`\alpha \rightarrow \infty` the rational quadratic kernel converges to the
     :class:`~probnum.kernels.ExpQuad` kernel.
 
     Parameters
@@ -26,11 +23,11 @@ class RatQuad(Kernel, IsotropicMixin):
     input_dim :
         Input dimension of the kernel.
     lengthscale :
-        Lengthscale of the kernel. Describes the input scale on which the process
-        varies.
+        Lengthscale :math:`l` of the kernel. Describes the input scale on which the
+        process varies.
     alpha :
-        Scale mixture. Positive constant determining the weighting between different
-        lengthscales.
+        Scale mixture :math:`\alpha`. Positive constant determining the weighting
+        between different lengthscales.
 
     See Also
     --------
@@ -58,9 +55,9 @@ class RatQuad(Kernel, IsotropicMixin):
         self.alpha = _utils.as_numpy_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
-        super().__init__(input_dim=input_dim, output_dim=None)
+        super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:
             return np.ones_like(x0[..., 0])
 
