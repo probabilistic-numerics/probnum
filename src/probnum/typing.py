@@ -35,11 +35,13 @@ except ImportError:
     # This is a very basic implementation which may be altered to align more with
     # NumPy's definition of an array-like
     _ArrayLikeScalar = Union[np.generic, bool, int, float, complex, str, bytes]
-    _ArrayLikeNestedSequence = Union[
+    _ArrayLikeNestedSequence = Union[  # Dirty hack to avoid recursive types
         Sequence[_ArrayLikeScalar],
-        Sequence["_ArrayLikeNestedSequence"],  # recursion
+        Sequence[Sequence[_ArrayLikeScalar]],
+        Sequence[Sequence[Sequence[_ArrayLikeScalar]]],
+        Sequence[Sequence[Sequence[Sequence[_ArrayLikeScalar]]]],
+        Sequence[Sequence[Sequence[Sequence[Sequence[_ArrayLikeScalar]]]]],
     ]
-
     ArrayLike = Union[_ArrayLikeScalar, _ArrayLikeNestedSequence]
 
 IntArgType = Union[int, numbers.Integral, np.integer]
