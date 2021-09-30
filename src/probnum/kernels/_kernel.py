@@ -278,10 +278,10 @@ class Kernel(abc.ABC):
             "`{shape}` was given."
         )
 
-        if not (1 <= x0.ndim <= 2 and x0.shape[-1] == self.input_dim):
+        if not (1 <= x0.ndim <= 2 and x0.shape[-1] in (self.input_dim, 1)):
             raise ValueError(errmsg.format(argname="x0", shape=x0.shape))
 
-        if not (1 <= x1.ndim <= 2 and x1.shape[-1] == self.input_dim):
+        if not (1 <= x1.ndim <= 2 and x1.shape[-1] in (self.input_dim, 1)):
             raise ValueError(errmsg.format(argname="x1", shape=x1.shape))
 
         # Pairwise kernel evaluation
