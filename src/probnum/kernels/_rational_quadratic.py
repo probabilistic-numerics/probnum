@@ -71,8 +71,10 @@ class RatQuad(Kernel, IsotropicMixin):
         if x1 is None:
             return np.ones_like(x0[..., 0])
 
-        sqdists = self._squared_euclidean_distances(x0, x1)
-
         return (
-            1.0 + sqdists / (2.0 * self.alpha * self.lengthscale ** 2)
+            1.0
+            + (
+                self._squared_euclidean_distances(x0, x1)
+                / (2.0 * self.alpha * self.lengthscale ** 2)
+            )
         ) ** -self.alpha
