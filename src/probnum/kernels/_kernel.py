@@ -164,7 +164,7 @@ class Kernel(abc.ABC):
             An array of shape ``()`` or ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is
             either ``1`` or :attr:`input_dim`, whose entries will be
             passed to the second argument of the kernel. Can also be set to ``None``,
-            in which case the function will be have as if ``x1 = x0``.
+            in which case the function will behave as if ``x1 = x0``.
 
         Returns
         -------
@@ -306,7 +306,42 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike],
     ) -> Union[np.ndarray, np.float_]:
-        """TODO"""
+        """Implementation of the kernel evaluation which is called after input checking.
+
+        When implementing a particular kernel, the subclass should implement the kernel
+        computation by overwriting this method. It is called by the
+        :meth:`Kernel.__call__` method after applying input checking and promoting
+        scalar inputs, i.e. inputs with shape ``()``, to arrays with shape ``(1,)``.
+        The implementation of the kernel must implement the rules of kernel broadcasting
+        which are outlined in the "Notes" section of the :meth:`Kernel.__call__`
+        docstring. Note that the inputs are not automatically broadcast to a common
+        shape, but it is guaranteed that the inputs can be broadcast to a common shape
+        when applying the rules of "kernel broadcasting".
+
+        Parameters
+        ----------
+        x0 : array-like
+            An array of shape ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is either
+            ``1`` or :attr:`input_dim`, whose entries will be passed to the first
+            argument of the kernel.
+        x1 : array-like
+            An array of shape ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is either
+            ``1`` or :attr:`input_dim`, whose entries will be passed to the second
+            argument of the kernel. Can also be set to ``None``, in which case the
+            method must behave as if ``x1 = x0``.
+
+        Returns
+        -------
+        k_x0_x1 : numpy.ndarray
+            The (cross-)covariance function(s) evaluated at ``x0`` and ``x1`` as an
+            array of shape ``(S[l - 1], ..., S[1], S[0], Lk, ..., L2, L1)``,
+            where ``S`` is :attr:`shape`, whose entry at index
+            ``(sl, ..., s2, s1, ik, ..., i2, i1)`` contains the
+            evaluation of the (cross-)covariance function at index ``(sl, ..., s2, s1)``
+            at the inputs ``x0[ik, ..., i2, i1, :]`` and ``x1[ik, ..., i2, i1, :]``,
+            where we assume that ``x0`` and ``x1`` have been broadcast according to the
+            rules described in the "Notes" section of :meth:`Kernel.__call__`.
+        """
 
     def _kernel_broadcast_shapes(
         self,
