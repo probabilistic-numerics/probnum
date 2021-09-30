@@ -13,7 +13,10 @@ from ._kernel import Kernel
 class Linear(Kernel):
     r"""Linear kernel.
 
-    Linear covariance function defined by :math:`k(x_0, x_1) = x_0^\top x_1 + c`.
+    Linear covariance function defined by
+
+    .. math ::
+        k(x_0, x_1) = x_0^\top x_1 + c.
 
     Parameters
     ----------

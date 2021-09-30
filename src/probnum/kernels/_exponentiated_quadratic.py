@@ -13,8 +13,12 @@ from ._kernel import IsotropicMixin, Kernel
 class ExpQuad(Kernel, IsotropicMixin):
     r"""Exponentiated quadratic / RBF kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = \exp \big(-\frac{\lVert
-    x_0 - x_1 \rVert^2}{2l^2}\big)`. This kernel is also known as the squared
+    Covariance function defined by
+
+    .. math ::
+        k(x_0, x_1) = \exp \left( -\frac{\lVert x_0 - x_1 \rVert_2^2}{2 l^2} \right).
+
+    This kernel is also known as the squared
     exponential or radial basis function kernel.
 
     Parameters

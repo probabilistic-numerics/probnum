@@ -13,10 +13,20 @@ from ._kernel import IsotropicMixin, Kernel
 class RatQuad(Kernel, IsotropicMixin):
     r"""Rational quadratic kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = \big(1 + \frac{\lVert x_0 -
-    x_1 \rVert^2}{2\alpha l^2}\big)^{-\alpha}`, where :math:`\alpha > 0`. For
-    :math:`\alpha \rightarrow \infty` the rational quadratic kernel converges to the
-    :class:`~probnum.kernels.ExpQuad` kernel.
+    Covariance function defined by
+
+    .. math::
+        :nowrap:
+
+        \begin{equation}
+            k(x_0, x_1)
+            = \left(
+                1 + \frac{\lVert x_0 - x_1 \rVert_2^2}{2 \alpha l^2}
+            \right)^{-\alpha},
+        \end{equation}
+
+    where :math:`\alpha > 0`. For :math:`\alpha \rightarrow \infty` the rational
+    quadratic kernel converges to the :class:`~probnum.kernels.ExpQuad` kernel.
 
     Parameters
     ----------

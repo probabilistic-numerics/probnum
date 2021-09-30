@@ -13,8 +13,10 @@ from ._kernel import Kernel
 class WhiteNoise(Kernel):
     r"""White noise kernel.
 
-    Kernel representing independent and identically distributed white noise :math:`k(
-    x_0, x_1) = \sigma^2 \delta(x_0, x_1)`.
+    Kernel representing independent and identically distributed white noise
+
+    .. math ::
+        k(x_0, x_1) = \sigma^2 \delta(x_0, x_1).
 
     Parameters
     ----------

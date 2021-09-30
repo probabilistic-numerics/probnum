@@ -13,7 +13,10 @@ from ._kernel import Kernel
 class Polynomial(Kernel):
     r"""Polynomial kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = (x_0^\top x_1 + c)^q`.
+    Covariance function defined by
+
+    .. math ::
+        k(x_0, x_1) = (x_0^\top x_1 + c)^q.
 
     Parameters
     ----------
