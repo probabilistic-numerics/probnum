@@ -198,8 +198,8 @@ class Kernel(abc.ABC):
         Numpy's broadcasting rules. First of all, the operation of the kernel is
         vectorized over all but the last dimension, applying standard broadcasting
         rules. An input with shape ``()`` is promoted to an input with shape ``(1,)``.
-        Additionally, a ``1`` along the last axis of an input is interpreted as a (set of)
-        point(s) with equal coordinates in all input dimensions, i.e. the inputs are
+        Additionally, a ``1`` along the last axis of an input is interpreted as a (set
+        of) point(s) with equal coordinates in all input dimensions, i.e. the inputs are
         broadcast to :attr:`input_dim` dimensions along the last axis. We refer to this
         modified set of broadcasting rules as "kernel broadcasting".
 
