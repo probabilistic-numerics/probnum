@@ -22,7 +22,7 @@ def test_nu_large_recovers_rbf_kernel(x0: np.ndarray, x1: np.ndarray, input_dim:
     np.testing.assert_allclose(
         rbf.matrix(x0, x1),
         matern.matrix(x0, x1),
-        err_msg="RBF and Matern kernel are not equivalent for nu=infty.",
+        err_msg="RBF and Matern kernel are not sufficiently close for nu->infty.",
         rtol=0.05,
         atol=0.01,
     )

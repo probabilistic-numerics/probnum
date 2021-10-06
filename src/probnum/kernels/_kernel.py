@@ -45,7 +45,7 @@ class Kernel(abc.ABC):
             C^f \colon
             \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}}
             \to \mathbb{R}^{d_\text{out} \times d_\text{out}},
-            C^f_{f_i f_j}(x_0, x_1) := k_{f_i f_j}(x_0, x_1)
+            C^f_{i j}(x_0, x_1) := k_{f_i f_j}(x_0, x_1)
         \end{equation}
 
     of the vector-valued random process :math:`f`. To this end, we understand any
@@ -68,7 +68,7 @@ class Kernel(abc.ABC):
     >>> D = 3
     >>> k = pn.kernels.Linear(input_dim=D)
 
-    Generate input points
+    Generate some input data.
 
     >>> xs = np.repeat(np.linspace(0, 1, 4)[:, None], D, axis=-1)
     >>> xs.shape
@@ -79,7 +79,7 @@ class Kernel(abc.ABC):
            [0.66666667, 0.66666667, 0.66666667],
            [1.        , 1.        , 1.        ]])
 
-    We can compute kernel matrices like so:
+    We can compute kernel matrices like so.
 
     >>> k.matrix(xs)
     array([[0.        , 0.        , 0.        , 0.        ],
@@ -123,7 +123,7 @@ class Kernel(abc.ABC):
 
     >>> k(xs, xs)
     array([0.        , 0.33333333, 1.33333333, 3.        ])
-    >>> k(xs, None)  # x1 = None is an efficient way to set x1 = x0
+    >>> k(xs, None)  # x1 = None is an efficient way to set x1 == x0
     array([0.        , 0.33333333, 1.33333333, 3.        ])
 
     and the diagonal above the main diagonal of the kernel matrix is retrieved through
@@ -198,7 +198,7 @@ class Kernel(abc.ABC):
         Numpy's broadcasting rules. First of all, the operation of the kernel is
         vectorized over all but the last dimension, applying standard broadcasting
         rules. An input with shape ``()`` is promoted to an input with shape ``(1,)``.
-        Additionally, a `1` along the last axis of an input is interpreted as a (set of)
+        Additionally, a ``1`` along the last axis of an input is interpreted as a (set of)
         point(s) with equal coordinates in all input dimensions, i.e. the inputs are
         broadcast to :attr:`input_dim` dimensions along the last axis. We refer to this
         modified set of broadcasting rules as "kernel broadcasting".
@@ -233,7 +233,7 @@ class Kernel(abc.ABC):
         This is syntactic sugar for ``k(x0[:, None, :], x1[None, :, :])``. Hence, it
         computes the matrix of pairwise covariances between two sets of input points.
         If ``k`` represents a covariance function, then the resulting matrix will be
-        positive (semi-)definite for ``x0 == x1``.
+       symmetric positive (semi-)definite for ``x0 == x1``.
 
         Parameters
         ----------
@@ -328,7 +328,7 @@ class Kernel(abc.ABC):
             An array of shape ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is either
             ``1`` or :attr:`input_dim`, whose entries will be passed to the second
             argument of the kernel. Can also be set to ``None``, in which case the
-            method must behave as if ``x1 = x0``.
+            method must behave as if ``x1 == x0``.
 
         Returns
         -------
