@@ -163,6 +163,43 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def covmatrix(
         self, args0: _InputType, args1: Optional[_InputType] = None
     ) -> _OutputType:
+        """A convenience function for the covariance matrix of two sets of inputs.
+
+        This is syntactic sugar for ``proc.cov(x0[:, None, :], x1[None, :, :])``. Hence,
+        it computes the matrix of pairwise covariances between two sets of input points.
+
+        Parameters
+        ----------
+        x0 : array-like
+            First set of inputs to the covariance function as an array of shape
+            ``(M, D)``, where ``D`` is either 1 or :attr:`input_dim`.
+        x1 : array-like
+            Optional second set of inputs to the covariance function as an array
+            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_dim`.
+            If ``x1`` is not specified, the function behaves as if ``x1 = x0``.
+
+        Returns
+        -------
+        kernmat : numpy.ndarray
+            The matrix / stack of matrices containing the pairwise evaluations of the
+            covariance function(s) on ``x0`` and ``x1`` as an array of shape
+            ``(M, N)`` if :attr:`shape` is ``()`` or
+            ``(S[l - 1], ..., S[1], S[0], M, N)``, where ``S`` is :attr:`shape` if
+            :attr:`shape` is non-empty.
+
+        Raises
+        ------
+        ValueError
+            If the shapes of the inputs don't match the specification.
+
+        See Also
+        --------
+        RandomProcess.cov: Evaluate the kernel more flexibly.
+
+        Examples
+        --------
+        See documentation of class :class:`Kernel`.
+        """
         args0 = np.array(args0)
         args1 = args0 if args1 is None else np.array(args1)
 

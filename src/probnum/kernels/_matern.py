@@ -77,32 +77,32 @@ class Matern(Kernel, IsotropicMixin):
         super().__init__(input_dim=input_dim)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
-        dists = self._euclidean_distances(x0, x1)
+        distances = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
-            return np.exp(-1.0 / self.lengthscale * dists)
+            return np.exp(-1.0 / self.lengthscale * distances)
 
         if self.nu == 1.5:
-            scaled_dists = -np.sqrt(3) / self.lengthscale * dists
-            return (1.0 + scaled_dists) * np.exp(-scaled_dists)
+            scaled_distances = -np.sqrt(3) / self.lengthscale * distances
+            return (1.0 + scaled_distances) * np.exp(-scaled_distances)
 
         if self.nu == 2.5:
-            scaled_dists = np.sqrt(5) / self.lengthscale * dists
-            return (1.0 + scaled_dists + scaled_dists ** 2 / 3.0) * np.exp(
-                -scaled_dists
+            scaled_distances = np.sqrt(5) / self.lengthscale * distances
+            return (1.0 + scaled_distances + scaled_distances ** 2 / 3.0) * np.exp(
+                -scaled_distances
             )
 
         if self.nu == np.inf:
-            return np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * dists ** 2)
+            return np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
 
         # The modified Bessel function K_nu is not defined for z=0
-        dists = np.maximum(dists, np.finfo(dists.dtype).eps)
+        distances = np.maximum(distances, np.finfo(distances.dtype).eps)
 
-        scaled_dists = np.sqrt(2 * self.nu) / self.lengthscale * dists
+        scaled_distances = np.sqrt(2 * self.nu) / self.lengthscale * distances
         return (
             2 ** (1.0 - self.nu)
             / scipy.special.gamma(self.nu)
-            * scaled_dists ** self.nu
-            * scipy.special.kv(self.nu, scaled_dists)
+            * scaled_distances ** self.nu
+            * scipy.special.kv(self.nu, scaled_distances)
         )

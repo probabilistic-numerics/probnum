@@ -3,7 +3,7 @@
 from typing import Optional, Tuple
 
 
-def _shape_param_to_id_str(shape_param: Optional[Tuple[Optional[int], ...]]):
+def _shape_param_to_id_str(shape_param: Optional[Tuple[Optional[int], ...]]) -> str:
     """Convert kernel input shape parameter used in `test_call.py` and `conftest.py`
     into a human readable representation which is used in the pytest parameter id."""
 

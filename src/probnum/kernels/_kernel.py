@@ -233,7 +233,7 @@ class Kernel(abc.ABC):
         This is syntactic sugar for ``k(x0[:, None, :], x1[None, :, :])``. Hence, it
         computes the matrix of pairwise covariances between two sets of input points.
         If ``k`` represents a covariance function, then the resulting matrix will be
-       symmetric positive (semi-)definite for ``x0 == x1``.
+        symmetric positive (semi-)definite for ``x0 == x1``.
 
         Parameters
         ----------
@@ -454,9 +454,10 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     ) -> np.ndarray:
         """Implementation of the Euclidean distance, which supports kernel
         broadcasting semantics."""
-        sqdists = self._squared_euclidean_distances(x0, x1)
-
         if x1 is None:
-            return sqdists
+            return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=x0.shape[:-1],
+            )
 
-        return np.sqrt(sqdists)
+        return np.sqrt(self._squared_euclidean_distances(x0, x1))

@@ -14,9 +14,8 @@ def fixture_kernmat(
     kernel: pn.kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
 ) -> np.ndarray:
     """Kernel evaluated at the data."""
-
-    if x1 is None:
-        return kernel(x0, None)
+    if x1 is None and np.prod(x0.shape[:-1]) >= 100:
+        pytest.skip("Runs too long")
 
     return kernel.matrix(x0, x1)
 
@@ -30,7 +29,10 @@ def fixture_kernmat_naive(
     """Kernel evaluated at the data."""
 
     if x1 is None:
-        return kernel_call_naive(x0, None)
+        if np.prod(x0.shape[:-1]) >= 100:
+            pytest.skip("Runs too long")
+
+        return kernel_call_naive(x0=x0[:, None, :], x1=x0[None, :, :])
 
     return kernel_call_naive(x0=x0[:, None, :], x1=x1[None, :, :])
 
