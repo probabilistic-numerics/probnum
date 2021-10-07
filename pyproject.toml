@@ -90,6 +90,9 @@ load-plugins = [
 [tool.pylint.design]
 max-complexity = "14"
 
+[tool.pylint.similarities]
+ignore-imports = "yes"
+
 # isort configuration
 [tool.isort]
 multi_line_output = "3"

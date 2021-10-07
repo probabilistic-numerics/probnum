@@ -9,13 +9,14 @@ from probnum.typing import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 
-_InputType = np.ndarray
 
+class Polynomial(Kernel):
+    r"""Polynomial kernel.
 
-class Polynomial(Kernel[_InputType]):
-    """Polynomial kernel.
+    Covariance function defined by
 
-    Covariance function defined by :math:`k(x_0, x_1) = (x_0^\\top x_1 + c)^q`.
+    .. math ::
+        k(x_0, x_1) = (x_0^\top x_1 + c)^q.
 
     Parameters
     ----------
@@ -35,7 +36,8 @@ class Polynomial(Kernel[_InputType]):
     >>> import numpy as np
     >>> from probnum.kernels import Polynomial
     >>> K = Polynomial(input_dim=2, constant=1.0, exponent=3)
-    >>> K(np.array([[1, -1], [-1, 0]]))
+    >>> xs = np.array([[1, -1], [-1, 0]])
+    >>> K.matrix(xs)
     array([[27.,  0.],
            [ 0.,  8.]])
     """
@@ -48,15 +50,7 @@ class Polynomial(Kernel[_InputType]):
     ):
         self.constant = _utils.as_numpy_scalar(constant)
         self.exponent = _utils.as_numpy_scalar(exponent)
-        super().__init__(input_dim=input_dim, output_dim=1)
+        super().__init__(input_dim=input_dim)
 
-    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-
-        x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
-
-        # Compute kernel matrix
-        if x1 is None:
-            x1 = x0
-        kernmat = (x0 @ x1.T + self.constant) ** self.exponent
-
-        return Kernel._reshape_kernelmatrix(kernmat, newshape=kernshape)
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+        return (self._euclidean_inner_products(x0, x1) + self.constant) ** self.exponent

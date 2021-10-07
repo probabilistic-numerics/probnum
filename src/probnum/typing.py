@@ -14,7 +14,7 @@ internal representation of those same objects.
 """
 
 import numbers
-from typing import Iterable, Tuple, Union
+from typing import Iterable, Sequence, Tuple, Union
 
 import numpy as np
 import scipy.sparse
@@ -28,6 +28,21 @@ ShapeType = Tuple[int, ...]
 ########################################################################################
 # Argument Types
 ########################################################################################
+
+try:
+    from numpy.typing import ArrayLike  # pylint: disable=unused-import
+except ImportError:
+    # This is a very basic implementation which may be altered to align more with
+    # NumPy's definition of an array-like
+    _ArrayLikeScalar = Union[np.generic, bool, int, float, complex, str, bytes]
+    _ArrayLikeNestedSequence = Union[  # Dirty hack to avoid recursive types
+        Sequence[_ArrayLikeScalar],
+        Sequence[Sequence[_ArrayLikeScalar]],
+        Sequence[Sequence[Sequence[_ArrayLikeScalar]]],
+        Sequence[Sequence[Sequence[Sequence[_ArrayLikeScalar]]]],
+        Sequence[Sequence[Sequence[Sequence[Sequence[_ArrayLikeScalar]]]]],
+    ]
+    ArrayLike = Union[_ArrayLikeScalar, _ArrayLikeNestedSequence]
 
 IntArgType = Union[int, numbers.Integral, np.integer]
 FloatArgType = Union[float, numbers.Real, np.floating]

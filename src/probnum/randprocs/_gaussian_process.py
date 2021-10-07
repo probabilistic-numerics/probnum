@@ -53,7 +53,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
            [-0.52972512],
            [ 0.0674298 ],
            [ 0.72066223]])
-    >>> gp.cov(x)
+    >>> gp.covmatrix(x)
     array([[1.        , 0.8824969 , 0.60653066, 0.32465247, 0.13533528],
            [0.8824969 , 1.        , 0.8824969 , 0.60653066, 0.32465247],
            [0.60653066, 0.8824969 , 1.        , 0.8824969 , 0.60653066],
@@ -71,22 +71,37 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
                 "The covariance functions must be implemented as a " "`Kernel`."
             )
 
+        if cov.shape != () and not (
+            len(cov.shape) == 2 and cov.shape[0] == cov.shape[1]
+        ):
+            raise ValueError(
+                "Only kernels with shape `()` or `(D, D)` are allowed as covariance "
+                "functions of random processes."
+            )
+
         self._meanfun = mean
         self._covfun = cov
         super().__init__(
             input_dim=cov.input_dim,
-            output_dim=cov.output_dim,
+            output_dim=None if cov.shape == () else cov.shape[0],
             dtype=np.dtype(np.float_),
         )
 
     def __call__(self, args: _InputType) -> randvars.Normal:
-        return randvars.Normal(mean=self.mean(args), cov=self.cov(args))
+        return randvars.Normal(
+            mean=np.array(self.mean(args), copy=False), cov=self.covmatrix(args)
+        )
 
     def mean(self, args: _InputType) -> _OutputType:
         return self._meanfun(args)
 
     def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
         return self._covfun(args0, args1)
+
+    def covmatrix(
+        self, args0: _InputType, args1: Optional[_InputType] = None
+    ) -> _OutputType:
+        return self._covfun.matrix(args0, args1)
 
     def _sample_at_input(
         self,
