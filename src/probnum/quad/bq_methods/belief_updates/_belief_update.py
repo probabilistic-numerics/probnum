@@ -33,9 +33,9 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         bq_state :
             Current state of the Bayesian quadrature loop.
         new_nodes :
-            New nodes that have been added.
+            *shape=(n_eval_new, input_dim)* -- New nodes that have been added.
         new_fun_evals :
-            Function evaluations at the given node.
+            *shape=(n_eval_new,)* -- Function evaluations at the given node.
 
         Returns
         -------
