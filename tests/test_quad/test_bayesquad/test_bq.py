@@ -51,6 +51,7 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim):
         n_points=n_gh, input_dim=input_dim, mean=measure.mean, cov=measure.cov
     )
     fun_evals = fun(nodes)
+    print(nodes.shape)
     bq_integral, _ = bayesquad_from_data(
         nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
     )
@@ -150,8 +151,9 @@ def test_domain_ignored_if_lebesgue(input_dim, measure):
     assert isinstance(bq_integral, Normal)
 
     # fixed nodes BQ
-    nodes = np.linspace(0, 1, 3)
+    nodes = np.linspace(0, 1, 3).reshape((3, 1))
     fun_evals = fun(nodes)
+
     bq_integral, _ = bayesquad_from_data(
         nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
     )

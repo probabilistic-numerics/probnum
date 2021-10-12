@@ -57,14 +57,15 @@ def bayesquad(
     Parameters
     ----------
     fun :
-        Function to be integrated. It needs to accept a shape=(n_eval, input_dim) ``np.ndarray`` and return a
-        shape=(n_eval,) ``np.ndarray``.
+        Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
+        ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
     input_dim :
         Input dimension of the integration problem.
     kernel :
         The kernel used for the GP model
     domain :
-        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as ``int`` or ``np.ndarray``.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
+        ``int`` or ``np.ndarray``.
     measure:
         Integration measure. Defaults to the Lebesgue measure.
     policy :
@@ -80,6 +81,8 @@ def bayesquad(
         Tolerance on the variance of the integral.
     rel_tol :
         Tolerance on consecutive updates of the integral mean.
+    batch_size :
+        Number of new observations at each update.
 
     Returns
     -------
@@ -97,8 +100,8 @@ def bayesquad(
 
     References
     ----------
-    .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical computation?,
-       *Statistical Science 34.1*, 2019, 1-22, 2019
+    .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical
+        computation?, *Statistical Science 34.1*, 2019, 1-22, 2019
     .. [2] Rasmussen, C. E., and Z. Ghahramani, Bayesian Monte Carlo, *Advances in
         Neural Information Processing Systems*, 2003, 505-512.
 
@@ -127,7 +130,8 @@ def bayesquad(
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
         elif isinstance(measure, LebesgueMeasure):
             warnings.warn(
-                "Both domain and a LebesgueMeasure are specified. The domain information will be ignored."
+                "Both domain and a LebesgueMeasure are specified. The domain "
+                "information will be ignored."
             )
 
     bq_method = BayesianQuadrature.from_problem(
@@ -157,19 +161,21 @@ def bayesquad_from_data(
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
 ) -> Tuple[Normal, Dict]:
-    r"""Infer the value of an integral from a given set of nodes and function evaluations.
+    r"""Infer the value of an integral from a given set of nodes and function
+    evaluations.
 
     Parameters
     ----------
     nodes :
-        *shape=(n_eval, input_dim)* -- locations at which the function should be evaluated or where
-        function evaluations are already available as ``f_eval``.
+        *shape=(n_eval, input_dim)* -- locations at which the function evaluations are
+        available as ``f_eval``.
     fun_evals :
         *shape=(n_eval,)* -- function evaluations at ``nodes``.
     kernel :
         The kernel used for the GP model.
     domain :
-        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
+        int or ndarray.
     measure:
         Integration measure. Defaults to the Lebesgue measure.
 
@@ -210,24 +216,23 @@ def bayesquad_from_data(
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
         elif isinstance(measure, LebesgueMeasure):
             warnings.warn(
-                "Both domain and a LebesgueMeasure are specified. The domain information will be ignored."
+                "Both domain and a LebesgueMeasure are specified. The domain "
+                "information will be ignored."
             )
 
-    if nodes.ndim == 1:
-        n_evals = nodes.size
-        input_dim = 1
-    else:
-        n_evals, input_dim = nodes.shape
-
-    nodes = nodes.reshape(n_evals, input_dim)
+    if nodes.ndim != 2:
+        raise ValueError(
+            "The nodes must be given a in an array with shape=(n_eval, input_dim)"
+        )
+    n_eval, input_dim = nodes.shape
 
     bq_method = BayesianQuadrature.from_problem(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
         domain=domain,
-        max_evals=n_evals,
-        batch_size=n_evals,
+        max_evals=n_eval,
+        batch_size=n_eval,
     )
 
     # Integrate
