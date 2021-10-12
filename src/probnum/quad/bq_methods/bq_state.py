@@ -7,6 +7,7 @@ import numpy as np
 from probnum.kernels._kernel import Kernel
 from probnum.quad._integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
+from probnum.quad.stop_criteria import StoppingCriterion
 from probnum.randvars import Normal
 
 
@@ -30,7 +31,7 @@ class BQInfo:
         iteration: int = 0,
         nevals: int = 0,
         has_converged: bool = False,
-        stopping_criterion=None,
+        stopping_criterion: StoppingCriterion = None,
     ):
         self.iteration = iteration
         self.nevals = nevals
@@ -75,13 +76,13 @@ class BQState:
         measure: IntegrationMeasure,
         kernel: Kernel,
         integral_belief: Optional[Normal] = None,
-        previous_integral_beliefs: Optional[Tuple[Normal]] = (),
+        previous_integral_beliefs: Tuple[Normal] = (),
         info: Optional[BQInfo] = None,
-        batch_size: Optional[int] = 1,
+        batch_size: int = 1,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
-        gram=np.array([[]]),
-        kernel_means=np.array([]),
+        gram: np.ndarray = np.array([[]]),
+        kernel_means: np.ndarray = np.array([]),
     ):
         self.measure = measure
         self.kernel = kernel
