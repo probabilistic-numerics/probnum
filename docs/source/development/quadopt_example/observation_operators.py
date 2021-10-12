@@ -5,7 +5,7 @@ from typing import Callable
 import numpy as np
 
 from probnum import utils
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 
 def function_evaluation(

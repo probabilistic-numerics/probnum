@@ -58,10 +58,13 @@ class Kernels:
         self.data = rng.normal(size=(n_datapoints, self.input_dim))
         self.kernel = get_kernel(kernel_name=kernel, input_dim=self.input_dim)
 
+    def time_kernel_call(self, kernel, n_datapoints):
+        self.kernel(self.data, None)
+
     def time_kernel_matrix(self, kernel, n_datapoints):
         """Times sampling from this distribution."""
-        self.kernel(self.data)
+        self.kernel.matrix(self.data)
 
     def peakmem_kernel_matrix(self, kernel, n_datapoints):
         """Peak memory of sampling process."""
-        self.kernel(self.data)
+        self.kernel.matrix(self.data)

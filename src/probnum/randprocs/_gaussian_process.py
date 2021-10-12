@@ -5,7 +5,7 @@ from typing import Callable, Optional, Type, Union
 import numpy as np
 
 from probnum import kernels, randvars
-from probnum.type import RandomStateArgType, ShapeArgType
+from probnum.typing import ShapeArgType
 
 from . import _random_process
 
@@ -46,14 +46,14 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Sample from the Gaussian process.
 
     >>> x = np.linspace(-1, 1, 5)[:, None]
-    >>> np.random.seed(42)
-    >>> gp.sample(x)
-    array([[-0.35187364],
-           [-0.41301096],
-           [-0.65094306],
-           [-0.56817194],
-           [ 0.01173088]])
-    >>> gp.cov(x)
+    >>> rng = np.random.default_rng(seed=42)
+    >>> gp.sample(rng, x)
+    array([[-0.7539949 ],
+           [-0.6658092 ],
+           [-0.52972512],
+           [ 0.0674298 ],
+           [ 0.72066223]])
+    >>> gp.covmatrix(x)
     array([[1.        , 0.8824969 , 0.60653066, 0.32465247, 0.13533528],
            [0.8824969 , 1.        , 0.8824969 , 0.60653066, 0.32465247],
            [0.60653066, 0.8824969 , 1.        , 0.8824969 , 0.60653066],
@@ -71,16 +71,26 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
                 "The covariance functions must be implemented as a " "`Kernel`."
             )
 
+        if cov.shape != () and not (
+            len(cov.shape) == 2 and cov.shape[0] == cov.shape[1]
+        ):
+            raise ValueError(
+                "Only kernels with shape `()` or `(D, D)` are allowed as covariance "
+                "functions of random processes."
+            )
+
         self._meanfun = mean
         self._covfun = cov
         super().__init__(
             input_dim=cov.input_dim,
-            output_dim=cov.output_dim,
+            output_dim=None if cov.shape == () else cov.shape[0],
             dtype=np.dtype(np.float_),
         )
 
     def __call__(self, args: _InputType) -> randvars.Normal:
-        return randvars.Normal(mean=self.mean(args), cov=self.cov(args))
+        return randvars.Normal(
+            mean=np.array(self.mean(args), copy=False), cov=self.covmatrix(args)
+        )
 
     def mean(self, args: _InputType) -> _OutputType:
         return self._meanfun(args)
@@ -88,15 +98,19 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
         return self._covfun(args0, args1)
 
+    def covmatrix(
+        self, args0: _InputType, args1: Optional[_InputType] = None
+    ) -> _OutputType:
+        return self._covfun.matrix(args0, args1)
+
     def _sample_at_input(
         self,
+        rng: np.random.Generator,
         args: _InputType,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> _OutputType:
         gaussian_rv = self.__call__(args)
-        gaussian_rv.random_state = random_state
-        return gaussian_rv.sample(size=size)
+        return gaussian_rv.sample(rng=rng, size=size)
 
     def push_forward(
         self,

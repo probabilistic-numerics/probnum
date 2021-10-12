@@ -118,7 +118,6 @@ def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
         return _RandomVariable(
             shape=shape,
             dtype=dtype,
-            random_state=_utils.derive_random_seed(rv1.random_state, rv2.random_state),
             sample=sample,
         )
 
@@ -145,7 +144,6 @@ def _generic_rv_add(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariab
     return _RandomVariable(
         shape=shape,
         dtype=dtype,
-        random_state=_utils.derive_random_seed(rv1.random_state, rv2.random_state),
         sample=sample,
         mean=lambda: rv1.mean + rv2.mean,
     )
@@ -215,9 +213,6 @@ def _add_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
         mean=norm_rv.mean + constant_rv.support,
         cov=norm_rv.cov,
         cov_cholesky=cov_cholesky,
-        random_state=_utils.derive_random_seed(
-            norm_rv.random_state, constant_rv.random_state
-        ),
     )
 
 
@@ -231,9 +226,6 @@ def _sub_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
         mean=norm_rv.mean - constant_rv.support,
         cov=norm_rv.cov,
         cov_cholesky=cov_cholesky,
-        random_state=_utils.derive_random_seed(
-            norm_rv.random_state, constant_rv.random_state
-        ),
     )
 
 
@@ -246,9 +238,6 @@ def _sub_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
         mean=constant_rv.support - norm_rv.mean,
         cov=norm_rv.cov,
         cov_cholesky=cov_cholesky,
-        random_state=_utils.derive_random_seed(
-            constant_rv.random_state, norm_rv.random_state
-        ),
     )
 
 
@@ -262,9 +251,6 @@ def _mul_normal_constant(
         if constant_rv.support == 0:
             return _Constant(
                 support=np.zeros_like(norm_rv.mean),
-                random_state=_utils.derive_random_seed(
-                    norm_rv.random_state, constant_rv.random_state
-                ),
             )
         else:
             if norm_rv.cov_cholesky_is_precomputed:
@@ -275,9 +261,6 @@ def _mul_normal_constant(
                 mean=constant_rv.support * norm_rv.mean,
                 cov=(constant_rv.support ** 2) * norm_rv.cov,
                 cov_cholesky=cov_cholesky,
-                random_state=_utils.derive_random_seed(
-                    norm_rv.random_state, constant_rv.random_state
-                ),
             )
 
     return NotImplemented
@@ -299,9 +282,6 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             mean=norm_rv.mean @ constant_rv.support,
             cov=constant_rv.support.T @ (norm_rv.cov @ constant_rv.support),
             cov_cholesky=cov_cholesky,
-            random_state=_utils.derive_random_seed(
-                norm_rv.random_state, constant_rv.random_state
-            ),
         )
     elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
         # This part does not do the Cholesky update,
@@ -315,9 +295,6 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
         return _Normal(
             mean=norm_rv.mean @ constant_rv.support,
             cov=cov_update.T @ (norm_rv.cov @ cov_update),
-            random_state=_utils.derive_random_seed(
-                norm_rv.random_state, constant_rv.random_state
-            ),
         )
     else:
         raise TypeError(
@@ -341,9 +318,6 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
             mean=constant_rv.support @ norm_rv.mean,
             cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
             cov_cholesky=cov_cholesky,
-            random_state=_utils.derive_random_seed(
-                constant_rv.random_state, norm_rv.random_state
-            ),
         )
     else:
         raise TypeError(
@@ -369,9 +343,6 @@ def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Norma
             mean=norm_rv.mean / constant_rv.support,
             cov=norm_rv.cov / (constant_rv.support ** 2),
             cov_cholesky=cov_cholesky,
-            random_state=_utils.derive_random_seed(
-                norm_rv.random_state, constant_rv.random_state
-            ),
         )
 
     return NotImplemented

@@ -16,7 +16,9 @@ class Filtering:
     def setup(self, linearization_implementation):
         measvar = 0.1024
         initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        rng = np.random.default_rng(seed=1)
         regression_problem, info = filtsmooth_zoo.pendulum(
+            rng=rng,
             measurement_variance=measvar,
             timespan=(0.0, 4.0),
             step=0.0075,
@@ -27,11 +29,11 @@ class Filtering:
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
-                filtsmooth.DiscreteEKFComponent,
+                filtsmooth.gaussian.approx.DiscreteEKFComponent,
                 forward_implementation=implementation,
                 backward_implementation=implementation,
             ),
-            "ukf": filtsmooth.DiscreteUKFComponent,
+            "ukf": filtsmooth.gaussian.approx.DiscreteUKFComponent,
         }[linearization]
 
         linearized_dynmod = _lin_method(prior_process.transition)
@@ -40,14 +42,14 @@ class Filtering:
             regression_problem.locations
         )
 
-        prior_process = randprocs.MarkovProcess(
+        prior_process = randprocs.markov.MarkovProcess(
             transition=linearized_dynmod,
             initrv=prior_process.initrv,
             initarg=regression_problem.locations[0],
         )
         self.regression_problem = regression_problem
 
-        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
 
     def time_filter(self, linearization_implementation):
         self.kalman_filter.filter(self.regression_problem)
@@ -65,7 +67,9 @@ class Smoothing:
     def setup(self, linearization_implementation):
         measvar = 0.1024
         initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        rng = np.random.default_rng(seed=1)
         regression_problem, info = filtsmooth_zoo.pendulum(
+            rng=rng,
             measurement_variance=measvar,
             timespan=(0.0, 4.0),
             step=0.0075,
@@ -76,11 +80,11 @@ class Smoothing:
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
-                filtsmooth.DiscreteEKFComponent,
+                filtsmooth.gaussian.approx.DiscreteEKFComponent,
                 forward_implementation=implementation,
                 backward_implementation=implementation,
             ),
-            "ukf": filtsmooth.DiscreteUKFComponent,
+            "ukf": filtsmooth.gaussian.approx.DiscreteUKFComponent,
         }[linearization]
 
         linearized_dynmod = _lin_method(prior_process.transition)
@@ -89,13 +93,13 @@ class Smoothing:
             regression_problem.locations
         )
 
-        prior_process = randprocs.MarkovProcess(
+        prior_process = randprocs.markov.MarkovProcess(
             transition=linearized_dynmod,
             initrv=prior_process.initrv,
             initarg=regression_problem.locations[0],
         )
 
-        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
         self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
 
     def time_smooth(self, linearization_implementation):
@@ -120,7 +124,9 @@ class DenseGridOperations:
     def setup(self, linearization_implementation, num_samples):
         measvar = 0.1024
         initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        rng = np.random.default_rng(seed=1)
         regression_problem, info = filtsmooth_zoo.pendulum(
+            rng=rng,
             measurement_variance=measvar,
             timespan=(0.0, 4.0),
             step=0.0075,
@@ -131,11 +137,11 @@ class DenseGridOperations:
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
-                filtsmooth.DiscreteEKFComponent,
+                filtsmooth.gaussian.approx.DiscreteEKFComponent,
                 forward_implementation=implementation,
                 backward_implementation=implementation,
             ),
-            "ukf": filtsmooth.DiscreteUKFComponent,
+            "ukf": filtsmooth.gaussian.approx.DiscreteUKFComponent,
         }[linearization]
 
         self.dense_locations = np.sort(
@@ -154,13 +160,13 @@ class DenseGridOperations:
             regression_problem.locations
         )
 
-        prior_process = randprocs.MarkovProcess(
+        prior_process = randprocs.markov.MarkovProcess(
             transition=linearized_dynmod,
             initrv=prior_process.initrv,
             initarg=regression_problem.locations[0],
         )
 
-        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
 
         self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
         self.smoothing_posterior = self.kalman_filter.smooth(
@@ -168,10 +174,16 @@ class DenseGridOperations:
         )
 
     def time_sample(self, linearization_implementation, num_samples):
-        self.smoothing_posterior.sample(t=self.dense_locations, size=num_samples)
+        rng = np.random.default_rng(seed=1)
+        self.smoothing_posterior.sample(
+            rng=rng, t=self.dense_locations, size=num_samples
+        )
 
     def peakmem_sample(self, linearization_implementation, num_samples):
-        self.smoothing_posterior.sample(t=self.dense_locations, size=num_samples)
+        rng = np.random.default_rng(seed=1)
+        self.smoothing_posterior.sample(
+            rng=rng, t=self.dense_locations, size=num_samples
+        )
 
     def time_dense_filter(self, linearization_implementation, num_samples):
         self.filtering_posterior(self.dense_locations)

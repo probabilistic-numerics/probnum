@@ -70,6 +70,7 @@ class BayesianQuadrature:
         var_tol: Optional[FloatArgType] = None,
         rel_tol: Optional[FloatArgType] = None,
         batch_size: IntArgType = 1,
+        rng: np.random.Generator = None,
     ) -> "BayesianQuadrature":
 
         # Set up integration measure
@@ -82,6 +83,14 @@ class BayesianQuadrature:
         if policy == "bmc":
             policy = RandomPolicy(measure, batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
+            
+            if rng is None:
+                errormsg = (
+                    "Policy 'bmc' relies on random sampling, "
+                    "thus requires a random number generator ('rng')."
+                )
+                raise ValueError(errormsg)
+
         else:
             raise NotImplementedError(
                 "Policies other than random sampling are not available at the moment."

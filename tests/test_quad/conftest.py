@@ -14,11 +14,11 @@ from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
 
 @pytest.fixture(
     params=[pytest.param(seed, id=f"seed{seed}") for seed in range(1)],
-    name="random_state",
+    name="rng",
 )
-def fixture_random_state(request):
+def fixture_rng(request):
     """Random state(s) used for test parameterization."""
-    return np.random.RandomState(seed=request.param)
+    return np.random.default_rng(seed=request.param)
 
 
 @pytest.fixture(
@@ -43,11 +43,9 @@ def fixture_input_dim(request) -> int:
 
 # Datasets
 @pytest.fixture(name="x")
-def fixture_x(
-    input_dim: int, num_data: int, random_state: np.random.RandomState
-) -> np.ndarray:
+def fixture_x(input_dim: int, num_data: int, rng: np.random.Generator) -> np.ndarray:
     """Random data from a standard normal distribution."""
-    return random_state.normal(0, 1, size=(num_data, input_dim))
+    return rng.normal(0, 1, size=(num_data, input_dim))
 
 
 # Measures
@@ -77,21 +75,21 @@ def fixture_measure_params(
     measure_name: str,
     input_dim: int,
     cov_diagonal: bool,
-    random_state: np.random.RandomState,
+    rng: np.random.Generator,
 ) -> Dict:
     params = {"name": measure_name}
 
     if measure_name == "gauss":
         # set up mean and covariance
         if input_dim == 1:
-            mean = random_state.normal(0, 1)
-            cov = random_state.uniform(0.5, 1.5)
+            mean = rng.normal(0, 1)
+            cov = rng.uniform(0.5, 1.5)
         else:
-            mean = random_state.normal(0, 1, size=(input_dim,))
+            mean = rng.normal(0, 1, size=(input_dim, 1))
             if cov_diagonal:
-                cov = np.diag(random_state.uniform(0.5, 1.5, size=(input_dim,)))
+                cov = rng.uniform(0.5, 1.5, size=(input_dim, 1))
             else:
-                mat = random_state.normal(0, 1, size=(input_dim, input_dim))
+                mat = rng.normal(0, 1, size=(input_dim, input_dim))
                 cov = mat @ mat.T
 
         params["mean"] = mean
@@ -99,7 +97,7 @@ def fixture_measure_params(
 
     elif measure_name == "lebesgue":
         # set up bounds
-        rv = random_state.uniform(0, 1, size=(input_dim, 2))
+        rv = rng.uniform(0, 1, size=(input_dim, 2))
         domain = (rv[:, 0] - 1.0, rv[:, 1] + 1.0)
 
         params["domain"] = domain

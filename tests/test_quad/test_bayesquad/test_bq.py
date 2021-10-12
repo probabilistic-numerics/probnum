@@ -11,6 +11,22 @@ from probnum.randvars import Normal
 from ..util import gauss_hermite_tensor, gauss_legendre_tensor
 
 
+@pytest.fixture
+def rng():
+    return np.random.default_rng(seed=42)
+
+
+@pytest.fixture
+def sample_from_measure_policy(rng):
+    """Fix the random number generator in the "sample_from_measure" policy, thus make
+    this policy fit the common interface."""
+
+    def policy(nevals, measure):
+        return sample_from_measure(rng=rng, nevals=nevals, measure=measure)
+
+    return policy
+
+
 @pytest.mark.parametrize("input_dim", [1], ids=["dim1"])
 def test_type_1d(f1d, kernel, measure, input_dim):
     """Test that BQ outputs normal random variables for 1D integrands."""

@@ -8,14 +8,14 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, randvars
-from probnum.type import FloatArgType
+from probnum.typing import FloatArgType
 
 
 @dataclasses.dataclass
 class TimeSeriesRegressionProblem:
     r"""Time series regression problem.
 
-    Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
+    Fit a stochastic process to data, given a likelihood (realised by a :obj:`NonlinearGaussian` transition).
     Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
 
     Parameters
@@ -32,14 +32,14 @@ class TimeSeriesRegressionProblem:
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum import statespace
+    >>> from probnum import randprocs
     >>> obs = [11.4123, -15.5123]
     >>> loc = [0.1, 0.2]
-    >>> model = statespace.DiscreteLTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
+    >>> model = randprocs.markov.discrete.LTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
     >>> measurement_models = [model, model]
     >>> rp = TimeSeriesRegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp
-    TimeSeriesRegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
+    TimeSeriesRegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[LTIGaussian(input_dim=1, output_dim=1), LTIGaussian(input_dim=1, output_dim=1)], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
 
@@ -48,7 +48,7 @@ class TimeSeriesRegressionProblem:
     >>> len(rp)
     2
     >>> rp[0]
-    (0.1, 11.4123, DiscreteLTIGaussian(input_dim=1, output_dim=1))
+    (0.1, 11.4123, LTIGaussian(input_dim=1, output_dim=1))
     """
 
     # The types are 'Sequence' (e.g. lists, tuples) or 'ndarray',
@@ -154,6 +154,12 @@ class InitialValueProblem:
     # For testing and benchmarking
     solution: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
+    @property
+    def dimension(self):
+        if np.isscalar(self.y0):
+            return 1
+        return len(self.y0)
+
 
 @dataclasses.dataclass
 class LinearSystem:
@@ -176,8 +182,8 @@ class LinearSystem:
     >>> import numpy as np
     >>> A = np.eye(3)
     >>> b = np.arange(3)
-    >>> lin_sys = LinearSystem(A, b)
-    >>> lin_sys
+    >>> linsys = LinearSystem(A, b)
+    >>> linsys
     LinearSystem(A=array([[1., 0., 0.],
            [0., 1., 0.],
            [0., 0., 1.]]), b=array([0, 1, 2]), solution=None)

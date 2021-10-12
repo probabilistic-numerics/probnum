@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum import _randomvariablelist, randvars
 from probnum import utils as _utils
-from probnum.type import DTypeArgType, IntArgType, RandomStateArgType, ShapeArgType
+from probnum.typing import DTypeArgType, IntArgType, ShapeArgType
 
 _InputType = TypeVar("InputType")
 _OutputType = TypeVar("OutputType")
@@ -48,11 +48,16 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def __init__(
         self,
         input_dim: IntArgType,
-        output_dim: IntArgType,
+        output_dim: Optional[IntArgType],
         dtype: DTypeArgType,
     ):
         self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
-        self._output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+
+        self._output_dim = None
+
+        if output_dim is not None:
+            self._output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+
         self._dtype = np.dtype(dtype)
 
     def __repr__(self) -> str:
@@ -155,6 +160,65 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         """  # pylint: disable=trailing-whitespace
         raise NotImplementedError
 
+    def covmatrix(
+        self, args0: _InputType, args1: Optional[_InputType] = None
+    ) -> _OutputType:
+        """A convenience function for the covariance matrix of two sets of inputs.
+
+        This is syntactic sugar for ``proc.cov(x0[:, None, :], x1[None, :, :])``. Hence,
+        it computes the matrix of pairwise covariances between two sets of input points.
+
+        Parameters
+        ----------
+        x0 : array-like
+            First set of inputs to the covariance function as an array of shape
+            ``(M, D)``, where ``D`` is either 1 or :attr:`input_dim`.
+        x1 : array-like
+            Optional second set of inputs to the covariance function as an array
+            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_dim`.
+            If ``x1`` is not specified, the function behaves as if ``x1 = x0``.
+
+        Returns
+        -------
+        kernmat : numpy.ndarray
+            The matrix / stack of matrices containing the pairwise evaluations of the
+            covariance function(s) on ``x0`` and ``x1`` as an array of shape
+            ``(M, N)`` if :attr:`shape` is ``()`` or
+            ``(S[l - 1], ..., S[1], S[0], M, N)``, where ``S`` is :attr:`shape` if
+            :attr:`shape` is non-empty.
+
+        Raises
+        ------
+        ValueError
+            If the shapes of the inputs don't match the specification.
+
+        See Also
+        --------
+        RandomProcess.cov: Evaluate the kernel more flexibly.
+
+        Examples
+        --------
+        See documentation of class :class:`Kernel`.
+        """
+        args0 = np.array(args0)
+        args1 = args0 if args1 is None else np.array(args1)
+
+        # Shape checking
+        errmsg = (
+            "`{argname}` must have shape `(N, D)` or `(D,)`, where `D` is the input "
+            f"dimension of the random process (D = {self.input_dim}), but an array "
+            "with shape `{shape}` was given."
+        )
+
+        if not (1 <= args0.ndim <= 2 and args0.shape[-1] == self.input_dim):
+            raise ValueError(errmsg.format(argname="args0", shape=args0.shape))
+
+        if not (1 <= args1.ndim <= 2 and args1.shape[-1] == self.input_dim):
+            raise ValueError(errmsg.format(argname="args1", shape=args1.shape))
+
+        # Pairwise kernel evaluation
+        return self.cov(args0[:, None, :], args1[None, :, :])
+
     def var(self, args: _InputType) -> _OutputType:
         """Variance function.
 
@@ -173,17 +237,16 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             process at ``args``.
         """
         try:
-            cov = self.cov(args0=args)
-            if cov.ndim < 2:
-                return cov
-            elif cov.ndim == 2:
-                return np.diag(cov)
-            else:
-                return np.vstack(
-                    [np.diagonal(cov[:, :, i, i]) for i in range(self.output_dim)]
-                ).T
+            var = self.cov(args0=args)
         except NotImplementedError as exc:
             raise NotImplementedError from exc
+
+        if var.ndim == args.ndim - 1:
+            return var
+
+        assert var.ndim == args.ndim + 1 and var.shape[-2:] == 2 * (self.output_dim,)
+
+        return np.diagonal(var, axis1=-2, axis2=-1)
 
     def std(self, args: _InputType) -> _OutputType:
         """Standard deviation function.
@@ -231,9 +294,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     def sample(
         self,
+        rng: np.random.Generator,
         args: _InputType = None,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
         """Sample paths from the random process.
 
@@ -243,28 +306,26 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Parameters
         ----------
+        rng
+            Random number generator.
         args
             *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process. If ``None``, sample paths, i.e. callables are
             returned.
         size
             Size of the sample.
-        random_state :
-            Random state of the random process. If None (or np.random), the global
-            :mod:`numpy.random` state is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
         """
         if args is None:
             raise NotImplementedError
 
-        return self._sample_at_input(args=args, size=size, random_state=random_state)
+        return self._sample_at_input(rng=rng, args=args, size=size)
 
     @abc.abstractmethod
     def _sample_at_input(
         self,
+        rng: np.random.Generator,
         args: _InputType,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> _OutputType:
         """Evaluate a set of sample paths at the given inputs.
 
@@ -274,14 +335,12 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Parameters
         ----------
+        rng
+            Random number generator.
         args
             *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process.
         size
             Size of the sample.
-        random_state :
-            Random state of the random process. If None (or np.random), the global
-            :mod:`numpy.random` state is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
         """
         raise NotImplementedError

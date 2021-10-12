@@ -16,6 +16,7 @@
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 
 from pkg_resources import DistributionNotFound, get_distribution
 
@@ -23,6 +24,7 @@ from pkg_resources import DistributionNotFound, get_distribution
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath("../src"))
+sys.path.append(os.path.abspath("./_ext"))
 
 # -- General configuration ------------------------------------------------
 
@@ -40,12 +42,13 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
-    "sphinx_rtd_theme",
     "sphinx_automodapi.automodapi",
     "sphinx_autodoc_typehints",
+    "sphinxcontrib.bibtex",
     "sphinx_gallery.load_style",
+    "myst_parser",
     "nbsphinx",
-    "m2r2",
+    "probnum-config-options",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -59,7 +62,7 @@ napoleon_use_param = True
 numpydoc_show_class_members = True
 
 # Settings for automodapi
-automodapi_toctreedirnm = "automod"
+automodapi_toctreedirnm = "api/automod"
 automodapi_writereprocessed = False
 automodsumm_inherited_members = True
 
@@ -72,7 +75,7 @@ typehints_document_rtype = True
 source_suffix = [".rst", ".md", ".ipynb"]
 
 # The master toctree document.
-master_doc = "index"
+master_doc = "sitemap"
 
 # General information about the project.
 project = "probnum"
@@ -86,7 +89,7 @@ author = "ProbNum Authors"
 try:
     # The full version, including alpha/beta/rc tags.
     release = get_distribution(project).version
-    # The short X.Y version.
+    # The short X.Y.Z version.
     version = ".".join(release.split(".")[:2])
 except DistributionNotFound:
     version = ""
@@ -106,7 +109,7 @@ language = "en"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
+pygments_style = "default"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
@@ -140,7 +143,7 @@ nbsphinx_execute_arguments = [
 # ZipFile class.
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
     "matplotlib": ("https://matplotlib.org/", None),
 }
@@ -149,35 +152,61 @@ intersphinx_mapping = {
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
+
+html_title = f"{project} {version} documentation"
+html_context = {
+    "AUTHOR": author,
+    "DESCRIPTION": "ProbNum: Probabilistic Numerics in Python.",
+    "SITEMAP_BASE_URL": "http://probnum.org/",  # Trailing slash is needed
+    "VERSION": version,
+}
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "img/pn_logo_wide.png"
+html_logo = "assets/img/logo/probnum_logo_light_txtright.svg"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further. For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {"style_nav_header_background": "#fcfcfc"}
+html_theme_options = {
+    "navbar_align": "right",
+    "show_toc_level": 3,
+    "navigation_depth": 4,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/probabilistic-numerics/probnum",
+            "icon": "fab fa-github",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/probnum",
+            "icon": "fab fa-python",
+        },
+    ],
+}
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = "img/favicons/favicon.ico"
+html_favicon = "assets/img/favicons/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static", "img"]
+html_static_path = ["_static", "assets"]
+html_css_files = ["custom.css"]
 
-
-def setup(app):
-    app.add_css_file("probnum-style.css")  # also can be a full URL
-    # app.add_css_file("ANOTHER.css")
-
+# Additional pages generated from .html files
+html_additional_pages = {"index": "index.html"}
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {}
+html_sidebars = {
+    "index": [],
+    "probnum/*": [],
+    "community/*": [],
+}
 
 # Inheritance graphs generated by graphviz
 graphviz_output_format = "svg"
@@ -185,29 +214,17 @@ inheritance_graph_attrs = dict(size='""')  # resize graphs correctly
 
 # Sphinx gallery configuration
 sphinx_gallery_conf = {
-    "default_thumb_file": "img/pn_logo_wide.png"  # default thumbnail image
+    "default_thumb_file": "assets/img/logo/probnum_logo.png",  # default thumbnail image
 }
 
-# -- Options for LaTeX output ---------------------------------------------
+# MyST configuration
+myst_update_mathjax = False  # needed for mathjax compatibility with nbsphinx
+myst_enable_extensions = ["dollarmath", "amsmath"]
 
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
-}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, "probnum.tex", "ProbNum's Documentation", [author], "manual")
-]
+# Sphinx Bibtex configuration
+bibtex_bibfiles = []
+for f in Path("research/bibliography").glob("*.bib"):
+    bibtex_bibfiles.append(str(f))
+bibtex_default_style = "unsrtalpha"
+bibtex_reference_style = "label"
+bibtex_encoding = "utf-8-sig"

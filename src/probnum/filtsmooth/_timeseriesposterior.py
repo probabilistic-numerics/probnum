@@ -1,17 +1,16 @@
 """Abstract Base Class for posteriors over states after applying filtering/smoothing."""
 
 import abc
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 import numpy as np
 
 from probnum import _randomvariablelist, randvars
-from probnum.type import (
+from probnum.typing import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
     FloatArgType,
     IntArgType,
-    RandomStateArgType,
     ShapeArgType,
 )
 
@@ -34,9 +33,48 @@ class TimeSeriesPosterior(abc.ABC):
         Posterior random variables.
     """
 
-    def __init__(self, locations: np.ndarray, states: np.ndarray) -> None:
-        self.locations = np.asarray(locations)
-        self.states = _randomvariablelist._RandomVariableList(states)
+    def __init__(
+        self,
+        locations: Optional[Iterable[FloatArgType]] = None,
+        states: Optional[Iterable[randvars.RandomVariable]] = None,
+    ) -> None:
+        self._locations = list(locations) if locations is not None else []
+        self._states = list(states) if states is not None else []
+        self._frozen = False
+
+    def _check_location(self, location: FloatArgType) -> FloatArgType:
+        if len(self._locations) > 0 and location <= self._locations[-1]:
+            _err_msg = "Locations have to be strictly ascending. "
+            _err_msg += f"Received {location} <= {self._locations[-1]}."
+            raise ValueError(_err_msg)
+        return location
+
+    def append(
+        self,
+        location: FloatArgType,
+        state: randvars.RandomVariable,
+    ) -> None:
+
+        if self.frozen:
+            raise ValueError("Cannot append to frozen TimeSeriesPosterior object.")
+
+        self._locations.append(self._check_location(location))
+        self._states.append(state)
+
+    def freeze(self) -> None:
+        self._frozen = True
+
+    @property
+    def frozen(self):
+        return self._frozen
+
+    @property
+    def locations(self):
+        return np.asarray(self._locations)
+
+    @property
+    def states(self):
+        return _randomvariablelist._RandomVariableList(self._states)
 
     def __len__(self) -> int:
         """Length of the discrete-time solution.
@@ -139,9 +177,9 @@ class TimeSeriesPosterior(abc.ABC):
     @abc.abstractmethod
     def sample(
         self,
+        rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         """Draw samples from the filtering/smoothing posterior.
 
@@ -153,14 +191,14 @@ class TimeSeriesPosterior(abc.ABC):
 
         Parameters
         ----------
+        rng :
+            Random number generator.
         t :
             Locations on which the samples are wanted. Default is none, which implies that
             self.location is used.
         size :
             Indicates how many samples are drawn. Default is an empty tuple, in which case
             a single sample is returned.
-        random_state
-            Random state (seed, generator) to be used for sampling base measure realizations.
 
 
         Returns

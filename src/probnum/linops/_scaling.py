@@ -1,14 +1,40 @@
+"""Scaling linear operator."""
 from typing import Optional, Union
 
 import numpy as np
 
 import probnum.utils
-from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
 
 from . import _linear_operator
 
+# pylint: disable="too-many-statements"
+
 
 class Scaling(_linear_operator.LinearOperator):
+    r"""Scaling linear operator.
+
+    Creates a diagonal linear operator which (non-uniformly) scales elements of vectors, defined by
+
+    .. math::
+        v \mapsto \begin{bmatrix}
+            \alpha_1 & 0 & \dots   & 0 \\
+            0   &  \alpha_2 &   & \vdots \\
+            \vdots  &   &  \ddots  & 0 \\
+            0 &  \dots  & 0 & \alpha_n
+        \end{bmatrix} v.
+
+    Parameters
+    ----------
+    factors:
+        Scaling factor(s) on the diagonal.
+    shape :
+        Shape of the linear operator.
+    dtype :
+        Data type of the linear operator.
+
+    """
+
     def __init__(
         self,
         factors: Union[np.ndarray, ScalarArgType],
@@ -156,17 +182,23 @@ class Scaling(_linear_operator.LinearOperator):
 
     @property
     def factors(self) -> np.ndarray:
+        """Scaling factors.
+
+        Scaling factors on the diagonal of the matrix representation.
+        """
         if self._factors is None:
-            self._factors = np.full(self.shape[0], self._scalar, dtype=self._dtype)
+            self._factors = np.full(self.shape[0], self._scalar, dtype=self.dtype)
 
         return self._factors
 
     @property
     def scalar(self) -> Optional[np.number]:
+        """Scaling factor."""
         return self._scalar
 
     @property
     def is_isotropic(self) -> bool:
+        """Whether scaling is uniform / isotropic."""
         return self._scalar is not None
 
     def _astype(self, dtype, order, casting, copy) -> "Scaling":
