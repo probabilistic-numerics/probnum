@@ -14,7 +14,7 @@ import numpy as np
 
 from probnum.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 from .bq_methods import BayesianQuadrature

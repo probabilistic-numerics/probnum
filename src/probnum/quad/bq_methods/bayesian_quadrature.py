@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
