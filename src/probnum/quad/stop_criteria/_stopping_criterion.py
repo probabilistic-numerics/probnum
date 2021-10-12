@@ -38,7 +38,7 @@ class IntegralVarianceTolerance(StoppingCriterion):
         Tolerance value of the variance.
     """
 
-    def __init__(self, var_tol: FloatArgType = None):
+    def __init__(self, var_tol: FloatArgType):
         self.var_tol = var_tol
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
@@ -49,9 +49,8 @@ class RelativeMeanChange(StoppingCriterion):
     """Stop once the relative change of consecutive integral estimates are smaller than
     a tolerance. That is, the stopping criterion is.
 
-        | (integrals[i] - integrals[i-1]) / integrals[i] | <= tol
-
-    where ``integrals`` holds the BQ integral means.
+        | current_integral_estimate - previous_integral_estimate) /
+      current_integral_estimate | <= rel_tol.
 
     Parameters
     ----------
@@ -59,7 +58,7 @@ class RelativeMeanChange(StoppingCriterion):
         Relative error tolerance on consecutive integral mean values.
     """
 
-    def __init__(self, rel_tol: FloatArgType = None):
+    def __init__(self, rel_tol: FloatArgType):
         self.rel_tol = rel_tol
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
@@ -81,7 +80,7 @@ class MaxNevals(StoppingCriterion):
         Maximum number of function evaluations.
     """
 
-    def __init__(self, max_evals: IntArgType = None):
+    def __init__(self, max_evals: IntArgType):
         self.max_evals = max_evals
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
