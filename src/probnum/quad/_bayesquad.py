@@ -167,10 +167,10 @@ def bayesquad_from_data(
     Parameters
     ----------
     nodes :
-        *shape=(n_eval, input_dim)* -- locations at which the function evaluations are
-        available as ``f_eval``.
+        *shape=(n_eval, input_dim)* -- Locations at which the function evaluations are
+        available as ``fun_evals``.
     fun_evals :
-        *shape=(n_eval,)* -- function evaluations at ``nodes``.
+        *shape=(n_eval,)* -- Function evaluations at ``nodes``.
     kernel :
         The kernel used for the GP model.
     domain :

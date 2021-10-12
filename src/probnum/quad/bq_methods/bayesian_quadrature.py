@@ -69,7 +69,7 @@ class BayesianQuadrature:
         max_evals: Optional[IntArgType] = None,
         var_tol: Optional[FloatArgType] = None,
         rel_tol: Optional[FloatArgType] = None,
-        batch_size: Optional[IntArgType] = 1,
+        batch_size: IntArgType = 1,
     ) -> "BayesianQuadrature":
 
         # Set up integration measure
@@ -125,9 +125,6 @@ class BayesianQuadrature:
             Whether or not the solver has converged.
         """
 
-        if bq_state.info.has_converged:
-            return True
-
         for stopping_criterion in self.stopping_criteria:
             _has_converged = stopping_criterion(bq_state.integral_belief, bq_state)
             if _has_converged:
@@ -151,11 +148,14 @@ class BayesianQuadrature:
         Parameters
         ----------
         fun :
-            The integrand.
+            Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
+            ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
         nodes :
-            Optional nodes available from the start.
+            *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
+            are available as ``fun_evals`` from start.
         fun_evals :
-            Optional function evaluations available from the start.
+            *shape=(n_eval,)* -- Optional function evaluations at ``nodes``available
+            from the start.
         integral_belief:
             Current belief about the integral.
         bq_state:
@@ -167,9 +167,11 @@ class BayesianQuadrature:
         integral_belief:
             Updated belief about the integral.
         new_nodes:
-            The new location(s) found during the iteration.
+            *shape=(n_new_eval, input_dim)* -- The new location(s) at which
+            ``new_fun_evals`` are available found during the iteration.
         new_fun_evals:
-            The function evaluations at the new locations.
+            *shape=(n_new_eval,)* -- The function evaluations at the new locations
+            ``new_nodes``.
         bq_state:
             Updated state of the Bayesian quadrature methods.
         """
@@ -177,6 +179,7 @@ class BayesianQuadrature:
         # Setup
         if bq_state is None:
             if integral_belief is None:
+                # The following is valid only when the prior is zero-mean.
                 integral_belief = Normal(
                     0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
                 )
@@ -246,18 +249,21 @@ class BayesianQuadrature:
         Parameters
         ----------
         fun :
-            The integrand. Optional when fixed function evaluations are instead passed.
+            Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
+            ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
         nodes :
-            Optional nodes available from the start.
+            *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
+            are available as ``fun_evals`` from start.
         fun_evals :
-            Optional function evaluations available from the start.
+            *shape=(n_eval,)* -- Optional function evaluations at ``nodes``available
+            from the start.
 
         Returns
         -------
         integral_belief:
             Posterior belief about the integral.
         bq_state:
-            Final state of the Bayesian quadrature methods.
+            Final state of the Bayesian quadrature method.
         """
         if fun is None and fun_evals is None:
             raise ValueError("You need to provide a function to be integrated!")
