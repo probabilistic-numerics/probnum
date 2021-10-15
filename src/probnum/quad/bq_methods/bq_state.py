@@ -7,7 +7,6 @@ import numpy as np
 from probnum.kernels._kernel import Kernel
 from probnum.quad._integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
-from probnum.quad.stop_criteria import StoppingCriterion
 from probnum.randvars import Normal
 
 
@@ -31,7 +30,8 @@ class BQInfo:
         iteration: int = 0,
         nevals: int = 0,
         has_converged: bool = False,
-        stopping_criterion: StoppingCriterion = None,
+        # TODO: Type hint! Temporarily removed due to circular imports.
+        stopping_criterion=None,
     ):
         self.iteration = iteration
         self.nevals = nevals

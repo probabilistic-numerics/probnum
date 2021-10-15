@@ -71,7 +71,7 @@ class IntegrationMeasure(abc.ABC):
         # pylint: disable=no-member
         return np.reshape(
             self.random_variable.sample(rng=rng, size=n_sample),
-            newshape=(n_sample, self.dim),
+            newshape=(n_sample, self.input_dim),
         )
 
     def _set_dimension_domain(
@@ -184,7 +184,9 @@ class LebesgueMeasure(IntegrationMeasure):
         rng: np.random.Generator,
         n_sample: IntArgType,
     ) -> np.ndarray:
-        return self.random_variable.rvs(size=(n_sample, self.dim), random_state=rng)
+        return self.random_variable.rvs(
+            size=(n_sample, self.input_dim), random_state=rng
+        )
 
 
 # pylint: disable=too-few-public-methods

@@ -5,7 +5,7 @@ import numpy as np
 from scipy.linalg import sqrtm
 from scipy.special import roots_legendre
 
-from probnum.type import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntArgType
 
 
 # Auxiliary functions for quadrature tests
