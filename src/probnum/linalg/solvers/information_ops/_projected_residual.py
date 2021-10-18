@@ -6,7 +6,7 @@ import probnum  # pylint: disable="unused-import"
 from ._linear_solver_info_op import LinearSolverInfoOp
 
 
-class ProjResidualInfoOp(LinearSolverInfoOp):
+class ProjectedResidualInfoOp(LinearSolverInfoOp):
     r"""Projected residual :math:`s_i \mapsto s_i^\top (A x_i-b)` of the linear system.
 
     Obtain information about a linear system by projecting the current

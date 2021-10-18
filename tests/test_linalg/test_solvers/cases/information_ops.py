@@ -9,5 +9,5 @@ def case_matvec():
     return information_ops.MatVecInfoOp()
 
 
-def case_proj_residual():
-    return information_ops.ProjResidualInfoOp()
+def case_projected_residual():
+    return information_ops.ProjectedResidualInfoOp()

@@ -14,7 +14,7 @@ class LinearSolverInfoOp(abc.ABC):
     See Also
     --------
     MatVecInfoOp: Collect information via matrix-vector multiplication.
-    ProjResidualInfoOp: Collect information via a projection of the current residual.
+    ProjectedResidualInfoOp: Collect information via a projection of the current residual.
     """
 
     @abc.abstractmethod
