@@ -80,10 +80,14 @@ class BayesianQuadrature:
         # Select policy and belief update
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
-        if policy == "bmc":
+        if policy == "fixed":
+            # TODO: This probably is not what we want!
+            policy = Policy(batch_size=batch_size)
+            belief_update = BQStandardBeliefUpdate()
+        elif policy == "bmc":
             policy = RandomPolicy(measure, batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
-            
+
             if rng is None:
                 errormsg = (
                     "Policy 'bmc' relies on random sampling, "

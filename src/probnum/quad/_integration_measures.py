@@ -51,17 +51,17 @@ class IntegrationMeasure(abc.ABC):
 
     def sample(
         self,
-        rng: np.random.Generator,
         n_sample: IntArgType,
+        rng: Optional[np.random.Generator] = np.random.default_rng(),
     ) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
 
         Parameters
         ----------
-        rng :
-            Random number generator
         n_sample :
             Number of points to be sampled
+        rng :
+            Random number generator. Optional. Default is `np.random.default_rng()`.
 
         Returns
         -------
@@ -70,7 +70,7 @@ class IntegrationMeasure(abc.ABC):
         """
         # pylint: disable=no-member
         return np.reshape(
-            self.random_variable.sample(rng=rng, size=n_sample),
+            self.random_variable.sample(size=n_sample, rng=rng),
             newshape=(n_sample, self.input_dim),
         )
 
@@ -181,8 +181,8 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def sample(
         self,
-        rng: np.random.Generator,
         n_sample: IntArgType,
+        rng: Optional[np.random.Generator] = np.random.default_rng(),
     ) -> np.ndarray:
         return self.random_variable.rvs(
             size=(n_sample, self.input_dim), random_state=rng

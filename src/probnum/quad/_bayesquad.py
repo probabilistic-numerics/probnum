@@ -1,10 +1,10 @@
 """Bayesian Quadrature.
 
-This module provides routines to integrate functions through Bayesian
-quadrature, meaning a model over the integrand is constructed in order
-to actively select evaluation points of the integrand to estimate the
-value of the integral. Bayesian quadrature methods return a random
-variable, specifying the belief about the true value of the integral.
+This module provides routines to integrate functions through Bayesian quadrature,
+meaning a model over the integrand is constructed in order to actively select evaluation
+points of the integrand to estimate the value of the integral. Bayesian quadrature
+methods return a random variable, specifying the belief about the true value of the
+integral.
 """
 
 import warnings
@@ -34,7 +34,7 @@ def bayesquad(
     var_tol: Optional[FloatArgType] = None,
     rel_tol: Optional[FloatArgType] = None,
     batch_size: Optional[IntArgType] = 1,
-    rng: np.random.Generator = None,
+    rng: Optional[np.random.Generator] = np.random.default_rng(),
 ) -> Tuple[Normal, Dict]:
     r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
@@ -84,10 +84,9 @@ def bayesquad(
         Tolerance on consecutive updates of the integral mean.
     batch_size :
         Number of new observations at each update.
-
     rng :
-        Random number generator. Required for Bayesian Monte Carlo policies.
-        Optional. Default is `np.random.default_rng()`.
+        Random number generator. Used by Bayesian Monte Carlo other random sampling
+        policies. Optional. Default is `np.random.default_rng()`.
 
     Returns
     -------
@@ -239,6 +238,7 @@ def bayesquad_from_data(
         domain=domain,
         max_evals=n_eval,
         batch_size=n_eval,
+        policy="fixed",
     )
 
     # Integrate

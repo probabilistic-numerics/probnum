@@ -53,11 +53,11 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
         # kernel quantities
         if old_nodes.size == 0:
-            gram = bq_state.kernel(new_nodes)
+            gram = bq_state.kernel.matrix(new_nodes)
             kernel_means = bq_state.kernel_embedding.kernel_mean(new_nodes)
         else:
-            gram_new_new = bq_state.kernel(new_nodes)
-            gram_old_new = bq_state.kernel(new_nodes, old_nodes)
+            gram_new_new = bq_state.kernel.matrix(new_nodes)
+            gram_old_new = bq_state.kernel.matrix(new_nodes, old_nodes)
             gram = np.hstack(
                 (
                     np.vstack((bq_state.gram, gram_old_new)),

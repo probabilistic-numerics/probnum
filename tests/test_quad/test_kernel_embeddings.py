@@ -37,7 +37,7 @@ def test_kernel_mean_gaussian_measure(kernel_embedding, num_data, rng):
         cov=kernel_embedding.measure.cov,
     )
 
-    x = kernel_embedding.measure.sample(rng, num_data)
+    x = kernel_embedding.measure.sample(rng=rng, n_sample=num_data)
     num_kernel_means = kernel_embedding.kernel.matrix(x, x_gh) @ w_gh
     true_kernel_means = kernel_embedding.kernel_mean(x)
     np.testing.assert_allclose(
@@ -79,7 +79,7 @@ def test_kernel_mean_lebesgue_measure(kernel_embedding, num_data, rng):
         normalized=kernel_embedding.measure.normalized,
     )
 
-    x = kernel_embedding.measure.sample(rng, num_data)
+    x = kernel_embedding.measure.sample(rng=rng, n_sample=num_data)
     num_kernel_means = kernel_embedding.kernel.matrix(x, x_gl) @ w_gl
     true_kernel_means = kernel_embedding.kernel_mean(x)
     np.testing.assert_allclose(

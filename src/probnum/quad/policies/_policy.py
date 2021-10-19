@@ -28,7 +28,8 @@ class Policy(abc.ABC):
         nodes :
             *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
-        raise NotImplementedError
+        # raise NotImplementedError
+        return None
 
 
 class OptimalPolicy(Policy):
