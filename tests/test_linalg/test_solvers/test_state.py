@@ -3,13 +3,13 @@
 import numpy as np
 from pytest_cases import parametrize, parametrize_with_cases
 
-from probnum.linalg.solvers import ProbabilisticLinearSolverState
+from probnum.linalg.solvers import LinearSolverState
 
 cases_states = "cases.states"
 
 
 @parametrize_with_cases("state", cases=cases_states)
-def test_residual(state: ProbabilisticLinearSolverState):
+def test_residual(state: LinearSolverState):
     """Test whether the state computes the residual correctly."""
     linsys = state.problem
     residual = linsys.A @ state.belief.x.mean - linsys.b
@@ -17,7 +17,7 @@ def test_residual(state: ProbabilisticLinearSolverState):
 
 
 @parametrize_with_cases("state", cases=cases_states)
-def test_next_step(state: ProbabilisticLinearSolverState):
+def test_next_step(state: LinearSolverState):
     """Test whether advancing a state to the next step updates all state attributes
     correctly."""
     initial_step = state.step
@@ -31,7 +31,7 @@ def test_next_step(state: ProbabilisticLinearSolverState):
 
 @parametrize_with_cases("state", cases=cases_states)
 @parametrize("attr_name", ["action", "observation", "residual"])
-def test_current_iter_attribute(state: ProbabilisticLinearSolverState, attr_name: str):
+def test_current_iter_attribute(state: LinearSolverState, attr_name: str):
     """Test whether the current iteration attribute if set returns the last element of
     the attribute lists."""
     assert np.all(

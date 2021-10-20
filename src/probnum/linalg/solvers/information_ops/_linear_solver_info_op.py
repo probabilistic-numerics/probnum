@@ -19,7 +19,7 @@ class LinearSolverInfoOp(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> np.ndarray:
         """Return information about the linear system for a given solver state.
 

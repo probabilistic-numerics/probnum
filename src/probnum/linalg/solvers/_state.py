@@ -10,7 +10,7 @@ from probnum import problems
 
 
 @dataclasses.dataclass
-class ProbabilisticLinearSolverState:
+class LinearSolverState:
     """State of a probabilistic linear solver.
 
     The solver state separates the state of a probabilistic linear solver from the algorithm itself, making the solver stateless. The state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities computed during an iteration of a probabilistic linear solver. The solver state is passed between the different components of the solver and may be used internally to cache quantities which are used more than once.
@@ -51,8 +51,7 @@ class ProbabilisticLinearSolverState:
     def action(self) -> Optional[np.ndarray]:
         """Action of the solver for the current step.
 
-        Is ``None`` at the beginning of a step and will be set by the
-        policy.
+        Is ``None`` at the beginning of a step and will be set by the policy.
         """
         return self._actions[self.step]
 
@@ -65,8 +64,8 @@ class ProbabilisticLinearSolverState:
     def observation(self) -> Optional[Any]:
         """Observation of the solver for the current step.
 
-        Is ``None`` at the beginning of a step, will be set by the
-        observation model for a given action.
+        Is ``None`` at the beginning of a step, will be set by the observation model for
+        a given action.
         """
         return self._observations[self.step]
 
@@ -102,8 +101,7 @@ class ProbabilisticLinearSolverState:
     def next_step(self) -> None:
         """Advance the solver state to the next solver step.
 
-        Called after a completed step / iteration of the probabilistic
-        linear solver.
+        Called after a completed step / iteration of the probabilistic linear solver.
         """
         self._actions.append(None)
         self._observations.append(None)

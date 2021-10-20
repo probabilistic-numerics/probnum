@@ -8,7 +8,7 @@ import probnum  # pylint: disable="unused-import"
 class LinearSolverStopCrit(abc.ABC):
     r"""Stopping criterion of a (probabilistic) linear solver.
 
-    Checks whether quantities tracked by the :class:`~probnum.linalg.solvers.ProbabilisticLinearSolverState` meet a desired terminal condition.
+    Checks whether quantities tracked by the :class:`~probnum.linalg.solvers.LinearSolverState` meet a desired terminal condition.
 
     See Also
     --------
@@ -19,7 +19,7 @@ class LinearSolverStopCrit(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> bool:
         """Check whether tracked quantities meet a desired terminal condition.
 

@@ -37,7 +37,7 @@ class PosteriorContractionStopCrit(LinearSolverStopCrit):
         self.rtol = probnum.utils.as_numpy_scalar(rtol)
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> bool:
         """Check whether the uncertainty about the quantity of interest is smaller than
         the specified tolerance.

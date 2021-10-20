@@ -23,4 +23,9 @@ probnum.linalg.solvers
 .. toctree::
     :hidden:
 
+    solvers.belief_updates
+
+.. toctree::
+    :hidden:
+
     solvers.stopping_criteria

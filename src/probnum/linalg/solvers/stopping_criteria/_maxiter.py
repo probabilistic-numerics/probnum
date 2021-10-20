@@ -23,7 +23,7 @@ class MaxIterationsStopCrit(LinearSolverStopCrit):
         self.maxiter = maxiter
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> bool:
         """Check whether the maximum number of iterations has been reached.
 
