@@ -98,6 +98,7 @@ def test_wrong_diffusion_raises_error(ivp):
 
 
 def test_non_adaptive_mode(ivp):
+    """When run in non-adaptive mode and without specifying a time-step, an explicit ValueError should be raised."""
     f = ivp.f
     t0, tmax = ivp.t0, ivp.tmax
     y0 = ivp.y0
