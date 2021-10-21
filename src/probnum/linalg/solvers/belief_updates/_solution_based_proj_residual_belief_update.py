@@ -11,7 +11,16 @@ from ._linear_solver_belief_update import LinearSolverBeliefUpdate
 
 
 class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
-    r""""""
+    r"""Gaussian belief update in a solution-based framework for projected right-hand side information.
+
+    Updates the belief over the quantities of interest of a linear system for a Gaussian
+    belief over the solution :math:`x` of the linear system :math:`Ax=b` given information of the form :math:`y = b^\top s=(Ax)^\top s`.
+
+    Parameters
+    ----------
+    noise_var :
+        Scalar observation noise.
+    """
 
     def __init__(self, noise_var: FloatArgType = 0.0) -> None:
         self._noise_var = noise_var
@@ -34,4 +43,7 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
             cov=solver_state.belief.x.cov - cov_update,
         )
         Ainv = solver_state.belief.Ainv + randvars.Constant(support=cov_update)
-        return LinearSystemBelief(x=x, Ainv=Ainv, b=solver_state.belief.b)
+
+        return LinearSystemBelief(
+            x=x, A=solver_state.belief.A, Ainv=Ainv, b=solver_state.belief.b
+        )
