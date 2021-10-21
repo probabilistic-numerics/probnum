@@ -14,7 +14,7 @@ cases_states = case_modules + ".states"
 @parametrize_with_cases("belief_update", cases=cases_belief_updates)
 @parametrize_with_cases("state", cases=cases_states)
 def test_returns_linear_system_belief(
-    belief_update: belief_updates.LinearSystemBeliefUpdate, state: LinearSolverState
+    belief_update: belief_updates.LinearSolverBeliefUpdate, state: LinearSolverState
 ):
     belief = belief_update(solver_state=state)
     assert isinstance(belief, beliefs.LinearSystemBelief)

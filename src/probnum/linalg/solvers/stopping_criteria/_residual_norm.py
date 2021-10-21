@@ -5,10 +5,10 @@ import numpy as np
 import probnum
 from probnum.typing import ScalarArgType
 
-from ._linear_solver_stopping_criterion import LinearSolverStopCrit
+from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 
 
-class ResidualNormStopCrit(LinearSolverStopCrit):
+class ResidualNormStoppingCriterion(LinearSolverStoppingCriterion):
     r"""Residual stopping criterion.
 
     Terminate when the euclidean norm of the residual :math:`r_{i} = A x_{i} - b` is

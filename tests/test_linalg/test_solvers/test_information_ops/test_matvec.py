@@ -15,7 +15,7 @@ cases_states = case_modules + ".states"
 @parametrize_with_cases("info_op", cases=cases_information_ops, glob="*matvec")
 @parametrize_with_cases("state", cases=cases_states, has_tag=["has_action"])
 def test_is_A_matvec(
-    info_op: information_ops.LinearSolverInfoOp, state: LinearSolverState
+    info_op: information_ops.LinearSolverInformationOp, state: LinearSolverState
 ):
     observation = info_op(state)
     np.testing.assert_equal(observation, state.problem.A @ state.action)

@@ -3,10 +3,10 @@ import numpy as np
 
 import probnum  # pylint: disable="unused-import"
 
-from ._linear_solver_info_op import LinearSolverInfoOp
+from ._linear_solver_information_op import LinearSolverInformationOp
 
 
-class MatVecInfoOp(LinearSolverInfoOp):
+class MatVecInformationOp(LinearSolverInformationOp):
     r"""Matrix-vector product :math:`s_i \mapsto A s_i` with the system matrix.
 
     Obtain information about a linear system by multiplying an action :math:`s_i`

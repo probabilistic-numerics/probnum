@@ -6,15 +6,15 @@ import numpy as np
 import probnum  # pylint: disable="unused-import"
 
 
-class LinearSolverInfoOp(abc.ABC):
+class LinearSolverInformationOp(abc.ABC):
     r"""Information operator of a (probabilistic) linear solver.
 
     For a given action, the information operator collects information about the linear system to be solved.
 
     See Also
     --------
-    MatVecInfoOp: Collect information via matrix-vector multiplication.
-    ProjectedResidualInfoOp: Collect information via a projection of the current residual.
+    MatVecInformationOp: Collect information via matrix-vector multiplication.
+    ProjectedResidualInformationOp: Collect information via a projection of the current residual.
     """
 
     @abc.abstractmethod

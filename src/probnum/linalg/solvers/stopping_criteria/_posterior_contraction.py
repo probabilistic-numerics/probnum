@@ -5,10 +5,10 @@ import numpy as np
 import probnum  # pylint: disable="unused-import"
 from probnum.typing import ScalarArgType
 
-from ._linear_solver_stopping_criterion import LinearSolverStopCrit
+from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 
 
-class PosteriorContractionStopCrit(LinearSolverStopCrit):
+class PosteriorContractionStoppingCriterion(LinearSolverStoppingCriterion):
     r"""Posterior contraction stopping criterion.
 
     Terminate when the uncertainty about the quantity of interest :math:`q` is

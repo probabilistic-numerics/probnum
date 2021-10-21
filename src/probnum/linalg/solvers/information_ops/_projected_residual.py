@@ -3,10 +3,10 @@ import numpy as np
 
 import probnum  # pylint: disable="unused-import"
 
-from ._linear_solver_info_op import LinearSolverInfoOp
+from ._linear_solver_information_op import LinearSolverInformationOp
 
 
-class ProjectedResidualInfoOp(LinearSolverInfoOp):
+class ProjectedResidualInformationOp(LinearSolverInformationOp):
     r"""Projected residual :math:`s_i \mapsto s_i^\top (A x_i-b)` of the linear system.
 
     Obtain information about a linear system by projecting the current

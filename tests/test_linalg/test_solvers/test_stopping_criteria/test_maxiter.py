@@ -15,7 +15,7 @@ cases_states = case_modules + ".states"
 def test_maxiter_None(state: LinearSolverState):
     """Test whether if ``maxiter=None``, the maximum number of iterations is set to
     :math:`10n`, where :math:`n` is the dimension of the linear system."""
-    stop_crit = stopping_criteria.MaxIterationsStopCrit()
+    stop_crit = stopping_criteria.MaxIterationsStoppingCriterion()
 
     for _ in range(10 * state.problem.A.shape[1]):
         assert not stop_crit(state)
