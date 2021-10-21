@@ -14,18 +14,7 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> LinearSystemBelief:
 
-        A = self._update_A(solver_state=solver_state)
+        A = None
+        Ainv = None
 
-        Ainv = self._update_Ainv(solver_state=solver_state)
-        b = solver_state.belief.b
-        return LinearSystemBelief(A=A, Ainv=Ainv, b=b)
-
-    def _update_A(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
-    ) -> randvars.RandomVariable:
-        raise NotImplementedError
-
-    def _update_Ainv(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
-    ) -> randvars.RandomVariable:
-        raise NotImplementedError
+        return LinearSystemBelief(A=A, Ainv=Ainv, b=solver_state.belief.b)
