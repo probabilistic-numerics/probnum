@@ -48,6 +48,36 @@ def case_state(
     return initial_state
 
 
+@case(tags=["has_action", "has_observation", "matrix_based"])
+def case_state_matrix_based(
+    rng: np.random.Generator,
+):
+    """State of a solution-based linear solver."""
+    initial_state = linalg.solvers.LinearSolverState(
+        problem=linsys, prior=prior, rng=rng
+    )
+    initial_state.action = rng.standard_normal(size=initial_state.problem.A.shape[1])
+    initial_state.observation = rng.standard_normal(
+        size=initial_state.problem.A.shape[1]
+    )
+
+    return initial_state
+
+
+@case(tags=["has_action", "has_observation", "solution_based"])
+def case_state_solution_based(
+    rng: np.random.Generator,
+):
+    """State of a solution-based linear solver."""
+    initial_state = linalg.solvers.LinearSolverState(
+        problem=linsys, prior=prior, rng=rng
+    )
+    initial_state.action = rng.standard_normal(size=initial_state.problem.A.shape[1])
+    initial_state.observation = rng.standard_normal()
+
+    return initial_state
+
+
 def case_state_converged(
     rng: np.random.Generator,
 ):

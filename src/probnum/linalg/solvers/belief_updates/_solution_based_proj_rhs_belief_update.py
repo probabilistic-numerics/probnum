@@ -29,20 +29,20 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> LinearSystemBelief:
 
-        matvec = solver_state.problem.A @ solver_state.action
-        pred = matvec.T @ solver_state.belief.x.mean
+        A_action = solver_state.problem.A @ solver_state.action
+        pred = A_action.T @ solver_state.belief.x.mean
         resid = solver_state.observation - pred
-        cov_xy = solver_state.belief.x.cov @ matvec
-        gram = matvec.T @ cov_xy + self._noise_var
+        cov_xy = solver_state.belief.x.cov @ A_action
+        gram = A_action.T @ cov_xy + self._noise_var
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = cov_xy * gram_pinv
-        cov_update = np.outer(gain, cov_xy)
+        cov_update = gain @ cov_xy.T
 
         x = randvars.Normal(
             mean=solver_state.belief.x.mean + gain * resid,
             cov=solver_state.belief.x.cov - cov_update,
         )
-        Ainv = solver_state.belief.Ainv + randvars.Constant(support=cov_update)
+        Ainv = solver_state.belief.Ainv + cov_update
 
         return LinearSystemBelief(
             x=x, A=solver_state.belief.A, Ainv=Ainv, b=solver_state.belief.b
