@@ -6,7 +6,7 @@ import pathlib
 import numpy as np
 from pytest_cases import parametrize_with_cases
 
-import probnum.randvars as randvars
+from probnum import randvars
 from probnum.linalg.solvers import LinearSolverState, belief_updates, beliefs
 
 case_modules = (pathlib.Path(__file__).parent / "cases").stem

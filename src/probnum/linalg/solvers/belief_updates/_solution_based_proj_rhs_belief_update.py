@@ -1,9 +1,7 @@
 """Belief update in a solution-based inference view where the information is given by
 projecting the current residual to a subspace."""
-import numpy as np
-
 import probnum  # pylint: disable="unused-import"
-import probnum.randvars as randvars
+from probnum import randvars
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.typing import FloatArgType
 
@@ -11,7 +9,7 @@ from ._linear_solver_belief_update import LinearSolverBeliefUpdate
 
 
 class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
-    r"""Gaussian belief update in a solution-based framework for projected right-hand side information.
+    r"""Gaussian belief update in a solution-based inference framework for projected right-hand side information.
 
     Updates the belief over the quantities of interest of a linear system for a Gaussian
     belief over the solution :math:`x` of the linear system :math:`Ax=b` given information of the form :math:`y = b^\top s=(Ax)^\top s`.
