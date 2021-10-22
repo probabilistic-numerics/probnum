@@ -10,10 +10,17 @@ from ._linear_solver_belief_update import LinearSolverBeliefUpdate
 
 
 class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
-    r"""Symmetric Gaussian belief update in a matrix-based inference framework for linear information.
+    r"""Symmetric Gaussian belief update in a matrix-based inference framework assuming linear information.
 
-    Updates the belief over the quantities of interest of a linear system for a symmetric matrix-variate Gaussian belief and linear observations.
+    Updates the belief over the quantities of interest of a linear system :math:`Ax=b` given symmetric matrix-variate Gaussian beliefs with symmetric Kronecker covariance structure and linear observations. The belief update computes :math:`p(M \mid y) = \mathcal{N}(M; M_{i+1}, W_{i+1} \otimes_s W_{i+1})`, [1]_ [2]_ such that
 
+    .. math ::
+        \begin{align}
+            M_{i+1} &= M_i + (y - M_i s) u^\top + u (y - M_i s)^\top - u s^\top(y - M_i s)u^\top,\\
+            W_{i+1} &= W_i - W_i s (s^\top W s)^\dagger s^\top W_i.
+        \end{align}
+
+    where :math:`u = W_i s (s^\top W s)^\dagger`.
 
     References
     ----------
