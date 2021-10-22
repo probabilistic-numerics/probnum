@@ -20,7 +20,6 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
     ) -> LinearSystemBelief:
 
         # Inference for A
-        print(solver_state.belief.A)
         A = self._symmetric_matrix_based_update(
             matrix=solver_state.belief.A,
             action=solver_state.action,
@@ -43,3 +42,20 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
             raise ValueError(
                 f"Covariance must have symmetric Kronecker structure, but is '{type(matrix.cov).__name__}'."
             )
+
+        pred = matrix.mean @ action
+        resid = observ - pred
+        covfactor_Ms = matrix.cov.A @ action
+        gram = action.T @ covfactor_Ms
+        gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
+        gain = covfactor_Ms * gram_pinv
+        covfactor_update = gain @ covfactor_Ms.T
+        resid_gain = np.outer(resid, gain)
+
+        return randvars.Normal(
+            mean=matrix.mean
+            + resid_gain
+            + resid_gain.T
+            - np.outer(gain, action.T @ resid_gain),
+            cov=linops.SymmetricKronecker(A=matrix.cov.A - covfactor_update),
+        )
