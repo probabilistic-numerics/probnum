@@ -13,6 +13,14 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
     r"""Gaussian belief update in a matrix-based inference framework for linear information.
 
     Updates the belief over the quantities of interest of a linear system for a matrix-variate Gaussian belief with Kronecker covariance structure and linear observations.
+
+
+    References
+    ----------
+    .. [1] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
+       Optimization*, 2015, 25, 234-260
+    .. [2] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
+       *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
     """
 
     def __call__(

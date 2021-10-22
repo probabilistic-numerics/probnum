@@ -9,15 +9,28 @@ from ._linear_solver_belief_update import LinearSolverBeliefUpdate
 
 
 class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
-    r"""Gaussian belief update in a solution-based inference framework for projected right-hand side information.
+    r"""Gaussian belief update in a solution-based inference framework assuming projected right-hand-side information.
 
-    Updates the belief over the quantities of interest of a linear system for a Gaussian
-    belief over the solution :math:`x` of the linear system :math:`Ax=b` given information of the form :math:`y = b^\top s=(Ax)^\top s`.
+    Updates the belief over the quantities of interest of a linear system :math:`Ax=b` given a Gaussian belief over the solution :math:`x` and information of the form :math:`y = b^\top s=(Ax)^\top s`. The belief update computes the posterior belief about the solution, given by :math:`p(x \mid y)`, [1]_ such that
+
+    .. math ::
+        \begin{align}
+            x_{i+1} &= x_i + \Sigma_i A^\top s_i (s_i^\top A \Sigma_i A^\top s_i + \lambda)^\dagger s_i^\top (b - Ax_i),\\
+            \Sigma_{i+1} &= \Sigma_i - \Sigma_i A^\top s_i (s_i^\top A \Sigma_i A s_i + \lambda)^\dagger s_i^\top A \Sigma_i,
+        \end{align}
+
+    where :math:`\lambda` is the noise variance.
+
 
     Parameters
     ----------
     noise_var :
-        Scalar observation noise.
+        Variance of the scalar observation noise.
+
+    References
+    ----------
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian
+       Analysis*, 2019, 14, 937-1012
     """
 
     def __init__(self, noise_var: FloatArgType = 0.0) -> None:
