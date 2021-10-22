@@ -21,6 +21,8 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
     """
 
     def __init__(self, noise_var: FloatArgType = 0.0) -> None:
+        if noise_var < 0.0:
+            raise ValueError(f"Noise variance {noise_var} must be non-negative.")
         self._noise_var = noise_var
 
     def __call__(

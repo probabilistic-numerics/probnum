@@ -18,7 +18,7 @@ Ainv = randvars.Normal(
 )
 b = randvars.Constant(linsys.b)
 prior = linalg.solvers.beliefs.LinearSystemBelief(
-    A=randvars.Constant(linsys.A),
+    A=randvars.Normal(linsys.A, cov=linops.SymmetricKronecker(linops.Identity(n))),
     Ainv=Ainv,
     x=(Ainv @ b[:, None]).reshape(
         (n,)

@@ -4,6 +4,7 @@ information."""
 import pathlib
 
 import numpy as np
+import pytest
 from pytest_cases import parametrize_with_cases
 
 from probnum import randvars
@@ -28,6 +29,11 @@ def test_returns_linear_system_belief(
 ):
     belief = belief_update(solver_state=state)
     assert isinstance(belief, beliefs.LinearSystemBelief)
+
+
+def test_negative_noise_variance_raises_error():
+    with pytest.raises(ValueError):
+        belief_updates.SolutionBasedProjectedRHSBeliefUpdate(noise_var=-1.0)
 
 
 @parametrize_with_cases(
