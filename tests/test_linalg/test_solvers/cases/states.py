@@ -53,7 +53,7 @@ def case_state_matrix_based(
     """State of a matrix-based linear solver."""
     prior = linalg.solvers.beliefs.LinearSystemBelief(
         A=randvars.Normal(
-            mean=linsys.A,
+            mean=linops.Matrix(linsys.A),
             cov=linops.Kronecker(A=linops.Identity(n), B=linops.Identity(n)),
         ),
         x=(Ainv @ b[:, None]).reshape((n,)),
@@ -77,7 +77,7 @@ def case_state_symmetric_matrix_based(
     """State of a symmetric matrix-based linear solver."""
     prior = linalg.solvers.beliefs.LinearSystemBelief(
         A=randvars.Normal(
-            mean=linsys.A,
+            mean=linops.Matrix(linsys.A),
             cov=linops.SymmetricKronecker(A=linops.Identity(n)),
         ),
         x=(Ainv @ b[:, None]).reshape((n,)),

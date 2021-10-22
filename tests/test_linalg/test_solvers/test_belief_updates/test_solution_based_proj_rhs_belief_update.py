@@ -44,7 +44,7 @@ def test_negative_noise_variance_raises_error():
     cases=cases_states,
     has_tag=["has_action", "has_observation", "solution_based"],
 )
-def test_beliefs_against_naive(
+def test_beliefs_against_naive_implementation(
     belief_update: belief_updates.SolutionBasedProjectedRHSBeliefUpdate,
     state: LinearSolverState,
 ):

@@ -36,7 +36,7 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
 
     def _symmetric_matrix_based_update(
         self, matrix: randvars.Normal, action: np.ndarray, observ: np.ndarray
-    ):
+    ) -> randvars.Normal:
         """Symmetric matrix-based inference update for linear information."""
         if not isinstance(matrix.cov, linops.SymmetricKronecker):
             raise ValueError(

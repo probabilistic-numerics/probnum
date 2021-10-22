@@ -37,7 +37,7 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
 
     def _matrix_based_update(
         self, matrix: randvars.Normal, action: np.ndarray, observ: np.ndarray
-    ):
+    ) -> randvars.Normal:
         """Matrix-based inference update for linear information."""
         if not isinstance(matrix.cov, linops.Kronecker):
             raise ValueError(
@@ -50,11 +50,12 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
         gram = action.T @ covfactor_Ms
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = covfactor_Ms * gram_pinv
-        covfactor_update = gain @ covfactor_Ms.T
+        covfactor_update = np.outer(gain, covfactor_Ms)
 
         return randvars.Normal(
             mean=matrix.mean
-            + resid
-            @ gain.T,  # residual and gain are flipped due to matrix vectorization
+            + np.outer(
+                resid, gain
+            ),  # residual and gain are flipped due to matrix vectorization
             cov=linops.Kronecker(A=matrix.cov.A, B=matrix.cov.B - covfactor_update),
         )

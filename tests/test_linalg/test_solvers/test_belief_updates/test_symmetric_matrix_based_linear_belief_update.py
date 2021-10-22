@@ -44,3 +44,8 @@ def test_raises_error_for_non_symmetric_Kronecker_structured_covariances(
 ):
     with pytest.raises(ValueError):
         belief_update(solver_state=state)
+
+
+def test_against_naive_implementation():
+    """Compare the updated belief to a naive implementation."""
+    pass  # TODO
