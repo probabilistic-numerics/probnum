@@ -2,6 +2,7 @@
 
 import pathlib
 
+import pytest
 from pytest_cases import parametrize_with_cases
 
 from probnum.linalg.solvers import LinearSolverState, belief_updates, beliefs
@@ -19,7 +20,7 @@ cases_states = case_modules + ".states"
 @parametrize_with_cases(
     "state",
     cases=cases_states,
-    has_tag=["has_action", "has_observation", "matrix_based"],
+    has_tag=["has_action", "has_observation", "symmetric_matrix_based"],
 )
 def test_returns_linear_system_belief(
     belief_update: belief_updates.SymmetricMatrixBasedLinearBeliefUpdate,
@@ -27,3 +28,19 @@ def test_returns_linear_system_belief(
 ):
     belief = belief_update(solver_state=state)
     assert isinstance(belief, beliefs.LinearSystemBelief)
+
+
+@parametrize_with_cases(
+    "belief_update", cases=cases_belief_updates, glob="symmetric_matrix_based_linear*"
+)
+@parametrize_with_cases(
+    "state",
+    cases=cases_states,
+    has_tag=["has_action", "has_observation", "matrix_based"],
+)
+def test_raises_error_for_non_symmetric_Kronecker_structured_covariances(
+    belief_update: belief_updates.SymmetricMatrixBasedLinearBeliefUpdate,
+    state: LinearSolverState,
+):
+    with pytest.raises(ValueError):
+        belief_update(solver_state=state)
