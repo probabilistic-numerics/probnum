@@ -50,12 +50,13 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = covfactor_Ms * gram_pinv
         covfactor_update = gain @ covfactor_Ms.T
-        resid_gain = np.outer(resid, gain)
+        resid_gain = linops.aslinop(resid[:, None]) @ linops.aslinop(gain[None, :])
 
         return randvars.Normal(
             mean=matrix.mean
             + resid_gain
             + resid_gain.T
-            - np.outer(gain, action.T @ resid_gain),
+            - linops.aslinop(gain[:, None])
+            @ linops.aslinop((action.T @ resid_gain)[None, :]),
             cov=linops.SymmetricKronecker(A=matrix.cov.A - covfactor_update),
         )

@@ -50,12 +50,14 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
         gram = action.T @ covfactor_Ms
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = covfactor_Ms * gram_pinv
-        covfactor_update = np.outer(gain, covfactor_Ms)
+        covfactor_update = linops.aslinop(gain[:, None]) @ linops.aslinop(
+            covfactor_Ms[None, :]
+        )
+        resid_gain = linops.aslinop(resid[:, None]) @ linops.aslinop(
+            gain[None, :]
+        )  # residual and gain are flipped due to matrix vectorization
 
         return randvars.Normal(
-            mean=matrix.mean
-            + np.outer(
-                resid, gain
-            ),  # residual and gain are flipped due to matrix vectorization
+            mean=matrix.mean + resid_gain,
             cov=linops.Kronecker(A=matrix.cov.A, B=matrix.cov.B - covfactor_update),
         )
