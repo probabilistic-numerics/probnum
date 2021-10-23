@@ -74,13 +74,13 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
         )
 
         if config.lazy_linalg:
-            zero_cov = (
+            cov = lambda: (
                 linops.Scaling(0.0, shape=((self._support.size, self._support.size)))
                 if self._support.ndim > 0
                 else np.zeros(shape=())
             )
         else:
-            zero_cov = np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            cov = lambda: np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 support_floating,
                 shape=(
                     (self._support.size, self._support.size)
@@ -100,7 +100,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             mode=lambda: self._support,
             median=lambda: support_floating,
             mean=lambda: support_floating,
-            cov=lambda: zero_cov,
+            cov=cov,
             var=lambda: np.zeros_like(support_floating),
         )
 
