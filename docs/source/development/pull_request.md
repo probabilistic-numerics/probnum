@@ -225,10 +225,10 @@ Alternatively, you can run a single specific environment through `tox -e <env>`.
   $ tox
   ```
 
-- **Single environment with tox:** Run tests for a single Python environment, e.g. for Python 3.6
+- **Single environment with tox:** Run tests for a single Python environment, e.g. for Python 3.8
 
   ```shell
-  $ tox -e py36
+  $ tox -e py38
   ```
 
 - **Single environment with tox:** only build the documentation.
