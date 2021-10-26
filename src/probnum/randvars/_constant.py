@@ -75,19 +75,28 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
         if config.lazy_linalg:
             cov = lambda: (
-                linops.Scaling(0.0, shape=((self._support.size, self._support.size)))
+                linops.Scaling(
+                    0.0,
+                    shape=(self._support.size, self._support.size),
+                    dtype=support_floating.dtype,
+                )
                 if self._support.ndim > 0
-                else np.zeros(shape=())
+                else _utils.as_numpy_scalar(0.0, support_floating.dtype)
             )
         else:
-            cov = lambda: np.zeros_like(  # pylint: disable=unexpected-keyword-arg
-                support_floating,
+            cov = lambda: np.broadcast_to(
+                _utils.as_numpy_scalar(0.0, support_floating.dtype),
                 shape=(
                     (self._support.size, self._support.size)
                     if self._support.ndim > 0
                     else ()
                 ),
             )
+
+        var = lambda: np.broadcast_to(
+            _utils.as_numpy_scalar(0.0, support_floating.dtype),
+            shape=self._support.shape,
+        )
 
         super().__init__(
             shape=self._support.shape,
@@ -101,7 +110,8 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             median=lambda: support_floating,
             mean=lambda: support_floating,
             cov=cov,
-            var=lambda: np.zeros_like(support_floating),
+            var=var,
+            std=var,
         )
 
     @cached_property
