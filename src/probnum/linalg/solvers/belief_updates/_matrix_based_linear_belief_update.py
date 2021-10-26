@@ -34,7 +34,6 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
     ) -> LinearSystemBelief:
 
         # Inference for A
-        print(solver_state.belief.A)
         A = self._matrix_based_update(
             matrix=solver_state.belief.A,
             action=solver_state.action,
