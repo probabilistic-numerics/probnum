@@ -18,6 +18,8 @@ from typing import Iterable, Tuple, Union
 
 import numpy as np
 import scipy.sparse
+from numpy.typing import ArrayLike
+from numpy.typing import DTypeLike as DTypeArgType
 
 ########################################################################################
 # API Types
@@ -28,10 +30,6 @@ ShapeType = Tuple[int, ...]
 ########################################################################################
 # Argument Types
 ########################################################################################
-
-
-from numpy.typing import ArrayLike
-from numpy.typing import DTypeLike as DTypeArgType
 
 IntArgType = Union[int, numbers.Integral, np.integer]
 FloatArgType = Union[float, numbers.Real, np.floating]
