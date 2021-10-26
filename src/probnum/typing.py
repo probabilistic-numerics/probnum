@@ -18,8 +18,8 @@ from typing import Iterable, Tuple, Union
 
 import numpy as np
 import scipy.sparse
-from numpy.typing import ArrayLike  # pylint: ignore=unused-import
-from numpy.typing import DTypeLike as DTypeArgType  # pylint: ignore=unused-import
+from numpy.typing import ArrayLike  # pylint: disable=unused-import
+from numpy.typing import DTypeLike as DTypeArgType  # pylint: disable=unused-import
 
 ########################################################################################
 # API Types
