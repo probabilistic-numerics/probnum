@@ -13,5 +13,5 @@
 # If you make changes here, make sure to edit setup.cfg as well!
 # =============================================================================
 cached_property; python_version<"3.8"
-numpy
+numpy>=1.20
 scipy>=1.4
