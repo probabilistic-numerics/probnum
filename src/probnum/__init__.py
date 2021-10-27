@@ -17,6 +17,14 @@ from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
 # isort: on
 
+# isort: off
+
+# Compute Backends
+from ._backend import *
+from ._backend import __all__ as _backend_fns
+
+# isort: on
+
 from . import (
     diffeq,
     filtsmooth,
@@ -37,7 +45,7 @@ from .randvars import asrandvar
 __all__ = [
     "asrandvar",
     "ProbabilisticNumericalMethod",
-]
+] + _backend_fns
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"

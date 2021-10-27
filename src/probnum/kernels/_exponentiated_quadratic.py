@@ -1,11 +1,11 @@
 """Exponentiated quadratic kernel."""
 
+import functools
 from typing import Optional
 
-import numpy as np
-
-import probnum.utils as _utils
-from probnum.typing import IntArgType, ScalarArgType
+from probnum import _backend
+from probnum import utils as _utils
+from probnum.typing import ArrayType, IntArgType, ScalarArgType
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -47,13 +47,14 @@ class ExpQuad(Kernel, IsotropicMixin):
     """
 
     def __init__(self, input_dim: IntArgType, lengthscale: ScalarArgType = 1.0):
-        self.lengthscale = _utils.as_numpy_scalar(lengthscale)
+        self.lengthscale = _utils.as_scalar(lengthscale)
         super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    @functools.partial(_backend.jit, static_argnums=(0,))
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         if x1 is None:
-            return np.ones_like(x0[..., 0])
+            return _backend.ones_like(x0[..., 0])
 
-        return np.exp(
+        return _backend.exp(
             -self._squared_euclidean_distances(x0, x1) / (2.0 * self.lengthscale ** 2)
         )
