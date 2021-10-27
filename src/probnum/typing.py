@@ -29,6 +29,7 @@ from numpy.typing import DTypeLike as _NumPyDTypeLike
 
 # Array Utilities
 ShapeType = Tuple[int, ...]
+ArrayType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
 
 # Scalars, Arrays and Matrices
 ScalarType = np.ndarray
@@ -84,7 +85,7 @@ ScalarLike = Union[int, float, complex, numbers.Number, np.number]
 Values of this type should always be converted into :class:`np.number`\\ s using the
 function :func:`probnum.utils.as_scalar` before further internal processing."""
 
-ArrayLike = _NumPyArrayLike
+ArrayLike = Union[_NumPyArrayLike, "jax.numpy.ndarray", "torch.Tensor"]
 """Type of a public API argument for supplying an array.
 
 Values of this type should always be converted into :class:`np.ndarray`\\ s using

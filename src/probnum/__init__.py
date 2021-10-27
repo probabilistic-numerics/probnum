@@ -23,6 +23,14 @@ from ._pnmethod import (
 
 # isort: on
 
+# isort: off
+
+# Compute Backends
+from ._backend import *
+from ._backend import __all__ as _backend_fns
+
+# isort: on
+
 from . import (
     diffeq,
     filtsmooth,
@@ -43,7 +51,7 @@ __all__ = [
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
     "LambdaStoppingCriterion",
-]
+] + _backend_fns
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"
