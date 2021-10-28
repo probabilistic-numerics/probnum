@@ -3,6 +3,7 @@ from typing import Callable, Optional, Union
 
 import numpy as np
 
+from probnum import _backend
 from probnum.typing import ArrayLike, IntArgType, ShapeArgType
 
 from ._kernel import Kernel
@@ -67,12 +68,15 @@ class LangevinSteinKernel(Kernel):
         """
         gradx0_logp = self._grad_log_density(x0)
         gradx1_logp = self._grad_log_density(x1)
+        gradx0_base_kernel = _backend.grad(self._base_kernel, argnums=0)
+        gradx1_base_kernel = _backend.grad(self._base_kernel, argnums=1)
+        gradx0_gradx1_base_kernel = _backend.grad(self._base_kernel, argnums=(0, 1))
 
         score_prod = gradx0_logp @ gradx1_logp.T
 
-        K_0 = score_prod * self._base_kernel(x0=x0, x1=x1)
-        K_0 = K_0 + np.einsum("ij,jik->ik", gradx0_logp, grady_K)
-        K_0 = K_0 + np.einsum("ij,jki->ki", gradx1_logp, gradx_K)
-        K_0 = K_0 + np.einsum("iijk->jk", gradxgrady_K)
-
-        raise NotImplementedError
+        return (
+            score_prod * self._base_kernel(x0=x0, x1=x1)
+            + np.einsum("md,dmn->mn", gradx0_logp, gradx1_base_kernel)
+            + np.einsum("nd,dmn->mn", gradx1_logp, gradx0_base_kernel)
+            + np.einsum("ddmn->mn", gradx0_gradx1_base_kernel)
+        )
