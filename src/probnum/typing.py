@@ -18,7 +18,7 @@ from typing import Iterable, Tuple, Union
 
 import numpy as np
 import scipy.sparse
-from numpy.typing import ArrayLike  # pylint: disable=unused-import
+from numpy.typing import ArrayLike as _NumPyArrayLike
 from numpy.typing import DTypeLike as DTypeArgType  # pylint: disable=unused-import
 
 ########################################################################################
@@ -26,10 +26,13 @@ from numpy.typing import DTypeLike as DTypeArgType  # pylint: disable=unused-imp
 ########################################################################################
 
 ShapeType = Tuple[int, ...]
+ArrayType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
 
 ########################################################################################
 # Argument Types
 ########################################################################################
+
+ArrayLike = Union[_NumPyArrayLike, "jax.numpy.ndarray", "torch.Tensor"]
 
 IntArgType = Union[int, numbers.Integral, np.integer]
 FloatArgType = Union[float, numbers.Real, np.floating]
