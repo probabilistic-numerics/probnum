@@ -81,7 +81,6 @@ class BayesianQuadrature:
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "fixed":
-            # TODO: This probably is not what we want!
             policy = Policy(batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
         elif policy == "bmc":
