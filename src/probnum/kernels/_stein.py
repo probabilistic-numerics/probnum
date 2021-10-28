@@ -76,7 +76,9 @@ class LangevinSteinKernel(Kernel):
 
         return (
             score_prod * self._base_kernel(x0=x0, x1=x1)
-            + np.einsum("md,dmn->mn", gradx0_logp, gradx1_base_kernel)
+            + np.einsum(
+                "md,dmn->mn", gradx0_logp, gradx1_base_kernel
+            )  # TODO: double check order of indices after grad
             + np.einsum("nd,dmn->mn", gradx1_logp, gradx0_base_kernel)
             + np.einsum("ddmn->mn", gradx0_gradx1_base_kernel)
         )
