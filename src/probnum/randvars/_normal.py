@@ -1,15 +1,22 @@
 """Normally distributed / Gaussian random variables."""
 
-from functools import cached_property
+import functools
 from typing import Callable, Optional, Union
 
 import numpy as np
 import scipy.linalg
 import scipy.stats
 
-from probnum import config, linops
-from probnum import utils as _utils
-from probnum.typing import ArrayIndicesLike, FloatLike, ShapeLike, ShapeType
+from probnum import _backend, config, linops, utils as _utils
+from probnum.typing import (
+    ArrayIndicesLike,
+    ArrayLike,
+    ArrayType,
+    FloatLike,
+    MatrixType,
+    ShapeLike,
+    ShapeType,
+)
 
 from . import _random_variable
 
@@ -62,40 +69,35 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     def __init__(
         self,
-        mean: Union[float, np.floating, np.ndarray, linops.LinearOperator],
-        cov: Union[float, np.floating, np.ndarray, linops.LinearOperator],
-        cov_cholesky: Optional[
-            Union[float, np.floating, np.ndarray, linops.LinearOperator]
-        ] = None,
+        mean: Union[ArrayLike, linops.LinearOperator],
+        cov: Union[ArrayLike, linops.LinearOperator],
+        cov_cholesky: Optional[Union[ArrayLike, linops.LinearOperator]] = None,
     ):
         # Type normalization
-        if np.isscalar(mean):
-            mean = _utils.as_numpy_scalar(mean)
+        if not isinstance(mean, linops.LinearOperator):
+            mean = _backend.asarray(mean)
 
-        if np.isscalar(cov):
-            cov = _utils.as_numpy_scalar(cov)
+        if not isinstance(cov, linops.LinearOperator):
+            cov = _backend.asarray(cov)
 
-        if np.isscalar(cov_cholesky):
-            cov_cholesky = _utils.as_numpy_scalar(cov_cholesky)
+        if not isinstance(cov_cholesky, linops.LinearOperator):
+            cov = _backend.asarray(cov)
 
         # Data type normalization
-        dtype = np.promote_types(mean.dtype, cov.dtype)
+        dtype = _backend.promote_types(mean.dtype, cov.dtype)
 
-        if not np.issubdtype(dtype, np.floating):
-            dtype = np.dtype(np.double)
+        if not _backend.is_floating:
+            dtype = _backend.double
 
-        mean = mean.astype(dtype, order="C", casting="safe", copy=False)
-        cov = cov.astype(dtype, order="C", casting="safe", copy=False)
+        mean = _backend.cast(mean, dtype=dtype, casting="safe", copy=False)
+        cov = _backend.cast(cov, dtype=dtype, casting="safe", copy=False)
 
         # Shape checking
-        if not 0 <= mean.ndim <= 2:
-            raise ValueError(
-                f"Gaussian random variables must either be scalars, vectors, or "
-                f"matrices (or linear operators), but the given mean is a {mean.ndim}-"
-                f"dimensional tensor."
-            )
-
-        expected_cov_shape = (np.prod(mean.shape),) * 2 if len(mean.shape) > 0 else ()
+        expected_cov_shape = (
+            (functools.reduce(lambda a, b: a * b, mean.shape, 1),) * 2
+            if mean.ndim > 0
+            else ()
+        )
 
         if cov.shape != expected_cov_shape:
             raise ValueError(
@@ -104,29 +106,29 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             )
 
         # Method selection
-        univariate = mean.ndim == 0
-        dense = isinstance(mean, np.ndarray) and isinstance(cov, np.ndarray)
+        scalar = mean.ndim == 0
+        dense = isinstance(mean, _backend.ndarray) and isinstance(cov, _backend.ndarray)
         cov_operator = isinstance(cov, linops.LinearOperator)
         compute_cov_cholesky: Callable[[], _ValueType] = None
 
-        if univariate:
-            # Univariate Gaussian
-            sample = self._univariate_sample
-            in_support = Normal._univariate_in_support
-            pdf = self._univariate_pdf
-            logpdf = self._univariate_logpdf
-            cdf = self._univariate_cdf
-            logcdf = self._univariate_logcdf
-            quantile = self._univariate_quantile
+        if scalar:
+            # Scalar Gaussian
+            sample = self._scalar_sample
+            in_support = Normal._scalar_in_support
+            pdf = self._scalar_pdf
+            logpdf = self._scalar_logpdf
+            cdf = self._scalar_cdf
+            logcdf = self._scalar_logcdf
+            quantile = self._scalar_quantile
 
             median = lambda: mean
             var = lambda: cov
-            entropy = self._univariate_entropy
+            entropy = self._scalar_entropy
 
-            compute_cov_cholesky = self._univariate_cov_cholesky
+            compute_cov_cholesky = self._scalar_cov_cholesky
 
         elif dense or cov_operator:
-            # Multi- and matrixvariate Gaussians
+            # Multi- and matrix- and tensorvariate Gaussians
             sample = self._dense_sample
             in_support = Normal._dense_in_support
             pdf = self._dense_pdf
@@ -144,7 +146,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             # Ensure that the Cholesky factor has the same type as the covariance,
             # and, if necessary, promote data types. Check for (in this order): type, shape, dtype.
             if cov_cholesky is not None:
-
                 if not isinstance(cov_cholesky, type(cov)):
                     raise TypeError(
                         f"The covariance matrix is of type `{type(cov)}`, so its "
@@ -160,8 +161,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     )
 
                 if cov_cholesky.dtype != cov.dtype:
-                    cov_cholesky = cov_cholesky.astype(
-                        cov.dtype, casting="safe", copy=False
+                    cov_cholesky = _backend.cast(
+                        cov_cholesky, dtype=cov.dtype, casting="safe", copy=False
                     )
 
             if cov_operator:
@@ -183,26 +184,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                         )
                 elif isinstance(cov, linops.Kronecker):
                     compute_cov_cholesky = self._kronecker_cov_cholesky
-                    if mean.ndim == 2:
-                        m, n = mean.shape
-
-                        if (
-                            m != cov.A.shape[0]
-                            or m != cov.A.shape[1]
-                            or n != cov.B.shape[0]
-                            or n != cov.B.shape[1]
-                        ):
-                            raise ValueError(
-                                "Kronecker structured kernels must have factors with the same "
-                                "shape as the mean."
-                            )
-
                 else:
                     # This case handles all linear operators, for which no Cholesky
                     # factorization is implemented, yet.
                     # Computes the dense Cholesky and converts it to a LinearOperator.
                     compute_cov_cholesky = self._dense_cov_cholesky_as_linop
-
         else:
             raise ValueError(
                 f"Cannot instantiate normal distribution with mean of type "
@@ -265,7 +251,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             return False
         return True
 
-    @cached_property
+    @functools.cached_property
     def dense_mean(self) -> Union[np.floating, np.ndarray]:
         """Dense representation of the mean."""
         if isinstance(self.mean, linops.LinearOperator):
@@ -273,7 +259,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         else:
             return self.mean
 
-    @cached_property
+    @functools.cached_property
     def dense_cov(self) -> Union[np.floating, np.ndarray]:
         """Dense representation of the covariance."""
         if isinstance(self.cov, linops.LinearOperator):
@@ -401,13 +387,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Univariate Gaussians
-    def _univariate_cov_cholesky(
+    def _scalar_cov_cholesky(
         self,
         damping_factor: FloatLike,
     ) -> np.floating:
         return np.sqrt(self.cov + damping_factor)
 
-    def _univariate_sample(
+    def _scalar_sample(
         self,
         rng: np.random.Generator,
         size: ShapeType = (),
@@ -426,25 +412,31 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return sample
 
     @staticmethod
-    def _univariate_in_support(x: _ValueType) -> bool:
+    def _scalar_in_support(x: _ValueType) -> bool:
         return np.isfinite(x)
 
-    def _univariate_pdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.pdf(x, loc=self.mean, scale=self.std)
+    @_backend.jit_method
+    def _scalar_pdf(self, x: _ValueType) -> np.float_:
+        return _backend.exp(-((x - self.mean) ** 2) / (2.0 * self.var)) / _backend.sqrt(
+            2 * _backend.pi * self.var
+        )
 
-    def _univariate_logpdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.logpdf(x, loc=self.mean, scale=self.std)
+    @_backend.jit_method
+    def _scalar_logpdf(self, x: _ValueType) -> ArrayType:
+        return -((x - self.mean) ** 2) / (2.0 * self.var) - 0.5 * _backend.log(
+            2.0 * _backend.pi * self.var
+        )
 
-    def _univariate_cdf(self, x: _ValueType) -> np.float_:
+    def _scalar_cdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.norm.cdf(x, loc=self.mean, scale=self.std)
 
-    def _univariate_logcdf(self, x: _ValueType) -> np.float_:
+    def _scalar_logcdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.norm.logcdf(x, loc=self.mean, scale=self.std)
 
-    def _univariate_quantile(self, p: FloatLike) -> np.floating:
+    def _scalar_quantile(self, p: FloatLike) -> np.floating:
         return scipy.stats.norm.ppf(p, loc=self.mean, scale=self.std)
 
-    def _univariate_entropy(self: _ValueType) -> np.float_:
+    def _scalar_entropy(self: _ValueType) -> np.float_:
         return _utils.as_numpy_scalar(
             scipy.stats.norm.entropy(loc=self.mean, scale=self.std),
             dtype=np.float_,
@@ -461,8 +453,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             damping_factor = config.covariance_inversion_damping
         dense_cov = self.dense_cov
 
-        return scipy.linalg.cholesky(
-            dense_cov + damping_factor * np.eye(self.size, dtype=self.dtype),
+        return _backend.linalg.cholesky(
+            dense_cov + damping_factor * _backend.eye(self.size, dtype=self.dtype),
             lower=True,
         )
 
@@ -487,7 +479,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _arg_todense(x: Union[np.ndarray, linops.LinearOperator]) -> np.ndarray:
         if isinstance(x, linops.LinearOperator):
             return x.todense()
-        elif isinstance(x, np.ndarray):
+        elif isinstance(x, _backend.ndarray):
             return x
         else:
             raise ValueError(f"Unsupported argument type {type(x)}")
@@ -503,12 +495,16 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             cov=self.dense_cov,
         )
 
-    def _dense_logpdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.multivariate_normal.logpdf(
-            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self.dense_mean.ravel(),
-            cov=self.dense_cov,
+    def _dense_logpdf(self, x: _ValueType) -> ArrayType:
+        x_centered = Normal._arg_todense(x - self.dense_mean).reshape(
+            x.shape[: -self.ndim] + (-1,)
         )
+
+        return -0.5 * (
+            x_centered
+            @ _backend.linalg.cho_solve((self.cov_cholesky, True), x_centered)
+            + self.size * _backend.log(2.0 * _backend.pi)
+        ) - _backend.sum(_backend.log(_backend.diag(self.cov_cholesky)))
 
     def _dense_cdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.cdf(

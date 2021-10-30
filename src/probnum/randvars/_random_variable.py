@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 
-from probnum import utils as _utils
+from probnum import _backend, utils as _utils
 from probnum.typing import ArrayIndicesLike, DTypeLike, FloatLike, ShapeLike, ShapeType
 
 _ValueType = TypeVar("ValueType")
@@ -126,7 +126,8 @@ class RandomVariable(Generic[_ValueType]):
         self.__shape = _utils.as_shape(shape)
 
         # Data Types
-        self.__dtype = np.dtype(dtype)
+        # self.__dtype = np.dtype(dtype)
+        self.__dtype = dtype
         self.__median_dtype = RandomVariable.infer_median_dtype(self.__dtype)
         self.__moment_dtype = RandomVariable.infer_moment_dtype(self.__dtype)
 
@@ -350,7 +351,7 @@ class RandomVariable(Generic[_ValueType]):
         """
         if self.__std is None:
             try:
-                std = np.sqrt(self.var)
+                std = _backend.sqrt(self.var)
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
@@ -781,7 +782,7 @@ class RandomVariable(Generic[_ValueType]):
         value_dtype :
             Dtype of a value.
         """
-        return np.promote_types(value_dtype, np.float_)
+        return _backend.promote_types(value_dtype, _backend.double)
 
     def _as_value_type(self, x: Any) -> _ValueType:
         if self.__as_value_type is not None:
@@ -803,46 +804,47 @@ class RandomVariable(Generic[_ValueType]):
                     f"shape. Expected {shape} but got {value.shape}."
                 )
 
-        if dtype is not None:
-            if not np.issubdtype(value.dtype, dtype):
-                raise ValueError(
-                    f"The {name} of the random variable does not have the correct "
-                    f"dtype. Expected {dtype.name} but got {value.dtype.name}."
-                )
+        # if dtype is not None:
+        #     if not np.issubdtype(value.dtype, dtype):
+        #         raise ValueError(
+        #             f"The {name} of the random variable does not have the correct "
+        #             f"dtype. Expected {dtype.name} but got {value.dtype.name}."
+        #         )
 
     @classmethod
     def _ensure_numpy_float(
         cls, name: str, value: Any, force_scalar: bool = False
     ) -> Union[np.float_, np.ndarray]:
-        if np.isscalar(value):
-            if not isinstance(value, np.float_):
-                try:
-                    value = _utils.as_numpy_scalar(value, dtype=np.float_)
-                except TypeError as err:
-                    raise TypeError(
-                        f"The function `{name}` specified via the constructor of "
-                        f"`{cls.__name__}` must return a scalar value that can be "
-                        f"converted to a `np.float_`, which is not possible for "
-                        f"{value} of type {type(value)}."
-                    ) from err
-        elif not force_scalar:
-            try:
-                value = np.asarray(value, dtype=np.float_)
-            except TypeError as err:
-                raise TypeError(
-                    f"The function `{name}` specified via the constructor of "
-                    f"`{cls.__name__}` must return a value that can be converted "
-                    f"to a `np.ndarray` of type `np.float_`, which is not possible "
-                    f"for {value} of type {type(value)}."
-                ) from err
-        else:
+        if value.ndim != 0 and force_scalar:
+            # if not isinstance(value, np.float_):
+            #     try:
+            #         value = _utils.as_numpy_scalar(value, dtype=np.float_)
+            #     except TypeError as err:
+            #         raise TypeError(
+            #             f"The function `{name}` specified via the constructor of "
+            #             f"`{cls.__name__}` must return a scalar value that can be "
+            #             f"converted to a `np.float_`, which is not possible for "
+            #             f"{value} of type {type(value)}."
+            #         ) from err
+            # pass
+            # elif not force_scalar:
+            #     try:
+            #         value = np.asarray(value, dtype=np.float_)
+            #     except TypeError as err:
+            #         raise TypeError(
+            #             f"The function `{name}` specified via the constructor of "
+            #             f"`{cls.__name__}` must return a value that can be converted "
+            #             f"to a `np.ndarray` of type `np.float_`, which is not possible "
+            #             f"for {value} of type {type(value)}."
+            #         ) from err
+            # else:
             raise TypeError(
                 f"The function `{name}` specified via the constructor of "
                 f"`{cls.__name__}` must return a scalar value, but {value} of type "
                 f"{type(value)} is not scalar."
             )
 
-        assert isinstance(value, (np.float_, np.ndarray))
+        # assert isinstance(value, (np.float_, np.ndarray))
 
         return value
 
