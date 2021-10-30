@@ -56,7 +56,7 @@ __all__ = [
 
 # isort: off
 
-from ._dispatcher import BackendDispatcher
+from ._dispatcher import Dispatcher
 from . import linalg
 
 # isort: on
