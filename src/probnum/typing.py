@@ -30,6 +30,7 @@ from numpy.typing import DTypeLike as _NumPyDTypeLike
 # Array Utilities
 ShapeType = Tuple[int, ...]
 ArrayType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
+MatrixType = Union[ArrayType, "probnum.linops.LinearOperator"]
 
 # Scalars, Arrays and Matrices
 ScalarType = np.ndarray
