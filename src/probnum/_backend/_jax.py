@@ -5,11 +5,26 @@ from jax.numpy import (
     asarray,
     atleast_1d,
     atleast_2d,
+    bool_ as bool,
     broadcast_arrays,
     broadcast_shapes,
+    cdouble,
+    complex64 as csingle,
+    diag,
+    double,
     exp,
+    eye,
+    int32,
+    int64,
+    linspace,
+    log,
+    ndarray,
     ndim,
+    ones,
     ones_like,
+    pi,
+    promote_types,
+    single,
     sqrt,
     sum,
     zeros,
@@ -17,5 +32,22 @@ from jax.numpy import (
 )
 
 
-def jit(f, **kwargs):
-    return jax.jit(f, **kwargs)
+def cast(a: jax.numpy.ndarray, dtype=None, casting="unsafe", copy=None):
+    return a.astype(dtype=None)
+
+
+def is_floating(a: jax.numpy.ndarray):
+    return jax.numpy.issubdtype(a.dtype, jax.numpy.floating)
+
+
+def jit(f, *args, **kwargs):
+    return jax.jit(f, *args, **kwargs)
+
+
+def jit_method(f, *args, static_argnums=None, **kwargs):
+    _static_argnums = (0,)
+
+    if static_argnums is not None:
+        _static_argnums += tuple(argnum + 1 for argnum in static_argnums)
+
+    return jax.jit(f, *args, static_argnums=_static_argnums, **kwargs)

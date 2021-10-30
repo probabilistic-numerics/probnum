@@ -16,20 +16,50 @@ BACKEND = _select_backend()
 
 
 __all__ = [
-    "array",
+    "ndarray",
+    # DTypes
+    "bool",
+    "int32",
+    "int64",
+    "single",
+    "double",
+    "csingle",
+    "cdouble",
+    "cast",
+    "promote_types",
+    "is_floating",
+    # Shape Arithmetic
     "atleast_1d",
     "atleast_2d",
     "broadcast_arrays",
     "broadcast_shapes",
-    "exp",
-    "grad",
     "ndim",
+    # Constructors
+    "array",
+    "diag",
+    "eye",
+    "ones",
     "ones_like",
-    "sqrt",
-    "sum",
     "zeros",
     "zeros_like",
+    "linspace",
+    # Constants
+    "pi",
+    # Operations
+    "exp",
+    "log",
+    "sqrt",
+    "sum",
+    # Automatic Differentiation
+    "grad",
 ]
+
+# isort: off
+
+from ._dispatcher import BackendDispatcher
+from . import linalg
+
+# isort: on
 
 
 if BACKEND is Backend.NUMPY:
