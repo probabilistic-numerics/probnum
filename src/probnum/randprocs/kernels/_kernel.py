@@ -144,7 +144,7 @@ class Kernel(abc.ABC):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
+    @_backend.jit_method
     def __call__(
         self,
         x0: ArrayLike,
@@ -224,7 +224,7 @@ class Kernel(abc.ABC):
 
         return k_x0_x1
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
+    @_backend.jit_method
     def matrix(
         self,
         x0: ArrayLike,
@@ -407,7 +407,7 @@ class Kernel(abc.ABC):
 
         return broadcast_input_shape
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
+    @_backend.jit_method
     def _euclidean_inner_products(
         self, x0: ArrayType, x1: Optional[ArrayType]
     ) -> ArrayType:
@@ -434,7 +434,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     Hence, all isotropic kernels are stationary.
     """
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
+    @_backend.jit_method
     def _squared_euclidean_distances(
         self, x0: ArrayType, x1: Optional[ArrayType]
     ) -> ArrayType:
@@ -453,7 +453,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
 
         return _backend.sum(sqdiffs, axis=-1)
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
+    @_backend.jit_method
     def _euclidean_distances(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         """Implementation of the Euclidean distance, which supports kernel
         broadcasting semantics."""

@@ -50,7 +50,7 @@ class ExpQuad(Kernel, IsotropicMixin):
         self.lengthscale = _utils.as_scalar(lengthscale)
         super().__init__(input_dim=input_dim)
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
+    @_backend.jit_method
     def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         if x1 is None:
             return _backend.ones_like(x0[..., 0])

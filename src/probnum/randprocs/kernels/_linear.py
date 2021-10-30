@@ -2,10 +2,8 @@
 
 from typing import Optional
 
-import numpy as np
-
-import probnum.utils as _utils
-from probnum.typing import IntLike, ScalarLike
+from probnum import _backend, utils
+from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import Kernel
 
@@ -41,8 +39,9 @@ class Linear(Kernel):
     """
 
     def __init__(self, input_dim: IntLike, constant: ScalarLike = 0.0):
-        self.constant = _utils.as_numpy_scalar(constant)
+        self.constant = utils.as_scalar(constant)
         super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+    @_backend.jit_method
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         return self._euclidean_inner_products(x0, x1) + self.constant
