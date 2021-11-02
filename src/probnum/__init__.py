@@ -14,20 +14,15 @@ finite computational resources and stochastic input.
 # unguarded global state and is hence not thread-safe!
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
+# Compute Backends
+from . import backend
+
 # Abstract interfaces for (components of) probabilistic numerical methods.
 from ._pnmethod import (
     ProbabilisticNumericalMethod,
     StoppingCriterion,
     LambdaStoppingCriterion,
 )
-
-# isort: on
-
-# isort: off
-
-# Compute Backends
-from ._backend import *
-from ._backend import __all__ as _backend_fns
 
 # isort: on
 
@@ -51,7 +46,7 @@ __all__ = [
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
     "LambdaStoppingCriterion",
-] + _backend_fns
+]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"

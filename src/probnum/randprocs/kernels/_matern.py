@@ -3,7 +3,7 @@
 from typing import Optional
 
 import probnum.utils as _utils
-from probnum import _backend
+from probnum import backend
 from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
@@ -73,34 +73,34 @@ class Matern(Kernel, IsotropicMixin):
 
         super().__init__(input_dim=input_dim)
 
-    @_backend.jit_method
+    @backend.jit_method
     def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
         distances = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
-            return _backend.exp(-1.0 / self.lengthscale * distances)
+            return backend.exp(-1.0 / self.lengthscale * distances)
 
         if self.nu == 1.5:
-            scaled_distances = -_backend.sqrt(3) / self.lengthscale * distances
-            return (1.0 + scaled_distances) * _backend.exp(-scaled_distances)
+            scaled_distances = -backend.sqrt(3) / self.lengthscale * distances
+            return (1.0 + scaled_distances) * backend.exp(-scaled_distances)
 
         if self.nu == 2.5:
-            scaled_distances = _backend.sqrt(5) / self.lengthscale * distances
-            return (
-                1.0 + scaled_distances + scaled_distances ** 2 / 3.0
-            ) * _backend.exp(-scaled_distances)
+            scaled_distances = backend.sqrt(5) / self.lengthscale * distances
+            return (1.0 + scaled_distances + scaled_distances ** 2 / 3.0) * backend.exp(
+                -scaled_distances
+            )
 
-        if self.nu == _backend.inf:
-            return _backend.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
+        if self.nu == backend.inf:
+            return backend.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
 
         # The modified Bessel function K_nu is not defined for z=0
-        distances = _backend.maximum(distances, _backend.finfo(distances.dtype).eps)
+        distances = backend.maximum(distances, backend.finfo(distances.dtype).eps)
 
-        scaled_distances = _backend.sqrt(2 * self.nu) / self.lengthscale * distances
+        scaled_distances = backend.sqrt(2 * self.nu) / self.lengthscale * distances
         return (
             2 ** (1.0 - self.nu)
-            / _backend.special.gamma(self.nu)
+            / backend.special.gamma(self.nu)
             * scaled_distances ** self.nu
-            * _backend.special.kv(self.nu, scaled_distances)
+            * backend.special.kv(self.nu, scaled_distances)
         )

@@ -26,6 +26,7 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     ones_like,
     pi,
     promote_types,
+    sin,
     single,
     sqrt,
     sum,
@@ -48,7 +49,3 @@ def jit(f, *args, **kwargs):
 
 def jit_method(f, *args, **kwargs):
     return f
-
-
-def grad(*args, **kwargs):
-    raise NotImplementedError()

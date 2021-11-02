@@ -1,20 +1,6 @@
-import enum
+from ._select import Backend, select_backend as _select_backend
 
-
-class Backend(enum.Enum):
-    JAX = "jax"
-    PYTORCH = "pytorch"
-    NUMPY = "numpy"
-
-
-# isort: off
-from ._select import select_backend as _select_backend
-
-# isort: on
-
-BACKEND = _select_backend()
-
-
+# pylint: disable=undefined-all-variable
 __all__ = [
     "ndarray",
     # DTypes
@@ -37,6 +23,7 @@ __all__ = [
     "ndim",
     # Constructors
     "array",
+    "asarray",
     "diag",
     "eye",
     "ones",
@@ -48,27 +35,24 @@ __all__ = [
     "pi",
     "inf",
     # Operations
+    "sin",
     "exp",
     "log",
     "sqrt",
     "sum",
     "maximum",
-    # Automatic Differentiation
-    "grad",
 ]
+
+BACKEND = _select_backend()
 
 # isort: off
 
 from ._dispatcher import Dispatcher
+
+from ._core import *
+
+from . import autodiff
 from . import linalg
 from . import special
 
 # isort: on
-
-
-if BACKEND is Backend.NUMPY:
-    from ._numpy import *
-elif BACKEND is Backend.JAX:
-    from ._jax import *
-elif BACKEND is Backend.PYTORCH:
-    from ._pytorch import *

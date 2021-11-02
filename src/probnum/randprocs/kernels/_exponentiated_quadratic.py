@@ -3,8 +3,7 @@
 import functools
 from typing import Optional
 
-from probnum import _backend
-from probnum import utils as _utils
+from probnum import backend, utils as _utils
 from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
@@ -50,11 +49,11 @@ class ExpQuad(Kernel, IsotropicMixin):
         self.lengthscale = _utils.as_scalar(lengthscale)
         super().__init__(input_dim=input_dim)
 
-    @_backend.jit_method
+    @backend.jit_method
     def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         if x1 is None:
-            return _backend.ones_like(x0[..., 0])
+            return backend.ones_like(x0[..., 0])
 
-        return _backend.exp(
+        return backend.exp(
             -self._squared_euclidean_distances(x0, x1) / (2.0 * self.lengthscale ** 2)
         )

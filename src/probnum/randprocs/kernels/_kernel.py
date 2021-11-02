@@ -4,8 +4,7 @@ import abc
 import functools
 from typing import Optional
 
-from probnum import _backend
-from probnum import utils as _pn_utils
+from probnum import backend, utils as _pn_utils
 from probnum.typing import ArrayLike, ArrayType, IntLike, ShapeLike, ShapeType
 
 
@@ -144,7 +143,7 @@ class Kernel(abc.ABC):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
-    @_backend.jit_method
+    @backend.jit_method
     def __call__(
         self,
         x0: ArrayLike,
@@ -209,10 +208,10 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = _backend.atleast_1d(x0)
+        x0 = backend.atleast_1d(x0)
 
         if x1 is not None:
-            x1 = _backend.atleast_1d(x1)
+            x1 = backend.atleast_1d(x1)
 
         # Shape checking
         broadcast_input_shape = self._kernel_broadcast_shapes(x0, x1)
@@ -224,7 +223,7 @@ class Kernel(abc.ABC):
 
         return k_x0_x1
 
-    @_backend.jit_method
+    @backend.jit_method
     def matrix(
         self,
         x0: ArrayLike,
@@ -270,8 +269,8 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = _backend.atleast_2d(x0)
-        x1 = x0 if x1 is None else _backend.atleast_2d(x1)
+        x0 = backend.atleast_2d(x0)
+        x1 = x0 if x1 is None else backend.atleast_2d(x1)
 
         # Shape checking
         errmsg = (
@@ -395,7 +394,7 @@ class Kernel(abc.ABC):
             try:
                 # Ironically, `np.broadcast_arrays` seems to be more efficient than
                 # `np.broadcast_shapes`
-                broadcast_input_shape = _backend.broadcast_arrays(x0, x1)[0].shape
+                broadcast_input_shape = backend.broadcast_arrays(x0, x1)[0].shape
             except ValueError as v:
                 raise ValueError(
                     f"The input arrays `x0` and `x1` with shapes {x0.shape} and "
@@ -407,7 +406,7 @@ class Kernel(abc.ABC):
 
         return broadcast_input_shape
 
-    @_backend.jit_method
+    @backend.jit_method
     def _euclidean_inner_products(
         self, x0: ArrayType, x1: Optional[ArrayType]
     ) -> ArrayType:
@@ -418,7 +417,7 @@ class Kernel(abc.ABC):
         if prods.shape[-1] == 1:
             return self.input_dim * prods[..., 0]
 
-        return _backend.sum(prods, axis=-1)
+        return backend.sum(prods, axis=-1)
 
 
 class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
@@ -434,14 +433,14 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     Hence, all isotropic kernels are stationary.
     """
 
-    @_backend.jit_method
+    @backend.jit_method
     def _squared_euclidean_distances(
         self, x0: ArrayType, x1: Optional[ArrayType]
     ) -> ArrayType:
         """Implementation of the squared Euclidean distance, which supports kernel
         broadcasting semantics."""
         if x1 is None:
-            return _backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[:-1],
             )
@@ -451,16 +450,16 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         if sqdiffs.shape[-1] == 1:
             return self.input_dim * sqdiffs[..., 0]
 
-        return _backend.sum(sqdiffs, axis=-1)
+        return backend.sum(sqdiffs, axis=-1)
 
-    @_backend.jit_method
+    @backend.jit_method
     def _euclidean_distances(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         """Implementation of the Euclidean distance, which supports kernel
         broadcasting semantics."""
         if x1 is None:
-            return _backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[:-1],
             )
 
-        return _backend.sqrt(self._squared_euclidean_distances(x0, x1))
+        return backend.sqrt(self._squared_euclidean_distances(x0, x1))

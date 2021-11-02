@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import _backend
+from probnum import backend
 from probnum.typing import ArrayType, DTypeLike, ScalarLike, ShapeLike, ShapeType
 
 __all__ = ["as_shape", "as_numpy_scalar", "as_scalar"]
@@ -71,7 +71,7 @@ def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ArrayType:
         Data type of the scalar.
     """
 
-    if _backend.ndim(x) != 0:
+    if backend.ndim(x) != 0:
         raise ValueError("The given input is not a scalar.")
 
-    return _backend.asarray(x, dtype=dtype)[()]
+    return backend.asarray(x, dtype=dtype)[()]

@@ -11,4 +11,4 @@ def cho_solve(c_and_lower, b, overwrite_b=False, check_finite=True):
 
 
 def cholesky(a, lower=False, overwrite_a=False, check_finite=True):
-    return torch.cholesky(a, upper=not lower)
+    return torch.linalg.cholesky(a, upper=not lower)

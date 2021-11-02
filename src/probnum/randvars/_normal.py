@@ -7,7 +7,7 @@ import numpy as np
 import scipy.linalg
 import scipy.stats
 
-from probnum import _backend, config, linops, utils as _utils
+from probnum import backend, config, linops, utils as _utils
 from probnum.typing import (
     ArrayIndicesLike,
     ArrayLike,
@@ -75,22 +75,22 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     ):
         # Type normalization
         if not isinstance(mean, linops.LinearOperator):
-            mean = _backend.asarray(mean)
+            mean = backend.asarray(mean)
 
         if not isinstance(cov, linops.LinearOperator):
-            cov = _backend.asarray(cov)
+            cov = backend.asarray(cov)
 
         if not isinstance(cov_cholesky, linops.LinearOperator):
-            cov = _backend.asarray(cov)
+            cov = backend.asarray(cov)
 
         # Data type normalization
-        dtype = _backend.promote_types(mean.dtype, cov.dtype)
+        dtype = backend.promote_types(mean.dtype, cov.dtype)
 
-        if not _backend.is_floating:
-            dtype = _backend.double
+        if not backend.is_floating:
+            dtype = backend.double
 
-        mean = _backend.cast(mean, dtype=dtype, casting="safe", copy=False)
-        cov = _backend.cast(cov, dtype=dtype, casting="safe", copy=False)
+        mean = backend.cast(mean, dtype=dtype, casting="safe", copy=False)
+        cov = backend.cast(cov, dtype=dtype, casting="safe", copy=False)
 
         # Shape checking
         expected_cov_shape = (
@@ -107,7 +107,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         # Method selection
         scalar = mean.ndim == 0
-        dense = isinstance(mean, _backend.ndarray) and isinstance(cov, _backend.ndarray)
+        dense = isinstance(mean, backend.ndarray) and isinstance(cov, backend.ndarray)
         cov_operator = isinstance(cov, linops.LinearOperator)
         compute_cov_cholesky: Callable[[], _ValueType] = None
 
@@ -161,7 +161,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     )
 
                 if cov_cholesky.dtype != cov.dtype:
-                    cov_cholesky = _backend.cast(
+                    cov_cholesky = backend.cast(
                         cov_cholesky, dtype=cov.dtype, casting="safe", copy=False
                     )
 
@@ -415,16 +415,16 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _scalar_in_support(x: _ValueType) -> bool:
         return np.isfinite(x)
 
-    @_backend.jit_method
+    @backend.jit_method
     def _scalar_pdf(self, x: _ValueType) -> np.float_:
-        return _backend.exp(-((x - self.mean) ** 2) / (2.0 * self.var)) / _backend.sqrt(
-            2 * _backend.pi * self.var
+        return backend.exp(-((x - self.mean) ** 2) / (2.0 * self.var)) / backend.sqrt(
+            2 * backend.pi * self.var
         )
 
-    @_backend.jit_method
+    @backend.jit_method
     def _scalar_logpdf(self, x: _ValueType) -> ArrayType:
-        return -((x - self.mean) ** 2) / (2.0 * self.var) - 0.5 * _backend.log(
-            2.0 * _backend.pi * self.var
+        return -((x - self.mean) ** 2) / (2.0 * self.var) - 0.5 * backend.log(
+            2.0 * backend.pi * self.var
         )
 
     def _scalar_cdf(self, x: _ValueType) -> np.float_:
@@ -453,8 +453,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             damping_factor = config.covariance_inversion_damping
         dense_cov = self.dense_cov
 
-        return _backend.linalg.cholesky(
-            dense_cov + damping_factor * _backend.eye(self.size, dtype=self.dtype),
+        return backend.linalg.cholesky(
+            dense_cov + damping_factor * backend.eye(self.size, dtype=self.dtype),
             lower=True,
         )
 
@@ -479,7 +479,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _arg_todense(x: Union[np.ndarray, linops.LinearOperator]) -> np.ndarray:
         if isinstance(x, linops.LinearOperator):
             return x.todense()
-        elif isinstance(x, _backend.ndarray):
+        elif isinstance(x, backend.ndarray):
             return x
         else:
             raise ValueError(f"Unsupported argument type {type(x)}")
@@ -501,10 +501,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
         return -0.5 * (
-            x_centered
-            @ _backend.linalg.cho_solve((self.cov_cholesky, True), x_centered)
-            + self.size * _backend.log(2.0 * _backend.pi)
-        ) - _backend.sum(_backend.log(_backend.diag(self.cov_cholesky)))
+            x_centered @ backend.linalg.cho_solve((self.cov_cholesky, True), x_centered)
+            + self.size * backend.log(backend.array(2.0 * backend.pi))
+        ) - backend.sum(backend.log(backend.diag(self.cov_cholesky)))
 
     def _dense_cdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.cdf(

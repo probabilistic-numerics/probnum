@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 
-from probnum import _backend, utils as _utils
+from probnum import backend, utils as _utils
 from probnum.typing import ArrayIndicesLike, DTypeLike, FloatLike, ShapeLike, ShapeType
 
 _ValueType = TypeVar("ValueType")
@@ -351,7 +351,7 @@ class RandomVariable(Generic[_ValueType]):
         """
         if self.__std is None:
             try:
-                std = _backend.sqrt(self.var)
+                std = backend.sqrt(self.var)
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
@@ -782,7 +782,7 @@ class RandomVariable(Generic[_ValueType]):
         value_dtype :
             Dtype of a value.
         """
-        return _backend.promote_types(value_dtype, _backend.double)
+        return backend.promote_types(value_dtype, backend.double)
 
     def _as_value_type(self, x: Any) -> _ValueType:
         if self.__as_value_type is not None:

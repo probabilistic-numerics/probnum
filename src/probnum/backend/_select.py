@@ -1,8 +1,15 @@
+import enum
 import json
 import os
 import pathlib
 
-from . import Backend
+
+@enum.unique
+class Backend(enum.Enum):
+    JAX = enum.auto()
+    TORCH = enum.auto()
+    NUMPY = enum.auto()
+
 
 BACKEND_FILE = pathlib.Path.home() / ".probnum.json"
 BACKEND_FILE_KEY = "backend"
@@ -11,22 +18,23 @@ BACKEND_ENV_VAR = "PROBNUM_BACKEND"
 
 
 def select_backend() -> Backend:
+    backend_str = None
+
     if BACKEND_ENV_VAR in os.environ:
         backend_str = os.environ[BACKEND_ENV_VAR].upper()
+    elif BACKEND_FILE.exists() and BACKEND_FILE.is_file():
+        with BACKEND_FILE.open("r") as f:
+            config = json.load(f)
 
-        # if backend_str not in Backend:
-        #     raise ValueError("TODO")
+        if BACKEND_FILE_KEY in config:
+            backend_str = config[BACKEND_FILE_KEY].upper()
 
-        return Backend[backend_str]
-
-    if BACKEND_FILE.exists() and BACKEND_FILE.is_file():
+    if backend_str is not None:
         try:
-            with BACKEND_FILE.open("r") as f:
-                config = json.load(f)
-
-            return Backend[config[BACKEND_FILE_KEY].upper()]
-        except Exception:
-            pass
+            return Backend[backend_str]
+        except KeyError as e:
+            # TODO
+            raise e from e
 
     return _select_via_import()
 
@@ -42,7 +50,7 @@ def _select_via_import() -> Backend:
     try:
         import torch  # pylint: disable=unused-import,import-outside-toplevel
 
-        return Backend.PYTORCH
+        return Backend.TORCH
     except ImportError:
         pass
 

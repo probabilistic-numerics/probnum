@@ -1,5 +1,4 @@
 import jax
-from jax import grad  # pylint: disable=unused-import
 from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     array,
     asarray,
@@ -27,12 +26,15 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     ones_like,
     pi,
     promote_types,
+    sin,
     single,
     sqrt,
     sum,
     zeros,
     zeros_like,
 )
+
+jax.config.update("jax_enable_x64", True)
 
 
 def cast(a: jax.numpy.ndarray, dtype=None, casting="unsafe", copy=None):

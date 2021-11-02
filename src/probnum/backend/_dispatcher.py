@@ -19,7 +19,7 @@ class Dispatcher:
             self._impl[Backend.JAX] = jax_impl
 
         if pytorch_impl is not None:
-            self._impl[Backend.PYTORCH] = pytorch_impl
+            self._impl[Backend.TORCH] = pytorch_impl
 
     def numpy(self, impl: Callable) -> Callable:
         if Backend.NUMPY in self._impl:
@@ -38,10 +38,10 @@ class Dispatcher:
         return impl
 
     def torch(self, impl: Callable) -> Callable:
-        if Backend.PYTORCH in self._impl:
+        if Backend.TORCH in self._impl:
             raise Exception()  # TODO
 
-        self._impl[Backend.PYTORCH] = impl
+        self._impl[Backend.TORCH] = impl
 
         return impl
 

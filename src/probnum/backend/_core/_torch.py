@@ -23,8 +23,11 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     maximum,
     pi,
     promote_types,
+    sin,
     sqrt,
 )
+
+torch.set_default_dtype(torch.double)
 
 
 def array(object, dtype=None, *, copy=True):
@@ -32,24 +35,6 @@ def array(object, dtype=None, *, copy=True):
         return torch.tensor(object, dtype=dtype)
 
     return asarray(object, dtype=dtype)
-
-
-def grad(fun, argnums=0):
-    def _grad_fn(*args, **kwargs):
-        if isinstance(argnums, int):
-            args = list(args)
-            args[argnums] = torch.tensor(args[argnums], requires_grad=True)
-
-            return torch.autograd.grad(fun(*args, **kwargs), args[argnums])
-
-        for argnum in argnums:
-            args[argnum].requires_grad_()
-
-        return torch.autograd.grad(
-            fun(*args, **kwargs), tuple(args[argnum] for argnum in argnums)
-        )
-
-    return _grad_fn
 
 
 def ndim(a):
