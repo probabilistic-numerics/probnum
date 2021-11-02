@@ -1,6 +1,6 @@
 import jax
-from jax import grad
-from jax.numpy import (
+from jax import grad  # pylint: disable=unused-import
+from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     array,
     asarray,
     atleast_1d,
@@ -14,10 +14,13 @@ from jax.numpy import (
     double,
     exp,
     eye,
+    finfo,
+    inf,
     int32,
     int64,
     linspace,
     log,
+    maximum,
     ndarray,
     ndim,
     ones,

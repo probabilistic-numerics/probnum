@@ -2,12 +2,9 @@
 
 from typing import Optional
 
-import numpy as np
-import scipy.spatial.distance
-import scipy.special
-
 import probnum.utils as _utils
-from probnum.typing import IntLike, ScalarLike
+from probnum import _backend
+from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -67,42 +64,43 @@ class Matern(Kernel, IsotropicMixin):
         lengthscale: ScalarLike = 1.0,
         nu: ScalarLike = 1.5,
     ):
-        self.lengthscale = _utils.as_numpy_scalar(lengthscale)
+        self.lengthscale = _utils.as_scalar(lengthscale)
         if not self.lengthscale > 0:
             raise ValueError(f"Lengthscale l={self.lengthscale} must be positive.")
-        self.nu = _utils.as_numpy_scalar(nu)
+        self.nu = _utils.as_scalar(nu)
         if not self.nu > 0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
         super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    @_backend.jit_method
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
         distances = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
-            return np.exp(-1.0 / self.lengthscale * distances)
+            return _backend.exp(-1.0 / self.lengthscale * distances)
 
         if self.nu == 1.5:
-            scaled_distances = -np.sqrt(3) / self.lengthscale * distances
-            return (1.0 + scaled_distances) * np.exp(-scaled_distances)
+            scaled_distances = -_backend.sqrt(3) / self.lengthscale * distances
+            return (1.0 + scaled_distances) * _backend.exp(-scaled_distances)
 
         if self.nu == 2.5:
-            scaled_distances = np.sqrt(5) / self.lengthscale * distances
-            return (1.0 + scaled_distances + scaled_distances ** 2 / 3.0) * np.exp(
-                -scaled_distances
-            )
+            scaled_distances = _backend.sqrt(5) / self.lengthscale * distances
+            return (
+                1.0 + scaled_distances + scaled_distances ** 2 / 3.0
+            ) * _backend.exp(-scaled_distances)
 
-        if self.nu == np.inf:
-            return np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
+        if self.nu == _backend.inf:
+            return _backend.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
 
         # The modified Bessel function K_nu is not defined for z=0
-        distances = np.maximum(distances, np.finfo(distances.dtype).eps)
+        distances = _backend.maximum(distances, _backend.finfo(distances.dtype).eps)
 
-        scaled_distances = np.sqrt(2 * self.nu) / self.lengthscale * distances
+        scaled_distances = _backend.sqrt(2 * self.nu) / self.lengthscale * distances
         return (
             2 ** (1.0 - self.nu)
-            / scipy.special.gamma(self.nu)
+            / _backend.special.gamma(self.nu)
             * scaled_distances ** self.nu
-            * scipy.special.kv(self.nu, scaled_distances)
+            * _backend.special.kv(self.nu, scaled_distances)
         )

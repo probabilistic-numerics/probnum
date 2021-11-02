@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import (
+from numpy import (  # pylint: disable=redefined-builtin, unused-import
     array,
     asarray,
     atleast_1d,
@@ -13,10 +13,13 @@ from numpy import (
     double,
     exp,
     eye,
+    finfo,
+    inf,
     int32,
     int64,
     linspace,
     log,
+    maximum,
     ndarray,
     ndim,
     ones,

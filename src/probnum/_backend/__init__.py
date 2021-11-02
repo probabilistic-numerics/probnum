@@ -28,6 +28,7 @@ __all__ = [
     "cast",
     "promote_types",
     "is_floating",
+    "finfo",
     # Shape Arithmetic
     "atleast_1d",
     "atleast_2d",
@@ -45,11 +46,13 @@ __all__ = [
     "linspace",
     # Constants
     "pi",
+    "inf",
     # Operations
     "exp",
     "log",
     "sqrt",
     "sum",
+    "maximum",
     # Automatic Differentiation
     "grad",
 ]
@@ -58,6 +61,7 @@ __all__ = [
 
 from ._dispatcher import Dispatcher
 from . import linalg
+from . import special
 
 # isort: on
 

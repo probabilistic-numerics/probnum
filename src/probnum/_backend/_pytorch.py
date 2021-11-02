@@ -1,5 +1,5 @@
 import torch
-from torch import (
+from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
     Tensor as ndarray,
     as_tensor as asarray,
     atleast_1d,
@@ -13,12 +13,15 @@ from torch import (
     double,
     exp,
     eye,
+    finfo,
     float as single,
     int32,
     int64,
     is_floating_point as is_floating,
     linspace,
     log,
+    maximum,
+    pi,
     promote_types,
     sqrt,
 )
@@ -107,4 +110,4 @@ def jit_method(f, *args, **kwargs):
     return f
 
 
-pi = torch.tensor(torch.pi)
+inf = float("inf")
