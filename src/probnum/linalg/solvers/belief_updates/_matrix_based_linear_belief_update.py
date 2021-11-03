@@ -12,12 +12,12 @@ from ._linear_solver_belief_update import LinearSolverBeliefUpdate
 class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
     r"""Gaussian belief update in a matrix-based inference framework assuming linear information.
 
-    Updates the belief over the quantities of interest of a linear system :math:`Ax=b` given matrix-variate Gaussian beliefs with Kronecker covariance structure and linear observations. The belief update computes :math:`p(M \mid y) = \mathcal{N}(M; M_{i+1}, V \otimes W_{i+1})`, [1]_ [2]_ such that
+    Updates the belief over the quantities of interest of a linear system :math:`Ax=b` given matrix-variate Gaussian beliefs with Kronecker covariance structure and linear observations :math:`y=As`. The belief update computes :math:`p(M \mid y) = \mathcal{N}(M; M_{i+1}, V \otimes W_{i+1})`, [1]_ [2]_ such that
 
     .. math ::
         \begin{align}
             M_{i+1} &= M_i + (y - M_i s) (s^\top W_i s)^\dagger s^\top W_i,\\
-            W_{i+1} &= W_i - W_i s (s^\top W s)^\dagger s^\top W_i.
+            W_{i+1} &= W_i - W_i s (s^\top W_i s)^\dagger s^\top W_i.
         \end{align}
 
 

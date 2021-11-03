@@ -42,17 +42,17 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> LinearSystemBelief:
 
-        A_action = solver_state.problem.A @ solver_state.action
-        pred = A_action.T @ solver_state.belief.x.mean
-        resid = solver_state.observation - pred
-        cov_xy = solver_state.belief.x.cov @ A_action
-        gram = A_action.T @ cov_xy + self._noise_var
+        action_A = solver_state.action @ solver_state.problem.A
+        pred = action_A @ solver_state.belief.x.mean
+        proj_resid = solver_state.observation - pred
+        cov_xy = solver_state.belief.x.cov @ action_A.T
+        gram = action_A @ cov_xy + self._noise_var
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = cov_xy * gram_pinv
         cov_update = gain @ cov_xy.T
 
         x = randvars.Normal(
-            mean=solver_state.belief.x.mean + gain * resid,
+            mean=solver_state.belief.x.mean + gain * proj_resid,
             cov=solver_state.belief.x.cov - cov_update,
         )
         Ainv = solver_state.belief.Ainv + cov_update
