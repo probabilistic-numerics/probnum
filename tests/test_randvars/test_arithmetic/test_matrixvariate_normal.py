@@ -3,8 +3,6 @@
 import numpy as np
 import pytest
 
-from probnum import utils
-
 
 @pytest.mark.parametrize("shape_const,shape", [((4, 3), (3, 2)), ((1, 3), (3, 2))])
 @pytest.mark.parametrize("precompute_cov_cholesky", [False])
