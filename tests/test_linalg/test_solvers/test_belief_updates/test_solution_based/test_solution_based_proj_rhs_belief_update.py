@@ -10,7 +10,7 @@ from pytest_cases import parametrize_with_cases
 from probnum import randvars
 from probnum.linalg.solvers import LinearSolverState, belief_updates, beliefs
 
-case_modules = (pathlib.Path(__file__).parent / "cases").stem
+case_modules = (pathlib.Path(__file__).parent.parent / "cases").stem
 cases_belief_updates = case_modules + ".belief_updates"
 cases_states = case_modules + ".states"
 
@@ -24,7 +24,7 @@ cases_states = case_modules + ".states"
     has_tag=["has_action", "has_observation", "solution_based"],
 )
 def test_returns_linear_system_belief(
-    belief_update: belief_updates.SolutionBasedProjectedRHSBeliefUpdate,
+    belief_update: belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate,
     state: LinearSolverState,
 ):
     belief = belief_update(solver_state=state)
@@ -33,7 +33,9 @@ def test_returns_linear_system_belief(
 
 def test_negative_noise_variance_raises_error():
     with pytest.raises(ValueError):
-        belief_updates.SolutionBasedProjectedRHSBeliefUpdate(noise_var=-1.0)
+        belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(
+            noise_var=-1.0
+        )
 
 
 @parametrize_with_cases(
@@ -45,7 +47,7 @@ def test_negative_noise_variance_raises_error():
     has_tag=["has_action", "has_observation", "solution_based"],
 )
 def test_beliefs_against_naive_implementation(
-    belief_update: belief_updates.SolutionBasedProjectedRHSBeliefUpdate,
+    belief_update: belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate,
     state: LinearSolverState,
 ):
     """Compare the updated belief to a naive implementation."""

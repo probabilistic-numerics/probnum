@@ -5,7 +5,7 @@ from probnum import randvars
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.typing import FloatArgType
 
-from ._linear_solver_belief_update import LinearSolverBeliefUpdate
+from .._linear_solver_belief_update import LinearSolverBeliefUpdate
 
 
 class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):

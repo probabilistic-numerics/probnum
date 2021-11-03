@@ -6,7 +6,7 @@ import probnum  # pylint: disable="unused-import"
 from probnum import linops, randvars
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 
-from ._linear_solver_belief_update import LinearSolverBeliefUpdate
+from .._linear_solver_belief_update import LinearSolverBeliefUpdate
 
 
 class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
