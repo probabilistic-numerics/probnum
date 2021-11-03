@@ -16,7 +16,7 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
 
     .. math ::
         \begin{align}
-            M_{i+1} &= M_i + (y - M_i s) (s^\top W s)^\dagger s^\top W_i,\\
+            M_{i+1} &= M_i + (y - M_i s) (s^\top W_i s)^\dagger s^\top W_i,\\
             W_{i+1} &= W_i - W_i s (s^\top W s)^\dagger s^\top W_i.
         \end{align}
 
