@@ -288,8 +288,13 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
         # because of performance configurations: currently, there is no way of switching
         # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
         # of matrix-variate Normal RVs. See Issue #335.
+        if constant_rv.support.ndim == 1:
+            constant_rv_support = constant_rv.support[:, None]
+        else:
+            constant_rv_support = constant_rv.support
         cov_update = _linear_operators.Kronecker(
-            _linear_operators.Identity(constant_rv.shape[0]), constant_rv.support
+            _linear_operators.Identity(norm_rv.shape[0]),
+            constant_rv_support,
         )
 
         return _Normal(
@@ -319,10 +324,23 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
             cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
             cov_cholesky=cov_cholesky,
         )
+    elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
+        # This part does not do the Cholesky update,
+        # because of performance configurations: currently, there is no way of switching
+        # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
+        # of matrix-variate Normal RVs. See Issue #335.
+        cov_update = _linear_operators.Kronecker(
+            constant_rv.support,
+            _linear_operators.Identity(norm_rv.shape[1]),
+        )
+
+        return _Normal(
+            mean=constant_rv.support @ norm_rv.mean,
+            cov=cov_update @ (norm_rv.cov @ cov_update.T),
+        )
     else:
         raise TypeError(
-            "Currently, matrix multiplication is only supported for vector-variate "
-            "Gaussians."
+            "Currently, matrix multiplication is only supported for vector and matrix-variate Gaussians."
         )
 
 
