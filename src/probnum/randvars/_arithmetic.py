@@ -125,7 +125,10 @@ def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
 
 
 def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
-    sample_fn = lambda size: op_fn(rv1.sample(size), rv2.sample(size))
+    rng = np.random.default_rng(1)
+    sample_fn = lambda size: op_fn(
+        rv1.sample(size=size, rng=rng), rv2.sample(size=size, rng=rng)
+    )
 
     # Infer shape and dtype
     infer_sample = sample_fn(())
