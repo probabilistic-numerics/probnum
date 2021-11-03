@@ -11,7 +11,7 @@ from ._linear_solver_belief_update import LinearSolverBeliefUpdate
 class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
     r"""Gaussian belief update in a solution-based inference framework assuming projected right-hand-side information.
 
-    Updates the belief over the quantities of interest of a linear system :math:`Ax=b` given a Gaussian belief over the solution :math:`x` and information of the form :math:`y = b^\top s=(Ax)^\top s`. The belief update computes the posterior belief about the solution, given by :math:`p(x \mid y) = \mathcal{N}(x; x_{i+1}, \Sigma_{i+1})`, [1]_ such that
+    Updates the belief over the quantities of interest of a linear system :math:`Ax=b` given a Gaussian belief over the solution :math:`x` and information of the form :math:`y = s\^top b=s^\top Ax`. The belief update computes the posterior belief about the solution, given by :math:`p(x \mid y) = \mathcal{N}(x; x_{i+1}, \Sigma_{i+1})`, [1]_ such that
 
     .. math ::
         \begin{align}
