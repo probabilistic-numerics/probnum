@@ -1,9 +1,8 @@
 """Fixtures for random variable arithmetic."""
 import numpy as np
 import pytest
-from scipy.sparse.construct import rand
 
-from probnum import linops, problems, randvars
+from probnum import linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 from probnum.typing import ShapeArgType
 
