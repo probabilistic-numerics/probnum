@@ -30,10 +30,10 @@ class TestConstant(unittest.TestCase):
         # Ignore scalar support, because in this case, LinOps make no sense.
         for supp in self.supports[1:]:
             with self.subTest():
-                with config(lazy_linalg=True):
+                with config(matrix_free=True):
                     rv_lo = randvars.Constant(support=supp)
                     assert isinstance(rv_lo.cov, linops.LinearOperator)
-                with config(lazy_linalg=False):
+                with config(matrix_free=False):
                     rv_de = randvars.Constant(support=supp)
                     assert isinstance(rv_de.cov, np.ndarray)
 

@@ -116,7 +116,7 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
     ):
         self.some_num_derivatives = some_num_derivatives
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        with config(lazy_linalg=True):
+        with config(matrix_free=True):
             self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
                 num_derivatives=self.some_num_derivatives,
                 wiener_process_dimension=spatialdim,

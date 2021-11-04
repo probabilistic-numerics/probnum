@@ -137,7 +137,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
     @cached_property
     def _drift_matrix(self):
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
-        if config.lazy_linalg:
+        if config.matrix_free:
             return linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
                 B=linops.Matrix(A=drift_matrix_1d),
@@ -153,7 +153,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
-        if config.lazy_linalg:
+        if config.matrix_free:
             return linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
                 B=linops.Matrix(A=dispersion_matrix_1d.reshape(-1, 1)),
@@ -174,7 +174,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         state_transition_1d = np.flip(
             scipy.linalg.pascal(self.num_derivatives + 1, kind="lower", exact=False)
         )
-        if config.lazy_linalg:
+        if config.matrix_free:
             state_transition = linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
                 B=linops.aslinop(state_transition_1d),
@@ -184,7 +184,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
                 np.eye(self.wiener_process_dimension), state_transition_1d
             )
         process_noise_1d = np.flip(scipy.linalg.hilbert(self.num_derivatives + 1))
-        if config.lazy_linalg:
+        if config.matrix_free:
             process_noise = linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
                 B=linops.aslinop(process_noise_1d),
@@ -198,7 +198,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
 
         process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
-        if config.lazy_linalg:
+        if config.matrix_free:
             process_noise_cholesky = linops.Kronecker(
                 A=linops.Identity(self.wiener_process_dimension),
                 B=linops.aslinop(process_noise_cholesky_1d),
