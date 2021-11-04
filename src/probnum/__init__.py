@@ -1,10 +1,9 @@
 """Probabilistic Numerical Methods.
 
-ProbNum implements probabilistic numerical methods in Python. Such
-methods solve numerical problems from linear algebra, optimization,
-quadrature and differential equations using probabilistic inference.
-This approach captures uncertainty arising from finite computational
-resources and stochastic input.
+ProbNum implements probabilistic numerical methods in Python. Such methods solve
+numerical problems from linear algebra, optimization, quadrature and differential
+equations using probabilistic inference. This approach captures uncertainty arising from
+finite computational resources and stochastic input.
 """
 
 # isort: off
@@ -30,14 +29,13 @@ from . import (
     utils,
 )
 from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
+from ._stopping_criterion import StoppingCriterion
 from ._version import version as __version__
 from .randvars import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = [
-    "asrandvar",
-    "ProbabilisticNumericalMethod",
-]
+__all__ = ["asrandvar", "ProbabilisticNumericalMethod", "StoppingCriterion"]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"
+StoppingCriterion.__module__ = "probnum"

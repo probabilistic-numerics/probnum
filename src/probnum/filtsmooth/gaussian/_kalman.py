@@ -51,7 +51,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         init_posterior
             Initial posterior to linearize at. If not specified, linearizes
             at the prediction random variable.
-        stopcrit: StoppingCriterion
+        stopcrit:
             A stopping criterion for iterated filtering.
 
         Returns
@@ -92,7 +92,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
             Initial posterior to linearize at. Defaults to computing a (non-iterated)
             smoothing posterior, which amounts to linearizing at the prediction
             random variable.
-        stopcrit: StoppingCriterion
+        stopcrit:
             A stopping criterion for iterated filtering.
 
         Yields
