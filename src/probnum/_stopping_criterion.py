@@ -10,10 +10,51 @@ class StoppingCriterion:
     Examples
     --------
     Stopping criteria support boolean arithmetic, which makes them easy to combine.
+    Take the following example, where we define a custom solver state.
 
-    >
-    >
-    >
+    >>> import dataclasses
+    >>> import numpy as np
+    >>> import probnum as pn
+
+    >>> @dataclasses.dataclass
+    ... class SolverState:
+    ...     iters = 50
+    ...     atol = 1e-3
+    ...     rtol = 1e-3
+
+    >>> state = SolverState()
+
+    Next we implement a few custom stopping criteria.
+
+    >>> class MaxIterations(pn.StoppingCriterion):
+    ...     def __init__(self, maxiters):
+    ...         self.maxiters = maxiters
+    ...     def __call__(self, solver_state) -> bool:
+    ...         return solver_state.iters >= self.maxiters
+
+    >>> class AbsoluteResidualTolerance(pn.StoppingCriterion):
+    ...     def __init__(self, atol=1e-6):
+    ...         self.atol = atol
+    ...     def __call__(self, solver_state) -> bool:
+    ...         return solver_state.atol < self.atol
+
+    >>> class RelativeResidualTolerance(pn.StoppingCriterion):
+    ...     def __init__(self, rtol=1e-6):
+    ...         self.rtol = rtol
+    ...     def __call__(self, solver_state) -> bool:
+    ...         return solver_state.rtol < self.rtol
+
+    Now let's combine them by stopping when the solver has reached an absolute and relative tolerance, or a maximum number of iterations.
+
+    >>> stopcrit = MaxIterations(maxiters=100) or (AbsoluteResidualTolerance(atol=1e-6, rtol=1e-5) and RelativeResidualTolerance(rtol=1e-6))
+    >>> stopcrit(state)
+    False
+
+    Now let's modify the state such that the solver has reached a maximum number of iterations.
+
+    >>> state.iters = 1000
+    >>> stopcrit(state)
+    True
 
     See Also
     --------
