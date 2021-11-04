@@ -9,7 +9,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import _randomvariablelist, filtsmooth, randvars
+from probnum import filtsmooth, randvars
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
 from probnum.typing import FloatArgType, IntArgType, ShapeArgType
 
@@ -31,12 +31,12 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def __init__(
         self,
         locations: np.ndarray,
-        states: _randomvariablelist._RandomVariableList,
-        derivatives: Optional[_randomvariablelist._RandomVariableList] = None,
+        states: randvars._RandomVariableList,
+        derivatives: Optional[randvars._RandomVariableList] = None,
     ):
         super().__init__(locations=locations, states=states)
         self.derivatives = (
-            _randomvariablelist._RandomVariableList(derivatives)
+            randvars._RandomVariableList(derivatives)
             if derivatives is not None
             else None
         )

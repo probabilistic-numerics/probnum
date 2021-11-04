@@ -1,10 +1,9 @@
 """Random Variables.
 
-Random variables generalize multi-dimensional arrays by encoding
-uncertainty about the (numerical) quantity in question. Despite their
-name, they do not necessarily represent stochastic objects. Random
-variables are also the primary in- and outputs of probabilistic
-numerical methods.
+Random variables generalize multi-dimensional arrays by encoding uncertainty about the
+(numerical) quantity in question. Despite their name, they do not necessarily represent
+stochastic objects. Random variables are also the primary in- and outputs of
+probabilistic numerical methods.
 """
 
 from ._categorical import Categorical
@@ -15,6 +14,7 @@ from ._random_variable import (
     DiscreteRandomVariable,
     RandomVariable,
 )
+from ._randomvariablelist import _RandomVariableList
 from ._scipy_stats import (
     WrappedSciPyContinuousRandomVariable,
     WrappedSciPyDiscreteRandomVariable,
@@ -34,6 +34,7 @@ __all__ = [
     "WrappedSciPyRandomVariable",
     "WrappedSciPyDiscreteRandomVariable",
     "WrappedSciPyContinuousRandomVariable",
+    "_RandomVariableList",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -48,5 +49,7 @@ WrappedSciPyContinuousRandomVariable.__module__ = "probnum.randvars"
 Constant.__module__ = "probnum.randvars"
 Normal.__module__ = "probnum.randvars"
 Categorical.__module__ = "probnum.randvars"
+
+_RandomVariableList.__module__ = "probnum.randvars"
 
 asrandvar.__module__ = "probnum.randvars"
