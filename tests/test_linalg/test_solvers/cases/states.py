@@ -32,9 +32,7 @@ def case_initial_state(
     rng: np.random.Generator,
 ):
     """Initial state of a linear solver."""
-    return linalg.solvers.ProbabilisticLinearSolverState(
-        problem=linsys, prior=prior, rng=rng
-    )
+    return linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
 
 
 @case(tags=["has_action"])
@@ -42,10 +40,70 @@ def case_state(
     rng: np.random.Generator,
 ):
     """State of a linear solver."""
-    initial_state = linalg.solvers.ProbabilisticLinearSolverState(
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
+    state.action = rng.standard_normal(size=state.problem.A.shape[1])
+
+    return state
+
+
+@case(tags=["has_action", "has_observation", "matrix_based"])
+def case_state_matrix_based(
+    rng: np.random.Generator,
+):
+    """State of a matrix-based linear solver."""
+    prior = linalg.solvers.beliefs.LinearSystemBelief(
+        A=randvars.Normal(
+            mean=linops.Matrix(linsys.A),
+            cov=linops.Kronecker(A=linops.Identity(n), B=linops.Identity(n)),
+        ),
+        x=(Ainv @ b[:, None]).reshape((n,)),
+        Ainv=randvars.Normal(
+            mean=linops.Identity(n),
+            cov=linops.Kronecker(A=linops.Identity(n), B=linops.Identity(n)),
+        ),
+        b=b,
+    )
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
+    state.action = rng.standard_normal(size=state.problem.A.shape[1])
+    state.observation = rng.standard_normal(size=state.problem.A.shape[1])
+
+    return state
+
+
+@case(tags=["has_action", "has_observation", "symmetric_matrix_based"])
+def case_state_symmetric_matrix_based(
+    rng: np.random.Generator,
+):
+    """State of a symmetric matrix-based linear solver."""
+    prior = linalg.solvers.beliefs.LinearSystemBelief(
+        A=randvars.Normal(
+            mean=linops.Matrix(linsys.A),
+            cov=linops.SymmetricKronecker(A=linops.Identity(n)),
+        ),
+        x=(Ainv @ b[:, None]).reshape((n,)),
+        Ainv=randvars.Normal(
+            mean=linops.Identity(n),
+            cov=linops.SymmetricKronecker(A=linops.Identity(n)),
+        ),
+        b=b,
+    )
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
+    state.action = rng.standard_normal(size=state.problem.A.shape[1])
+    state.observation = rng.standard_normal(size=state.problem.A.shape[1])
+
+    return state
+
+
+@case(tags=["has_action", "has_observation", "solution_based"])
+def case_state_solution_based(
+    rng: np.random.Generator,
+):
+    """State of a solution-based linear solver."""
+    initial_state = linalg.solvers.LinearSolverState(
         problem=linsys, prior=prior, rng=rng
     )
     initial_state.action = rng.standard_normal(size=initial_state.problem.A.shape[1])
+    initial_state.observation = rng.standard_normal()
 
     return initial_state
 
@@ -60,7 +118,5 @@ def case_state_converged(
         x=randvars.Constant(linsys.solution),
         b=randvars.Constant(linsys.b),
     )
-    state = linalg.solvers.ProbabilisticLinearSolverState(
-        problem=linsys, prior=belief, rng=rng
-    )
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=belief, rng=rng)
     return state

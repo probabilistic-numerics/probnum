@@ -10,16 +10,16 @@ from probnum.linalg.solvers.matrixbased import (
     SymmetricMatrixBasedSolver,
 )
 
-from . import beliefs, information_ops, policies
+from . import belief_updates, beliefs, information_ops, policies, stopping_criteria
 from ._probabilistic_linear_solver import ProbabilisticLinearSolver
-from ._state import ProbabilisticLinearSolverState
+from ._state import LinearSolverState
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "ProbabilisticLinearSolver",
     "MatrixBasedSolver",
     "SymmetricMatrixBasedSolver",
-    "ProbabilisticLinearSolverState",
+    "LinearSolverState",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
