@@ -73,7 +73,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             np.promote_types(self._support.dtype, np.float_)
         )
 
-        if config.lazy_linalg:
+        if config.matrix_free:
             cov = lambda: (
                 linops.Scaling(
                     0.0,
