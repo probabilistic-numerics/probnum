@@ -19,7 +19,7 @@ class StoppingCriterion:
     >>> @dataclasses.dataclass
     ... class SolverState:
     ...     iters = 50
-    ...     atol = 1e-3
+    ...     atol = 1e-12
     ...     rtol = 1e-3
 
     >>> state = SolverState()
