@@ -24,7 +24,7 @@ def maxit():
 
 @pytest.fixture
 def stopcrit():
-    return filtsmooth.optim.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
+    return filtsmooth.optim.FiltSmoothStoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
 
 def test_continue(stopcrit, d1, d2):

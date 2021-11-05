@@ -1,11 +1,11 @@
 """Base class for linear solver stopping criteria."""
 
 import probnum  # pylint: disable="unused-import"
-from probnum import pnm
+from probnum._pnmethod import StoppingCriterion
 
 
-class LinearSolverStoppingCriterion(pnm.StoppingCriterion):
-    r"""Stopping criterion of a (probabilistic) linear solver.
+class LinearSolverStoppingCriterion(StoppingCriterion):
+    r"""Stopping criterion of a probabilistic linear solver.
 
     Checks whether quantities tracked by the :class:`~probnum.linalg.solvers.LinearSolverState` meet a desired terminal condition.
 

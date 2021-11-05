@@ -1,10 +1,10 @@
 """Stopping criteria for iterated filtering and smoothing."""
 import numpy as np
 
-from probnum import pnm
+from probnum import StoppingCriterion
 
 
-class FiltSmoothStoppingCriterion(pnm.StoppingCriterion):
+class FiltSmoothStoppingCriterion(StoppingCriterion):
     """Stop iteration if absolute and relative tolerance are reached."""
 
     def __init__(self, atol=1e-3, rtol=1e-6, maxit=1000):

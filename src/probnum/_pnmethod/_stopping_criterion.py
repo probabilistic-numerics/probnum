@@ -1,22 +1,22 @@
-"""Stopping criterion for a (probabilistic) numerical method."""
+"""Stopping criterion for a probabilistic numerical method."""
 
 import abc
 
 
 class StoppingCriterion(abc.ABC):
-    r"""Stopping criterion of a (probabilistic) numerical method.
+    r"""Stopping criterion of a probabilistic numerical method.
 
-    Checks whether quantities tracked by the (probabilistic) numerical
+    Checks whether quantities tracked by the probabilistic numerical
     method meet a desired terminal condition.
 
     Examples
     --------
-    Stopping criteria support boolean arithmetic, which makes them easy to combine.
+    Stopping criteria support binary arithmetic, which makes them easy to combine.
     Take the following example, where we define a custom solver state.
 
     >>> import dataclasses
     >>> import numpy as np
-    >>> import probnum as pn
+    >>> from probnum import pnm
 
     >>> @dataclasses.dataclass
     ... class SolverState:
@@ -28,19 +28,19 @@ class StoppingCriterion(abc.ABC):
 
     Next we implement a few custom stopping criteria.
 
-    >>> class MaxIterations(pn.StoppingCriterion):
+    >>> class MaxIterations(pnm.StoppingCriterion):
     ...     def __init__(self, maxiters):
     ...         self.maxiters = maxiters
     ...     def __call__(self, solver_state) -> bool:
     ...         return solver_state.iters >= self.maxiters
 
-    >>> class AbsoluteResidualTolerance(pn.StoppingCriterion):
+    >>> class AbsoluteResidualTolerance(pnm.StoppingCriterion):
     ...     def __init__(self, atol=1e-6):
     ...         self.atol = atol
     ...     def __call__(self, solver_state) -> bool:
     ...         return solver_state.atol < self.atol
 
-    >>> class RelativeResidualTolerance(pn.StoppingCriterion):
+    >>> class RelativeResidualTolerance(pnm.StoppingCriterion):
     ...     def __init__(self, rtol=1e-6):
     ...         self.rtol = rtol
     ...     def __call__(self, solver_state) -> bool:
@@ -48,9 +48,9 @@ class StoppingCriterion(abc.ABC):
 
     Now let's combine them by stopping when the solver has reached an absolute and relative tolerance, or a maximum number of iterations.
 
-    >>> stopcrit = MaxIterations(maxiters=100) or (
+    >>> stopcrit = MaxIterations(maxiters=100) | (
     ...     AbsoluteResidualTolerance(atol=1e-6, rtol=1e-5)
-    ...     and RelativeResidualTolerance(rtol=1e-6)
+    ...     & RelativeResidualTolerance(rtol=1e-6)
     ... )
 
     >>> stopcrit(state)
@@ -65,6 +65,7 @@ class StoppingCriterion(abc.ABC):
     See Also
     --------
     LinearSolverStoppingCriterion : Stopping criterion of a probabilistic linear solver.
+    FiltSmoothStoppingCriterion : Stopping criterion of filters and smoothers.
     """
 
     @abc.abstractmethod

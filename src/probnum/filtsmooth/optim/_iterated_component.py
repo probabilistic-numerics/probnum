@@ -1,7 +1,7 @@
 import numpy as np
 
 from probnum import randprocs
-from probnum.filtsmooth.optim import _stopping_criterion
+from probnum.filtsmooth.optim import FiltSmoothStoppingCriterion
 
 
 class IteratedDiscreteComponent(randprocs.markov.Transition):
@@ -9,7 +9,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     Examples
     --------
-    >>> from probnum.filtsmooth.optim import StoppingCriterion
+    >>> from probnum.filtsmooth.optim import FiltSmoothStoppingCriterion
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.problems.zoo.diffeq import logistic
     >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
@@ -60,11 +60,10 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
         stopcrit=None,
     ):
         self._component = component
-        self.stopcrit = (
-            _stopping_criterion.FiltSmoothStoppingCriterion()
-            if stopcrit is None
-            else stopcrit
-        )
+        if stopcrit is None:
+            self.stopcrit = FiltSmoothStoppingCriterion()
+        else:
+            self.stopcrit = stopcrit
         super().__init__(input_dim=component.input_dim, output_dim=component.output_dim)
 
     # Iterated filtering implementation
