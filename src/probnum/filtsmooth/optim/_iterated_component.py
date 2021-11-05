@@ -9,7 +9,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     Examples
     --------
-    >>> from probnum.filtsmooth.optim import StoppingCriterion
+    >>> from probnum.filtsmooth.optim import FiltSmoothStoppingCriterion
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.problems.zoo.diffeq import logistic
     >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess

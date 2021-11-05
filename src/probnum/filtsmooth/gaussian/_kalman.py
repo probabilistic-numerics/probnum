@@ -108,7 +108,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         """
 
         if stopcrit is None:
-            stopcrit = FiltSmoothStoppingCriterion()
+            stopcrit = optim.FiltSmoothStoppingCriterion()
 
         if init_posterior is None:
             # Initialise iterated smoother

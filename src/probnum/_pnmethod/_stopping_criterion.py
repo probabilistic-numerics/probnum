@@ -16,7 +16,7 @@ class StoppingCriterion(abc.ABC):
 
     >>> import dataclasses
     >>> import numpy as np
-    >>> from probnum import pnm
+    >>> from probnum import StoppingCriterion
 
     >>> @dataclasses.dataclass
     ... class SolverState:
@@ -28,19 +28,19 @@ class StoppingCriterion(abc.ABC):
 
     Next we implement a few custom stopping criteria.
 
-    >>> class MaxIterations(pnm.StoppingCriterion):
+    >>> class MaxIterations(StoppingCriterion):
     ...     def __init__(self, maxiters):
     ...         self.maxiters = maxiters
     ...     def __call__(self, solver_state) -> bool:
     ...         return solver_state.iters >= self.maxiters
 
-    >>> class AbsoluteResidualTolerance(pnm.StoppingCriterion):
+    >>> class AbsoluteResidualTolerance(StoppingCriterion):
     ...     def __init__(self, atol=1e-6):
     ...         self.atol = atol
     ...     def __call__(self, solver_state) -> bool:
     ...         return solver_state.atol < self.atol
 
-    >>> class RelativeResidualTolerance(pnm.StoppingCriterion):
+    >>> class RelativeResidualTolerance(StoppingCriterion):
     ...     def __init__(self, rtol=1e-6):
     ...         self.rtol = rtol
     ...     def __call__(self, solver_state) -> bool:
