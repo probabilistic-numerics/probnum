@@ -16,7 +16,6 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     >>> from probnum.randprocs.markov.discrete import NonlinearGaussian
     >>> from probnum.randvars import Constant
     >>> import numpy as np
-    >>>
 
     Set up an iterated component.
 
@@ -26,7 +25,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     >>> jacob = lambda t, x: H1 - (1 - 2*(H0 @ x)) @ H0
     >>> nonlinear_model = NonlinearGaussian.from_callable(3, 1, call, jacob)
     >>> ekf = DiscreteEKFComponent(nonlinear_model)
-    >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
+    >>> comp = IteratedDiscreteComponent(ekf, FiltSmoothStoppingCriterion())
 
     Generate some random variables and pseudo observations.
 

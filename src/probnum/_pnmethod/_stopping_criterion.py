@@ -49,7 +49,7 @@ class StoppingCriterion(abc.ABC):
     Now let's combine them by stopping when the solver has reached an absolute and relative tolerance, or a maximum number of iterations.
 
     >>> stopcrit = MaxIterations(maxiters=100) | (
-    ...     AbsoluteResidualTolerance(atol=1e-6, rtol=1e-5)
+    ...     AbsoluteResidualTolerance(atol=1e-6)
     ...     & RelativeResidualTolerance(rtol=1e-6)
     ... )
 
