@@ -89,5 +89,5 @@ class StoppingCriterion(abc.ABC):
 
     def __invert__(self):
         inverted_stopcrit = StoppingCriterion()
-        inverted_stopcrit.__call__ = lambda *args, **kwargs: ~self(*args, **kwargs)
+        inverted_stopcrit.__call__ = lambda *args, **kwargs: not self(*args, **kwargs)
         return inverted_stopcrit
