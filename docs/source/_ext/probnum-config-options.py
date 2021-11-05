@@ -2,7 +2,7 @@ from docutils import nodes
 from docutils.statemachine import StringList
 from sphinx.util.docutils import SphinxDirective, switch_source_input
 
-from probnum import config
+import probnum as pn
 
 
 class ProbNumConfigOptions(SphinxDirective):
@@ -50,7 +50,7 @@ class ProbNumConfigOptions(SphinxDirective):
         tbody = nodes.tbody("")
         group.append(tbody)
 
-        for config_option in config._options_registry.values():
+        for config_option in pn.config._options_registry.values():
             row = nodes.row("")
             tbody.append(row)
 

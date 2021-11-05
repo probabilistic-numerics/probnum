@@ -1,7 +1,7 @@
 """Base class for linear solver stopping criteria."""
 
 import probnum  # pylint: disable="unused-import"
-from probnum._pnmethod import StoppingCriterion
+from probnum import StoppingCriterion
 
 
 class LinearSolverStoppingCriterion(StoppingCriterion):

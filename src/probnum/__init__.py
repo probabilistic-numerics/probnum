@@ -14,7 +14,7 @@ finite computational resources and stochastic input.
 # unguarded global state and is hence not thread-safe!
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
-# Abstract interfaces for components of probabilistic numerical methods.
+# Abstract interfaces for (components of) probabilistic numerical methods.
 from ._pnmethod import ProbabilisticNumericalMethod, StoppingCriterion
 
 # isort: on
@@ -35,7 +35,11 @@ from ._version import version as __version__
 from .randvars import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["asrandvar, ProbabilisticNumericalMethod, StoppingCriterion"]
+__all__ = [
+    "asrandvar",
+    "ProbabilisticNumericalMethod",
+    "StoppingCriterion",
+]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"

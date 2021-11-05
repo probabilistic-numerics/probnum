@@ -2,14 +2,14 @@
 
 import abc
 
-from probnum.filtsmooth.optim import FiltSmoothStoppingCriterion
+from probnum.filtsmooth.optim import _stopping_criterion
 
 
 class StateSpaceOptimizer(abc.ABC):
     def __init__(self, kalman, stopping_criterion=None):
         self.kalman = kalman
         if stopping_criterion is None:
-            stopping_criterion = FiltSmoothStoppingCriterion()
+            stopping_criterion = _stopping_criterion.FiltSmoothStoppingCriterion()
         self.stopping_criterion = stopping_criterion
 
     def solve(self, regression_problem, initial_guess):
