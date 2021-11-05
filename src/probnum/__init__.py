@@ -22,20 +22,15 @@ from . import (
     kernels,
     linalg,
     linops,
+    pnm,
     problems,
     quad,
     randprocs,
     randvars,
     utils,
 )
-from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
-from ._stopping_criterion import StoppingCriterion
 from ._version import version as __version__
 from .randvars import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["asrandvar", "ProbabilisticNumericalMethod", "StoppingCriterion"]
-
-# Set correct module paths. Corrects links and module paths in documentation.
-ProbabilisticNumericalMethod.__module__ = "probnum"
-StoppingCriterion.__module__ = "probnum"
+__all__ = ["asrandvar"]

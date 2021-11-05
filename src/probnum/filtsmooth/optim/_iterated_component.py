@@ -1,7 +1,7 @@
 import numpy as np
 
 from probnum import randprocs
-from probnum.filtsmooth.optim import _stoppingcriterion
+from probnum.filtsmooth.optim import _stopping_criterion
 
 
 class IteratedDiscreteComponent(randprocs.markov.Transition):
@@ -61,7 +61,9 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     ):
         self._component = component
         self.stopcrit = (
-            _stoppingcriterion.StoppingCriterion() if stopcrit is None else stopcrit
+            _stopping_criterion.FiltSmoothStoppingCriterion()
+            if stopcrit is None
+            else stopcrit
         )
         super().__init__(input_dim=component.input_dim, output_dim=component.output_dim)
 
@@ -89,9 +91,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
         new_mean = current_rv.mean.copy()
         old_mean = np.inf * np.ones(current_rv.mean.shape)
-        while not self.stopcrit.terminate(
-            error=new_mean - old_mean, reference=new_mean
-        ):
+        while not self.stopcrit(error=new_mean - old_mean, reference=new_mean):
             old_mean = new_mean.copy()
             current_rv, info = self._component.backward_rv(
                 rv_obtained=rv_obtained,

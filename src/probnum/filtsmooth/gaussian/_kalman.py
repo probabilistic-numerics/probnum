@@ -36,7 +36,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[_kalmanposterior.SmoothingPosterior] = None,
-        stopcrit: Optional[optim.StoppingCriterion] = None,
+        stopcrit: Optional[optim.FiltSmoothStoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -76,7 +76,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[_kalmanposterior.SmoothingPosterior] = None,
-        stopcrit: Optional[optim.StoppingCriterion] = None,
+        stopcrit: Optional[optim.FiltSmoothStoppingCriterion] = None,
     ):
         """Compute iterated smoothing estimates with repeated posterior linearisation.
 
@@ -107,7 +107,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         """
 
         if stopcrit is None:
-            stopcrit = optim.StoppingCriterion()
+            stopcrit = optim.FiltSmoothStoppingCriterion()
 
         if init_posterior is None:
             # Initialise iterated smoother
@@ -122,7 +122,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         yield new_posterior, info_dicts
         new_mean = new_posterior.states.mean
         old_mean = np.inf * np.ones(new_mean.shape)
-        while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
+        while not stopcrit(error=new_mean - old_mean, reference=new_mean):
             old_posterior = new_posterior
             new_posterior, info_dicts = self.filtsmooth(
                 regression_problem,

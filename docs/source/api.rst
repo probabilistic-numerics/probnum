@@ -18,6 +18,8 @@ API Reference
     | :mod:`~probnum.linalg`                          | Probabilistic numerical linear algebra.                      |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.linops`                          | Finite-dimensional linear operators.                         |
+    +----------------------------------------------------------------------------------------------------------------+
+    | :mod:`~probnum.pnm`                             | Components of probabilistic numerical methods.               |          |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.problems`                        | Definitions and collection of problems solved by PN methods. |
     +-------------------------------------------------+--------------------------------------------------------------+
@@ -41,6 +43,7 @@ API Reference
     api/kernels
     api/linalg
     api/linops
+    api/pnm
     api/problems
     api/quad
     api/randprocs

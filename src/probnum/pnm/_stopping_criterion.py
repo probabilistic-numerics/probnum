@@ -1,7 +1,9 @@
 """Stopping criterion for a (probabilistic) numerical method."""
 
+import abc
 
-class StoppingCriterion:
+
+class StoppingCriterion(abc.ABC):
     r"""Stopping criterion of a (probabilistic) numerical method.
 
     Checks whether quantities tracked by the (probabilistic) numerical
@@ -46,7 +48,11 @@ class StoppingCriterion:
 
     Now let's combine them by stopping when the solver has reached an absolute and relative tolerance, or a maximum number of iterations.
 
-    >>> stopcrit = MaxIterations(maxiters=100) or (AbsoluteResidualTolerance(atol=1e-6, rtol=1e-5) and RelativeResidualTolerance(rtol=1e-6))
+    >>> stopcrit = MaxIterations(maxiters=100) or (
+    ...     AbsoluteResidualTolerance(atol=1e-6, rtol=1e-5)
+    ...     and RelativeResidualTolerance(rtol=1e-6)
+    ... )
+
     >>> stopcrit(state)
     False
 
@@ -58,9 +64,10 @@ class StoppingCriterion:
 
     See Also
     --------
-    LinearSolverStopCrit : Stopping criterion of a probabilistic linear solver.
+    LinearSolverStoppingCriterion : Stopping criterion of a probabilistic linear solver.
     """
 
+    @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> bool:
         """Check whether tracked quantities meet a desired terminal condition."""
         raise NotImplementedError
