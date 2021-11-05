@@ -19,7 +19,7 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.linops`                          | Finite-dimensional linear operators.                         |
     +----------------------------------------------------------------------------------------------------------------+
-    | :mod:`~probnum.pnm`                             | Components of probabilistic numerical methods.               |          |
+    | :mod:`~probnum.pnm`                             | Components of probabilistic numerical methods.               |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.problems`                        | Definitions and collection of problems solved by PN methods. |
     +-------------------------------------------------+--------------------------------------------------------------+
