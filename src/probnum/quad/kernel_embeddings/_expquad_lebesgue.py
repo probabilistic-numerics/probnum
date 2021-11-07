@@ -28,7 +28,8 @@ def _kernel_mean_expquad_lebesgue(
     Returns
     -------
     k_mean :
-        *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
+        *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
+        evaluated at locations x.
     """
     input_dim = kernel.input_dim
 

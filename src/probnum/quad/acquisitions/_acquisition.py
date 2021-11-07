@@ -27,7 +27,7 @@ class Acquisition(abc.ABC):
         Parameters
         ----------
         nodes :
-            *shape=(batch_size, input_dim)* -- Locations for which to query the acquisition function.
+            *shape=(batch_size, input_dim)* -- Locations at which to query the acquisition function.
 
         Returns
         -------
@@ -36,8 +36,7 @@ class Acquisition(abc.ABC):
         """
         if self.has_gradients:
             return self._evaluate_with_gradients(nodes)
-        else:
-            return self._evaluate(nodes)
+        return self._evaluate(nodes)
 
     @abc.abstractmethod
     def _evaluate(self, nodes: np.ndarray) -> float:
@@ -51,7 +50,12 @@ class Acquisition(abc.ABC):
     @property
     @abc.abstractmethod
     def has_gradients(self) -> bool:
-        pass
+        """Information whether gradients are implemented for the acquisition function.
+
+        Returns
+        -------
+        has_gradients: True if gradients are available for the acquisition function.
+        """
 
     def sample(self) -> np.ndarray:
         """Sample from a density that is proportional to the acquisition function.
