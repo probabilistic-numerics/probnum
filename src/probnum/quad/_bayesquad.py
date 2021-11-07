@@ -202,7 +202,7 @@ def bayesquad_from_data(
     --------
     >>> import numpy as np
     >>> domain = (0, 1)
-    >>> nodes = np.linspace(0, 1, 15)
+    >>> nodes = np.linspace(0, 1, 15)[:, None]
     >>> fun_evals = 3*nodes**2
     >>> F, info = bayesquad_from_data(nodes=nodes, fun_evals=fun_evals, domain=domain)
     >>> print(F.mean)
