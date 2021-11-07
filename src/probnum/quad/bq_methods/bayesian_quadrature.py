@@ -210,7 +210,9 @@ class BayesianQuadrature:
                 fun_evals = fun(nodes)
 
             integral_belief, bq_state = self.belief_update(
-                bq_state=bq_state, new_nodes=nodes, new_fun_evals=fun_evals,
+                bq_state=bq_state,
+                new_nodes=nodes,
+                new_fun_evals=fun_evals,
             )
 
             # make sure info get the number of initial nodes
@@ -233,7 +235,9 @@ class BayesianQuadrature:
             new_fun_evals = fun(new_nodes)
 
             integral_belief, bq_state = self.belief_update(
-                bq_state=bq_state, new_nodes=new_nodes, new_fun_evals=new_fun_evals,
+                bq_state=bq_state,
+                new_nodes=new_nodes,
+                new_fun_evals=new_fun_evals,
             )
 
             bq_state.info.update_iteration(bq_state.batch_size)
@@ -263,7 +267,7 @@ class BayesianQuadrature:
             *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
             are available as ``fun_evals`` from start.
         fun_evals :
-            *shape=(n_eval,)* -- Optional function evaluations at ``nodes``available
+            *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
 
         Returns
