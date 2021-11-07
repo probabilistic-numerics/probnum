@@ -19,7 +19,7 @@ A clear and concise description of what you expected to happen.
 **System:**
  - OS: [e.g. iOS]
  - Environment [`pip freeze`]
- - Python and ProbNum Version [e.g. 3.6]
+ - Python and ProbNum Version [e.g. 3.9]
 
 **Additional context**
 Add any other context about the problem here.

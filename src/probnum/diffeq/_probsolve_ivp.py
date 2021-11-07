@@ -83,6 +83,7 @@ def probsolve_ivp(
         Jacobian of the ODE vector field.
     adaptive :
         Whether to use adaptive steps or not. Default is `True`.
+        If `False`, a `step` needs to be specified.
     atol : float
         Absolute tolerance  of the adaptive step-size selection scheme.
         Optional. Default is ``1e-4``.
@@ -93,6 +94,7 @@ def probsolve_ivp(
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
+        Is required only when `adaptive=False`.
     algo_order
         Order of the algorithm. This amounts to choosing the number of derivatives of an integrated Wiener process prior.
         For too high orders, process noise covariance matrices become singular.
@@ -243,6 +245,8 @@ def probsolve_ivp(
         firststep = step if step is not None else stepsize.propose_firststep(ivp)
         steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
+        if step is None:
+            raise ValueError("Constant steps require a 'step' argument.")
         steprule = stepsize.ConstantSteps(step)
 
     # Construct diffusion model.

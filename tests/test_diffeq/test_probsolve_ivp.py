@@ -93,6 +93,16 @@ def test_wrong_diffusion_raises_error(ivp):
     t0, tmax = ivp.t0, ivp.tmax
     y0 = ivp.y0
 
-    # UK1 does not exist anymore
     with pytest.raises(ValueError):
         probsolve_ivp(f, t0, tmax, y0, diffusion_model="something_wrong")
+
+
+def test_non_adaptive_mode(ivp):
+    """When run in non-adaptive mode and without specifying a time-step, an explicit
+    ValueError should be raised."""
+    f = ivp.f
+    t0, tmax = ivp.t0, ivp.tmax
+    y0 = ivp.y0
+
+    with pytest.raises(ValueError):
+        probsolve_ivp(f, t0, tmax, y0, adaptive=False)

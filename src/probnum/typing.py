@@ -14,10 +14,12 @@ internal representation of those same objects.
 """
 
 import numbers
-from typing import Iterable, Sequence, Tuple, Union
+from typing import Iterable, Tuple, Union
 
 import numpy as np
 import scipy.sparse
+from numpy.typing import ArrayLike  # pylint: disable=unused-import
+from numpy.typing import DTypeLike as DTypeArgType  # pylint: disable=unused-import
 
 ########################################################################################
 # API Types
@@ -29,21 +31,6 @@ ShapeType = Tuple[int, ...]
 # Argument Types
 ########################################################################################
 
-try:
-    from numpy.typing import ArrayLike  # pylint: disable=unused-import
-except ImportError:
-    # This is a very basic implementation which may be altered to align more with
-    # NumPy's definition of an array-like
-    _ArrayLikeScalar = Union[np.generic, bool, int, float, complex, str, bytes]
-    _ArrayLikeNestedSequence = Union[  # Dirty hack to avoid recursive types
-        Sequence[_ArrayLikeScalar],
-        Sequence[Sequence[_ArrayLikeScalar]],
-        Sequence[Sequence[Sequence[_ArrayLikeScalar]]],
-        Sequence[Sequence[Sequence[Sequence[_ArrayLikeScalar]]]],
-        Sequence[Sequence[Sequence[Sequence[Sequence[_ArrayLikeScalar]]]]],
-    ]
-    ArrayLike = Union[_ArrayLikeScalar, _ArrayLikeNestedSequence]
-
 IntArgType = Union[int, numbers.Integral, np.integer]
 FloatArgType = Union[float, numbers.Real, np.floating]
 
@@ -51,11 +38,6 @@ ShapeArgType = Union[IntArgType, Iterable[IntArgType]]
 """Type of a public API argument for supplying a shape. Values of this type should
 always be converted into :class:`ShapeType` using the function
 :func:`probnum.utils.as_shape` before further internal processing."""
-
-DTypeArgType = Union[np.dtype, str]
-"""Type of a public API argument for supplying a dtype. Values of this type should
-always be converted into :class:`np.dtype` using the function
-:func:`np.dtype` before further internal processing."""
 
 ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
 """Type of a public API argument for supplying a scalar value. Values of this type

@@ -18,8 +18,7 @@ __all__ = [
 def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     r"""Initial value problem (IVP) based on a three-body problem.
 
-    Let the initial conditions be :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`.
-    This function implements the second-order three-body problem as a system of
+    For the initial conditions :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`, this function implements the second-order three-body problem as a system of
     first-order ODEs, which is defined as follows: [1]_
 
     .. math::
@@ -45,7 +44,7 @@ def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     Parameters
     ----------
     t0
-        Initial time. Default is ``0.0``.
+        Initial time.
     tmax
         Final time. Default is ``17.0652165601579625588917206249`` which is the period of the solution.
     y0
@@ -54,8 +53,7 @@ def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing a three-body problem IVP with the prescribed
-        configuration.
+        InitialValueProblem object describing a three-body problem IVP with the prescribed configuration.
 
     References
     ----------
@@ -65,7 +63,7 @@ def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     """
 
     def rhs(t, y):
-        mu = 0.012277471  # a constant (standardised moon mass)
+        mu = 0.012277471  # a constant (standardized moon mass)
         mp = 1 - mu
         D1 = ((y[0] + mu) ** 2 + y[1] ** 2) ** (3 / 2)
         D2 = ((y[0] - mp) ** 2 + y[1] ** 2) ** (3 / 2)
@@ -80,11 +78,10 @@ def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
 
 
 def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
-    r"""Initial value problem (IVP) based on the Van der Pol Oscillator, implemented in `jax`.
+    r"""Initial value problem (IVP) based on the Van der Pol Oscillator.
 
     This function implements the second-order Van-der-Pol Oscillator as a system
-    of first-order ODEs.
-    The Van der Pol Oscillator is defined as
+    of first-order ODEs. The Van der Pol Oscillator is defined as
 
     .. math::
 
@@ -107,10 +104,9 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
     tmax : float
         Final time point. Rightmost point of the integration domain.
     y0 : np.ndarray,
-        *(shape=(2, ))* -- Initial value of the problem.
+        *(shape=(2, ))* -- Initial value of the problem. Defaults to ``[2.0, 0.0]``.
     params : (float), optional
-        Parameter :math:`\mu` for the Van der Pol Equations
-        Default is :math:`\mu=0.1`.
+        Parameter :math:`\mu` for the Van der Pol equations.
 
     Returns
     -------
@@ -144,7 +140,7 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
 
 
 def rigidbody(t0=0.0, tmax=20.0, y0=None, params=(-2.0, 1.25, -0.5)):
-    r"""Initial value problem (IVP) for rigid body dynamics without external forces
+    r"""Initial value problem (IVP) for rigid body dynamics without external forces.
 
     The rigid body dynamics without external forces is defined through
 
@@ -152,24 +148,24 @@ def rigidbody(t0=0.0, tmax=20.0, y0=None, params=(-2.0, 1.25, -0.5)):
 
         f(t, y) =
         \begin{pmatrix}
-            y_2 y_3 \\
-            -y_1 y_3 \\
-            -0.51 \cdot y_1 y_2
+            a y_2 y_3 \\
+            b y_1 y_3 \\
+            c y_1 y_2
         \end{pmatrix}
 
-    The ODE system has no parameters.
+    for parameters :math:`(a, b, c)`.
     This implementation includes the Jacobian :math:`J_f` of :math:`f`.
 
     Parameters
     ----------
     t0
-        Initial time. Default is 0.0
+        Initial time.
     tmax
-        Final time. Default is 20.0
+        Final time.
     y0
-        *(shape=(3, ))* -- Initial value. Default is ``[1., 0., 0.9]``.
+        *(shape=(3, ))* -- Initial value. Defaults to ``[1., 0., 0.9]``.
     params
-        Parameter of the rigid body problem. Default is ``(-2.0, 1.25, -0.5)``.
+        Parameters ``(a, b, c)`` of the rigid body problem.
 
     Returns
     -------
@@ -205,7 +201,7 @@ def logistic(t0=0.0, tmax=2.0, y0=None, params=(3.0, 1.0)):
 
         f(t, y) = a  y  \left( 1 - \frac{y}{b} \right)
 
-    for some parameters :math:`(a, b)`.
+    for parameters :math:`(a, b)`.
     Default is :math:`(a, b)=(3.0, 1.0)`. This implementation includes
     the Jacobian :math:`J_f` of :math:`f` as well as a closed form
     solution given by
@@ -219,14 +215,13 @@ def logistic(t0=0.0, tmax=2.0, y0=None, params=(3.0, 1.0)):
     Parameters
     ----------
     t0
-        Initial time. Default is 0.0
+        Initial time.
     tmax
-        Final time. Default is 2.0
+        Final time.
     y0
         *(shape=(1, ))* -- Initial value. Default is ``[0.1]``.
     params
-        Parameters :math:`(a, b)` for the logistic IVP.
-        Default is :math:`(a, b) = (3.0, 1.0)`.
+        Parameters :math:`(a, b)` of the logistic IVP.
 
     Returns
     -------
@@ -273,26 +268,25 @@ def fitzhughnagumo(t0=0.0, tmax=20.0, y0=None, params=(0.2, 0.2, 3.0, 1.0)):
             \frac{1}{d} (y_1 + b - c y_2)
         \end{pmatrix}
 
-    for some parameters :math:`(a, b, c, d)`.
+    for parameters :math:`(a, b, c, d)`.
     Default is :math:`(a, b)=(0.2, 0.2, 3.0)`.
     This implementation includes the Jacobian :math:`J_f` of :math:`f`.
 
     Parameters
     ----------
     t0
-        Initial time. Default is 0.0
+        Initial time.
     tmax
-        Final time. Default is 20.0
+        Final time.
     y0
-        *(shape=(2, ))* -- Initial value. Default is ``[1., -1.]``.
+        *(shape=(2, ))* -- Initial value. Defaults to ``[1., -1.]``.
     params
-        Parameter of the FitzHugh-Nagumo model. Default is ``(0.2, 0.2, 3.0, 1.0)``.
+        Parameters ``(a, b, c, d)`` of the FitzHugh-Nagumo model.
 
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing the FitzHugh-Nagumo model with the prescribed
-        configuration.
+        InitialValueProblem object describing the FitzHugh-Nagumo model with the prescribed configuration.
     """
     if y0 is None:
         y0 = np.array([1.0, -1.0])
@@ -323,26 +317,25 @@ def lotkavolterra(t0=0.0, tmax=20.0, y0=None, params=(0.5, 0.05, 0.5, 0.05)):
             -c y_2 + d y_1 y_2
         \end{pmatrix}
 
-    for some parameters :math:`(a, b, c, d)`.
+    for parameters :math:`(a, b, c, d)`.
     Default is :math:`(a, b)=(0.5, 0.05, 0.5, 0.05)`.
     This implementation includes the Jacobian :math:`J_f` of :math:`f`.
 
     Parameters
     ----------
     t0
-        Initial time. Default is 0.0
+        Initial time.
     tmax
-        Final time. Default is 20.0
+        Final time.
     y0
-        *(shape=(2, ))* -- Initial value. Default is ``[1., -1.]``.
+        *(shape=(2, ))* -- Initial value. Defaults to ``[20., 20.]``.
     params
-        Parameter of the Lotka-Volterra model. Default is ``(0.2, 0.2, 3.0)``.
+        Parameters ``(a, b, c, d)`` of the Lotka-Volterra model.
 
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing the Lotka-Volterra system with the prescribed
-        configuration.
+        InitialValueProblem object describing the Lotka-Volterra system with the prescribed configuration.
     """
     if y0 is None:
         y0 = np.array([20.0, 20.0])
@@ -392,13 +385,13 @@ def seir(t0=0.0, tmax=200.0, y0=None, params=(0.3, 0.3, 0.1)):
     Parameters
     ----------
     t0
-        Initial time. Default is 0.0
+        Initial time.
     tmax
-        Final time. Default is 200.0
+        Final time.
     y0
-        *(shape=(4, ))* -- Initial value. Default is ``[998, 1, 1, 0]``.
+        *(shape=(4, ))* -- Initial value. Defaults to ``[998, 1, 1, 0]``.
     params
-        Parameter of the SEIR model. Default is ``(0.3, 0.3, 0.1)``.
+        Parameters :math:`(\alpha, \beta, \gamma)` of the SEIR model.
 
     Returns
     -------
@@ -458,13 +451,13 @@ def lorenz63(t0=0.0, tmax=20.0, y0=None, params=(10.0, 28.0, 8.0 / 3.0)):
     Parameters
     ----------
     t0
-        Initial time. Default is 0.0
+        Initial time.
     tmax
-        Final time. Default is 20.0
+        Final time.
     y0
-        *(shape=(3, ))* -- Initial value. Default is ``[0., 1., 1.05]``.
+        *(shape=(3, ))* -- Initial value. Defaults to ``[0., 1., 1.05]``.
     params
-        Parameter of the Lorenz63 model. Default is ``(10.0, 28.0, 8.0 / 3.0)``.
+        Parameters ``(a, b, c)`` of the Lorenz63 model.
 
     Returns
     -------
@@ -502,9 +495,9 @@ def lorenz96(t0=0.0, tmax=30.0, y0=None, num_variables=5, params=(8.0,)):
     Parameters
     ----------
     t0
-        Initial time. Default is 0.0
+        Initial time.
     tmax
-        Final time. Default is 20.0
+        Final time.
     y0
         *(shape=(N, ))* -- Initial value. Default is ``[1/F, ..., 1/F]``. `N` is the number of variables in the model.
     num_variables

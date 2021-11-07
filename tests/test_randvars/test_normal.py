@@ -419,9 +419,8 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_cov_cholesky_cov_cholesky_not_passed(self):
         """No cov_cholesky is passed in init.
 
-        In this case, the "is_precomputed" flag is False, a cov_cholesky
-        is computed on demand, but can also be computed manually with
-        any damping factor.
+        In this case, the "is_precomputed" flag is False, a cov_cholesky is computed on
+        demand, but can also be computed manually with any damping factor.
         """
         mean, cov = self.params
         rv = randvars.Normal(mean, cov)
@@ -471,9 +470,9 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_cov_cholesky_cov_cholesky_passed(self):
         """A value for cov_cholesky is passed in init.
 
-        In this case, the "is_precomputed" flag is True, the
-        cov_cholesky returns the argument that has been passed, but
-        (p)recomputing overwrites the argument with a new factor.
+        In this case, the "is_precomputed" flag is True, the cov_cholesky returns the
+        argument that has been passed, but (p)recomputing overwrites the argument with a
+        new factor.
         """
         mean, cov = self.params
 
@@ -551,9 +550,8 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_cov_cholesky_cov_cholesky_not_passed(self):
         """No cov_cholesky is passed in init.
 
-        In this case, the "is_precomputed" flag is False, a cov_cholesky
-        is computed on demand, but can also be computed manually with
-        any damping factor.
+        In this case, the "is_precomputed" flag is False, a cov_cholesky is computed on
+        demand, but can also be computed manually with any damping factor.
         """
         mean, cov = self.params
 
@@ -577,7 +575,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
 
         with self.subTest("Damping factor check"):
-            with config(lazy_linalg=False):
+            with config(matrix_free=False):
                 rv.precompute_cov_cholesky(damping_factor=10.0)
                 self.assertIsInstance(rv.cov_cholesky, np.ndarray)
                 self.assertAllClose(
@@ -596,7 +594,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
 
         with self.subTest("Damping factor check"):
-            with config(lazy_linalg=True):
+            with config(matrix_free=True):
                 rv.precompute_cov_cholesky(damping_factor=10.0)
                 self.assertIsInstance(rv.cov_cholesky, linops.LinearOperator)
                 self.assertAllClose(
@@ -610,9 +608,9 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_cov_cholesky_cov_cholesky_passed(self):
         """A value for cov_cholesky is passed in init.
 
-        In this case, the "is_precomputed" flag is True, the
-        cov_cholesky returns the argument that has been passed, but
-        (p)recomputing overwrites the argument with a new factor.
+        In this case, the "is_precomputed" flag is True, the cov_cholesky returns the
+        argument that has been passed, but (p)recomputing overwrites the argument with a
+        new factor.
         """
         mean, cov = self.params
 
@@ -714,9 +712,8 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_cov_cholesky_cov_cholesky_not_passed(self):
         """No cov_cholesky is passed in init.
 
-        In this case, the "is_precomputed" flag is False, a cov_cholesky
-        is computed on demand, but can also be computed manually with
-        any damping factor.
+        In this case, the "is_precomputed" flag is False, a cov_cholesky is computed on
+        demand, but can also be computed manually with any damping factor.
         """
         rv = randvars.Normal(
             mean=np.random.uniform(size=(2, 2)),
@@ -754,9 +751,9 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_cov_cholesky_cov_cholesky_passed(self):
         """A value for cov_cholesky is passed in init.
 
-        In this case, the "is_precomputed" flag is True, the
-        cov_cholesky returns the argument that has been passed, but
-        (p)recomputing overwrites the argument with a new factor.
+        In this case, the "is_precomputed" flag is True, the cov_cholesky returns the
+        argument that has been passed, but (p)recomputing overwrites the argument with a
+        new factor.
         """
         # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand(4, 4)

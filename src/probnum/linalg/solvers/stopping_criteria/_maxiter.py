@@ -3,10 +3,10 @@ from typing import Optional
 
 import probnum  # pylint: disable="unused-import"
 
-from ._linear_solver_stopping_criterion import LinearSolverStopCrit
+from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 
 
-class MaxIterationsStopCrit(LinearSolverStopCrit):
+class MaxIterationsStoppingCriterion(LinearSolverStoppingCriterion):
     r"""Stop after a maximum number of iterations.
 
     Stop when the solver has taken a maximum number of steps. If ``None`` is
@@ -23,7 +23,7 @@ class MaxIterationsStopCrit(LinearSolverStopCrit):
         self.maxiter = maxiter
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.ProbabilisticLinearSolverState"
+        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> bool:
         """Check whether the maximum number of iterations has been reached.
 
