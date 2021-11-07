@@ -30,8 +30,7 @@ class BQInfo:
         iteration: int = 0,
         nevals: int = 0,
         has_converged: bool = False,
-        # TODO: Type hint! Temporarily removed due to circular imports.
-        stopping_criterion=None,
+        stopping_criterion: "probnum.quad.StoppingCriterion" = None,
     ):
         self.iteration = iteration
         self.nevals = nevals
