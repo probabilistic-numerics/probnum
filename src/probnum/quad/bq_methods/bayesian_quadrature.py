@@ -84,7 +84,7 @@ class BayesianQuadrature:
             policy = Policy(batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
         elif policy == "bmc":
-            policy = RandomPolicy(measure, batch_size=batch_size)
+            policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
             belief_update = BQStandardBeliefUpdate()
 
             if rng is None:

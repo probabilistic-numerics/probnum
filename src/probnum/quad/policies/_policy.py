@@ -3,6 +3,7 @@
 import abc
 
 import numpy as np
+from typing import Callable
 
 from probnum.quad.acquisitions import Acquisition
 from probnum.quad.bq_methods.bq_state import BQState
@@ -68,15 +69,21 @@ class RandomPolicy(Policy):
 
     Parameters
     ----------
-    sampling_objective :
+    sample :
         Objective to sample from. Needs to have a method ``sample``.
     batch_size :
         Size of batch that is found in every iteration of calling the policy.
     """
 
-    def __init__(self, sampling_objective, batch_size: int) -> None:
+    def __init__(
+        self,
+        sample: Callable,
+        batch_size: int,
+        rng: np.random.Generator = np.random.default_rng(),
+    ) -> None:
         super().__init__(batch_size=batch_size)
-        self.sampling_objective = sampling_objective
+        self.sample = sample
+        self.rng = rng
 
     def __call__(self, bq_state: BQState) -> np.ndarray:
         """Sample nodes.
@@ -91,4 +98,4 @@ class RandomPolicy(Policy):
         nodes :
             *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
-        return self.sampling_objective.sample(self.batch_size)
+        return self.sample(self.batch_size, rng=self.rng)
