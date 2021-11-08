@@ -30,6 +30,7 @@ API Reference
     | :mod:`~probnum.utils`                           | Utility functions.                                           |
     +-------------------------------------------------+--------------------------------------------------------------+
 
+
 .. toctree::
     :caption: API Reference
     :hidden:

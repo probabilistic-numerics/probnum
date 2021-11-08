@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from probnum import filtsmooth
+from probnum.filtsmooth.optim import _stopping_criterion
 
 
 @pytest.fixture
@@ -24,7 +24,9 @@ def maxit():
 
 @pytest.fixture
 def stopcrit():
-    return filtsmooth.optim.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
+    return _stopping_criterion.FiltSmoothStoppingCriterion(
+        atol=1e-1, rtol=1e-1, maxit=10
+    )
 
 
 def test_continue(stopcrit, d1, d2):
@@ -32,7 +34,7 @@ def test_continue(stopcrit, d1, d2):
     y1 = np.random.rand(d1, d2)
     y2 = 2 * y1.copy() + 3
     current_iterations = stopcrit.iterations
-    assert stopcrit.terminate(y1 - y2, y2) is False
+    assert stopcrit(y1 - y2, y2) is False
     assert stopcrit.iterations == current_iterations + 1
 
 
@@ -40,7 +42,7 @@ def test_terminate_tolerance(stopcrit, d1, d2):
     """Iteration must terminate if error is small."""
     y1 = np.random.rand(d1, d2)
     y2 = y1.copy() + 1e-8
-    assert stopcrit.terminate(y1 - y2, y2) is True
+    assert stopcrit(y1 - y2, y2) is True
     assert stopcrit.iterations == 0
 
 
@@ -51,4 +53,4 @@ def test_terminate_maxit(stopcrit, d1, d2, maxit):
     y2 = 2 * y1.copy() + 3
     stopcrit.iterations = maxit + 1
     with pytest.raises(RuntimeError):
-        stopcrit.terminate(y1 - y2, y2)
+        stopcrit(y1 - y2, y2)
