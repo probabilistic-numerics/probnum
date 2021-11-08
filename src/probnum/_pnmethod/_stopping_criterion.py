@@ -1,11 +1,11 @@
 """Stopping criterion for a probabilistic numerical method."""
 
 import abc
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 
 class StoppingCriterion(abc.ABC):
-    r"""Stopping criterion of a probabilistic numerical method.
+    """Stopping criterion of a probabilistic numerical method.
 
     Checks whether quantities tracked by the probabilistic numerical
     method meet a desired terminal condition.
