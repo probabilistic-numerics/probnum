@@ -1,6 +1,7 @@
 """Stopping criterion for a probabilistic numerical method."""
 
 import abc
+from typing import Any, Callable, Optional
 
 
 class StoppingCriterion(abc.ABC):
@@ -26,7 +27,7 @@ class StoppingCriterion(abc.ABC):
 
     >>> state = SolverState()
 
-    Next we implement a few custom stopping criteria.
+    Next we implement a few stopping criteria.
 
     >>> class MaxIterations(StoppingCriterion):
     ...     def __init__(self, maxiters):
@@ -74,20 +75,44 @@ class StoppingCriterion(abc.ABC):
         raise NotImplementedError
 
     def __and__(self, other):
-        combined_stopcrit = StoppingCriterion()
-        combined_stopcrit.__call__ = lambda *args, **kwargs: self(
-            *args, **kwargs
-        ) and other(*args, **kwargs)
-        return combined_stopcrit
+        return LambdaStoppingCriterion(
+            stopcrit=lambda *args, **kwargs: self(*args, **kwargs)
+            and other(*args, **kwargs)
+        )
 
     def __or__(self, other):
-        combined_stopcrit = StoppingCriterion()
-        combined_stopcrit.__call__ = lambda *args, **kwargs: self(
-            *args, **kwargs
-        ) or other(*args, **kwargs)
-        return combined_stopcrit
+        return LambdaStoppingCriterion(
+            stopcrit=lambda *args, **kwargs: self(*args, **kwargs)
+            or other(*args, **kwargs)
+        )
 
     def __invert__(self):
-        inverted_stopcrit = StoppingCriterion()
-        inverted_stopcrit.__call__ = lambda *args, **kwargs: not self(*args, **kwargs)
-        return inverted_stopcrit
+        return LambdaStoppingCriterion(
+            stopcrit=lambda *args, **kwargs: not self(*args, **kwargs)
+        )
+
+
+class LambdaStoppingCriterion(StoppingCriterion):
+    """Define a stopping criterion via an anonymous function.
+
+    Defines a stopping criterion from a lambda function. This allows
+    quick definition of stopping criteria for prototyping.
+
+    Parameters
+    ----------
+    stopcrit
+        Callable returning whether to stop or not.
+
+    Examples
+    --------
+    >>> from probnum import LambdaStoppingCriterion
+    >>> stopcrit = LambdaStoppingCriterion(lambda iters: iters >= 100)
+    >>> stopcrit(101)
+    True
+    """
+
+    def __init__(self, stopcrit: Callable[[Any], bool]) -> None:
+        self._stopcrit = stopcrit
+
+    def __call__(self, *args, **kwargs) -> bool:
+        return self._stopcrit(*args, **kwargs)

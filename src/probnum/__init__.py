@@ -15,7 +15,11 @@ finite computational resources and stochastic input.
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
 # Abstract interfaces for (components of) probabilistic numerical methods.
-from ._pnmethod import ProbabilisticNumericalMethod, StoppingCriterion
+from ._pnmethod import (
+    ProbabilisticNumericalMethod,
+    StoppingCriterion,
+    LambdaStoppingCriterion,
+)
 
 # isort: on
 
@@ -39,8 +43,10 @@ __all__ = [
     "asrandvar",
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
+    "LambdaStoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"
 StoppingCriterion.__module__ = "probnum"
+LambdaStoppingCriterion.__module__ = "probnum"
