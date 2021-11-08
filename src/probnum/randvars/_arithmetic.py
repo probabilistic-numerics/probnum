@@ -317,7 +317,7 @@ _matmul_fns[(_Normal, _Constant)] = _matmul_normal_constant
 def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
     """Matrix-multiplication with a normal random variable.
 
-    Computes the distribution of the random variable :math:`Y = AX`, where :math:`X` is a matrix- or multi-variate normal distribution and :math:`A` a constant.
+    Computes the distribution of the random variable :math:`Y = AX`, where :math:`X` is a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
