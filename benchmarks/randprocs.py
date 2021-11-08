@@ -8,11 +8,11 @@ from probnum import config, linops, randprocs, randvars
 class MarkovProcessSampling:
     """Benchmark sampling from Markov processes."""
 
-    param_names = ["lazy_linalg", "len_trajectory", "num_derivatives", "dimension"]
+    param_names = ["matrix_free", "len_trajectory", "num_derivatives", "dimension"]
     params = [[True, False], [10], [5], [50, 100]]
 
-    def setup(self, lazy_linalg, len_trajectory, num_derivatives, dimension):
-        with config(lazy_linalg=lazy_linalg):
+    def setup(self, matrix_free, len_trajectory, num_derivatives, dimension):
+        with config(matrix_free=matrix_free):
 
             dynamics = randprocs.markov.integrator.IntegratedWienerTransition(
                 num_derivatives=num_derivatives,
@@ -39,8 +39,8 @@ class MarkovProcessSampling:
                 random_state=rng,
             )
 
-    def time_sample(self, lazy_linalg, len_trajectory, num_derivatives, dimension):
-        with config(lazy_linalg=lazy_linalg):
+    def time_sample(self, matrix_free, len_trajectory, num_derivatives, dimension):
+        with config(matrix_free=matrix_free):
             self.markov_process.transition.jointly_transform_base_measure_realization_list_forward(
                 base_measure_realizations=self.base_measure_realization,
                 t=self.time_grid,

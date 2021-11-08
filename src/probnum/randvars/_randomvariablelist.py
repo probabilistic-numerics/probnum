@@ -1,3 +1,5 @@
+"""List of random variables."""
+
 from typing import Union
 
 import numpy as np

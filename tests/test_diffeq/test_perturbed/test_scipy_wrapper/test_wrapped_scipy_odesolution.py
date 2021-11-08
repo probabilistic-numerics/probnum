@@ -1,7 +1,7 @@
 import numpy as np
 import pytest_cases
 
-from probnum import _randomvariablelist, randvars
+from probnum import randvars
 
 
 @pytest_cases.fixture
@@ -28,7 +28,7 @@ def test_call_isscalar(solution_case):
     call_array = testsolution([0.1, 0.2, 0.3])
     assert np.isscalar(t)
     assert isinstance(call_scalar, randvars.Constant)
-    assert isinstance(call_array, _randomvariablelist._RandomVariableList)
+    assert isinstance(call_array, randvars._RandomVariableList)
 
 
 def test_states(solution_case):
