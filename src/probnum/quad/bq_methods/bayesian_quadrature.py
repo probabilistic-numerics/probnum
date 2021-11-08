@@ -166,7 +166,7 @@ class BayesianQuadrature:
             *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
             are available as ``fun_evals`` from start.
         fun_evals :
-            *shape=(n_eval,)* -- Optional function evaluations at ``nodes``available
+            *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
         integral_belief:
             Current belief about the integral.
