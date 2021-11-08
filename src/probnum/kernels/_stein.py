@@ -1,9 +1,10 @@
-from re import X
+"""Stein kernels."""
+
 from typing import Callable, Optional, Union
 
 import numpy as np
 
-from probnum import _backend
+from probnum import backend
 from probnum.typing import ArrayLike, IntArgType, ShapeArgType
 
 from ._kernel import Kernel
@@ -68,9 +69,9 @@ class LangevinSteinKernel(Kernel):
         """
         gradx0_logp = self._grad_log_density(x0)
         gradx1_logp = self._grad_log_density(x1)
-        gradx0_base_kernel = _backend.grad(self._base_kernel, argnums=0)
-        gradx1_base_kernel = _backend.grad(self._base_kernel, argnums=1)
-        gradx0_gradx1_base_kernel = _backend.grad(self._base_kernel, argnums=(0, 1))
+        gradx0_base_kernel = backend.grad(self._base_kernel, argnums=0)
+        gradx1_base_kernel = backend.grad(self._base_kernel, argnums=1)
+        gradx0_gradx1_base_kernel = backend.grad(self._base_kernel, argnums=(0, 1))
 
         score_prod = gradx0_logp @ gradx1_logp.T
 
