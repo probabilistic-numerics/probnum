@@ -14,7 +14,7 @@ def stopcrit():
 
 
 def test_invert_stopcrit(stopcrit: StoppingCriterion):
-    assert not stopcrit() == (~stopcrit)()
+    assert (not stopcrit()) == (~stopcrit)()
 
 
 @pytest.mark.parametrize("binary_op", [operator.and_, operator.or_])

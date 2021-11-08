@@ -78,13 +78,13 @@ class StoppingCriterion(abc.ABC):
     def __and__(self, other):
         return LambdaStoppingCriterion(
             stopcrit=lambda *args, **kwargs: self(*args, **kwargs)
-            and other(*args, **kwargs)
+            & other(*args, **kwargs)
         )
 
     def __or__(self, other):
         return LambdaStoppingCriterion(
             stopcrit=lambda *args, **kwargs: self(*args, **kwargs)
-            or other(*args, **kwargs)
+            | other(*args, **kwargs)
         )
 
     def __invert__(self):
