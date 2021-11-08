@@ -8,6 +8,8 @@ import numpy as np
 from probnum.quad.acquisitions import Acquisition
 from probnum.quad.bq_methods.bq_state import BQState
 
+# pylint: disable=too-few-public-methods, fixme
+
 
 class Policy(abc.ABC):
     """An abstract class for acquisition functions for Bayesian quadrature.

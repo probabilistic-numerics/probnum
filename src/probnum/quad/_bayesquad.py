@@ -20,7 +20,7 @@ from ._integration_measures import GaussianMeasure, IntegrationMeasure, Lebesgue
 from .bq_methods import BayesianQuadrature
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, no-else-raise
 def bayesquad(
     fun: Callable,
     input_dim: int,

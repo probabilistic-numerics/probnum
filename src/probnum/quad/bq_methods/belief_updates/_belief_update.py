@@ -8,12 +8,11 @@ from scipy.linalg import cho_factor, cho_solve
 from probnum.quad.bq_methods.bq_state import BQState
 from probnum.randvars import Normal
 
+# pylint: disable=too-few-public-methods, too-many-locals
+
 
 class BQBeliefUpdate(abc.ABC):
     """Abstract class for the inference scheme."""
-
-    def __call__(self, *args, **kwargs):
-        raise NotImplementedError
 
 
 class BQStandardBeliefUpdate(BQBeliefUpdate):

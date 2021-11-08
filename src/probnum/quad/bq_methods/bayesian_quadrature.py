@@ -20,6 +20,8 @@ from ..stop_criteria import (
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
 
+# pylint: disable=too-many-arguments
+
 
 class BayesianQuadrature:
     r"""A base class for Bayesian quadrature.
@@ -73,6 +75,31 @@ class BayesianQuadrature:
         rng: np.random.Generator = None,
     ) -> "BayesianQuadrature":
 
+        r"""Alternative way to initialize ``Bayesian_Quadrature``
+
+        Parameters
+        ----------
+        input_dim :
+            Input dimension.
+        kernel :
+            The kernel used for the GP model.
+        measure :
+            The integration measure.
+        domain :
+            The integration bounds.
+        policy :
+            The policy choosing nodes at which to evaluate the integrand.
+        max_evals :
+            Maximum number of evaluations as stopping criterion.
+        var_tol :
+            Variance tolerance as stopping criterion.
+        rel_tol :
+            Relative tolerance as stopping criterion.
+        batch_size :
+            Batch size used in node acquisition.
+        rng :
+            The random number generator.
+        """
         # Set up integration measure
         if measure is None:
             measure = LebesgueMeasure(domain=domain, input_dim=input_dim)

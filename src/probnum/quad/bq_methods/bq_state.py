@@ -9,6 +9,8 @@ from probnum.quad._integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
+# pylint: disable=too-few-public-methods, too-many-instance-attributes, too-many-arguments
+
 
 class BQInfo:
     """Collect information about the BQ loop.
@@ -108,6 +110,23 @@ class BQState:
     def from_new_data(
         cls, nodes, fun_evals, integral_belief, prev_state, gram, kernel_means
     ):
+        r"""Initialize state from updated data
+
+        Parameters
+        ----------
+        nodes:
+            All locations at which function evaluations are available.
+        fun_evals:
+            Function evaluations at nodes.
+        integral_belief :
+            Normal distribution over the value of the integral.
+        prev_state:
+            Previous state of the BQ loop.
+        gram :
+            The Gram matrix of the given nodes.
+        kernel_means :
+            The kernel means at the given nodes.
+        """
         return cls(
             measure=prev_state.measure,
             kernel=prev_state.kernel,

@@ -7,6 +7,8 @@ from probnum.quad.bq_methods.bq_state import BQState
 from probnum.randvars import Normal
 from probnum.typing import FloatArgType, IntArgType
 
+# pylint: disable=too-few-public-methods
+
 
 class StoppingCriterion:
     """Base class for a stopping criterion."""
