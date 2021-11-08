@@ -63,11 +63,14 @@ def cholesky_update(
     else:
         stacked_up = np.vstack(S1.T)
     upper_sqrtm = np.linalg.qr(stacked_up, mode="r")
-    if S1.shape[0] > S1.shape[1]:
+    if S1.ndim == 1:
+        lower_sqrtm = upper_sqrtm.T
+    elif S1.shape[0] <= S1.shape[1]:
+        lower_sqrtm = upper_sqrtm.T
+    else:
         lower_sqrtm = np.zeros((S1.shape[0], S1.shape[0]))
         lower_sqrtm[:, : -(S1.shape[0] - S1.shape[1])] = upper_sqrtm.T
-    else:
-        lower_sqrtm = upper_sqrtm.T
+
     return tril_to_positive_tril(lower_sqrtm)
 
 
