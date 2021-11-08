@@ -7,7 +7,6 @@ from .arrayutils import *
 __all__ = [
     "as_colvec",
     "atleast_1d",
-    "as_scalar",
     "as_numpy_scalar",
     "as_shape",
 ]

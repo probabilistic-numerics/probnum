@@ -1,12 +1,12 @@
 """Kernel / covariance function."""
 
 import abc
-import functools
-from typing import Optional
+from typing import Optional, Union
 
-from probnum import _backend
+import numpy as np
+
 from probnum import utils as _pn_utils
-from probnum.typing import ArrayLike, ArrayType, IntArgType, ShapeArgType, ShapeType
+from probnum.typing import ArrayLike, IntArgType, ShapeArgType, ShapeType
 
 
 class Kernel(abc.ABC):
@@ -144,12 +144,11 @@ class Kernel(abc.ABC):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
     def __call__(
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> ArrayType:
+    ) -> Union[np.ndarray, np.floating]:
         """Evaluate the (cross-)covariance function(s).
 
         The inputs are broadcast to a common shape following the "kernel broadcasting"
@@ -209,10 +208,10 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = _backend.atleast_1d(x0)
+        x0 = np.atleast_1d(x0)
 
         if x1 is not None:
-            x1 = _backend.atleast_1d(x1)
+            x1 = np.atleast_1d(x1)
 
         # Shape checking
         broadcast_input_shape = self._kernel_broadcast_shapes(x0, x1)
@@ -224,12 +223,11 @@ class Kernel(abc.ABC):
 
         return k_x0_x1
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
     def matrix(
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
-    ) -> ArrayType:
+    ) -> np.ndarray:
         """A convenience function for computing a kernel matrix for two sets of inputs.
 
         This is syntactic sugar for ``k(x0[:, None, :], x1[None, :, :])``. Hence, it
@@ -270,8 +268,8 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = _backend.atleast_2d(x0)
-        x1 = x0 if x1 is None else _backend.atleast_2d(x1)
+        x0 = np.array(x0)
+        x1 = x0 if x1 is None else np.array(x1)
 
         # Shape checking
         errmsg = (
@@ -296,10 +294,13 @@ class Kernel(abc.ABC):
 
     @property
     def shape(self) -> ShapeType:
-        """If :attr:`shape` is ``()``, the :class:`Kernel` instance represents a
-        single (cross-)covariance function. Otherwise, i.e. if :attr:`shape` is
-        non-empty, the :class:`Kernel` instance represents a tensor of
-        (cross-)covariance functions whose shape is given by ``shape``."""
+        """If :attr:`shape` is ``()``, the :class:`Kernel` instance represents a single
+        (cross-)covariance function.
+
+        Otherwise, i.e. if :attr:`shape` is non-empty, the :class:`Kernel` instance
+        represents a tensor of (cross-)covariance functions whose shape is given by
+        ``shape``.
+        """
         return self._shape
 
     @abc.abstractmethod
@@ -307,7 +308,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> ArrayType:
+    ) -> Union[np.ndarray, np.float_]:
         """Implementation of the kernel evaluation which is called after input checking.
 
         When implementing a particular kernel, the subclass should implement the kernel
@@ -347,8 +348,8 @@ class Kernel(abc.ABC):
 
     def _kernel_broadcast_shapes(
         self,
-        x0: ArrayType,
-        x1: Optional[ArrayType] = None,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray] = None,
     ) -> ShapeType:
         """Applies the "kernel broadcasting" rules to the input shapes.
 
@@ -395,7 +396,7 @@ class Kernel(abc.ABC):
             try:
                 # Ironically, `np.broadcast_arrays` seems to be more efficient than
                 # `np.broadcast_shapes`
-                broadcast_input_shape = _backend.broadcast_arrays(x0, x1)[0].shape
+                broadcast_input_shape = np.broadcast_arrays(x0, x1)[0].shape
             except ValueError as v:
                 raise ValueError(
                     f"The input arrays `x0` and `x1` with shapes {x0.shape} and "
@@ -407,10 +408,9 @@ class Kernel(abc.ABC):
 
         return broadcast_input_shape
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
     def _euclidean_inner_products(
-        self, x0: ArrayType, x1: Optional[ArrayType]
-    ) -> ArrayType:
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> np.ndarray:
         """Implementation of the Euclidean inner product, which supports kernel
         broadcasting semantics."""
         prods = x0 ** 2 if x1 is None else x0 * x1
@@ -418,7 +418,7 @@ class Kernel(abc.ABC):
         if prods.shape[-1] == 1:
             return self.input_dim * prods[..., 0]
 
-        return _backend.sum(prods, axis=-1)
+        return np.sum(prods, axis=-1)
 
 
 class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
@@ -434,14 +434,13 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     Hence, all isotropic kernels are stationary.
     """
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
     def _squared_euclidean_distances(
-        self, x0: ArrayType, x1: Optional[ArrayType]
-    ) -> ArrayType:
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> np.ndarray:
         """Implementation of the squared Euclidean distance, which supports kernel
         broadcasting semantics."""
         if x1 is None:
-            return _backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[:-1],
             )
@@ -451,16 +450,17 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         if sqdiffs.shape[-1] == 1:
             return self.input_dim * sqdiffs[..., 0]
 
-        return _backend.sum(sqdiffs, axis=-1)
+        return np.sum(sqdiffs, axis=-1)
 
-    @functools.partial(_backend.jit, static_argnums=(0,))
-    def _euclidean_distances(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
-        """Implementation of the Euclidean distance, which supports kernel
-        broadcasting semantics."""
+    def _euclidean_distances(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> np.ndarray:
+        """Implementation of the Euclidean distance, which supports kernel broadcasting
+        semantics."""
         if x1 is None:
-            return _backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[:-1],
             )
 
-        return _backend.sqrt(self._squared_euclidean_distances(x0, x1))
+        return np.sqrt(self._squared_euclidean_distances(x0, x1))
