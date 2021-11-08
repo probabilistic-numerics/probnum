@@ -65,6 +65,7 @@ class StoppingCriterion(abc.ABC):
 
     See Also
     --------
+    LambdaStoppingCriterion : Stopping criterion defined via an anonymous function.
     LinearSolverStoppingCriterion : Stopping criterion of a probabilistic linear solver.
     FiltSmoothStoppingCriterion : Stopping criterion of filters and smoothers.
     """
