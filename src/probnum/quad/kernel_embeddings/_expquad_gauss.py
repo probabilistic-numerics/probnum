@@ -41,7 +41,8 @@ def _kernel_mean_expquad_gauss(
         exp_factor = np.exp(-0.5 * (chol_inv_x ** 2).sum(axis=1))
     else:
         chol = slinalg.cho_factor(
-            kernel.lengthscale ** 2 * np.eye(input_dim) + measure.cov, lower=True,
+            kernel.lengthscale ** 2 * np.eye(input_dim) + measure.cov,
+            lower=True,
         )
         chol_inv_x = slinalg.cho_solve(chol, (x - measure.mean).T)
         exp_factor = np.exp(-0.5 * ((x - measure.mean) * chol_inv_x.T).sum(axis=1))

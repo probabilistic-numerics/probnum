@@ -21,7 +21,10 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
     standard Gaussian process inference."""
 
     def __call__(
-        self, bq_state: BQState, new_nodes: np.ndarray, new_fun_evals: np.ndarray,
+        self,
+        bq_state: BQState,
+        new_nodes: np.ndarray,
+        new_fun_evals: np.ndarray,
     ):
         """Updates integral belief and BQ state according to the new data given.
 
