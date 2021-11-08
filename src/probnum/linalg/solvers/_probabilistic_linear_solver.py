@@ -3,8 +3,10 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
+from probnum import ProbabilisticNumericalMethod
 
-class ProbabilisticLinearSolver:
+
+class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     r"""Compose a custom probabilistic linear solver.
 
     Class implementing probabilistic linear solvers. Such (iterative) solvers infer
@@ -41,3 +43,6 @@ class ProbabilisticLinearSolver:
     Examples
     --------
     """
+
+    def solve(self, problem: ProblemType) -> Tuple[BeliefType, StateType]:
+        return super().solve(problem)
