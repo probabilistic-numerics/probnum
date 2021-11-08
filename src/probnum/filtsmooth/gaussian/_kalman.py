@@ -8,6 +8,7 @@ import numpy as np
 from probnum import problems, randprocs
 from probnum.filtsmooth import _bayesfiltsmooth, _timeseriesposterior, optim
 from probnum.filtsmooth.gaussian import _kalmanposterior, approx
+from probnum.filtsmooth.optim import FiltSmoothStoppingCriterion
 
 # Measurement models for a Kalman filter can be all sorts of things:
 KalmanSingleMeasurementModelType = Union[
@@ -36,7 +37,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[_kalmanposterior.SmoothingPosterior] = None,
-        stopcrit: Optional[optim.StoppingCriterion] = None,
+        stopcrit: Optional[FiltSmoothStoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -51,7 +52,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         init_posterior
             Initial posterior to linearize at. If not specified, linearizes
             at the prediction random variable.
-        stopcrit: StoppingCriterion
+        stopcrit:
             A stopping criterion for iterated filtering.
 
         Returns
@@ -76,7 +77,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[_kalmanposterior.SmoothingPosterior] = None,
-        stopcrit: Optional[optim.StoppingCriterion] = None,
+        stopcrit: Optional[FiltSmoothStoppingCriterion] = None,
     ):
         """Compute iterated smoothing estimates with repeated posterior linearisation.
 
@@ -92,7 +93,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
             Initial posterior to linearize at. Defaults to computing a (non-iterated)
             smoothing posterior, which amounts to linearizing at the prediction
             random variable.
-        stopcrit: StoppingCriterion
+        stopcrit:
             A stopping criterion for iterated filtering.
 
         Yields
@@ -107,7 +108,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         """
 
         if stopcrit is None:
-            stopcrit = optim.StoppingCriterion()
+            stopcrit = optim.FiltSmoothStoppingCriterion()
 
         if init_posterior is None:
             # Initialise iterated smoother
@@ -122,7 +123,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         yield new_posterior, info_dicts
         new_mean = new_posterior.states.mean
         old_mean = np.inf * np.ones(new_mean.shape)
-        while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
+        while not stopcrit(error=new_mean - old_mean, reference=new_mean):
             old_posterior = new_posterior
             new_posterior, info_dicts = self.filtsmooth(
                 regression_problem,
