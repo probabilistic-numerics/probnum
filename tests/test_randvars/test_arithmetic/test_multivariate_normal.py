@@ -88,7 +88,9 @@ def test_constant_multivariate_normal_subtraction_right(constant, multivariate_n
         )
 
 
-@pytest.mark.parametrize("shape,shape_const", [((3,), (3,))])
+@pytest.mark.parametrize(
+    "shape,shape_const", [((3,), (3,)), ((2,), (3, 2)), ((3,), (1, 3))]
+)
 @pytest.mark.parametrize("precompute_cov_cholesky", [False, True])
 def test_constant_multivariate_normal_matrix_multiplication_right(
     constant, multivariate_normal
@@ -116,7 +118,9 @@ def test_constant_multivariate_normal_matrix_multiplication_right(
         )
 
 
-@pytest.mark.parametrize("shape,shape_const", [((3,), (3,))])
+@pytest.mark.parametrize(
+    "shape,shape_const", [((3,), (3,)), ((3,), (3, 2)), ((2,), (2, 1))]
+)
 @pytest.mark.parametrize("precompute_cov_cholesky", [False, True])
 def test_constant_multivariate_normal_matrix_multiplication_left(
     constant, multivariate_normal

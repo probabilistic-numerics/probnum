@@ -274,6 +274,10 @@ _mul_fns[(_Constant, _Normal)] = _swap_operands(_mul_normal_constant)
 
 
 def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
+    """Normal random variable multiplied with a vector or matrix.
+
+    Computes the distribution of the random variable :math:`Y = XA`, where :math:`X` is a matrix- or multi-variate normal distribution and :math:`A` a constant.
+    """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
             cov_cholesky = _utils.linalg.cholesky_update(
@@ -286,7 +290,7 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             cov=constant_rv.support.T @ (norm_rv.cov @ constant_rv.support),
             cov_cholesky=cov_cholesky,
         )
-    elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
+    else:
         # This part does not do the Cholesky update,
         # because of performance configurations: currently, there is no way of switching
         # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
@@ -295,19 +299,15 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             constant_rv_support = constant_rv.support[:, None]
         else:
             constant_rv_support = constant_rv.support
+
         cov_update = _linear_operators.Kronecker(
-            _linear_operators.Identity(norm_rv.shape[0]),
-            constant_rv_support,
+            _linear_operators.Identity(norm_rv.shape[0]), constant_rv_support.T
         )
 
+        # Cov(rvec(XA)) = Cov((I (x) A.T)rvec(X)) = (I (x) A.T)Cov(rvec(X))(I (x) A.T).T
         return _Normal(
             mean=norm_rv.mean @ constant_rv.support,
-            cov=cov_update.T @ (norm_rv.cov @ cov_update),
-        )
-    else:
-        raise TypeError(
-            "Currently, matrix multiplication is only supported for vector- and "
-            "matrix-variate Gaussians."
+            cov=cov_update @ (norm_rv.cov @ cov_update.T),
         )
 
 
@@ -315,6 +315,10 @@ _matmul_fns[(_Normal, _Constant)] = _matmul_normal_constant
 
 
 def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
+    """Matrix-multiplication with a normal random variable.
+
+    Computes the distribution of the random variable :math:`Y = AX`, where :math:`X` is a matrix- or multi-variate normal distribution and :math:`A` a constant.
+    """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
             cov_cholesky = _utils.linalg.cholesky_update(
@@ -327,23 +331,25 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
             cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
             cov_cholesky=cov_cholesky,
         )
-    elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
+    else:
         # This part does not do the Cholesky update,
         # because of performance configurations: currently, there is no way of switching
         # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
         # of matrix-variate Normal RVs. See Issue #335.
+        if constant_rv.support.ndim == 1:
+            constant_rv_support = constant_rv.support[None, :]
+        else:
+            constant_rv_support = constant_rv.support
+
         cov_update = _linear_operators.Kronecker(
-            constant_rv.support,
+            constant_rv_support,
             _linear_operators.Identity(norm_rv.shape[1]),
         )
 
+        # Cov(rvec(AX)) = Cov((A (x) I)rvec(X)) = (A (x) I)Cov(rvec(X))(A (x) I).T
         return _Normal(
             mean=constant_rv.support @ norm_rv.mean,
             cov=cov_update @ (norm_rv.cov @ cov_update.T),
-        )
-    else:
-        raise TypeError(
-            "Currently, matrix multiplication is only supported for vector and matrix-variate Gaussians."
         )
 
 
