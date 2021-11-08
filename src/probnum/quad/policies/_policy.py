@@ -1,9 +1,9 @@
 """Abstract base class for BQ acquisition policies."""
 
 import abc
+from typing import Callable
 
 import numpy as np
-from typing import Callable
 
 from probnum.quad.acquisitions import Acquisition
 from probnum.quad.bq_methods.bq_state import BQState
