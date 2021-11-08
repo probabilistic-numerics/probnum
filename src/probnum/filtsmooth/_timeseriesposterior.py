@@ -5,7 +5,7 @@ from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import _randomvariablelist, randvars
+from probnum import randvars
 from probnum.typing import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
@@ -14,9 +14,7 @@ from probnum.typing import (
     ShapeArgType,
 )
 
-DenseOutputValueType = Union[
-    randvars.RandomVariable, _randomvariablelist._RandomVariableList
-]
+DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
 """Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a single location,
 and a _RandomVariableList if evaluated at an array of locations."""
 
@@ -74,7 +72,7 @@ class TimeSeriesPosterior(abc.ABC):
 
     @property
     def states(self):
-        return _randomvariablelist._RandomVariableList(self._states)
+        return randvars._RandomVariableList(self._states)
 
     def __len__(self) -> int:
         """Length of the discrete-time solution.
@@ -103,7 +101,7 @@ class TimeSeriesPosterior(abc.ABC):
 
         Returns
         -------
-        randvars.RandomVariable or _randomvariablelist._RandomVariableList
+        randvars.RandomVariable or randvars._RandomVariableList
             Estimate of the states at time ``t``.
         """
         # The variable "squeeze_eventually" indicates whether
@@ -156,7 +154,7 @@ class TimeSeriesPosterior(abc.ABC):
 
         if t_has_been_promoted:
             return dense_output_values[0]
-        return _randomvariablelist._RandomVariableList(dense_output_values)
+        return randvars._RandomVariableList(dense_output_values)
 
     @abc.abstractmethod
     def interpolate(
@@ -169,7 +167,7 @@ class TimeSeriesPosterior(abc.ABC):
 
         Returns
         -------
-        randvars.RandomVariable or _randomvariablelist._RandomVariableList
+        randvars.RandomVariable or randvars._RandomVariableList
             Dense evaluation.
         """
         raise NotImplementedError

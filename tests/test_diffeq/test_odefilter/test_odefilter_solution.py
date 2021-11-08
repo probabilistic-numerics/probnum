@@ -3,7 +3,6 @@ import pytest
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, randvars
-from probnum._randomvariablelist import _RandomVariableList
 
 
 @pytest.fixture
@@ -64,7 +63,7 @@ def test_getitem(posterior):
 def test_states(posterior):
     """RVs are stored correctly."""
 
-    assert isinstance(posterior.states, _RandomVariableList)
+    assert isinstance(posterior.states, randvars._RandomVariableList)
     assert len(posterior.states[0].shape) == 1
 
 

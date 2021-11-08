@@ -65,7 +65,8 @@ class ProbNumConfigOptions(SphinxDirective):
         return [table]
 
     def _parse_string(self, s: str):
-        """Adapted from https://github.com/sphinx-doc/sphinx/blob/5559e5af1ff6f5fc2dc70679bdd6dc089cfff388/sphinx/ext/autosummary/__init__.py#L425"""
+        """Adapted from https://github.com/sphinx-doc/sphinx/blob/5559e5af1ff6f5fc2dc706
+        79bdd6dc089cfff388/sphinx/ext/autosummary/__init__.py#L425."""
         node = nodes.paragraph("")
 
         vl = StringList()

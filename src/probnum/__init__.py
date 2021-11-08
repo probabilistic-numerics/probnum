@@ -1,10 +1,9 @@
 """Probabilistic Numerical Methods.
 
-ProbNum implements probabilistic numerical methods in Python. Such
-methods solve numerical problems from linear algebra, optimization,
-quadrature and differential equations using probabilistic inference.
-This approach captures uncertainty arising from finite computational
-resources and stochastic input.
+ProbNum implements probabilistic numerical methods in Python. Such methods solve
+numerical problems from linear algebra, optimization, quadrature and differential
+equations using probabilistic inference. This approach captures uncertainty arising from
+finite computational resources and stochastic input.
 """
 
 # isort: off
@@ -14,6 +13,13 @@ resources and stochastic input.
 # contexts in which configuration is temporarily overwritten. This object contains
 # unguarded global state and is hence not thread-safe!
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
+
+# Abstract interfaces for (components of) probabilistic numerical methods.
+from ._pnmethod import (
+    ProbabilisticNumericalMethod,
+    StoppingCriterion,
+    LambdaStoppingCriterion,
+)
 
 # isort: on
 
@@ -29,7 +35,6 @@ from . import (
     randvars,
     utils,
 )
-from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from ._version import version as __version__
 from .randvars import asrandvar
 
@@ -37,7 +42,11 @@ from .randvars import asrandvar
 __all__ = [
     "asrandvar",
     "ProbabilisticNumericalMethod",
+    "StoppingCriterion",
+    "LambdaStoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticNumericalMethod.__module__ = "probnum"
+StoppingCriterion.__module__ = "probnum"
+LambdaStoppingCriterion.__module__ = "probnum"

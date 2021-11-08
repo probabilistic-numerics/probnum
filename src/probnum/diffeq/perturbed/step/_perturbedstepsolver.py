@@ -4,7 +4,7 @@ from typing import Callable
 
 import numpy as np
 
-from probnum import _randomvariablelist
+from probnum import randvars
 from probnum.diffeq import _odesolver, _odesolver_state
 from probnum.diffeq.perturbed import scipy_wrapper
 from probnum.diffeq.perturbed.step import (
@@ -134,9 +134,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         """Call dense output after each step and store the interpolants."""
         return self.solver.method_callback(state)
 
-    def rvlist_to_odesol(
-        self, times: np.ndarray, rvs: _randomvariablelist._RandomVariableList
-    ):
+    def rvlist_to_odesol(self, times: np.ndarray, rvs: randvars._RandomVariableList):
         interpolants = self.solver.interpolants
         probnum_solution = _perturbedstepsolution.PerturbedStepSolution(
             self.scales, times, rvs, interpolants

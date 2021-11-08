@@ -5,7 +5,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import _randomvariablelist, randvars
+from probnum import randvars
 from probnum import utils as _utils
 from probnum.typing import DTypeArgType, IntArgType, ShapeArgType
 
@@ -100,7 +100,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         """Data type of (elements of) the random process evaluated at an input."""
         return self._dtype
 
-    def marginal(self, args: _InputType) -> _randomvariablelist._RandomVariableList:
+    def marginal(self, args: _InputType) -> randvars._RandomVariableList:
         """Batch of random variables defining the marginal distributions at the inputs.
 
         Parameters

@@ -27,9 +27,7 @@ class GaussNewton(_state_space_optimizer.StateSpaceOptimizer):
         old_mean = np.inf * np.ones(new_mean.shape)
         mean_difference = new_mean - old_mean
 
-        while not self.stopping_criterion.terminate(
-            error=mean_difference, reference=new_mean
-        ):
+        while not self.stopping_criterion(error=mean_difference, reference=new_mean):
 
             old_posterior = new_posterior
             new_posterior, info_dicts = self.kalman.filtsmooth(
