@@ -5,7 +5,7 @@ from typing import List, Optional
 import numpy as np
 from scipy.integrate._ivp import rk
 
-from probnum import _randomvariablelist, randvars
+from probnum import randvars
 from probnum.diffeq import _odesolution
 from probnum.typing import FloatArgType
 
@@ -17,7 +17,7 @@ class PerturbedStepSolution(_odesolution.ODESolution):
         self,
         scales: List[float],
         locations: np.ndarray,
-        states: _randomvariablelist._RandomVariableList,
+        states: randvars._RandomVariableList,
         interpolants: List[rk.DenseOutput],
     ):
         self.scales = scales

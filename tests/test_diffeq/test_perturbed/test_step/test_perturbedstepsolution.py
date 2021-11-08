@@ -3,7 +3,7 @@ import pytest
 from scipy.integrate._ivp import rk
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import _randomvariablelist, diffeq
+from probnum import diffeq, randvars
 
 
 @pytest.fixture
@@ -29,16 +29,13 @@ def perturbed_solution(steprule):
 
 
 def test_states(perturbed_solution):
-    assert isinstance(
-        perturbed_solution.states, _randomvariablelist._RandomVariableList
-    )
+    assert isinstance(perturbed_solution.states, randvars._RandomVariableList)
 
 
 def test_call(perturbed_solution):
     """Test for continuity of the dense output.
 
-    Small changes of the locations should come with small changes of the
-    states.
+    Small changes of the locations should come with small changes of the states.
     """
     np.testing.assert_allclose(
         perturbed_solution(perturbed_solution.locations[0:]).mean,

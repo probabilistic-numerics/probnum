@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import _randomvariablelist, filtsmooth, randvars, utils
+from probnum import filtsmooth, randvars, utils
 from probnum.diffeq import _odesolution
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
 from probnum.typing import FloatArgType, IntArgType, ShapeArgType
@@ -78,10 +78,10 @@ class ODEFilterSolution(_odesolution.ODESolution):
         self.proj_to_y = self.kalman_posterior.transition.proj2coord(coord=0)
         self.proj_to_dy = self.kalman_posterior.transition.proj2coord(coord=1)
 
-        states = _randomvariablelist._RandomVariableList(
+        states = randvars._RandomVariableList(
             [_project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.states]
         )
-        derivatives = _randomvariablelist._RandomVariableList(
+        derivatives = randvars._RandomVariableList(
             [_project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.states]
         )
         super().__init__(

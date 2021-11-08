@@ -4,7 +4,7 @@ import abc
 
 import numpy as np
 
-from probnum import _randomvariablelist, randvars
+from probnum import randvars
 from probnum.typing import FloatArgType, IntArgType
 
 
@@ -254,7 +254,7 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        rv_list : _randomvariablelist._RandomVariableList
+        rv_list : randvars._RandomVariableList
             List of random variables to be smoothed.
         locations :
             Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
@@ -267,7 +267,7 @@ class Transition(abc.ABC):
 
         Returns
         -------
-        _randomvariablelist._RandomVariableList
+        randvars._RandomVariableList
             List of smoothed random variables.
         """
 
@@ -295,13 +295,13 @@ class Transition(abc.ABC):
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
-        return _randomvariablelist._RandomVariableList(out_rvs)
+        return randvars._RandomVariableList(out_rvs)
 
     def jointly_transform_base_measure_realization_list_backward(
         self,
         base_measure_realizations: np.ndarray,
         t: FloatArgType,
-        rv_list: _randomvariablelist._RandomVariableList,
+        rv_list: randvars._RandomVariableList,
         _diffusion_list: np.ndarray,
         _previous_posterior=None,
     ) -> np.ndarray:

@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum._randomvariablelist import _RandomVariableList
-from probnum.randvars import Constant
+from probnum.randvars import Constant, _RandomVariableList
 
 
 class TestRandomVariableList(unittest.TestCase):
