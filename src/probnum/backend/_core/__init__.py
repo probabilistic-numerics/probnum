@@ -42,16 +42,22 @@ zeros_like = _core.zeros_like
 linspace = _core.linspace
 
 # Constants
-pi = _core.pi
 inf = _core.inf
+pi = _core.pi
 
-# Operations
-sin = _core.sin
+# Element-wise Unary Operations
 exp = _core.exp
+isfinite = _core.isfinite
 log = _core.log
+sin = _core.sin
 sqrt = _core.sqrt
-sum = _core.sum
+
+# Element-wise Binary Operations
 maximum = _core.maximum
+
+# Reductions
+all = _core.all
+sum = _core.sum
 
 # Just-in-Time Compilation
 jit = _core.jit

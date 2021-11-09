@@ -1,5 +1,6 @@
 import jax
 from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
+    all,
     array,
     asarray,
     atleast_1d,
@@ -17,6 +18,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     inf,
     int32,
     int64,
+    isfinite,
     linspace,
     log,
     maximum,
