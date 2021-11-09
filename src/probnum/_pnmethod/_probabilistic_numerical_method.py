@@ -19,8 +19,8 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
 
     Parameters
     ----------
-    prior :
-        Prior knowledge about quantities of interest for the numerical problem.
+    stopping_criterion :
+        Stopping criterion determining when a desired terminal condition is met.
 
     References
     ----------
@@ -42,19 +42,21 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     derived subclass.
     """
 
-    def __init__(self, prior: BeliefType, stopping_criterion: StoppingCriterion):
-        self.prior = prior
+    def __init__(self, stopping_criterion: StoppingCriterion):
         self.stopping_criterion = stopping_criterion
 
     @abstractmethod
     def solve(
         self,
+        prior: BeliefType,
         problem: ProblemType,
     ) -> Tuple[BeliefType, StateType]:
         """Solve the given numerical problem.
 
         Parameters
         ----------
+        prior :
+            Prior knowledge about quantities of interest of the numerical problem.
         problem :
             Numerical problem to be solved.
         """

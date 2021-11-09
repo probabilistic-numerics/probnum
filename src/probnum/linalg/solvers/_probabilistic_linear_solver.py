@@ -59,7 +59,6 @@ class ProbabilisticLinearSolver(
 
     def __init__(
         self,
-        prior: beliefs.LinearSystemBelief,
         policy: policies.LinearSolverPolicy,
         information_op: information_ops.LinearSolverInformationOp,
         belief_update: belief_updates.LinearSolverBeliefUpdate,
@@ -68,7 +67,7 @@ class ProbabilisticLinearSolver(
         self.policy = policy
         self.information_op = information_op
         self.belief_update = belief_update
-        super().__init__(prior=prior, stopping_criterion=stopping_criterion)
+        super().__init__(stopping_criterion=stopping_criterion)
 
     @classmethod
     def from_problem(
@@ -79,29 +78,38 @@ class ProbabilisticLinearSolver(
         Parameters
         ----------
         problem :
-            Linear system.
+            Linear system to be solved.
         """
         raise NotImplementedError
 
     def solve_iterator(
-        self, problem: problems.LinearSystem
+        self, prior: beliefs.LinearSystemBelief, problem: problems.LinearSystem
     ) -> Generator[LinearSolverState, None, None]:
         """Generator implementing the solver iteration.
 
         This function allows stepping through the solver iteration one step at a time
         and exposes the internal solver state.
+
+        Parameters
+        ----------
+        prior :
+            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
+        problem :
+            Linear system to be solved.
         """
         raise NotImplementedError
 
     def solve(
-        self, problem: problems.LinearSystem
+        self, prior: beliefs.LinearSystemBelief, problem: problems.LinearSystem
     ) -> Tuple[beliefs.LinearSystemBelief, LinearSolverState]:
         r"""Solve the linear system.
 
         Parameters
         ----------
+        prior :
+            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
         problem :
-            Linear system.
+            Linear system to be solved.
 
         Returns
         -------
