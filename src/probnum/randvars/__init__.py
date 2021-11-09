@@ -20,6 +20,7 @@ from ._scipy_stats import (
     WrappedSciPyDiscreteRandomVariable,
     WrappedSciPyRandomVariable,
 )
+from ._sym_mat_normal import SymmetricMatrixNormal
 from ._utils import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
@@ -30,6 +31,7 @@ __all__ = [
     "ContinuousRandomVariable",
     "Constant",
     "Normal",
+    "SymmetricMatrixNormal",
     "Categorical",
     "WrappedSciPyRandomVariable",
     "WrappedSciPyDiscreteRandomVariable",
@@ -48,6 +50,7 @@ WrappedSciPyContinuousRandomVariable.__module__ = "probnum.randvars"
 
 Constant.__module__ = "probnum.randvars"
 Normal.__module__ = "probnum.randvars"
+SymmetricMatrixNormal.__module__ = "probnum.randvars"
 Categorical.__module__ = "probnum.randvars"
 
 _RandomVariableList.__module__ = "probnum.randvars"

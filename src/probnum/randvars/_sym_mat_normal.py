@@ -1,7 +1,7 @@
 import numpy as np
 
 from probnum import linops
-from probnum.typing import FloatArgType
+from probnum.typing import ShapeType
 
 from . import _normal
 
@@ -28,20 +28,18 @@ class SymmetricMatrixNormal(_normal.Normal):
 
         super().__init__(mean=linops.aslinop(mean), cov=cov)
 
-    def _symmetric_kronecker_identical_factors_sample(
-        self, rng: np.random.Generator, size: ShapeType = ()
-    ) -> np.ndarray:
+    def _sample(self, rng: np.random.Generator, size: ShapeType = ()) -> np.ndarray:
         assert (
             isinstance(self.cov, linops.SymmetricKronecker)
             and self.cov.identical_factors
         )
 
+        # TODO (#xyz): Implement correct sampling routine
+
         n = self.mean.shape[1]
 
         # Draw standard normal samples
-        size_sample = (n * n,) + size
-
-        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample, random_state=rng)
+        stdnormal_samples = rng.standard_normal(size=(n * n,) + size, dtype=self.dtype)
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
         samples_scaled = linops.Symmetrize(n) @ (self.cov_cholesky @ stdnormal_samples)
