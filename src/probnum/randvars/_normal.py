@@ -1,7 +1,7 @@
 """Normally distributed / Gaussian random variables."""
 
 import functools
-from typing import Callable, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import scipy.linalg
@@ -13,17 +13,13 @@ from probnum.typing import (
     ArrayLike,
     ArrayType,
     FloatLike,
-    MatrixType,
     ShapeLike,
     ShapeType,
 )
 
 from . import _random_variable
 
-_ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
-
-
-# pylint: disable="too-complex"
+_ValueType = Union[ArrayType, linops.LinearOperator]
 
 
 class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
@@ -86,11 +82,20 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         # Data type normalization
         dtype = backend.promote_types(mean.dtype, cov.dtype)
 
-        if not backend.is_floating:
+        if not backend.is_floating(dtype):
             dtype = backend.double
 
         mean = backend.cast(mean, dtype=dtype, casting="safe", copy=False)
         cov = backend.cast(cov, dtype=dtype, casting="safe", copy=False)
+
+        if cov_cholesky is not None:
+            # TODO: (#xyz) Handle if-statements like this via `pn.compat.cast`
+            if isinstance(cov_cholesky, linops.LinearOperator):
+                cov_cholesky = cov_cholesky.astype(dtype, casting="safe", copy=False)
+            else:
+                cov_cholesky = backend.cast(
+                    cov_cholesky, dtype=dtype, casting="safe", copy=False
+                )
 
         # Shape checking
         expected_cov_shape = (
@@ -105,138 +110,137 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 f"shape {cov.shape} was given."
             )
 
-        # Method selection
-        scalar = mean.ndim == 0
-        dense = isinstance(mean, backend.ndarray) and isinstance(cov, backend.ndarray)
-        cov_operator = isinstance(cov, linops.LinearOperator)
-        compute_cov_cholesky: Callable[[], _ValueType] = None
+        if cov_cholesky is not None:
+            if cov_cholesky.shape != cov.shape:
+                raise ValueError(
+                    f"The cholesky decomposition of the covariance matrix must "
+                    f"have the same shape as the covariance matrix, i.e. "
+                    f"{cov.shape}, but shape {cov_cholesky.shape} was given"
+                )
 
-        if scalar:
-            # Scalar Gaussian
-            sample = self._scalar_sample
-            in_support = Normal._scalar_in_support
-            pdf = self._scalar_pdf
-            logpdf = self._scalar_logpdf
-            cdf = self._scalar_cdf
-            logcdf = self._scalar_logcdf
-            quantile = self._scalar_quantile
-
-            median = lambda: mean
-            var = lambda: cov
-            entropy = self._scalar_entropy
-
-            compute_cov_cholesky = self._scalar_cov_cholesky
-
-        elif dense or cov_operator:
-            # Multi- and matrix- and tensorvariate Gaussians
-            sample = self._dense_sample
-            in_support = Normal._dense_in_support
-            pdf = self._dense_pdf
-            logpdf = self._dense_logpdf
-            cdf = self._dense_cdf
-            logcdf = self._dense_logcdf
-            quantile = None
-
-            median = None
-            var = self._dense_var
-            entropy = self._dense_entropy
-
-            compute_cov_cholesky = self.dense_cov_cholesky
-
-            # Ensure that the Cholesky factor has the same type as the covariance,
-            # and, if necessary, promote data types. Check for (in this order): type, shape, dtype.
-            if cov_cholesky is not None:
-                if not isinstance(cov_cholesky, type(cov)):
-                    raise TypeError(
-                        f"The covariance matrix is of type `{type(cov)}`, so its "
-                        f"Cholesky decomposition must be of the same type, but an "
-                        f"object of type `{type(cov_cholesky)}` was given."
-                    )
-
-                if cov_cholesky.shape != cov.shape:
-                    raise ValueError(
-                        f"The cholesky decomposition of the covariance matrix must "
-                        f"have the same shape as the covariance matrix, i.e. "
-                        f"{cov.shape}, but shape {cov_cholesky.shape} was given"
-                    )
-
-                if cov_cholesky.dtype != cov.dtype:
-                    cov_cholesky = backend.cast(
-                        cov_cholesky, dtype=cov.dtype, casting="safe", copy=False
-                    )
-
-            if cov_operator:
-                if isinstance(cov, linops.SymmetricKronecker):
-                    m, n = mean.shape
-
-                    if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
-                        raise ValueError(
-                            "Normal distributions with symmetric Kronecker structured "
-                            "kernels must have square mean and square kernels factors with "
-                            "matching dimensions."
-                        )
-
-                    if cov.identical_factors:
-                        sample = self._symmetric_kronecker_identical_factors_sample
-
-                        compute_cov_cholesky = (
-                            self._symmetric_kronecker_identical_factors_cov_cholesky
-                        )
-                elif isinstance(cov, linops.Kronecker):
-                    compute_cov_cholesky = self._kronecker_cov_cholesky
-                else:
-                    # This case handles all linear operators, for which no Cholesky
-                    # factorization is implemented, yet.
-                    # Computes the dense Cholesky and converts it to a LinearOperator.
-                    compute_cov_cholesky = self._dense_cov_cholesky_as_linop
-        else:
-            raise ValueError(
-                f"Cannot instantiate normal distribution with mean of type "
-                f"{mean.__class__.__name__} and kernels of type "
-                f"{cov.__class__.__name__}."
-            )
-
-        super().__init__(
-            shape=mean.shape,
-            dtype=mean.dtype,
-            parameters={"mean": mean, "cov": cov},
-            sample=sample,
-            in_support=in_support,
-            pdf=pdf,
-            logpdf=logpdf,
-            cdf=cdf,
-            logcdf=logcdf,
-            quantile=quantile,
-            mode=lambda: mean,
-            median=median,
-            mean=lambda: mean,
-            cov=lambda: cov,
-            var=var,
-            entropy=entropy,
-        )
-
-        self._compute_cov_cholesky = compute_cov_cholesky
         self._cov_cholesky = cov_cholesky
+
+        if mean.ndim == 0:
+            # Scalar Gaussian
+            if self._cov_cholesky is None:
+                self._cov_cholesky = backend.sqrt(cov)
+
+            self.__cov_op_cholesky = None
+
+            super().__init__(
+                shape=(),
+                dtype=mean.dtype,
+                parameters={"mean": mean, "cov": cov},
+                sample=self._scalar_sample,
+                in_support=Normal._scalar_in_support,
+                pdf=self._scalar_pdf,
+                logpdf=self._scalar_logpdf,
+                cdf=self._scalar_cdf,
+                logcdf=self._scalar_logcdf,
+                quantile=self._scalar_quantile,
+                mode=lambda: mean,
+                median=lambda: mean,
+                mean=lambda: mean,
+                cov=lambda: cov,
+                var=lambda: cov,
+                entropy=self._scalar_entropy,
+            )
+        else:
+            # Multi- and matrix- and tensorvariate Gaussians
+            self._cov_op = linops.aslinop(cov)
+            self.__cov_op_cholesky = None
+
+            if self._cov_cholesky is not None:
+                self.__cov_op_cholesky = linops.aslinop(self._cov_cholesky)
+
+            super().__init__(
+                shape=mean.shape,
+                dtype=mean.dtype,
+                parameters={"mean": mean, "cov": cov},
+                sample=self._sample,
+                in_support=Normal._in_support,
+                pdf=self._pdf,
+                logpdf=self._logpdf,
+                cdf=self._cdf,
+                logcdf=self._logcdf,
+                quantile=None,
+                mode=lambda: mean,
+                median=None,
+                mean=lambda: mean,
+                cov=lambda: cov,
+                var=self._var,
+                entropy=self._entropy,
+            )
 
     @property
     def cov_cholesky(self) -> _ValueType:
-        """Cholesky factor :math:`L` of the covariance
-        :math:`\\operatorname{Cov}(X) =LL^\\top`."""
+        r"""Cholesky factor :math:`L` of the covariance
+        :math:`\operatorname{Cov}(X) =LL^\top`."""
 
-        if not self.cov_cholesky_is_precomputed:
-            self.precompute_cov_cholesky()
+        if self._cov_cholesky is None:
+            if isinstance(self.cov, linops.LinearOperator):
+                self._cov_cholesky = self._cov_op_cholesky
+            else:
+                self._cov_cholesky = self._cov_matrix_cholesky
+
         return self._cov_cholesky
 
-    def precompute_cov_cholesky(
+    @property
+    def _cov_matrix_cholesky(self) -> ArrayType:
+        return self._cov_op_cholesky.todense()
+
+    @property
+    def _cov_op_cholesky(self) -> _ValueType:
+        if not self.cov_cholesky_is_precomputed:
+            self.compute_cov_cholesky()
+
+        return self.__cov_op_cholesky
+
+    def compute_cov_cholesky(
         self,
         damping_factor: Optional[FloatLike] = None,
-    ):
-        """(P)recompute Cholesky factors (careful: in-place operation!)."""
+    ) -> None:
+        """Compute Cholesky factor (careful: in-place operation!)."""
         if damping_factor is None:
             damping_factor = config.covariance_inversion_damping
+
         if self.cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
-        self._cov_cholesky = self._compute_cov_cholesky(damping_factor=damping_factor)
+
+        # TODO: Handle this if-statement by giving the `LinearOperator.cholesky()`
+        if isinstance(self._cov_op, linops.Kronecker):
+            A = self._cov_op.A.todense()
+            B = self._cov_op.B.todense()
+
+            self.__cov_op_cholesky = linops.Kronecker(
+                A=backend.linalg.cholesky(
+                    A + damping_factor * backend.eye(*A.shape, dtype=self.dtype),
+                    lower=True,
+                ),
+                B=backend.linalg.cholesky(
+                    B + damping_factor * backend.eye(*B.shape, dtype=self.dtype),
+                    lower=True,
+                ),
+            )
+        elif (
+            isinstance(self._cov_op, linops.SymmetricKronecker)
+            and self._cov_op.identical_factors
+        ):
+            A = self.cov.A.todense()
+
+            self.__cov_op_cholesky = linops.SymmetricKronecker(
+                A=backend.linalg.cholesky(
+                    A + damping_factor * backend.eye(*A.shape, dtype=self.dtype),
+                    lower=True,
+                ),
+            )
+        else:
+            self.__cov_op_cholesky = linops.aslinop(
+                backend.linalg.cholesky(
+                    self.dense_cov
+                    + damping_factor * backend.eye(*self.shape, dtype=self.dtype),
+                )
+            )
 
     @property
     def cov_cholesky_is_precomputed(self) -> bool:
@@ -247,25 +251,26 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         initialization or if (ii) the property `self.cov_cholesky` has
         been called before.
         """
-        if self._cov_cholesky is None:
+        if self.__cov_op_cholesky is None:
             return False
+
         return True
 
-    @functools.cached_property
-    def dense_mean(self) -> Union[np.floating, np.ndarray]:
+    @property
+    def dense_mean(self) -> ArrayType:
         """Dense representation of the mean."""
         if isinstance(self.mean, linops.LinearOperator):
             return self.mean.todense()
-        else:
-            return self.mean
 
-    @functools.cached_property
-    def dense_cov(self) -> Union[np.floating, np.ndarray]:
+        return self.mean
+
+    @property
+    def dense_cov(self) -> ArrayType:
         """Dense representation of the covariance."""
         if isinstance(self.cov, linops.LinearOperator):
             return self.cov.todense()
-        else:
-            return self.cov
+
+        return self.cov
 
     def __getitem__(self, key: ArrayIndicesLike) -> "Normal":
         """Marginalization in multi- and matrixvariate normal random variables,
@@ -357,9 +362,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             cov=self.cov,
         )
 
-    # TODO: Overwrite __abs__ and add absolute moments of normal
-    # TODO: (https://arxiv.org/pdf/1209.4340.pdf)
-
     # Binary arithmetic operations
 
     def _add_normal(self, other: "Normal") -> "Normal":
@@ -387,12 +389,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Univariate Gaussians
-    def _scalar_cov_cholesky(
-        self,
-        damping_factor: FloatLike,
-    ) -> np.floating:
-        return np.sqrt(self.cov + damping_factor)
-
     def _scalar_sample(
         self,
         rng: np.random.Generator,
@@ -458,14 +454,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             lower=True,
         )
 
-    def _dense_cov_cholesky_as_linop(
+    def _cov_cholesky_as_linop(
         self, damping_factor: FloatLike
     ) -> linops.LinearOperator:
         return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
 
-    def _dense_sample(
-        self, rng: np.random.Generator, size: ShapeType = ()
-    ) -> np.ndarray:
+    def _sample(self, rng: np.random.Generator, size: ShapeType = ()) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
@@ -485,17 +479,17 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             raise ValueError(f"Unsupported argument type {type(x)}")
 
     @staticmethod
-    def _dense_in_support(x: _ValueType) -> bool:
+    def _in_support(x: _ValueType) -> bool:
         return np.all(np.isfinite(Normal._arg_todense(x)))
 
-    def _dense_pdf(self, x: _ValueType) -> np.float_:
+    def _pdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.pdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _dense_logpdf(self, x: _ValueType) -> ArrayType:
+    def _logpdf(self, x: _ValueType) -> ArrayType:
         x_centered = Normal._arg_todense(x - self.dense_mean).reshape(
             x.shape[: -self.ndim] + (-1,)
         )
@@ -505,24 +499,24 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             + self.size * backend.log(backend.array(2.0 * backend.pi))
         ) - backend.sum(backend.log(backend.diag(self.cov_cholesky)))
 
-    def _dense_cdf(self, x: _ValueType) -> np.float_:
+    def _cdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _dense_logcdf(self, x: _ValueType) -> np.float_:
+    def _logcdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.logcdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _dense_var(self) -> np.ndarray:
+    def _var(self) -> np.ndarray:
         return np.diag(self.dense_cov).reshape(self.shape)
 
-    def _dense_entropy(self) -> np.float_:
+    def _entropy(self) -> np.float_:
         return _utils.as_numpy_scalar(
             scipy.stats.multivariate_normal.entropy(
                 mean=self.dense_mean.ravel(),
@@ -530,65 +524,3 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             ),
             dtype=np.float_,
         )
-
-    # Matrixvariate Gaussian with Kronecker covariance
-    def _kronecker_cov_cholesky(
-        self,
-        damping_factor: FloatLike,
-    ) -> linops.Kronecker:
-        assert isinstance(self.cov, linops.Kronecker)
-
-        A = self.cov.A.todense()
-        B = self.cov.B.todense()
-
-        return linops.Kronecker(
-            A=scipy.linalg.cholesky(
-                A + damping_factor * np.eye(A.shape[0], dtype=self.dtype),
-                lower=True,
-            ),
-            B=scipy.linalg.cholesky(
-                B + damping_factor * np.eye(B.shape[0], dtype=self.dtype),
-                lower=True,
-            ),
-        )
-
-    # Matrixvariate Gaussian with symmetric Kronecker covariance from identical
-    # factors
-    def _symmetric_kronecker_identical_factors_cov_cholesky(
-        self,
-        damping_factor: FloatLike,
-    ) -> linops.SymmetricKronecker:
-        assert (
-            isinstance(self.cov, linops.SymmetricKronecker)
-            and self.cov.identical_factors
-        )
-
-        A = self.cov.A.todense()
-
-        return linops.SymmetricKronecker(
-            A=scipy.linalg.cholesky(
-                A + damping_factor * np.eye(A.shape[0], dtype=self.dtype),
-                lower=True,
-            ),
-        )
-
-    def _symmetric_kronecker_identical_factors_sample(
-        self, rng: np.random.Generator, size: ShapeType = ()
-    ) -> np.ndarray:
-        assert (
-            isinstance(self.cov, linops.SymmetricKronecker)
-            and self.cov.identical_factors
-        )
-
-        n = self.mean.shape[1]
-
-        # Draw standard normal samples
-        size_sample = (n * n,) + size
-
-        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample, random_state=rng)
-
-        # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
-        samples_scaled = linops.Symmetrize(n) @ (self.cov_cholesky @ stdnormal_samples)
-
-        # TODO: can we avoid todense here and just return operator samples?
-        return self.dense_mean[None, :, :] + samples_scaled.T.reshape(-1, n, n)
