@@ -1,6 +1,7 @@
 """Normally distributed / Gaussian random variables."""
 
 import functools
+import re
 from typing import Optional, Union
 
 import numpy as np
@@ -13,6 +14,7 @@ from probnum.typing import (
     ArrayLike,
     ArrayType,
     FloatLike,
+    ScalarType,
     ShapeLike,
     ShapeType,
 )
@@ -439,26 +441,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Multi- and matrixvariate Gaussians
-    def dense_cov_cholesky(
-        self,
-        damping_factor: Optional[FloatLike] = None,
-    ) -> np.ndarray:
-        """Compute the Cholesky factorization of the covariance from its dense
-        representation."""
-        if damping_factor is None:
-            damping_factor = config.covariance_inversion_damping
-        dense_cov = self.dense_cov
-
-        return backend.linalg.cholesky(
-            dense_cov + damping_factor * backend.eye(self.size, dtype=self.dtype),
-            lower=True,
-        )
-
-    def _cov_cholesky_as_linop(
-        self, damping_factor: FloatLike
-    ) -> linops.LinearOperator:
-        return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
-
     def _sample(self, rng: np.random.Generator, size: ShapeType = ()) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self.dense_mean.ravel(),
@@ -482,22 +464,29 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _in_support(x: _ValueType) -> bool:
         return np.all(np.isfinite(Normal._arg_todense(x)))
 
-    def _pdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.multivariate_normal.pdf(
-            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self.dense_mean.ravel(),
-            cov=self.dense_cov,
-        )
+    def _pdf(self, x: _ValueType) -> ArrayType:
+        return backend.exp(self._logpdf(x))
 
     def _logpdf(self, x: _ValueType) -> ArrayType:
         x_centered = Normal._arg_todense(x - self.dense_mean).reshape(
             x.shape[: -self.ndim] + (-1,)
+        )[..., None]
+
+        res = (
+            -0.5
+            * (
+                x_centered.T
+                # TODO (#xyz): Replace `cho_solve` with linop.cholesky().solve()
+                @ backend.linalg.cholesky_solve(
+                    (self._cov_matrix_cholesky, True), x_centered
+                )
+            )[..., 0, 0]
         )
 
-        return -0.5 * (
-            x_centered @ backend.linalg.cho_solve((self.cov_cholesky, True), x_centered)
-            + self.size * backend.log(backend.array(2.0 * backend.pi))
-        ) - backend.sum(backend.log(backend.diag(self.cov_cholesky)))
+        res -= 0.5 * self.size * backend.log(backend.array(2.0 * backend.pi))
+        res -= backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
+
+        return res
 
     def _cdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.cdf(

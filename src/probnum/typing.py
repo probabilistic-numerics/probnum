@@ -20,8 +20,7 @@ from typing import Iterable, Tuple, Union
 
 import numpy as np
 import scipy.sparse
-from numpy.typing import ArrayLike as _NumPyArrayLike
-from numpy.typing import DTypeLike as _NumPyDTypeLike
+from numpy.typing import ArrayLike as _NumPyArrayLike, DTypeLike as _NumPyDTypeLike
 
 ########################################################################################
 # API Types
@@ -29,6 +28,7 @@ from numpy.typing import DTypeLike as _NumPyDTypeLike
 
 # Array Utilities
 ShapeType = Tuple[int, ...]
+ScalarType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
 ArrayType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
 MatrixType = Union[ArrayType, "probnum.linops.LinearOperator"]
 
