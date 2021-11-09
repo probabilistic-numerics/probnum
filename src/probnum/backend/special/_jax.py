@@ -1,3 +1,6 @@
+from jax.scipy.special import ndtr, ndtri  # pylint: disable=unused-import
+
+
 def gamma(*args, **kwargs):
     raise NotImplementedError()
 

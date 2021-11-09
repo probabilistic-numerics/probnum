@@ -1,3 +1,6 @@
+from torch.special import ndtr, ndtri
+
+
 def gamma(*args, **kwargs):
     raise NotImplementedError()
 

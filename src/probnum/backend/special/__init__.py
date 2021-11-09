@@ -1,6 +1,8 @@
 __all__ = [
     "gamma",
     "kv",
+    "ndtr",
+    "ndtri",
 ]
 
 from .. import BACKEND, Backend

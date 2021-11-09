@@ -1,1 +1,1 @@
-from scipy.special import gamma, kv  # pylint: disable=unused-import
+from scipy.special import gamma, kv, ndtr, ndtri  # pylint: disable=unused-import
