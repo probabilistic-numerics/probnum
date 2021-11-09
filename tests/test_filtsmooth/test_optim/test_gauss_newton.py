@@ -11,7 +11,9 @@ def setup(request):
     problem = request.param
     regression_problem, info = problem()
 
-    stopcrit = filtsmooth.optim.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
+    stopcrit = filtsmooth.optim.FiltSmoothStoppingCriterion(
+        atol=1e-1, rtol=1e-1, maxit=10
+    )
 
     kalman = filtsmooth.gaussian.Kalman(
         info["prior_process"],

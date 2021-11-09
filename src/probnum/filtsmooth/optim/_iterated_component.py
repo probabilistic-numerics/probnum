@@ -1,7 +1,7 @@
 import numpy as np
 
 from probnum import randprocs
-from probnum.filtsmooth.optim import _stoppingcriterion
+from probnum.filtsmooth.optim import _stopping_criterion
 
 
 class IteratedDiscreteComponent(randprocs.markov.Transition):
@@ -9,14 +9,13 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     Examples
     --------
-    >>> from probnum.filtsmooth.optim import StoppingCriterion
+    >>> from probnum.filtsmooth.optim import FiltSmoothStoppingCriterion
     >>> from probnum.filtsmooth.gaussian.approx import DiscreteEKFComponent
     >>> from probnum.problems.zoo.diffeq import logistic
     >>> from probnum.randprocs.markov.integrator import IntegratedWienerProcess
     >>> from probnum.randprocs.markov.discrete import NonlinearGaussian
     >>> from probnum.randvars import Constant
     >>> import numpy as np
-    >>>
 
     Set up an iterated component.
 
@@ -26,7 +25,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
     >>> jacob = lambda t, x: H1 - (1 - 2*(H0 @ x)) @ H0
     >>> nonlinear_model = NonlinearGaussian.from_callable(3, 1, call, jacob)
     >>> ekf = DiscreteEKFComponent(nonlinear_model)
-    >>> comp = IteratedDiscreteComponent(ekf, StoppingCriterion())
+    >>> comp = IteratedDiscreteComponent(ekf, FiltSmoothStoppingCriterion())
 
     Generate some random variables and pseudo observations.
 
@@ -60,9 +59,11 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
         stopcrit=None,
     ):
         self._component = component
-        self.stopcrit = (
-            _stoppingcriterion.StoppingCriterion() if stopcrit is None else stopcrit
-        )
+        if stopcrit is None:
+            self.stopcrit = _stopping_criterion.FiltSmoothStoppingCriterion()
+        else:
+            self.stopcrit = stopcrit
+
         super().__init__(input_dim=component.input_dim, output_dim=component.output_dim)
 
     # Iterated filtering implementation
@@ -89,9 +90,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
         new_mean = current_rv.mean.copy()
         old_mean = np.inf * np.ones(current_rv.mean.shape)
-        while not self.stopcrit.terminate(
-            error=new_mean - old_mean, reference=new_mean
-        ):
+        while not self.stopcrit(error=new_mean - old_mean, reference=new_mean):
             old_mean = new_mean.copy()
             current_rv, info = self._component.backward_rv(
                 rv_obtained=rv_obtained,
