@@ -81,7 +81,7 @@ class ProbabilisticLinearSolver(
         """
         raise NotImplementedError
 
-    def solve_iterator(self) -> LinearSolverState:
+    def solve_iterator(self) -> Generator[LinearSolverState]:
         """Generator implementing the solver iteration.
 
         This function allows stepping through the solver iteration one step at a time
