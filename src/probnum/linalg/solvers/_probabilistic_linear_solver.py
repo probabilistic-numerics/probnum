@@ -5,6 +5,8 @@ Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 
 from typing import Generator, Tuple
 
+import numpy as np
+
 from probnum import ProbabilisticNumericalMethod, problems
 from probnum.linalg.solvers import (
     belief_updates,
@@ -83,7 +85,10 @@ class ProbabilisticLinearSolver(
         raise NotImplementedError
 
     def solve_iterator(
-        self, prior: beliefs.LinearSystemBelief, problem: problems.LinearSystem
+        self,
+        prior: beliefs.LinearSystemBelief,
+        problem: problems.LinearSystem,
+        rng: np.random.Generator,
     ) -> Generator[LinearSolverState, None, None]:
         """Generator implementing the solver iteration.
 
@@ -96,11 +101,33 @@ class ProbabilisticLinearSolver(
             Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
         problem :
             Linear system to be solved.
+        rng :
+            Random number generator.
+
+        Returns
+        -------
+        solver_state :
+            State of the probabilistic linear solver.
         """
-        raise NotImplementedError
+        solver_state = LinearSolverState(problem=problem, prior=prior, rng=rng)
+
+        while True:
+
+            yield solver_state
+
+            # Compute action via policy
+
+            # Make observation via information operator
+
+            # Update the belief over the quantity of interest
+
+            solver_state.next_step()
 
     def solve(
-        self, prior: beliefs.LinearSystemBelief, problem: problems.LinearSystem
+        self,
+        prior: beliefs.LinearSystemBelief,
+        problem: problems.LinearSystem,
+        rng: np.random.Generator,
     ) -> Tuple[beliefs.LinearSystemBelief, LinearSolverState]:
         r"""Solve the linear system.
 
@@ -110,6 +137,8 @@ class ProbabilisticLinearSolver(
             Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
         problem :
             Linear system to be solved.
+        rng :
+            Random number generator.
 
         Returns
         -------
@@ -119,9 +148,7 @@ class ProbabilisticLinearSolver(
         solver_state :
             Final state of the solver.
         """
-        solver_state = None
+        for solver_state in self.solve_iterator(prior=prior, problem=problem, rng=rng):
 
-        for solver_state in self.solve_iterator(problem=problem):
-            pass
-
-        return solver_state.belief, solver_state
+            if self.stopping_criterion(solver_state=solver_state):
+                return solver_state.belief, solver_state

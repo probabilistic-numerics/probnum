@@ -47,9 +47,7 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
 
     @abstractmethod
     def solve(
-        self,
-        prior: BeliefType,
-        problem: ProblemType,
+        self, prior: BeliefType, problem: ProblemType, **kwargs
     ) -> Tuple[BeliefType, StateType]:
         """Solve the given numerical problem.
 
