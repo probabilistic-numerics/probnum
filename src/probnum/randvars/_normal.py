@@ -1,7 +1,6 @@
 """Normally distributed / Gaussian random variables."""
 
 import functools
-import re
 from typing import Optional, Union
 
 import numpy as np
@@ -43,11 +42,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     cov :
         (Co-)variance of the random variable.
     cov_cholesky :
-        (Lower triangular) Cholesky factor of the covariance matrix. If None, then the Cholesky factor of the covariance matrix
-        is computed when :attr:`Normal.cov_cholesky` is called and then cached. If specified, the value is returned by :attr:`Normal.cov_cholesky`.
-        In this case, its type and data type are compared to the type and data type of the covariance.
-        If the types do not match, an exception is thrown. If the data types do not match,
-        the data type of the Cholesky factor is promoted to the data type of the covariance matrix.
+        (Lower triangular) Cholesky factor of the covariance matrix. If ``None``, then
+        the Cholesky factor of the covariance matrix is computed when
+        :attr:`Normal.cov_cholesky` is called and then cached. If specified, the value
+        is returned by :attr:`Normal.cov_cholesky`. In this case, its type and data type
+        are compared to the type and data type of the covariance. If the types do not
+        match, an exception is thrown. If the data types do not match, the data type of
+        the Cholesky factor is promoted to the data type of the covariance matrix.
 
     See Also
     --------
@@ -55,22 +56,21 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     Examples
     --------
-    >>> import numpy as np
-    >>> from probnum import randvars
-    >>> x = randvars.Normal(mean=0.5, cov=1.0)
+    >>> x = pn.randvars.Normal(mean=0.5, cov=1.0)
     >>> rng = np.random.default_rng(42)
     >>> x.sample(rng=rng, size=(2, 2))
     array([[ 0.80471708, -0.53998411],
            [ 1.2504512 ,  1.44056472]])
     """
 
-    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     def __init__(
         self,
         mean: Union[ArrayLike, linops.LinearOperator],
         cov: Union[ArrayLike, linops.LinearOperator],
         cov_cholesky: Optional[Union[ArrayLike, linops.LinearOperator]] = None,
     ):
+        # pylint: disable=too-many-branches
+
         # Type normalization
         if not isinstance(mean, linops.LinearOperator):
             mean = backend.asarray(mean)
@@ -160,7 +160,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 dtype=mean.dtype,
                 parameters={"mean": mean, "cov": cov},
                 sample=self._sample,
-                in_support=Normal._in_support,
+                in_support=self._in_support,
                 pdf=self._pdf,
                 logpdf=self._logpdf,
                 cdf=self._cdf,
@@ -173,6 +173,24 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 var=self._var,
                 entropy=self._entropy,
             )
+
+    @property
+    def dense_mean(self) -> ArrayType:
+        """Dense representation of the mean."""
+        if isinstance(self.mean, linops.LinearOperator):
+            return self.mean.todense()
+
+        return self.mean
+
+    @property
+    def dense_cov(self) -> ArrayType:
+        """Dense representation of the covariance."""
+        if isinstance(self.cov, linops.LinearOperator):
+            return self.cov.todense()
+
+        return self.cov
+
+    # TODO (#xyz): Integrate Cholesky functionality into `LinearOperator.cholesky`
 
     @property
     def cov_cholesky(self) -> _ValueType:
@@ -209,7 +227,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         if self.cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
 
-        # TODO: Handle this if-statement by giving the `LinearOperator.cholesky()`
         if isinstance(self._cov_op, linops.Kronecker):
             A = self._cov_op.A.todense()
             B = self._cov_op.B.todense()
@@ -258,22 +275,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         return True
 
-    @property
-    def dense_mean(self) -> ArrayType:
-        """Dense representation of the mean."""
-        if isinstance(self.mean, linops.LinearOperator):
-            return self.mean.todense()
-
-        return self.mean
-
-    @property
-    def dense_cov(self) -> ArrayType:
-        """Dense representation of the covariance."""
-        if isinstance(self.cov, linops.LinearOperator):
-            return self.cov.todense()
-
-        return self.cov
-
     def __getitem__(self, key: ArrayIndicesLike) -> "Normal":
         """Marginalization in multi- and matrixvariate normal random variables,
         expressed as (advanced) indexing, masking and slicing.
@@ -282,14 +283,15 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         https://numpy.org/doc/1.19/reference/arrays.indexing.html.
 
-        Note that, currently, this method only works for multi- and matrixvariate
-        normal distributions.
-
         Parameters
         ----------
-        key : int or slice or ndarray or tuple of None, int, slice, or ndarray
+        key :
             Indices, slice objects and/or boolean masks specifying which entries to keep
             while marginalizing over all other entries.
+
+        Returns
+        -------
+        Random variable after marginalization.
         """
 
         if not isinstance(key, tuple):
@@ -395,7 +397,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self,
         rng: np.random.Generator,
         size: ShapeType = (),
-    ) -> Union[np.floating, np.ndarray]:
+    ) -> ArrayType:
         sample = scipy.stats.norm.rvs(
             loc=self.mean, scale=self.std, size=size, random_state=rng
         )
@@ -410,11 +412,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return sample
 
     @staticmethod
-    def _scalar_in_support(x: _ValueType) -> bool:
-        return np.isfinite(x)
+    @backend.jit
+    def _scalar_in_support(x: _ValueType) -> ArrayType:
+        return backend.isfinite(x)
 
     @backend.jit_method
-    def _scalar_pdf(self, x: _ValueType) -> np.float_:
+    def _scalar_pdf(self, x: _ValueType) -> ArrayType:
         return backend.exp(-((x - self.mean) ** 2) / (2.0 * self.var)) / backend.sqrt(
             2 * backend.pi * self.var
         )
@@ -425,23 +428,24 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             2.0 * backend.pi * self.var
         )
 
-    def _scalar_cdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.cdf(x, loc=self.mean, scale=self.std)
+    @backend.jit_method
+    def _scalar_cdf(self, x: _ValueType) -> ArrayType:
+        return backend.special.ndtr((x - self.mean) / self.std)
 
-    def _scalar_logcdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.logcdf(x, loc=self.mean, scale=self.std)
+    @backend.jit_method
+    def _scalar_logcdf(self, x: _ValueType) -> ArrayType:
+        return backend.log(self._scalar_cdf(x))
 
-    def _scalar_quantile(self, p: FloatLike) -> np.floating:
-        return scipy.stats.norm.ppf(p, loc=self.mean, scale=self.std)
+    @backend.jit_method
+    def _scalar_quantile(self, p: FloatLike) -> ArrayType:
+        return self.mean + self.std * backend.special.ndtri(p)
 
-    def _scalar_entropy(self: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.norm.entropy(loc=self.mean, scale=self.std),
-            dtype=np.float_,
-        )
+    @backend.jit_method
+    def _scalar_entropy(self) -> ScalarType:
+        return 0.5 * backend.log(2.0 * backend.pi * self.var) + 0.5
 
     # Multi- and matrixvariate Gaussians
-    def _sample(self, rng: np.random.Generator, size: ShapeType = ()) -> np.ndarray:
+    def _sample(self, rng: np.random.Generator, size: ShapeType = ()) -> _ValueType:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
@@ -452,7 +456,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return sample.reshape(sample.shape[:-1] + self.shape)
 
     @staticmethod
-    def _arg_todense(x: Union[np.ndarray, linops.LinearOperator]) -> np.ndarray:
+    def _arg_todense(x: Union[ArrayType, linops.LinearOperator]) -> ArrayType:
         if isinstance(x, linops.LinearOperator):
             return x.todense()
         elif isinstance(x, backend.ndarray):
@@ -460,13 +464,19 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         else:
             raise ValueError(f"Unsupported argument type {type(x)}")
 
-    @staticmethod
-    def _in_support(x: _ValueType) -> bool:
-        return np.all(np.isfinite(Normal._arg_todense(x)))
+    @backend.jit_method
+    def _in_support(self, x: _ValueType) -> ArrayType:
+        return backend.all(
+            backend.isfinite(Normal._arg_todense(x)),
+            axis=tuple(range(-self.ndim, 0)),
+            keepdims=False,
+        )
 
+    @backend.jit_method
     def _pdf(self, x: _ValueType) -> ArrayType:
         return backend.exp(self._logpdf(x))
 
+    @backend.jit_method
     def _logpdf(self, x: _ValueType) -> ArrayType:
         x_centered = Normal._arg_todense(x - self.dense_mean).reshape(
             x.shape[: -self.ndim] + (-1,)
@@ -484,32 +494,39 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
         res -= 0.5 * self.size * backend.log(backend.array(2.0 * backend.pi))
+        # TODO (#xyz): Replace this with `0.5 * self._cov_op.logdet()`
         res -= backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
 
         return res
 
-    def _cdf(self, x: _ValueType) -> np.float_:
+    def _cdf(self, x: _ValueType) -> ArrayType:
+        if backend.BACKEND is not backend.Backend.NUMPY:
+            raise NotImplementedError()
+
         return scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _logcdf(self, x: _ValueType) -> np.float_:
+    def _logcdf(self, x: _ValueType) -> ArrayType:
+        if backend.BACKEND is not backend.Backend.NUMPY:
+            raise NotImplementedError()
+
         return scipy.stats.multivariate_normal.logcdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _var(self) -> np.ndarray:
-        return np.diag(self.dense_cov).reshape(self.shape)
+    @backend.jit_method
+    def _var(self) -> ArrayType:
+        return backend.diag(self.dense_cov).reshape(self.shape)
 
-    def _entropy(self) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.multivariate_normal.entropy(
-                mean=self.dense_mean.ravel(),
-                cov=self.dense_cov,
-            ),
-            dtype=np.float_,
-        )
+    @backend.jit_method
+    def _entropy(self) -> ScalarType:
+        entropy = 0.5 * self.size * (backend.log(2.0 * backend.pi) + 1.0)
+        # TODO (#xyz): Replace this with `0.5 * self._cov_op.logdet()`
+        entropy += backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
+
+        return entropy
