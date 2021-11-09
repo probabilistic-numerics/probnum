@@ -37,7 +37,15 @@ class ProbabilisticLinearSolver(
 
     Parameters
     ----------
-
+    policy
+        Policy returning actions taken by the solver.
+    information_op
+        Information operator defining how information about the linear system is
+        obtained given an action.
+    belief_update
+        Belief update defining how to update the QoI beliefs given new observations.
+    stopping_criterion
+        Stopping criterion determining when a desired terminal condition is met.
 
     References
     ----------
@@ -79,7 +87,7 @@ class ProbabilisticLinearSolver(
 
         Parameters
         ----------
-        problem :
+        problem
             Linear system to be solved.
         """
         raise NotImplementedError
@@ -97,16 +105,16 @@ class ProbabilisticLinearSolver(
 
         Parameters
         ----------
-        prior :
+        prior
             Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
-        problem :
+        problem
             Linear system to be solved.
-        rng :
+        rng
             Random number generator.
 
         Yields
         ------
-        solver_state :
+        solver_state
             State of the probabilistic linear solver.
         """
         solver_state = LinearSolverState(problem=problem, prior=prior, rng=rng)
@@ -116,10 +124,16 @@ class ProbabilisticLinearSolver(
             yield solver_state
 
             # Compute action via policy
+            action = self.policy(solver_state=solver_state)
+            solver_state.action = action
 
             # Make observation via information operator
+            observation = self.information_op(solver_state=solver_state)
+            solver_state.observation = observation
 
             # Update the belief over the quantity of interest
+            # updated_belief = self.belief_update(solver_state=solver_state)
+            # TODO: assign updated belief to solver_state
 
             solver_state.next_step()
 
@@ -133,21 +147,23 @@ class ProbabilisticLinearSolver(
 
         Parameters
         ----------
-        prior :
+        prior
             Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
-        problem :
+        problem
             Linear system to be solved.
-        rng :
+        rng
             Random number generator.
 
         Returns
         -------
-        belief :
+        belief
             Posterior belief :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
             over the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
-        solver_state :
+        solver_state
             Final state of the solver.
         """
+        solver_state = None
+
         for solver_state in self.solve_iterator(prior=prior, problem=problem, rng=rng):
 
             if self.stopping_criterion(solver_state=solver_state):
