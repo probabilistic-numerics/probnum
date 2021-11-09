@@ -115,7 +115,7 @@ class BQState:
         prev_state: "BQState",
         gram: np.ndarray,
         kernel_means: np.ndarray,
-    ):
+    ) -> "BQState":
         r"""Initialize state from updated data
 
         Parameters
