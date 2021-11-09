@@ -127,6 +127,7 @@ class BQState:
         kernel_means :
             The kernel means at the given nodes.
         """
+        # pylint: disable=missing-return-type-doc
         return cls(
             measure=prev_state.measure,
             kernel=prev_state.kernel,

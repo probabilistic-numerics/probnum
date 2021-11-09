@@ -1,6 +1,7 @@
 """Belief updates for Bayesian quadrature."""
 
 import abc
+from typing import Tuple
 
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
@@ -14,6 +15,9 @@ from probnum.randvars import Normal
 class BQBeliefUpdate(abc.ABC):
     """Abstract class for the inference scheme."""
 
+    def __call__(self, *args, **kwargs):
+        pass
+
 
 class BQStandardBeliefUpdate(BQBeliefUpdate):
     """Updates integral belief and state using standard Bayesian quadrature based on
@@ -24,7 +28,9 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         bq_state: BQState,
         new_nodes: np.ndarray,
         new_fun_evals: np.ndarray,
-    ):
+        *args,
+        **kwargs,
+    ) -> Tuple[Normal, BQState]:
         """Updates integral belief and BQ state according to the new data given.
 
         Parameters

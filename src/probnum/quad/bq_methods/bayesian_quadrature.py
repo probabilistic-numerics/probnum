@@ -20,8 +20,6 @@ from ..stop_criteria import (
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
 
-# pylint: disable=too-many-arguments
-
 
 class BayesianQuadrature:
     r"""A base class for Bayesian quadrature.
@@ -43,6 +41,7 @@ class BayesianQuadrature:
     stopping_criteria :
         List of criteria that determine convergence.
     """
+    # pylint: disable=too-many-arguments
 
     def __init__(
         self,
@@ -179,7 +178,7 @@ class BayesianQuadrature:
         fun_evals: Optional[np.ndarray] = None,
         integral_belief: Optional[Normal] = None,
         bq_state: Optional[BQState] = None,
-    ):
+    ) -> Tuple[Normal, np.ndarray, np.ndarray, BQState]:
         """Generator that implements the iteration of the BQ method.
 
         This function exposes the state of the BQ method one step at a time while running the loop.
@@ -214,6 +213,7 @@ class BayesianQuadrature:
         bq_state:
             Updated state of the Bayesian quadrature methods.
         """
+        # pylint: disable=missing-yield-doc
 
         # Setup
         if bq_state is None:
@@ -279,7 +279,7 @@ class BayesianQuadrature:
         fun: Optional[Callable] = None,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
-    ):
+    ) -> Tuple[Normal, BQState]:
         """Integrate the function ``fun``.
 
         ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at fixed nodes.
