@@ -3,7 +3,7 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
-from typing import Tuple
+from typing import Generator, Tuple
 
 from probnum import ProbabilisticNumericalMethod, problems
 from probnum.linalg.solvers import (
