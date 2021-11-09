@@ -19,7 +19,7 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
 
     Parameters
     ----------
-    stopping_criterion :
+    stopping_criterion
         Stopping criterion determining when a desired terminal condition is met.
 
     References
