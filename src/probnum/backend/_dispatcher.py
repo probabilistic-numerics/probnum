@@ -1,3 +1,4 @@
+from types import MethodType
 from typing import Callable, Optional
 
 from . import BACKEND, Backend
@@ -47,3 +48,28 @@ class Dispatcher:
 
     def __call__(self, *args, **kwargs):
         return self._impl[BACKEND](*args, **kwargs)
+
+    def __get__(self, obj, objtype=None):
+        """This is necessary in order to use the :class:`Dispatcher` as a class
+        attribute which is then translated into a method of class instances, i.e. to
+        allow for
+
+        .. code::
+
+            class Foo:
+                baz = Dispatcher()
+
+                @bax.jax
+                def _baz_jax(self, x):
+                    return x
+
+            bar = Foo()
+            bar.baz("Test")  # Output: "Test"
+
+        See https://docs.python.org/3/howto/descriptor.html?highlight=methodtype#functions-and-methods
+        for details.
+        """
+        if obj is None:
+            return self
+
+        return MethodType(self, obj)
