@@ -71,7 +71,9 @@ class ProbabilisticLinearSolver(
         super().__init__(prior=prior, stopping_criterion=stopping_criterion)
 
     @classmethod
-    def from_problem(cls) -> "ProbabilisticLinearSolver":
+    def from_problem(
+        cls, problem: problems.LinearSystem
+    ) -> "ProbabilisticLinearSolver":
         """Construct a probabilistic linear solver from a linear system to be solved.
 
         Parameters
@@ -81,7 +83,9 @@ class ProbabilisticLinearSolver(
         """
         raise NotImplementedError
 
-    def solve_iterator(self) -> Generator[LinearSolverState]:
+    def solve_iterator(
+        self, problem: problems.LinearSystem
+    ) -> Generator[LinearSolverState, None, None]:
         """Generator implementing the solver iteration.
 
         This function allows stepping through the solver iteration one step at a time
@@ -109,7 +113,7 @@ class ProbabilisticLinearSolver(
         """
         solver_state = None
 
-        for solver_state in self.solve_iterator(problem):
+        for solver_state in self.solve_iterator(problem=problem):
             pass
 
         return solver_state.belief, solver_state
