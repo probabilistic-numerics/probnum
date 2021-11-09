@@ -3,6 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Tuple, TypeVar
 
+from ._stopping_criterion import StoppingCriterion
+
 ProblemType = TypeVar("ProblemType")
 BeliefType = TypeVar("BeliefType")
 StateType = TypeVar("StateType")
@@ -40,8 +42,9 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     derived subclass.
     """
 
-    def __init__(self, prior: BeliefType):
+    def __init__(self, prior: BeliefType, stopping_criterion: StoppingCriterion):
         self.prior = prior
+        self.stopping_criterion = stopping_criterion
 
     @abstractmethod
     def solve(
