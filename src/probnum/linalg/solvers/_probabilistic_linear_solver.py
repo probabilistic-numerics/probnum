@@ -104,8 +104,8 @@ class ProbabilisticLinearSolver(
         rng :
             Random number generator.
 
-        Returns
-        -------
+        Yields
+        ------
         solver_state :
             State of the probabilistic linear solver.
         """
@@ -151,4 +151,6 @@ class ProbabilisticLinearSolver(
         for solver_state in self.solve_iterator(prior=prior, problem=problem, rng=rng):
 
             if self.stopping_criterion(solver_state=solver_state):
-                return solver_state.belief, solver_state
+                break
+
+        return solver_state.belief, solver_state
