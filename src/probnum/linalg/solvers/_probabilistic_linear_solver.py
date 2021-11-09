@@ -3,10 +3,17 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
-from probnum import ProbabilisticNumericalMethod
+from typing import Tuple
+
+from probnum import ProbabilisticNumericalMethod, problems
+from probnum.linalg.solvers import beliefs
+
+from ._state import LinearSolverState
 
 
-class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
+class ProbabilisticLinearSolver(
+    ProbabilisticNumericalMethod[problems.LinearSystem, beliefs.LinearSystemBelief]
+):
     r"""Compose a custom probabilistic linear solver.
 
     Class implementing probabilistic linear solvers. Such (iterative) solvers infer
@@ -37,12 +44,14 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
     See Also
     --------
-    problinsolve : Solve linear systems in a Bayesian framework.
-    bayescg : Solve linear systems with prior information on the solution.
+    ~probnum.linalg.problinsolve : Solve linear systems in a Bayesian framework.
+    ~probnum.linalg.bayescg : Solve linear systems with prior information on the solution.
 
     Examples
     --------
     """
 
-    def solve(self, problem: ProblemType) -> Tuple[BeliefType, StateType]:
+    def solve(
+        self, problem: problems.LinearSystem
+    ) -> Tuple[beliefs.LinearSystemBelief, LinearSolverState]:
         return super().solve(problem)

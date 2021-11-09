@@ -66,8 +66,8 @@ class StoppingCriterion(abc.ABC):
     See Also
     --------
     LambdaStoppingCriterion : Stopping criterion defined via an anonymous function.
-    LinearSolverStoppingCriterion : Stopping criterion of a probabilistic linear solver.
-    FiltSmoothStoppingCriterion : Stopping criterion of filters and smoothers.
+    ~probnum.linalg.solvers.stopping_criteria.LinearSolverStoppingCriterion : Stopping criterion of a probabilistic linear solver.
+    ~probnum.filtsmooth.optim.FiltSmoothStoppingCriterion : Stopping criterion of filters and smoothers.
     """
 
     @abc.abstractmethod

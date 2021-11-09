@@ -28,6 +28,11 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     .. [2] Cockayne, J., Oates, C., Sullivan Tim J. and Girolami M., Bayesian
        probabilistic numerical methods. *SIAM Review*, 61(4):756–789, 2019
 
+    See Also
+    --------
+    ~probnum.linalg.solvers.ProbabilisticLinearSolver : Compose a custom
+        probabilistic linear solver.
+
     Notes
     -----
     All PN methods should subclass this base class. Typically convenience functions
