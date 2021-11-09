@@ -108,7 +108,13 @@ class BQState:
 
     @classmethod
     def from_new_data(
-        cls, nodes, fun_evals, integral_belief, prev_state, gram, kernel_means
+        cls,
+        nodes: np.ndarray,
+        fun_evals: np.ndarray,
+        integral_belief: Normal,
+        prev_state: "BQState",
+        gram: np.ndarray,
+        kernel_means: np.ndarray,
     ):
         r"""Initialize state from updated data
 
@@ -127,7 +133,6 @@ class BQState:
         kernel_means :
             The kernel means at the given nodes.
         """
-        # pylint: disable=missing-return-type-doc
         return cls(
             measure=prev_state.measure,
             kernel=prev_state.kernel,
