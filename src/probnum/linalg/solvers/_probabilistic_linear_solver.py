@@ -3,7 +3,7 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
-from typing import Generator, Tuple
+from typing import Generator, Optional, Tuple
 
 import numpy as np
 
@@ -65,6 +65,52 @@ class ProbabilisticLinearSolver(
 
     Examples
     --------
+    Define a linear system.
+
+    >>> import numpy as np
+    >>> from probnum.problems import LinearSystem
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
+
+    >>> rng = np.random.default_rng(42)
+    >>> n = 10
+    >>> A = random_spd_matrix(rng=rng, dim=n)
+    >>> b = rng.standard_normal(size=(n,))
+    >>> linsys = LinearSystem(A=A, b=b)
+
+    Create a custom probabilistic linear solver from pre-defined components.
+
+    >>> from probnum.linalg.solvers import (
+    ...     ProbabilisticLinearSolver,
+    ...     belief_updates,
+    ...     beliefs,
+    ...     information_ops,
+    ...     policies,
+    ...     stopping_criteria,
+    ... )
+
+    >>> pls = ProbabilisticLinearSolver(
+    ...     policy=policies.ConjugateGradientPolicy(),
+    ...     information_op=information_ops.ProjectedRHSInformationOp(),
+    ...     belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+    ...     stopping_criterion=stopping_criteria.MaxIterationsStoppingCriterion()
+    ...     | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
+    ... )
+
+    Define a prior over the solution.
+
+    >>> from probnum import linops, randvars
+    >>> prior = beliefs.LinearSystemBelief(
+    ...     x=randvars.Normal(
+    ...         mean=b,
+    ...         cov=linops.Identity(n),
+    ...     )
+    ... )
+
+    Solve the linear system using the custom solver.
+
+    >>> belief, solver_state = pls.solve(prior=prior, problem=linsys, rng=rng)
+    >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b)
+    0.0
     """
 
     def __init__(
@@ -96,7 +142,7 @@ class ProbabilisticLinearSolver(
         self,
         prior: beliefs.LinearSystemBelief,
         problem: problems.LinearSystem,
-        rng: np.random.Generator,
+        rng: Optional[np.random.Generator] = None,
     ) -> Generator[LinearSolverState, None, None]:
         """Generator implementing the solver iteration.
 
@@ -139,7 +185,7 @@ class ProbabilisticLinearSolver(
         self,
         prior: beliefs.LinearSystemBelief,
         problem: problems.LinearSystem,
-        rng: np.random.Generator,
+        rng: Optional[np.random.Generator] = None,
     ) -> Tuple[beliefs.LinearSystemBelief, LinearSolverState]:
         r"""Solve the linear system.
 

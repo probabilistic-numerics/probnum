@@ -114,7 +114,7 @@ class LinearSolverState:
     def next_step(self) -> None:
         """Advance the solver state to the next solver step.
 
-        Called after a completed step / iteration of the probabilistic linear solver.
+        Called after a completed step / iteration of the linear solver.
         """
         self._actions.append(None)
         self._observations.append(None)
