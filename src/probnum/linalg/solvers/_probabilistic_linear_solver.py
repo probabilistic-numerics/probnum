@@ -72,7 +72,7 @@ class ProbabilisticLinearSolver(
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
 
     >>> rng = np.random.default_rng(42)
-    >>> n = 10
+    >>> n = 100
     >>> A = random_spd_matrix(rng=rng, dim=n)
     >>> b = rng.standard_normal(size=(n,))
     >>> linsys = LinearSystem(A=A, b=b)
@@ -92,7 +92,7 @@ class ProbabilisticLinearSolver(
     ...     policy=policies.ConjugateGradientPolicy(),
     ...     information_op=information_ops.ProjectedRHSInformationOp(),
     ...     belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
-    ...     stopping_criterion=stopping_criteria.MaxIterationsStoppingCriterion()
+    ...     stopping_criterion=stopping_criteria.MaxIterationsStoppingCriterion(20)
     ...     | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ... )
 
@@ -102,7 +102,7 @@ class ProbabilisticLinearSolver(
     >>> prior = beliefs.LinearSystemBelief(
     ...     x=randvars.Normal(
     ...         mean=np.zeros((n,)),
-    ...         cov=linops.Identity(n),
+    ...         cov=np.linalg.inv(A),
     ...     ),
     ...     Ainv=linops.Scaling(factors=0.0, shape=(n, n)),
     ... )
