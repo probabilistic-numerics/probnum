@@ -159,3 +159,4 @@ class LinearSystemBelief:
 
         Computes a consistent belief about the inverse from a belief about the solution.
         """
+        raise NotImplementedError
