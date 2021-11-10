@@ -124,17 +124,15 @@ class ProbabilisticLinearSolver(
             yield solver_state
 
             # Compute action via policy
-            action = self.policy(solver_state=solver_state)
-            solver_state.action = action
+            solver_state.action = self.policy(solver_state=solver_state)
 
             # Make observation via information operator
-            observation = self.information_op(solver_state=solver_state)
-            solver_state.observation = observation
+            solver_state.observation = self.information_op(solver_state=solver_state)
 
             # Update the belief over the quantity of interest
-            # updated_belief = self.belief_update(solver_state=solver_state)
-            # TODO: assign updated belief to solver_state
+            solver_state.belief = self.belief_update(solver_state=solver_state)
 
+            # Advance state to next step and invalidate caches
             solver_state.next_step()
 
     def solve(

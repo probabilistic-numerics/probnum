@@ -31,10 +31,12 @@ class LinearSolverState:
         prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         rng: Optional[np.random.Generator] = None,
     ):
-        self.problem = problem
-        self.belief = prior
+        self.problem: problems.LinearSystem = problem
 
-        self.step = 0
+        self.prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
+        self._belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
+
+        self.step: int = 0
 
         self._actions: List[np.ndarray] = [None]
         self._observations: List[Any] = [None]
@@ -42,10 +44,21 @@ class LinearSolverState:
             self.problem.A @ self.belief.x.mean - self.problem.b,
             None,
         ]
-        self.rng = rng
+        self.rng: Optional[np.random.Generator] = rng
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(step={self.step})"
+
+    @property
+    def belief(self) -> "probnum.linalg.solvers.beliefs.LinearSystemBelief":
+        """Belief over the quantities of interest of the linear system."""
+        return self._belief
+
+    @belief.setter
+    def belief(
+        self, belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief"
+    ) -> None:
+        self._belief = belief
 
     @property
     def action(self) -> Optional[np.ndarray]:
