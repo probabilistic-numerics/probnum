@@ -1,8 +1,7 @@
 """Linear system belief.
 
-Class defining a belief about the quantities of interest of a linear
-system such as its solution or the matrix inverse and any associated
-hyperparameters.
+Class defining a belief about the quantities of interest of a linear system such as its
+solution or the matrix inverse and any associated hyperparameters.
 """
 
 from typing import Mapping, Optional
@@ -137,6 +136,8 @@ class LinearSystemBelief:
     @property
     def Ainv(self) -> Optional[randvars.RandomVariable]:
         """Belief about the (pseudo-)inverse of the system matrix."""
+        if self._Ainv is None:
+            return self._induced_Ainv()
         return self._Ainv
 
     @property
@@ -152,3 +153,9 @@ class LinearSystemBelief:
         :math:`H` and :math:`b`.
         """
         return self.Ainv @ self.b
+
+    def _induced_Ainv(self) -> randvars.RandomVariable:
+        r"""Induced belief about the inverse from a belief about the solution.
+
+        Computes a consistent belief about the inverse from a belief about the solution.
+        """

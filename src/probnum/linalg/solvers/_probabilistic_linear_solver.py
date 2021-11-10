@@ -101,9 +101,10 @@ class ProbabilisticLinearSolver(
     >>> from probnum import linops, randvars
     >>> prior = beliefs.LinearSystemBelief(
     ...     x=randvars.Normal(
-    ...         mean=b,
+    ...         mean=np.zeros((n,)),
     ...         cov=linops.Identity(n),
-    ...     )
+    ...     ),
+    ...     Ainv=linops.Scaling(factors=0.0, shape=(n, n)),
     ... )
 
     Solve the linear system using the custom solver.
