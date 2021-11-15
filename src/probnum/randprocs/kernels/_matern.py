@@ -29,11 +29,11 @@ class Matern(Kernel, IsotropicMixin):
         \end{equation}
 
     where :math:`K_\nu` is a modified Bessel function. The Matern kernel generalizes the
-    :class:`~probnum.kernels.ExpQuad` kernel via its additional parameter :math:`\nu`
-    controlling the smoothness of the function. For :math:`\nu \rightarrow \infty`
-    the Matern kernel converges to the :class:`~probnum.kernels.ExpQuad` kernel. A
-    Gaussian process with Matern covariance function is :math:`\lceil \nu \rceil - 1`
-    times differentiable.
+    :class:`~probnum.randprocs.kernels.ExpQuad` kernel via its additional parameter
+    :math:`\nu` controlling the smoothness of the function. For :math:`\nu \rightarrow
+    \infty` the Matern kernel converges to the :class:`~probnum.randprocs.kernels
+    .ExpQuad` kernel. A Gaussian process with Matern covariance function is
+    :math:`\lceil \nu \rceil - 1` times differentiable.
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ class Matern(Kernel, IsotropicMixin):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import Matern
+    >>> from probnum.randprocs.kernels import Matern
     >>> K = Matern(input_dim=1, lengthscale=0.1, nu=2.5)
     >>> xs = np.linspace(0, 1, 3)[:, None]
     >>> K.matrix(xs)

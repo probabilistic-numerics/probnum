@@ -11,7 +11,7 @@ from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from probnum.kernels import Kernel
+from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatArgType
 

@@ -95,7 +95,7 @@ def fixture_x1(
 
 @pytest.fixture(name="call_result")
 def fixture_call_result(
-    kernel: pn.kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
+    kernel: pn.randprocs.kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
 ) -> Union[np.ndarray, np.floating]:
     """Result of ``Kernel.__call__`` when given ``x0`` and ``x1``."""
 
@@ -156,7 +156,7 @@ def test_values(
         (4, 25),
     ],
 )
-def test_wrong_input_dimension(kernel: pn.kernels.Kernel, shape: ShapeType):
+def test_wrong_input_dimension(kernel: pn.randprocs.kernels.Kernel, shape: ShapeType):
     """Test whether passing an input with the wrong input dimension raises an error."""
 
     input_shape = shape + (kernel.input_dim + 1,)
@@ -180,7 +180,7 @@ def test_wrong_input_dimension(kernel: pn.kernels.Kernel, shape: ShapeType):
     ],
 )
 def test_broadcasting_error(
-    kernel: pn.kernels.Kernel,
+    kernel: pn.randprocs.kernels.Kernel,
     x0_shape: np.ndarray,
     x1_shape: np.ndarray,
 ):

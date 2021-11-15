@@ -4,10 +4,10 @@ from typing import Callable, Optional, Type, Union
 
 import numpy as np
 
-from probnum import kernels, randvars
+from probnum import randvars
 from probnum.typing import ShapeArgType
 
-from . import _random_process
+from . import _random_process, kernels
 
 _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
@@ -37,7 +37,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Define a Gaussian process with a zero mean function and RBF kernel.
 
     >>> import numpy as np
-    >>> from probnum.kernels import ExpQuad
+    >>> from probnum.randprocs.kernels import ExpQuad
     >>> from probnum.randprocs import GaussianProcess
     >>> mu = lambda x : np.zeros_like(x)  # zero-mean function
     >>> k = ExpQuad(input_dim=1)  # RBF kernel
