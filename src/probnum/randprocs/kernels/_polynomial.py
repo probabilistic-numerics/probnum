@@ -34,7 +34,7 @@ class Polynomial(Kernel):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import Polynomial
+    >>> from probnum.randprocs.kernels import Polynomial
     >>> K = Polynomial(input_dim=2, constant=1.0, exponent=3)
     >>> xs = np.array([[1, -1], [-1, 0]])
     >>> K.matrix(xs)

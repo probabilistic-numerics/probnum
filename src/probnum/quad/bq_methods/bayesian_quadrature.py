@@ -5,7 +5,7 @@ from typing import Callable, Dict, Optional, Tuple
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 
-from probnum.kernels import ExpQuad, Kernel
+from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 
 from .._integration_measures import IntegrationMeasure

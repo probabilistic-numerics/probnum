@@ -6,8 +6,8 @@ measure."""
 import numpy as np
 from scipy.special import erf
 
-from probnum.kernels import ExpQuad
 from probnum.quad._integration_measures import LebesgueMeasure
+from probnum.randprocs.kernels import ExpQuad
 
 
 def _kernel_mean_expquad_lebesgue(

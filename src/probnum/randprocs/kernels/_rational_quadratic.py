@@ -26,7 +26,8 @@ class RatQuad(Kernel, IsotropicMixin):
         \end{equation}
 
     where :math:`\alpha > 0`. For :math:`\alpha \rightarrow \infty` the rational
-    quadratic kernel converges to the :class:`~probnum.kernels.ExpQuad` kernel.
+    quadratic kernel converges to the :class:`~probnum.randprocs.kernels.ExpQuad`
+    kernel.
 
     Parameters
     ----------
@@ -46,7 +47,7 @@ class RatQuad(Kernel, IsotropicMixin):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import RatQuad
+    >>> from probnum.randprocs.kernels import RatQuad
     >>> K = RatQuad(input_dim=1, lengthscale=0.1, alpha=3)
     >>> xs = np.linspace(0, 1, 3)[:, None]
     >>> K(xs[:, None, :], xs[None, :, :])
