@@ -16,7 +16,7 @@ internal representation of those same objects.
 from __future__ import annotations
 
 import numbers
-from typing import Iterable, Tuple, Union
+from typing import Iterable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse
@@ -28,8 +28,14 @@ from numpy.typing import ArrayLike as _NumPyArrayLike, DTypeLike as _NumPyDTypeL
 
 # Array Utilities
 ShapeType = Tuple[int, ...]
-ScalarType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
+
+# Backend Types
 ArrayType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
+ScalarType = Union[np.ndarray, "jax.numpy.ndarray", "torch.Tensor"]
+
+SeedType = Union[np.random.SeedSequence, "jax.random.PRNGKey"]
+
+# ProbNum Types
 MatrixType = Union[ArrayType, "probnum.linops.LinearOperator"]
 
 # Scalars, Arrays and Matrices
@@ -102,6 +108,8 @@ LinearOperatorLike = Union[
 Values of this type should always be converted into :class:`probnum.linops.\\
 LinearOperator`\\ s using the function :func:`probnum.linops.aslinop` before further
 internal processing."""
+
+SeedLike = Optional[int]
 
 ########################################################################################
 # Other Types

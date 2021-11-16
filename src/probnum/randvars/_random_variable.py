@@ -406,7 +406,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return in_support
 
-    def sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> _ValueType:
+    def sample(self, seed, sample_shape: ShapeLike = ()) -> _ValueType:
         """Draw realizations from a random variable.
 
         Parameters
@@ -419,11 +419,7 @@ class RandomVariable(Generic[_ValueType]):
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        if not isinstance(rng, np.random.Generator):
-            msg = "Random number generators must be of type np.random.Generator."
-            raise TypeError(msg)
-
-        return self.__sample(rng=rng, size=_utils.as_shape(size))
+        return self.__sample(seed=seed, sample_shape=_utils.as_shape(sample_shape))
 
     def cdf(self, x: _ValueType) -> np.float_:
         """Cumulative distribution function.

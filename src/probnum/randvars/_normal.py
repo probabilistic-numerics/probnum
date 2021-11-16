@@ -14,6 +14,7 @@ from probnum.typing import (
     ArrayType,
     FloatLike,
     ScalarType,
+    SeedType,
     ShapeLike,
     ShapeType,
 )
@@ -84,7 +85,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         # Data type normalization
         dtype = backend.promote_types(mean.dtype, cov.dtype)
 
-        if not backend.is_floating(dtype):
+        _a = backend.zeros((), dtype=dtype)
+
+        if not backend.is_floating(_a):
             dtype = backend.double
 
         mean = backend.cast(mean, dtype=dtype, casting="safe", copy=False)
@@ -393,23 +396,19 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Univariate Gaussians
+    @functools.partial(backend.jit_method, static_argnums=(1,))
     def _scalar_sample(
         self,
-        rng: np.random.Generator,
-        size: ShapeType = (),
+        seed: SeedType,
+        sample_shape: ShapeType = (),
     ) -> ArrayType:
-        sample = scipy.stats.norm.rvs(
-            loc=self.mean, scale=self.std, size=size, random_state=rng
+        sample = backend.random.standard_normal(
+            seed,
+            shape=sample_shape,
+            dtype=self.dtype,
         )
 
-        if np.isscalar(sample):
-            sample = _utils.as_numpy_scalar(sample, dtype=self.dtype)
-        else:
-            sample = sample.astype(self.dtype)
-
-        assert sample.shape == size
-
-        return sample
+        return self.std * sample + self.mean
 
     @staticmethod
     @backend.jit

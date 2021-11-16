@@ -51,8 +51,11 @@ from ._dispatcher import Dispatcher
 
 from ._core import *
 
-from . import autodiff
-from . import linalg
-from . import special
+from . import (
+    autodiff,
+    linalg,
+    random,
+    special,
+)
 
 # isort: on
