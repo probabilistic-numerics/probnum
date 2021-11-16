@@ -1,6 +1,7 @@
 """Normally distributed / Gaussian random variables."""
 
 import functools
+import operator
 from typing import Optional, Union
 
 from probnum import backend, config, linops
@@ -95,7 +96,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         # Shape checking
         expected_cov_shape = (
-            (functools.reduce(lambda a, b: a * b, mean.shape, 1),) * 2
+            (functools.reduce(operator.mul, mean.shape, 1),) * 2
             if mean.ndim > 0
             else ()
         )
