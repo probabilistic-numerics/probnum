@@ -4,7 +4,6 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from probnum.kernels import ExpQuad, Kernel
 from probnum.quad._integration_measures import (
     GaussianMeasure,
     IntegrationMeasure,
@@ -16,6 +15,7 @@ from probnum.quad.kernel_embeddings import (
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
+from probnum.randprocs.kernels import ExpQuad, Kernel
 
 
 class KernelEmbedding:

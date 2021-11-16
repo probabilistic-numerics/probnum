@@ -11,7 +11,7 @@ from probnum.typing import ShapeType
 
 @pytest.fixture(name="kernmat")
 def fixture_kernmat(
-    kernel: pn.kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
+    kernel: pn.randprocs.kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
 ) -> np.ndarray:
     """Kernel evaluated at the data."""
     if x1 is None and np.prod(x0.shape[:-1]) >= 100:
@@ -44,7 +44,7 @@ def test_type(kernmat: np.ndarray):
 
 
 def test_shape(
-    kernel: pn.kernels.Kernel,
+    kernel: pn.randprocs.kernels.Kernel,
     x0: np.ndarray,
     x1: Optional[np.ndarray],
     kernmat: np.ndarray,
@@ -81,7 +81,7 @@ def test_kernel_matrix_against_naive(
     ],
 )
 def test_invalid_shape(
-    kernel: pn.kernels.Kernel,
+    kernel: pn.randprocs.kernels.Kernel,
     x0_shape: np.ndarray,
     x1_shape: np.ndarray,
 ):
@@ -106,7 +106,7 @@ def test_invalid_shape(
         (10,),
     ],
 )
-def test_wrong_input_dimension(kernel: pn.kernels.Kernel, shape: ShapeType):
+def test_wrong_input_dimension(kernel: pn.randprocs.kernels.Kernel, shape: ShapeType):
     """Test whether passing an input with the wrong input dimension raises an error."""
 
     input_shape = shape + (kernel.input_dim + 1,)

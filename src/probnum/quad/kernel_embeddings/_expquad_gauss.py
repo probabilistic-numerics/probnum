@@ -5,8 +5,8 @@ measure."""
 import numpy as np
 import scipy.linalg as slinalg
 
-from probnum.kernels import ExpQuad
 from probnum.quad._integration_measures import GaussianMeasure
+from probnum.randprocs.kernels import ExpQuad
 
 # pylint: disable=invalid-name
 

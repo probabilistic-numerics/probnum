@@ -4,7 +4,7 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from probnum.kernels import ExpQuad, Kernel
+from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatArgType, IntArgType
 

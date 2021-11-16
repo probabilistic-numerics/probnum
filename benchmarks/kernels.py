@@ -2,7 +2,7 @@
 
 import numpy as np
 
-import probnum.kernels as kernels
+from probnum.randprocs import kernels
 
 # Module level variables
 KERNEL_NAMES = [

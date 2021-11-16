@@ -37,7 +37,7 @@ class ExpQuad(Kernel, IsotropicMixin):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import ExpQuad
+    >>> from probnum.randprocs.kernels import ExpQuad
     >>> K = ExpQuad(input_dim=1, lengthscale=0.1)
     >>> xs = np.linspace(0, 1, 3)[:, None]
     >>> K.matrix(xs)

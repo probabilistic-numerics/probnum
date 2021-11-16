@@ -6,6 +6,7 @@ function values in their covariance function. They can be used to model
 functions with stochastic output.
 """
 
+from . import kernels
 from ._gaussian_process import GaussianProcess
 from ._random_process import RandomProcess
 

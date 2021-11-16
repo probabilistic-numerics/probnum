@@ -26,7 +26,6 @@ from ._pnmethod import (
 from . import (
     diffeq,
     filtsmooth,
-    kernels,
     linalg,
     linops,
     problems,
