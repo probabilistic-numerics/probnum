@@ -1,58 +1,9 @@
 """Test cases for kernel embeddings."""
 
-from typing import Optional, Tuple, Union
-
 import numpy as np
 import pytest
-from scipy.linalg import sqrtm
-from scipy.special import roots_legendre
 
-from probnum.typing import FloatArgType, IntArgType
-
-
-# Auxiliary functions
-def gauss_hermite_tensor(
-    n_points: IntArgType,
-    dim: IntArgType,
-    mean: Union[np.ndarray, FloatArgType],
-    cov: Union[np.ndarray, FloatArgType],
-):
-    """Returns the points and weights of a tensor-product Gauss-Hermite rule for
-    integration w.r.t a Gaussian measure."""
-    x_gh_1d, w_gh = np.polynomial.hermite.hermgauss(n_points)
-    x_gh = (
-        np.sqrt(2)
-        * np.stack(np.meshgrid(*(x_gh_1d,) * dim), -1).reshape(-1, dim)
-        @ sqrtm(np.atleast_2d(cov))
-        + mean
-    )
-    w_gh = np.prod(
-        np.stack(np.meshgrid(*(w_gh,) * dim), -1).reshape(-1, dim), axis=1
-    ) / (np.pi ** (dim / 2))
-    return x_gh, w_gh
-
-
-def gauss_legendre_tensor(
-    n_points: IntArgType,
-    dim: IntArgType,
-    domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
-    normalized: Optional[bool] = False,
-):
-    """Returns the points and weights of a tensor-product Gauss-Legendre rule for
-    integration w.r.t the Lebesgue measure on a hyper-rectangle."""
-    x_1d, w_gl, weight_sum = roots_legendre(n_points, True)
-    x_1d_shifted = [
-        0.5 * (x_1d * (domain[1][i] - domain[0][i]) + domain[1][i] + domain[0][i])
-        for i in range(0, dim)
-    ]
-    x_gl = np.stack(np.meshgrid(*x_1d_shifted), -1).reshape(-1, dim)
-    w_gl = (
-        np.prod(np.stack(np.meshgrid(*(w_gl,) * dim), -1).reshape(-1, dim), axis=1)
-        / weight_sum ** dim
-    )
-    if not normalized:
-        w_gl = w_gl * np.prod(domain[1] - domain[0])
-    return x_gl, w_gl
+from .util import gauss_hermite_tensor, gauss_legendre_tensor
 
 
 # Common tests
@@ -81,12 +32,12 @@ def test_kernel_mean_gaussian_measure(kernel_embedding, num_data, rng):
     n_gh = 10
     x_gh, w_gh = gauss_hermite_tensor(
         n_points=n_gh,
-        dim=kernel_embedding.dim,
+        input_dim=kernel_embedding.input_dim,
         mean=kernel_embedding.measure.mean,
         cov=kernel_embedding.measure.cov,
     )
 
-    x = kernel_embedding.measure.sample(rng, num_data)
+    x = kernel_embedding.measure.sample(rng=rng, n_sample=num_data)
     num_kernel_means = kernel_embedding.kernel.matrix(x, x_gh) @ w_gh
     true_kernel_means = kernel_embedding.kernel_mean(x)
     np.testing.assert_allclose(
@@ -102,7 +53,7 @@ def test_kernel_var_gaussian_measure(kernel_embedding):
     n_gh = 20
     x_gh, w_gh = gauss_hermite_tensor(
         n_points=n_gh,
-        dim=kernel_embedding.dim,
+        input_dim=kernel_embedding.input_dim,
         mean=kernel_embedding.measure.mean,
         cov=kernel_embedding.measure.cov,
     )
@@ -123,12 +74,12 @@ def test_kernel_mean_lebesgue_measure(kernel_embedding, num_data, rng):
     n_gl = 10
     x_gl, w_gl = gauss_legendre_tensor(
         n_points=n_gl,
-        dim=kernel_embedding.dim,
+        input_dim=kernel_embedding.input_dim,
         domain=kernel_embedding.measure.domain,
         normalized=kernel_embedding.measure.normalized,
     )
 
-    x = kernel_embedding.measure.sample(rng, num_data)
+    x = kernel_embedding.measure.sample(rng=rng, n_sample=num_data)
     num_kernel_means = kernel_embedding.kernel.matrix(x, x_gl) @ w_gl
     true_kernel_means = kernel_embedding.kernel_mean(x)
     np.testing.assert_allclose(
@@ -144,7 +95,7 @@ def test_kernel_var_lebesgue_measure(kernel_embedding):
     n_gl = 20
     x_gl, w_gl = gauss_legendre_tensor(
         n_points=n_gl,
-        dim=kernel_embedding.dim,
+        input_dim=kernel_embedding.input_dim,
         domain=kernel_embedding.measure.domain,
         normalized=kernel_embedding.measure.normalized,
     )

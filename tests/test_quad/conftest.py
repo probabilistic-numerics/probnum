@@ -87,7 +87,7 @@ def fixture_measure_params(
         else:
             mean = rng.normal(0, 1, size=(input_dim, 1))
             if cov_diagonal:
-                cov = rng.uniform(0.5, 1.5, size=(input_dim, 1))
+                cov = np.diag(rng.uniform(0.5, 1.5, size=(input_dim,)))
             else:
                 mat = rng.normal(0, 1, size=(input_dim, input_dim))
                 cov = mat @ mat.T
