@@ -47,6 +47,10 @@ def is_floating(a: np.ndarray):
     return np.issubdtype(a.dtype, np.floating)
 
 
+def to_numpy(a: np.ndarray) -> np.ndarray:
+    return a
+
+
 def jit(f, *args, **kwargs):
     return f
 

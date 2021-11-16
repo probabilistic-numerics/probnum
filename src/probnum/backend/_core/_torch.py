@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
     Tensor as ndarray,
@@ -133,6 +134,10 @@ def zeros_like(a, dtype=None, *, shape=None):
 
 def cast(a: torch.Tensor, dtype=None, casting="unsafe", copy=None):
     return a.to(dtype=dtype, copy=copy)
+
+
+def to_numpy(a: torch.Tensor) -> np.ndarray:
+    return a.cpu().detach().numpy()
 
 
 def jit(f, *args, **kwargs):

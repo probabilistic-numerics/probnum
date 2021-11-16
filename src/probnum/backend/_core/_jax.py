@@ -1,4 +1,5 @@
 import jax
+import numpy as np
 from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     all,
     array,
@@ -42,11 +43,15 @@ jax.config.update("jax_enable_x64", True)
 
 
 def cast(a: jax.numpy.ndarray, dtype=None, casting="unsafe", copy=None):
-    return a.astype(dtype=None)
+    return a.astype(dtype=dtype)
 
 
 def is_floating(a: jax.numpy.ndarray):
     return jax.numpy.issubdtype(a.dtype, jax.numpy.floating)
+
+
+def to_numpy(a: jax.numpy.ndarray) -> np.ndarray:
+    return np.array(a)
 
 
 def jit(f, *args, **kwargs):

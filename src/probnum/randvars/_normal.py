@@ -14,6 +14,7 @@ from probnum.typing import (
     ArrayType,
     FloatLike,
     ScalarType,
+    SeedLike,
     SeedType,
     ShapeLike,
     ShapeType,
@@ -79,9 +80,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         if not isinstance(cov, linops.LinearOperator):
             cov = backend.asarray(cov)
 
-        if not isinstance(cov_cholesky, linops.LinearOperator):
-            cov = backend.asarray(cov)
-
         # Data type normalization
         dtype = backend.promote_types(mean.dtype, cov.dtype)
 
@@ -98,9 +96,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             if isinstance(cov_cholesky, linops.LinearOperator):
                 cov_cholesky = cov_cholesky.astype(dtype, casting="safe", copy=False)
             else:
-                cov_cholesky = backend.cast(
-                    cov_cholesky, dtype=dtype, casting="safe", copy=False
-                )
+                cov_cholesky = backend.asarray(cov_cholesky, dtype=dtype)
 
         # Shape checking
         expected_cov_shape = (
@@ -152,11 +148,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             )
         else:
             # Multi- and matrix- and tensorvariate Gaussians
-            self._cov_op = linops.aslinop(cov)
+            self._cov_op = linops.aslinop(backend.to_numpy(cov))
             self.__cov_op_cholesky = None
 
             if self._cov_cholesky is not None:
-                self.__cov_op_cholesky = linops.aslinop(self._cov_cholesky)
+                self.__cov_op_cholesky = linops.aslinop(
+                    backend.to_numpy(self._cov_cholesky)
+                )
 
             super().__init__(
                 shape=mean.shape,
@@ -258,9 +256,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             )
         else:
             self.__cov_op_cholesky = linops.aslinop(
-                backend.linalg.cholesky(
-                    self.dense_cov
-                    + damping_factor * backend.eye(*self.shape, dtype=self.dtype),
+                backend.to_numpy(
+                    backend.linalg.cholesky(
+                        self.dense_cov
+                        + damping_factor * backend.eye(*self.shape, dtype=self.dtype),
+                    )
                 )
             )
 
@@ -444,15 +444,19 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return 0.5 * backend.log(2.0 * backend.pi * self.var) + 0.5
 
     # Multi- and matrixvariate Gaussians
-    def _sample(self, rng: np.random.Generator, size: ShapeType = ()) -> _ValueType:
-        sample = scipy.stats.multivariate_normal.rvs(
-            mean=self.dense_mean.ravel(),
-            cov=self.dense_cov,
-            size=size,
-            random_state=rng,
+
+    # TODO (#xyz): jit this function once `LinearOperator`s support the backend
+    # @functools.partial(backend.jit_method, static_argnums=(1,))
+    def _sample(self, seed: SeedLike, sample_shape: ShapeType = ()) -> ArrayType:
+        sample = backend.random.standard_normal(
+            seed,
+            shape=sample_shape + (self.size,),
+            dtype=self.dtype,
         )
 
-        return sample.reshape(sample.shape[:-1] + self.shape)
+        sample = self._cov_op_cholesky @ backend.to_numpy(sample) + self.dense_mean
+
+        return sample.reshape(sample_shape + self.shape)
 
     @staticmethod
     def _arg_todense(x: Union[ArrayType, linops.LinearOperator]) -> ArrayType:

@@ -61,6 +61,9 @@ maximum = _core.maximum
 all = _core.all
 sum = _core.sum
 
+# Misc
+to_numpy = _core.to_numpy
+
 # Just-in-Time Compilation
 jit = _core.jit
 jit_method = _core.jit_method
