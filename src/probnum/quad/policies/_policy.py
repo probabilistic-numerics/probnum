@@ -5,7 +5,6 @@ from typing import Callable
 
 import numpy as np
 
-from probnum.quad.acquisitions import Acquisition
 from probnum.quad.bq_methods.bq_state import BQState
 
 # pylint: disable=too-few-public-methods, fixme
@@ -35,56 +34,26 @@ class Policy(abc.ABC):
         return None
 
 
-class OptimalPolicy(Policy):
-    """Optimal policy given an acquisition function.
-
-    Parameters
-    ----------
-    acquisition :
-        Acquisition function.
-    batch_size :
-        Size of batch that is found in every iteration of calling the policy.
-    bq_state :
-        Current state of the BQ method.
-    """
-
-    def __init__(self, acquisition: Acquisition, batch_size: int) -> None:
-        super().__init__(batch_size=batch_size)
-        self.acquisition = acquisition
-
-    def __call__(self, bq_state: BQState) -> np.ndarray:
-        """Find nodes according to the acquisition policy.
-
-        The nodes found are the :math:`\\argmax` of the given acquisition function.
-
-        Returns
-        -------
-        nodes :
-            *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
-        """
-        # TODO: Here goes the optimization of the acquisition function.
-        raise NotImplementedError
-
-
 class RandomPolicy(Policy):
     """Random sampling from an objective.
 
     Parameters
     ----------
-    sample :
-        Objective to sample from. Needs to have a method ``sample``.
+    sample_func :
+        The sample function. Needs to have the following interface
+        `sample_func(batch_size: int, rng: np.random.Generator)` and return an array of shape (batch_size, n_dim).
     batch_size :
         Size of batch that is found in every iteration of calling the policy.
     """
 
     def __init__(
         self,
-        sample: Callable,
+        sample_func: Callable,
         batch_size: int,
         rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
         super().__init__(batch_size=batch_size)
-        self.sample = sample
+        self.sample_func = sample_func
         self.rng = rng
 
     def __call__(self, bq_state: BQState) -> np.ndarray:
@@ -100,4 +69,4 @@ class RandomPolicy(Policy):
         nodes :
             *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
-        return self.sample(self.batch_size, rng=self.rng)
+        return self.sample_func(self.batch_size, rng=self.rng)

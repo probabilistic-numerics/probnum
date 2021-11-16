@@ -8,7 +8,6 @@ choosing points to evaluate the integrand based on said model.
 
 from ._bayesquad import bayesquad, bayesquad_from_data
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from .acquisitions import Acquisition
 from .bq_methods import (
     BayesianQuadrature,
     BQBeliefUpdate,
@@ -23,7 +22,7 @@ from .kernel_embeddings import (
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
-from .policies import OptimalPolicy, Policy, RandomPolicy
+from .policies import Policy, RandomPolicy
 from .stop_criteria import (
     IntegralVarianceTolerance,
     MaxNevals,

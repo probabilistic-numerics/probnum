@@ -1,1 +1,1 @@
-from ._policy import OptimalPolicy, Policy, RandomPolicy
+from ._policy import Policy, RandomPolicy
