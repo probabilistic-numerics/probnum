@@ -3,11 +3,7 @@
 import functools
 from typing import Optional, Union
 
-import numpy as np
-import scipy.linalg
-import scipy.stats
-
-from probnum import backend, config, linops, utils as _utils
+from probnum import backend, config, linops
 from probnum.typing import (
     ArrayIndicesLike,
     ArrayLike,
@@ -65,6 +61,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
            [ 1.2504512 ,  1.44056472]])
     """
 
+    # TODO (#569): `cov_cholesky` should be passed to the `cov` `LinearOperator`
     def __init__(
         self,
         mean: Union[ArrayLike, linops.LinearOperator],
@@ -191,7 +188,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         return self.cov
 
-    # TODO (#xyz): Integrate Cholesky functionality into `LinearOperator.cholesky`
+    # TODO (#569): Integrate Cholesky functionality into `LinearOperator.cholesky`
 
     @property
     def cov_cholesky(self) -> _ValueType:
@@ -489,7 +486,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             -0.5
             * (
                 x_centered.T
-                # TODO (#xyz): Replace `cho_solve` with linop.cholesky().solve()
+                # TODO (#569): Replace `cho_solve` with `linop.inv() @ ...`
                 @ backend.linalg.cholesky_solve(
                     (self._cov_matrix_cholesky, True), x_centered
                 )
@@ -497,7 +494,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
         res -= 0.5 * self.size * backend.log(backend.array(2.0 * backend.pi))
-        # TODO (#xyz): Replace this with `0.5 * self._cov_op.logdet()`
+        # TODO (#569): Replace this with `0.5 * self._cov_op.logdet()`
         res -= backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
 
         return res
@@ -505,6 +502,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _cdf(self, x: _ValueType) -> ArrayType:
         if backend.BACKEND is not backend.Backend.NUMPY:
             raise NotImplementedError()
+
+        import scipy.stats
 
         return scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
@@ -515,6 +514,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _logcdf(self, x: _ValueType) -> ArrayType:
         if backend.BACKEND is not backend.Backend.NUMPY:
             raise NotImplementedError()
+
+        import scipy.stats
 
         return scipy.stats.multivariate_normal.logcdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
@@ -529,7 +530,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     @backend.jit_method
     def _entropy(self) -> ScalarType:
         entropy = 0.5 * self.size * (backend.log(2.0 * backend.pi) + 1.0)
-        # TODO (#xyz): Replace this with `0.5 * self._cov_op.logdet()`
+        # TODO (#569): Replace this with `0.5 * self._cov_op.logdet()`
         entropy += backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
 
         return entropy
