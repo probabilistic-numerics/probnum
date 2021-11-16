@@ -1,6 +1,6 @@
 """Bayesian Quadrature.
 
-This module provides routines to integrate functions through Bayesian quadrature,
+This module provides solvers to integrate functions through Bayesian quadrature,
 meaning a model over the integrand is constructed in order to actively select evaluation
 points of the integrand to estimate the value of the integral. Bayesian quadrature
 methods return a random variable, specifying the belief about the true value of the
@@ -17,7 +17,7 @@ from probnum.randvars import Normal
 from probnum.typing import FloatArgType, IntArgType
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from .bq_methods import BayesianQuadrature
+from .solvers import BayesianQuadrature
 
 
 # pylint: disable=too-many-arguments, no-else-raise

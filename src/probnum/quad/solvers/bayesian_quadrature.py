@@ -11,7 +11,7 @@ from probnum.typing import FloatArgType, IntArgType
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
 from ..policies import Policy, RandomPolicy
-from ..stop_criteria import (
+from probnum.quad.solvers.stopping_criteria import (
     IntegralVarianceTolerance,
     MaxNevals,
     RelativeMeanChange,
