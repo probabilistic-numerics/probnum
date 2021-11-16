@@ -16,7 +16,7 @@ from probnum.typing import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
-from ..policies import Policy, RandomPolicy
+from probnum.quad.solvers.policies import Policy, RandomPolicy
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
 
