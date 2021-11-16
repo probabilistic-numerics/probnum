@@ -9,7 +9,7 @@ class Dispatcher:
         self,
         numpy_impl: Optional[Callable] = None,
         jax_impl: Optional[Callable] = None,
-        pytorch_impl: Optional[Callable] = None,
+        torch_impl: Optional[Callable] = None,
     ):
         self._impl = {}
 
@@ -19,8 +19,8 @@ class Dispatcher:
         if jax_impl is not None:
             self._impl[Backend.JAX] = jax_impl
 
-        if pytorch_impl is not None:
-            self._impl[Backend.TORCH] = pytorch_impl
+        if torch_impl is not None:
+            self._impl[Backend.TORCH] = torch_impl
 
     def numpy(self, impl: Callable) -> Callable:
         if Backend.NUMPY in self._impl:
