@@ -4,6 +4,12 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
+from probnum.quad.solvers.stopping_criteria import (
+    BQStoppingCriterion,
+    IntegralVarianceTolerance,
+    MaxNevals,
+    RelativeMeanChange,
+)
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatArgType, IntArgType
@@ -11,12 +17,6 @@ from probnum.typing import FloatArgType, IntArgType
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
 from ..policies import Policy, RandomPolicy
-from probnum.quad.solvers.stopping_criteria import (
-    IntegralVarianceTolerance,
-    MaxNevals,
-    RelativeMeanChange,
-    BQStoppingCriterion,
-)
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
 
