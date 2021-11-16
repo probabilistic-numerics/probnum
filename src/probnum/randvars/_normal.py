@@ -80,9 +80,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         # Data type normalization
         dtype = backend.promote_types(mean.dtype, cov.dtype)
 
-        _a = backend.zeros((), dtype=dtype)
-
-        if not backend.is_floating(_a):
+        if not backend.is_floating_dtype(dtype):
             dtype = backend.double
 
         mean = backend.cast(mean, dtype=dtype, casting="safe", copy=False)

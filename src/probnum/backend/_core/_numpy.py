@@ -43,8 +43,12 @@ def cast(a: np.ndarray, dtype=None, casting="unsafe", copy=None):
     return a.astype(dtype=dtype, casting=casting, copy=copy)
 
 
-def is_floating(a: np.ndarray):
+def is_floating(a: np.ndarray) -> bool:
     return np.issubdtype(a.dtype, np.floating)
+
+
+def is_floating_dtype(dtype) -> bool:
+    return np.issubdtype(dtype, np.floating)
 
 
 def to_numpy(a: np.ndarray) -> np.ndarray:

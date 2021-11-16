@@ -46,8 +46,12 @@ def cast(a: jax.numpy.ndarray, dtype=None, casting="unsafe", copy=None):
     return a.astype(dtype=dtype)
 
 
-def is_floating(a: jax.numpy.ndarray):
+def is_floating(a: jax.numpy.ndarray) -> bool:
     return jax.numpy.issubdtype(a.dtype, jax.numpy.floating)
+
+
+def is_floating_dtype(dtype) -> bool:
+    return is_floating(jax.numpy.empty((), dtype=dtype))
 
 
 def to_numpy(a: jax.numpy.ndarray) -> np.ndarray:

@@ -21,6 +21,7 @@ cdouble = _core.cdouble
 cast = _core.cast
 promote_types = _core.promote_types
 is_floating = _core.is_floating
+is_floating_dtype = _core.is_floating_dtype
 finfo = _core.finfo
 
 # Shape Arithmetic

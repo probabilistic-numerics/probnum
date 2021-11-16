@@ -32,6 +32,10 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
 torch.set_default_dtype(torch.double)
 
 
+def is_floating_dtype(dtype) -> bool:
+    return is_floating(torch.empty((), dtype=dtype))
+
+
 def all(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
     if isinstance(axis, int):
         return torch.all(
