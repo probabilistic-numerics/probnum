@@ -9,13 +9,12 @@ from probnum.typing import FloatArgType
 
 # pylint: disable=too-few-public-methods
 
-
+#Todo: fix formula in docstring
 class RelativeMeanChange(BQStoppingCriterion):
     """Stop once the relative change of consecutive integral estimates are smaller than
     a tolerance. That is, the stopping criterion is.
 
-        | current_integral_estimate - previous_integral_estimate) /
-      current_integral_estimate | <= rel_tol.
+        | current_integral_estimate - previous_integral_estimate) / current_integral_estimate | <= rel_tol.
 
     Parameters
     ----------

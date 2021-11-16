@@ -14,9 +14,9 @@ from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatArgType, IntArgType
 
+from probnum.quad.solvers.policies import Policy, RandomPolicy
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
-from probnum.quad.solvers.policies import Policy, RandomPolicy
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
 

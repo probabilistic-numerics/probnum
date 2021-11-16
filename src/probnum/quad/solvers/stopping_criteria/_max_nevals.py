@@ -1,4 +1,4 @@
-"""Stopping criterion based on a maximum number of iteration."""
+"""Stopping criterion based on a maximum number of iterations."""
 
 from probnum.quad.solvers.bq_state import BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion

@@ -4,7 +4,6 @@ from probnum import StoppingCriterion
 from probnum.quad.solvers.bq_state import BQState
 from probnum.randvars import Normal
 
-
 # Todo: update docstring
 class BQStoppingCriterion(StoppingCriterion):
     r"""Stopping criterion of a Bayesian quadrature method.
@@ -14,6 +13,8 @@ class BQStoppingCriterion(StoppingCriterion):
     See Also
     --------
     IntegralVarianceTolerance : Stop based on the variance of the integral estimator.
+    RelativeMeanChange : Stop based on the absolute value of the integral variance.
+    MaxNevals : Stop based on a maximum number of iterations.
     """
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
