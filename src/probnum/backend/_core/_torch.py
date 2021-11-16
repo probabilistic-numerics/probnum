@@ -57,6 +57,34 @@ def array(object, dtype=None, *, copy=True):
     return asarray(object, dtype=dtype)
 
 
+def full(
+    shape,
+    fill_value,
+    dtype=None,
+) -> torch.Tensor:
+    return torch.full(
+        size=shape,
+        fill_value=fill_value,
+        dtype=dtype,
+    )
+
+
+def full_like(
+    a: torch.Tensor,
+    fill_value,
+    dtype=None,
+    shape=None,
+) -> torch.Tensor:
+    return torch.full(
+        shape if shape is not None else a.shape,
+        fill_value,
+        dtype=dtype if dtype is not None else a.dtype,
+        layout=a.layout,
+        device=a.device,
+        requires_grad=a.requires_grad,
+    )
+
+
 def ndim(a):
     try:
         return a.ndim

@@ -2,10 +2,8 @@
 
 from typing import Optional
 
-import numpy as np
-
-import probnum.utils as _utils
-from probnum.typing import IntLike, ScalarLike
+from probnum import backend, utils
+from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import Kernel
 
@@ -48,9 +46,10 @@ class Polynomial(Kernel):
         constant: ScalarLike = 0.0,
         exponent: IntLike = 1.0,
     ):
-        self.constant = _utils.as_numpy_scalar(constant)
-        self.exponent = _utils.as_numpy_scalar(exponent)
+        self.constant = utils.as_scalar(constant)
+        self.exponent = utils.as_scalar(exponent)
         super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    @backend.jit_method
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
         return (self._euclidean_inner_products(x0, x1) + self.constant) ** self.exponent

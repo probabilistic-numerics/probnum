@@ -15,6 +15,8 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     exp,
     eye,
     finfo,
+    full,
+    full_like,
     inf,
     int32,
     int64,
