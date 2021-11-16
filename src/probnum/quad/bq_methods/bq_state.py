@@ -4,7 +4,6 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.quad import StoppingCriterion
 from probnum.quad._integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs.kernels import Kernel
@@ -33,7 +32,7 @@ class BQInfo:
         iteration: int = 0,
         nevals: int = 0,
         has_converged: bool = False,
-        stopping_criterion: StoppingCriterion = None,
+        stopping_criterion: "probnum.quad.StoppingCriterion" = None,
     ):
         self.iteration = iteration
         self.nevals = nevals
