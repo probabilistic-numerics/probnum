@@ -15,7 +15,7 @@ from probnum.quad.solvers.stopping_criteria import (
     IntegralVarianceTolerance,
     MaxNevals,
     RelativeMeanChange,
-    StoppingCriterion,
+    BQStoppingCriterion,
 )
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
@@ -49,7 +49,7 @@ class BayesianQuadrature:
         measure: IntegrationMeasure,
         policy: Policy,
         belief_update: BQBeliefUpdate,
-        stopping_criteria: List[StoppingCriterion],
+        stopping_criteria: List[BQStoppingCriterion],
     ) -> None:
         self.kernel = kernel
         self.measure = measure

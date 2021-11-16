@@ -24,8 +24,10 @@ from .kernel_embeddings import (
 )
 from .policies import Policy, RandomPolicy
 from probnum.quad.solvers.stopping_criteria import (
+    BQStoppingCriterion,
     IntegralVarianceTolerance,
-    StoppingCriterion,
+    MaxNevals,
+    RelativeMeanChange,
 )
 
 # Public classes and functions. Order is reflected in documentation.
@@ -37,7 +39,10 @@ __all__ = [
     "KernelEmbedding",
     "GaussianMeasure",
     "LebesgueMeasure",
-    "StoppingCriterion",
+    "BQStoppingCriterion",
+    "IntegralVarianceTolerance",
+    "MaxNevals",
+    "RelativeMeanChange"
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -46,4 +51,4 @@ IntegrationMeasure.__module__ = "probnum.quad"
 KernelEmbedding.__module__ = "probnum.quad"
 GaussianMeasure.__module__ = "probnum.quad"
 LebesgueMeasure.__module__ = "probnum.quad"
-StoppingCriterion.__module__ = "probnum.quad"
+BQStoppingCriterion.__module__ = "probnum.quad"
