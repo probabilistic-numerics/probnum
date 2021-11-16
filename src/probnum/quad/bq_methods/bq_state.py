@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.kernels._kernel import Kernel
+from probnum.randprocs.kernels import Kernel
 from probnum.quad._integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
