@@ -131,14 +131,20 @@ class BayesianQuadrature:
         if max_evals is not None:
             _stopping_criteria.append(MaxNevalsStoppingCriterion(max_evals))
         if var_tol is not None:
-            _stopping_criteria.append(IntegralVarianceToleranceStoppingCriterion(var_tol))
+            _stopping_criteria.append(
+                IntegralVarianceToleranceStoppingCriterion(var_tol)
+            )
         if rel_tol is not None:
             _stopping_criteria.append(RelativeMeanChangeStoppingCriterion(rel_tol))
 
         # If no stopping criteria are given, use some default values (these are arbitrary values)
         if not _stopping_criteria:
-            _stopping_criteria.append(IntegralVarianceToleranceStoppingCriterion(var_tol=1e-6))
-            _stopping_criteria.append(MaxNevalsStoppingCriterion(max_nevals=input_dim * 25))
+            _stopping_criteria.append(
+                IntegralVarianceToleranceStoppingCriterion(var_tol=1e-6)
+            )
+            _stopping_criteria.append(
+                MaxNevalsStoppingCriterion(max_nevals=input_dim * 25)
+            )
 
         return cls(
             kernel=kernel,
