@@ -4,6 +4,7 @@ from probnum import StoppingCriterion
 from probnum.quad.solvers.bq_state import BQState
 from probnum.randvars import Normal
 
+
 # Todo: update docstring
 class BQStoppingCriterion(StoppingCriterion):
     r"""Stopping criterion of a Bayesian quadrature method.
