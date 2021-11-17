@@ -104,7 +104,6 @@ class ProbabilisticLinearSolver(
     ...         mean=np.zeros((n,)),
     ...         cov=np.linalg.inv(A),
     ...     ),
-    ...     Ainv=linops.Scaling(factors=0.0, shape=(n, n)),
     ... )
 
     Solve the linear system using the custom solver.

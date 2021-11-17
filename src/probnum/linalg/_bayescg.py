@@ -1,4 +1,5 @@
 """A Bayesian conjugate gradient method."""
+
 from typing import Callable, Optional
 
 
