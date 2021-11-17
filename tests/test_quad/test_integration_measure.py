@@ -30,8 +30,8 @@ def test_gaussian_non_diagonal_covariance(input_dim_non_diagonal):
 def test_gaussian_mean_shape_1d(mean, cov):
     """Test that different types of one-dimensional means and covariances yield one-
     dimensional Gaussian measures when no dimension is given."""
-    measure = quad.GaussianMeasure(mean, cov)
-    assert measure.dim == 1
+    measure = quad.GaussianMeasure(mean=mean, cov=cov)
+    assert measure.input_dim == 1
     assert measure.mean.size == 1
     assert measure.cov.size == 1
 
@@ -57,17 +57,6 @@ def test_gaussian_param_assignment(input_dim: int):
         assert np.array_equal(measure.cov, np.eye(input_dim))
 
 
-@pytest.mark.parametrize(
-    "cov_vector", [np.array([1, 1]), np.array([0.1, 1, 9.8]), np.full((98,), 0.2)]
-)
-def test_gaussian_vector_cov(cov_vector):
-    """Check that Gaussian with diagonal covariance inputted as a vector works."""
-    dim = cov_vector.size
-    mean = np.zeros(dim)
-    measure = quad.GaussianMeasure(mean, cov_vector)
-    assert measure.cov.shape == (dim, dim)
-
-
 def test_gaussian_scalar():
     """Check that the 1d Gaussian case works."""
     measure = quad.GaussianMeasure(0.5, 1.5)
@@ -76,28 +65,29 @@ def test_gaussian_scalar():
 
 
 # Tests for Lebesgue measure
-@pytest.mark.parametrize("domain_a", [0, -1.0, np.array([1.0]), np.array([[-2.0]])])
-def test_lebesgue_dim_correct(input_dim: int, domain_a):
-    """Check that dimensions are handled correctly when one of the domain limits is a
-    scalar."""
-    domain_b1 = np.full((input_dim,), np.squeeze(domain_a) + 1)
-    domain_b2 = np.full((input_dim,), np.squeeze(domain_a) - 1)
-    domain1 = (domain_a, domain_b1)
-    domain2 = (domain_b2, domain_a)
-    measure1 = quad.LebesgueMeasure(domain=domain1)
-    measure2 = quad.LebesgueMeasure(domain=domain2)
-    assert measure1.dim == input_dim
-    assert measure2.dim == input_dim
+def test_lebesgue_dim_correct(input_dim: int):
+    """Check that dimensions are handled correctly."""
+    domain1 = (0.0, 1.87)
+    measure11 = quad.LebesgueMeasure(domain=domain1)
+    measure12 = quad.LebesgueMeasure(input_dim=input_dim, domain=domain1)
+    domain2 = (np.full((input_dim,), -0.1), np.full((input_dim,), 0.0))
+    measure21 = quad.LebesgueMeasure(domain=domain2)
+    measure22 = quad.LebesgueMeasure(input_dim=input_dim, domain=domain2)
+
+    assert measure11.input_dim == 1
+    assert measure12.input_dim == input_dim
+    assert measure21.input_dim == input_dim
+    assert measure22.input_dim == input_dim
 
 
 @pytest.mark.parametrize("domain_a", [0, np.full((3,), 0), np.full((13,), 0)])
 @pytest.mark.parametrize("domain_b", [np.full((4,), 1.2), np.full((14,), 1.2)])
-@pytest.mark.parametrize("dim", [-10, -2, 0, 2, 12, 122])
-def test_lebesgue_dim_incorrect(domain_a, domain_b, dim):
+@pytest.mark.parametrize("input_dim", [-10, -2, 0, 2, 12, 122])
+def test_lebesgue_dim_incorrect(domain_a, domain_b, input_dim):
     """Check that ValueError is raised if domain limits have mismatching dimensions or
     dimension is not positive."""
     with pytest.raises(ValueError):
-        quad.LebesgueMeasure(domain=(domain_a, domain_b), dim=dim)
+        quad.LebesgueMeasure(domain=(domain_a, domain_b), input_dim=input_dim)
 
 
 def test_lebesgue_normalization(input_dim: int):
@@ -106,21 +96,25 @@ def test_lebesgue_normalization(input_dim: int):
     if np.prod(np.full((input_dim,), domain[1])) in [0, np.Inf, -np.Inf]:
         with pytest.raises(ValueError):
             measure = quad.LebesgueMeasure(
-                domain=domain, dim=input_dim, normalized=True
+                domain=domain, input_dim=input_dim, normalized=True
             )
     else:
-        measure = quad.LebesgueMeasure(domain=domain, dim=input_dim, normalized=True)
+        measure = quad.LebesgueMeasure(
+            domain=domain, input_dim=input_dim, normalized=True
+        )
         assert measure.normalization_constant == 1 / 2 ** input_dim
 
 
 def test_lebesgue_unnormalized(input_dim: int):
     """Check that normalization constants are handled properly when equal to one."""
-    measure1 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=True)
-    measure2 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=False)
+    measure1 = quad.LebesgueMeasure(domain=(0, 1), input_dim=input_dim, normalized=True)
+    measure2 = quad.LebesgueMeasure(
+        domain=(0, 1), input_dim=input_dim, normalized=False
+    )
     assert measure1.normalization_constant == measure2.normalization_constant
 
 
 # Tests for all integration measures
 def test_density_call(x, measure):
-    actual_shape = () if x.shape[0] == 1 else (x.shape[0],)
-    assert measure(x).shape == actual_shape
+    expected_shape = (x.shape[0],)
+    assert measure(x).shape == expected_shape

@@ -6,9 +6,15 @@ function by iteratively building a probabilistic model and adaptively
 choosing points to evaluate the integrand based on said model.
 """
 
-from ._bayesquad import bayesquad
+from ._bayesquad import bayesquad, bayesquad_from_data
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from .bq_methods import BayesianQuadrature
+from .bq_methods import (
+    BayesianQuadrature,
+    BQBeliefUpdate,
+    BQInfo,
+    BQStandardBeliefUpdate,
+    BQState,
+)
 from .kernel_embeddings import (
     KernelEmbedding,
     _kernel_mean_expquad_gauss,
@@ -16,16 +22,24 @@ from .kernel_embeddings import (
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
-from .policies import sample_from_measure
+from .policies import Policy, RandomPolicy
+from .stop_criteria import (
+    IntegralVarianceTolerance,
+    MaxNevals,
+    RelativeMeanChange,
+    StoppingCriterion,
+)
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "bayesquad",
+    "bayesquad_from_data",
     "BayesianQuadrature",
     "IntegrationMeasure",
     "KernelEmbedding",
     "GaussianMeasure",
     "LebesgueMeasure",
+    "StoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -34,3 +48,4 @@ IntegrationMeasure.__module__ = "probnum.quad"
 KernelEmbedding.__module__ = "probnum.quad"
 GaussianMeasure.__module__ = "probnum.quad"
 LebesgueMeasure.__module__ = "probnum.quad"
+StoppingCriterion.__module__ = "probnum.quad"

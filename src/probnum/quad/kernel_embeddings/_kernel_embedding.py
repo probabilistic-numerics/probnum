@@ -4,7 +4,6 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from probnum.kernels import ExpQuad, Kernel
 from probnum.quad._integration_measures import (
     GaussianMeasure,
     IntegrationMeasure,
@@ -16,6 +15,7 @@ from probnum.quad.kernel_embeddings import (
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
+from probnum.randprocs.kernels import ExpQuad, Kernel
 
 
 class KernelEmbedding:
@@ -33,12 +33,12 @@ class KernelEmbedding:
         self.kernel = kernel
         self.measure = measure
 
-        if self.kernel.input_dim != self.measure.dim:
+        if self.kernel.input_dim != self.measure.input_dim:
             raise ValueError(
                 "Input dimensions of kernel and measure need to be the same."
             )
 
-        self.dim = self.kernel.input_dim
+        self.input_dim = self.kernel.input_dim
 
         # retrieve the functions for the provided combination of kernel and measure
         self._kmean, self._kvar = _get_kernel_embedding(
@@ -52,12 +52,13 @@ class KernelEmbedding:
         Parameters
         ----------
         x :
-            *shape=(n_eval, dim)* -- n_eval locations where to evaluate the kernel mean.
+            *shape=(n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
 
         Returns
         -------
         k_mean :
-            *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
+            *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
+            evaluated at locations x.
         """
         return self._kmean(x=x, kernel=self.kernel, measure=self.measure)
 

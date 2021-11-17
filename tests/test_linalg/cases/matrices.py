@@ -6,8 +6,9 @@ import numpy as np
 import scipy
 from pytest_cases import case, parametrize
 
-from probnum import kernels, linops
+from probnum import linops
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
+from probnum.randprocs import kernels
 
 m_rows = [1, 2, 10, 100]
 n_cols = [1, 2, 10, 100]

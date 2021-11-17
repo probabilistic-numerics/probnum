@@ -18,28 +18,28 @@ class IntegrationMeasure(abc.ABC):
 
     Parameters
     ----------
-    dim :
+    input_dim :
         Dimension of the integration domain.
     domain :
-        Tuple which contains two arrays which define the start and end points,
-        respectively, of the rectangular integration domain.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
+         a scalar or ``np.ndarray``.
     """
 
     def __init__(
         self,
-        dim: IntArgType,
-        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
+        input_dim: IntArgType,
     ) -> None:
 
-        self._set_dimension_domain(dim, domain)
+        self._set_dimension_domain(input_dim, domain)
 
-    def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
+    def __call__(self, points: Union[FloatArgType, np.ndarray]) -> np.ndarray:
         """Evaluate the density function of the integration measure.
 
         Parameters
         ----------
         points :
-            *shape=(n_points,) or (n_points, dim)* -- Input locations.
+            *shape=(n_points, input_dim)* -- Input locations.
 
         Returns
         -------
@@ -47,98 +47,89 @@ class IntegrationMeasure(abc.ABC):
             *shape=(n_points,)* -- Density evaluated at given locations.
         """
         # pylint: disable=no-member
-        return self.random_variable.pdf(points).squeeze()
+        return self.random_variable.pdf(points).reshape(-1)
 
     def sample(
         self,
-        rng: np.random.Generator,
         n_sample: IntArgType,
+        rng: Optional[np.random.Generator] = np.random.default_rng(),
     ) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
 
         Parameters
         ----------
-        rng :
-            Random number generator
         n_sample :
             Number of points to be sampled
+        rng :
+            Random number generator. Optional. Default is `np.random.default_rng()`.
 
         Returns
         -------
         points :
-            *shape=(n_sample,) or (n_sample,dim)* -- Sampled points
+            *shape=(n_sample,input_dim)* -- Sampled points
         """
         # pylint: disable=no-member
         return np.reshape(
-            self.random_variable.sample(rng=rng, size=n_sample),
-            newshape=(n_sample, self.dim),
+            self.random_variable.sample(size=n_sample, rng=rng),
+            newshape=(n_sample, self.input_dim),
         )
 
     def _set_dimension_domain(
         self,
-        dim: IntArgType,
-        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+        input_dim: IntArgType,
+        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
     ) -> None:
-        """Sets the integration domain and dimension.
+        """Sets the integration domain and input_dimension.
 
-        The following logic is used to set the domain and dimension:
-            1. If ``dim`` is not given (``dim == None``):
-                1a. If either ``domain[0]`` or ``domain[1]`` is a scalar, the dimension
-                    is set as the maximum of their lengths and the scalar is expanded to
-                    a constant vector.
-                1b. Otherwise, if the ``domain[0]`` and ``domain[1]`` are not of equal
-                    length, an error is raised.
-            2. If ``dim`` is given:
-                2a. If both ``domain[0]`` and ``domain[1]`` are scalars, they are
-                    expanded to constant vectors of length ``dim``.
-                2b. If only one of `domain[0]`` and ``domain[1]`` is a scalar and the
-                    length of the other equals ``dim``, the scalar one is expanded to a
-                    constant vector of length ``dim``.
-                2c. Otherwise, if neither of ``domain[0]`` and ``domain[1]`` is a
-                    scalar, error is raised if either of them has length which does not
-                    equal ``dim``.
+        If no ``input_dim`` is given, the dimension is inferred from the lengths of
+        domain limits ``domain[0]`` and ``domain[1]``. These must be either scalars
+        or arrays of equal length.
+
+        If ``input_dim`` is given, the domain limits must be either scalars or arrays.
+        If they are arrays, their lengths must equal ``input_dim``. If they are scalars,
+        the domain is taken to be the hypercube
+
+             [domain[0], domain[1]] x .... x [domain[0], domain[1]]
+
+        of dimension ``input_dim``.
         """
-        domain_a_dim = np.size(domain[0])
-        domain_b_dim = np.size(domain[1])
-
-        # Check that given dimensions match and are positive
-        dim_mismatch = False
-        if dim is None:
-            if domain_a_dim == domain_b_dim:
-                dim = domain_a_dim
-            elif domain_a_dim == 1 or domain_b_dim == 1:
-                dim = np.max([domain_a_dim, domain_b_dim])
-            else:
-                dim_mismatch = True
-        else:
-            if (domain_a_dim > 1 or domain_b_dim > 1) and dim != np.max(
-                [domain_a_dim, domain_b_dim]
-            ):
-                dim_mismatch = True
-
-        if dim_mismatch:
+        # Domain limits must have equal dimensions and input dimension must be positive
+        if np.size(domain[0]) != np.size(domain[1]):
             raise ValueError(
-                "Domain limits must have the same length or at least "
-                "one of them has to be one-dimensional."
+                f"Domain limits must be given either as scalars or arrays "
+                f"of equal dimension. Current sizes are ({np.size(domain[0])}) "
+                f"and ({np.size(domain[1])})."
             )
-        if dim < 1:
-            raise ValueError(f"Domain dimension dim = {dim} must be positive.")
+        if input_dim is not None and input_dim < 1:
+            raise ValueError(
+                f"If given, input dimension must be positive. Current value "
+                f"is ({input_dim})."
+            )
 
-        # Use same domain limit in all dimensions if only one limit is given
-        if domain_a_dim == 1:
-            domain_a = np.full((dim,), domain[0])
+        domain_dim = np.size(domain[0])
+
+        # If no input dimension has been given, infer this from the domain. Else,
+        # if necessary, expand domain limits if they are scalars
+        if input_dim is None:
+            input_dim = domain_dim
+            (domain_a, domain_b) = domain
+        elif input_dim is not None and domain_dim == 1:
+            domain_a = np.full((input_dim,), domain[0])
+            domain_b = np.full((input_dim,), domain[1])
         else:
+            if input_dim != domain_dim:
+                raise ValueError(
+                    "If domain limits are not scalars, their lengths "
+                    "must match the input dimension."
+                )
             domain_a = domain[0]
-        if domain_b_dim == 1:
-            domain_b = np.full((dim,), domain[1])
-        else:
             domain_b = domain[1]
 
-        # Check that the domain is non-empty
+        # Make sure the domain is non-empty
         if not np.all(domain_a < domain_b):
-            raise ValueError("Domain must be non-empty.")
+            raise ValueError("Integration domain must be non-empty.")
 
-        self.dim = dim
+        self.input_dim = input_dim
         self.domain = (domain_a, domain_b)
 
 
@@ -147,11 +138,11 @@ class LebesgueMeasure(IntegrationMeasure):
 
     Parameters
     ----------
-    dim :
-        Dimension of the integration domain
     domain :
-        Tuple which contains two arrays which define the start and end points,
-        respectively, of the rectangular integration domain.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
+         scalars or ``np.ndarray``.
+    input_dim :
+        Dimension of the integration domain. If not given, inferred from ``domain``.
     normalized :
          Boolean which controls whether or not the measure is normalized (i.e.,
          integral over the domain is one).
@@ -159,11 +150,11 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def __init__(
         self,
-        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
-        dim: Optional[IntArgType] = None,
+        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
+        input_dim: Optional[IntArgType] = None,
         normalized: Optional[bool] = False,
     ) -> None:
-        super().__init__(dim=dim, domain=domain)
+        super().__init__(input_dim=input_dim, domain=domain)
 
         # Set normalization constant
         self.normalized = normalized
@@ -184,33 +175,35 @@ class LebesgueMeasure(IntegrationMeasure):
             loc=self.domain[0], scale=self.domain[1] - self.domain[0]
         )
 
-    def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
-        num_dat = np.atleast_1d(points).shape[0]
-        return np.full(() if num_dat == 1 else (num_dat,), self.normalization_constant)
+    def __call__(self, points: np.ndarray) -> np.ndarray:
+        num_dat = points.shape[0]
+        return np.full((num_dat,), self.normalization_constant)
 
     def sample(
         self,
-        rng: np.random.Generator,
         n_sample: IntArgType,
+        rng: Optional[np.random.Generator] = np.random.default_rng(),
     ) -> np.ndarray:
-        return self.random_variable.rvs(size=(n_sample, self.dim), random_state=rng)
+        return self.random_variable.rvs(
+            size=(n_sample, self.input_dim), random_state=rng
+        )
 
 
 # pylint: disable=too-few-public-methods
 class GaussianMeasure(IntegrationMeasure):
     """Gaussian measure on Euclidean space with given mean and covariance.
 
-    If ``mean`` and ``cov`` are scalars but ``dim`` is larger than one, ``mean`` and
-    ``cov`` are extended to a constant vector and diagonal matrix, respectively,
+    If ``mean`` and ``cov`` are scalars but ``input_dim`` is larger than one, ``mean``
+    and ``cov`` are extended to a constant vector and diagonal matrix, respectively,
     of appropriate dimensions.
 
     Parameters
     ----------
     mean :
-        *shape=(dim,)* -- Mean of the Gaussian measure.
+        *shape=(input_dim,)* -- Mean of the Gaussian measure.
     cov :
-        *shape=(dim, dim)* -- Covariance matrix of the Gaussian measure.
-    dim :
+        *shape=(input_dim, input_dim)* -- Covariance matrix of the Gaussian measure.
+    input_dim :
         Dimension of the integration domain.
     """
 
@@ -218,46 +211,43 @@ class GaussianMeasure(IntegrationMeasure):
         self,
         mean: Union[float, np.floating, np.ndarray],
         cov: Union[float, np.floating, np.ndarray],
-        dim: Optional[IntArgType] = None,
+        input_dim: Optional[IntArgType] = None,
     ) -> None:
 
-        # Extend scalar mean and covariance to higher dimensions if dim has been
+        # Extend scalar mean and covariance to higher dimensions if input_dim has been
         # supplied by the user
-        # pylint: disable=fixme
-        # TODO: This needs to be modified to account for cases where only either the
-        #  mean or covariance is given in scalar form
         if (
             (np.isscalar(mean) or mean.size == 1)
             and (np.isscalar(cov) or cov.size == 1)
-            and dim is not None
+            and input_dim is not None
         ):
-            mean = np.full((dim,), mean)
-            cov = cov * np.eye(dim)
+            mean = np.full((input_dim,), mean)
+            cov = cov * np.eye(input_dim)
 
         # Set dimension based on the mean vector
         if np.isscalar(mean):
-            dim = 1
+            input_dim = 1
         else:
-            dim = mean.size
+            input_dim = mean.size
 
-        # If cov has been given as a vector of variances, transform to diagonal matrix
-        if isinstance(cov, np.ndarray) and np.squeeze(cov).ndim == 1 and dim > 1:
-            cov = np.diag(np.squeeze(cov))
+        super().__init__(
+            input_dim=input_dim,
+            domain=(np.full((input_dim,), -np.Inf), np.full((input_dim,), np.Inf)),
+        )
 
         # Exploit random variables to carry out mean and covariance checks
+        # squeezes are needed due to the way random variables are currently implemented
+        # pylint: disable=no-member
         self.random_variable = Normal(mean=np.squeeze(mean), cov=np.squeeze(cov))
-        self.mean = self.random_variable.mean
-        self.cov = self.random_variable.cov
+        self.mean = np.reshape(self.random_variable.mean, (self.input_dim,))
+        self.cov = np.reshape(
+            self.random_variable.cov, (self.input_dim, self.input_dim)
+        )
 
         # Set diagonal_covariance flag
-        if dim == 1:
+        if input_dim == 1:
             self.diagonal_covariance = True
         else:
             self.diagonal_covariance = (
                 np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov))) == 0
             )
-
-        super().__init__(
-            dim=dim,
-            domain=(np.full((dim,), -np.Inf), np.full((dim,), np.Inf)),
-        )

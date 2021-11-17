@@ -1,1 +1,1 @@
-from .sample_measure import sample_from_measure
+from ._policy import Policy, RandomPolicy

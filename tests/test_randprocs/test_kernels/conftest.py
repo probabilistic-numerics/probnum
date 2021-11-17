@@ -46,28 +46,28 @@ def output_dim(request) -> int:
     params=[
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
-            (pn.kernels.Linear, {"constant": 1.0}),
-            (pn.kernels.WhiteNoise, {"sigma": -1.0}),
-            (pn.kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
-            (pn.kernels.ExpQuad, {"lengthscale": 1.5}),
-            (pn.kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
-            (pn.kernels.Matern, {"lengthscale": 0.5, "nu": 0.5}),
-            (pn.kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
-            (pn.kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
-            (pn.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
-            (pn.kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
+            (pn.randprocs.kernels.Linear, {"constant": 1.0}),
+            (pn.randprocs.kernels.WhiteNoise, {"sigma": -1.0}),
+            (pn.randprocs.kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
+            (pn.randprocs.kernels.ExpQuad, {"lengthscale": 1.5}),
+            (pn.randprocs.kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
+            (pn.randprocs.kernels.Matern, {"lengthscale": 0.5, "nu": 0.5}),
+            (pn.randprocs.kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
+            (pn.randprocs.kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
+            (pn.randprocs.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
+            (pn.randprocs.kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
         ]
     ],
     name="kernel",
 )
-def fixture_kernel(request, input_dim: int) -> pn.kernels.Kernel:
+def fixture_kernel(request, input_dim: int) -> pn.randprocs.kernels.Kernel:
     """Kernel / covariance function."""
     return request.param[0](**request.param[1], input_dim=input_dim)
 
 
 @pytest.fixture(name="kernel_call_naive")
 def fixture_kernel_call_naive(
-    kernel: pn.kernels.Kernel,
+    kernel: pn.randprocs.kernels.Kernel,
 ) -> Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray]:
     """Naive implementation of kernel broadcasting which applies the kernel function to
     scalar arguments while looping over the first dimensions of the inputs explicitly.

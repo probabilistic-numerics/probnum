@@ -26,12 +26,12 @@ __all__ = [
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-Kernel.__module__ = "probnum.kernels"
-IsotropicMixin.__module__ = "probnum.kernels"
+Kernel.__module__ = "probnum.randprocs.kernels"
+IsotropicMixin.__module__ = "probnum.randprocs.kernels"
 
-WhiteNoise.__module__ = "probnum.kernels"
-Linear.__module__ = "probnum.kernels"
-Polynomial.__module__ = "probnum.kernels"
-ExpQuad.__module__ = "probnum.kernels"
-RatQuad.__module__ = "probnum.kernels"
-Matern.__module__ = "probnum.kernels"
+WhiteNoise.__module__ = "probnum.randprocs.kernels"
+Linear.__module__ = "probnum.randprocs.kernels"
+Polynomial.__module__ = "probnum.randprocs.kernels"
+ExpQuad.__module__ = "probnum.randprocs.kernels"
+RatQuad.__module__ = "probnum.randprocs.kernels"
+Matern.__module__ = "probnum.randprocs.kernels"
