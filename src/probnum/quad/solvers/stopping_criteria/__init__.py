@@ -1,20 +1,20 @@
 """Stopping criteria for Bayesian quadrature methods."""
 
 from ._bq_stopping_criterion import BQStoppingCriterion
-from ._integral_variance_tol import IntegralVarianceTolerance
-from ._max_nevals import MaxNevals
-from ._rel_mean_change import RelativeMeanChange
+from ._integral_variance_tol import IntegralVarianceToleranceStoppingCriterion
+from ._max_nevals import MaxNevalsStoppingCriterion
+from ._rel_mean_change import RelativeMeanChangeStoppingCriterion
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "BQStoppingCriterion",
-    "IntegralVarianceTolerance",
-    "MaxNevals",
-    "RelativeMeanChange",
+    "IntegralVarianceToleranceStoppingCriterion",
+    "MaxNevalsStoppingCriterion",
+    "RelativeMeanChangeStoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 BQStoppingCriterion.__module__ = "probnum.quad.solvers.stopping_criteria"
-IntegralVarianceTolerance.__module__ = "probnum.quad.solvers.stopping_criteria"
-MaxNevals.__module__ = "probnum.quad.solvers.stopping_criteria"
-RelativeMeanChange.__module__ = "probnum.quad.solvers.stopping_criteria"
+IntegralVarianceToleranceStoppingCriterion.__module__ = "probnum.quad.solvers.stopping_criteria"
+MaxNevalsStoppingCriterion.__module__ = "probnum.quad.solvers.stopping_criteria"
+RelativeMeanChangeStoppingCriterion.__module__ = "probnum.quad.solvers.stopping_criteria"

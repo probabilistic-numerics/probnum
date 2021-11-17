@@ -9,9 +9,9 @@ choosing points to evaluate the integrand based on said model.
 from probnum.quad.solvers.policies import Policy, RandomPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
-    IntegralVarianceTolerance,
-    MaxNevals,
-    RelativeMeanChange,
+    IntegralVarianceToleranceStoppingCriterion,
+    MaxNevalsStoppingCriterion,
+    RelativeMeanChangeStoppingCriterion,
 )
 
 from ._bayesquad import bayesquad, bayesquad_from_data
@@ -41,9 +41,9 @@ __all__ = [
     "GaussianMeasure",
     "LebesgueMeasure",
     "BQStoppingCriterion",
-    "IntegralVarianceTolerance",
-    "MaxNevals",
-    "RelativeMeanChange",
+    "IntegralVarianceToleranceStoppingCriterion",
+    "MaxNevalsStoppingCriterion",
+    "RelativeMeanChangeStoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.

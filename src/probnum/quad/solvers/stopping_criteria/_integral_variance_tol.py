@@ -2,11 +2,12 @@
 
 from probnum.quad.solvers.bq_state import BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
-from probnum.randvars import Normal
 from probnum.typing import FloatArgType
 
+# pylint: disable=too-few-public-methods, fixme
 
-class IntegralVarianceTolerance(BQStoppingCriterion):
+
+class IntegralVarianceToleranceStoppingCriterion(BQStoppingCriterion):
     """Stop once the integral variance is below some tolerance.
 
     Parameters
@@ -18,5 +19,5 @@ class IntegralVarianceTolerance(BQStoppingCriterion):
     def __init__(self, var_tol: FloatArgType):
         self.var_tol = var_tol
 
-    def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
-        return integral_belief.var <= self.var_tol
+    def __call__(self, bq_state: BQState) -> bool:
+        return bq_state.integral_belief.var <= self.var_tol

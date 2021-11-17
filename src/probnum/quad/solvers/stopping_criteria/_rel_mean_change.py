@@ -4,18 +4,18 @@ import numpy as np
 
 from probnum.quad.solvers.bq_state import BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
-from probnum.randvars import Normal
 from probnum.typing import FloatArgType
 
 # pylint: disable=too-few-public-methods
 
 
-# Todo: fix formula in docstring
-class RelativeMeanChange(BQStoppingCriterion):
+class RelativeMeanChangeStoppingCriterion(BQStoppingCriterion):
     """Stop once the relative change of consecutive integral estimates are smaller than
-    a tolerance. That is, the stopping criterion is.
+    a tolerance.
 
-        | current_integral_estimate - previous_integral_estimate) / current_integral_estimate | <= rel_tol.
+    The stopping criterion is: :math:`|\\hat{F}_{c} - \\hat{F}_{p}|/ |\\hat{F}_{c}| \\leq r`
+    where :math:`\\hat{F}_{c}` and :math:`\\hat{F}_{p}` are the integral estimates of the current and previous iteration
+    respectively, and :math:`r` is the relative tolerance.
 
     Parameters
     ----------
@@ -26,7 +26,8 @@ class RelativeMeanChange(BQStoppingCriterion):
     def __init__(self, rel_tol: FloatArgType):
         self.rel_tol = rel_tol
 
-    def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
+    def __call__(self, bq_state: BQState) -> bool:
+        integral_belief = bq_state.integral_belief
         return (
             np.abs(
                 (integral_belief.mean - bq_state.previous_integral_beliefs[-1].mean)
