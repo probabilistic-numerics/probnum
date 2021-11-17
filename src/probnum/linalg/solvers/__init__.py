@@ -5,22 +5,30 @@ this subpackage allow the creation of custom iterative methods for the solution 
 linear systems.
 """
 
-from probnum.linalg.solvers.matrixbased import (
-    MatrixBasedSolver,
-    SymmetricMatrixBasedSolver,
-)
-
 from . import belief_updates, beliefs, information_ops, policies, stopping_criteria
-from ._probabilistic_linear_solver import ProbabilisticLinearSolver
+from ._probabilistic_linear_solver import (
+    BayesCG,
+    MatrixBasedPLS,
+    ProbabilisticKaczmarz,
+    ProbabilisticLinearSolver,
+    SymMatrixBasedPLS,
+)
 from ._state import LinearSolverState
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "ProbabilisticLinearSolver",
-    "MatrixBasedSolver",
-    "SymmetricMatrixBasedSolver",
     "LinearSolverState",
+    "BayesCG",
+    "ProbabilisticKaczmarz",
+    "MatrixBasedPLS",
+    "SymMatrixBasedPLS",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticLinearSolver.__module__ = "probnum.linalg.solvers"
+LinearSolverState.__module__ = "probnum.linalg.solvers"
+BayesCG.__module__ = "probnum.linalg.solvers"
+ProbabilisticKaczmarz.__module__ = "probnum.linalg.solvers"
+MatrixBasedPLS.__module__ = "probnum.linalg.solvers"
+SymMatrixBasedPLS.__module__ = "probnum.linalg.solvers"

@@ -126,19 +126,6 @@ class ProbabilisticLinearSolver(
         self.belief_update = belief_update
         super().__init__(stopping_criterion=stopping_criterion)
 
-    @classmethod
-    def from_problem(
-        cls, problem: problems.LinearSystem
-    ) -> "ProbabilisticLinearSolver":
-        """Construct a probabilistic linear solver from a linear system to be solved.
-
-        Parameters
-        ----------
-        problem
-            Linear system to be solved.
-        """
-        raise NotImplementedError
-
     def solve_iterator(
         self,
         prior: beliefs.LinearSystemBelief,
@@ -215,3 +202,138 @@ class ProbabilisticLinearSolver(
                 break
 
         return solver_state.belief, solver_state
+
+
+class BayesCG(ProbabilisticLinearSolver):
+    r"""Bayesian conjugate gradient method.
+
+    Probabilistic linear solver taking prior information about the solution and
+    choosing :math:`A`-conjugate actions to gain information about the solution
+    by projecting the current residual.
+
+    This code implements the method described in Cockayne et al. [1]_.
+
+    Parameters
+    ----------
+    stopping_criterion
+        Stopping criterion determining when a desired terminal condition is met.
+
+    References
+    ----------
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian
+       Analysis*, 2019
+    """
+
+    def __init__(
+        self,
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
+    ):
+        super().__init__(
+            policy=policies.ConjugateGradientPolicy(),
+            information_op=information_ops.ProjectedRHSInformationOp(),
+            belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+            stopping_criterion=stopping_criterion,
+        )
+
+
+class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
+    r"""Probabilistic Kaczmarz method.
+
+    Probabilistic analogue of the (randomized) Kaczmarz method [1]_ [2]_, taking prior
+    information about the solution and randomly choosing rows of the matrix :math:`A_i`
+    and entries :math:`b_i` of the right-hand-side to obtain information about the solution.
+
+    Parameters
+    ----------
+    stopping_criterion
+        Stopping criterion determining when a desired terminal condition is met.
+
+    References
+    ----------
+    .. [1] Kaczmarz, Stefan, Angenäherte Auflösung von Systemen linearer Gleichungen,
+        *Bulletin International de l'Académie Polonaise des Sciences et des Lettres. Classe des Sciences Mathématiques et Naturelles. Série A, Sciences Mathématiques*, 1937
+    .. [2] Strohmer, Thomas; Vershynin, Roman, A randomized Kaczmarz algorithm for
+        linear systems with exponential convergence, *Journal of Fourier Analysis and Applications*, 2009
+    """
+
+    def __init__(
+        self,
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
+    ):
+        super().__init__(
+            policy=policies.RandomUnitVectorPolicy(),
+            information_op=information_ops.ProjectedRHSInformationOp(),
+            belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+            stopping_criterion=stopping_criterion,
+        )
+
+
+class MatrixBasedPLS(ProbabilisticLinearSolver):
+    r"""Matrix-based probabilistic linear solver.
+
+    Probabilistic linear solver updating beliefs over the system matrix and its
+    inverse. The solver makes use of prior information and iteratively infers the matrix and its inverse by matrix-vector multiplication.
+
+    This code implements the method described in Wenger et al. [1]_.
+
+    Parameters
+    ----------
+    policy
+        Policy returning actions taken by the solver.
+    stopping_criterion
+        Stopping criterion determining when a desired terminal condition is met.
+
+    References
+    ----------
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
+       *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
+    """
+
+    def __init__(
+        self,
+        policy: policies.LinearSolverPolicy = policies.ConjugateGradientPolicy(),
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
+    ):
+        super().__init__(
+            policy=policy,
+            information_op=information_ops.MatVecInformationOp(),
+            belief_update=belief_updates.matrix_based.MatrixBasedLinearBeliefUpdate(),
+            stopping_criterion=stopping_criterion,
+        )
+
+
+class SymMatrixBasedPLS(ProbabilisticLinearSolver):
+    r"""Symmetric matrix-based probabilistic linear solver.
+
+    Probabilistic linear solver updating beliefs over the symmetric system matrix and its inverse. The solver makes use of prior information and iteratively infers the matrix and its inverse by matrix-vector multiplication.
+
+    This code implements the method described in Wenger et al. [1]_.
+
+    Parameters
+    ----------
+    policy
+        Policy returning actions taken by the solver.
+    stopping_criterion
+        Stopping criterion determining when a desired terminal condition is met.
+
+    References
+    ----------
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
+       *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
+    """
+
+    def __init__(
+        self,
+        policy: policies.LinearSolverPolicy = policies.ConjugateGradientPolicy(),
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
+    ):
+        super().__init__(
+            policy=policy,
+            information_op=information_ops.MatVecInformationOp(),
+            belief_update=belief_updates.matrix_based.SymmetricMatrixBasedLinearBeliefUpdate(),
+            stopping_criterion=stopping_criterion,
+        )
