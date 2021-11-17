@@ -1,6 +1,6 @@
 """Bayesian Quadrature.
 
-This module provides solvers to integrate functions through Bayesian quadrature,
+This module provides routines to integrate functions through Bayesian quadrature,
 meaning a model over the integrand is constructed in order to actively select evaluation
 points of the integrand to estimate the value of the integral. Bayesian quadrature
 methods return a random variable, specifying the belief about the true value of the
