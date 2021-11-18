@@ -7,7 +7,7 @@ from probnum import problems
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
 
-@case(tags=["spd"])
+@case(tags=["sym", "posdef"])
 def case_random_spd_linsys(
     ncols: int,
 ) -> problems.LinearSystem:
@@ -18,7 +18,7 @@ def case_random_spd_linsys(
     return problems.LinearSystem(A=A, b=b, solution=x)
 
 
-@case(tags=["spd", "sparse"])
+@case(tags=["sym", "posdef", "sparse"])
 def case_random_sparse_spd_linsys(
     ncols: int,
 ) -> problems.LinearSystem:

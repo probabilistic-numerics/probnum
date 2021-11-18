@@ -47,7 +47,13 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
             action=solver_state.observation,
             observ=solver_state.action,
         )
-        return LinearSystemBelief(A=A, Ainv=Ainv, x=None, b=solver_state.belief.b)
+
+        if solver_state.belief.b is None:
+            b = randvars.Constant(solver_state.problem.b)
+        else:
+            b = solver_state.belief.b
+
+        return LinearSystemBelief(A=A, Ainv=Ainv, x=None, b=b)
 
     def _symmetric_matrix_based_update(
         self, matrix: randvars.Normal, action: np.ndarray, observ: np.ndarray

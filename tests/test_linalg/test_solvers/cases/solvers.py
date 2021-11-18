@@ -5,7 +5,7 @@ from pytest_cases import case
 from probnum.linalg import solvers
 
 
-@case(tags=["solutionbased"])
+@case(tags=["solutionbased", "sym"])
 def case_bayescg():
     return solvers.BayesCG()
 
@@ -20,6 +20,6 @@ def case_matrixbasedpls():
     return solvers.MatrixBasedPLS()
 
 
-@case(tags=["matrixbased"])
+@case(tags=["matrixbased", "sym"])
 def case_symmatrixbasedpls():
     return solvers.SymMatrixBasedPLS()

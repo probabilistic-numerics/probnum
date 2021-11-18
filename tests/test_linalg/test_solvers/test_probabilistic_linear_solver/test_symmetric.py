@@ -1,4 +1,4 @@
-"""Tests for probabilistic linear solvers."""
+"""Tests for probabilistic linear solvers applied to symmetric linear systems."""
 import pathlib
 
 import numpy as np
@@ -13,9 +13,9 @@ cases_beliefs = case_modules + ".beliefs"
 cases_problems = case_modules + ".problems"
 
 
-@parametrize_with_cases("solver", cases=cases_solvers)
-@parametrize_with_cases("prior", cases=cases_beliefs)
-@parametrize_with_cases("problem", cases=cases_problems)
+@parametrize_with_cases("solver", cases=cases_solvers, has_tag="sym")
+@parametrize_with_cases("prior", cases=cases_beliefs, has_tag="sym")
+@parametrize_with_cases("problem", cases=cases_problems, has_tag="sym")
 def test_small_residual(
     solver: ProbabilisticLinearSolver,
     prior: beliefs.LinearSystemBelief,
@@ -33,6 +33,8 @@ def test_small_residual(
     )
 
 
+@parametrize_with_cases("solver", cases=cases_solvers, has_tag="sym")
+@parametrize_with_cases("problem", cases=cases_problems, has_tag="sym")
 def test_perfect_information(
     solver: ProbabilisticLinearSolver,
     problem: problems.LinearSystem,
