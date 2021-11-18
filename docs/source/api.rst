@@ -13,8 +13,6 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.filtsmooth`                      | Bayesian filtering and smoothing.                            |
     +-------------------------------------------------+--------------------------------------------------------------+
-    | :mod:`~probnum.kernels`                         | Kernels / covariance functions.                              |
-    +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.linalg`                          | Probabilistic numerical linear algebra.                      |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.linops`                          | Finite-dimensional linear operators.                         |
@@ -39,7 +37,6 @@ API Reference
     api/config
     api/diffeq
     api/filtsmooth
-    api/kernels
     api/linalg
     api/linops
     api/problems

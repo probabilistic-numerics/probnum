@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import kernels
+from probnum.randprocs import kernels
 
 
 @pytest.mark.parametrize("nu", [-1, -1.0, 0.0, 0])

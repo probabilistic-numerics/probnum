@@ -32,7 +32,7 @@ class Linear(Kernel):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import Linear
+    >>> from probnum.randprocs.kernels import Linear
     >>> K = Linear(input_dim=2)
     >>> xs = np.array([[1, 2], [2, 3]])
     >>> K.matrix(xs)

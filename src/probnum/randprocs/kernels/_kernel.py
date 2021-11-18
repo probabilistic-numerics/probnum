@@ -66,7 +66,7 @@ class Kernel(abc.ABC):
     --------
 
     >>> D = 3
-    >>> k = pn.kernels.Linear(input_dim=D)
+    >>> k = pn.randprocs.kernels.Linear(input_dim=D)
 
     Generate some input data.
 
