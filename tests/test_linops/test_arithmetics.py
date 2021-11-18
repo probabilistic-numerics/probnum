@@ -103,7 +103,7 @@ def get_linop(linop_type):
         return _TypeCastLinearOperator(
             linop=Matrix(np.random.rand(4, 4)), dtype=np.float32
         )
-    elif isinstance(linop_type, str) and linop_type == "scalar":
+    elif linop_type is np.number:
         return 1.3579
     else:
         raise TypeError(f"Don't know what to do with type {linop_type}.")
@@ -133,9 +133,9 @@ def test_matmul():
                 res_linop = linop1 @ linop2
                 assert res_linop.ndim == 2
 
-                if isinstance(l_type, str) and l_type == "scalar":
+                if l_type is np.number:
                     assert res_linop.shape == linop2.shape
-                elif isinstance(r_type, str) and r_type == "scalar":
+                elif r_type is np.number:
                     assert res_linop.shape == linop1.shape
                 else:
                     assert res_linop.shape[0] == linop1.shape[0]
@@ -159,10 +159,10 @@ def test_mul():
 
         for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
 
-            if isinstance(l_type, str) and l_type == "scalar":
+            if l_type is np.number:
                 res_linop = linop1 * linop2
                 assert res_linop.shape == linop2.shape
-            elif isinstance(r_type, str) and r_type == "scalar":
+            elif r_type is np.number:
                 res_linop = linop1 * linop2
                 assert res_linop.shape == linop1.shape
             else:
