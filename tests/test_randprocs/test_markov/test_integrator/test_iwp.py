@@ -288,7 +288,7 @@ class TestIntegratedWienerTransitionValuesLinOps:
         self,
     ):
         wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
-        with config(matrix_free_linalg=True):
+        with config(matrix_free=True):
             self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
                 num_derivatives=2,
                 wiener_process_dimension=wiener_process_dimension,
@@ -297,7 +297,7 @@ class TestIntegratedWienerTransitionValuesLinOps:
             )
 
     def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):
-        with config(matrix_free_linalg=True):
+        with config(matrix_free=True):
             discrete_model = self.transition.discretise(dt=dt)
             np.testing.assert_allclose(
                 discrete_model.state_trans_mat.todense(), ah_22_ibm
@@ -307,7 +307,7 @@ class TestIntegratedWienerTransitionValuesLinOps:
             )
 
     def test_forward_rv_values(self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt):
-        with config(matrix_free_linalg=True):
+        with config(matrix_free=True):
             rv, _ = self.transition.forward_rv(
                 normal_rv3x3, t=0.0, dt=dt, _diffusion=diffusion
             )
@@ -320,7 +320,7 @@ class TestIntegratedWienerTransitionValuesLinOps:
     def test_forward_realization_values(
         self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt
     ):
-        with config(matrix_free_linalg=True):
+        with config(matrix_free=True):
             real = normal_rv3x3.mean
             rv, _ = self.transition.forward_realization(
                 real, t=0.0, dt=dt, _diffusion=diffusion
