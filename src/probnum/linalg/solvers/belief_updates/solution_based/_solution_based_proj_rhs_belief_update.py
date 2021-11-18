@@ -1,5 +1,7 @@
 """Belief update in a solution-based inference view where the information is given by
 projecting the current residual to a subspace."""
+import numpy as np
+
 import probnum  # pylint: disable="unused-import"
 from probnum import randvars
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
@@ -49,7 +51,7 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
         gram = action_A @ cov_xy + self._noise_var
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = cov_xy * gram_pinv
-        cov_update = gain @ cov_xy.T
+        cov_update = np.outer(gain, cov_xy)
 
         x = randvars.Normal(
             mean=solver_state.belief.x.mean + gain * proj_resid,

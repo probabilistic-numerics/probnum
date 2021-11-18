@@ -16,15 +16,21 @@ cases_problems = case_modules + ".problems"
 @parametrize_with_cases("solver", cases=cases_solvers)
 @parametrize_with_cases("prior", cases=cases_beliefs)
 @parametrize_with_cases("problem", cases=cases_problems)
-def test_solve_accuracy_2norm(
+def test_small_residual(
     solver: ProbabilisticLinearSolver,
     prior: beliefs.LinearSystemBelief,
     problem: problems.LinearSystem,
-    rng: np.random.Generator,
 ):
-    """Test whether a linear system is solved to sufficient accuracy."""
-    belief, _ = solver.solve(prior=prior, problem=problem, rng=rng)
-    assert np.linalg.norm(belief.x.mean - problem.solution) < 1e-5
+    """Test whether the output solution has small residual."""
+    belief, solver_state = solver.solve(
+        prior=prior, problem=problem, rng=np.random.default_rng(42)
+    )
+
+    residual_norm = np.linalg.norm(problem.A @ belief.x.mean - problem.b, ord=2)
+
+    assert residual_norm < 1e-5 or residual_norm < 1e-5 * np.linalg.norm(
+        problem.b, ord=2
+    )
 
 
 def test_perfect_information(
