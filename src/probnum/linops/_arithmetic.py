@@ -1,11 +1,10 @@
 """Linear operator arithmetic."""
-import numbers
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse
 
-from probnum import config
+from probnum import config, utils
 from probnum.typing import NotImplementedType, ScalarArgType, ShapeArgType
 
 from ._arithmetic_fallbacks import (
@@ -114,8 +113,8 @@ def _mul_scaling_scalar(scaling: Scaling, scalar: ScalarArgType) -> Scaling:
     return Scaling(scalar * scaling.factors, shape=scaling.shape)
 
 
-_mul_fns[(numbers.Number, Scaling)] = _mul_scalar_scaling
-_mul_fns[(Scaling, numbers.Number)] = _mul_scaling_scalar
+_mul_fns[(np.number, Scaling)] = _mul_scalar_scaling
+_mul_fns[(Scaling, np.number)] = _mul_scaling_scalar
 _add_fns[(Scaling, Scaling)] = Scaling._add_scaling
 _sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
 _mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
@@ -180,8 +179,8 @@ _matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
 _add_fns[(Kronecker, Kronecker)] = Kronecker._add_kronecker
 _sub_fns[(Kronecker, Kronecker)] = Kronecker._sub_kronecker
 
-_mul_fns[(numbers.Number, Kronecker)] = _mul_scalar_kronecker
-_mul_fns[(Kronecker, numbers.Number)] = _mul_kronecker_scalar
+_mul_fns[(np.number, Kronecker)] = _mul_scalar_kronecker
+_mul_fns[(Kronecker, np.number)] = _mul_kronecker_scalar
 _matmul_fns[(Kronecker, Scaling)] = _matmul_kronecker_scaling
 _matmul_fns[(Scaling, Kronecker)] = _matmul_scaling_kronecker
 
@@ -241,8 +240,8 @@ _matmul_fns[
 _add_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._add_idkronecker
 _sub_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._sub_idkronecker
 
-_mul_fns[(numbers.Number, IdentityKronecker)] = _mul_scalar_idkronecker
-_mul_fns[(IdentityKronecker, numbers.Number)] = _mul_idkronecker_scalar
+_mul_fns[(np.number, IdentityKronecker)] = _mul_scalar_idkronecker
+_mul_fns[(IdentityKronecker, np.number)] = _mul_idkronecker_scalar
 _matmul_fns[(IdentityKronecker, Scaling)] = _matmul_idkronecker_scaling
 _matmul_fns[(Scaling, IdentityKronecker)] = _matmul_scaling_idkronecker
 
@@ -258,8 +257,8 @@ def _matmul_matrix_scaling(matrix: Matrix, scaling: Scaling) -> Matrix:
     return Matrix(A=np.multiply(matrix.A, scaling.factors))
 
 
-_mul_fns[(Matrix, numbers.Number)] = lambda mat, scal: Matrix(A=scal * mat.A)
-_mul_fns[(numbers.Number, Matrix)] = lambda scal, mat: Matrix(A=scal * mat.A)
+_mul_fns[(Matrix, np.number)] = lambda mat, scal: Matrix(A=scal * mat.A)
+_mul_fns[(np.number, Matrix)] = lambda scal, mat: Matrix(A=scal * mat.A)
 _matmul_fns[(Matrix, Matrix)] = Matrix._matmul_matrix
 _matmul_fns[(Scaling, Matrix)] = _matmul_scaling_matrix
 _matmul_fns[(Matrix, Scaling)] = _matmul_matrix_scaling
@@ -401,12 +400,14 @@ def _apply(
     ] = None,
 ) -> Union[LinearOperator, NotImplementedType]:
     if np.ndim(op1) == 0:
-        key1 = numbers.Number
+        key1 = np.number
+        op1 = utils.as_numpy_scalar(op1)
     else:
         key1 = type(op1)
 
     if np.ndim(op2) == 0:
-        key2 = numbers.Number
+        key2 = np.number
+        op2 = utils.as_numpy_scalar(op1)
     else:
         key2 = type(op2)
 
