@@ -143,7 +143,6 @@ def test_matmul():
 
 
 def test_mul():
-    # pylint: disable=else-if-used
     for (l_type, r_type) in _mul_fns.keys():
         if (
             l_type is Selection
@@ -165,13 +164,12 @@ def test_mul():
             elif r_type is np.number:
                 res_linop = linop1 * linop2
                 assert res_linop.shape == linop1.shape
-            else:
-                if linop1.shape != linop2.shape:
-                    with pytest.raises(ValueError):
-                        res_linop = linop1 * linop2
-                else:
+            elif linop1.shape != linop2.shape:
+                with pytest.raises(ValueError):
                     res_linop = linop1 * linop2
-                    assert res_linop.shape == linop1.shape == linop2.shape
+            else:
+                res_linop = linop1 * linop2
+                assert res_linop.shape == linop1.shape == linop2.shape
 
 
 def test_add():
