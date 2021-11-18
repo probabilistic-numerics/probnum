@@ -70,7 +70,9 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
         gram = action.T @ covfactor_Ms
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = covfactor_Ms * gram_pinv
-        covfactor_update = gain @ covfactor_Ms.T
+        covfactor_update = linops.aslinop(gain[:, None]) @ linops.aslinop(
+            covfactor_Ms[None, :]
+        )
         resid_gain = linops.aslinop(resid[:, None]) @ linops.aslinop(gain[None, :])
 
         return randvars.Normal(
