@@ -571,9 +571,6 @@ class LinearOperator:
             and self.dtype == other.dtype
         )
 
-    def __eq__(self, other: "LinearOperator") -> bool:
-        raise NotImplementedError
-
     def __matmul__(
         self, other: BinaryOperandType
     ) -> Union["LinearOperator", np.ndarray]:
