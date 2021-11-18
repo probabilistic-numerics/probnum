@@ -12,30 +12,38 @@ Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate o
 :class:`~probnum.linops.LinearOperator` instances.
 """
 
-from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
-from ._linear_operator import Identity, LinearOperator, Matrix
-from ._scaling import Scaling
+from ._kronecker import IdentityKronecker, Kronecker, SymmetricKronecker, Symmetrize
+from ._linear_operator import Embedding, Identity, LinearOperator, Matrix, Selection
+from ._scaling import Scaling, Zero
 from ._utils import LinearOperatorLike, aslinop
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "aslinop",
+    "Embedding",
     "LinearOperator",
     "Matrix",
     "Identity",
+    "IdentityKronecker",
     "Scaling",
     "Kronecker",
+    "Selection",
     "SymmetricKronecker",
     "Symmetrize",
+    "Zero",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearOperator.__module__ = "probnum.linops"
+Embedding.__module__ = "probnum.linops"
 Matrix.__module__ = "probnum.linops"
 Identity.__module__ = "probnum.linops"
+IdentityKronecker.__module__ = "probnum.linops"
 Scaling.__module__ = "probnum.linops"
 Kronecker.__module__ = "probnum.linops"
+Selection.__module__ = "probnum.linops"
 SymmetricKronecker.__module__ = "probnum.linops"
 Symmetrize.__module__ = "probnum.linops"
+Zero.__module__ = "probnum.linops"
 
 aslinop.__module__ = "probnum.linops"

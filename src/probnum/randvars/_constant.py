@@ -75,11 +75,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
         if config.matrix_free:
             cov = lambda: (
-                linops.Scaling(
-                    0.0,
-                    shape=(self._support.size, self._support.size),
-                    dtype=support_floating.dtype,
-                )
+                linops.Zero(shape=((self._support.size, self._support.size)))
                 if self._support.ndim > 0
                 else _utils.as_numpy_scalar(0.0, support_floating.dtype)
             )

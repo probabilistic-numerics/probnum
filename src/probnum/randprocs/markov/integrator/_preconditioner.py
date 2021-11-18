@@ -80,9 +80,8 @@ class NordsieckLikeCoordinates(Preconditioner):
     def __call__(self, step):
         scaling_vector = np.abs(step) ** self.powers / self.scales
         if config.matrix_free:
-            return linops.Kronecker(
-                A=linops.Identity(self.dimension),
-                B=linops.Scaling(factors=scaling_vector),
+            return linops.IdentityKronecker(
+                num_blocks=self.dimension, B=linops.Scaling(factors=scaling_vector)
             )
         return np.kron(np.eye(self.dimension), np.diag(scaling_vector))
 

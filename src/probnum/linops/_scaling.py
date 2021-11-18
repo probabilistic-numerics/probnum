@@ -199,7 +199,57 @@ class Scaling(_linear_operator.LinearOperator):
     @property
     def is_isotropic(self) -> bool:
         """Whether scaling is uniform / isotropic."""
+        if self._scalar is None and np.all(self.factors == self.factors[0]):
+            self._scalar = self.factors[0]
         return self._scalar is not None
+
+    def __eq__(self, other: _linear_operator.LinearOperator) -> bool:
+        if not self._is_type_shape_dtype_equal(other):
+            return False
+
+        if self.is_isotropic and other.is_isotropic:
+            return self.scalar == other.scalar
+
+        if not self.is_isotropic and not self.is_isotropic:
+            return np.all(self.factors == other.factors)
+
+        return False
+
+    def _add_scaling(self, other: "Scaling") -> "Scaling":
+        if other.shape != self.shape:
+            raise ValueError(
+                "Addition of two Scaling LinearOperators is only "
+                "possible if both operands have the same shape."
+            )
+
+        return Scaling(
+            factors=self.factors + other.factors, shape=self.shape, dtype=self.dtype
+        )
+
+    def _sub_scaling(self, other: "Scaling") -> "Scaling":
+        if other.shape != self.shape:
+            raise ValueError(
+                "Subtraction of two Scaling LinearOperators is only "
+                "possible if both operands have the same shape."
+            )
+
+        return Scaling(
+            factors=self.factors - other.factors, shape=self.shape, dtype=self.dtype
+        )
+
+    def _mul_scaling(self, other: "Scaling") -> "Scaling":
+        if other.shape != self.shape:
+            raise ValueError(
+                "Multiplication of two Scaling LinearOperators is only "
+                "possible if both operands have the same shape."
+            )
+
+        return Scaling(
+            factors=self.factors * other.factors, shape=self.shape, dtype=self.dtype
+        )
+
+    def _matmul_scaling(self, other: "Scaling") -> "Scaling":
+        return self._mul_scaling(other)
 
     def _astype(self, dtype, order, casting, copy) -> "Scaling":
         if self.dtype == dtype and not copy:
@@ -269,3 +319,31 @@ class Scaling(_linear_operator.LinearOperator):
             )
         else:
             return np.linalg.cond(self.todense(cache=False), p=p)
+
+
+class Zero(_linear_operator.LinearOperator):
+    def __init__(self, shape, dtype=np.float64):
+
+        matmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
+        rmatmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
+        apply = lambda x, axis: np.zeros(x.shape, np.result_type(x, self.dtype))
+        todense = lambda: np.zeros(shape=shape, dtype=dtype)
+        rank = lambda: np.intp(0)
+        eigvals = lambda: np.zeros(shape=(shape[0],), dtype=dtype)
+        det = lambda: np.zeros(shape=(), dtype=dtype)
+
+        trace = lambda: np.zeros(shape=(), dtype=dtype)
+
+        super().__init__(
+            shape,
+            dtype=dtype,
+            matmul=matmul,
+            rmatmul=rmatmul,
+            apply=apply,
+            todense=todense,
+            transpose=lambda: self,
+            rank=rank,
+            eigvals=eigvals,
+            det=det,
+            trace=trace,
+        )
