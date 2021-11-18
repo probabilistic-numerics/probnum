@@ -124,8 +124,6 @@ class Scaling(_linear_operator.LinearOperator):
 
             trace = lambda: self.shape[0] * self._scalar
         elif np.ndim(factors) == 1:
-            if np.all(factors == factors[0]):
-                self._scalar = factors[0]
             # Anisotropic scaling
             self._factors = np.asarray(factors, dtype=dtype)
             self._factors.setflags(write=False)
@@ -201,6 +199,8 @@ class Scaling(_linear_operator.LinearOperator):
     @property
     def is_isotropic(self) -> bool:
         """Whether scaling is uniform / isotropic."""
+        if self._scalar is None and np.all(self.factors == self.factors[0]):
+            self._scalar = self.factors[0]
         return self._scalar is not None
 
     def __eq__(self, other: _linear_operator.LinearOperator) -> bool:
@@ -324,16 +324,15 @@ class Scaling(_linear_operator.LinearOperator):
 class Zero(_linear_operator.LinearOperator):
     def __init__(self, shape, dtype=np.float64):
 
-        zero = np.zeros(shape=(), dtype=dtype)
-        matmul = lambda x: zero * x
-        rmatmul = lambda x: zero * x
-        apply = lambda x, axis: zero * x
+        matmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
+        rmatmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
+        apply = lambda x, axis: np.zeros(x.shape, np.result_type(x, self.dtype))
         todense = lambda: np.zeros(shape=shape, dtype=dtype)
         rank = lambda: np.intp(0)
-        eigvals = lambda: np.full(shape[0], zero, dtype=dtype)
-        det = lambda: (zero.astype(dtype, copy=False) ** shape[0])
+        eigvals = lambda: np.zeros(shape=(shape[0],), dtype=dtype)
+        det = lambda: np.zeros(shape=(), dtype=dtype)
 
-        trace = lambda: zero
+        trace = lambda: np.zeros(shape=(), dtype=dtype)
 
         super().__init__(
             shape,

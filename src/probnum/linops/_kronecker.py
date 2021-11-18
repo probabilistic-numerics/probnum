@@ -179,10 +179,10 @@ class Kronecker(_linear_operator.LinearOperator):
         self, other: "Kronecker"
     ) -> Union[NotImplementedType, "Kronecker"]:
 
-        if self.A == other.A:
+        if self.A is other.A or self.A == other.A:
             return Kronecker(A=self.A, B=self.B + other.B)
 
-        if self.B == other.B:
+        if self.B is other.B or self.B == other.B:
             return Kronecker(A=self.A + other.A, B=other.B)
 
         return NotImplemented
@@ -191,10 +191,10 @@ class Kronecker(_linear_operator.LinearOperator):
         self, other: "Kronecker"
     ) -> Union[NotImplementedType, "Kronecker"]:
 
-        if self.A == other.A:
+        if self.A is other.A or self.A == other.A:
             return Kronecker(A=self.A, B=self.B - other.B)
 
-        if self.B == other.B:
+        if self.B is other.B or self.B == other.B:
             return Kronecker(A=self.A - other.A, B=other.B)
 
         return NotImplemented
@@ -481,10 +481,10 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             ),
             matmul=lambda x: _kronecker_matmul(
                 self.A, self.B, x
-            ),  # TODO: is there a more efficient way?
+            ),  # TODO: can be implemented more efficiently
             rmatmul=lambda x: _kronecker_rmatmul(
                 self.A, self.B, x
-            ),  # TODO: is there a more efficient way?
+            ),  # TODO: can be implemented more efficiently
             todense=lambda: np.kron(
                 self.A.todense(cache=False), self.B.todense(cache=False)
             ),
