@@ -6,7 +6,7 @@ solution or the matrix inverse and any associated hyperparameters.
 
 from typing import Mapping, Optional
 
-from probnum import randvars
+from probnum import linops, randvars
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -159,4 +159,6 @@ class LinearSystemBelief:
 
         Computes a consistent belief about the inverse from a belief about the solution.
         """
-        raise NotImplementedError
+        return randvars.Constant(
+            linops.Scaling(factors=0.0, shape=(self._x.shape[0], self._x.shape[0]))
+        )

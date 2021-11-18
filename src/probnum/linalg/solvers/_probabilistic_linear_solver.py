@@ -92,7 +92,7 @@ class ProbabilisticLinearSolver(
     ...     policy=policies.ConjugateGradientPolicy(),
     ...     information_op=information_ops.ProjectedRHSInformationOp(),
     ...     belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
-    ...     stopping_criterion=stopping_criteria.MaxIterationsStoppingCriterion(20)
+    ...     stopping_criterion=stopping_criteria.MaxIterationsStoppingCriterion(100)
     ...     | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ... )
 
@@ -102,15 +102,15 @@ class ProbabilisticLinearSolver(
     >>> prior = beliefs.LinearSystemBelief(
     ...     x=randvars.Normal(
     ...         mean=np.zeros((n,)),
-    ...         cov=np.linalg.inv(A),
+    ...         cov=np.eye(n),
     ...     ),
     ... )
 
     Solve the linear system using the custom solver.
 
-    >>> belief, solver_state = pls.solve(prior=prior, problem=linsys, rng=rng)
-    >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b)
-    0.0
+    >>> belief, solver_state = pls.solve(prior=prior, problem=linsys)
+    >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b) / np.linalg.norm(linsys.b)
+    7.188553594079022e-06
     """
 
     def __init__(
