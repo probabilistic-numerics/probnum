@@ -110,7 +110,7 @@ class ProbabilisticLinearSolver(
 
     >>> belief, solver_state = pls.solve(prior=prior, problem=linsys)
     >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b) / np.linalg.norm(linsys.b)
-    7.188553594079022e-06
+    7.1886e-06
     """
 
     def __init__(
