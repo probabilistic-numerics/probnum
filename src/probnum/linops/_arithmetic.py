@@ -162,11 +162,15 @@ def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kroneck
 
 
 def _mul_scalar_kronecker(scalar: ScalarArgType, kronecker: Kronecker) -> Kronecker:
+    if scalar < 0.0:
+        return NotImplemented
     sqrt_scalar = np.sqrt(scalar)
     return Kronecker(A=sqrt_scalar * kronecker.A, B=sqrt_scalar * kronecker.B)
 
 
 def _mul_kronecker_scalar(kronecker: Kronecker, scalar: ScalarArgType) -> Kronecker:
+    if scalar < 0.0:
+        return NotImplemented
     sqrt_scalar = np.sqrt(scalar)
     return Kronecker(A=sqrt_scalar * kronecker.A, B=sqrt_scalar * kronecker.B)
 
