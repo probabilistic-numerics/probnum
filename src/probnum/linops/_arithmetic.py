@@ -407,7 +407,7 @@ def _apply(
 
     if np.ndim(op2) == 0:
         key2 = np.number
-        op2 = utils.as_numpy_scalar(op1)
+        op2 = utils.as_numpy_scalar(op2)
     else:
         key2 = type(op2)
 
