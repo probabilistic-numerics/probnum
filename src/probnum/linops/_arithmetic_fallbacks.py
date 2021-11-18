@@ -1,3 +1,4 @@
+"""Fallback-implementations of LinearOperator arithmetic."""
 import functools
 import operator
 from typing import Tuple, Union
