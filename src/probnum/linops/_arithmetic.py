@@ -399,12 +399,12 @@ def _apply(
         ]
     ] = None,
 ) -> Union[LinearOperator, NotImplementedType]:
-    if np.isscalar(op1):
+    if np.ndim(op1) == 0:
         key1 = "scalar"
     else:
         key1 = type(op1)
 
-    if np.isscalar(op2):
+    if np.ndim(op2) == 0:
         key2 = "scalar"
     else:
         key2 = type(op2)
