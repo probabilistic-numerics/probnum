@@ -44,7 +44,7 @@ def _aslist(arg):
 
 
 def get_linop(linop_type):
-    # pylint: disable=too-many-return-statements
+    # pylint: disable=too-many-return-statements,too-complex,too-many-branches
     if linop_type is Kronecker:
         _A1 = np.ones((2, 2))
         _B1 = np.ones((2, 3))
@@ -143,7 +143,7 @@ def test_matmul():
 
 
 def test_mul():
-
+    # pylint: disable=else-if-used
     for (l_type, r_type) in _mul_fns.keys():
         if (
             l_type is Selection
