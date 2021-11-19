@@ -914,7 +914,7 @@ class Matrix(LinearOperator):
             raise np.linalg.LinAlgError(str(err)) from err
 
     def _matmul_matrix(self, other: "Matrix") -> "Matrix":
-        if config.lazy_matrix_matrix_matmul:
+        if not config.lazy_matrix_matrix_matmul:
             if not self.shape[1] == other.shape[0]:
                 raise ValueError(f"Matmul shape mismatch {self.shape} x {other.shape}")
 

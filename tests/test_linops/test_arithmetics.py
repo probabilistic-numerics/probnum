@@ -268,14 +268,14 @@ def test_lazy_matrix_matrix_matmul_option():
     inv = get_linop(_InverseLinearOperator)
     transposed = get_linop(TransposedLinearOperator)
 
-    with config(lazy_matrix_matrix_matmul=False):
+    with config(lazy_matrix_matrix_matmul=True):
         assert isinstance(mat1 @ mat2, ProductLinearOperator)
         assert isinstance(mat1 @ inv, ProductLinearOperator)
         assert isinstance(inv @ mat2, ProductLinearOperator)
         assert isinstance(mat1 @ transposed, ProductLinearOperator)
         assert isinstance(transposed @ mat2, ProductLinearOperator)
 
-    with config(lazy_matrix_matrix_matmul=True):
+    with config(lazy_matrix_matrix_matmul=False):
         assert isinstance(mat1 @ mat2, Matrix)
         assert isinstance(mat1 @ inv, Matrix)
         assert isinstance(inv @ mat2, Matrix)
