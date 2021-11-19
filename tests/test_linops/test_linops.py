@@ -28,6 +28,7 @@ def test_case_valid(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 
     assert linop.ndim == matrix.ndim == 2
     assert linop.shape == matrix.shape
+    assert linop.size == matrix.size
     assert linop.dtype == matrix.dtype
 
 
