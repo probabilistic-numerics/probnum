@@ -130,9 +130,18 @@ _DEFAULT_CONFIG_OPTIONS = [
         "matrix_free",
         False,
         (
-            "If True, wherever possible, LinearOperators are used instead "
-            "of arrays. LinearOperators define a matrix-vector product implicitly without instantiating the full matrix in memory. This makes them memory- and runtime-efficient for linear algebra operations."
+            "If ``True``, wherever possible, ``LinearOperator`` s are used instead "
+            "of arrays. ``LinearOperator`` s define a matrix-vector product implicitly without "
+            "instantiating the full matrix in memory. This makes them memory- and runtime-efficient "
+            "for linear algebra operations."
         ),
+    ),
+    (
+        "lazy_matrix_matrix_matmul",
+        False,
+        "If ``True``, the matmul operation applied to two ``Matrix``-``LinearOperator`` s will "
+        "again yield a ``Matrix``-``LinearOperator`` with the computed matrix-matrix product,"
+        " instead of a ``ProductLinearOperator``.",
     ),
 ]
 

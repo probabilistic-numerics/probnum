@@ -138,9 +138,9 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
     def _drift_matrix(self):
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.matrix_free:
-            return linops.Kronecker(
-                A=linops.Identity(self.wiener_process_dimension),
-                B=linops.Matrix(A=drift_matrix_1d),
+            return linops.IdentityKronecker(
+                num_blocks=self.wiener_process_dimension,
+                B=drift_matrix_1d,
             )
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
@@ -154,9 +154,9 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
         if config.matrix_free:
-            return linops.Kronecker(
-                A=linops.Identity(self.wiener_process_dimension),
-                B=linops.Matrix(A=dispersion_matrix_1d.reshape(-1, 1)),
+            return linops.IdentityKronecker(
+                num_blocks=self.wiener_process_dimension,
+                B=dispersion_matrix_1d.reshape(-1, 1),
             )
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
 
@@ -175,9 +175,8 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             scipy.linalg.pascal(self.num_derivatives + 1, kind="lower", exact=False)
         )
         if config.matrix_free:
-            state_transition = linops.Kronecker(
-                A=linops.Identity(self.wiener_process_dimension),
-                B=linops.aslinop(state_transition_1d),
+            state_transition = linops.IdentityKronecker(
+                num_blocks=self.wiener_process_dimension, B=state_transition_1d
             )
         else:
             state_transition = np.kron(
@@ -185,9 +184,8 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             )
         process_noise_1d = np.flip(scipy.linalg.hilbert(self.num_derivatives + 1))
         if config.matrix_free:
-            process_noise = linops.Kronecker(
-                A=linops.Identity(self.wiener_process_dimension),
-                B=linops.aslinop(process_noise_1d),
+            process_noise = linops.IdentityKronecker(
+                num_blocks=self.wiener_process_dimension, B=process_noise_1d
             )
         else:
             process_noise = np.kron(
@@ -199,9 +197,8 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
 
         process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
         if config.matrix_free:
-            process_noise_cholesky = linops.Kronecker(
-                A=linops.Identity(self.wiener_process_dimension),
-                B=linops.aslinop(process_noise_cholesky_1d),
+            process_noise_cholesky = linops.IdentityKronecker(
+                num_blocks=self.wiener_process_dimension, B=process_noise_cholesky_1d
             )
         else:
             process_noise_cholesky = np.kron(
