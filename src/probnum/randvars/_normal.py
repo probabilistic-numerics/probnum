@@ -193,20 +193,20 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                             self._symmetric_kronecker_identical_factors_cov_cholesky
                         )
                 elif isinstance(cov, linops.Kronecker):
-                    m, n = mean.shape
-
-                    if (
-                        m != cov.A.shape[0]
-                        or m != cov.A.shape[1]
-                        or n != cov.B.shape[0]
-                        or n != cov.B.shape[1]
-                    ):
-                        raise ValueError(
-                            "Kronecker structured kernels must have factors with the same "
-                            "shape as the mean."
-                        )
-
                     compute_cov_cholesky = self._kronecker_cov_cholesky
+                    if mean.ndim == 2:
+                        m, n = mean.shape
+
+                        if (
+                            m != cov.A.shape[0]
+                            or m != cov.A.shape[1]
+                            or n != cov.B.shape[0]
+                            or n != cov.B.shape[1]
+                        ):
+                            raise ValueError(
+                                "Kronecker structured kernels must have factors with the same "
+                                "shape as the mean."
+                            )
 
                 else:
                     # This case handles all linear operators, for which no Cholesky

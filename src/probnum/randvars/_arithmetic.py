@@ -285,11 +285,14 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             )
         else:
             cov_cholesky = None
-        return _Normal(
-            mean=norm_rv.mean @ constant_rv.support,
-            cov=constant_rv.support.T @ (norm_rv.cov @ constant_rv.support),
-            cov_cholesky=cov_cholesky,
-        )
+
+        mean = norm_rv.mean @ constant_rv.support
+        cov = constant_rv.support.T @ (norm_rv.cov @ constant_rv.support)
+
+        if cov.shape == () and mean.shape == (1,):
+            cov = cov.reshape((1, 1))
+
+        return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
     else:
         # This part does not do the Cholesky update,
         # because of performance configurations: currently, there is no way of switching

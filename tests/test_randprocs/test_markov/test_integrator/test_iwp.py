@@ -277,3 +277,53 @@ class TestIntegratedWienerTransitionValues:
         )
         np.testing.assert_allclose(ah_22_ibm @ real, rv.mean)
         np.testing.assert_allclose(diffusion * qh_22_ibm, rv.cov)
+
+
+class TestIntegratedWienerTransitionValuesLinOps:
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+    ):
+        wiener_process_dimension = 1  # make tests compatible with some_normal_rv1, etc.
+        with config(matrix_free=True):
+            self.transition = randprocs.markov.integrator.IntegratedWienerTransition(
+                num_derivatives=2,
+                wiener_process_dimension=wiener_process_dimension,
+                forward_implementation="classic",
+                backward_implementation="classic",
+            )
+
+    def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):
+        with config(matrix_free=True):
+            discrete_model = self.transition.discretise(dt=dt)
+            np.testing.assert_allclose(
+                discrete_model.state_trans_mat.todense(), ah_22_ibm
+            )
+            np.testing.assert_allclose(
+                discrete_model.proc_noise_cov_mat.todense(), qh_22_ibm
+            )
+
+    def test_forward_rv_values(self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt):
+        with config(matrix_free=True):
+            rv, _ = self.transition.forward_rv(
+                normal_rv3x3, t=0.0, dt=dt, _diffusion=diffusion
+            )
+            np.testing.assert_allclose(ah_22_ibm @ normal_rv3x3.mean, rv[:3].mean)
+            np.testing.assert_allclose(
+                ah_22_ibm @ normal_rv3x3.cov @ ah_22_ibm.T + diffusion * qh_22_ibm,
+                rv.cov.todense(),
+            )
+
+    def test_forward_realization_values(
+        self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt
+    ):
+        with config(matrix_free=True):
+            real = normal_rv3x3.mean
+            rv, _ = self.transition.forward_realization(
+                real, t=0.0, dt=dt, _diffusion=diffusion
+            )
+            np.testing.assert_allclose(ah_22_ibm @ real, rv.mean)
+            np.testing.assert_allclose(diffusion * qh_22_ibm, rv.cov.todense())

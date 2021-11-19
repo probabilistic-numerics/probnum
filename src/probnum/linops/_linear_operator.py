@@ -7,6 +7,7 @@ import scipy.linalg
 import scipy.sparse.linalg
 
 import probnum.utils
+from probnum import config
 from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
 
 BinaryOperandType = Union[
@@ -563,6 +564,13 @@ class LinearOperator:
 
         return mul(other, self)
 
+    def _is_type_shape_dtype_equal(self, other: "LinearOperator") -> bool:
+        return (
+            isinstance(self, type(other))
+            and self.shape == other.shape
+            and self.dtype == other.dtype
+        )
+
     def __matmul__(
         self, other: BinaryOperandType
     ) -> Union["LinearOperator", np.ndarray]:
@@ -775,6 +783,9 @@ class TransposedLinearOperator(LinearOperator):
     ) -> "LinearOperator":
         return self._linop.astype(dtype, order=order, casting=casting, copy=copy).T
 
+    def __repr__(self) -> str:
+        return f"Transpose of {self._linop}"
+
 
 class AdjointLinearOperator(LinearOperator):
     def __init__(
@@ -859,6 +870,9 @@ class _InverseLinearOperator(LinearOperator):
             det=lambda: 1 / self._linop.det(),
             logabsdet=lambda: -self._linop.logabsdet(),
         )
+
+    def __repr__(self) -> str:
+        return f"Inverse of {self._linop}"
 
     @property
     def factorization(self):
@@ -1012,6 +1026,24 @@ class Matrix(LinearOperator):
         except RuntimeError as err:
             raise np.linalg.LinAlgError(str(err)) from err
 
+    def _matmul_matrix(self, other: "Matrix") -> "Matrix":
+        if config.lazy_matrix_matrix_matmul:
+            if not self.shape[1] == other.shape[0]:
+                raise ValueError(f"Matmul shape mismatch {self.shape} x {other.shape}")
+
+            return Matrix(A=self.A @ other.A)
+
+        return NotImplemented
+
+    def __eq__(self, other: LinearOperator) -> bool:
+        if not self._is_type_shape_dtype_equal(other):
+            return False
+
+        return np.all(self.A == other.A)
+
+    def __neg__(self) -> "Matrix":
+        return Matrix(-self.A)
+
 
 class Identity(LinearOperator):
     """The identity operator.
@@ -1079,3 +1111,98 @@ class Identity(LinearOperator):
             return self
         else:
             return Identity(self.shape, dtype=dtype)
+
+    def __eq__(self, other: LinearOperator) -> bool:
+        return self._is_type_shape_dtype_equal(other)
+
+
+class Selection(LinearOperator):
+    def __init__(self, indices, shape, dtype=np.double):
+        if np.ndim(indices) > 1:
+            raise ValueError(
+                "Selection LinOp expects an integer or (1D) iterable of "
+                f"integers. Received {type(indices)} with shape {np.shape(indices)}."
+            )
+        if shape[0] > shape[1]:
+            raise ValueError(
+                f"Invalid shape {shape} for Selection LinOp. If the "
+                "output-dimension (shape[0]) is larger than the input-dimension "
+                "(shape[1]), consider using `Embedding`."
+            )
+        self._indices = probnum.utils.as_shape(indices)
+        assert len(self._indices) == shape[0]
+
+        super().__init__(
+            dtype=dtype,
+            shape=shape,
+            matmul=lambda x: _selection_matmul(self.indices, x),
+            todense=self._todense,
+            transpose=lambda: Embedding(
+                take_indices=np.arange(len(self._indices)),
+                put_indices=self._indices,
+                shape=(self.shape[1], self.shape[0]),
+            ),
+        )
+
+    @property
+    def indices(self):
+        return self._indices
+
+    def _todense(self):
+        res = np.eye(self.shape[1], self.shape[1])
+        return _selection_matmul(self.indices, res)
+
+
+def _selection_matmul(indices, M):
+    return np.take(M, indices=indices, axis=-2)
+
+
+class Embedding(LinearOperator):
+    def __init__(
+        self, take_indices, put_indices, shape, fill_value=0.0, dtype=np.double
+    ):
+        if np.ndim(take_indices) > 1:
+            raise ValueError(
+                "Embedding LinOp expects an integer or (1D) iterable of "
+                f"integers. Received {type(take_indices)} with shape "
+                f"{np.shape(take_indices)}."
+            )
+        if np.ndim(put_indices) > 1:
+            raise ValueError(
+                "Embedding LinOp expects an integer or (1D) iterable of "
+                f"integers. Received {type(put_indices)} with shape "
+                f"{np.shape(put_indices)}."
+            )
+
+        if shape[0] < shape[1]:
+            raise ValueError(
+                f"Invalid shape {shape} for Embedding LinOp. If the "
+                "output-dimension (shape[0]) is smaller than the input-dimension "
+                "(shape[1]), consider using `Selection`."
+            )
+
+        self._take_indices = probnum.utils.as_shape(take_indices)
+        self._put_indices = probnum.utils.as_shape(put_indices)
+        self._fill_value = fill_value
+
+        super().__init__(
+            dtype=dtype,
+            shape=shape,
+            matmul=lambda x: _embedding_matmul(self, x),
+            todense=self._todense,
+            transpose=lambda: Selection(
+                indices=put_indices, shape=(self.shape[1], self.shape[0])
+            ),
+        )
+
+    def _todense(self):
+        return self.T.todense().T
+
+
+def _embedding_matmul(embedding, M):
+    res_shape = np.array(M.shape)
+    res_shape[-2] = embedding.shape[0]
+    res = np.full(shape=tuple(res_shape), fill_value=embedding._fill_value)
+    take_from_M = M[..., np.array(embedding._take_indices), :]
+    res[..., np.array(embedding._put_indices), :] = take_from_M
+    return res
