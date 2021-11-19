@@ -21,13 +21,11 @@ from probnum.linops._kronecker import (
     Symmetrize,
 )
 from probnum.linops._linear_operator import (
-    AdjointLinearOperator,
     Embedding,
     Identity,
     Matrix,
     Selection,
     TransposedLinearOperator,
-    _ConjugateLinearOperator,
     _InverseLinearOperator,
     _TypeCastLinearOperator,
 )
@@ -91,10 +89,6 @@ def get_linop(linop_type):
         return SumLinearOperator(
             Matrix(np.random.rand(4, 4)), Matrix(np.random.rand(4, 4))
         )
-    elif linop_type is AdjointLinearOperator:
-        return AdjointLinearOperator(linop=Identity(4))
-    elif linop_type is _ConjugateLinearOperator:
-        return _ConjugateLinearOperator(linop=Identity(4, dtype=np.complex64))
     elif linop_type is SymmetricKronecker:
         return SymmetricKronecker(Identity(2), Identity(2))
     elif linop_type is Symmetrize:
