@@ -57,11 +57,10 @@ class ProductMatern(Kernel):
         lengthscales: Union[np.ndarray, ScalarArgType],
         nus: Union[np.ndarray, ScalarArgType],
     ):
-
-        # If only single lengthcsale or nu is given, use this in every dimension
-        if np.isscalar(lengthscales) or lengthscales.size == 1:
+        # If only single scalar lengthcsale or nu is given, use this in every dimension
+        if np.isscalar(lengthscales):
             lengthscales = np.full((input_dim,), _utils.as_numpy_scalar(lengthscales))
-        if np.isscalar(nus) or nus.size == 1:
+        if np.isscalar(nus):
             nus = np.full((input_dim,), _utils.as_numpy_scalar(nus))
 
         one_d_materns = []
@@ -75,17 +74,17 @@ class ProductMatern(Kernel):
 
         super().__init__(input_dim=input_dim)
 
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
 
-def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+        kernel_eval = 1.0
 
-    kernel_eval = 1.0
+        if x1 is None:
+            for dim in range(self.input_dim):
+                kernel_eval *= self.one_d_materns[dim]._evaluate(x0[..., dim, None])
+        else:
+            for dim in range(self.input_dim):
+                kernel_eval *= self.one_d_materns[dim]._evaluate(
+                    x0[..., dim, None], x1[..., dim, None]
+                )
 
-    if x1 is None:
-        for dim in range(self.input_dim):
-            kernel_eval *= self.one_d_materns[dim](_utils.as_colvec(x0[:, dim]))
-    else:
-        for dim in range(self.input_dim):
-            kernel_eval *= self.one_d_materns[dim](
-                _utils.as_colvec(x0[:, dim]), _utils.as_colvec(x1[:, dim])
-            )
-    return kernel_eval
+        return kernel_eval
