@@ -24,17 +24,37 @@ BinaryOperandType = Union[
 
 
 class LinearOperator(abc.ABC):
-    r"""Composite base class for finite-dimensional linear operators.
+    r"""Abstract base class for `matrix-free` finite-dimensional linear operators.
 
     This class provides a way to define finite-dimensional linear operators without
     explicitly constructing a matrix representation. Instead it suffices to define a
-    matrix-vector product, a shape, and a ``dtype``. This avoids unnecessary memory
-    usage and can often be more convenient to derive.
+    matrix-matrix product, a :attr:`shape` and a :attr:`dtype`. This avoids unnecessary
+    memory usage and can often be more convenient to derive.
 
-    :class:`LinearOperator` instances can be multiplied, added and scaled. This
-    happens lazily: the result of these operations is a new, composite
-    :class:`LinearOperator`, that defers linear operations to the original operators and
-    combines the results.
+    :class:`LinearOperator`\ s are defined to behave like a :class:`numpy.ndarray` and
+    thus, they
+
+    * have :attr:`shape`, :attr:`dtype`, :attr:`ndim`, and :attr:`size` attributes,
+    * can be matrix multiplied (:code:`@`) with a :class:`numpy.ndarray` from left and
+      right, following the same broadcasting rules as :func:`numpy.matmul`,
+    * can be multiplied (:code:`*`) by a scalar from the left and the right,
+    * can be added to, subtracted from and matrix multiplied (:code:`@`) with other
+      :class:`LinearOperator` instances with appropriate :attr:`shape`,
+    * can be transposed (:attr:`T` or :meth:`transpose`), and they
+    * can be type-cast (:meth:`astype`).
+
+    This is mostly implemented lazily, i.e. the result of these operations is a new,
+    composite :class:`LinearOperator`, that defers linear operations to the original
+    operators and combines the results.
+
+    Additionally, :class:`LinearOperator`\ s feature
+
+    * an efficient :meth:`solve` routine, as well as "lazy" inversion via :meth:`inv`,
+    * matrix property inference such as :attr:`is_symmetric`,
+      :attr:`is_positive_definite`, and :attr:`is_lower_triangular`,
+    * efficient access to matrix factorizations like :meth:`cholesky`, and
+    * efficient access to derived quantities like the determinant :meth:`det` or
+      the :meth:`trace`.
 
     Parameters
     ----------
@@ -46,6 +66,13 @@ class LinearOperator(abc.ABC):
     See Also
     --------
     aslinop : Transform into a LinearOperator.
+
+    Notes
+    -----
+    A subclass is only required to implement :meth:`_matmat`. Additionally, other
+    methods like :meth:`_solve`, :meth:`_inverse`, :meth:`_transpose`,
+    :meth:`_cholesky`, or :meth:`_det` should be overwritten if more performant
+    implementations are available.
     """
 
     # pylint: disable=too-many-public-methods
