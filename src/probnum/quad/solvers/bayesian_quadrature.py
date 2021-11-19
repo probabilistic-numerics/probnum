@@ -1,6 +1,6 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 
@@ -38,8 +38,8 @@ class BayesianQuadrature:
         The policy choosing nodes at which to evaluate the integrand.
     belief_update :
         The inference method.
-    stopping_criteria :
-        List of criteria that determine convergence.
+    stopping_criterion :
+        The criterion that determine convergence.
     """
     # pylint: disable=too-many-arguments
 
@@ -49,13 +49,13 @@ class BayesianQuadrature:
         measure: IntegrationMeasure,
         policy: Policy,
         belief_update: BQBeliefUpdate,
-        stopping_criteria: List[BQStoppingCriterion],
+        stopping_criterion: BQStoppingCriterion,
     ) -> None:
         self.kernel = kernel
         self.measure = measure
         self.policy = policy
         self.belief_update = belief_update
-        self.stopping_criteria = stopping_criteria
+        self.stopping_criterion = stopping_criterion
 
     @classmethod
     def from_problem(
@@ -127,23 +127,30 @@ class BayesianQuadrature:
 
         # Set stopping criteria
         # If multiple stopping criteria are given, BQ stops once the first criterion is fulfilled.
-        _stopping_criteria = []
+        def _stopcrit_or(sc1, sc2):
+            if sc1 is None:
+                return sc2
+            return sc1 | sc2
+
+        _stopping_criterion = None
+
         if max_evals is not None:
-            _stopping_criteria.append(MaxNevals(max_evals))
+            _stopping_criterion = _stopcrit_or(
+                _stopping_criterion, MaxNevals(max_evals)
+            )
         if var_tol is not None:
-            _stopping_criteria.append(
-                IntegralVarianceTolerance(var_tol)
+            _stopping_criterion = _stopcrit_or(
+                _stopping_criterion, IntegralVarianceTolerance(var_tol)
             )
         if rel_tol is not None:
-            _stopping_criteria.append(RelativeMeanChange(rel_tol))
+            _stopping_criterion = _stopcrit_or(
+                _stopping_criterion, RelativeMeanChange(rel_tol)
+            )
 
         # If no stopping criteria are given, use some default values (these are arbitrary values)
-        if not _stopping_criteria:
-            _stopping_criteria.append(
-                IntegralVarianceTolerance(var_tol=1e-6)
-            )
-            _stopping_criteria.append(
-                MaxNevals(max_nevals=input_dim * 25)
+        if _stopping_criterion is None:
+            _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
+                max_nevals=input_dim * 25
             )
 
         return cls(
@@ -151,7 +158,7 @@ class BayesianQuadrature:
             measure=measure,
             policy=policy,
             belief_update=belief_update,
-            stopping_criteria=_stopping_criteria,
+            stopping_criterion=_stopping_criterion,
         )
 
     def has_converged(self, bq_state: BQState) -> bool:
@@ -169,12 +176,10 @@ class BayesianQuadrature:
             Whether or not the solver has converged.
         """
 
-        for stopping_criterion in self.stopping_criteria:
-            _has_converged = stopping_criterion(bq_state)
-            if _has_converged:
-                bq_state.info.has_converged = True
-                bq_state.info.stopping_criterion = stopping_criterion.__class__.__name__
-                return True
+        _has_converged = self.stopping_criterion(bq_state)
+        if _has_converged:
+            bq_state.info.has_converged = True
+            return True
         return False
 
     def bq_iterator(

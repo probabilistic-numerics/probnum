@@ -15,10 +15,6 @@ __all__ = [
 
 # Set correct module paths. Corrects links and module paths in documentation.
 BQStoppingCriterion.__module__ = "probnum.quad.solvers.stopping_criteria"
-IntegralVarianceTolerance.__module__ = (
-    "probnum.quad.solvers.stopping_criteria"
-)
+IntegralVarianceTolerance.__module__ = "probnum.quad.solvers.stopping_criteria"
 MaxNevals.__module__ = "probnum.quad.solvers.stopping_criteria"
-RelativeMeanChange.__module__ = (
-    "probnum.quad.solvers.stopping_criteria"
-)
+RelativeMeanChange.__module__ = "probnum.quad.solvers.stopping_criteria"

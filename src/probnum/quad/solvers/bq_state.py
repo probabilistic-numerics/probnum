@@ -23,8 +23,6 @@ class BQInfo:
         Number of evaluations collected.
     has_converged :
         True if the BQ loop fulfils a stopping criterion, otherwise False.
-    stopping_criterion:
-        The stopping criterion used to determine convergence.
     """
 
     def __init__(
@@ -32,12 +30,10 @@ class BQInfo:
         iteration: int = 0,
         nevals: int = 0,
         has_converged: bool = False,
-        stopping_criterion: "probnum.quad.StoppingCriterion" = None,
     ):
         self.iteration = iteration
         self.nevals = nevals
         self.has_converged = has_converged
-        self.stopping_criterion = stopping_criterion
 
     def update_iteration(self, batch_size: int) -> None:
         """Update the quantities tracking iteration info.
