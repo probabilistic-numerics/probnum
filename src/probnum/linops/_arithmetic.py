@@ -1,20 +1,57 @@
 """Linear operator arithmetic."""
-import functools
-import operator
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse
 
-import probnum.utils
-from probnum.typing import ScalarArgType, ShapeArgType
+from probnum import config, utils
+from probnum.typing import NotImplementedType, ScalarArgType, ShapeArgType
 
-from ._linear_operator import (  # pylint: disable=cyclic-import
+from ._arithmetic_fallbacks import (
+    NegatedLinearOperator,
+    ProductLinearOperator,
+    ScaledLinearOperator,
+    SumLinearOperator,
+    _matmul_fallback,
+    _mul_fallback,
+)
+from ._kronecker import IdentityKronecker, Kronecker, SymmetricKronecker, Symmetrize
+from ._linear_operator import (
+    AdjointLinearOperator,
     BinaryOperandType,
+    Embedding,
+    Identity,
     LinearOperator,
     Matrix,
+    Selection,
+    TransposedLinearOperator,
+    _ConjugateLinearOperator,
+    _InverseLinearOperator,
+    _TypeCastLinearOperator,
 )
-from ._scaling import Scaling
+from ._scaling import Scaling, Zero
+
+_AnyLinOp = [
+    NegatedLinearOperator,
+    ProductLinearOperator,
+    ScaledLinearOperator,
+    SumLinearOperator,
+    AdjointLinearOperator,
+    Identity,
+    IdentityKronecker,
+    Matrix,
+    TransposedLinearOperator,
+    SymmetricKronecker,
+    Symmetrize,
+    _ConjugateLinearOperator,
+    _InverseLinearOperator,
+    _TypeCastLinearOperator,
+    Scaling,
+    Selection,
+    Embedding,
+    Zero,
+    Kronecker,
+]
 
 
 def add(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:
@@ -47,7 +84,7 @@ def matmul(op1: LinearOperator, op2: LinearOperator) -> LinearOperator:
 ########################################################################################
 
 _BinaryOperatorType = Callable[
-    [LinearOperator, LinearOperator], Union[LinearOperator, type(NotImplemented)]
+    [LinearOperator, LinearOperator], Union[LinearOperator, NotImplementedType]
 ]
 _BinaryOperatorRegistryType = Dict[Tuple[type, type], _BinaryOperatorType]
 
@@ -57,6 +94,299 @@ _sub_fns: _BinaryOperatorRegistryType = {}
 _mul_fns: _BinaryOperatorRegistryType = {}
 _matmul_fns: _BinaryOperatorRegistryType = {}
 
+########################################################################################
+# Fill Arithmetics Registries
+########################################################################################
+
+# Scaling
+def _mul_scalar_scaling(scalar: ScalarArgType, scaling: Scaling) -> Scaling:
+    if scaling.is_isotropic:
+        return Scaling(scalar * scaling.scalar, shape=scaling.shape)
+
+    return Scaling(scalar * scaling.factors, shape=scaling.shape)
+
+
+def _mul_scaling_scalar(scaling: Scaling, scalar: ScalarArgType) -> Scaling:
+    if scaling.is_isotropic:
+        return Scaling(scalar * scaling.scalar, shape=scaling.shape)
+
+    return Scaling(scalar * scaling.factors, shape=scaling.shape)
+
+
+_mul_fns[(np.number, Scaling)] = _mul_scalar_scaling
+_mul_fns[(Scaling, np.number)] = _mul_scaling_scalar
+_add_fns[(Scaling, Scaling)] = Scaling._add_scaling
+_sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
+_mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
+_matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
+
+# ScaledLinearOperator
+def _matmul_scaled_op(scaled, anylinop):
+    return scaled._scalar * (scaled._linop @ anylinop)
+
+
+def _matmul_op_scaled(anylinop, scaled):
+    return scaled._scalar * (anylinop @ scaled._linop)
+
+
+for op_type in _AnyLinOp:
+    _matmul_fns[(ScaledLinearOperator, op_type)] = _matmul_scaled_op
+    _matmul_fns[(op_type, ScaledLinearOperator)] = _matmul_op_scaled
+    _matmul_fns[(NegatedLinearOperator, op_type)] = _matmul_scaled_op
+    _matmul_fns[(op_type, NegatedLinearOperator)] = _matmul_op_scaled
+
+
+# Kronecker
+
+
+def _matmul_scaling_kronecker(scaling: Scaling, kronecker: Kronecker) -> Kronecker:
+    if scaling.shape[1] != kronecker.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {scaling.shape} @ {kronecker.shape}"
+        )
+
+    if scaling.is_isotropic:
+        return scaling.scalar * kronecker
+    return NotImplemented
+
+
+def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kronecker:
+    if kronecker.shape[1] != scaling.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {kronecker.shape} @ {scaling.shape}"
+        )
+
+    if scaling.is_isotropic:
+        return kronecker * scaling.scalar
+    return NotImplemented
+
+
+def _mul_scalar_kronecker(scalar: ScalarArgType, kronecker: Kronecker) -> Kronecker:
+    if scalar < 0.0:
+        return NotImplemented
+    sqrt_scalar = np.sqrt(scalar)
+    return Kronecker(A=sqrt_scalar * kronecker.A, B=sqrt_scalar * kronecker.B)
+
+
+def _mul_kronecker_scalar(kronecker: Kronecker, scalar: ScalarArgType) -> Kronecker:
+    if scalar < 0.0:
+        return NotImplemented
+    sqrt_scalar = np.sqrt(scalar)
+    return Kronecker(A=sqrt_scalar * kronecker.A, B=sqrt_scalar * kronecker.B)
+
+
+_matmul_fns[(Kronecker, Kronecker)] = Kronecker._matmul_kronecker
+_add_fns[(Kronecker, Kronecker)] = Kronecker._add_kronecker
+_sub_fns[(Kronecker, Kronecker)] = Kronecker._sub_kronecker
+
+_mul_fns[(np.number, Kronecker)] = _mul_scalar_kronecker
+_mul_fns[(Kronecker, np.number)] = _mul_kronecker_scalar
+_matmul_fns[(Kronecker, Scaling)] = _matmul_kronecker_scaling
+_matmul_fns[(Scaling, Kronecker)] = _matmul_scaling_kronecker
+
+
+# IdentityKronecker
+
+
+def _matmul_scaling_idkronecker(
+    scaling: Scaling, idkronecker: IdentityKronecker
+) -> IdentityKronecker:
+
+    if scaling.shape[1] != idkronecker.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {scaling.shape} @ {idkronecker.shape}"
+        )
+
+    if scaling.is_isotropic:
+        return scaling.scalar * idkronecker
+    return NotImplemented
+
+
+def _matmul_idkronecker_scaling(
+    idkronecker: IdentityKronecker, scaling: Scaling
+) -> IdentityKronecker:
+
+    if idkronecker.shape[1] != scaling.shape[0]:
+        raise ValueError(
+            f"matmul received invalid shapes {idkronecker.shape} @ {scaling.shape}"
+        )
+
+    if scaling.is_isotropic:
+        return idkronecker * scaling.scalar
+    return NotImplemented
+
+
+def _mul_scalar_idkronecker(
+    scalar: ScalarArgType, idkronecker: IdentityKronecker
+) -> IdentityKronecker:
+
+    return IdentityKronecker(
+        num_blocks=idkronecker.num_blocks, B=scalar * idkronecker.B
+    )
+
+
+def _mul_idkronecker_scalar(
+    idkronecker: IdentityKronecker, scalar: ScalarArgType
+) -> IdentityKronecker:
+
+    return IdentityKronecker(
+        num_blocks=idkronecker.num_blocks, B=idkronecker.B * scalar
+    )
+
+
+_matmul_fns[
+    (IdentityKronecker, IdentityKronecker)
+] = IdentityKronecker._matmul_idkronecker
+_add_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._add_idkronecker
+_sub_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._sub_idkronecker
+
+_mul_fns[(np.number, IdentityKronecker)] = _mul_scalar_idkronecker
+_mul_fns[(IdentityKronecker, np.number)] = _mul_idkronecker_scalar
+_matmul_fns[(IdentityKronecker, Scaling)] = _matmul_idkronecker_scaling
+_matmul_fns[(Scaling, IdentityKronecker)] = _matmul_scaling_idkronecker
+
+_matmul_fns[(Kronecker, IdentityKronecker)] = Kronecker._matmul_kronecker
+_matmul_fns[(IdentityKronecker, Kronecker)] = Kronecker._matmul_kronecker
+
+# Matrix
+def _matmul_scaling_matrix(scaling: Scaling, matrix: Matrix) -> Matrix:
+    return Matrix(A=np.multiply(scaling.factors[:, np.newaxis], matrix.A))
+
+
+def _matmul_matrix_scaling(matrix: Matrix, scaling: Scaling) -> Matrix:
+    return Matrix(A=np.multiply(matrix.A, scaling.factors))
+
+
+_mul_fns[(Matrix, np.number)] = lambda mat, scal: Matrix(A=scal * mat.A)
+_mul_fns[(np.number, Matrix)] = lambda scal, mat: Matrix(A=scal * mat.A)
+_matmul_fns[(Matrix, Matrix)] = Matrix._matmul_matrix
+_matmul_fns[(Scaling, Matrix)] = _matmul_scaling_matrix
+_matmul_fns[(Matrix, Scaling)] = _matmul_matrix_scaling
+
+
+_matmul_fns[(Selection, Matrix)] = lambda sel, mat: Matrix(sel @ mat.A)
+_matmul_fns[(Embedding, Matrix)] = lambda emb, mat: Matrix(emb @ mat.A)
+_matmul_fns[(Matrix, Selection)] = lambda mat, sel: Matrix(mat.A @ sel)
+_matmul_fns[(Matrix, Embedding)] = lambda mat, emb: Matrix(mat.A @ emb)
+
+_add_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A + mat2.A)
+_sub_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A - mat2.A)
+
+
+def _matmul_matrix_wrapped(
+    mat: Matrix, wrapped: Union[_InverseLinearOperator, TransposedLinearOperator]
+) -> Union[Matrix, NotImplementedType]:
+    if config.lazy_matrix_matrix_matmul:
+        return Matrix(mat.A @ wrapped)
+    return NotImplemented
+
+
+def _matmul_wrapped_matrix(
+    wrapped: Union[_InverseLinearOperator, TransposedLinearOperator], mat: Matrix
+) -> Union[Matrix, NotImplementedType]:
+    if config.lazy_matrix_matrix_matmul:
+        return Matrix(wrapped @ mat.A)
+    return NotImplemented
+
+
+_matmul_fns[(Matrix, _InverseLinearOperator)] = _matmul_matrix_wrapped
+_matmul_fns[(_InverseLinearOperator, Matrix)] = _matmul_wrapped_matrix
+_matmul_fns[(Matrix, TransposedLinearOperator)] = _matmul_matrix_wrapped
+_matmul_fns[(TransposedLinearOperator, Matrix)] = _matmul_wrapped_matrix
+
+
+# Identity
+def _matmul_id_any(idty: Identity, anyop: LinearOperator) -> LinearOperator:
+    if idty.shape[1] != anyop.shape[0]:
+        raise ValueError(f"matmul received invalid shapes {idty.shape} @ {anyop.shape}")
+
+    return anyop
+
+
+def _matmul_any_id(anyop: LinearOperator, idty: Identity) -> LinearOperator:
+    if anyop.shape[1] != idty.shape[0]:
+        raise ValueError(f"matmul received invalid shapes {anyop.shape} @ {idty.shape}")
+
+    return anyop
+
+
+for op_type in _AnyLinOp:
+    _matmul_fns[(Identity, op_type)] = _matmul_id_any
+    _matmul_fns[(op_type, Identity)] = _matmul_any_id
+
+
+# Selection / Embedding
+def _matmul_selection_embedding(
+    selection: Selection, embedding: Embedding
+) -> Union[NotImplementedType, Identity]:
+
+    if (embedding.shape[-1] == selection.shape[-2]) and np.all(
+        selection.indices == embedding._put_indices
+    ):
+        return Identity(shape=(selection.shape[-2], embedding.shape[-1]))
+
+    return NotImplemented
+
+
+_matmul_fns[(Selection, Embedding)] = _matmul_selection_embedding
+# Embedding @ Selection would be Projection
+
+# Zero
+def _matmul_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
+    if z.shape[1] != op.shape[0]:
+        raise ValueError(f"matmul received invalid shapes {z.shape} @ {op.shape}")
+
+    return Zero(shape=(z.shape[0], op.shape[1]))
+
+
+def _matmul_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
+    if op.shape[1] != z.shape[0]:
+        raise ValueError(f"matmul received invalid shapes {op.shape} @ {z.shape}")
+
+    return Zero(shape=(op.shape[0], z.shape[1]))
+
+
+def _add_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"add received invalid shapes {z.shape} + {op.shape}")
+
+    return op
+
+
+def _add_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"add received invalid shapes {op.shape} + {z.shape}")
+
+    return op
+
+
+def _sub_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"sub received invalid shapes {op.shape} - {z.shape}")
+
+    return -op
+
+
+def _sub_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
+    if z.shape != op.shape:
+        raise ValueError(f"sub received invalid shapes {op.shape} - {z.shape}")
+
+    return op
+
+
+for op_type in _AnyLinOp:
+    _matmul_fns[(Zero, op_type)] = _matmul_zero_anylinop
+    _matmul_fns[(op_type, Zero)] = _matmul_anylinop_zero
+    _add_fns[(Zero, op_type)] = _add_zero_anylinop
+    _add_fns[(op_type, Zero)] = _add_anylinop_zero
+    _sub_fns[(Zero, op_type)] = _sub_zero_anylinop
+    _sub_fns[(op_type, Zero)] = _sub_anylinop_zero
+
+
+########################################################################################
+# Apply
+########################################################################################
+
 
 def _apply(
     op_registry: _BinaryOperatorRegistryType,
@@ -65,11 +395,23 @@ def _apply(
     fallback_operator: Optional[
         Callable[
             [LinearOperator, LinearOperator],
-            Union[LinearOperator, type(NotImplemented)],
+            Union[LinearOperator, NotImplementedType],
         ]
     ] = None,
-) -> Union[LinearOperator, type(NotImplemented)]:
-    key = (type(op1), type(op2))
+) -> Union[LinearOperator, NotImplementedType]:
+    if np.ndim(op1) == 0:
+        key1 = np.number
+        op1 = utils.as_numpy_scalar(op1)
+    else:
+        key1 = type(op1)
+
+    if np.ndim(op2) == 0:
+        key2 = np.number
+        op2 = utils.as_numpy_scalar(op2)
+    else:
+        key2 = type(op2)
+
+    key = (key1, key2)
 
     if key in op_registry:
         res = op_registry[key](op1, op2)
@@ -114,201 +456,3 @@ def _operands_to_compatible_linops(
         pass
 
     return op1, op2
-
-
-########################################################################################
-# Generic Linear Operator Arithmetic (Fallbacks)
-########################################################################################
-
-
-class ScaledLinearOperator(LinearOperator):
-    """Linear operator scaled with a scalar."""
-
-    def __init__(self, linop: LinearOperator, scalar: ScalarArgType):
-        if not isinstance(linop, LinearOperator):
-            raise TypeError("`linop` must be a `LinearOperator`")
-
-        if np.ndim(scalar) != 0:
-            raise TypeError("`scalar` must be a scalar.")
-
-        dtype = np.result_type(linop.dtype, scalar)
-
-        self._linop = linop
-        self._scalar = probnum.utils.as_numpy_scalar(scalar, dtype)
-
-        super().__init__(
-            self._linop.shape,
-            dtype=dtype,
-            matmul=lambda x: self._scalar * (self._linop @ x),
-            rmatmul=lambda x: self._scalar * (x @ self._linop),
-            todense=lambda: self._scalar * self._linop.todense(cache=False),
-            transpose=lambda: self._scalar * self._linop.T,
-            adjoint=lambda: np.conj(self._scalar) * self._linop.H,
-            inverse=self._inv,
-            trace=lambda: self._scalar * self._linop.trace(),
-        )
-
-    def _inv(self) -> "ScaledLinearOperator":
-        if self._scalar == 0:
-            raise np.linalg.LinAlgError("The operator is not invertible")
-
-        return ScaledLinearOperator(self._linop.inv(), 1.0 / self._scalar)
-
-
-class NegatedLinearOperator(ScaledLinearOperator):
-    def __init__(self, linop: LinearOperator):
-        super().__init__(linop, scalar=probnum.utils.as_numpy_scalar(-1, linop.dtype))
-
-    def __neg__(self) -> "LinearOperator":
-        return self._linop
-
-
-class SumLinearOperator(LinearOperator):
-    """Sum of two linear operators."""
-
-    def __init__(self, *summands: LinearOperator):
-        if not all(isinstance(summand, LinearOperator) for summand in summands):
-            raise TypeError("All summands must be `LinearOperator`s")
-
-        if len(summands) < 2:
-            raise ValueError("There must be at least two summands")
-
-        if not all(summand.shape == summands[0].shape for summand in summands):
-            raise ValueError("All summands must have the same shape")
-
-        self._summands = SumLinearOperator._expand_sum_ops(*summands)
-
-        super().__init__(
-            shape=summands[0].shape,
-            dtype=np.find_common_type(
-                [summand.dtype for summand in self._summands], []
-            ),
-            matmul=lambda x: functools.reduce(
-                operator.add, (summand @ x for summand in self._summands)
-            ),
-            rmatmul=lambda x: functools.reduce(
-                operator.add, (x @ summand for summand in self._summands)
-            ),
-            todense=lambda: functools.reduce(
-                operator.add,
-                (summand.todense(cache=False) for summand in self._summands),
-            ),
-            transpose=lambda: SumLinearOperator(
-                *(summand.T for summand in self._summands)
-            ),
-            adjoint=lambda: SumLinearOperator(
-                *(summand.H for summand in self._summands)
-            ),
-            trace=lambda: functools.reduce(
-                operator.add, (summand.trace() for summand in self._summands)
-            ),
-        )
-
-    def __neg__(self):
-        return SumLinearOperator(*(-summand for summand in self._summands))
-
-    @staticmethod
-    def _expand_sum_ops(*summands: LinearOperator) -> Tuple[LinearOperator, ...]:
-        expanded_summands = []
-
-        for summand in summands:
-            if isinstance(summand, SumLinearOperator):
-                expanded_summands.extend(summand._summands)
-            else:
-                expanded_summands.append(summand)
-
-        return tuple(expanded_summands)
-
-
-def _mul_fallback(
-    op1: BinaryOperandType, op2: BinaryOperandType
-) -> Union[LinearOperator, type(NotImplemented)]:
-    res = NotImplemented
-
-    if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):
-        pass  # TODO: Implement generic Hadamard product
-    elif isinstance(op1, LinearOperator):
-        if np.ndim(op2) == 0:
-            res = ScaledLinearOperator(op1, op2)
-    elif isinstance(op2, LinearOperator):
-        if np.ndim(op1) == 0:
-            res = ScaledLinearOperator(op2, op1)
-    else:
-        raise TypeError("At least one of the two operands must be a `LinearOperator`.")
-
-    return res
-
-
-class ProductLinearOperator(LinearOperator):
-    """(Operator) Product of two linear operators."""
-
-    def __init__(self, *factors: LinearOperator):
-        if not all(isinstance(factor, LinearOperator) for factor in factors):
-            raise TypeError("All factors must be `LinearOperator`s")
-
-        if len(factors) < 2:
-            raise ValueError("There must be at least two factors")
-
-        if not all(
-            lfactor.shape[1] == rfactor.shape[0]
-            for lfactor, rfactor in zip(factors[:-1], factors[1:])
-        ):
-            raise ValueError(
-                f"Shape mismatch: Cannot multiply linear operators with shapes "
-                f"{' x '.join(factor.shape for factor in factors)}."
-            )
-
-        self._factors = ProductLinearOperator._expand_prod_ops(*factors)
-
-        super().__init__(
-            shape=(self._factors[0].shape[0], self._factors[-1].shape[1]),
-            dtype=np.find_common_type([factor.dtype for factor in self._factors], []),
-            matmul=lambda x: functools.reduce(
-                lambda vec, op: op @ vec, reversed(self._factors), x
-            ),
-            rmatmul=lambda x: functools.reduce(
-                lambda vec, op: vec @ op, self._factors, x
-            ),
-            todense=lambda: functools.reduce(
-                operator.matmul,
-                (factor.todense(cache=False) for factor in self._factors),
-            ),
-            transpose=lambda: ProductLinearOperator(
-                *(factor.T for factor in reversed(self._factors))
-            ),
-            adjoint=lambda: ProductLinearOperator(
-                *(factor.H for factor in reversed(self._factors))
-            ),
-            inverse=lambda: ProductLinearOperator(
-                *(factor.inv() for factor in reversed(self._factors))
-            ),
-            det=lambda: functools.reduce(
-                operator.mul, (factor.det() for factor in self._factors)
-            ),
-            logabsdet=lambda: functools.reduce(
-                operator.add, (factor.logabsdet() for factor in self._factors)
-            ),
-        )
-
-    @staticmethod
-    def _expand_prod_ops(*factors: LinearOperator) -> Tuple[LinearOperator, ...]:
-        expanded_factors = []
-
-        for factor in factors:
-            if isinstance(factor, ProductLinearOperator):
-                expanded_factors.extend(factor._factors)
-            else:
-                expanded_factors.append(factor)
-
-        return tuple(expanded_factors)
-
-
-def _matmul_fallback(
-    op1: BinaryOperandType, op2: BinaryOperandType
-) -> Union[LinearOperator, type(NotImplemented)]:
-    res = NotImplemented
-
-    if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):
-        res = ProductLinearOperator(op1, op2)
-
-    return res
