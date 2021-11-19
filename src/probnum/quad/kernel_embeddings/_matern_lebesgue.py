@@ -17,7 +17,7 @@ def _kernel_mean_matern_lebesgue(
     Parameters
     ----------
     x :
-        *shape (n_eval, dim)* -- n_eval locations where to evaluate the kernel mean.
+        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
     kernel :
         Instance of a ProductMatern or 1D Matern kernel.
     measure :
@@ -111,7 +111,6 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
             / 3.0
             * (3.0 * x + 2.0 * np.sqrt(3.0) * ell - 3.0 * a)
         )
-
     elif kernel.nu == 2.5:
         unnormalized_mean = (
             16.0 * ell / (3.0 * np.sqrt(5.0))
@@ -159,7 +158,7 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
 
 def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
     """Kernel variances for 1D Matern kernels.
-    
+
     Note that these are for unnormalized Lebesgue measure.
     """
     # pylint: disable="invalid-name"
