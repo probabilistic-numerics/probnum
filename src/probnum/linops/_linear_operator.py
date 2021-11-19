@@ -197,9 +197,7 @@ class LinearOperator:
 
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
-            raise ValueError(
-                f"Axis {axis} is out-of-bounds for operand of shape {np.shape(x)}."
-            )
+            raise np.AxisError(axis, ndim=x.ndim)
 
         if x.ndim == 1:
             return self @ x
@@ -209,6 +207,12 @@ class LinearOperator:
 
             if axis < 0:
                 axis += x.ndim
+
+            if x.shape[axis] != self.__shape[1]:
+                raise ValueError(
+                    f"Dimension mismatch. Expected array with {self.__shape[1]} "
+                    f"entries along axis {axis}, but got array with shape {x.shape}."
+                )
 
             if axis == (x.ndim - 1):
                 return (self @ x[..., np.newaxis])[..., 0]
