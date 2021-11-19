@@ -147,7 +147,7 @@ def test_kernel_variance_matern_lebesgue_measure(matern_kernel, measure):
     n_gl = 20
     x_gl, w_gl = gauss_legendre_tensor(
         n_points=n_gl,
-        dim=kernel_embedding.dim,
+        input_dim=kernel_embedding.input_dim,
         domain=kernel_embedding.measure.domain,
         normalized=kernel_embedding.measure.normalized,
     )

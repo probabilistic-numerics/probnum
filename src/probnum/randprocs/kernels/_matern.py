@@ -84,7 +84,7 @@ class Matern(Kernel, IsotropicMixin):
             return np.exp(-1.0 / self.lengthscale * distances)
 
         if self.nu == 1.5:
-            scaled_distances = -np.sqrt(3) / self.lengthscale * distances
+            scaled_distances = np.sqrt(3) / self.lengthscale * distances
             return (1.0 + scaled_distances) * np.exp(-scaled_distances)
 
         if self.nu == 2.5:
