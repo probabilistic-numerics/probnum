@@ -130,11 +130,8 @@ class Kronecker(_linear_operator.LinearOperator):
             todense=lambda: np.kron(
                 self.A.todense(cache=False), self.B.todense(cache=False)
             ),
-            conjugate=lambda: Kronecker(A=self.A.conj(), B=self.B.conj()),
             # (A (x) B)^T = A^T (x) B^T
             transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
-            # (A (x) B)^H = A^H (x) B^H
-            adjoint=lambda: Kronecker(A=self.A.H, B=self.B.H),
             # (A (x) B)^-1 = A^-1 (x) B^-1
             inverse=lambda: Kronecker(A=self.A.inv(), B=self.B.inv()),
             rank=lambda: self.A.rank() * self.B.rank(),
@@ -308,11 +305,8 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             matmul = lambda x: _kronecker_matmul(self.A, self.A, x)
             rmatmul = lambda x: _kronecker_rmatmul(self.A, self.A, x)
             todense = self._todense_identical_factors
-            conjugate = lambda: SymmetricKronecker(A=self.A.conj())
             # (A (x)_s A)^T = A^T (x)_s A^T
             transpose = lambda: SymmetricKronecker(A=self.A.T)
-            # (A (x)_s A)^H = A^H (x)_s A^H
-            adjoint = lambda: SymmetricKronecker(A=self.A.H)
             # (A (x)_s A)^-1 = (A (x) A)^-1 = A^-1 (x) A^-1
             inverse = lambda: SymmetricKronecker(A=self.A.inv())
             rank = lambda: self.A.rank() ** 2
@@ -331,11 +325,8 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             matmul = self._matmul_different_factors
             rmatmul = self._rmatmul_different_factors
             todense = self._todense_different_factors
-            conjugate = lambda: SymmetricKronecker(A=self.A.conj(), B=self.B.conj())
             # (A (x)_s B)^T = A^T (x)_s B^T
             transpose = lambda: SymmetricKronecker(A=self.A.T, B=self.B.T)
-            # (A (x)_s B)^H = A^H (x)_s B^H
-            adjoint = lambda: SymmetricKronecker(A=self.A.H, B=self.B.H)
             inverse = None
             rank = None
             cond = None
@@ -348,9 +339,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             matmul=matmul,
             rmatmul=rmatmul,
             todense=todense,
-            conjugate=conjugate,
             transpose=transpose,
-            adjoint=adjoint,
             inverse=inverse,
             rank=rank,
             cond=cond,
@@ -488,11 +477,8 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             todense=lambda: np.kron(
                 self.A.todense(cache=False), self.B.todense(cache=False)
             ),
-            conjugate=lambda: IdentityKronecker(self._num_blocks, B=self.B.conj()),
             # (A (x) B)^T = A (x) B^T
             transpose=lambda: IdentityKronecker(self._num_blocks, B=self.B.T),
-            # (A (x) B)^H = A^H (x) B^H
-            adjoint=lambda: IdentityKronecker(self._num_blocks, B=self.B.H),
             # (A (x) B)^-1 = A^-1 (x) B^-1
             inverse=lambda: IdentityKronecker(num_blocks, B=self.B.inv()),
             rank=lambda: self.A.rank() * self.B.rank(),

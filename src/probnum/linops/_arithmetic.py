@@ -17,7 +17,6 @@ from ._arithmetic_fallbacks import (
 )
 from ._kronecker import IdentityKronecker, Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import (
-    AdjointLinearOperator,
     BinaryOperandType,
     Embedding,
     Identity,
@@ -25,7 +24,6 @@ from ._linear_operator import (
     Matrix,
     Selection,
     TransposedLinearOperator,
-    _ConjugateLinearOperator,
     _InverseLinearOperator,
     _TypeCastLinearOperator,
 )
@@ -36,14 +34,12 @@ _AnyLinOp = [
     ProductLinearOperator,
     ScaledLinearOperator,
     SumLinearOperator,
-    AdjointLinearOperator,
     Identity,
     IdentityKronecker,
     Matrix,
     TransposedLinearOperator,
     SymmetricKronecker,
     Symmetrize,
-    _ConjugateLinearOperator,
     _InverseLinearOperator,
     _TypeCastLinearOperator,
     Scaling,
