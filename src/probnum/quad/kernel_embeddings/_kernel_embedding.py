@@ -12,10 +12,12 @@ from probnum.quad._integration_measures import (
 from probnum.quad.kernel_embeddings import (
     _kernel_mean_expquad_gauss,
     _kernel_mean_expquad_lebesgue,
+    _kernel_mean_matern_lebesgue,
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
+    _kernel_variance_matern_lebesgue,
 )
-from probnum.randprocs.kernels import ExpQuad, Kernel
+from probnum.randprocs.kernels import ExpQuad, Matern, ProductMatern, Kernel
 
 
 class KernelEmbedding:
@@ -87,7 +89,7 @@ def _get_kernel_embedding(
 
     Returns
     -------
-        An instance of _KernelEmbedding.
+        Function handle to the kernel mean and the scalar kernel variance
     """
 
     # Exponentiated quadratic kernel
@@ -98,6 +100,11 @@ def _get_kernel_embedding(
         elif isinstance(measure, LebesgueMeasure):
             return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
         raise NotImplementedError
+
+    # Matern
+    if isinstance(kernel, (Matern, ProductMatern)):
+        if isinstance(measure, LebesgueMeasure):
+            return _kernel_mean_matern_lebesgue, _kernel_variance_matern_lebesgue
 
     # other kernels
     raise NotImplementedError
