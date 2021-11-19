@@ -7,7 +7,7 @@ from probnum.typing import FloatArgType
 # pylint: disable=too-few-public-methods, fixme
 
 
-class IntegralVarianceToleranceStoppingCriterion(BQStoppingCriterion):
+class IntegralVarianceTolerance(BQStoppingCriterion):
     """Stop once the integral variance is below some tolerance.
 
     Parameters

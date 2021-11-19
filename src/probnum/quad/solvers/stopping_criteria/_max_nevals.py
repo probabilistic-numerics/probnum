@@ -7,7 +7,7 @@ from probnum.typing import IntArgType
 # pylint: disable=too-few-public-methods
 
 
-class MaxNevalsStoppingCriterion(BQStoppingCriterion):
+class MaxNevals(BQStoppingCriterion):
     """Stop once a maximum number of integrand evaluations is reached.
 
     Parameters

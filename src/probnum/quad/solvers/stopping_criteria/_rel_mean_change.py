@@ -9,7 +9,7 @@ from probnum.typing import FloatArgType
 # pylint: disable=too-few-public-methods
 
 
-class RelativeMeanChangeStoppingCriterion(BQStoppingCriterion):
+class RelativeMeanChange(BQStoppingCriterion):
     """Stop once the relative change of consecutive integral estimates are smaller than
     a tolerance.
 

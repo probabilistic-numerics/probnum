@@ -7,9 +7,9 @@ import numpy as np
 from probnum.quad.solvers.policies import Policy, RandomPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
-    IntegralVarianceToleranceStoppingCriterion,
-    MaxNevalsStoppingCriterion,
-    RelativeMeanChangeStoppingCriterion,
+    IntegralVarianceTolerance,
+    MaxNevals,
+    RelativeMeanChange,
 )
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
@@ -129,21 +129,21 @@ class BayesianQuadrature:
         # If multiple stopping criteria are given, BQ stops once the first criterion is fulfilled.
         _stopping_criteria = []
         if max_evals is not None:
-            _stopping_criteria.append(MaxNevalsStoppingCriterion(max_evals))
+            _stopping_criteria.append(MaxNevals(max_evals))
         if var_tol is not None:
             _stopping_criteria.append(
-                IntegralVarianceToleranceStoppingCriterion(var_tol)
+                IntegralVarianceTolerance(var_tol)
             )
         if rel_tol is not None:
-            _stopping_criteria.append(RelativeMeanChangeStoppingCriterion(rel_tol))
+            _stopping_criteria.append(RelativeMeanChange(rel_tol))
 
         # If no stopping criteria are given, use some default values (these are arbitrary values)
         if not _stopping_criteria:
             _stopping_criteria.append(
-                IntegralVarianceToleranceStoppingCriterion(var_tol=1e-6)
+                IntegralVarianceTolerance(var_tol=1e-6)
             )
             _stopping_criteria.append(
-                MaxNevalsStoppingCriterion(max_nevals=input_dim * 25)
+                MaxNevals(max_nevals=input_dim * 25)
             )
 
         return cls(
