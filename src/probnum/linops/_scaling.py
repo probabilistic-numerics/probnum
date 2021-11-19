@@ -134,14 +134,6 @@ class Scaling(_linear_operator.LinearOperator):
 
             todense = lambda: np.diag(self._factors)
 
-            conjugate = lambda: (
-                self
-                if (
-                    not np.issubdtype(dtype, np.complexfloating)
-                    or np.all(np.imag(self._factors) == 0)
-                )
-                else Scaling(np.conj(self._factors))
-            )
             inverse = self._inverse_anisotropic
 
             rank = lambda: np.count_nonzero(self.factors, axis=0)

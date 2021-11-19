@@ -757,7 +757,6 @@ class _InverseLinearOperator(LinearOperator):
         self.__factorization = None
 
         tmatmul = LinearOperator.broadcast_matmat(self._tmatmat)
-        hmatmul = LinearOperator.broadcast_matmat(self._hmatmat)
 
         super().__init__(
             shape=self._linop.shape,
@@ -787,9 +786,6 @@ class _InverseLinearOperator(LinearOperator):
 
     def _tmatmat(self, x: np.ndarray) -> np.ndarray:
         return scipy.linalg.lu_solve(self.factorization, x, trans=1, overwrite_b=False)
-
-    def _hmatmat(self, x: np.ndarray) -> np.ndarray:
-        return scipy.linalg.lu_solve(self.factorization, x, trans=2, overwrite_b=False)
 
 
 class _TypeCastLinearOperator(LinearOperator):
