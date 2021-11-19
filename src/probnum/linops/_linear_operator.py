@@ -453,15 +453,48 @@ class LinearOperator:
 
         return NegatedLinearOperator(self)
 
-    def transpose(self) -> "LinearOperator":
-        """Transpose this linear operator.
-
-        Can be abbreviated self.T instead of self.transpose().
-        """
+    @property
+    def T(self) -> "LinearOperator":
         if self.__transpose is None:
             return self._transpose_fallback()
 
         return self.__transpose()
+
+    def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
+        """Transpose this linear operator.
+
+        Can be abbreviated self.T instead of self.transpose().
+        """
+        if len(axes) > 0:
+            if len(axes) == 1 and isinstance(axes[0], tuple):
+                axes = axes[0]
+
+            if len(axes) != 2:
+                raise ValueError("axes don't match array")
+
+            axes_int = []
+
+            for axis in axes:
+                axis = int(axis)
+
+                if not -2 <= axis <= 1:
+                    raise np.AxisError(axis, ndim=2)
+
+                if axis < 0:
+                    axis += 2
+
+                axes_int.append(axis)
+
+            axes = tuple(axes_int)
+
+            if axes == (0, 1):
+                return self
+            elif axes == (1, 0):
+                return self.T
+            else:
+                raise ValueError("repeated axis in transpose")
+
+        return self.T
 
     def _transpose_fallback(self) -> "LinearOperator":
         if self.__rmatmul is not None:
@@ -471,11 +504,6 @@ class LinearOperator:
             )
 
         return TransposedLinearOperator(self)
-
-    @property
-    def T(self) -> "LinearOperator":
-        """Transposed linear operator."""
-        return self.transpose()
 
     def inv(self) -> "LinearOperator":
         """Inverse of the linear operator."""
