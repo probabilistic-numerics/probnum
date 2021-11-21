@@ -176,7 +176,7 @@ class LinearOperator:
 
     @property
     def size(self) -> int:
-        return np.prod(self.__shape)
+        return self.__shape[0] * self.__shape[1]
 
     @property
     def dtype(self) -> np.dtype:
@@ -197,9 +197,7 @@ class LinearOperator:
 
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
-            raise ValueError(
-                f"Axis {axis} is out-of-bounds for operand of shape {np.shape(x)}."
-            )
+            raise np.AxisError(axis, ndim=x.ndim)
 
         if x.ndim == 1:
             return self @ x
@@ -209,6 +207,12 @@ class LinearOperator:
 
             if axis < 0:
                 axis += x.ndim
+
+            if x.shape[axis] != self.__shape[1]:
+                raise ValueError(
+                    f"Dimension mismatch. Expected array with {self.__shape[1]} "
+                    f"entries along axis {axis}, but got array with shape {x.shape}."
+                )
 
             if axis == (x.ndim - 1):
                 return (self @ x[..., np.newaxis])[..., 0]
@@ -453,15 +457,52 @@ class LinearOperator:
 
         return NegatedLinearOperator(self)
 
-    def transpose(self) -> "LinearOperator":
-        """Transpose this linear operator.
-
-        Can be abbreviated self.T instead of self.transpose().
-        """
+    @property
+    def T(self) -> "LinearOperator":
         if self.__transpose is None:
             return self._transpose_fallback()
 
         return self.__transpose()
+
+    def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
+        """Transpose this linear operator.
+
+        Can be abbreviated self.T instead of self.transpose().
+        """
+        if len(axes) > 0:
+            if len(axes) == 1 and isinstance(axes[0], tuple):
+                axes = axes[0]
+
+            if len(axes) != 2:
+                raise ValueError(
+                    f"The given axes {axes} don't match the linear operator with shape "
+                    f"{self.shape}."
+                )
+
+            axes_int = []
+
+            for axis in axes:
+                axis = int(axis)
+
+                if not -2 <= axis <= 1:
+                    raise np.AxisError(axis, ndim=2)
+
+                if axis < 0:
+                    axis += 2
+
+                axes_int.append(axis)
+
+            axes = tuple(axes_int)
+
+            if axes == (0, 1):
+                return self
+
+            if axes == (1, 0):
+                return self.T
+
+            raise ValueError("Cannot transpose a linear operator along repeated axes.")
+
+        return self.T
 
     def _transpose_fallback(self) -> "LinearOperator":
         if self.__rmatmul is not None:
@@ -471,11 +512,6 @@ class LinearOperator:
             )
 
         return TransposedLinearOperator(self)
-
-    @property
-    def T(self) -> "LinearOperator":
-        """Transposed linear operator."""
-        return self.transpose()
 
     def inv(self) -> "LinearOperator":
         """Inverse of the linear operator."""
