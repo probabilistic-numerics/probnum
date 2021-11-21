@@ -474,7 +474,10 @@ class LinearOperator:
                 axes = axes[0]
 
             if len(axes) != 2:
-                raise ValueError("axes don't match array")
+                raise ValueError(
+                    f"The given axes {axes} don't match the linear operator with shape "
+                    f"{self.shape}."
+                )
 
             axes_int = []
 
@@ -493,10 +496,11 @@ class LinearOperator:
 
             if axes == (0, 1):
                 return self
-            elif axes == (1, 0):
+
+            if axes == (1, 0):
                 return self.T
-            else:
-                raise ValueError("repeated axis in transpose")
+
+            raise ValueError("Cannot transpose a linear operator along repeated axes.")
 
         return self.T
 
