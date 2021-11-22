@@ -37,7 +37,6 @@ class ScaledLinearOperator(LinearOperator):
             rmatmul=lambda x: self._scalar * (x @ self._linop),
             todense=lambda: self._scalar * self._linop.todense(cache=False),
             transpose=lambda: self._scalar * self._linop.T,
-            adjoint=lambda: np.conj(self._scalar) * self._linop.H,
             inverse=self._inv,
             trace=lambda: self._scalar * self._linop.trace(),
         )
@@ -90,9 +89,6 @@ class SumLinearOperator(LinearOperator):
             ),
             transpose=lambda: SumLinearOperator(
                 *(summand.T for summand in self._summands)
-            ),
-            adjoint=lambda: SumLinearOperator(
-                *(summand.H for summand in self._summands)
             ),
             trace=lambda: functools.reduce(
                 operator.add, (summand.trace() for summand in self._summands)
@@ -166,9 +162,6 @@ class ProductLinearOperator(LinearOperator):
             ),
             transpose=lambda: ProductLinearOperator(
                 *(factor.T for factor in reversed(self._factors))
-            ),
-            adjoint=lambda: ProductLinearOperator(
-                *(factor.H for factor in reversed(self._factors))
             ),
             inverse=lambda: ProductLinearOperator(
                 *(factor.inv() for factor in reversed(self._factors))

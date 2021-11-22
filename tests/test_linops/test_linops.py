@@ -28,6 +28,7 @@ def test_case_valid(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 
     assert linop.ndim == matrix.ndim == 2
     assert linop.shape == matrix.shape
+    assert linop.size == matrix.size
     assert linop.dtype == matrix.dtype
 
 
@@ -292,39 +293,38 @@ def test_trace(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
-def test_conjugate(linop: pn.linops.LinearOperator, matrix: np.ndarray):
-    linop_conj = linop.conj()
-    matrix_conj = matrix.conj()
-
-    assert isinstance(linop_conj, pn.linops.LinearOperator)
-    assert linop_conj.shape == matrix_conj.shape
-    assert linop_conj.dtype == matrix_conj.dtype
-
-    np.testing.assert_allclose(linop_conj.todense(), matrix_conj)
-
-
-@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_transpose(linop: pn.linops.LinearOperator, matrix: np.ndarray):
-    linop_transpose = linop.T
-    matrix_transpose = matrix.T
+    matrix_transpose = matrix.transpose()
 
-    assert isinstance(linop_transpose, pn.linops.LinearOperator)
-    assert linop_transpose.shape == matrix_transpose.shape
-    assert linop_transpose.dtype == matrix_transpose.dtype
+    for linop_transpose in [
+        linop.transpose(),
+        linop.transpose(1, 0),
+        linop.transpose((1, 0)),
+        linop.transpose(1, -2),
+    ]:
+        linop_transpose = linop.transpose()
 
-    np.testing.assert_allclose(linop_transpose.todense(), matrix_transpose)
+        assert isinstance(linop_transpose, pn.linops.LinearOperator)
+        assert linop_transpose.shape == matrix_transpose.shape
+        assert linop_transpose.dtype == matrix_transpose.dtype
 
+        np.testing.assert_allclose(linop_transpose.todense(), matrix_transpose)
 
-@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
-def test_adjoint(linop: pn.linops.LinearOperator, matrix: np.ndarray):
-    linop_adjoint = linop.H
-    matrix_adjoint = matrix.T.conj()
+    # Transpose with (0, 1) argument
+    for ax0 in [0, -2]:
+        for ax1 in [1, -1]:
+            assert linop.transpose(ax0, ax1) is linop
+            assert linop.transpose((ax0, ax1)) is linop
 
-    assert isinstance(linop_adjoint, pn.linops.LinearOperator)
-    assert linop_adjoint.shape == matrix_adjoint.shape
-    assert linop_adjoint.dtype == matrix_adjoint.dtype
+    # Errors
+    for axes in [(0, 2), (-3, 1), ((0, 1), 1), (0, 1, 2), (0, 0), (1, 1)]:
+        try:
+            matrix.transpose(*axes)
+        except Exception as e:  # pylint: disable=broad-except
+            expected_exception = e
 
-    np.testing.assert_allclose(linop_adjoint.todense(), matrix_adjoint)
+        with pytest.raises(type(expected_exception)):
+            linop.transpose(*axes)
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)

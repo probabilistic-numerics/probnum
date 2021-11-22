@@ -17,7 +17,6 @@ from ._arithmetic_fallbacks import (
 )
 from ._kronecker import IdentityKronecker, Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import (
-    AdjointLinearOperator,
     BinaryOperandType,
     Embedding,
     Identity,
@@ -25,7 +24,6 @@ from ._linear_operator import (
     Matrix,
     Selection,
     TransposedLinearOperator,
-    _ConjugateLinearOperator,
     _InverseLinearOperator,
     _TypeCastLinearOperator,
 )
@@ -36,14 +34,12 @@ _AnyLinOp = [
     ProductLinearOperator,
     ScaledLinearOperator,
     SumLinearOperator,
-    AdjointLinearOperator,
     Identity,
     IdentityKronecker,
     Matrix,
     TransposedLinearOperator,
     SymmetricKronecker,
     Symmetrize,
-    _ConjugateLinearOperator,
     _InverseLinearOperator,
     _TypeCastLinearOperator,
     Scaling,
@@ -276,7 +272,7 @@ _sub_fns[(Matrix, Matrix)] = lambda mat1, mat2: Matrix(mat1.A - mat2.A)
 def _matmul_matrix_wrapped(
     mat: Matrix, wrapped: Union[_InverseLinearOperator, TransposedLinearOperator]
 ) -> Union[Matrix, NotImplementedType]:
-    if config.lazy_matrix_matrix_matmul:
+    if not config.lazy_matrix_matrix_matmul:
         return Matrix(mat.A @ wrapped)
     return NotImplemented
 
@@ -284,7 +280,7 @@ def _matmul_matrix_wrapped(
 def _matmul_wrapped_matrix(
     wrapped: Union[_InverseLinearOperator, TransposedLinearOperator], mat: Matrix
 ) -> Union[Matrix, NotImplementedType]:
-    if config.lazy_matrix_matrix_matmul:
+    if not config.lazy_matrix_matrix_matmul:
         return Matrix(wrapped @ mat.A)
     return NotImplemented
 
