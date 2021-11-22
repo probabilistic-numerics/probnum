@@ -39,7 +39,7 @@ class BayesianQuadrature:
     belief_update :
         The inference method.
     stopping_criterion :
-        The criterion that determine convergence.
+        The criterion that determines convergence.
     """
     # pylint: disable=too-many-arguments
 
