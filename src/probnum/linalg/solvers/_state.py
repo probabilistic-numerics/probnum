@@ -36,7 +36,7 @@ class LinearSolverState:
         self.prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
         self._belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
 
-        self.step: int = 0
+        self._step: int = 0
 
         self._actions: List[np.ndarray] = [None]
         self._observations: List[Any] = [None]
@@ -48,6 +48,11 @@ class LinearSolverState:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(step={self.step})"
+
+    @property
+    def step(self) -> int:
+        """Current step of the solver."""
+        return self._step
 
     @property
     def belief(self) -> "probnum.linalg.solvers.beliefs.LinearSystemBelief":
@@ -120,4 +125,4 @@ class LinearSolverState:
         self._observations.append(None)
         self._residuals.append(None)
 
-        self.step += 1
+        self._step += 1

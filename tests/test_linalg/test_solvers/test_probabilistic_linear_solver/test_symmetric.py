@@ -4,7 +4,7 @@ import pathlib
 import numpy as np
 from pytest_cases import parametrize_with_cases
 
-from probnum import problems
+from probnum import linops, problems, randvars
 from probnum.linalg.solvers import ProbabilisticLinearSolver, beliefs
 
 case_modules = pathlib.Path("cases").stem
@@ -22,7 +22,7 @@ def test_small_residual(
     problem: problems.LinearSystem,
 ):
     """Test whether the output solution has small residual."""
-    belief, solver_state = solver.solve(
+    belief, _ = solver.solve(
         prior=prior, problem=problem, rng=np.random.default_rng(42)
     )
 
@@ -36,8 +36,24 @@ def test_small_residual(
 @parametrize_with_cases("solver", cases=cases_solvers, has_tag="sym")
 @parametrize_with_cases("problem", cases=cases_problems, has_tag="sym")
 def test_perfect_information(
-    solver: ProbabilisticLinearSolver,
-    problem: problems.LinearSystem,
+    solver: ProbabilisticLinearSolver, problem: problems.LinearSystem, ncols: int
 ):
     """Test whether a solver given perfect information converges instantly."""
-    pass
+
+    # Construct prior belief with perfect information
+    belief = beliefs.LinearSystemBelief(
+        x=randvars.Normal(
+            mean=problem.solution, cov=linops.Scaling(factors=0.0, shape=(ncols, ncols))
+        ),
+        A=randvars.Constant(problem.A),
+        Ainv=randvars.Constant(np.linalg.inv(problem.A @ np.eye(ncols))),
+    )
+
+    # Run solver
+    belief, solver_state = solver.solve(
+        prior=belief, problem=problem, rng=np.random.default_rng(1)
+    )
+
+    # Check for instant convergence
+    assert solver_state.step == 0
+    np.testing.assert_allclose(belief.x.mean, problem.solution)
