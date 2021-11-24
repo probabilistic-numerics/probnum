@@ -83,7 +83,6 @@ class Scaling(_linear_operator.LinearOperator):
 
                 todense = lambda: np.identity(shape[0], dtype=dtype)
 
-                conjugate = lambda: self
                 inverse = lambda: self
 
                 rank = lambda: np.intp(shape[0])
@@ -101,11 +100,6 @@ class Scaling(_linear_operator.LinearOperator):
 
                 todense = self._todense_isotropic
 
-                conjugate = lambda: (
-                    self
-                    if np.imag(self._scalar) == 0
-                    else Scaling(np.conj(self._scalar), shape=shape)
-                )
                 inverse = self._inverse_isotropic
 
                 rank = lambda: np.intp(0 if self._scalar == 0 else shape[0])
@@ -140,14 +134,6 @@ class Scaling(_linear_operator.LinearOperator):
 
             todense = lambda: np.diag(self._factors)
 
-            conjugate = lambda: (
-                self
-                if (
-                    not np.issubdtype(dtype, np.complexfloating)
-                    or np.all(np.imag(self._factors) == 0)
-                )
-                else Scaling(np.conj(self._factors))
-            )
             inverse = self._inverse_anisotropic
 
             rank = lambda: np.count_nonzero(self.factors, axis=0)
@@ -168,9 +154,7 @@ class Scaling(_linear_operator.LinearOperator):
             rmatmul=rmatmul,
             apply=apply,
             todense=todense,
-            conjugate=conjugate,
             transpose=lambda: self,
-            adjoint=conjugate,
             inverse=inverse,
             rank=rank,
             eigvals=eigvals,

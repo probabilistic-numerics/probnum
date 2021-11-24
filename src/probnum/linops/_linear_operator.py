@@ -108,9 +108,7 @@ class LinearOperator:
         rmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         apply: Callable[[np.ndarray, int], np.ndarray] = None,
         todense: Optional[Callable[[], np.ndarray]] = None,
-        conjugate: Optional[Callable[[np.ndarray], "LinearOperator"]] = None,
         transpose: Optional[Callable[[np.ndarray], "LinearOperator"]] = None,
-        adjoint: Optional[Callable[[], "LinearOperator"]] = None,
         inverse: Optional[Callable[[], "LinearOperator"]] = None,
         rank: Optional[Callable[[], np.intp]] = None,
         eigvals: Optional[Callable[[], np.ndarray]] = None,
@@ -129,15 +127,16 @@ class LinearOperator:
         if not np.issubdtype(self.__dtype, np.number):
             raise TypeError("The dtype of a linear operator must be numeric.")
 
+        if np.issubdtype(self.__dtype, np.complexfloating):
+            raise TypeError("Linear operators do not support complex dtypes.")
+
         self.__matmul = matmul  # (self @ x)
         self.__rmatmul = rmatmul  # (x @ self)
         self.__apply = apply  # __call__
 
         self.__todense = todense
 
-        self.__conjugate = conjugate
         self.__transpose = transpose
-        self.__adjoint = adjoint
         self.__inverse = inverse
 
         # Matrix properties
@@ -177,7 +176,7 @@ class LinearOperator:
 
     @property
     def size(self) -> int:
-        return np.prod(self.__shape)
+        return self.__shape[0] * self.__shape[1]
 
     @property
     def dtype(self) -> np.dtype:
@@ -198,9 +197,7 @@ class LinearOperator:
 
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
-            raise ValueError(
-                f"Axis {axis} is out-of-bounds for operand of shape {np.shape(x)}."
-            )
+            raise np.AxisError(axis, ndim=x.ndim)
 
         if x.ndim == 1:
             return self @ x
@@ -210,6 +207,12 @@ class LinearOperator:
 
             if axis < 0:
                 axis += x.ndim
+
+            if x.shape[axis] != self.__shape[1]:
+                raise ValueError(
+                    f"Dimension mismatch. Expected array with {self.__shape[1]} "
+                    f"entries along axis {axis}, but got array with shape {x.shape}."
+                )
 
             if axis == (x.ndim - 1):
                 return (self @ x[..., np.newaxis])[..., 0]
@@ -454,66 +457,61 @@ class LinearOperator:
 
         return NegatedLinearOperator(self)
 
-    def conjugate(self) -> "LinearOperator":
-        """Complex conjugate linear operator."""
-        if np.issubdtype(self.dtype, np.complexfloating):
-            if self.__conjugate is None:
-                return _ConjugateLinearOperator(self)
-
-            return self.__conjugate()
-
-        return self
-
-    def conj(self) -> "LinearOperator":
-        """Complex conjugate linear operator."""
-        return self.conjugate()
-
-    def adjoint(self) -> "LinearOperator":
-        """Hermitian adjoint."""
-        if self.__adjoint is None:
-            return self._adjoint_fallback()
-
-        return self.__adjoint()
-
-    def _adjoint_fallback(self) -> "LinearOperator":
-        if self.__transpose is not None or self.__rmatmul is not None:
-            # Fast transpose operator is available
-            return self.T.conj()
-
-        return AdjointLinearOperator(self)
-
     @property
-    def H(self) -> "LinearOperator":
-        """Hermitian adjoint."""
-        return self.adjoint()
-
-    def transpose(self) -> "LinearOperator":
-        """Transpose this linear operator.
-
-        Can be abbreviated self.T instead of self.transpose().
-        """
+    def T(self) -> "LinearOperator":
         if self.__transpose is None:
             return self._transpose_fallback()
 
         return self.__transpose()
 
+    def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
+        """Transpose this linear operator.
+
+        Can be abbreviated self.T instead of self.transpose().
+        """
+        if len(axes) > 0:
+            if len(axes) == 1 and isinstance(axes[0], tuple):
+                axes = axes[0]
+
+            if len(axes) != 2:
+                raise ValueError(
+                    f"The given axes {axes} don't match the linear operator with shape "
+                    f"{self.shape}."
+                )
+
+            axes_int = []
+
+            for axis in axes:
+                axis = int(axis)
+
+                if not -2 <= axis <= 1:
+                    raise np.AxisError(axis, ndim=2)
+
+                if axis < 0:
+                    axis += 2
+
+                axes_int.append(axis)
+
+            axes = tuple(axes_int)
+
+            if axes == (0, 1):
+                return self
+
+            if axes == (1, 0):
+                return self.T
+
+            raise ValueError("Cannot transpose a linear operator along repeated axes.")
+
+        return self.T
+
     def _transpose_fallback(self) -> "LinearOperator":
-        if self.__adjoint is not None:
-            # Fast adjoint operator is available
-            return self.H.conj()
-        elif self.__rmatmul is not None:
+        if self.__rmatmul is not None:
             return TransposedLinearOperator(
                 self,
-                # This is potentially slower than conjugating a vector twice
                 matmul=lambda x: self.__rmatmul(x[..., np.newaxis])[..., :],
             )
 
         return TransposedLinearOperator(self)
-
-    @property
-    def T(self) -> "LinearOperator":
-        """Transposed linear operator."""
-        return self.transpose()
 
     def inv(self) -> "LinearOperator":
         """Inverse of the linear operator."""
@@ -769,8 +767,6 @@ class TransposedLinearOperator(LinearOperator):
             rmatmul=lambda x: self._linop(x, axis=-1),
             todense=lambda: self._linop.todense(cache=False).T.copy(order="C"),
             transpose=lambda: self._linop,
-            adjoint=self._linop.conj,
-            conjugate=self._linop.adjoint,
             inverse=None,  # lambda: self._linop.inv().T,
             rank=self._linop.rank,
             det=self._linop.det,
@@ -787,66 +783,6 @@ class TransposedLinearOperator(LinearOperator):
         return f"Transpose of {self._linop}"
 
 
-class AdjointLinearOperator(LinearOperator):
-    def __init__(
-        self,
-        linop: LinearOperator,
-        matmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ):
-        self._linop = linop
-
-        if matmul is None:
-            matmul = lambda x: self.todense(cache=True) @ x
-
-        super().__init__(
-            shape=(self._linop.shape[1], self._linop.shape[0]),
-            dtype=self._linop.dtype,
-            matmul=matmul,
-            rmatmul=lambda x: np.conj(self._linop(np.conj(x), axis=-1)),
-            todense=lambda: (
-                np.conj(self._linop.todense(cache=False).T).copy(order="C")
-            ),
-            transpose=self._linop.conj,
-            adjoint=lambda: self._linop,
-            conjugate=self._linop.transpose,
-            inverse=None,  # lambda: self._linop.inv().H,
-            rank=self._linop.rank,
-            det=lambda: np.conj(self._linop.det()),
-            trace=lambda: np.conj(self._linop.trace()),
-        )
-
-    def _astype(
-        self, dtype: np.dtype, order: str, casting: str, copy: bool
-    ) -> "LinearOperator":
-        return self._linop.astype(dtype, order=order, casting=casting, copy=copy).H
-
-
-class _ConjugateLinearOperator(LinearOperator):
-    def __init__(self, linop: LinearOperator):
-        if not np.issubdtype(linop.dtype, np.complexfloating):
-            raise TypeError(
-                "Complex conjugation only makes sense on operators of complex dtype"
-            )
-
-        self._linop = linop
-
-        super().__init__(
-            self._linop.shape,
-            self._linop.dtype,
-            matmul=lambda x: np.conj(self._linop @ np.conj(x)),
-            rmatmul=lambda x: np.conj(np.conj(x) @ self._linop),
-            apply=lambda x, axis: np.conj(self._linop(np.conj(x), axis=axis)),
-            todense=lambda: np.conj(self._linop.todense(cache=False)),
-            transpose=lambda: self._linop.H,
-            adjoint=lambda: self._linop.T,
-            inverse=None,  # lambda: self._linop.inv().conj(),
-            rank=self._linop.rank,
-            eigvals=lambda: np.conj(self._linop.eigvals()),
-            det=lambda: np.conj(self._linop.det()),
-            trace=lambda: np.conj(self._linop.trace()),
-        )
-
-
 class _InverseLinearOperator(LinearOperator):
     def __init__(self, linop: LinearOperator):
         if not linop.is_square:
@@ -857,7 +793,6 @@ class _InverseLinearOperator(LinearOperator):
         self.__factorization = None
 
         tmatmul = LinearOperator.broadcast_matmat(self._tmatmat)
-        hmatmul = LinearOperator.broadcast_matmat(self._hmatmat)
 
         super().__init__(
             shape=self._linop.shape,
@@ -865,7 +800,6 @@ class _InverseLinearOperator(LinearOperator):
             matmul=LinearOperator.broadcast_matmat(self._matmat),
             rmatmul=lambda x: tmatmul(x[..., np.newaxis])[..., 0],
             transpose=lambda: TransposedLinearOperator(self, matmul=tmatmul),
-            adjoint=lambda: AdjointLinearOperator(self, matmul=hmatmul),
             inverse=lambda: self._linop,
             det=lambda: 1 / self._linop.det(),
             logabsdet=lambda: -self._linop.logabsdet(),
@@ -888,9 +822,6 @@ class _InverseLinearOperator(LinearOperator):
 
     def _tmatmat(self, x: np.ndarray) -> np.ndarray:
         return scipy.linalg.lu_solve(self.factorization, x, trans=1, overwrite_b=False)
-
-    def _hmatmat(self, x: np.ndarray) -> np.ndarray:
-        return scipy.linalg.lu_solve(self.factorization, x, trans=2, overwrite_b=False)
 
 
 class _TypeCastLinearOperator(LinearOperator):
@@ -928,7 +859,6 @@ class _TypeCastLinearOperator(LinearOperator):
                 dtype, order=order, copy=copy
             ),
             transpose=lambda: self._linop.T.astype(dtype),
-            adjoint=lambda: self._linop.H.astype(dtype),
             inverse=lambda: self._linop.inv().astype(self._inexact_dtype),
             rank=self._linop.rank,
             eigvals=lambda: self._linop.eigvals().astype(self._inexact_dtype),
@@ -987,20 +917,13 @@ class Matrix(LinearOperator):
 
         transpose = lambda: Matrix(self.A.T)
 
-        if np.issubdtype(dtype, np.complexfloating):
-            adjoint = lambda: Matrix(np.conj(self.A.T))
-        else:
-            adjoint = transpose
-
         super().__init__(
             shape,
             dtype,
             matmul=matmul,
             rmatmul=rmatmul,
             todense=todense,
-            conjugate=lambda: Matrix(self.A.conj()),
             transpose=transpose,
-            adjoint=adjoint,
             inverse=inverse,
             trace=trace,
         )
@@ -1027,7 +950,7 @@ class Matrix(LinearOperator):
             raise np.linalg.LinAlgError(str(err)) from err
 
     def _matmul_matrix(self, other: "Matrix") -> "Matrix":
-        if config.lazy_matrix_matrix_matmul:
+        if not config.lazy_matrix_matrix_matmul:
             if not self.shape[1] == other.shape[0]:
                 raise ValueError(f"Matmul shape mismatch {self.shape} x {other.shape}")
 
@@ -1078,9 +1001,7 @@ class Identity(LinearOperator):
                 np.result_type(self.dtype, x.dtype), copy=False
             ),
             todense=lambda: np.identity(self.shape[0], dtype=dtype),
-            conjugate=lambda: self,
             transpose=lambda: self,
-            adjoint=lambda: self,
             inverse=lambda: self,
             rank=lambda: np.intp(shape[0]),
             eigvals=lambda: np.ones(shape[0], dtype=self._inexact_dtype),
