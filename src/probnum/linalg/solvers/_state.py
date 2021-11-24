@@ -123,6 +123,7 @@ class LinearSolverState:
         """
         self._actions.append(None)
         self._observations.append(None)
-        self._residuals.append(None)
+        if len(self._residuals) <= self._step:
+            self._residuals.append(None)
 
         self._step += 1
