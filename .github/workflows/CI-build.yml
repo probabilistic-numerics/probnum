@@ -34,7 +34,7 @@ jobs:
         env:
           PROBNUM_BACKEND: ${{ matrix.backend }}
       - name: Upload coverage report to Codecov
-        if: startsWith(matrix.platform,'ubuntu') && matrix.python == '3.8' && matrix.backend =='numpy'
+        if: startsWith(matrix.platform,'ubuntu') && matrix.python == '3.8' && matrix.backend == 'numpy'
         run: bash <(curl -s https://codecov.io/bash)
 
   documentation:
