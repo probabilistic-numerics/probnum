@@ -14,22 +14,23 @@ def gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     is_orthonormal
-        Whether the basis is assumed to be orthonormal. If `False` vectors are normalized.
+        Whether the basis is assumed to be orthonormal. If `False`, vectors are normalized.
     """
     if not is_orthonormal:
-        norms = np.sum(orthogonal_basis * orthogonal_basis, axis=0)
-        orthonormal_basis = (norms ** -1 / 2) * orthogonal_basis
+        norms = np.sqrt(np.sum(orthogonal_basis * orthogonal_basis, axis=0))
+        orthonormal_basis = orthogonal_basis / norms
         return vector - orthonormal_basis @ orthonormal_basis.T @ vector
 
-    return vector - orthogonal_basis @ (orthogonal_basis.T @ vector)
+    return vector - orthogonal_basis @ orthogonal_basis.T @ vector
 
 
 def double_gram_schmidt(
     vector: np.ndarray, orthogonal_basis: np.ndarray, is_orthonormal=False
 ) -> np.ndarray:
-    """Orthogonalize a vector with respect to an orthogonal basis twice.
+    """Orthogonalize a vector with respect to an orthogonal basis.
 
-    This is generally more stable than just reorthogonalizing once [1]_ [2]_.
+    This performs the Gram-Schmidt orthogonalization process twice. This is generally more
+    stable than just reorthogonalizing once. [1]_ [2]_
 
     Parameters
     ----------
@@ -48,8 +49,8 @@ def double_gram_schmidt(
            orthogonalization process, Comput. Math. Appl., 50 (2005)
     """
     if not is_orthonormal:
-        norms = np.sum(orthogonal_basis * orthogonal_basis, axis=0)
-        orthogonal_basis = (norms ** -1 / 2) * orthogonal_basis
+        norms = np.sqrt(np.sum(orthogonal_basis * orthogonal_basis, axis=0))
+        orthogonal_basis = orthogonal_basis / norms
         is_orthonormal = True
 
     return gram_schmidt(

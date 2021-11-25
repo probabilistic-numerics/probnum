@@ -10,8 +10,8 @@ rng = np.random.default_rng(42)
 
 
 @parametrize("vector", rng.normal(size=(3, 100)))
-@parametrize("basis_size", [10, 30, 50])
-@parametrize("orth_fn", [gram_schmidt, double_gram_schmidt])
+@parametrize("basis_size", [1, 10, 50])
+@parametrize("orthogonalization_fn", [gram_schmidt, double_gram_schmidt])
 def test_is_orthogonal(
     vector: np.ndarray,
     basis_size: int,
@@ -26,5 +26,7 @@ def test_is_orthogonal(
     )
     np.testing.assert_allclose(
         orthogonal_basis.T @ ortho_vector,
-        np.zeros((orthogonal_basis.shape[0],)),
+        np.zeros((basis_size,)),
+        atol=1e-12,
+        rtol=1e-12,
     )
