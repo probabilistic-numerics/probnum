@@ -16,6 +16,7 @@ jobs:
       matrix:
         platform: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.8", "3.9"]
+        backend: ["numpy", "jax", "torch"]
 
     steps:
       - uses: actions/checkout@v2
@@ -30,8 +31,10 @@ jobs:
       - name: Run Tox
         # Run tox using the version of Python in `PATH`
         run: tox -e py3
+        env:
+          PROBNUM_BACKEND: ${{ matrix.backend }}
       - name: Upload coverage report to Codecov
-        if: startsWith(matrix.platform,'ubuntu') && matrix.python == '3.8'
+        if: startsWith(matrix.platform,'ubuntu') && matrix.python == '3.8' && matrix.backend =='numpy'
         run: bash <(curl -s https://codecov.io/bash)
 
   documentation:
