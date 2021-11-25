@@ -1,7 +1,9 @@
-import torch
+import pytest
 
 import probnum as pn
 from probnum import backend
+
+torch = pytest.importorskip("torch")
 
 
 def test_hyperopt():

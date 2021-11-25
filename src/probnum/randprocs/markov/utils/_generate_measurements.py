@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from probnum import backend
 from probnum.randprocs.markov import _markov_process, _transition
 
 
@@ -36,7 +37,11 @@ def generate_artificial_measurements(
 
     latent_states = prior_process.sample(rng, args=times)
 
+    seed = backend.random.seed(
+        int(rng.bit_generator._seed_seq.generate_state(1, dtype=np.uint64)[0] // 2)
+    )
+
     for idx, (state, t) in enumerate(zip(latent_states, times)):
         measured_rv, _ = measmod.forward_realization(state, t=t)
-        obs[idx] = measured_rv.sample(rng=rng)
+        obs[idx] = measured_rv.sample(seed=seed)
     return latent_states, obs

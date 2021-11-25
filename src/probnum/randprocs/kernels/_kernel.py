@@ -219,6 +219,9 @@ class Kernel(abc.ABC):
         # Evaluate the kernel
         k_x0_x1 = self._evaluate(x0, x1)
 
+        if backend.ndim(k_x0_x1) == 0:
+            k_x0_x1 = backend.asarray(k_x0_x1)
+
         assert k_x0_x1.shape == self._shape + broadcast_input_shape[:-1]
 
         return k_x0_x1

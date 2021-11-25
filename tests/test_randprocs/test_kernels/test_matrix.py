@@ -9,7 +9,7 @@ import probnum as pn
 from probnum.typing import ShapeType
 
 
-@pytest.fixture(name="kernmat")
+@pytest.fixture(name="kernmat", scope="module")
 def fixture_kernmat(
     kernel: pn.randprocs.kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
 ) -> np.ndarray:
@@ -20,7 +20,7 @@ def fixture_kernmat(
     return kernel.matrix(x0, x1)
 
 
-@pytest.fixture(name="kernmat_naive")
+@pytest.fixture(name="kernmat_naive", scope="module")
 def fixture_kernmat_naive(
     kernel_call_naive: Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray],
     x0: np.ndarray,
@@ -29,9 +29,6 @@ def fixture_kernmat_naive(
     """Kernel evaluated at the data."""
 
     if x1 is None:
-        if np.prod(x0.shape[:-1]) >= 100:
-            pytest.skip("Runs too long")
-
         return kernel_call_naive(x0=x0[:, None, :], x1=x0[None, :, :])
 
     return kernel_call_naive(x0=x0[:, None, :], x1=x1[None, :, :])

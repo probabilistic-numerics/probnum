@@ -5,11 +5,12 @@ from typing import Sequence
 import numpy as np
 import scipy.stats
 
-from probnum.typing import IntLike
+from probnum import backend
+from probnum.typing import IntLike, SeedLike
 
 
 def random_spd_matrix(
-    rng: np.random.Generator,
+    seed: SeedLike,
     dim: IntLike,
     spectrum: Sequence = None,
 ) -> np.ndarray:
@@ -55,6 +56,10 @@ def random_spd_matrix(
     >>> np.linalg.eigvals(mat)
     array([ 8.09147328, 12.7635956 , 10.84504988, 10.73086331, 10.78143272])
     """
+
+    seed = backend.random.seed(seed)
+
+    rng = np.random.default_rng(seed)
 
     # Initialization
     if spectrum is None:

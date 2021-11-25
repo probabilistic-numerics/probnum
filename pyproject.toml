@@ -31,7 +31,8 @@ norecursedirs = [
     "*.egg*",
     "dist",
     "build",
-    ".tox"
+    ".tox",
+    "src/probnum/backend"
 ]
 testpaths = [
     "src",

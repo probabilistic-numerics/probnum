@@ -5,12 +5,12 @@ from typing import Any, Callable, Optional, Union
 import numpy as np
 import scipy.sparse
 
-from probnum import linops, problems, randvars
-from probnum.typing import LinearOperatorLike
+from probnum import backend, linops, problems, randvars
+from probnum.typing import LinearOperatorLike, SeedLike
 
 
 def random_linear_system(
-    rng: np.random.Generator,
+    seed: SeedLike,
     matrix: Union[
         LinearOperatorLike,
         Callable[
@@ -75,21 +75,25 @@ def random_linear_system(
     >>> isinstance(linsys_sparse.A, scipy.sparse.spmatrix)
     True
     """
+    seed = backend.random.seed(seed)
+
     # Generate system matrix
     if isinstance(matrix, (np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator)):
         A = matrix
     else:
-        A = matrix(rng=rng, **kwargs)
+        seed, matrix_seed = backend.random.split(seed, num=2)
+
+        A = matrix(seed=matrix_seed, **kwargs)
 
     # Sample solution
     if solution_rv is None:
         n = A.shape[1]
-        x = randvars.Normal(mean=0.0, cov=1.0).sample(size=(n,), rng=rng)
+        x = backend.random.standard_normal(seed, shape=(n,))
     else:
         if A.shape[1] != solution_rv.shape[0]:
             raise ValueError(
                 f"Shape of the system matrix: {A.shape} must match shape of the solution: {solution_rv.shape}."
             )
-        x = solution_rv.sample(size=(), rng=rng)
+        x = solution_rv.sample(seed=seed, sample_shape=())
 
     return problems.LinearSystem(A=A, b=A @ x, solution=x)

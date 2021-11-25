@@ -11,21 +11,13 @@ from probnum.typing import ShapeType
 from ._utils import _shape_param_to_id_str
 
 
-@pytest.fixture(
-    params=[pytest.param(seed, id=f"seed{seed}") for seed in range(1)],
-    name="rng",
-)
-def fixture_rng(request):
-    """Random state(s) used for test parameterization."""
-    return np.random.default_rng(seed=request.param)
-
-
 # Kernel objects
 @pytest.fixture(
     params=[
         pytest.param(input_dim, id=f"indim{input_dim}") for input_dim in [1, 10, 100]
     ],
     name="input_dim",
+    scope="package",
 )
 def fixture_input_dim(request) -> int:
     """Input dimension of the covariance function."""
@@ -35,7 +27,8 @@ def fixture_input_dim(request) -> int:
 @pytest.fixture(
     params=[
         pytest.param(output_dim, id=f"outdim{output_dim}") for output_dim in [1, 2, 10]
-    ]
+    ],
+    scope="package",
 )
 def output_dim(request) -> int:
     """Output dimension of the covariance function."""
@@ -55,20 +48,21 @@ def output_dim(request) -> int:
             (pn.randprocs.kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
             # (pn.randprocs.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
-            (pn.randprocs.kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
+            (pn.randprocs.kernels.Matern, {"lengthscale": 3.0, "nu": float("inf")}),
         ]
     ],
     name="kernel",
+    scope="package",
 )
 def fixture_kernel(request, input_dim: int) -> pn.randprocs.kernels.Kernel:
     """Kernel / covariance function."""
     return request.param[0](**request.param[1], input_dim=input_dim)
 
 
-@pytest.fixture(name="kernel_call_naive")
+@pytest.fixture(name="kernel_call_naive", scope="package")
 def fixture_kernel_call_naive(
     kernel: pn.randprocs.kernels.Kernel,
-) -> Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray]:
+) -> Callable[[pn.backend.ndarray, Optional[pn.backend.ndarray]], pn.backend.ndarray]:
     """Naive implementation of kernel broadcasting which applies the kernel function to
     scalar arguments while looping over the first dimensions of the inputs explicitly.
     Can be used as a reference implementation of kernel broadcasting."""
@@ -76,8 +70,8 @@ def fixture_kernel_call_naive(
     kernel_vectorized = np.vectorize(kernel, signature="(d),(d)->()")
 
     def _kernel_naive(
-        x0: np.ndarray,
-        x1: Optional[np.ndarray],
+        x0: pn.backend.ndarray,
+        x1: Optional[pn.backend.ndarray],
     ):
         x0, _ = np.broadcast_arrays(
             x0,
@@ -126,6 +120,7 @@ D_IN = None
         ]
     ],
     name="x0_shape",
+    scope="package",
 )
 def fixture_x0_shape(request, input_dim: int) -> ShapeType:
     """Shape of the first argument of ``Kernel.matrix``."""
@@ -146,6 +141,7 @@ def fixture_x0_shape(request, input_dim: int) -> ShapeType:
         ]
     ],
     name="x1_shape",
+    scope="package",
 )
 def fixture_x1_shape(request, input_dim: int) -> ShapeType:
     """Shape of the second argument of ``Kernel.matrix`` or ``None`` if the second
@@ -156,18 +152,20 @@ def fixture_x1_shape(request, input_dim: int) -> ShapeType:
     return tuple(input_dim if dim is D_IN else dim for dim in request.param)
 
 
-@pytest.fixture(name="x0")
-def fixture_x0(rng: np.random.Generator, x0_shape: ShapeType) -> np.ndarray:
+@pytest.fixture(name="x0", scope="package")
+def fixture_x0(x0_shape: ShapeType) -> pn.backend.ndarray:
     """Random data from a standard normal distribution."""
-    return rng.normal(0, 1, size=x0_shape)
+    seed = pn.backend.random.split(pn.backend.random.seed(abs(hash(x0_shape))))[0]
+
+    return pn.backend.random.standard_normal(seed, shape=x0_shape)
 
 
-@pytest.fixture(name="x1")
-def fixture_x1(
-    rng: np.random.Generator, x1_shape: Optional[ShapeType]
-) -> Optional[np.ndarray]:
+@pytest.fixture(name="x1", scope="package")
+def fixture_x1(x1_shape: Optional[ShapeType]) -> Optional[pn.backend.ndarray]:
     """Random data from a standard normal distribution."""
     if x1_shape is None:
         return None
 
-    return rng.normal(0, 1, size=x1_shape)
+    seed = pn.backend.random.split(pn.backend.random.seed(abs(hash(x1_shape))))[1]
+
+    return pn.backend.random.standard_normal(seed, shape=x1_shape)

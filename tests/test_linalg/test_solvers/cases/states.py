@@ -3,20 +3,18 @@
 import numpy as np
 from pytest_cases import case
 
-from probnum import linalg, linops, randvars
+from probnum import backend, linalg, linops, randvars
 from probnum.problems.zoo.linalg import random_linear_system, random_spd_matrix
 
 # Problem
 n = 10
-linsys = random_linear_system(
-    rng=np.random.default_rng(42), matrix=random_spd_matrix, dim=n
-)
+linsys = random_linear_system(42, matrix=random_spd_matrix, dim=n)
 
 # Prior
 Ainv = randvars.Normal(
     mean=linops.Identity(n), cov=linops.SymmetricKronecker(linops.Identity(n))
 )
-b = randvars.Constant(linsys.b)
+b = randvars.Constant(backend.to_numpy(linsys.b))
 prior = linalg.solvers.beliefs.LinearSystemBelief(
     A=randvars.Constant(linsys.A),
     Ainv=Ainv,

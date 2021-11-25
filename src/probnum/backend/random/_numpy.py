@@ -4,6 +4,9 @@ import numpy as np
 
 
 def seed(seed: Optional[int]) -> np.random.SeedSequence:
+    if isinstance(seed, np.random.SeedSequence):
+        return seed
+
     return np.random.SeedSequence(seed)
 
 

@@ -6,7 +6,7 @@ import numpy as np
 import pytest_cases
 import scipy.sparse
 
-from probnum import linops, problems
+from probnum import backend, linops, problems
 from probnum.problems.zoo.linalg import random_linear_system
 
 cases_matrices = ".matrices"
@@ -15,10 +15,10 @@ cases_matrices = ".matrices"
 @pytest_cases.parametrize_with_cases("matrix", cases=cases_matrices)
 def case_linsys(
     matrix: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
-    rng: np.random.Generator,
 ) -> problems.LinearSystem:
     """Linear system."""
-    return random_linear_system(rng=rng, matrix=matrix)
+    seed = backend.random.seed(abs(hash(matrix)))
+    return random_linear_system(seed, matrix=matrix)
 
 
 @pytest_cases.parametrize_with_cases(
@@ -26,7 +26,7 @@ def case_linsys(
 )
 def case_spd_linsys(
     spd_matrix: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
-    rng: np.random.Generator,
 ) -> problems.LinearSystem:
     """Linear system with symmetric positive definite matrix."""
-    return random_linear_system(rng=rng, matrix=spd_matrix)
+    seed = backend.random.seed(abs(hash(spd_matrix)))
+    return random_linear_system(seed, matrix=spd_matrix)

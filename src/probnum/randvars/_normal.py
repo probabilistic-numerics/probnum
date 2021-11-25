@@ -4,7 +4,7 @@ import functools
 import operator
 from typing import Optional, Union
 
-from probnum import backend, config, linops
+from probnum import backend, compat, config, linops
 from probnum.typing import (
     ArrayIndicesLike,
     ArrayLike,
@@ -84,8 +84,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         if not backend.is_floating_dtype(dtype):
             dtype = backend.double
 
-        mean = backend.cast(mean, dtype=dtype, casting="safe", copy=False)
-        cov = backend.cast(cov, dtype=dtype, casting="safe", copy=False)
+        mean = compat.cast(mean, dtype=dtype, casting="safe", copy=False)
+        cov = compat.cast(cov, dtype=dtype, casting="safe", copy=False)
 
         if cov_cholesky is not None:
             # TODO: (#xyz) Handle if-statements like this via `pn.compat.cast`
@@ -144,7 +144,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             )
         else:
             # Multi- and matrix- and tensorvariate Gaussians
-            self._cov_op = linops.aslinop(backend.to_numpy(cov))
+            if isinstance(cov, linops.LinearOperator):
+                self._cov_op = cov
+            else:
+                self._cov_op = linops.aslinop(backend.to_numpy(cov))
+
             self.__cov_op_cholesky = None
 
             if self._cov_cholesky is not None:

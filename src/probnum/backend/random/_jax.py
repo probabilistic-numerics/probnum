@@ -8,6 +8,9 @@ def seed(seed: Optional[int]) -> jax.numpy.ndarray:
     if seed is None:
         seed = secrets.randbits(128)
 
+    if not isinstance(seed, int):
+        return seed
+
     return jax.random.PRNGKey(seed)
 
 

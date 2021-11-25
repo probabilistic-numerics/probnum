@@ -47,6 +47,7 @@ D_IN = None
         ]
     ],
     name="input_shapes",
+    scope="module",
 )
 def fixture_input_shapes(
     request, input_dim: int
@@ -65,22 +66,21 @@ def fixture_input_shapes(
     return (_construct_shape(x0_shape), _construct_shape(x1_shape))
 
 
-@pytest.fixture(name="x0")
-def fixture_x0(
-    rng: np.random.Generator, input_shapes: Tuple[ShapeType, Optional[ShapeType]]
-) -> np.ndarray:
+@pytest.fixture(name="x0", scope="module")
+def fixture_x0(input_shapes: Tuple[ShapeType, Optional[ShapeType]]) -> np.ndarray:
     """The first argument to the covariance function drawn from a standard normal
     distribution."""
 
     x0_shape, _ = input_shapes
 
-    return rng.normal(0, 1, size=x0_shape)
+    seed = pn.backend.random.split(pn.backend.random.seed(abs(hash(x0_shape))))[0]
+
+    return pn.backend.random.standard_normal(seed, shape=x0_shape)
 
 
-@pytest.fixture(name="x1")
+@pytest.fixture(name="x1", scope="module")
 def fixture_x1(
-    rng: np.random.Generator,
-    input_shapes: Tuple[ShapeType, Optional[ShapeType]],
+    input_shapes: Tuple[ShapeType, Optional[ShapeType]]
 ) -> Optional[np.ndarray]:
     """The first argument to the covariance function drawn from a standard normal
     distribution."""
@@ -90,10 +90,12 @@ def fixture_x1(
     if x1_shape is None:
         return None
 
-    return rng.normal(0, 1, size=x1_shape)
+    seed = pn.backend.random.split(pn.backend.random.seed(abs(hash(x1_shape))))[1]
+
+    return pn.backend.random.standard_normal(seed, shape=x1_shape)
 
 
-@pytest.fixture(name="call_result")
+@pytest.fixture(name="call_result", scope="module")
 def fixture_call_result(
     kernel: pn.randprocs.kernels.Kernel, x0: np.ndarray, x1: Optional[np.ndarray]
 ) -> Union[np.ndarray, np.floating]:
@@ -102,7 +104,7 @@ def fixture_call_result(
     return kernel(x0, x1)
 
 
-@pytest.fixture(name="call_result_naive")
+@pytest.fixture(name="call_result_naive", scope="module")
 def fixture_call_result_naive(
     kernel_call_naive: Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray],
     x0: np.ndarray,
