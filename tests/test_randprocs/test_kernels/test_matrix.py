@@ -37,10 +37,10 @@ def fixture_kernmat_naive(
     return kernel_call_naive(x0=x0[:, None, :], x1=x1[None, :, :])
 
 
-def test_type(kernmat: np.ndarray):
+def test_type(kernmat: pn.backend.ndarray):
     """Check whether a kernel evaluates to a numpy scalar or array."""
 
-    assert isinstance(kernmat, (np.ndarray, np.number))
+    assert isinstance(kernmat, pn.backend.ndarray)
 
 
 def test_shape(

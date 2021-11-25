@@ -54,7 +54,7 @@ def output_dim(request) -> int:
             (pn.randprocs.kernels.Matern, {"lengthscale": 0.5, "nu": 0.5}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
-            (pn.randprocs.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
+            # (pn.randprocs.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
         ]
     ],

@@ -4,7 +4,7 @@ from typing import Optional
 
 import probnum.utils as _utils
 from probnum import backend
-from probnum.typing import ArrayType, IntLike, ScalarLike
+from probnum.typing import ArrayType, FloatLike, IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -62,12 +62,12 @@ class Matern(Kernel, IsotropicMixin):
         self,
         input_dim: IntLike,
         lengthscale: ScalarLike = 1.0,
-        nu: ScalarLike = 1.5,
+        nu: FloatLike = 1.5,
     ):
         self.lengthscale = _utils.as_scalar(lengthscale)
         if not self.lengthscale > 0:
             raise ValueError(f"Lengthscale l={self.lengthscale} must be positive.")
-        self.nu = _utils.as_scalar(nu)
+        self.nu = float(nu)
         if not self.nu > 0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
@@ -95,12 +95,12 @@ class Matern(Kernel, IsotropicMixin):
             return backend.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
 
         # The modified Bessel function K_nu is not defined for z=0
-        distances = backend.maximum(distances, backend.finfo(distances.dtype).eps)
+        # distances = backend.maximum(distances, backend.finfo(distances.dtype).eps)
 
-        scaled_distances = backend.sqrt(2 * self.nu) / self.lengthscale * distances
-        return (
-            2 ** (1.0 - self.nu)
-            / backend.special.gamma(self.nu)
-            * scaled_distances ** self.nu
-            * backend.special.kv(self.nu, scaled_distances)
-        )
+        # scaled_distances = backend.sqrt(2 * self.nu) / self.lengthscale * distances
+        # return (
+        #     2 ** (1.0 - self.nu)
+        #     / backend.special.gamma(self.nu)
+        #     * scaled_distances ** self.nu
+        #     * backend.special.kv(self.nu, scaled_distances)
+        # )
