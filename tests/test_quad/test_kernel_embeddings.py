@@ -111,6 +111,7 @@ def test_kernel_var_lebesgue_measure(kernel_embedding):
         true_kernel_variance, num_kernel_variance, rtol=1.0e-3, atol=1.0e-3
     )
 
+
 # Tests for Matern kernels and Lebesgue measure
 @pytest.mark.parametrize("input_dim", [1, 2, 3])
 @pytest.mark.parametrize("num_data", [1, 2, 5])

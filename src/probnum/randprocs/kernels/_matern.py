@@ -48,6 +48,7 @@ class Matern(Kernel, IsotropicMixin):
     See Also
     --------
     ExpQuad : Exponentiated Quadratic / RBF kernel.
+    ProductMatern : Product Matern kernel.
 
     Examples
     --------

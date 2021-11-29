@@ -1,5 +1,7 @@
 """Kernel embedding of Matern kernels with Lebesgue integration measure."""
 
+# pylint: disable=invalid-name
+
 from typing import Tuple, Union
 
 import numpy as np

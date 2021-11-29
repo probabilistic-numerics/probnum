@@ -80,10 +80,10 @@ class ProductMatern(Kernel):
 
         if x1 is None:
             for dim in range(self.input_dim):
-                kernel_eval *= self.one_d_materns[dim]._evaluate(x0[..., dim, None])
+                kernel_eval *= self.one_d_materns[dim](x0[..., dim, None])
         else:
             for dim in range(self.input_dim):
-                kernel_eval *= self.one_d_materns[dim]._evaluate(
+                kernel_eval *= self.one_d_materns[dim](
                     x0[..., dim, None], x1[..., dim, None]
                 )
 
