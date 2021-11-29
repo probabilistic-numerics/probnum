@@ -130,8 +130,27 @@ _DEFAULT_CONFIG_OPTIONS = [
         "matrix_free",
         False,
         (
-            "If True, wherever possible, LinearOperators are used instead "
-            "of arrays. LinearOperators define a matrix-vector product implicitly without instantiating the full matrix in memory. This makes them memory- and runtime-efficient for linear algebra operations."
+            r"If :obj:`True`, wherever possible, :class:`~.linops.LinearOperator`\ s "
+            r"are used instead of arrays. :class:`~.linops.LinearOperator`\ s "
+            r"define a matrix-vector product implicitly without instantiating the full "
+            r"matrix in memory. This makes them memory- and runtime-efficient for "
+            r"linear algebra operations."
+        ),
+    ),
+    (
+        "lazy_matrix_matrix_matmul",
+        True,
+        (
+            r"If this is set to :obj:`False`, the matrix multiplication operator ``@`` "
+            r"applied to two :class:`~probnum.linops.LinearOperator`\ s of type "
+            r":class:`~probnum.linops.Matrix` multiplies the two matrices immediately "
+            r"and returns the product as a :class:`~probnum.linops.Matrix`. Otherwise, "
+            r"i.e. if this option is set to :obj:`True`, a :class:`~probnum.linops."
+            r"ProductLinearOperator`, representing the matrix product, is returned. "
+            r"Multiplying a vector with the :class:`~probnum.linops."
+            r"ProductLinearOperator` is often more efficient than computing the "
+            r"full matrix-matrix product first. This is why this option is set to "
+            r":obj:`True` by default."
         ),
     ),
 ]

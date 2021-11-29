@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from probnum import config, linops
 from probnum.randprocs.markov.integrator import _preconditioner
 
 __all__ = ["IntegratorTransition"]
@@ -63,8 +64,12 @@ class IntegratorTransition:
         """
         projvec1d = np.eye(self.num_derivatives + 1)[:, coord]
         projmat1d = projvec1d.reshape((1, self.num_derivatives + 1))
-        projmat = np.kron(np.eye(self.wiener_process_dimension), projmat1d)
-        return projmat
+        if config.matrix_free:
+            return linops.Kronecker(
+                linops.Identity(self.wiener_process_dimension), projmat1d
+            )
+
+        return np.kron(np.eye(self.wiener_process_dimension), projmat1d)
 
     @property
     def _derivwise2coordwise_projmat(self) -> np.ndarray:
@@ -96,6 +101,8 @@ class IntegratorTransition:
                 * self.wiener_process_dimension : (q + 1)
                 * self.wiener_process_dimension
             ]
+        if config.matrix_free:
+            projmat = linops.aslinop(projmat)
         return projmat
 
     @property

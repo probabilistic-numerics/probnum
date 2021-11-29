@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 
-from probnum.quad.bq_methods.bq_state import BQState
+from probnum.quad.solvers.bq_state import BQState
 from probnum.randvars import Normal
 
 # pylint: disable=too-few-public-methods, too-many-locals

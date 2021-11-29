@@ -173,7 +173,8 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         info = {"crosscov": crosscov}
         if compute_gain:
             if config.matrix_free:
-                gain = (new_cov.T.inv() @ crosscov.T).T
+                # gain = (new_cov.T.inv() @ crosscov.T).T
+                gain = crosscov @ new_cov.inv()
             else:
                 gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
             info["gain"] = gain

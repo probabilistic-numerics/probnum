@@ -14,6 +14,7 @@ from probnum import linops
         ((3, 2), (2, 1)),
         ((1, 2), (2, 1)),
         ((2, 1), (1, 2)),
+        ((1, 1), (1, 1)),
     ],
 )
 @pytest.mark.parametrize("precompute_cov_cholesky", [False])
@@ -45,6 +46,7 @@ def test_constant_matrixvariate_normal_matrix_multiplication_right(
         ((3, 2), (2, 1)),
         ((1, 2), (2, 1)),
         ((2, 1), (1, 2)),
+        ((1, 1), (1,)),
     ],
 )
 @pytest.mark.parametrize("precompute_cov_cholesky", [False])

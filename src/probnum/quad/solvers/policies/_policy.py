@@ -5,7 +5,7 @@ from typing import Callable
 
 import numpy as np
 
-from probnum.quad.bq_methods.bq_state import BQState
+from probnum.quad.solvers.bq_state import BQState
 
 # pylint: disable=too-few-public-methods, fixme
 

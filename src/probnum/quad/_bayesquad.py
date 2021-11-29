@@ -17,7 +17,7 @@ from probnum.randvars import Normal
 from probnum.typing import FloatArgType, IntArgType
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from .bq_methods import BayesianQuadrature
+from .solvers import BayesianQuadrature
 
 
 # pylint: disable=too-many-arguments, no-else-raise

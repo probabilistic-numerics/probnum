@@ -15,7 +15,7 @@ class MaxIterationsStoppingCriterion(LinearSolverStoppingCriterion):
 
     Parameters
     ----------
-    maxiter :
+    maxiter
         Maximum number of steps the solver should take.
     """
 
@@ -29,10 +29,10 @@ class MaxIterationsStoppingCriterion(LinearSolverStoppingCriterion):
 
         Parameters
         ----------
-        solver_state :
+        solver_state
             Current state of the linear solver.
         """
         if self.maxiter is None:
-            self.maxiter = solver_state.problem.A.shape[0] * 10
+            return solver_state.step >= solver_state.problem.A.shape[0] * 10
 
         return solver_state.step >= self.maxiter
