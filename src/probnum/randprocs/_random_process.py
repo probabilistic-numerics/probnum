@@ -5,8 +5,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import randvars
-from probnum import utils as _utils
+from probnum import randvars, utils as _utils
 from probnum.typing import DTypeLike, IntLike, ShapeLike
 
 _InputType = TypeVar("InputType")
@@ -68,7 +67,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         )
 
     @abc.abstractmethod
-    def __call__(self, args: _InputType) -> randvars.RandomVariable[_OutputType]:
+    def __call__(self, args: _InputType) -> randvars.RandomVariable:
         """Evaluate the random process at a set of input arguments.
 
         Parameters

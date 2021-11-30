@@ -34,7 +34,9 @@ torch.set_default_dtype(torch.double)
 
 
 def asdtype(x) -> torch.dtype:
-    # Parse `x` with NumPy and convert `np.dtype`` into `torch.dtype`
+    if isinstance(x, torch.dtype):
+        return x
+
     return torch.as_tensor(
         np.empty(
             (),
