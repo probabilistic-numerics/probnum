@@ -158,13 +158,17 @@ class ProbabilisticLinearSolver(
 
             yield solver_state
 
+            # Check stopping criterion
+            if self.stopping_criterion(solver_state=solver_state):
+                break
+
             # Compute action via policy
             solver_state.action = self.policy(solver_state=solver_state)
 
             # Make observation via information operator
             solver_state.observation = self.information_op(solver_state=solver_state)
 
-            # Update the belief over the quantity of interest
+            # Update belief about the quantities of interest
             solver_state.belief = self.belief_update(solver_state=solver_state)
 
             # Advance state to next step and invalidate caches
@@ -195,12 +199,8 @@ class ProbabilisticLinearSolver(
         solver_state
             Final state of the solver.
         """
-        solver_state = None
-
         for solver_state in self.solve_iterator(prior=prior, problem=problem, rng=rng):
-
-            if self.stopping_criterion(solver_state=solver_state):
-                break
+            pass
 
         return solver_state.belief, solver_state
 
