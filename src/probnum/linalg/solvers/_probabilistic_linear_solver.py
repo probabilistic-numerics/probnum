@@ -199,6 +199,8 @@ class ProbabilisticLinearSolver(
         solver_state
             Final state of the solver.
         """
+        solver_state = None
+
         for solver_state in self.solve_iterator(prior=prior, problem=problem, rng=rng):
             pass
 
