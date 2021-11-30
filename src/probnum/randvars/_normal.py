@@ -460,10 +460,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
     def _arg_todense(x: Union[ArrayType, linops.LinearOperator]) -> ArrayType:
         if isinstance(x, linops.LinearOperator):
             return x.todense()
-        elif isinstance(x, backend.ndarray):
+
+        if isinstance(x, backend.ndarray):
             return x
-        else:
-            raise ValueError(f"Unsupported argument type {type(x)}")
+
+        raise ValueError(f"Unsupported argument type {type(x)}")
 
     @backend.jit_method
     def _in_support(self, x: ArrayType) -> ArrayType:
@@ -504,7 +505,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if backend.BACKEND is not backend.Backend.NUMPY:
             raise NotImplementedError()
 
-        import scipy.stats
+        import scipy.stats  # pylint: disable=import-outside-toplevel
 
         return scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
@@ -516,7 +517,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if backend.BACKEND is not backend.Backend.NUMPY:
             raise NotImplementedError()
 
-        import scipy.stats
+        import scipy.stats  # pylint: disable=import-outside-toplevel
 
         return scipy.stats.multivariate_normal.logcdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),

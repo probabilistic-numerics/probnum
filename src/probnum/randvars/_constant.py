@@ -5,8 +5,8 @@ from typing import Callable
 
 import numpy as np
 
-from probnum import config, linops, utils as _utils
-from probnum.typing import ArrayIndicesLike, ArrayType, ShapeLike, ShapeType
+from probnum import backend, config, linops, utils as _utils
+from probnum.typing import ArrayIndicesLike, ArrayType, SeedType, ShapeLike, ShapeType
 
 from . import _random_variable
 
@@ -55,10 +55,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
         self,
         support: ArrayType,
     ):
-        if np.isscalar(support):
-            support = _utils.as_numpy_scalar(support)
-
-        self._support = support
+        self._support = backend.asarray(support)
 
         support_floating = self._support.astype(
             np.promote_types(self._support.dtype, np.float_)
@@ -137,13 +134,13 @@ class Constant(_random_variable.DiscreteRandomVariable):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> ArrayType:
-        size = _utils.as_shape(size)
+    def _sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> ArrayType:
+        # pylint: disable=unused-argument
 
-        if size == ():
+        if sample_shape == ():
             return self._support.copy()
-        else:
-            return np.tile(self._support, reps=size + (1,) * self.ndim)
+
+        return np.tile(self._support, reps=sample_shape + (1,) * self.ndim)
 
     # Unary arithmetic operations
 

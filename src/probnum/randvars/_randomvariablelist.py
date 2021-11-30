@@ -5,7 +5,7 @@ from typing import Union
 
 import numpy as np
 
-from probnum import randvars
+from probnum.randvars import _random_variable
 
 
 class _RandomVariableList(list):
@@ -25,14 +25,16 @@ class _RandomVariableList(list):
         if len(rv_list) > 0:
 
             # First element as a proxy for checking all elements
-            if not isinstance(rv_list[0], randvars.RandomVariable):
+            if not isinstance(rv_list[0], _random_variable.RandomVariable):
                 raise TypeError(
                     "RandomVariableList expects RandomVariable elements, but "
                     + f"first element has type {type(rv_list[0])}."
                 )
         super().__init__(rv_list)
 
-    def __getitem__(self, idx) -> Union[randvars.RandomVariable, "_RandomVariableList"]:
+    def __getitem__(
+        self, idx
+    ) -> Union[_random_variable.RandomVariable, "_RandomVariableList"]:
 
         result = super().__getitem__(idx)
         # Make sure to wrap the result into a _RandomVariableList if necessary

@@ -13,8 +13,6 @@ from probnum.typing import (
     ArrayLike,
     ArrayType,
     DTypeLike,
-    FloatLike,
-    ScalarType,
     SeedType,
     ShapeLike,
     ShapeType,
@@ -333,7 +331,8 @@ class RandomVariable:
     def std(self) -> ArrayType:
         """Standard deviation of the random variable.
 
-        To learn about the dtype of the standard deviation, see :attr:`expectation_dtype`.
+        To learn about the dtype of the standard deviation, see
+        :attr:`expectation_dtype`.
         """
         if self.__std is None:
             std = backend.sqrt(self.var)
@@ -574,7 +573,9 @@ class RandomVariable:
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            sample=lambda rng, size: -self.sample(rng=rng, size=size),
+            sample=lambda seed, sample_shape: -self.sample(
+                seed=seed, sample_shape=sample_shape
+            ),
             in_support=lambda x: self.in_support(-x),
             mode=lambda: -self.mode,
             median=lambda: -self.median,
@@ -588,7 +589,9 @@ class RandomVariable:
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            sample=lambda rng, size: +self.sample(rng=rng, size=size),
+            sample=lambda seed, sample_shape: +self.sample(
+                seed=seed, sample_shape=sample_shape
+            ),
             in_support=lambda x: self.in_support(+x),
             mode=lambda: +self.mode,
             median=lambda: +self.median,
@@ -602,7 +605,9 @@ class RandomVariable:
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            sample=lambda rng, size: abs(self.sample(rng=rng, size=size)),
+            sample=lambda seed, sample_shape: abs(
+                self.sample(seed=seed, sample_shape=sample_shape)
+            ),
         )
 
     # Binary arithmetic operations
@@ -887,6 +892,8 @@ class DiscreteRandomVariable(RandomVariable):
         std: Optional[Callable[[], ArrayType]] = None,
         entropy: Optional[Callable[[], ScalarType]] = None,
     ):
+        # pylint: disable=too-many-arguments,too-many-locals
+
         # Probability mass function
         self.__pmf = pmf
         self.__logpmf = logpmf
@@ -1094,6 +1101,8 @@ class ContinuousRandomVariable(RandomVariable):
         std: Optional[Callable[[], ArrayType]] = None,
         entropy: Optional[Callable[[], ArrayType]] = None,
     ):
+        # pylint: disable=too-many-arguments,too-many-locals
+
         # Probability density function
         self.__pdf = pdf
         self.__logpdf = logpdf
