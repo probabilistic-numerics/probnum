@@ -76,7 +76,10 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
             + gain * proj_resid,  # x_k + Sigma A s (s' A Sigma A s)^+ * s' r_k
             cov=solver_state.belief.x.cov - cov_update,
         )
-        Ainv = solver_state.belief.Ainv + cov_update
+        if solver_state.belief.Ainv is None:
+            Ainv = randvars.Constant(cov_update)
+        else:
+            Ainv = solver_state.belief.Ainv + cov_update
 
         # Reorthogonalize residuals
         new_residual = solver_state.problem.A @ x.mean - solver_state.problem.b

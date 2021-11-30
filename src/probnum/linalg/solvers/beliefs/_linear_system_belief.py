@@ -22,9 +22,12 @@ class LinearSystemBelief:
 
     Random variables :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
     modelling the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
-    :math:`H=A^{-1}` and the right hand side :math:`b` of a linear system :math:`Ax=b`, as well as any associated hyperparameters.
+    :math:`H=A^{\dagger}` and the right hand side :math:`b` of a linear system :math:`Ax=b`,
+    as well as any associated hyperparameters.
 
-    For instantiation either a belief about the solution or the inverse and right hand side must be provided. Note that if both are specified, their consistency is not checked and depending on the algorithm either may be used.
+    For instantiation either a belief about the solution or the inverse and right hand side
+    must be provided. Note that if both are specified, their consistency is not checked and
+    depending on the algorithm either may be used.
 
     Parameters
     ----------
