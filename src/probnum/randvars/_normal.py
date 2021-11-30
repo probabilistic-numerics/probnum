@@ -19,10 +19,8 @@ from probnum.typing import (
 
 from . import _random_variable
 
-_ValueType = Union[ArrayType, linops.LinearOperator]
 
-
-class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
+class Normal(_random_variable.ContinuousRandomVariable):
     """Random variable with a normal distribution.
 
     Gaussian random variables are ubiquitous in probability theory, since the
@@ -194,7 +192,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # TODO (#569): Integrate Cholesky functionality into `LinearOperator.cholesky`
 
     @property
-    def cov_cholesky(self) -> _ValueType:
+    def cov_cholesky(self) -> ArrayType:
         r"""Cholesky factor :math:`L` of the covariance
         :math:`\operatorname{Cov}(X) =LL^\top`."""
 
@@ -211,7 +209,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return self._cov_op_cholesky.todense()
 
     @property
-    def _cov_op_cholesky(self) -> _ValueType:
+    def _cov_op_cholesky(self) -> ArrayType:
         if not self.cov_cholesky_is_precomputed:
             self.compute_cov_cholesky()
 
@@ -412,27 +410,27 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     @staticmethod
     @backend.jit
-    def _scalar_in_support(x: _ValueType) -> ArrayType:
+    def _scalar_in_support(x: ArrayType) -> ArrayType:
         return backend.isfinite(x)
 
     @backend.jit_method
-    def _scalar_pdf(self, x: _ValueType) -> ArrayType:
+    def _scalar_pdf(self, x: ArrayType) -> ArrayType:
         return backend.exp(-((x - self.mean) ** 2) / (2.0 * self.var)) / backend.sqrt(
             2 * backend.pi * self.var
         )
 
     @backend.jit_method
-    def _scalar_logpdf(self, x: _ValueType) -> ArrayType:
+    def _scalar_logpdf(self, x: ArrayType) -> ArrayType:
         return -((x - self.mean) ** 2) / (2.0 * self.var) - 0.5 * backend.log(
             2.0 * backend.pi * self.var
         )
 
     @backend.jit_method
-    def _scalar_cdf(self, x: _ValueType) -> ArrayType:
+    def _scalar_cdf(self, x: ArrayType) -> ArrayType:
         return backend.special.ndtr((x - self.mean) / self.std)
 
     @backend.jit_method
-    def _scalar_logcdf(self, x: _ValueType) -> ArrayType:
+    def _scalar_logcdf(self, x: ArrayType) -> ArrayType:
         return backend.log(self._scalar_cdf(x))
 
     @backend.jit_method
@@ -468,7 +466,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             raise ValueError(f"Unsupported argument type {type(x)}")
 
     @backend.jit_method
-    def _in_support(self, x: _ValueType) -> ArrayType:
+    def _in_support(self, x: ArrayType) -> ArrayType:
         return backend.all(
             backend.isfinite(Normal._arg_todense(x)),
             axis=tuple(range(-self.ndim, 0)),
@@ -476,11 +474,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     @backend.jit_method
-    def _pdf(self, x: _ValueType) -> ArrayType:
+    def _pdf(self, x: ArrayType) -> ArrayType:
         return backend.exp(self._logpdf(x))
 
     @backend.jit_method
-    def _logpdf(self, x: _ValueType) -> ArrayType:
+    def _logpdf(self, x: ArrayType) -> ArrayType:
         x_centered = Normal._arg_todense(x - self.dense_mean).reshape(
             x.shape[: -self.ndim] + (-1,)
         )[..., None]
@@ -502,7 +500,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         return res
 
-    def _cdf(self, x: _ValueType) -> ArrayType:
+    def _cdf(self, x: ArrayType) -> ArrayType:
         if backend.BACKEND is not backend.Backend.NUMPY:
             raise NotImplementedError()
 
@@ -514,7 +512,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             cov=self.dense_cov,
         )
 
-    def _logcdf(self, x: _ValueType) -> ArrayType:
+    def _logcdf(self, x: ArrayType) -> ArrayType:
         if backend.BACKEND is not backend.Backend.NUMPY:
             raise NotImplementedError()
 

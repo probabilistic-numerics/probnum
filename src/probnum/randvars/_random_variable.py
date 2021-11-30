@@ -1,19 +1,29 @@
 """Random Variables."""
 
+import functools
+import operator
 from functools import cached_property
-from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 
 from probnum import backend, utils as _utils
-from probnum.typing import ArrayIndicesLike, DTypeLike, FloatLike, ShapeLike, ShapeType
-
-_ValueType = TypeVar("ValueType")
+from probnum.typing import (
+    ArrayIndicesLike,
+    ArrayLike,
+    ArrayType,
+    DTypeLike,
+    FloatLike,
+    ScalarType,
+    SeedType,
+    ShapeLike,
+    ShapeType,
+)
 
 # pylint: disable="too-many-lines"
 
 
-class RandomVariable(Generic[_ValueType]):
+class RandomVariable:
     """Random variables represent uncertainty about a value.
 
     Random variables generalize multi-dimensional arrays by encoding uncertainty
@@ -107,19 +117,19 @@ class RandomVariable(Generic[_ValueType]):
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[np.random.Generator, ShapeType], _ValueType]] = None,
-        in_support: Optional[Callable[[_ValueType], bool]] = None,
-        cdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
-        mode: Optional[Callable[[], _ValueType]] = None,
-        median: Optional[Callable[[], _ValueType]] = None,
-        mean: Optional[Callable[[], _ValueType]] = None,
-        cov: Optional[Callable[[], _ValueType]] = None,
-        var: Optional[Callable[[], _ValueType]] = None,
-        std: Optional[Callable[[], _ValueType]] = None,
-        entropy: Optional[Callable[[], np.float_]] = None,
-        as_value_type: Optional[Callable[[Any], _ValueType]] = None,
+        sample: Optional[Callable[[SeedType, ShapeType], ArrayType]] = None,
+        in_support: Optional[Callable[[ArrayType], bool]] = None,
+        cdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logcdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        quantile: Optional[Callable[[ArrayType], ArrayType]] = None,
+        mode: Optional[Callable[[], ArrayType]] = None,
+        median: Optional[Callable[[], ArrayType]] = None,
+        mean: Optional[Callable[[], ArrayType]] = None,
+        cov: Optional[Callable[[], ArrayType]] = None,
+        var: Optional[Callable[[], ArrayType]] = None,
+        std: Optional[Callable[[], ArrayType]] = None,
+        entropy: Optional[Callable[[], ScalarType]] = None,
+        as_value_type: Optional[Callable[[Any], ArrayType]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
         """Create a new random variable."""
@@ -169,8 +179,8 @@ class RandomVariable(Generic[_ValueType]):
     @cached_property
     def size(self) -> int:
         """Size of realizations of the random variable, defined as the product over all
-        components of :meth:`shape`."""
-        return int(np.prod(self.__shape))
+        components of :attr:`shape`."""
+        return functools.reduce(operator.mul, self.__shape, initial=1)
 
     @property
     def dtype(self) -> backend.dtype:
@@ -215,7 +225,7 @@ class RandomVariable(Generic[_ValueType]):
         return self.__parameters.copy()
 
     @cached_property
-    def mode(self) -> _ValueType:
+    def mode(self) -> ArrayType:
         """Mode of the random variable."""
         if self.__mode is None:
             raise NotImplementedError
@@ -236,7 +246,7 @@ class RandomVariable(Generic[_ValueType]):
         return mode
 
     @cached_property
-    def median(self) -> _ValueType:
+    def median(self) -> ArrayType:
         """Median of the random variable.
 
         To learn about the dtype of the median, see
@@ -264,7 +274,7 @@ class RandomVariable(Generic[_ValueType]):
         return median
 
     @cached_property
-    def mean(self) -> _ValueType:
+    def mean(self) -> ArrayType:
         """Mean :math:`\\mathbb{E}(X)` of the random variable.
 
         To learn about the dtype of the mean, see :attr:`moment_dtype`.
@@ -288,7 +298,7 @@ class RandomVariable(Generic[_ValueType]):
         return mean
 
     @cached_property
-    def cov(self) -> _ValueType:
+    def cov(self) -> ArrayType:
         """Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the random variable.
 
         To learn about the dtype of the covariance, see :attr:`moment_dtype`.
@@ -312,7 +322,7 @@ class RandomVariable(Generic[_ValueType]):
         return cov
 
     @cached_property
-    def var(self) -> _ValueType:
+    def var(self) -> ArrayType:
         """Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)`
         of the random variable.
 
@@ -340,7 +350,7 @@ class RandomVariable(Generic[_ValueType]):
         return var
 
     @cached_property
-    def std(self) -> _ValueType:
+    def std(self) -> ArrayType:
         """Standard deviation of the random variable.
 
         To learn about the dtype of the standard deviation, see
@@ -368,7 +378,7 @@ class RandomVariable(Generic[_ValueType]):
         return std
 
     @cached_property
-    def entropy(self) -> np.float_:
+    def entropy(self) -> ScalarType:
         """Information-theoretic entropy :math:`H(X)` of the random variable."""
         if self.__entropy is None:
             raise NotImplementedError
@@ -381,7 +391,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return entropy
 
-    def in_support(self, x: _ValueType) -> bool:
+    def in_support(self, x: ArrayType) -> ArrayType:
         """Check whether the random variable takes value ``x`` with non-zero
         probability, i.e. if ``x`` is in the support of its distribution.
 
@@ -403,7 +413,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return in_support
 
-    def sample(self, seed, sample_shape: ShapeLike = ()) -> _ValueType:
+    def sample(self, seed, sample_shape: ShapeLike = ()) -> ArrayType:
         """Draw realizations from a random variable.
 
         Parameters
@@ -418,7 +428,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return self.__sample(seed=seed, sample_shape=_utils.as_shape(sample_shape))
 
-    def cdf(self, x: _ValueType) -> np.float_:
+    def cdf(self, x: ArrayType) -> ArrayType:
         """Cumulative distribution function.
 
         Parameters
@@ -445,7 +455,7 @@ class RandomVariable(Generic[_ValueType]):
                 f"with type `{type(self).__name__}` is implemented."
             )
 
-    def logcdf(self, x: _ValueType) -> np.float_:
+    def logcdf(self, x: ArrayType) -> ArrayType:
         """Log-cumulative distribution function.
 
         Parameters
@@ -472,7 +482,7 @@ class RandomVariable(Generic[_ValueType]):
                 f"with type `{type(self).__name__}` is implemented."
             )
 
-    def quantile(self, p: FloatLike) -> _ValueType:
+    def quantile(self, p: ArrayLike) -> ArrayType:
         """Quantile function.
 
         The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
@@ -739,7 +749,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return pow_(other, self)
 
-    def _as_value_type(self, x: Any) -> _ValueType:
+    def _as_value_type(self, x: Any) -> ArrayType:
         if self.__as_value_type is not None:
             return self.__as_value_type(x)
 
@@ -749,7 +759,7 @@ class RandomVariable(Generic[_ValueType]):
     def _check_property_value(
         name: str,
         value: Any,
-        shape: Optional[Tuple[int, ...]] = None,
+        shape: Optional[ShapeType] = None,
         dtype: Optional[backend.dtype] = None,
     ):
         if shape is not None:
@@ -759,12 +769,12 @@ class RandomVariable(Generic[_ValueType]):
                     f"shape. Expected {shape} but got {value.shape}."
                 )
 
-        # if dtype is not None:
-        #     if not np.issubdtype(value.dtype, dtype):
-        #         raise ValueError(
-        #             f"The {name} of the random variable does not have the correct "
-        #             f"dtype. Expected {dtype.name} but got {value.dtype.name}."
-        #         )
+        if dtype is not None:
+            if value.dtype != dtype:
+                raise ValueError(
+                    f"The {name} of the random variable does not have the correct "
+                    f"dtype. Expected {dtype.name} but got {value.dtype.name}."
+                )
 
     @classmethod
     def _ensure_numpy_float(
@@ -804,7 +814,7 @@ class RandomVariable(Generic[_ValueType]):
         return value
 
 
-class DiscreteRandomVariable(RandomVariable[_ValueType]):
+class DiscreteRandomVariable(RandomVariable):
     """Random variable with countable range.
 
     Discrete random variables map to a countable set. Typical examples are the natural
@@ -919,21 +929,21 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
-        in_support: Optional[Callable[[_ValueType], bool]] = None,
-        pmf: Optional[Callable[[_ValueType], np.float_]] = None,
-        logpmf: Optional[Callable[[_ValueType], np.float_]] = None,
-        cdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
-        mode: Optional[Callable[[], _ValueType]] = None,
-        median: Optional[Callable[[], _ValueType]] = None,
-        mean: Optional[Callable[[], _ValueType]] = None,
-        cov: Optional[Callable[[], _ValueType]] = None,
-        var: Optional[Callable[[], _ValueType]] = None,
-        std: Optional[Callable[[], _ValueType]] = None,
-        entropy: Optional[Callable[[], np.float_]] = None,
-        as_value_type: Optional[Callable[[Any], _ValueType]] = None,
+        sample: Optional[Callable[[SeedType, ShapeType], ArrayType]] = None,
+        in_support: Optional[Callable[[ArrayType], ArrayType]] = None,
+        pmf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logpmf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        cdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logcdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        quantile: Optional[Callable[[ArrayType], ArrayType]] = None,
+        mode: Optional[Callable[[], ArrayType]] = None,
+        median: Optional[Callable[[], ArrayType]] = None,
+        mean: Optional[Callable[[], ArrayType]] = None,
+        cov: Optional[Callable[[], ArrayType]] = None,
+        var: Optional[Callable[[], ArrayType]] = None,
+        std: Optional[Callable[[], ArrayType]] = None,
+        entropy: Optional[Callable[[], ScalarType]] = None,
+        as_value_type: Optional[Callable[[Any], ArrayType]] = None,
     ):
         # Probability mass function
         self.__pmf = pmf
@@ -958,7 +968,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             as_value_type=as_value_type,
         )
 
-    def pmf(self, x: _ValueType) -> np.float_:
+    def pmf(self, x: ArrayType) -> ArrayType:
         """Probability mass function.
 
         Computes the probability of the random variable being equal to the given
@@ -992,7 +1002,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
                 f"object with type `{type(self).__name__}` is implemented."
             )
 
-    def logpmf(self, x: _ValueType) -> np.float_:
+    def logpmf(self, x: ArrayType) -> ArrayType:
         """Natural logarithm of the probability mass function.
 
         Parameters
@@ -1020,7 +1030,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             )
 
 
-class ContinuousRandomVariable(RandomVariable[_ValueType]):
+class ContinuousRandomVariable(RandomVariable):
     """Random variable with uncountably infinite range.
 
     Continuous random variables map to a uncountably infinite set. Typically, this is a
@@ -1135,21 +1145,21 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
-        in_support: Optional[Callable[[_ValueType], bool]] = None,
-        pdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        logpdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        cdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
-        mode: Optional[Callable[[], _ValueType]] = None,
-        median: Optional[Callable[[], _ValueType]] = None,
-        mean: Optional[Callable[[], _ValueType]] = None,
-        cov: Optional[Callable[[], _ValueType]] = None,
-        var: Optional[Callable[[], _ValueType]] = None,
-        std: Optional[Callable[[], _ValueType]] = None,
-        entropy: Optional[Callable[[], np.float_]] = None,
-        as_value_type: Optional[Callable[[Any], _ValueType]] = None,
+        sample: Optional[Callable[[SeedType, ShapeType], ArrayType]] = None,
+        in_support: Optional[Callable[[ArrayType], ArrayType]] = None,
+        pdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logpdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        cdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logcdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        quantile: Optional[Callable[[ArrayType], ArrayType]] = None,
+        mode: Optional[Callable[[], ArrayType]] = None,
+        median: Optional[Callable[[], ArrayType]] = None,
+        mean: Optional[Callable[[], ArrayType]] = None,
+        cov: Optional[Callable[[], ArrayType]] = None,
+        var: Optional[Callable[[], ArrayType]] = None,
+        std: Optional[Callable[[], ArrayType]] = None,
+        entropy: Optional[Callable[[], ArrayType]] = None,
+        as_value_type: Optional[Callable[[Any], ArrayType]] = None,
     ):
         # Probability density function
         self.__pdf = pdf
@@ -1174,7 +1184,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
             as_value_type=as_value_type,
         )
 
-    def pdf(self, x: _ValueType) -> np.float_:
+    def pdf(self, x: ArrayType) -> ArrayType:
         """Probability density function.
 
         The area under the curve defined by the probability density function
@@ -1209,7 +1219,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
             f"object with type `{type(self).__name__}` is implemented."
         )
 
-    def logpdf(self, x: _ValueType) -> np.float_:
+    def logpdf(self, x: ArrayType) -> ArrayType:
         """Natural logarithm of the probability density function.
 
         Parameters

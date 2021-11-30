@@ -1,20 +1,17 @@
 """(Almost surely) constant random variables."""
 
 from functools import cached_property
-from typing import Callable, TypeVar
+from typing import Callable
 
 import numpy as np
 
-from probnum import config, linops
-from probnum import utils as _utils
-from probnum.typing import ArrayIndicesLike, ShapeLike, ShapeType
+from probnum import config, linops, utils as _utils
+from probnum.typing import ArrayIndicesLike, ArrayType, ShapeLike, ShapeType
 
 from . import _random_variable
 
-_ValueType = TypeVar("ValueType")
 
-
-class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
+class Constant(_random_variable.DiscreteRandomVariable):
     """Random variable representing a constant value.
 
     Discrete random variable which (with probability one) takes a constant value. The
@@ -56,7 +53,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     def __init__(
         self,
-        support: _ValueType,
+        support: ArrayType,
     ):
         if np.isscalar(support):
             support = _utils.as_numpy_scalar(support)
@@ -111,7 +108,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
         return self.cov
 
     @property
-    def support(self) -> _ValueType:
+    def support(self) -> ArrayType:
         """Constant value taken by the random variable."""
         return self._support
 
@@ -140,7 +137,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> _ValueType:
+    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> ArrayType:
         size = _utils.as_shape(size)
 
         if size == ():
@@ -169,7 +166,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     @staticmethod
     def _binary_operator_factory(
-        operator: Callable[[_ValueType, _ValueType], _ValueType]
+        operator: Callable[[ArrayType, ArrayType], ArrayType]
     ) -> Callable[["Constant", "Constant"], "Constant"]:
         def _constant_rv_binary_operator(
             constant_rv1: Constant, constant_rv2: Constant
