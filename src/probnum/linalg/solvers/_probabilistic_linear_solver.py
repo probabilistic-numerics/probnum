@@ -191,7 +191,7 @@ class ProbabilisticLinearSolver(
         -------
         belief
             Posterior belief :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
-            over the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
+            over the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse :math:`H=A^\dagger` and the right hand side :math:`b`.
         solver_state
             Final state of the solver.
         """
