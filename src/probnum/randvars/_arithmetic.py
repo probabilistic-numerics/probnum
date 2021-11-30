@@ -123,19 +123,21 @@ def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
 
 
 def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
-    seed = backend.random.seed(1)
-    sample_fn = lambda sample_shape: op_fn(
-        rv1.sample(seed=seed, sample_shape=sample_shape),
-        rv2.sample(seed=seed, sample_shape=sample_shape),
-    )
+    def sample(seed, sample_shape):
+        seed1, seed2, _ = backend.random.split(seed, 3)
+
+        return op_fn(
+            rv1.sample(seed=seed1, sample_shape=sample_shape),
+            rv2.sample(seed=seed2, sample_shape=sample_shape),
+        )
 
     # Infer shape and dtype
-    infer_sample = sample_fn(())
+    infer_sample = sample(backend.random.seed(1), ())
 
     shape = infer_sample.shape
     dtype = infer_sample.dtype
 
-    return shape, dtype, sample_fn
+    return shape, dtype, sample
 
 
 def _generic_rv_add(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:

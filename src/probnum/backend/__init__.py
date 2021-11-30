@@ -18,6 +18,7 @@ __all__ = [
     "is_floating",
     "finfo",
     # Shape Arithmetic
+    "reshape",
     "atleast_1d",
     "atleast_2d",
     "broadcast_arrays",

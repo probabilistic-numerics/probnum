@@ -33,6 +33,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     ones_like,
     pi,
     promote_types,
+    reshape,
     sin,
     single,
     sqrt,

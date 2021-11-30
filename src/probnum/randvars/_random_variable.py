@@ -308,7 +308,10 @@ class RandomVariable:
         """
         if self.__var is None:
             try:
-                var = np.diag(self.cov).reshape(self.__shape).copy()
+                var = backend.reshape(
+                    backend.diag(self.cov),
+                    self.__shape,
+                ).copy()
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
@@ -509,8 +512,12 @@ class RandomVariable:
         return quantile
 
     def __getitem__(self, key: ArrayIndicesLike) -> "RandomVariable":
+        # Shape inference
+        # For simplicity, this should not be computed using backend, but rather in numpy
+        shape = np.broadcast_to(np.empty(()), self.shape)[key].shape
+
         return RandomVariable(
-            shape=np.empty(shape=self.shape)[key].shape,
+            shape=shape,
             dtype=self.dtype,
             sample=lambda rng, size: self.sample(rng, size)[key],
             mode=lambda: self.mode[key],
@@ -552,8 +559,13 @@ class RandomVariable:
         axes :
             See documentation of :meth:`numpy.ndarray.transpose`.
         """
+
+        # Shape inference
+        # For simplicity, this should not be computed using backend, but rather in numpy
+        shape = np.broadcast_to(np.empty(()), self.shape).transpose(*axes).shape
+
         return RandomVariable(
-            shape=np.empty(shape=self.shape).transpose(*axes).shape,
+            shape=shape,
             dtype=self.dtype,
             sample=lambda rng, size: self.sample(rng, size).transpose(*axes),
             mode=lambda: self.mode.transpose(*axes),

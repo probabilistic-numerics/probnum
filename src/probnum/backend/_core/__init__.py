@@ -27,6 +27,7 @@ is_floating_dtype = _core.is_floating_dtype
 finfo = _core.finfo
 
 # Shape Arithmetic
+reshape = _core.reshape
 atleast_1d = _core.atleast_1d
 atleast_2d = _core.atleast_2d
 broadcast_arrays = _core.broadcast_arrays

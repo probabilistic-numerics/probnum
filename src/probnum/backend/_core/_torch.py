@@ -26,6 +26,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     maximum,
     pi,
     promote_types,
+    reshape,
     sin,
     sqrt,
 )
