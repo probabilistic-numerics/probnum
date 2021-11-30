@@ -4,10 +4,8 @@ variables."""
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
-import numpy as np
-
 import probnum.linops as _linear_operators
-from probnum import utils as _utils
+from probnum import backend, utils as _utils
 
 from ._constant import Constant as _Constant
 from ._normal import Normal as _Normal
@@ -81,7 +79,7 @@ def _apply(
     rv1 = _asrandvar(rv1)
     rv2 = _asrandvar(rv2)
 
-    # Search specific operatir
+    # Search specific operator
     key = (type(rv1), type(rv2))
 
     if key in op_registry:
@@ -125,9 +123,10 @@ def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
 
 
 def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
-    rng = np.random.default_rng(1)
-    sample_fn = lambda size: op_fn(
-        rv1.sample(size=size, rng=rng), rv2.sample(size=size, rng=rng)
+    seed = backend.random.seed(1)
+    sample_fn = lambda sample_shape: op_fn(
+        rv1.sample(seed=seed, sample_shape=sample_shape),
+        rv2.sample(seed=seed, sample_shape=sample_shape),
     )
 
     # Infer shape and dtype
@@ -253,7 +252,7 @@ def _mul_normal_constant(
     if constant_rv.size == 1:
         if constant_rv.support == 0:
             return _Constant(
-                support=np.zeros_like(norm_rv.mean),
+                support=backend.zeros_like(norm_rv.mean),
             )
         else:
             if norm_rv.cov_cholesky_is_precomputed:
