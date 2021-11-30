@@ -385,7 +385,7 @@ class RandomVariable:
 
         self._check_return_value(
             "in_support",
-            input=x,
+            input_value=x,
             return_value=in_support,
             expected_shape=x.shape[: -self.ndim],
             expected_dtype=backend.bool,
@@ -435,7 +435,7 @@ class RandomVariable:
 
         self._check_return_value(
             "cdf",
-            input=x,
+            input_value=x,
             return_value=cdf,
             expected_shape=x.shape[: -self.ndim],
             expected_dtype=backend.double,
@@ -466,7 +466,7 @@ class RandomVariable:
 
         self._check_return_value(
             "logcdf",
-            input=x,
+            input_value=x,
             return_value=logcdf,
             expected_shape=x.shape[: -self.ndim],
             expected_dtype=backend.double,
@@ -500,7 +500,7 @@ class RandomVariable:
 
         self._check_return_value(
             "quantile",
-            input=p,
+            input_value=p,
             return_value=quantile,
             expected_shape=p.shape + self.shape,
             expected_dtype=self.dtype,
@@ -753,17 +753,19 @@ class RandomVariable:
     def _check_return_value(
         self,
         method_name: str,
-        input: ArrayType,
+        input_value: ArrayType,
         return_value: ArrayType,
         expected_shape: Optional[ShapeType] = None,
         expected_dtype: Optional[backend.dtype] = None,
     ):
+        # pylint: disable=too-many-arguments
+
         if expected_shape is not None:
             if return_value.shape != expected_shape:
                 raise ValueError(
                     f"The return value of the function `{method_name}` does not have "
-                    f"the correct shape for an input with shape {input.shape} and a "
-                    f"random variable with shape {self.shape}. Expected "
+                    f"the correct shape for an input with shape {input_value.shape} "
+                    f"and a random variable with shape {self.shape}. Expected "
                     f"{expected_shape} but got {return_value.shape}."
                 )
 
@@ -771,9 +773,10 @@ class RandomVariable:
             if return_value.dtype != expected_dtype:
                 raise ValueError(
                     f"The return value of the function `{method_name}` does not have "
-                    f"the correct dtype for an input with dtype {str(input.dtype)} and "
-                    f"a random variable with dtype {str(self.dtype)}. Expexted "
-                    f"{str(expected_dtype)} but got {str(return_value.dtype)}."
+                    f"the correct dtype for an input with dtype "
+                    f"{str(input_value.dtype)} and a random variable with dtype "
+                    f"{str(self.dtype)}. Expected {str(expected_dtype)} but got "
+                    f"{str(return_value.dtype)}."
                 )
 
 
@@ -948,7 +951,7 @@ class DiscreteRandomVariable(RandomVariable):
 
         self._check_return_value(
             "pmf",
-            input=x,
+            input_value=x,
             return_value=pmf,
             expected_shape=x.shape[: -self.ndim],
             expected_dtype=backend.double,
@@ -979,7 +982,7 @@ class DiscreteRandomVariable(RandomVariable):
 
         self._check_return_value(
             "logpmf",
-            input=x,
+            input_value=x,
             return_value=logpmf,
             expected_shape=x.shape[: -self.ndim],
             expected_dtype=backend.double,
@@ -1157,7 +1160,7 @@ class ContinuousRandomVariable(RandomVariable):
 
         self._check_return_value(
             "pdf",
-            input=x,
+            input_value=x,
             return_value=pdf,
             expected_shape=x.shape[: -self.ndim],
             expected_dtype=backend.double,
@@ -1188,7 +1191,7 @@ class ContinuousRandomVariable(RandomVariable):
 
         self._check_return_value(
             "logpdf",
-            input=x,
+            input_value=x,
             return_value=logpdf,
             expected_shape=x.shape[: -self.ndim],
             expected_dtype=backend.double,

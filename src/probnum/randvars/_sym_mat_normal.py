@@ -1,7 +1,7 @@
 import numpy as np
 
-from probnum import linops
-from probnum.typing import ShapeType
+from probnum import backend, linops
+from probnum.typing import SeedType, ShapeType
 
 from . import _normal
 
@@ -28,7 +28,7 @@ class SymmetricMatrixNormal(_normal.Normal):
 
         super().__init__(mean=linops.aslinop(mean), cov=cov)
 
-    def _sample(self, rng: np.random.Generator, size: ShapeType = ()) -> np.ndarray:
+    def _sample(self, seed: SeedType, sample_shape: ShapeType = ()) -> np.ndarray:
         assert (
             isinstance(self.cov, linops.SymmetricKronecker)
             and self.cov.identical_factors
@@ -39,10 +39,14 @@ class SymmetricMatrixNormal(_normal.Normal):
         n = self.mean.shape[1]
 
         # Draw standard normal samples
-        stdnormal_samples = rng.standard_normal(size=(n * n,) + size, dtype=self.dtype)
+        stdnormal_samples = backend.random.standard_normal(
+            seed,
+            shape=sample_shape + (n * n, 1),
+            dtype=self.dtype,
+        )
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
         samples_scaled = linops.Symmetrize(n) @ (self.cov_cholesky @ stdnormal_samples)
 
         # TODO: can we avoid todense here and just return operator samples?
-        return self.dense_mean[None, :, :] + samples_scaled.T.reshape(-1, n, n)
+        return self.dense_mean[None, :, :] + samples_scaled.reshape(-1, n, n)

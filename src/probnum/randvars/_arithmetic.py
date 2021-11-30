@@ -180,29 +180,32 @@ _pow_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
 # Constant - Constant Arithmetic
 ########################################################################################
 
-_add_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.add)
-_sub_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.sub)
-_mul_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.mul)
-_matmul_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+_constant_constant_operator_factory = (
+    _Constant._binary_operator_factory  # pylint: disable=protected-access
+)
+
+_add_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.add)
+_sub_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.sub)
+_mul_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.mul)
+_matmul_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(
     operator.matmul
 )
-_truediv_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+_truediv_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(
     operator.truediv
 )
-_floordiv_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+_floordiv_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(
     operator.floordiv
 )
-_mod_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.mod)
-_divmod_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(divmod)
-_pow_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.pow)
+_mod_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.mod)
+_divmod_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(divmod)
+_pow_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.pow)
 
 ########################################################################################
 # Normal - Normal Arithmetic
 ########################################################################################
 
-_add_fns[(_Normal, _Normal)] = _Normal._add_normal
-_sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
-
+_add_fns[(_Normal, _Normal)] = _Normal._add_normal  # pylint: disable=protected-access
+_sub_fns[(_Normal, _Normal)] = _Normal._sub_normal  # pylint: disable=protected-access
 
 ########################################################################################
 # Normal - Constant Arithmetic
@@ -254,16 +257,16 @@ def _mul_normal_constant(
             return _Constant(
                 support=backend.zeros_like(norm_rv.mean),
             )
+
+        if norm_rv.cov_cholesky_is_precomputed:
+            cov_cholesky = constant_rv.support * norm_rv.cov_cholesky
         else:
-            if norm_rv.cov_cholesky_is_precomputed:
-                cov_cholesky = constant_rv.support * norm_rv.cov_cholesky
-            else:
-                cov_cholesky = None
-            return _Normal(
-                mean=constant_rv.support * norm_rv.mean,
-                cov=(constant_rv.support ** 2) * norm_rv.cov,
-                cov_cholesky=cov_cholesky,
-            )
+            cov_cholesky = None
+        return _Normal(
+            mean=constant_rv.support * norm_rv.mean,
+            cov=(constant_rv.support ** 2) * norm_rv.cov,
+            cov_cholesky=cov_cholesky,
+        )
 
     return NotImplemented
 
@@ -275,7 +278,8 @@ _mul_fns[(_Constant, _Normal)] = _swap_operands(_mul_normal_constant)
 def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
     """Normal random variable multiplied with a vector or matrix.
 
-    Computes the distribution of the random variable :math:`Y = XA`, where :math:`X` is a matrix- or multi-variate normal random variable and :math:`A` a constant.
+    Computes the distribution of the random variable :math:`Y = XA`, where :math:`X` is
+    a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
@@ -292,25 +296,25 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             cov = cov.reshape((1, 1))
 
         return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
+
+    # This part does not do the Cholesky update,
+    # because of performance configurations: currently, there is no way of switching
+    # the Cholesky updates off, which might affect (large, potentially sparse)
+    # covariance matrices of matrix-variate Normal RVs. See Issue #335.
+    if constant_rv.support.ndim == 1:
+        constant_rv_support = constant_rv.support[:, None]
     else:
-        # This part does not do the Cholesky update,
-        # because of performance configurations: currently, there is no way of switching
-        # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
-        # of matrix-variate Normal RVs. See Issue #335.
-        if constant_rv.support.ndim == 1:
-            constant_rv_support = constant_rv.support[:, None]
-        else:
-            constant_rv_support = constant_rv.support
+        constant_rv_support = constant_rv.support
 
-        cov_update = _linear_operators.Kronecker(
-            _linear_operators.Identity(norm_rv.shape[0]), constant_rv_support.T
-        )
+    cov_update = _linear_operators.Kronecker(
+        _linear_operators.Identity(norm_rv.shape[0]), constant_rv_support.T
+    )
 
-        # Cov(rvec(XA)) = Cov((I (x) A.T)rvec(X)) = (I (x) A.T)Cov(rvec(X))(I (x) A.T).T
-        return _Normal(
-            mean=norm_rv.mean @ constant_rv.support,
-            cov=cov_update @ (norm_rv.cov @ cov_update.T),
-        )
+    # Cov(rvec(XA)) = Cov((I (x) A.T)rvec(X)) = (I (x) A.T)Cov(rvec(X))(I (x) A.T).T
+    return _Normal(
+        mean=norm_rv.mean @ constant_rv.support,
+        cov=cov_update @ (norm_rv.cov @ cov_update.T),
+    )
 
 
 _matmul_fns[(_Normal, _Constant)] = _matmul_normal_constant
@@ -319,7 +323,8 @@ _matmul_fns[(_Normal, _Constant)] = _matmul_normal_constant
 def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
     """Matrix-multiplication with a normal random variable.
 
-    Computes the distribution of the random variable :math:`Y = AX`, where :math:`X` is a matrix- or multi-variate normal random variable and :math:`A` a constant.
+    Computes the distribution of the random variable :math:`Y = AX`, where :math:`X` is
+    a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
@@ -333,26 +338,26 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
             cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
             cov_cholesky=cov_cholesky,
         )
+
+    # This part does not do the Cholesky update,
+    # because of performance configurations: currently, there is no way of switching
+    # the Cholesky updates off, which might affect (large, potentially sparse)
+    # covariance matrices of matrix-variate Normal RVs. See Issue #335.
+    if constant_rv.support.ndim == 1:
+        constant_rv_support = constant_rv.support[None, :]
     else:
-        # This part does not do the Cholesky update,
-        # because of performance configurations: currently, there is no way of switching
-        # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
-        # of matrix-variate Normal RVs. See Issue #335.
-        if constant_rv.support.ndim == 1:
-            constant_rv_support = constant_rv.support[None, :]
-        else:
-            constant_rv_support = constant_rv.support
+        constant_rv_support = constant_rv.support
 
-        cov_update = _linear_operators.Kronecker(
-            constant_rv_support,
-            _linear_operators.Identity(norm_rv.shape[1]),
-        )
+    cov_update = _linear_operators.Kronecker(
+        constant_rv_support,
+        _linear_operators.Identity(norm_rv.shape[1]),
+    )
 
-        # Cov(rvec(AX)) = Cov((A (x) I)rvec(X)) = (A (x) I)Cov(rvec(X))(A (x) I).T
-        return _Normal(
-            mean=constant_rv.support @ norm_rv.mean,
-            cov=cov_update @ (norm_rv.cov @ cov_update.T),
-        )
+    # Cov(rvec(AX)) = Cov((A (x) I)rvec(X)) = (A (x) I)Cov(rvec(X))(A (x) I).T
+    return _Normal(
+        mean=constant_rv.support @ norm_rv.mean,
+        cov=cov_update @ (norm_rv.cov @ cov_update.T),
+    )
 
 
 _matmul_fns[(_Constant, _Normal)] = _matmul_constant_normal

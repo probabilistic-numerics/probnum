@@ -3,6 +3,9 @@ from typing import Optional
 
 import numpy as np
 
+from probnum import backend
+from probnum.typing import SeedType, ShapeType
+
 from ._random_variable import DiscreteRandomVariable
 
 
@@ -24,6 +27,12 @@ class Categorical(DiscreteRandomVariable):
         probabilities: np.ndarray,
         support: Optional[np.ndarray] = None,
     ):
+        if backend.BACKEND != backend.Backend.NUMPY:
+            raise NotImplementedError(
+                "The `Categorical` random variable only supports the `numpy` backend "
+                "at the moment."
+            )
+
         # The set of events is names "support" to be aligned with the method
         # DiscreteRandomVariable.in_support().
 
@@ -39,7 +48,9 @@ class Categorical(DiscreteRandomVariable):
             "num_categories": num_categories,
         }
 
-        def _sample_categorical(rng, size=()):
+        def _sample_categorical(
+            seed: np.random.SeedSequence, sample_shape: ShapeType = ()
+        ):
             """Sample from a categorical distribution.
 
             While on first sight, one might think that this
@@ -49,10 +60,12 @@ class Categorical(DiscreteRandomVariable):
             arrays with `ndim > 1`, but `self.support` can be just that.
             This detour via the `mask` avoids this problem.
             """
-
+            rng = np.random.default_rng(seed)
             indices = rng.choice(
-                np.arange(len(self.support)), size=size, p=self.probabilities
-            ).reshape(size)
+                np.arange(len(self.support)),
+                size=sample_shape,
+                p=self.probabilities,
+            ).reshape(sample_shape)
             return self.support[indices]
 
         def _pmf_categorical(x):
@@ -64,7 +77,8 @@ class Categorical(DiscreteRandomVariable):
             x = np.asarray(x)
             if x.dtype != self.dtype:
                 raise ValueError(
-                    "The data type of x does not match with the data type of the support."
+                    "The data type of x does not match with the data type of the "
+                    "support."
                 )
 
             mask = (x == self.support).nonzero()[0]
@@ -93,7 +107,7 @@ class Categorical(DiscreteRandomVariable):
         """Support of the categorical distribution."""
         return self._support
 
-    def resample(self, rng: np.random.Generator) -> "Categorical":
+    def resample(self, seed: SeedType) -> "Categorical":
         """Resample the support of the categorical random variable.
 
         Return a new categorical random variable (RV), where the support
@@ -103,16 +117,17 @@ class Categorical(DiscreteRandomVariable):
 
         Parameters
         ----------
-        rng :
-            Random number generator.
+        seed
+            Seed for random number generation
 
         Returns
         -------
         Categorical
-            Categorical random variable with resampled support (according to self.probabilities).
+            Categorical random variable with resampled support (according to
+            self.probabilities).
         """
         num_events = len(self.support)
-        new_support = self.sample(rng=rng, size=num_events)
+        new_support = self.sample(seed, sample_shape=num_events)
         new_probabilities = np.ones(self.probabilities.shape) / num_events
         return Categorical(
             support=new_support,
