@@ -1,9 +1,9 @@
 """Probabilistic numerical methods for solving linear systems.
 
-This module provides routines to solve linear systems of equations in a
-Bayesian framework. This means that a prior distribution over elements
-of the linear system can be provided and is updated with information
-collected by the solvers to return a posterior distribution.
+This module provides routines to solve linear systems of equations in a Bayesian
+framework. This means that a prior distribution over elements of the linear system can
+be provided and is updated with information collected by the solvers to return a
+posterior distribution.
 """
 
 import warnings
@@ -228,54 +228,6 @@ def problinsolve(
     _postprocess(info=info, A=A)
 
     return x, A0, Ainv0, info
-
-
-def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
-    """Conjugate Gradients using prior information on the solution of the linear system.
-
-    In the setting where :math:`A` is a symmetric positive-definite matrix, this solver
-    takes prior information on the solution and outputs a posterior belief over
-    :math:`x`. This code implements the method described in Cockayne et al. [1]_.
-
-    Note that the solution-based view of BayesCG and the matrix-based view of
-    :meth:`problinsolve` correspond [2]_.
-
-    Parameters
-    ----------
-    A : array-like or LinearOperator, shape=(n,n)
-        A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
-        used internally.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
-    x0 : array-like or RandomVariable, shape=(n,) or or (n, nrhs)
-        Prior belief over the solution of the linear system.
-    maxiter : int
-        Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the
-        dimension of :math:`A`.
-    atol : float, optional
-        Absolute residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b
-        \\rVert < \\text{atol}`, the iteration terminates.
-    rtol : float, optional
-        Relative residual tolerance. If :math:`\\lVert r_i \\rVert  < \\text{rtol}
-        \\lVert b \\rVert`, the iteration terminates.
-    callback : function, optional
-        User-supplied function called after each iteration of the linear solver. It is
-        called as ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to
-        return quantities from the iteration. Note that depending on the function
-        supplied, this can slow down the solver.
-
-    References
-    ----------
-    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian
-       Analysis*, 2019, 14, 937-1012
-    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View,
-       *Statistics and Computing*, 2019
-
-    See Also
-    --------
-    problinsolve : Solve linear systems in a Bayesian framework.
-    """
-    raise NotImplementedError
 
 
 def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
