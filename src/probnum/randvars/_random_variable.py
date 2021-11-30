@@ -69,23 +69,6 @@ class RandomVariable:
         (Element-wise) standard deviation of the random variable.
     entropy :
         Information-theoretic entropy :math:`H(X)` of the random variable.
-    as_value_type :
-        Function which can be used to transform user-supplied arguments, interpreted as
-        realizations of this random variable, to an easy-to-process, normalized format.
-        Will be called internally to transform the argument of functions like
-        :meth:`~RandomVariable.in_support`, :meth:`~RandomVariable.cdf`
-        and :meth:`~RandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
-        and :meth:`~DiscreteRandomVariable.logpmf` (in :class:`DiscreteRandomVariable`),
-        :meth:`~ContinuousRandomVariable.pdf` and
-        :meth:`~ContinuousRandomVariable.logpdf` (in :class:`ContinuousRandomVariable`),
-        and potentially by similar functions in subclasses.
-
-        For instance, this method is useful if (``log``)
-        :meth:`~ContinousRandomVariable.cdf` and (``log``)
-        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`numpy.float_`
-        arguments, but we still want the user to be able to pass Python
-        :class:`float`. Then :meth:`~RandomVariable.as_value_type`
-        should be set to something like ``lambda x: np.float64(x)``.
 
     See Also
     --------
@@ -129,7 +112,6 @@ class RandomVariable:
         var: Optional[Callable[[], ArrayType]] = None,
         std: Optional[Callable[[], ArrayType]] = None,
         entropy: Optional[Callable[[], ScalarType]] = None,
-        as_value_type: Optional[Callable[[Any], ArrayType]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
         """Create a new random variable."""
@@ -156,9 +138,6 @@ class RandomVariable:
         self.__var = var
         self.__std = std
         self.__entropy = entropy
-
-        # Utilities
-        self.__as_value_type = as_value_type
 
     def __repr__(self) -> str:
         return (
@@ -403,7 +382,7 @@ class RandomVariable:
         if self.__in_support is None:
             raise NotImplementedError
 
-        in_support = self.__in_support(self._as_value_type(x))
+        in_support = self.__in_support(backend.asarray(x))
 
         self._check_return_value(
             "in_support",
@@ -446,9 +425,9 @@ class RandomVariable:
             The cdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__cdf is not None:
-            cdf = self.__cdf(self._as_value_type(x))
+            cdf = self.__cdf(backend.asarray(x))
         elif self.__logcdf is not None:
-            cdf = backend.exp(self.logcdf(self._as_value_type(x)))
+            cdf = backend.exp(self.logcdf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `cdf` nor the `logcdf` of the random variable object "
@@ -477,9 +456,9 @@ class RandomVariable:
             The logcdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__logcdf is not None:
-            logcdf = self.__logcdf(self._as_value_type(x))
+            logcdf = self.__logcdf(backend.asarray(x))
         elif self.__cdf is not None:
-            logcdf = backend.log(self.__cdf(x))
+            logcdf = backend.log(self.cdf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `logcdf` nor the `cdf` of the random variable object "
@@ -540,7 +519,6 @@ class RandomVariable:
             var=lambda: self.var[key],
             std=lambda: self.std[key],
             entropy=lambda: self.entropy,
-            as_value_type=self.__as_value_type,
         )
 
     def reshape(self, newshape: ShapeLike) -> "RandomVariable":
@@ -565,7 +543,6 @@ class RandomVariable:
             var=lambda: self.var.reshape(newshape),
             std=lambda: self.std.reshape(newshape),
             entropy=lambda: self.entropy,
-            as_value_type=self.__as_value_type,
         )
 
     def transpose(self, *axes: int) -> "RandomVariable":
@@ -587,7 +564,6 @@ class RandomVariable:
             var=lambda: self.var.transpose(*axes),
             std=lambda: self.std.transpose(*axes),
             entropy=lambda: self.entropy,
-            as_value_type=self.__as_value_type,
         )
 
     T = property(transpose)
@@ -606,7 +582,6 @@ class RandomVariable:
             cov=lambda: self.cov,
             var=lambda: self.var,
             std=lambda: self.std,
-            as_value_type=self.__as_value_type,
         )
 
     def __pos__(self) -> "RandomVariable":
@@ -621,7 +596,6 @@ class RandomVariable:
             cov=lambda: self.cov,
             var=lambda: self.var,
             std=lambda: self.std,
-            as_value_type=self.__as_value_type,
         )
 
     def __abs__(self) -> "RandomVariable":
@@ -750,12 +724,6 @@ class RandomVariable:
 
         return pow_(other, self)
 
-    def _as_value_type(self, x: Any) -> ArrayType:
-        if self.__as_value_type is not None:
-            return self.__as_value_type(x)
-
-        return x
-
     @staticmethod
     def _check_property_value(
         name: str,
@@ -847,21 +815,6 @@ class DiscreteRandomVariable(RandomVariable):
         (Element-wise) standard deviation of the random variable.
     entropy :
         Shannon entropy :math:`H(X)` of the random variable.
-    as_value_type :
-        Function which can be used to transform user-supplied arguments, interpreted as
-        realizations of this random variable, to an easy-to-process, normalized format.
-        Will be called internally to transform the argument of functions like
-        :meth:`~DiscreteRandomVariable.in_support`, :meth:`~DiscreteRandomVariable.cdf`
-        and :meth:`~DiscreteRandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
-        and :meth:`~DiscreteRandomVariable.logpmf`, and potentially by similar
-        functions in subclasses.
-
-        For instance, this method is useful if (``log``)
-        :meth:`~DiscreteRandomVariable.cdf` and (``log``)
-        :meth:`~DiscreteRandomVariable.pmf` both only work on :class:`numpy.float_`
-        arguments, but we still want the user to be able to pass Python
-        :class:`float`. Then :meth:`~DiscreteRandomVariable.as_value_type`
-        should be set to something like ``lambda x: np.float64(x)``.
 
     See Also
     --------
@@ -933,7 +886,6 @@ class DiscreteRandomVariable(RandomVariable):
         var: Optional[Callable[[], ArrayType]] = None,
         std: Optional[Callable[[], ArrayType]] = None,
         entropy: Optional[Callable[[], ScalarType]] = None,
-        as_value_type: Optional[Callable[[Any], ArrayType]] = None,
     ):
         # Probability mass function
         self.__pmf = pmf
@@ -955,7 +907,6 @@ class DiscreteRandomVariable(RandomVariable):
             var=var,
             std=std,
             entropy=entropy,
-            as_value_type=as_value_type,
         )
 
     def pmf(self, x: ArrayType) -> ArrayType:
@@ -979,9 +930,9 @@ class DiscreteRandomVariable(RandomVariable):
             The pmf evaluation will be broadcast over all additional dimensions.
         """
         if self.__pmf is not None:
-            pmf = self.__pmf(x)
+            pmf = self.__pmf(backend.asarray(x))
         elif self.__logpmf is not None:
-            pmf = backend.exp(self.__logpmf(x))
+            pmf = backend.exp(self.logpmf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `pmf` nor the `logpmf` of the discrete random variable "
@@ -1010,9 +961,9 @@ class DiscreteRandomVariable(RandomVariable):
             The logpmf evaluation will be broadcast over all additional dimensions.
         """
         if self.__logpmf is not None:
-            logpmf = self.__logpmf(self._as_value_type(x))
+            logpmf = self.__logpmf(backend.asarray(x))
         elif self.__pmf is not None:
-            logpmf = backend.log(self.__pmf(self._as_value_type(x)))
+            logpmf = backend.log(self.pmf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `logpmf` nor the `pmf` of the discrete random variable "
@@ -1073,23 +1024,6 @@ class ContinuousRandomVariable(RandomVariable):
         (Element-wise) standard deviation of the random variable.
     entropy :
         Differential entropy :math:`H(X)` of the random variable.
-    as_value_type :
-        Function which can be used to transform user-supplied arguments, interpreted as
-        realizations of this random variable, to an easy-to-process, normalized format.
-        Will be called internally to transform the argument of functions like
-        :meth:`~ContinuousRandomVariable.in_support`,
-        :meth:`~ContinuousRandomVariable.cdf`
-        and :meth:`~ContinuousRandomVariable.logcdf`,
-        :meth:`~ContinuousRandomVariable.pdf` and
-        :meth:`~ContinuousRandomVariable.logpdf`, and potentially by similar
-        functions in subclasses.
-
-        For instance, this method is useful if (``log``)
-        :meth:`~ContinuousRandomVariable.cdf` and (``log``)
-        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`numpy.float_`
-        arguments, but we still want the user to be able to pass Python
-        :class:`float`. Then :meth:`~ContinuousRandomVariable.as_value_type`
-        should be set to something like ``lambda x: np.float64(x)``.
 
     See Also
     --------
@@ -1159,7 +1093,6 @@ class ContinuousRandomVariable(RandomVariable):
         var: Optional[Callable[[], ArrayType]] = None,
         std: Optional[Callable[[], ArrayType]] = None,
         entropy: Optional[Callable[[], ArrayType]] = None,
-        as_value_type: Optional[Callable[[Any], ArrayType]] = None,
     ):
         # Probability density function
         self.__pdf = pdf
@@ -1181,7 +1114,6 @@ class ContinuousRandomVariable(RandomVariable):
             var=var,
             std=std,
             entropy=entropy,
-            as_value_type=as_value_type,
         )
 
     def pdf(self, x: ArrayType) -> ArrayType:
@@ -1205,9 +1137,9 @@ class ContinuousRandomVariable(RandomVariable):
             The pdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__pdf is not None:
-            pdf = self.__pdf(self._as_value_type(x))
+            pdf = self.__pdf(backend.asarray(x))
         elif self.__logpdf is not None:
-            pdf = backend.exp(self.__logpdf(self._as_value_type(x)))
+            pdf = backend.exp(self.logpdf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `pdf` nor the `logpdf` of the continuous random variable "
@@ -1236,9 +1168,9 @@ class ContinuousRandomVariable(RandomVariable):
             The logpdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__logpdf is not None:
-            logpdf = self.__logpdf(self._as_value_type(x))
+            logpdf = self.__logpdf(backend.asarray(x))
         elif self.__pdf is not None:
-            logpdf = backend.log(self.__pdf(self._as_value_type(x)))
+            logpdf = backend.log(self.pdf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `logpdf` nor the `pdf` of the continuous random variable "
