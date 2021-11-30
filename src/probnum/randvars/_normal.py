@@ -258,6 +258,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
                     backend.linalg.cholesky(
                         self.dense_cov
                         + damping_factor * backend.eye(*self.shape, dtype=self.dtype),
+                        lower=True,
                     )
                 )
             )
@@ -446,15 +447,16 @@ class Normal(_random_variable.ContinuousRandomVariable):
     # TODO (#xyz): jit this function once `LinearOperator`s support the backend
     # @functools.partial(backend.jit_method, static_argnums=(1,))
     def _sample(self, seed: SeedLike, sample_shape: ShapeType = ()) -> ArrayType:
-        sample = backend.random.standard_normal(
+        samples = backend.random.standard_normal(
             seed,
             shape=sample_shape + (self.size,),
             dtype=self.dtype,
         )
 
-        sample = self._cov_op_cholesky @ backend.to_numpy(sample) + self.dense_mean
+        samples = self._cov_op_cholesky(backend.to_numpy(samples), axis=-1)
+        samples += self.dense_mean
 
-        return sample.reshape(sample_shape + self.shape)
+        return samples.reshape(sample_shape + self.shape)
 
     @staticmethod
     def _arg_todense(x: Union[ArrayType, linops.LinearOperator]) -> ArrayType:
@@ -482,18 +484,17 @@ class Normal(_random_variable.ContinuousRandomVariable):
     def _logpdf(self, x: ArrayType) -> ArrayType:
         x_centered = Normal._arg_todense(x - self.dense_mean).reshape(
             x.shape[: -self.ndim] + (-1,)
-        )[..., None]
-
-        res = (
-            -0.5
-            * (
-                x_centered.T
-                # TODO (#569): Replace `cho_solve` with `linop.inv() @ ...`
-                @ backend.linalg.cholesky_solve(
-                    (self._cov_matrix_cholesky, True), x_centered
-                )
-            )[..., 0, 0]
         )
+
+        res = -0.5 * (
+            x_centered[..., None, :]
+            # TODO (#569): Replace `cho_solve` with `linop.inv() @ ...`
+            @ backend.linalg.cholesky_solve(
+                self._cov_matrix_cholesky,
+                x_centered[..., None],
+                lower=True,
+            )
+        )[..., 0, 0]
 
         res -= 0.5 * self.size * backend.log(backend.array(2.0 * backend.pi))
         # TODO (#569): Replace this with `0.5 * self._cov_op.logdet()`

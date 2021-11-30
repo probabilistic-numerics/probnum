@@ -19,7 +19,7 @@ def split(
 def standard_normal(seed: np.random.SeedSequence, shape=(), dtype=torch.double):
     rng = _make_rng(seed)
 
-    return torch.randn(*shape, generator=rng, dtype=dtype)
+    return torch.randn(shape, generator=rng, dtype=dtype)
 
 
 def _make_rng(seed: np.random.SeedSequence) -> torch.Generator:

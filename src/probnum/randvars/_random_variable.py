@@ -1174,7 +1174,7 @@ class ContinuousRandomVariable(RandomVariable):
             "pdf",
             input_value=x,
             return_value=pdf,
-            expected_shape=x.shape[: -self.ndim],
+            expected_shape=x.shape[: x.ndim - self.ndim],
             expected_dtype=backend.double,
         )
 

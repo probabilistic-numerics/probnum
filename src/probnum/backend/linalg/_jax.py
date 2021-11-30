@@ -13,7 +13,7 @@ def cholesky_solve(
     overwrite_b: bool = False,
     check_finite: bool = True
 ):
-    @functools.partial(jax.vectorize, signature="(n,n),(n,k)->(n,k)")
+    @functools.partial(jax.numpy.vectorize, signature="(n,n),(n,k)->(n,k)")
     def _cho_solve_vectorized(
         cholesky: jax.numpy.ndarray,
         b: jax.numpy.ndarray,
@@ -29,15 +29,6 @@ def cholesky_solve(
         return _cho_solve_vectorized(
             cholesky,
             b[:, None],
-            lower=lower,
-            overwrite_b=overwrite_b,
-            check_finite=check_finite,
         )[:, 0]
 
-    return _cho_solve_vectorized(
-        cholesky,
-        b[:, None],
-        lower=lower,
-        overwrite_b=overwrite_b,
-        check_finite=check_finite,
-    )
+    return _cho_solve_vectorized(cholesky, b)
