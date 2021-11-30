@@ -15,11 +15,6 @@ from ._random_variable import (
     RandomVariable,
 )
 from ._randomvariablelist import _RandomVariableList
-from ._scipy_stats import (
-    WrappedSciPyContinuousRandomVariable,
-    WrappedSciPyDiscreteRandomVariable,
-    WrappedSciPyRandomVariable,
-)
 from ._sym_mat_normal import SymmetricMatrixNormal
 from ._utils import asrandvar
 
@@ -33,9 +28,6 @@ __all__ = [
     "Normal",
     "SymmetricMatrixNormal",
     "Categorical",
-    "WrappedSciPyRandomVariable",
-    "WrappedSciPyDiscreteRandomVariable",
-    "WrappedSciPyContinuousRandomVariable",
     "_RandomVariableList",
 ]
 
@@ -43,10 +35,6 @@ __all__ = [
 RandomVariable.__module__ = "probnum.randvars"
 DiscreteRandomVariable.__module__ = "probnum.randvars"
 ContinuousRandomVariable.__module__ = "probnum.randvars"
-
-WrappedSciPyRandomVariable.__module__ = "probnum.randvars"
-WrappedSciPyDiscreteRandomVariable.__module__ = "probnum.randvars"
-WrappedSciPyContinuousRandomVariable.__module__ = "probnum.randvars"
 
 Constant.__module__ = "probnum.randvars"
 Normal.__module__ = "probnum.randvars"
