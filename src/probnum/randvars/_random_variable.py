@@ -3,7 +3,7 @@
 import functools
 import operator
 from functools import cached_property
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 
@@ -201,16 +201,16 @@ class RandomVariable:
         return backend.promote_types(self.dtype, backend.double)
 
     @cached_property
-    def moment_dtype(self) -> backend.dtype:
-        r"""The dtype of any (function of a) moment of the random variable.
+    def expectation_dtype(self) -> backend.dtype:
+        r"""The dtype of an expectation of (a function of) the random variable.
 
-        For instance, the :attr:`mean`, :attr:`cov`, :attr:`var`, and :attr:`std` of the
-        random variable will have this dtype. It will be set to the dtype arising from
-        the multiplication of values with dtypes :attr:`dtype` and :class:`~probnum.\
-        backend.double`. This is motivated by the mathematical definition of a moment as
-        a sum or an integral over products of probabilities and values of the random
-        variable, which are represented as using the dtypes :class:`~probnum.backend.\
-        double` and :attr:`dtype`, respectively.
+        For instance, the :attr:`mean`, :attr:`cov`, :attr:`var`, :attr:`std`, and
+        :attr:`entropy` of the random variable will have this dtype. It will be set
+        to the dtype arising from the multiplication of values with dtypes :attr:`dtype`
+        and :class:`~probnum.backend.double`. This is motivated by the mathematical
+        definition of an expectation as a sum or an integral over products of
+        probabilities and values of the random variable, which are represented as using
+        the dtypes :class:`~probnum.backend.double` and :attr:`dtype`, respectively.
         """
         return backend.promote_types(self.dtype, backend.double)
 
@@ -264,7 +264,7 @@ class RandomVariable:
             "median",
             median,
             shape=self.__shape,
-            dtype=self.__median_dtype,
+            dtype=self.median_dtype,
         )
 
         # Make immutable
@@ -275,9 +275,9 @@ class RandomVariable:
 
     @cached_property
     def mean(self) -> ArrayType:
-        """Mean :math:`\\mathbb{E}(X)` of the random variable.
+        r"""Mean :math:`\mathbb{E}(X)` of the random variable.
 
-        To learn about the dtype of the mean, see :attr:`moment_dtype`.
+        To learn about the dtype of the mean, see :attr:`expectation_dtype`.
         """
         if self.__mean is None:
             raise NotImplementedError
@@ -288,7 +288,7 @@ class RandomVariable:
             "mean",
             mean,
             shape=self.__shape,
-            dtype=self.moment_dtype,
+            dtype=self.expectation_dtype,
         )
 
         # Make immutable
@@ -299,10 +299,11 @@ class RandomVariable:
 
     @cached_property
     def cov(self) -> ArrayType:
-        """Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the random variable.
+        r"""Covariance :math:`\operatorname{Cov}(X) = \mathbb{E}( (X - \mathbb{E}(X))
+        (X - \mathbb{E}(X))^\top )` of the random variable.
 
-        To learn about the dtype of the covariance, see :attr:`moment_dtype`.
-        """  # pylint: disable=line-too-long
+        To learn about the dtype of the covariance, see :attr:`expectation_dtype`.
+        """
         if self.__cov is None:
             raise NotImplementedError
 
@@ -312,7 +313,7 @@ class RandomVariable:
             "covariance",
             cov,
             shape=(self.size, self.size) if self.ndim > 0 else (),
-            dtype=self.moment_dtype,
+            dtype=self.expectation_dtype,
         )
 
         # Make immutable
@@ -323,10 +324,10 @@ class RandomVariable:
 
     @cached_property
     def var(self) -> ArrayType:
-        """Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)`
+        r"""Variance :math:`\operatorname{Var}(X) = \mathbb{E}( (X - \mathbb{E}(X))^2 )`
         of the random variable.
 
-        To learn about the dtype of the variance, see :attr:`moment_dtype`.
+        To learn about the dtype of the variance, see :attr:`expectation_dtype`.
         """
         if self.__var is None:
             try:
@@ -340,7 +341,7 @@ class RandomVariable:
             "variance",
             var,
             shape=self.__shape,
-            dtype=self.moment_dtype,
+            dtype=self.expectation_dtype,
         )
 
         # Make immutable
@@ -353,14 +354,10 @@ class RandomVariable:
     def std(self) -> ArrayType:
         """Standard deviation of the random variable.
 
-        To learn about the dtype of the standard deviation, see
-        :attr:`moment_dtype`.
+        To learn about the dtype of the standard deviation, see :attr:`expectation_dtype`.
         """
         if self.__std is None:
-            try:
-                std = backend.sqrt(self.var)
-            except NotImplementedError as exc:
-                raise NotImplementedError from exc
+            std = backend.sqrt(self.var)
         else:
             std = self.__std()
 
@@ -368,7 +365,7 @@ class RandomVariable:
             "standard deviation",
             std,
             shape=self.__shape,
-            dtype=self.moment_dtype,
+            dtype=self.expectation_dtype,
         )
 
         # Make immutable
@@ -379,14 +376,17 @@ class RandomVariable:
 
     @cached_property
     def entropy(self) -> ScalarType:
-        """Information-theoretic entropy :math:`H(X)` of the random variable."""
+        r"""Information-theoretic entropy :math:`H(X)` of the random variable."""
         if self.__entropy is None:
             raise NotImplementedError
 
         entropy = self.__entropy()
 
-        entropy = RandomVariable._ensure_numpy_float(
-            "entropy", entropy, force_scalar=True
+        RandomVariable._check_property_value(
+            "entropy",
+            value=entropy,
+            shape=(),
+            dtype=self.expectation_dtype,
         )
 
         return entropy
@@ -405,28 +405,34 @@ class RandomVariable:
 
         in_support = self.__in_support(self._as_value_type(x))
 
-        if not isinstance(in_support, bool):
-            raise ValueError(
-                f"The function `in_support` must return a `bool`, but its return value "
-                f"is of type `{type(x)}`."
-            )
+        self._check_return_value(
+            "in_support",
+            input=x,
+            return_value=in_support,
+            expected_shape=x.shape[: -self.ndim],
+            expected_dtype=backend.bool,
+        )
 
         return in_support
 
-    def sample(self, seed, sample_shape: ShapeLike = ()) -> ArrayType:
+    def sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> ArrayType:
         """Draw realizations from a random variable.
 
         Parameters
         ----------
-        rng
-            Random number generator used for sampling.
-        size
+        seed
+            Seed used for sampling from a random number generator.
+        sample_shape
             Size of the drawn sample of realizations.
         """
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        return self.__sample(seed=seed, sample_shape=_utils.as_shape(sample_shape))
+        samples = self.__sample(seed, _utils.as_shape(sample_shape))
+
+        # TODO: Check shape and dtype
+
+        return samples
 
     def cdf(self, x: ArrayType) -> ArrayType:
         """Cumulative distribution function.
@@ -440,20 +446,24 @@ class RandomVariable:
             The cdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__cdf is not None:
-            return RandomVariable._ensure_numpy_float(
-                "cdf", self.__cdf(self._as_value_type(x))
-            )
+            cdf = self.__cdf(self._as_value_type(x))
         elif self.__logcdf is not None:
-            cdf = np.exp(self.logcdf(self._as_value_type(x)))
-
-            assert isinstance(cdf, np.float_)
-
-            return cdf
+            cdf = backend.exp(self.logcdf(self._as_value_type(x)))
         else:
             raise NotImplementedError(
                 f"Neither the `cdf` nor the `logcdf` of the random variable object "
                 f"with type `{type(self).__name__}` is implemented."
             )
+
+        self._check_return_value(
+            "cdf",
+            input=x,
+            return_value=cdf,
+            expected_shape=x.shape[: -self.ndim],
+            expected_dtype=backend.double,
+        )
+
+        return cdf
 
     def logcdf(self, x: ArrayType) -> ArrayType:
         """Log-cumulative distribution function.
@@ -467,34 +477,38 @@ class RandomVariable:
             The logcdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__logcdf is not None:
-            return RandomVariable._ensure_numpy_float(
-                "logcdf", self.__logcdf(self._as_value_type(x))
-            )
+            logcdf = self.__logcdf(self._as_value_type(x))
         elif self.__cdf is not None:
-            logcdf = np.log(self.__cdf(x))
-
-            assert isinstance(logcdf, np.float_)
-
-            return logcdf
+            logcdf = backend.log(self.__cdf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `logcdf` nor the `cdf` of the random variable object "
                 f"with type `{type(self).__name__}` is implemented."
             )
 
-    def quantile(self, p: ArrayLike) -> ArrayType:
-        """Quantile function.
+        self._check_return_value(
+            "logcdf",
+            input=x,
+            return_value=logcdf,
+            expected_shape=x.shape[: -self.ndim],
+            expected_dtype=backend.double,
+        )
 
-        The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
-        variable :math:`X` is defined as
-        :math:`Q(p) = \\inf\\{ x \\in \\mathbb{R} \\colon p \\le F_X(x) \\}`, where
-        :math:`F_X \\colon \\mathbb{R} \\to [0, 1]` is the :meth:`cdf` of the random
-        variable. From the definition it follows that the quantile function always
-        returns values of the same dtype as the random variable. For instance, for a
-        discrete distribution over the integers, the returned quantiles will also be
-        integers. This means that, in general, :math:`Q(0.5)` is not equal to the
-        :attr:`median` as it is defined in this class. See
-        https://en.wikipedia.org/wiki/Quantile_function for more details and examples.
+        return logcdf
+
+    def quantile(self, p: ArrayType) -> ArrayType:
+        r"""Quantile function.
+
+        The quantile function :math:`Q \colon [0, 1] \to \mathbb{R}` of a random
+        variable :math:`X` is defined as :math:`Q(p) = \inf \{ x \in \mathbb{R} \colon p
+        \le F_X(x) \}`, where :math:`F_X \colon \mathbb{R} \to [0, 1]` is the
+        :meth:`cdf` of the random variable. From the definition it follows that the
+        quantile function always returns values of the same dtype as the random
+        variable. For instance, for a discrete distribution over the integers, the
+        returned quantiles will also be integers. This means that, in general,
+        :math:`Q(0.5)` is not equal to the :attr:`median` as it is defined in this
+        class. See https://en.wikipedia.org/wiki/Quantile_function for more details and
+        examples.
         """
         if self.__shape != ():
             raise NotImplementedError(
@@ -504,28 +518,15 @@ class RandomVariable:
         if self.__quantile is None:
             raise NotImplementedError
 
-        try:
-            p = _utils.as_numpy_scalar(p, dtype=np.floating)
-        except TypeError as exc:
-            raise TypeError(
-                "The given argument `p` can not be cast to a `np.floating` object."
-            ) from exc
-
         quantile = self.__quantile(p)
 
-        if quantile.shape != self.__shape:
-            raise ValueError(
-                f"The quantile function should return values of the same shape as the "
-                f"random variable, i.e. {self.__shape}, but it returned a value with "
-                f"{quantile.shape}."
-            )
-
-        if quantile.dtype != self.__dtype:
-            raise ValueError(
-                f"The quantile function should return values of the same dtype as the "
-                f"random variable, i.e. `{self.__dtype.name}`, but it returned a value "
-                f"with dtype `{quantile.dtype.name}`."
-            )
+        self._check_return_value(
+            "quantile",
+            input=p,
+            return_value=quantile,
+            expected_shape=p.shape + self.shape,
+            expected_dtype=self.dtype,
+        )
 
         return quantile
 
@@ -758,7 +759,7 @@ class RandomVariable:
     @staticmethod
     def _check_property_value(
         name: str,
-        value: Any,
+        value: ArrayType,
         shape: Optional[ShapeType] = None,
         dtype: Optional[backend.dtype] = None,
     ):
@@ -773,45 +774,34 @@ class RandomVariable:
             if value.dtype != dtype:
                 raise ValueError(
                     f"The {name} of the random variable does not have the correct "
-                    f"dtype. Expected {dtype.name} but got {value.dtype.name}."
+                    f"dtype. Expected {str(dtype)} but got {str(value.dtype)}."
                 )
 
-    @classmethod
-    def _ensure_numpy_float(
-        cls, name: str, value: Any, force_scalar: bool = False
-    ) -> Union[np.float_, np.ndarray]:
-        if value.ndim != 0 and force_scalar:
-            # if not isinstance(value, np.float_):
-            #     try:
-            #         value = _utils.as_numpy_scalar(value, dtype=np.float_)
-            #     except TypeError as err:
-            #         raise TypeError(
-            #             f"The function `{name}` specified via the constructor of "
-            #             f"`{cls.__name__}` must return a scalar value that can be "
-            #             f"converted to a `np.float_`, which is not possible for "
-            #             f"{value} of type {type(value)}."
-            #         ) from err
-            # pass
-            # elif not force_scalar:
-            #     try:
-            #         value = np.asarray(value, dtype=np.float_)
-            #     except TypeError as err:
-            #         raise TypeError(
-            #             f"The function `{name}` specified via the constructor of "
-            #             f"`{cls.__name__}` must return a value that can be converted "
-            #             f"to a `np.ndarray` of type `np.float_`, which is not possible "
-            #             f"for {value} of type {type(value)}."
-            #         ) from err
-            # else:
-            raise TypeError(
-                f"The function `{name}` specified via the constructor of "
-                f"`{cls.__name__}` must return a scalar value, but {value} of type "
-                f"{type(value)} is not scalar."
-            )
+    def _check_return_value(
+        self,
+        method_name: str,
+        input: ArrayType,
+        return_value: ArrayType,
+        expected_shape: Optional[ShapeType] = None,
+        expected_dtype: Optional[backend.dtype] = None,
+    ):
+        if expected_shape is not None:
+            if return_value.shape != expected_shape:
+                raise ValueError(
+                    f"The return value of the function `{method_name}` does not have "
+                    f"the correct shape for an input with shape {input.shape} and a "
+                    f"random variable with shape {self.shape}. Expected "
+                    f"{expected_shape} but got {return_value.shape}."
+                )
 
-        # assert isinstance(value, (np.float_, np.ndarray))
-
-        return value
+        if expected_dtype is not None:
+            if return_value.dtype != expected_dtype:
+                raise ValueError(
+                    f"The return value of the function `{method_name}` does not have "
+                    f"the correct dtype for an input with dtype {str(input.dtype)} and "
+                    f"a random variable with dtype {str(self.dtype)}. Expexted "
+                    f"{str(expected_dtype)} but got {str(return_value.dtype)}."
+                )
 
 
 class DiscreteRandomVariable(RandomVariable):
@@ -989,18 +979,24 @@ class DiscreteRandomVariable(RandomVariable):
             The pmf evaluation will be broadcast over all additional dimensions.
         """
         if self.__pmf is not None:
-            return DiscreteRandomVariable._ensure_numpy_float("pmf", self.__pmf(x))
+            pmf = self.__pmf(x)
         elif self.__logpmf is not None:
-            pmf = np.exp(self.__logpmf(x))
-
-            assert isinstance(pmf, np.float_)
-
-            return pmf
+            pmf = backend.exp(self.__logpmf(x))
         else:
             raise NotImplementedError(
                 f"Neither the `pmf` nor the `logpmf` of the discrete random variable "
                 f"object with type `{type(self).__name__}` is implemented."
             )
+
+        self._check_return_value(
+            "pmf",
+            input=x,
+            return_value=pmf,
+            expected_shape=x.shape[: -self.ndim],
+            expected_dtype=backend.double,
+        )
+
+        return pmf
 
     def logpmf(self, x: ArrayType) -> ArrayType:
         """Natural logarithm of the probability mass function.
@@ -1014,20 +1010,24 @@ class DiscreteRandomVariable(RandomVariable):
             The logpmf evaluation will be broadcast over all additional dimensions.
         """
         if self.__logpmf is not None:
-            return DiscreteRandomVariable._ensure_numpy_float(
-                "logpmf", self.__logpmf(self._as_value_type(x))
-            )
+            logpmf = self.__logpmf(self._as_value_type(x))
         elif self.__pmf is not None:
-            logpmf = np.log(self.__pmf(self._as_value_type(x)))
-
-            assert isinstance(logpmf, np.float_)
-
-            return logpmf
+            logpmf = backend.log(self.__pmf(self._as_value_type(x)))
         else:
             raise NotImplementedError(
                 f"Neither the `logpmf` nor the `pmf` of the discrete random variable "
                 f"object with type `{type(self).__name__}` is implemented."
             )
+
+        self._check_return_value(
+            "logpmf",
+            input=x,
+            return_value=logpmf,
+            expected_shape=x.shape[: -self.ndim],
+            expected_dtype=backend.double,
+        )
+
+        return logpmf
 
 
 class ContinuousRandomVariable(RandomVariable):
@@ -1205,19 +1205,24 @@ class ContinuousRandomVariable(RandomVariable):
             The pdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__pdf is not None:
-            return ContinuousRandomVariable._ensure_numpy_float(
-                "pdf", self.__pdf(self._as_value_type(x))
+            pdf = self.__pdf(self._as_value_type(x))
+        elif self.__logpdf is not None:
+            pdf = backend.exp(self.__logpdf(self._as_value_type(x)))
+        else:
+            raise NotImplementedError(
+                f"Neither the `pdf` nor the `logpdf` of the continuous random variable "
+                f"object with type `{type(self).__name__}` is implemented."
             )
-        if self.__logpdf is not None:
-            pdf = np.exp(self.__logpdf(self._as_value_type(x)))
 
-            assert isinstance(pdf, np.float_)
-
-            return pdf
-        raise NotImplementedError(
-            f"Neither the `pdf` nor the `logpdf` of the continuous random variable "
-            f"object with type `{type(self).__name__}` is implemented."
+        self._check_return_value(
+            "pdf",
+            input=x,
+            return_value=pdf,
+            expected_shape=x.shape[: -self.ndim],
+            expected_dtype=backend.double,
         )
+
+        return pdf
 
     def logpdf(self, x: ArrayType) -> ArrayType:
         """Natural logarithm of the probability density function.
@@ -1231,18 +1236,21 @@ class ContinuousRandomVariable(RandomVariable):
             The logpdf evaluation will be broadcast over all additional dimensions.
         """
         if self.__logpdf is not None:
-            return ContinuousRandomVariable._ensure_numpy_float(
-                "logpdf", self.__logpdf(self._as_value_type(x))
-            )
+            logpdf = self.__logpdf(self._as_value_type(x))
         elif self.__pdf is not None:
-
-            logpdf = np.log(self.__pdf(self._as_value_type(x)))
-
-            assert isinstance(logpdf, np.float_)
-
-            return logpdf
+            logpdf = backend.log(self.__pdf(self._as_value_type(x)))
         else:
             raise NotImplementedError(
                 f"Neither the `logpdf` nor the `pdf` of the continuous random variable "
                 f"object with type `{type(self).__name__}` is implemented."
             )
+
+        self._check_return_value(
+            "logpdf",
+            input=x,
+            return_value=logpdf,
+            expected_shape=x.shape[: -self.ndim],
+            expected_dtype=backend.double,
+        )
+
+        return logpdf
