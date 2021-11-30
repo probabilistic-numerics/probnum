@@ -11,6 +11,8 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 ndarray = _core.ndarray
 
 # DType
+dtype = _core.dtype
+asdtype = _core.asdtype
 bool = _core.bool
 int32 = _core.int32
 int64 = _core.int64

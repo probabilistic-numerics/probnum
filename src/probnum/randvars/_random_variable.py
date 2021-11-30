@@ -126,10 +126,7 @@ class RandomVariable(Generic[_ValueType]):
         self.__shape = _utils.as_shape(shape)
 
         # Data Types
-        # self.__dtype = np.dtype(dtype)
-        self.__dtype = dtype
-        self.__median_dtype = RandomVariable.infer_median_dtype(self.__dtype)
-        self.__moment_dtype = RandomVariable.infer_moment_dtype(self.__dtype)
+        self.__dtype = backend.asdtype(dtype)
 
         # Probability distribution of the random variable
         self.__parameters = parameters.copy() if parameters is not None else {}
@@ -176,36 +173,36 @@ class RandomVariable(Generic[_ValueType]):
         return int(np.prod(self.__shape))
 
     @property
-    def dtype(self) -> np.dtype:
+    def dtype(self) -> backend.dtype:
         """Data type of (elements of) a realization of this random variable."""
         return self.__dtype
 
-    @property
-    def median_dtype(self) -> np.dtype:
-        """The dtype of the :attr:`median`.
+    @cached_property
+    def median_dtype(self) -> backend.dtype:
+        r"""The dtype of the :attr:`median`.
 
-        It will be set to the dtype arising from the multiplication of
-        values with dtypes :attr:`dtype` and :class:`numpy.float_`. This
-        is motivated by the fact that, even for discrete random
-        variables, e.g. integer-valued random variables, the
-        :attr:`median` might lie in between two values in which case
-        these values are averaged. For example, a uniform random
-        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of
-        :math:`2.5`.
+        It will be set to the dtype arising from the multiplication of values with
+        dtypes :attr:`dtype` and :class:`~probnum.backend.double`. This is motivated by
+        the fact that, even for discrete random variables, e.g. integer-valued random
+        variables, the :attr:`median` might lie in between two values in which case
+        these values are averaged. For example, a uniform random variable on :math:`\{
+        1, 2, 3, 4 \}` will have a median of :math:`2.5`.
         """
-        return self.__median_dtype
+        return backend.promote_types(self.dtype, backend.double)
 
-    @property
-    def moment_dtype(self) -> np.dtype:
-        """The dtype of any (function of a) moment of the random variable, e.g. its
-        :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. It will be set to the
-        dtype arising from the multiplication of values with dtypes :attr:`dtype`
-        and :class:`numpy.float_`. This is motivated by the mathematical definition of a
-        moment as a sum or an integral over products of probabilities and values of the
-        random variable, which are represented as using the dtypes :class:`numpy.float_`
-        and :attr:`dtype`, respectively.
+    @cached_property
+    def moment_dtype(self) -> backend.dtype:
+        r"""The dtype of any (function of a) moment of the random variable.
+
+        For instance, the :attr:`mean`, :attr:`cov`, :attr:`var`, and :attr:`std` of the
+        random variable will have this dtype. It will be set to the dtype arising from
+        the multiplication of values with dtypes :attr:`dtype` and :class:`~probnum.\
+        backend.double`. This is motivated by the mathematical definition of a moment as
+        a sum or an integral over products of probabilities and values of the random
+        variable, which are represented as using the dtypes :class:`~probnum.backend.\
+        double` and :attr:`dtype`, respectively.
         """
-        return self.__moment_dtype
+        return backend.promote_types(self.dtype, backend.double)
 
     @property
     def parameters(self) -> Dict[str, Any]:
@@ -281,7 +278,7 @@ class RandomVariable(Generic[_ValueType]):
             "mean",
             mean,
             shape=self.__shape,
-            dtype=self.__moment_dtype,
+            dtype=self.moment_dtype,
         )
 
         # Make immutable
@@ -305,7 +302,7 @@ class RandomVariable(Generic[_ValueType]):
             "covariance",
             cov,
             shape=(self.size, self.size) if self.ndim > 0 else (),
-            dtype=self.__moment_dtype,
+            dtype=self.moment_dtype,
         )
 
         # Make immutable
@@ -333,7 +330,7 @@ class RandomVariable(Generic[_ValueType]):
             "variance",
             var,
             shape=self.__shape,
-            dtype=self.__moment_dtype,
+            dtype=self.moment_dtype,
         )
 
         # Make immutable
@@ -361,7 +358,7 @@ class RandomVariable(Generic[_ValueType]):
             "standard deviation",
             std,
             shape=self.__shape,
-            dtype=self.__moment_dtype,
+            dtype=self.moment_dtype,
         )
 
         # Make immutable
@@ -742,44 +739,6 @@ class RandomVariable(Generic[_ValueType]):
 
         return pow_(other, self)
 
-    @staticmethod
-    def infer_median_dtype(value_dtype: DTypeLike) -> np.dtype:
-        """Infer the dtype of the median.
-
-        Set the dtype to the dtype arising from
-        the multiplication of values with dtypes :attr:`dtype` and
-        :class:`numpy.float_`. This is motivated by the fact that, even for discrete
-        random variables, e.g. integer-valued random variables, the :attr:`median`
-        might lie in between two values in which case these values are averaged. For
-        example, a uniform random variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a
-        median of :math:`2.5`.
-
-        Parameters
-        ----------
-        value_dtype :
-            Dtype of a value.
-        """
-        return RandomVariable.infer_moment_dtype(value_dtype)
-
-    @staticmethod
-    def infer_moment_dtype(value_dtype: DTypeLike) -> np.dtype:
-        """Infer the dtype of any moment.
-
-        Infers the dtype of any (function of a) moment of the random variable, e.g. its
-        :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. Returns the
-        dtype arising from the multiplication of values with dtypes :attr:`dtype`
-        and :class:`numpy.float_`. This is motivated by the mathematical definition of a
-        moment as a sum or an integral over products of probabilities and values of the
-        random variable, which are represented as using the dtypes :class:`numpy.float_`
-        and :attr:`dtype`, respectively.
-
-        Parameters
-        ----------
-        value_dtype :
-            Dtype of a value.
-        """
-        return backend.promote_types(value_dtype, backend.double)
-
     def _as_value_type(self, x: Any) -> _ValueType:
         if self.__as_value_type is not None:
             return self.__as_value_type(x)
@@ -791,7 +750,7 @@ class RandomVariable(Generic[_ValueType]):
         name: str,
         value: Any,
         shape: Optional[Tuple[int, ...]] = None,
-        dtype: Optional[np.dtype] = None,
+        dtype: Optional[backend.dtype] = None,
     ):
         if shape is not None:
             if value.shape != shape:

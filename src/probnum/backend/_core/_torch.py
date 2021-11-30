@@ -12,6 +12,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     complex64 as csingle,
     diag,
     double,
+    dtype,
     exp,
     eye,
     finfo,
@@ -30,6 +31,16 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
 )
 
 torch.set_default_dtype(torch.double)
+
+
+def asdtype(x) -> torch.dtype:
+    # Parse `x` with NumPy and convert `np.dtype`` into `torch.dtype`
+    return torch.as_tensor(
+        np.empty(
+            (),
+            dtype=np.dtype(x),
+        ),
+    ).dtype
 
 
 def is_floating_dtype(dtype) -> bool:

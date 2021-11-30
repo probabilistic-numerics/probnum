@@ -4,6 +4,8 @@ from ._select import Backend, select_backend as _select_backend
 __all__ = [
     "ndarray",
     # DTypes
+    "dtype",
+    "asdtype",
     "bool",
     "int32",
     "int64",

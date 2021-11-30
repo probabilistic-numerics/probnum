@@ -13,6 +13,8 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     complex64 as csingle,
     diag,
     double,
+    dtype,
+    dtype as asdtype,
     exp,
     eye,
     finfo,

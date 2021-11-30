@@ -12,6 +12,8 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     csingle,
     diag,
     double,
+    dtype,
+    dtype as asdtype,
     exp,
     eye,
     finfo,
