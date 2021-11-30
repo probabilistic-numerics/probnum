@@ -92,8 +92,10 @@ class ProbabilisticLinearSolver(
     ...     policy=policies.ConjugateGradientPolicy(),
     ...     information_op=information_ops.ProjectedRHSInformationOp(),
     ...     belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
-    ...     stopping_criterion=stopping_criteria.MaxIterationsStoppingCriterion(100)
-    ...     | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
+    ...     stopping_criterion=(
+    ...         stopping_criteria.MaxIterationsStoppingCriterion(100)
+    ...         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5)
+    ...     ),
     ... )
 
     Define a prior over the solution.
