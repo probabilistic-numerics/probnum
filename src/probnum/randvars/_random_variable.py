@@ -157,7 +157,7 @@ class RandomVariable:
     def size(self) -> int:
         """Size of realizations of the random variable, defined as the product over all
         components of :attr:`shape`."""
-        return functools.reduce(operator.mul, self.__shape, initial=1)
+        return functools.reduce(operator.mul, self.__shape, 1)
 
     @property
     def dtype(self) -> backend.dtype:

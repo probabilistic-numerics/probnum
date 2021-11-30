@@ -501,10 +501,10 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         return res
 
-    def _cdf(self, x: ArrayType) -> ArrayType:
-        if backend.BACKEND is not backend.Backend.NUMPY:
-            raise NotImplementedError()
+    _cdf = backend.Dispatcher()
 
+    @_cdf.numpy
+    def _cdf_numpy(self, x: ArrayType) -> ArrayType:
         import scipy.stats  # pylint: disable=import-outside-toplevel
 
         return scipy.stats.multivariate_normal.cdf(
@@ -513,10 +513,10 @@ class Normal(_random_variable.ContinuousRandomVariable):
             cov=self.dense_cov,
         )
 
-    def _logcdf(self, x: ArrayType) -> ArrayType:
-        if backend.BACKEND is not backend.Backend.NUMPY:
-            raise NotImplementedError()
+    _logcdf = backend.Dispatcher()
 
+    @_logcdf.numpy
+    def _logcdf_numpy(self, x: ArrayType) -> ArrayType:
         import scipy.stats  # pylint: disable=import-outside-toplevel
 
         return scipy.stats.multivariate_normal.logcdf(

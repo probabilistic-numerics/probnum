@@ -47,6 +47,10 @@ class Dispatcher:
         return impl
 
     def __call__(self, *args, **kwargs):
+        if BACKEND not in self._impl:
+            raise NotImplementedError(
+                f"This function is not implemented for the backend `{BACKEND.name}`"
+            )
         return self._impl[BACKEND](*args, **kwargs)
 
     def __get__(self, obj, objtype=None):
