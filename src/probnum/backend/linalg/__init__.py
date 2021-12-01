@@ -1,6 +1,7 @@
 __all__ = [
     "cholesky",
-    "cholesky_solve",
+    "solve_triangular",
+    "solve_cholesky",
 ]
 
 from .. import BACKEND, Backend

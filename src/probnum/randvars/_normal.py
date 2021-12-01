@@ -486,21 +486,21 @@ class Normal(_random_variable.ContinuousRandomVariable):
             x.shape[: -self.ndim] + (-1,)
         )
 
-        res = -0.5 * (
-            x_centered[..., None, :]
-            # TODO (#569): Replace `cho_solve` with `linop.inv() @ ...`
-            @ backend.linalg.cholesky_solve(
-                self._cov_matrix_cholesky,
-                x_centered[..., None],
-                lower=True,
-            )
-        )[..., 0, 0]
+        # TODO (#569): Replace `solve_triangular` with:
+        # self._cov_op_cholesky.inv() @ x_centered[..., None]
+        x_whitened = backend.linalg.solve_triangular(
+            self._cov_matrix_cholesky,
+            x_centered[..., None],
+            lower=True,
+        )[..., 0]
 
-        res -= 0.5 * self.size * backend.log(backend.array(2.0 * backend.pi))
-        # TODO (#569): Replace this with `0.5 * self._cov_op.logdet()`
-        res -= backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
-
-        return res
+        return -0.5 * (
+            # ||L^{-1}(x - \mu)||_2^2 = (x - \mu)^T \Sigma (x - \mu)
+            (x_whitened[..., None, :] @ x_whitened[..., :, None])[..., 0, 0]
+            + self.size * backend.log(backend.array(2.0 * backend.pi))
+            # TODO (#569): Replace this with `self._cov_op.logabsdet()`
+            + 2.0 * backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
+        )
 
     _cdf = backend.Dispatcher()
 

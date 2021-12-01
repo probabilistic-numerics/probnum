@@ -1,9 +1,41 @@
+import functools
+from typing import Callable
+
 import numpy as np
 import scipy.linalg
 from scipy.linalg import cholesky
 
 
-def cholesky_solve(
+def solve_triangular(
+    A: np.ndarray,
+    b: np.ndarray,
+    *,
+    transpose: bool = False,
+    lower: bool = False,
+    unit_diagonal: bool = False,
+) -> np.ndarray:
+    if b.ndim in (1, 2):
+        return scipy.linalg.solve_triangular(
+            A,
+            b,
+            trans=1 if transpose else 0,
+            lower=lower,
+            unit_diagonal=unit_diagonal,
+        )
+
+    return _matmul_broadcasting(
+        functools.partial(
+            scipy.linalg.solve_triangular,
+            A,
+            trans=1 if transpose else 0,
+            lower=lower,
+            unit_diagonal=unit_diagonal,
+        ),
+        b,
+    )
+
+
+def solve_cholesky(
     cholesky: np.ndarray,
     b: np.ndarray,
     *,
@@ -19,45 +51,57 @@ def cholesky_solve(
             check_finite=check_finite,
         )
 
+    return _matmul_broadcasting(
+        functools.partial(
+            scipy.linalg.cho_solve,
+            (cholesky, lower),
+            overwrite_b=overwrite_b,
+            check_finite=check_finite,
+        ),
+        b,
+    )
+
+
+def _matmul_broadcasting(
+    matmul_fn: Callable[[np.ndarray], np.ndarray],
+    x: np.ndarray,
+) -> np.ndarray:
     # In order to apply __matmul__ broadcasting, we need to reshape the stack of
-    # matrices `b` into a matrix whose first axis corresponds to the penultimate axis in
+    # matrices `x` into a matrix whose first axis corresponds to the penultimate axis in
     # the matrix stack and whose second axis is a flattened/raveled representation of
     # all the remaining axes
 
     # We can handle a stack of vectors in a simplified manner
-    stack_of_vectors = b.shape[-1] == 1
+    stack_of_vectors = x.shape[-1] == 1
 
     if stack_of_vectors:
-        cols_batch_first = b[..., 0]
+        x_batch_first = x[..., 0]
     else:
-        cols_batch_first = np.swapaxes(b, -2, -1)
+        x_batch_first = np.swapaxes(x, -2, -1)
 
-    cols_batch_last = np.array(cols_batch_first.T, copy=False, order="F")
+    x_batch_last = np.array(x_batch_first.T, copy=False, order="F")
 
     # Flatten the trailing axes and remember shape to undo flattening operation later
-    unflatten_shape = cols_batch_last.shape
-    cols_flat_batch_last = cols_batch_last.reshape(
-        (cols_batch_last.shape[0], -1),
+    unflatten_shape = x_batch_last.shape[1:]
+    x_flat_batch_last = x_batch_last.reshape(
+        (x_batch_last.shape[0], -1),
         order="F",
     )
 
-    assert cols_flat_batch_last.flags.f_contiguous
+    assert x_flat_batch_last.flags.f_contiguous
 
-    sols_flat_batch_last = scipy.linalg.cho_solve(
-        (cholesky, lower),
-        cols_flat_batch_last,
-        overwrite_b=overwrite_b,
-        check_finite=check_finite,
+    res_flat_batch_last = np.array(
+        matmul_fn(x_flat_batch_last),
+        copy=False,
+        order="F",
     )
 
-    assert sols_flat_batch_last.flags.f_contiguous
-
     # Undo flattening operation
-    sols_batch_last = sols_flat_batch_last.reshape(unflatten_shape, order="F")
+    res_batch_last = res_flat_batch_last.reshape((-1,) + unflatten_shape, order="F")
 
-    sols_batch_first = sols_batch_last.T
+    res_batch_first = res_batch_last.T
 
     if stack_of_vectors:
-        return sols_batch_first[..., None]
+        return res_batch_first[..., None]
 
-    return np.swapaxes(sols_batch_first, -2, -1)
+    return np.swapaxes(res_batch_first, -2, -1)
