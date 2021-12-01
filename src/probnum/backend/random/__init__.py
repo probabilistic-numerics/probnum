@@ -13,3 +13,4 @@ split = _random.split
 
 # Sample functions
 standard_normal = _random.standard_normal
+gamma = _random.gamma

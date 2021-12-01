@@ -20,3 +20,7 @@ def split(seed: jax.numpy.ndarray, num: int = 2) -> Sequence[jax.numpy.ndarray]:
 
 def standard_normal(seed: jax.numpy.ndarray, shape=(), dtype=jax.numpy.double):
     return jax.random.normal(key=seed, shape=shape, dtype=dtype)
+
+
+def gamma(seed: jax.numpy.ndarray, a, scale=1.0, shape=(), dtype=jax.numpy.double):
+    return jax.random.gamma(key=seed, a=a, shape=shape, dtype=dtype) * scale
