@@ -1,3 +1,7 @@
+import numpy as np
+import pytest
+
+
 @pytest.mark.parametrize(
     "a, u, dim",
     [
