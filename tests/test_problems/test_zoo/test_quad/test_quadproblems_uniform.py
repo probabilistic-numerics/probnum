@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.quad
+import probnum.problems.zoo.quad.quadproblems_uniform
 
 
 @pytest.mark.parametrize(
