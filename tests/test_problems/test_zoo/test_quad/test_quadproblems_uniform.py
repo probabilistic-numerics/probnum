@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.quad
+
 
 @pytest.mark.parametrize(
     "a, u, dim",
