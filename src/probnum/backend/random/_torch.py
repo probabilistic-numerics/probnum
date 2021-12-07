@@ -4,6 +4,8 @@ import numpy as np
 import torch
 from torch.distributions.utils import broadcast_all
 
+from probnum.typing import DTypeArgType, ShapeArgType
+
 _RNG_STATE_SIZE = torch.Generator().get_state().shape[0]
 
 
@@ -42,6 +44,67 @@ def gamma(
     res_shape = shape + a.shape
 
     return torch._standard_gamma(a.expand(res_shape), rng) * scale.expand(res_shape)
+
+
+def uniform_so_group(
+    seed: np.random.SeedSequence,
+    n: int,
+    shape: ShapeArgType = (),
+    dtype: DTypeArgType = torch.double,
+) -> torch.Tensor:
+    if n == 1:
+        return torch.ones(shape + (1, 1), dtype=dtype)
+
+    omega = standard_normal(seed, shape=shape + (n - 1, n), dtype=dtype)
+
+    sample = _uniform_so_group_pushforward_fn(omega.reshape((-1, n - 1, n)))
+
+    return sample.reshape(shape + (n, n))
+
+
+@torch.jit.script
+def _uniform_so_group_pushforward_fn(omega: torch.Tensor) -> torch.Tensor:
+    n = omega.shape[-1]
+
+    assert omega.ndim == 3 and omega.shape[-2] == n - 1
+
+    samples = []
+
+    for sample_idx in range(omega.shape[0]):
+        X = torch.triu(omega[sample_idx, :, :])
+        X_diag = torch.diag(X)
+
+        D = torch.where(
+            X_diag != 0,
+            torch.sign(X_diag),
+            torch.ones((), dtype=omega.dtype),
+        )
+
+        row_norms_sq = torch.sum(X ** 2, dim=1)
+
+        diag_indices = torch.arange(n - 1)
+        X[diag_indices, diag_indices] = torch.sqrt(row_norms_sq) * D
+
+        X /= torch.sqrt((row_norms_sq - X_diag ** 2 + torch.diag(X) ** 2) / 2.0)[
+            :, None
+        ]
+
+        H = torch.eye(n, dtype=omega.dtype)
+
+        for idx in range(n - 1):
+            H -= torch.outer(H @ X[idx, :], X[idx, :])
+
+        D = torch.cat(
+            (
+                D,
+                (-1.0 if n % 2 == 0 else 1.0) * torch.prod(D, dim=0, keepdim=True),
+            ),
+            dim=0,
+        )
+
+        samples.append(D[:, None] * H)
+
+    return torch.stack(samples, dim=0)
 
 
 def _make_rng(seed: np.random.SeedSequence) -> torch.Generator:

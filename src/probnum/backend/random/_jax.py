@@ -86,7 +86,7 @@ def _uniform_so_group_pushforward_fn(omega: jnp.ndarray) -> jnp.ndarray:
 
     D = jnp.append(
         D,
-        (-1.0 if n % 2 == 0 else 1.0) * jnp.prod(D[:-1]),
+        (-1.0 if n % 2 == 0 else 1.0) * jnp.prod(D),
     )
 
     return D[:, None] * H
