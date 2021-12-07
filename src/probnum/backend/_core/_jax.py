@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import jax
 import numpy as np
 from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
@@ -58,8 +60,8 @@ def is_floating_dtype(dtype) -> bool:
     return is_floating(jax.numpy.empty((), dtype=dtype))
 
 
-def to_numpy(a: jax.numpy.ndarray) -> np.ndarray:
-    return np.array(a)
+def to_numpy(*arrays: jax.numpy.ndarray) -> Tuple[np.ndarray, ...]:
+    return tuple(np.array(arr) for arr in arrays)
 
 
 def jit(f, *args, **kwargs):

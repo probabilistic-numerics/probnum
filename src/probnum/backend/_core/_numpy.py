@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 from numpy import (  # pylint: disable=redefined-builtin, unused-import
     all,
@@ -55,8 +57,8 @@ def is_floating_dtype(dtype) -> bool:
     return np.issubdtype(dtype, np.floating)
 
 
-def to_numpy(a: np.ndarray) -> np.ndarray:
-    return a
+def to_numpy(*arrays: np.ndarray) -> Tuple[np.ndarray, ...]:
+    return tuple(arrays)
 
 
 def jit(f, *args, **kwargs):

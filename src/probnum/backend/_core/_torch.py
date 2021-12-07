@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 import torch
 from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
@@ -155,8 +157,8 @@ def cast(a: torch.Tensor, dtype=None, casting="unsafe", copy=None):
     return a.to(dtype=dtype, copy=copy)
 
 
-def to_numpy(a: torch.Tensor) -> np.ndarray:
-    return a.cpu().detach().numpy()
+def to_numpy(*arrays: torch.Tensor) -> Tuple[np.ndarray, ...]:
+    return tuple(arr.cpu().detach().numpy() for arr in arrays)
 
 
 def jit(f, *args, **kwargs):
