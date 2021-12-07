@@ -38,6 +38,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     single,
     sqrt,
     sum,
+    swapaxes,
     zeros,
     zeros_like,
 )

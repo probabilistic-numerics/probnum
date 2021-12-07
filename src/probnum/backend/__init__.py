@@ -24,6 +24,7 @@ __all__ = [
     "broadcast_arrays",
     "broadcast_shapes",
     "ndim",
+    "swapaxes",
     # Constructors
     "array",
     "asarray",

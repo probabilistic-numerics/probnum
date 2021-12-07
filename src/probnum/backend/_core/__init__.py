@@ -34,6 +34,8 @@ broadcast_arrays = _core.broadcast_arrays
 broadcast_shapes = _core.broadcast_shapes
 ndim = _core.ndim
 
+swapaxes = _core.swapaxes
+
 # Constructors
 array = _core.array
 asarray = _core.asarray

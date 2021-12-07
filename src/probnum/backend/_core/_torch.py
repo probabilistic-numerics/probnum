@@ -29,6 +29,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     reshape,
     sin,
     sqrt,
+    swapaxes,
 )
 
 torch.set_default_dtype(torch.double)
