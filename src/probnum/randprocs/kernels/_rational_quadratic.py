@@ -2,9 +2,7 @@
 
 from typing import Optional
 
-import numpy as np
-
-from probnum import backend, utils
+from probnum import backend
 from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
@@ -62,8 +60,8 @@ class RatQuad(Kernel, IsotropicMixin):
         lengthscale: ScalarLike = 1.0,
         alpha: ScalarLike = 1.0,
     ):
-        self.lengthscale = utils.as_scalar(lengthscale)
-        self.alpha = utils.as_scalar(alpha)
+        self.lengthscale = backend.as_scalar(lengthscale)
+        self.alpha = backend.as_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
         super().__init__(input_dim=input_dim)

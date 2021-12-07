@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from probnum import backend, utils
+from probnum import backend
 from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import Kernel
@@ -46,8 +46,8 @@ class Polynomial(Kernel):
         constant: ScalarLike = 0.0,
         exponent: IntLike = 1.0,
     ):
-        self.constant = utils.as_scalar(constant)
-        self.exponent = utils.as_scalar(exponent)
+        self.constant = backend.as_scalar(constant)
+        self.exponent = backend.as_scalar(exponent)
         super().__init__(input_dim=input_dim)
 
     @backend.jit_method

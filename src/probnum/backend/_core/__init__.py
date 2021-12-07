@@ -1,4 +1,5 @@
 from probnum import backend as _backend
+from probnum.typing import ArrayType, DTypeArgType, ScalarArgType
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core
@@ -73,3 +74,20 @@ to_numpy = _core.to_numpy
 # Just-in-Time Compilation
 jit = _core.jit
 jit_method = _core.jit_method
+
+
+def as_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> ArrayType:
+    """Convert a scalar into a NumPy scalar.
+
+    Parameters
+    ----------
+    x
+        Scalar value.
+    dtype
+        Data type of the scalar.
+    """
+
+    if ndim(x) != 0:
+        raise ValueError("The given input is not a scalar.")
+
+    return asarray(x, dtype=dtype)[()]

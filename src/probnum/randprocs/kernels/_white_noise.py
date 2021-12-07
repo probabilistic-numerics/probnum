@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from probnum import backend, utils
+from probnum import backend
 from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import Kernel
@@ -25,7 +25,7 @@ class WhiteNoise(Kernel):
     """
 
     def __init__(self, input_dim: IntLike, sigma: ScalarLike = 1.0):
-        self.sigma = utils.as_scalar(sigma)
+        self.sigma = backend.as_scalar(sigma)
         self._sigma_sq = self.sigma ** 2
         super().__init__(input_dim=input_dim)
 

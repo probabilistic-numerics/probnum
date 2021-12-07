@@ -3,7 +3,7 @@
 import functools
 from typing import Optional
 
-from probnum import backend, utils as _utils
+from probnum import backend
 from probnum.typing import ArrayType, IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
@@ -46,7 +46,7 @@ class ExpQuad(Kernel, IsotropicMixin):
     """
 
     def __init__(self, input_dim: IntLike, lengthscale: ScalarLike = 1.0):
-        self.lengthscale = _utils.as_scalar(lengthscale)
+        self.lengthscale = backend.as_scalar(lengthscale)
         super().__init__(input_dim=input_dim)
 
     @backend.jit_method

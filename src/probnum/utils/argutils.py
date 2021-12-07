@@ -5,10 +5,9 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import backend
-from probnum.typing import ArrayType, DTypeLike, ScalarLike, ShapeLike, ShapeType
+from probnum.typing import DTypeLike, ScalarLike, ShapeLike, ShapeType
 
-__all__ = ["as_shape", "as_numpy_scalar", "as_scalar"]
+__all__ = ["as_shape", "as_numpy_scalar"]
 
 
 def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType:
@@ -58,20 +57,3 @@ def as_numpy_scalar(x: ScalarLike, dtype: DTypeLike = None) -> np.ndarray:
         raise ValueError("The given input is not a scalar.")
 
     return np.asarray(x, dtype=dtype)
-
-
-def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ArrayType:
-    """Convert a scalar into a NumPy scalar.
-
-    Parameters
-    ----------
-    x
-        Scalar value.
-    dtype
-        Data type of the scalar.
-    """
-
-    if backend.ndim(x) != 0:
-        raise ValueError("The given input is not a scalar.")
-
-    return backend.asarray(x, dtype=dtype)[()]

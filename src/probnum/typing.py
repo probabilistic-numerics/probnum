@@ -64,7 +64,7 @@ ShapeLike = Union[IntLike, Iterable[IntLike]]
 """Type of a public API argument for supplying a shape.
 
 Values of this type should always be converted into :class:`ShapeType` using the
-function :func:`probnum.utils.as_shape` before further internal processing."""
+function :func:`probnum.backend.as_scalar` before further internal processing."""
 
 DTypeLike = _NumPyDTypeLike
 """Type of a public API argument for supplying an array's dtype.

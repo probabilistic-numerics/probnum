@@ -2,7 +2,6 @@
 
 from typing import Optional
 
-import probnum.utils as _utils
 from probnum import backend
 from probnum.typing import ArrayType, FloatLike, IntLike, ScalarLike
 
@@ -64,7 +63,7 @@ class Matern(Kernel, IsotropicMixin):
         lengthscale: ScalarLike = 1.0,
         nu: FloatLike = 1.5,
     ):
-        self.lengthscale = _utils.as_scalar(lengthscale)
+        self.lengthscale = backend.as_scalar(lengthscale)
         if not self.lengthscale > 0:
             raise ValueError(f"Lengthscale l={self.lengthscale} must be positive.")
         self.nu = float(nu)
