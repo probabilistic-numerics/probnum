@@ -14,3 +14,4 @@ split = _random.split
 # Sample functions
 standard_normal = _random.standard_normal
 gamma = _random.gamma
+uniform_so_group = _random.uniform_so_group

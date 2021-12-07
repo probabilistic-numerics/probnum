@@ -6,11 +6,11 @@ import numpy as np
 import scipy.stats
 
 from probnum import backend
-from probnum.typing import IntLike, SeedLike
+from probnum.typing import IntLike, SeedType
 
 
 def random_spd_matrix(
-    seed: SeedLike,
+    seed: SeedType,
     dim: IntLike,
     spectrum: Sequence = None,
 ) -> np.ndarray:
@@ -57,38 +57,27 @@ def random_spd_matrix(
     array([ 8.09147328, 12.7635956 , 10.84504988, 10.73086331, 10.78143272])
     """
 
-    seed = backend.random.seed(seed)
-
-    rng = np.random.default_rng(seed)
+    gamma_seed, so_seed = backend.random.split(seed, num=2)
 
     # Initialization
     if spectrum is None:
-        # Create a custom ordered spectrum if none is given.
-        spectrum_shape: float = 10.0
-        spectrum_scale: float = 1.0
-        spectrum_offset: float = 0.0
-
-        spectrum = scipy.stats.gamma.rvs(
-            spectrum_shape,
-            loc=spectrum_offset,
-            scale=spectrum_scale,
-            size=dim,
-            random_state=rng,
+        spectrum = backend.random.gamma(
+            gamma_seed,
+            shape_param=10.0,
+            scale_param=1.0,
+            shape=(dim,),
         )
-        spectrum = np.sort(spectrum)[::-1]
-
     else:
-        spectrum = np.asarray(spectrum)
-        if not np.all(spectrum > 0):
+        spectrum = backend.asarray(spectrum)
+
+        if not backend.all(spectrum > 0):
             raise ValueError(f"Eigenvalues must be positive, but are {spectrum}.")
 
-    # Early exit for d=1 -- special_ortho_group does not like this case.
-    if dim == 1:
-        return spectrum.reshape((1, 1))
-
     # Draw orthogonal matrix with respect to the Haar measure
-    orth_mat = scipy.stats.special_ortho_group.rvs(dim, random_state=rng)
-    spd_mat = orth_mat @ np.diag(spectrum) @ orth_mat.T
+    orth_mat = backend.random.uniform_so_group(so_seed, n=dim)
+    spd_mat = (orth_mat * spectrum[None, :]) @ orth_mat.T
+
+    print(spectrum.shape, orth_mat.shape, spd_mat.shape)
 
     # Symmetrize to avoid numerically not symmetric matrix
     # Since A commutes with itself (AA' = A'A = AA) the eigenvalues do not change.

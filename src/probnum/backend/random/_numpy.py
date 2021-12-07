@@ -1,6 +1,9 @@
+import functools
 from typing import Optional, Sequence
 
 import numpy as np
+
+from probnum.typing import DTypeArgType, FloatArgType, ShapeArgType
 
 
 def seed(seed: Optional[int]) -> np.random.SeedSequence:
@@ -16,12 +19,65 @@ def split(
     return seed.spawn(num)
 
 
-def standard_normal(seed: np.random.SeedSequence, shape=(), dtype=np.double):
+def standard_normal(
+    seed: np.random.SeedSequence,
+    shape: ShapeArgType = (),
+    dtype: DTypeArgType = np.double,
+) -> np.ndarray:
     return _make_rng(seed).standard_normal(size=shape, dtype=dtype)
 
 
-def gamma(seed: np.random.SeedSequence, a, scale=1.0, shape=(), dtype=np.double):
-    return _make_rng(seed).gamma(shape=a, scale=scale, size=shape, dtype=dtype)
+def gamma(
+    seed: np.random.SeedSequence,
+    shape_param: FloatArgType,
+    scale_param: FloatArgType = 1.0,
+    shape: ShapeArgType = (),
+    dtype: DTypeArgType = np.double,
+) -> np.ndarray:
+    return (
+        _make_rng(seed).standard_gamma(shape=shape_param, size=shape, dtype=dtype)
+        * scale_param
+    )
+
+
+def uniform_so_group(
+    seed: np.random.SeedSequence,
+    n: int,
+    shape: ShapeArgType = (),
+    dtype: DTypeArgType = np.double,
+) -> np.ndarray:
+    if n == 1:
+        return np.ones(shape + (1, 1), dtype=dtype)
+
+    return _uniform_so_group_pushforward_fn(
+        standard_normal(seed, shape=shape + (n - 1, n), dtype=dtype)
+    )
+
+
+@functools.partial(np.vectorize, signature="(M,N)->(N,N)")
+def _uniform_so_group_pushforward_fn(omega: np.ndarray) -> np.ndarray:
+    n = omega.shape[1]
+
+    assert omega.shape == (n - 1, n)
+
+    X = np.triu(omega)
+
+    # Copied and modified from https://github.com/scipy/scipy/blob/1c98aa98a55e2aaf2c15c16b47ee5e258bfcd170/scipy/stats/_multivariate.py#L3373-L3387
+    H = np.eye(n, dtype=omega.dtype)
+    D = np.empty((n,), dtype=omega.dtype)
+    for idx in range(n - 1):
+        x = X[idx, idx:]
+        norm2 = np.dot(x, x)
+        x0 = x[0].item()
+        D[idx] = np.sign(x[0]) if x[0] != 0 else 1
+        x[0] += D[idx] * np.sqrt(norm2)
+        x /= np.sqrt((norm2 - x0 ** 2 + x[0] ** 2) / 2.0)
+        # Householder transformation
+        H[:, idx:] -= np.outer(np.dot(H[:, idx:], x), x)
+    D[-1] = (-1) ** (n - 1) * D[:-1].prod()
+    # Equivalent to np.dot(np.diag(D), H) but faster, apparently
+    H = (D * H.T).T
+    return H
 
 
 def _make_rng(seed: np.random.SeedSequence) -> np.random.Generator:
