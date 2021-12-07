@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: ProbNum
+authors:
+- name: ProbNum Team
+license: MIT
+url: "https://github.com/probabilistic-numerics/probnum"
+preferred-citation:
+  type: generic
+  title: "ProbNum: Probabilistic Numerics in Python"
+  authors:
+  - family-names: Wenger
+    given-names: Jonathan
+    orcid: "https://orcid.org/0000-0003-2261-1331"
+  - family-names: Krämer
+    given-names: Nicholas
+  - family-names: Pförtner
+    given-names: Marvin
+    orcid: "https://orcid.org/0000-0002-9005-2984"
+  - family-names: Schmidt
+    given-names: Jonathan
+  - family-names: Bosch
+    given-names: Nathanael
+  - family-names: Effenberger
+    given-names: Nina
+  - family-names: Zenn
+    given-names: Johannes
+  - family-names: Gessner
+    given-names: Alexandra
+  - family-names: Karvonen
+    given-names: Toni
+    orcid: "https://orcid.org/0000-0002-5984-7295"
+  - family-names: Briol
+    given-names: François-Xavier
+    orcid: "https://orcid.org/0000-0002-0181-2559"
+  - family-names: Mahsereci
+    given-names: Maren
+  - family-names: Hennig
+    given-names: Philipp
+  year: 2021
+  url: "https://arxiv.org/abs/2112.02100"
+  identifiers:
+    - type: other
+      value: "arXiv:2112.02100"
+      description: The ArXiv preprint of the paper
