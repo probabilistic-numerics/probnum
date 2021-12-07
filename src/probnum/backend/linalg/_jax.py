@@ -17,7 +17,7 @@ def solve_triangular(
         return jax.scipy.linalg.solve_triangular(
             A,
             b,
-            transpose=1 if transpose else 0,
+            trans=1 if transpose else 0,
             lower=lower,
             unit_diagonal=unit_diagonal,
         )
@@ -30,7 +30,7 @@ def solve_triangular(
         return jax.scipy.linalg.solve_triangular(
             A,
             b,
-            transpose=1 if transpose else 0,
+            trans=1 if transpose else 0,
             lower=lower,
             unit_diagonal=unit_diagonal,
         )

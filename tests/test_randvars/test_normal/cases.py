@@ -17,7 +17,9 @@ def case_univariate(mean: ScalarLike, var: ScalarLike) -> randvars.Normal:
 @case(tags=["vectorvariate"])
 @parametrize("dim", [1, 2, 5, 10, 20])
 def case_vectorvariate(dim: int) -> randvars.Normal:
-    mean = backend.random.standard_normal(backend.random.seed(654 + dim), shape=(dim,))
-    cov = random_spd_matrix(backend.random.seed(846), dim)
+    seed_mean, seed_cov = backend.random.split(backend.random.seed(654 + dim), num=2)
 
-    return randvars.Normal(mean, cov)
+    return randvars.Normal(
+        mean=backend.random.standard_normal(seed_mean, shape=(dim,)),
+        cov=random_spd_matrix(seed_cov, dim),
+    )
