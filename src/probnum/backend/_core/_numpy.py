@@ -58,6 +58,9 @@ def is_floating_dtype(dtype) -> bool:
 
 
 def to_numpy(*arrays: np.ndarray) -> Tuple[np.ndarray, ...]:
+    if len(arrays) == 1:
+        return arrays[0]
+
     return tuple(arrays)
 
 

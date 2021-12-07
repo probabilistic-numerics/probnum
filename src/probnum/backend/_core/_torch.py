@@ -158,6 +158,9 @@ def cast(a: torch.Tensor, dtype=None, casting="unsafe", copy=None):
 
 
 def to_numpy(*arrays: torch.Tensor) -> Tuple[np.ndarray, ...]:
+    if len(arrays) == 1:
+        return arrays[0].cpu().detach().numpy()
+
     return tuple(arr.cpu().detach().numpy() for arr in arrays)
 
 

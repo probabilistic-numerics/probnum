@@ -61,6 +61,9 @@ def is_floating_dtype(dtype) -> bool:
 
 
 def to_numpy(*arrays: jax.numpy.ndarray) -> Tuple[np.ndarray, ...]:
+    if len(arrays) == 1:
+        return np.array(arrays[0])
+
     return tuple(np.array(arr) for arr in arrays)
 
 
