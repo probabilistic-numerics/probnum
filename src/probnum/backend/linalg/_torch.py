@@ -26,7 +26,7 @@ def solve_triangular(
             upper=not lower,
             transpose=transpose,
             unitriangular=unit_diagonal,
-        )[:, 0]
+        ).solution[:, 0]
 
     return torch.triangular_solve(
         b,
@@ -34,7 +34,7 @@ def solve_triangular(
         upper=not lower,
         transpose=transpose,
         unitriangular=unit_diagonal,
-    )
+    ).solution
 
 
 def solve_cholesky(

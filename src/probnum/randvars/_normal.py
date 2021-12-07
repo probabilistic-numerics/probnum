@@ -204,9 +204,9 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         return self._cov_cholesky
 
-    @property
+    @functools.cached_property
     def _cov_matrix_cholesky(self) -> ArrayType:
-        return self._cov_op_cholesky.todense()
+        return backend.asarray(self._cov_op_cholesky.todense())
 
     @property
     def _cov_op_cholesky(self) -> ArrayType:
@@ -453,7 +453,9 @@ class Normal(_random_variable.ContinuousRandomVariable):
             dtype=self.dtype,
         )
 
-        samples = self._cov_op_cholesky(backend.to_numpy(samples), axis=-1)
+        samples = backend.asarray(
+            self._cov_op_cholesky(backend.to_numpy(samples), axis=-1)
+        )
         samples += self.dense_mean
 
         return samples.reshape(sample_shape + self.shape)
@@ -489,7 +491,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         # TODO (#569): Replace `solve_triangular` with:
         # self._cov_op_cholesky.inv() @ x_centered[..., None]
         x_whitened = backend.linalg.solve_triangular(
-            self._cov_matrix_cholesky,
+            backend.asarray(self._cov_matrix_cholesky),
             x_centered[..., None],
             lower=True,
         )[..., 0]
