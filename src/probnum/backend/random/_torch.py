@@ -27,23 +27,25 @@ def standard_normal(seed: np.random.SeedSequence, shape=(), dtype=torch.double):
 
 def gamma(
     seed: np.random.SeedSequence,
-    a: torch.Tensor,
-    scale=1.0,
+    shape_param: torch.Tensor,
+    scale_param=1.0,
     shape=(),
     dtype=torch.double,
 ):
     rng = _make_rng(seed)
 
-    a = a.to(dtype)
-    scale = scale.to(dtype)
+    shape_param = torch.as_tensor(shape_param, dtype=dtype)
+    scale_param = torch.as_tensor(scale_param, dtype=dtype)
 
     # Adapted version of
     # https://github.com/pytorch/pytorch/blob/afff38182457f3500c265f232310438dded0e57d/torch/distributions/gamma.py#L59-L63
-    a, scale = broadcast_all(a, scale)
+    shape_param, scale_param = broadcast_all(shape_param, scale_param)
 
-    res_shape = shape + a.shape
+    res_shape = shape + shape_param.shape
 
-    return torch._standard_gamma(a.expand(res_shape), rng) * scale.expand(res_shape)
+    return torch._standard_gamma(
+        shape_param.expand(res_shape), rng
+    ) * scale_param.expand(res_shape)
 
 
 def uniform_so_group(
