@@ -23,6 +23,9 @@ def to_numpy(*xs: Union[backend.ndarray, linops.LinearOperator]) -> Tuple[np.nda
 
         res.append(x)
 
+    if len(xs) == 1:
+        return res[0]
+
     return tuple(res)
 
 
