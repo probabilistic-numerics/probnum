@@ -54,8 +54,18 @@ def test_conjugate_actions(
         state.next_step()
 
     actions = np.array(state.actions[:-1]).T
-    innerprods = actions.T @ A @ actions
+    innerprods_actions = actions.T @ A @ actions
 
     np.testing.assert_allclose(
-        innerprods, np.diag(np.diag(innerprods)), atol=1e-7, rtol=1e7
+        innerprods_actions, np.diag(np.diag(innerprods_actions)), atol=1e-7, rtol=1e7
+    )
+
+    residuals = np.array(state.residuals[:-1]).T
+    innerprods_residuals = residuals.T @ residuals
+
+    np.testing.assert_allclose(
+        innerprods_residuals,
+        np.diag(np.diag(innerprods_residuals)),
+        atol=1e-7,
+        rtol=1e7,
     )

@@ -43,7 +43,6 @@ class LinearSolverState:
         self._observations: List[Any] = [None]
         self._residuals: List[np.ndarray] = [
             self.problem.A @ self.belief.x.mean - self.problem.b,
-            None,
         ]
         self.cache: Dict[str, Any] = {}
 
