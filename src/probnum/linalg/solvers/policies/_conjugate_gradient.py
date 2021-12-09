@@ -19,6 +19,8 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
     ----------
     reorthogonalization_fn
         Reorthogonalization function, which takes a vector, an orthogonal basis and optionally an inner product and returns an orthogonal vector.
+    reorthogonalization_target
+        Vector to reorthogonalize. Either the current `action` or `residual`.
     """
 
     def __init__(
@@ -28,8 +30,10 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
                 [np.ndarray, Iterable[np.ndarray], linops.LinearOperator], np.ndarray
             ]
         ] = None,
+        reorthogonalization_target: str = "residual",
     ) -> None:
         self._reorthogonalization_fn = reorthogonalization_fn
+        self._reorthogonalization_target = reorthogonalization_target
 
     def __call__(
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
@@ -38,16 +42,26 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
         action = -solver_state.residual.copy()
 
         if solver_state.step > 0:
-            # A-conjugacy correction (in exact arithmetic)
-            beta = (
-                np.linalg.norm(solver_state.residual)
-                / np.linalg.norm(solver_state.residuals[solver_state.step - 1])
-            ) ** 2
+            # Reorthogonalization of the residual
+            if (
+                self._reorthogonalization_target == "residual"
+                and self._reorthogonalization_fn is not None
+            ):
+                residual = None
+                prev_residual = None
+            else:
+                residual = solver_state.residual
+                prev_residual = solver_state.residuals[solver_state.step - 1]
 
+            # A-conjugacy correction (in exact arithmetic)
+            beta = (np.linalg.norm(residual) / np.linalg.norm(prev_residual)) ** 2
             action += beta * solver_state.actions[solver_state.step - 1]
 
-            # (Optional) Reorthogonalization
-            if self._reorthogonalization_fn is not None:
+            # Reorthogonalization of the resulting action
+            if (
+                self._reorthogonalization_target == "action"
+                and self._reorthogonalization_fn is not None
+            ):
                 if isinstance(solver_state.prior.x, randvars.Normal):
                     inprod_matrix = (
                         solver_state.problem.A
