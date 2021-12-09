@@ -18,7 +18,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
     Parameters
     ----------
     reorthogonalization_fn
-        Reorthogonalization function, which takes a vector an orthogonal basis and optionally an inner product and returns a reorthogonalized vector.
+        Reorthogonalization function, which takes a vector, an orthogonal basis and optionally an inner product and returns an orthogonal vector.
     """
 
     def __init__(
@@ -57,9 +57,13 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
                 elif isinstance(solver_state.prior.x, randvars.Constant):
                     inprod_matrix = solver_state.problem.A
 
+                orthogonal_basis = np.asarray(
+                    solver_state.actions[0 : solver_state.step]
+                )
+
                 action = self._reorthogonalization_fn(
                     action,
-                    solver_state.prev_actions,
+                    orthogonal_basis,
                     inprod_matrix,
                 )
 
