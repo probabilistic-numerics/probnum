@@ -12,7 +12,7 @@ cases_policies = case_modules + ".policies"
 cases_states = case_modules + ".states"
 
 
-@parametrize_with_cases("policy", cases=cases_policies, glob="*unit_vector")
+@parametrize_with_cases("policy", cases=cases_policies, glob="*unit_vector*")
 @parametrize_with_cases("state", cases=cases_states)
 def test_returns_unit_vector(
     policy: policies.LinearSolverPolicy, state: LinearSolverState
