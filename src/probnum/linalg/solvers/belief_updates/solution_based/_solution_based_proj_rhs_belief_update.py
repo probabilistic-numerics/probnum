@@ -45,7 +45,7 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
         noise_var: FloatArgType = 0.0,
         reorthogonalization_fn: Optional[
             Callable[[np.ndarray, np.ndarray], np.ndarray]
-        ] = double_gram_schmidt,
+        ] = None,
     ) -> None:
         if noise_var < 0.0:
             raise ValueError(f"Noise variance {noise_var} must be non-negative.")
