@@ -62,23 +62,30 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
                 self._reorthogonalization_target == "action"
                 and self._reorthogonalization_fn is not None
             ):
-                if isinstance(solver_state.prior.x, randvars.Normal):
-                    inprod_matrix = (
-                        solver_state.problem.A
-                        @ solver_state.prior.x.cov
-                        @ solver_state.problem.A.T
-                    )
-                elif isinstance(solver_state.prior.x, randvars.Constant):
-                    inprod_matrix = solver_state.problem.A
-
-                orthogonal_basis = np.asarray(
-                    solver_state.actions[0 : solver_state.step]
-                )
-
-                action = self._reorthogonalization_fn(
-                    action,
-                    orthogonal_basis,
-                    inprod_matrix,
+                return self._reorthogonalized_action(
+                    action=action, solver_state=solver_state
                 )
 
         return action
+
+    def _reorthogonalized_action(
+        self,
+        action: np.ndarray,
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
+    ) -> np.ndarray:
+        if isinstance(solver_state.prior.x, randvars.Normal):
+            inprod_matrix = (
+                solver_state.problem.A
+                @ solver_state.prior.x.cov
+                @ solver_state.problem.A.T
+            )
+        elif isinstance(solver_state.prior.x, randvars.Constant):
+            inprod_matrix = solver_state.problem.A
+
+        orthogonal_basis = np.asarray(solver_state.actions[0 : solver_state.step])
+
+        return self._reorthogonalization_fn(
+            action,
+            orthogonal_basis,
+            inprod_matrix,
+        )
