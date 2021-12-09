@@ -1,6 +1,6 @@
 """Policy returning :math:`A`-conjugate actions."""
 
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
 
@@ -17,23 +17,29 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
 
     Parameters
     ----------
-    reorthogonalization_fn
-        Reorthogonalization function, which takes a vector, an orthogonal basis and optionally an inner product and returns an orthogonal vector.
-    reorthogonalization_target
-        Vector to reorthogonalize. Either the current `action` or `residual`.
+    reorthogonalization_fn_residual
+        Reorthogonalization function, which takes a vector, an orthogonal basis and optionally an inner product and returns a reorthogonalized vector. If not `None`
+        the residuals are reorthogonalized before the action is computed.
+    reorthogonalization_fn_action
+        Reorthogonalization function, which takes a vector, an orthogonal basis and optionally an inner product and returns a reorthogonalized vector. If not `None`
+        the computed action is reorthogonalized.
     """
 
     def __init__(
         self,
-        reorthogonalization_fn: Optional[
+        reorthogonalization_fn_residual: Optional[
             Callable[
                 [np.ndarray, Iterable[np.ndarray], linops.LinearOperator], np.ndarray
             ]
         ] = None,
-        reorthogonalization_target: str = "residual",
+        reorthogonalization_fn_action: Optional[
+            Callable[
+                [np.ndarray, Iterable[np.ndarray], linops.LinearOperator], np.ndarray
+            ]
+        ] = None,
     ) -> None:
-        self._reorthogonalization_fn = reorthogonalization_fn
-        self._reorthogonalization_target = reorthogonalization_target
+        self._reorthogonalization_fn_residual = reorthogonalization_fn_residual
+        self._reorthogonalization_fn_action = reorthogonalization_fn_action
 
     def __call__(
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
@@ -41,14 +47,15 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
 
         action = -solver_state.residual.copy()
 
+        if self._reorthogonalization_fn_residual is not None and solver_state.step == 0:
+            solver_state.cache["reorthogonalized_residuals"] = [solver_state.residual]
+
         if solver_state.step > 0:
             # Reorthogonalization of the residual
-            if (
-                self._reorthogonalization_target == "residual"
-                and self._reorthogonalization_fn is not None
-            ):
-                residual = None
-                prev_residual = None
+            if self._reorthogonalization_fn_residual is not None:
+                residual, prev_residual = self._reorthogonalized_residuals(
+                    solver_state=solver_state
+                )
             else:
                 residual = solver_state.residual
                 prev_residual = solver_state.residuals[solver_state.step - 1]
@@ -58,21 +65,37 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
             action += beta * solver_state.actions[solver_state.step - 1]
 
             # Reorthogonalization of the resulting action
-            if (
-                self._reorthogonalization_target == "action"
-                and self._reorthogonalization_fn is not None
-            ):
+            if self._reorthogonalization_fn_action is not None:
                 return self._reorthogonalized_action(
                     action=action, solver_state=solver_state
                 )
 
         return action
 
+    def _reorthogonalized_residuals(
+        self,
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute the reorthogonalized residual and its predecessor."""
+        residual = self._reorthogonalization_fn_residual(
+            v=solver_state.residual,
+            orthogonal_basis=np.asarray(
+                solver_state.cache["reorthogonalized_residuals"]
+            ),
+            inprod=None,
+        )
+        solver_state.cache["reorthogonalized_residuals"].append(residual)
+        prev_residual = solver_state.cache["reorthogonalized_residuals"][
+            solver_state.step - 1
+        ]
+        return residual, prev_residual
+
     def _reorthogonalized_action(
         self,
         action: np.ndarray,
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> np.ndarray:
+        """Reorthogonalize the computed action."""
         if isinstance(solver_state.prior.x, randvars.Normal):
             inprod_matrix = (
                 solver_state.problem.A
@@ -84,8 +107,8 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
 
         orthogonal_basis = np.asarray(solver_state.actions[0 : solver_state.step])
 
-        return self._reorthogonalization_fn(
-            action,
-            orthogonal_basis,
-            inprod_matrix,
+        return self._reorthogonalization_fn_action(
+            v=action,
+            orthogonal_basis=orthogonal_basis,
+            inprod=inprod_matrix,
         )

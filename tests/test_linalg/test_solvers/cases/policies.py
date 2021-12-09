@@ -2,16 +2,22 @@
 from pytest_cases import case
 
 from probnum.linalg.solvers import policies
-from probnum.utils.linalg import modified_gram_schmidt
+from probnum.utils.linalg import double_gram_schmidt, modified_gram_schmidt
 
 
 def case_conjugate_gradient():
     return policies.ConjugateGradientPolicy()
 
 
-def case_conjugate_gradient_reorthogonalized():
+def case_conjugate_gradient_reorthogonalized_residuals():
     return policies.ConjugateGradientPolicy(
-        reorthogonalization_fn=modified_gram_schmidt
+        reorthogonalization_fn_residual=double_gram_schmidt
+    )
+
+
+def case_conjugate_gradient_reorthogonalized_actions():
+    return policies.ConjugateGradientPolicy(
+        reorthogonalization_fn_action=modified_gram_schmidt
     )
 
 
