@@ -1,0 +1,171 @@
+/src/probnum/__init__.py @JonathanWenger
+/src/probnum/typing.py @marvinpfoertner
+
+# Configuration
+/src/probnum/_config.py @marvinpfoertner
+
+/docs/source/_ext/probnum-config-options.py @marvinpfoertner
+/docs/source/api/config.rst @marvinpfoertner
+
+# Abstract Probabilistic Numerical Method
+/src/probnum/_pnmethod/ @JonathanWenger
+/tests/test_pnmethod/ @JonathanWenger
+/docs/source/tutorials/pn_methods.ipynb @JonathanWenger
+
+# Differential Equations
+/src/probnum/diffeq/ @pnkraemer
+/src/probnum/problems/zoo/diffeq/ @pnkraemer
+
+/tests/test_diffeq/ @pnkraemer
+/tests/test_problems/test_zoo/test_diffeq/ @pnkraemer
+
+/docs/source/api/diffeq.rst @pnkraemer
+/docs/source/api/diffeq/ @pnkraemer
+/docs/source/api/problems/zoo.diffeq.rst @pnkraemer
+/docs/source/tutorials/odes/ @pnkraemer
+
+/benchmarks/ivpsolvers.py @pnkraemer
+
+# Filtering and Smoothing
+/src/probnum/filtsmooth/ @pnkraemer
+/src/probnum/problems/zoo/filtsmooth/ @pnkraemer
+
+/tests/test_filtsmooth/ @pnkraemer
+/tests/test_problems/test_zoo/test_filtsmooth/ @pnkraemer
+
+/docs/source/api/filtsmooth.rst @pnkraemer
+/docs/source/api/filtsmooth/ @pnkraemer
+/docs/source/api/problems/zoo.filtsmooth.rst @pnkraemer
+/docs/source/tutorials/filtsmooth/ @pnkraemer
+
+/benchmarks/filtsmooth.py @pnkraemer
+
+# Linear Algebra
+/src/probnum/linalg/ @JonathanWenger
+/src/probnum/problems/zoo/linalg/ @JonathanWenger
+
+/tests/test_linalg/ @JonathanWenger
+/tests/test_problems/test_zoo/test_linalg/ @JonathanWenger
+
+/docs/source/api/linalg.rst @JonathanWenger
+/docs/source/api/linalg/ @JonathanWenger
+/docs/source/api/problems/zoo.linalg.rst @JonathanWenger
+/docs/source/data/PDE_discretization/ @JonathanWenger
+/docs/source/tutorials/linalg/ @JonathanWenger
+
+/benchmarks/linearsolvers.py @JonathanWenger
+
+# Linear Operators
+/src/probnum/linops/ @marvinpfoertner
+/tests/test_linops/ @marvinpfoertner
+/docs/source/api/linops.rst @marvinpfoertner
+/docs/source/tutorials/linops/ @mmahsereci
+/benchmarks/linops.py @marvinpfoertner
+
+# Problem Specification & Test Problems
+/src/probnum/problems/ @JonathanWenger
+/src/probnum/problems/_problems.py @JonathanWenger @pnkraemer @mmahsereci
+
+/tests/test_problems/ @JonathanWenger
+
+/docs/source/api/problems.rst @JonathanWenger
+/docs/source/api/problems/ @JonathanWenger
+
+# Quadrature
+/src/probnum/quad/ @mmahsereci
+/src/probnum/problems/zoo/quad/ @mmahsereci
+
+/tests/test_quad/ @mmahsereci
+/tests/test_problems/test_zoo/test_quad/ @mmahsereci
+
+/docs/source/api/quad.rst @mmahsereci
+/docs/source/api/quad/ @mmahsereci
+/docs/source/api/problems/zoo.quad.rst @mmahsereci
+
+# Random Processes & Kernels
+/src/probnum/randprocs/ @JonathanWenger
+/tests/test_randprocs/ @JonathanWenger
+/docs/source/api/randprocs.rst @JonathanWenger
+/docs/source/api/randprocs/ @JonathanWenger
+/benchmarks/randprocs.py @JonathanWenger
+
+/src/probnum/randprocs/kernels/ @marvinpfoertner
+/tests/test_randprocs/test_kernels/ @marvinpfoertner
+/docs/source/api/randprocs/kernels.rst @marvinpfoertner
+/benchmarks/kernels.py @marvinpfoertner
+
+/src/probnum/randprocs/markov/ @pnkraemer
+/tests/test_randprocs/test_markov/ @pnkraemer
+/docs/source/api/randprocs/markov.rst @pnkraemer
+/docs/source/api/randprocs/markov/ @pnkraemer
+
+# Random Variables
+/src/probnum/randvars/ @marvinpfoertner
+/tests/test_randvars/ @marvinpfoertner
+/docs/source/api/randvars.rst @marvinpfoertner
+/docs/source/tutorials/prob/random_variables_quickstart.ipynb @mmahsereci
+/benchmarks/random_variables.py @marvinpfoertner
+
+# Utils
+/src/probnum/utils/linalg/_cholesky_updates.py @pnkraemer
+/tests/test_utils/test_linalg/test_cholesky_updates.py @pnkraemer
+
+################
+# Build System #
+################
+
+pyproject.toml @marvinpfoertner
+requirements.txt @marvinpfoertner
+setup.cfg @marvinpfoertner
+setup.py @marvinpfoertner
+
+/.github/workflows/python-publish.yml @marvinpfoertner
+
+src/probnum/.gitignore @marvinpfoertner
+
+###########
+# Testing #
+###########
+
+tox.ini @JonathanWenger
+.coveragerc @JonathanWenger
+/.github/workflows/CI-build.yml @JonathanWenger
+/.github/workflows/run-notebooks.yml @JonathanWenger
+
+##########################
+# Continuous Integration #
+##########################
+
+/.github/ @JonathanWenger
+/benchmarks/ @JonathanWenger
+
+apt.txt @JonathanWenger
+codecov.yml @JonathanWenger
+environment.yml @JonathanWenger
+
+#################
+# Documentation #
+#################
+
+/docs/ @JonathanWenger
+
+.readthedocs.yml @JonathanWenger
+CITATION.cff @marvinpfoertner @JonathanWenger
+
+# Development
+CODE_OF_CONDUCT.md @mmahsereci
+README.md @mmahsereci
+
+/docs/source/development.md @mmahsereci
+/docs/source/development/ @mmahsereci
+/docs/source/development/quadopt_example @JonathanWenger
+
+# Tutorials
+/docs/source/tutorials.rst @mmahsereci
+/docs/source/tutorials/ @mmahsereci
+
+#######
+# Git #
+#######
+.gitignore @marvinpfoertner
+.git-blame-ignore-revs @marvinpfoertner
