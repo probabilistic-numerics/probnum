@@ -510,23 +510,24 @@ class Normal(_random_variable.ContinuousRandomVariable):
     def _cdf_numpy(self, x: ArrayType) -> ArrayType:
         import scipy.stats  # pylint: disable=import-outside-toplevel
 
-        return scipy.stats.multivariate_normal.cdf(
+        scipy_cdf = scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    _logcdf = backend.Dispatcher()
+        # scipy's implementation happily squeezes `1` dimensions out of the batch
+        expected_shape = x.shape[: x.ndim - self.ndim]
 
-    @_logcdf.numpy
-    def _logcdf_numpy(self, x: ArrayType) -> ArrayType:
-        import scipy.stats  # pylint: disable=import-outside-toplevel
+        if any(dim == 1 for dim in expected_shape):
+            assert all(dim != 1 for dim in scipy_cdf.shape)
 
-        return scipy.stats.multivariate_normal.logcdf(
-            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self.dense_mean.ravel(),
-            cov=self.dense_cov,
-        )
+            scipy_cdf = scipy_cdf.reshape(expected_shape)
+
+        return scipy_cdf
+
+    def _logcdf(self, x: ArrayType) -> ArrayType:
+        return backend.log(self.cdf(x))
 
     @backend.jit_method
     def _var(self) -> ArrayType:
