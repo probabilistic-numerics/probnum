@@ -64,6 +64,9 @@ sqrt = _core.sqrt
 # Element-wise Binary Operations
 maximum = _core.maximum
 
+# Contractions
+einsum = _core.einsum
+
 # Reductions
 all = _core.all
 sum = _core.sum
@@ -91,3 +94,64 @@ def as_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> ArrayType:
         raise ValueError("The given input is not a scalar.")
 
     return asarray(x, dtype=dtype)[()]
+
+
+__all__ = [
+    "ndarray",
+    # DTypes
+    "dtype",
+    "asdtype",
+    "bool",
+    "int32",
+    "int64",
+    "single",
+    "double",
+    "csingle",
+    "cdouble",
+    "cast",
+    "promote_types",
+    "is_floating",
+    "finfo",
+    # Shape Arithmetic
+    "reshape",
+    "atleast_1d",
+    "atleast_2d",
+    "broadcast_arrays",
+    "broadcast_shapes",
+    "ndim",
+    "swapaxes",
+    # Constructors
+    "array",
+    "asarray",
+    "as_scalar",
+    "diag",
+    "eye",
+    "full",
+    "full_like",
+    "ones",
+    "ones_like",
+    "zeros",
+    "zeros_like",
+    "linspace",
+    # Constants
+    "inf",
+    "pi",
+    # Element-wise Unary Operations
+    "exp",
+    "isfinite",
+    "log",
+    "sin",
+    "sqrt",
+    # Element-wise Binary Operations
+    "maximum",
+    # Contractions
+    "einsum",
+    # Reductions
+    "all",
+    "sum",
+    # Misc
+    "to_numpy",
+    # Just-in-Time Compilation
+    "jit",
+    "jit_method",
+]

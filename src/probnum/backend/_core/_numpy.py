@@ -16,6 +16,7 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     double,
     dtype,
     dtype as asdtype,
+    einsum,
     exp,
     eye,
     finfo,

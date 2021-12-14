@@ -15,6 +15,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     diag,
     double,
     dtype,
+    einsum,
     exp,
     eye,
     finfo,
