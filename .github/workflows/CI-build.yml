@@ -29,10 +29,8 @@ jobs:
       - name: Install Tox and any other packages
         run: pip install tox
       - name: Run Tox
-        # Run tox using the version of Python in `PATH`
-        run: tox -e py3
-        env:
-          PROBNUM_BACKEND: ${{ matrix.backend }}
+        # Run tox using the version of Python in `PATH` and the corresponding compute backend
+        run: tox -e py3-${{ matrix.backend }}
       - name: Upload coverage report to Codecov
         if: startsWith(matrix.platform,'ubuntu') && matrix.python == '3.8' && matrix.backend == 'numpy'
         run: bash <(curl -s https://codecov.io/bash)
