@@ -1,5 +1,12 @@
 * @probabilistic-numerics/probnum-global-codeowners
 
+# Compute Backends
+/src/probnum/backend @marvinpfoertner @JonathanWenger
+/tests/test_backend @marvinpfoertner @JonathanWenger
+
+# Compatibility Functions
+/src/probnum/compat @marvinpfoertner @JonathanWenger
+
 # Differential Equations
 /src/probnum/diffeq/ @pnkraemer @schmidtjonathan
 /src/probnum/problems/zoo/diffeq/ @pnkraemer @schmidtjonathan
