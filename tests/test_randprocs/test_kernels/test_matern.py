@@ -13,7 +13,6 @@ def test_nonpositive_nu_raises_exception(nu):
         kernels.Matern(input_dim=1, nu=nu)
 
 
-@pytest.mark.skip()
 def test_nu_large_recovers_rbf_kernel(x0: np.ndarray, x1: np.ndarray, input_dim: int):
     """Test whether a Matern kernel with nu large is close to an RBF kernel."""
     lengthscale = 1.25
