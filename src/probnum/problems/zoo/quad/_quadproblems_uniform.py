@@ -5,14 +5,24 @@ from scipy.stats import norm
 
 from probnum.typing import FloatArgType, IntArgType
 
-
-def Genz_continuous(
-    x: np.ndarray, a: np.ndarray = None, u: np.ndarray = None
-) -> np.ndarray:
+__all__ = [
+    "genz_continuous",
+    "genz_cornerpeak",
+    "genz_discontinuous",
+    "genz_gaussian",
+    "genz_oscillatory",
+    "genz_productpeak",
+    "bratley1992",
+    "roos_arnold",
+    "g_function",
+    "morokoff_caflisch_1",
+    "morokoff_caflisch_2",
+]
+def genz_continuous(
+    dim: int, a: np.ndarray = None, u: np.ndarray = None
+) -> QuadratureProblem:
     """Genz 'continuous' test function on [0,1]^d.
-
     .. math::  f(x) = \exp(- \sum_{i=1}^d a_i |x_i - u_i|).
-
     Parameters
     ----------
         x
@@ -24,40 +34,65 @@ def Genz_continuous(
         u
             Second set of parameters affecting the difficulty of the integration problem.
             All entries should be in [0,1].
-
     Returns
     -------
         f
             array of function evaluations at points 'x'.
-
     References
     ----------
         https://www.sfu.ca/~ssurjano/cont.html
     """
 
-    (n, dim) = x.shape
-
     # Specify default values of parameters a and u
     if a is None:
-        a = np.repeat(5.0, dim)
+        a = np.broadcast_to(5.0, dim)
+
     if u is None:
-        u = np.repeat(0.5, dim)
+        u = np.broadcast_to(0.5, dim)
 
     # Check that the parameters have valid values and shape
-    assert len(u.shape) == 1 and u.shape[0] == dim
-    assert len(a.shape) == 1 and a.shape[0] == dim
-    assert np.all(u <= 1.0) and np.all(u >= 0.0)
+    if a.shape != (dim,):
+        raise ValueError(
+            f"Invalid shape {a.shape} for parameter `a`. Expected {(dim,)}."
+        )
 
-    # Check that the input points have valid values
-    assert np.all(x <= 1.0) and np.all(x >= 0.0)
+    if u.shape != (dim,):
+        raise ValueError(
+            f"Invalid shape {u.shape} for parameter `u`. Expected {(dim,)}."
+        )
 
-    # Reshape u into an (n,dim) array with identical rows
-    u = np.repeat(u.reshape([1, dim]), n, axis=0)
+    if np.any(u < 0.0) or np.any(u > 1):
+        raise ValueError(f"The parameters `u` must lie in the interval [0.0, 1.0].")
 
-    # Compute function values
-    f = np.exp(-np.sum(a * np.abs(x - u), axis=1))
+    def integrand(x: np.ndarray) -> np.ndarray:
+        n = x.shape[0]
 
-    return f.reshape((n, 1))
+        # Check that the input points have valid values and shape
+        if x.shape != (n, dim):
+            raise ValueError(
+                f"Invalid shape {x.shape} for input points `x`. Expected (n, {dim})."
+            )
+
+        if np.any(x < 0.0) or np.any(x > 1):
+            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+
+        # Reshape u into an (n,dim) array with identical rows
+        u = np.repeat(u.reshape([1, dim]), n, axis=0)
+
+        # Compute function values
+        f = np.exp(-np.sum(a * np.abs(x - u), axis=1))
+
+        return f.reshape((n, 1))
+
+    solution = np.prod((2.0 - np.exp(-a * u) - np.exp(a * (u - 1))) / a)
+
+    return QuadratureProblem(
+        integrand=integrand,
+        lower_bd=np.broadcast_to(0.0, dim),
+        upper_bd=np.broadcast_to(1.0, dim),
+        output_dim=None,
+        solution=solution,
+    )
 
 
 def Genz_cornerpeak(
@@ -356,9 +391,10 @@ def Bratley1992(x: np.ndarray) -> np.ndarray:
     assert np.all(x <= 1.0) and np.all(x >= 0.0)
 
     # Compute function values
-    f = np.zeros(n)
-    for i in range(1, dim + 1):
-        f = f + ((-1.0) ** i) * np.prod(x[:, range(i)], axis=1)
+    f = np.sum(
+        ((-1.0) ** np.arange(1, dim + 1)) * np.cumprod(x, axis=1),
+        axis=1,
+    )
 
     return f.reshape((n, 1))
 
