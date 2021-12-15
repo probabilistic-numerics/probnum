@@ -3,6 +3,10 @@ from scipy import special
 
 from probnum.typing import FloatArgType
 
+__all__ = [
+    "sum_polynomials",
+]
+
 
 def sum_polynomials(
     x: np.ndarray, a: np.ndarray = None, b: np.ndarray = None
