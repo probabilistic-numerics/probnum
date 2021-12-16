@@ -14,10 +14,11 @@ def uniform_to_gaussian_quadprob(
     quadprob: QuadratureProblem, mean: FloatArgType = 0.0, var: FloatArgType = 1.0
 ) -> QuadratureProblem:
 
-    """Transforming an integrand suitable for integration against Lebesgue measure on.
+    """Creates a new QuadratureProblem for integration against a Gaussian on R^d by
+    using an existing QuadratureProblem whose integrand is suitable for integration
+    against the Lebesgue measure on [0,1]^d.
 
-    [0,1]^d to an integrand suitable for integration against a d-dimensional Gaussian of
-    the form N(mean*(1,...,1),var^2 I_d).
+    The multivariate Gaussian is of the form N(mean*(1,...,1),var^2 I_d).
 
     Using the change of variable formula, we have that
 
@@ -26,12 +27,10 @@ def uniform_to_gaussian_quadprob(
     where :math:'h(x)=f(\Phi((x-mean)/var))', :math:'\phi(x)' is the Gaussian probability density function
     and :math:'\Phi(x)' an elementwise application of the Gaussian cummulative distribution function.
 
-    This function therefore takes f as input and returns h.
-
     Parameters
     ----------
-        func
-            A test function which takes inputs in [0,1]^d and returns an array of function values.
+        quadprob
+            A QuadratureProblem instance which includes an integrand defined on [0,1]^d
         mean
             Mean of the Gaussian distribution.
         var
@@ -39,8 +38,11 @@ def uniform_to_gaussian_quadprob(
 
     Returns
     -------
-        newfunc
-            A transformed test function taking inputs in :math:'\mathbb{R}^d'.
+            A new Quadrature Problem instance with a transformed integrand taking inputs in :math:'\mathbb{R}^d'.
+
+    Example
+    -------
+        uniform_to_gaussian_quadprob(genz_continuous(1))
 
     References
     ----------
@@ -50,6 +52,17 @@ def uniform_to_gaussian_quadprob(
 
     dim = len(quadprob.lower_bd)
 
+    # Check that the original quadrature problem was defined on [0,1]^d
+    if np.any(quadprob.lower_bd != 0.0):
+        raise ValueError(f"quadprob is not an integration problem over [0,1]^d")
+    if np.any(quadprob.upper_bd != 1.0):
+        raise ValueError(f"quadprob is not an integration problem over [0,1]^d")
+
+    # Check that the original quadrature problem has a scalar valued solution
+    if isinstance(quadprob.solution, float) is False:
+        raise TypeError(f"The solution of quadprob is not a scalar.")
+
+    # Construct transformation of the integrand
     def uniform_to_gaussian_integrand(
         func: Callable[[np.ndarray], np.ndarray],
         mean: FloatArgType = 0.0,
@@ -82,7 +95,8 @@ def uniform_to_gaussian_quadprob(
 def sum_polynomials(
     dim: int, a: np.ndarray = None, b: np.ndarray = None, var: FloatArgType = 1.0
 ) -> QuadratureProblem:
-    """Integrand taking the form of a sum of polynomials over :math:'\mathbb{R}^d'.
+    """Quadrature problem with an integrand taking the form of a sum of polynomials over
+    :math:'\mathbb{R}^d'.
 
     .. math::  f(x) = \sum_{j=0}^p \prod_{i=1}^dim a_{ji} x_i^{b_ji}
 
