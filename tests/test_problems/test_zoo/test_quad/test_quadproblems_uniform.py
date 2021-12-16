@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.quad.quadproblems_uniform
+from probnum.problems.zoo.quad import _quadproblems_uniform
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ import probnum.problems.zoo.quad.quadproblems_uniform
         (2.0, 1.2, 4),
     ],
 )
-def test_Genz_uniform(a, u, dim):
+def test_genz_uniform(a, u, dim):
     """Compare a Monte Carlo estimator with a very large number of samples to the true
     value of the integral.
 
@@ -29,35 +29,43 @@ def test_Genz_uniform(a, u, dim):
     a_vec = np.repeat(a, dim)
     u_vec = np.repeat(u, dim)
 
+    quadprob_genz_continuous = genz_continuous(dim=dim, a=a_vec, u=u_vec)
+    quadprob_genz_cornerpeak = genz_cornerpeak(dim=dim, a=a_vec, u=u_vec)
+    quadprob_genz_discontinuous = genz_discontinuous(dim=dim, a=a_vec, u=u_vec)
+    quadprob_genz_gaussian = genz_gaussian(dim=dim, a=a_vec, u=u_vec)
+    quadprob_genz_oscillatory = genz_oscillatory(dim=dim, a=a_vec, u=u_vec)
+    quadprob_genz_productpeak = genz_productpeak(dim=dim, a=a_vec, u=u_vec)
+
     # generate some uniformly distributed points on [0,1]^d
+    np.random.seed(0)
     x_unif = np.random.uniform(
         low=0.0, high=1.0, size=(n, dim)
     )  # Monte Carlo samples x_1,...,x_n
 
     # Test that all Monte Carlo estimators approximate the true value of the integral (integration against uniform)
     np.testing.assert_allclose(
-        np.sum(Genz_continuous(x_unif, a_vec, u_vec)) / n,
-        integral_Genz_continuous(a_vec, u_vec),
+        np.sum(quadprob_genz_continuous.integrand(x_unif)) / n,
+        quadprob_genz_continuous.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(Genz_cornerpeak(x_unif, a_vec, u_vec)) / n,
-        integral_Genz_cornerpeak(a_vec, u_vec),
+        np.sum(quadprob_genz_cornerpeak.integrand(x_unif)) / n,
+        quadprob_genz_cornerpeak.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(Genz_discontinuous(x_unif, a_vec, u_vec)) / n,
-        integral_Genz_discontinuous(a_vec, u_vec),
+        np.sum(quadprob_genz_discontinuous.integrand(x_unif)) / n,
+        quadprob_genz_discontinuous.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(Genz_oscillatory(x_unif, a_vec, u_vec)) / n,
-        integral_Genz_oscillatory(a_vec, u_vec),
+        np.sum(quadprob_genz_oscillatory.integrand(x_unif)) / n,
+        quadprob_genz_oscillatory.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(Genz_productpeak(x_unif, a_vec, u_vec)) / n,
-        integral_Genz_productpeak(a_vec, u_vec),
+        np.sum(quadprob_genz_productpeak.integrand(x_unif)) / n,
+        quadprob_genz_productpeak.solution,
         rtol=1e-03,
     )
 
@@ -74,23 +82,41 @@ def test_integrands_uniform(dim):
     n = 10000000
 
     # generate some uniformly distributed points on [0,1]^d
+    np.random.seed(0)
     x_unif = np.random.uniform(
         low=0.0, high=1.0, size=(n, dim)
     )  # Monte Carlo samples x_1,...,x_n
 
+    # Set the integrands to test
+    quadprob_bratley1992 = bratley1992(dim=dim)
+    quadprob_roos_arnold = roos_arnold(dim=dim)
+    quadprob_gfunction = gfunction(dim=dim)
+    quadprob_morokoff_caflisch_1 = morokoff_caflisch_1(dim=dim)
+    quadprob_morokoff_caflisch_2 = morokoff_caflisch_2(dim=dim)
+
     # Test that all Monte Carlo estimators approximate the true value of the integral (integration against uniform)
     np.testing.assert_allclose(
-        np.sum(Bratley1992(x_unif)) / n, integral_Bratley1992(dim), rtol=1e-03
+        np.sum(quadprob_bratley1992.integrand(x_unif)) / n,
+        quadprob_bratley1992.solution,
+        rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(RoosArnold(x_unif)) / n, integral_RoosArnold(), rtol=1e-03
+        np.sum(quadprob_roos_arnold.integrand(x_unif)) / n,
+        quadprob_roos_arnold.solution,
+        rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(Gfunction(x_unif)) / n, integral_Gfunction(), rtol=1e-03
+        np.sum(quadprob_gfunction.integrand(x_unif)) / n,
+        quadprob_gfunction.solution,
+        rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(MorokoffCaflisch1(x_unif)) / n, integral_MorokoffCaflisch1(), rtol=1e-03
+        np.sum(quadprob_morokoff_caflisch_1.integrand(x_unif)) / n,
+        quadprob_morokoff_caflisch_1.solution,
+        rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(MorokoffCaflisch2(x_unif)) / n, integral_MorokoffCaflisch1(), rtol=1e-03
+        np.sum(quadprob_morokoff_caflisch_2.integrand(x_unif)) / n,
+        quadprob_morokoff_caflisch_2.solution,
+        rtol=1e-03,
     )
