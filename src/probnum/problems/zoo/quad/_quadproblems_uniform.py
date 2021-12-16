@@ -3,6 +3,7 @@ import itertools
 import numpy as np
 from scipy.stats import norm
 
+from probnum.problems import *
 from probnum.typing import FloatArgType, IntArgType
 
 __all__ = [

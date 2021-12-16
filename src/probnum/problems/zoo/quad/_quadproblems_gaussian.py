@@ -2,6 +2,7 @@ import numpy as np
 from scipy import special
 from scipy.stats import norm
 
+from probnum.problems import *
 from probnum.typing import FloatArgType
 
 __all__ = [
