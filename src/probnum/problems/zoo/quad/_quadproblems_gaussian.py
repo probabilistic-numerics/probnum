@@ -116,7 +116,7 @@ def sum_polynomials(
     Returns
     -------
         f
-            array of function evaluations at points 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
 
 
     References

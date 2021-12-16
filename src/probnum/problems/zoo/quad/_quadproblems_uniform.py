@@ -31,9 +31,9 @@ def genz_continuous(
         dim
             Dimension of the domain
         a
-            First set of parameters affecting the difficulty of the integration problem.
+            First set of parameters of shape (dim,) affecting the difficulty of the integration problem
         u
-            Second set of parameters affecting the difficulty of the integration problem.
+            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
             All entries should be in [0,1].
     References
     ----------
@@ -71,7 +71,7 @@ def genz_continuous(
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         nonlocal a, u
         n = x.shape[0]
@@ -117,9 +117,9 @@ def genz_cornerpeak(
         dim
             Dimension of the domain
         a
-            First set of parameters affecting the difficulty of the integration problem.
+            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
         u
-            Second set of parameters affecting the difficulty of the integration problem.
+            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
             All entries should be in [0,1].
 
     References
@@ -158,7 +158,7 @@ def genz_cornerpeak(
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         nonlocal a, u
         n = x.shape[0]
@@ -210,9 +210,9 @@ def genz_discontinuous(
         dim
             Dimension of the domain
         a
-            First set of parameters affecting the difficulty of the integration problem.
+            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
         u
-            Second set of parameters affecting the difficulty of the integration problem.
+            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
             All entries should be in [0,1].
 
     References
@@ -251,7 +251,7 @@ def genz_discontinuous(
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         nonlocal a, u
         n = x.shape[0]
@@ -298,9 +298,9 @@ def genz_gaussian(
         dim
             Dimension of the domain
         a
-            First set of parameters affecting the difficulty of the integration problem.
+            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
         u
-            Second set of parameters affecting the difficulty of the integration problem.
+            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
             All entries should be in [0,1].
 
     References
@@ -339,7 +339,7 @@ def genz_gaussian(
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         nonlocal a, u
         n = x.shape[0]
@@ -387,9 +387,9 @@ def genz_oscillatory(
         dim
             Dimension of the domain
         a
-            First set of parameters affecting the difficulty of the integration problem.
+            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
         u
-            Second set of parameters affecting the difficulty of the integration problem.
+            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
             All entries should be in [0,1].
 
     References
@@ -428,7 +428,7 @@ def genz_oscillatory(
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         nonlocal a, u
         n = x.shape[0]
@@ -493,9 +493,9 @@ def genz_productpeak(
         dim
             Dimension of the domain
         a
-            First set of parameters affecting the difficulty of the integration problem.
+            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
         u
-            Second set of parameters affecting the difficulty of the integration problem.
+            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
             All entries should be in [0,1].
 
     References
@@ -534,7 +534,7 @@ def genz_productpeak(
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         nonlocal a, u
         n = x.shape[0]
@@ -596,7 +596,7 @@ def bratley1992(dim: int) -> QuadratureProblem:
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         n = x.shape[0]
 
@@ -656,7 +656,7 @@ def roos_arnold(dim: int) -> QuadratureProblem:
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         n = x.shape[0]
 
@@ -713,7 +713,7 @@ def gfunction(dim: int) -> QuadratureProblem:
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         n = x.shape[0]
 
@@ -771,7 +771,7 @@ def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         n = x.shape[0]
 
@@ -828,7 +828,7 @@ def morokoff_caflisch_2(dim: int) -> QuadratureProblem:
         Returns
         -------
         f
-            array of integrand evaluations at points in 'x'.
+            array of size (n,1) giving integrand evaluations at points in 'x'.
         """
         n = x.shape[0]
 
