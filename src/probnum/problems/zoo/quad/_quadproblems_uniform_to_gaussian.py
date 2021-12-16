@@ -5,6 +5,8 @@ from scipy.stats import norm
 
 from probnum.typing import FloatArgType, IntArgType
 
+__all__ = ["uniform_to_gaussian"]
+
 
 def uniform_to_gaussian(
     func: Callable[[np.ndarray], np.ndarray],
@@ -51,7 +53,11 @@ def uniform_to_gaussian(
     """
 
     # mean and var should be either one-dimensional, or an array of dimension d
-    assert isinstance(mean, float) and isinstance(var, float) and var >= 0.0
+    if isinstance(mean, float) is False:
+        raise TypeError(f"The mean parameter should be a float.")
+
+    if iisinstance(var, float) is False or var <= 0.0:
+        raise TypeError(f"The variance should be a positive float.")
 
     def newfunc(x):
         return func(norm.cdf((x - mean) / var))
