@@ -73,6 +73,7 @@ def genz_continuous(
         f
             array of integrand evaluations at points in 'x'.
         """
+        nonlocal a, u
         n = x.shape[0]
 
         # Check that the input points have valid values and shape
@@ -159,6 +160,7 @@ def genz_cornerpeak(
         f
             array of integrand evaluations at points in 'x'.
         """
+        nonlocal a, u
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -251,6 +253,7 @@ def genz_discontinuous(
         f
             array of integrand evaluations at points in 'x'.
         """
+        nonlocal a, u
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -338,6 +341,7 @@ def genz_gaussian(
         f
             array of integrand evaluations at points in 'x'.
         """
+        nonlocal a, u
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -426,6 +430,7 @@ def genz_oscillatory(
         f
             array of integrand evaluations at points in 'x'.
         """
+        nonlocal a, u
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -531,6 +536,7 @@ def genz_productpeak(
         f
             array of integrand evaluations at points in 'x'.
         """
+        nonlocal a, u
         n = x.shape[0]
 
         # Check that the input points have valid values
