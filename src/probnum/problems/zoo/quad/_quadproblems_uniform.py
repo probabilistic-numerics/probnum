@@ -14,7 +14,7 @@ __all__ = [
     "genz_productpeak",
     "bratley1992",
     "roos_arnold",
-    "g_function",
+    "gfunction",
     "morokoff_caflisch_1",
     "morokoff_caflisch_2",
 ]
@@ -86,10 +86,10 @@ def genz_continuous(
             raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Reshape u into an (n,dim) array with identical rows
-        u = np.repeat(u.reshape([1, dim]), n, axis=0)
+        u_reshaped = np.repeat(u.reshape([1, dim]), n, axis=0)
 
         # Compute function values
-        f = np.exp(-np.sum(a * np.abs(x - u), axis=1))
+        f = np.exp(-np.sum(a * np.abs(x - u_reshaped), axis=1))
 
         return f.reshape((n, 1))
 
@@ -354,10 +354,10 @@ def genz_gaussian(
             raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Reshape u into an (n,dim) array with identical rows
-        u = np.repeat(u.reshape([1, dim]), n, axis=0)
+        u_reshaped = np.repeat(u.reshape([1, dim]), n, axis=0)
 
         # Compute function values
-        f = np.exp(-np.sum((a * (x - u)) ** 2, axis=1))
+        f = np.exp(-np.sum((a * (x - u_reshaped)) ** 2, axis=1))
 
         return f.reshape((n, 1))
 
@@ -549,10 +549,10 @@ def genz_productpeak(
             raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Reshape u into an (n,dim) array with identical rows
-        u = np.repeat(u.reshape([1, dim]), n, axis=0)
+        u_reshaped = np.repeat(u.reshape([1, dim]), n, axis=0)
 
         # Compute function values
-        f = np.prod((a ** (-2) + (x - u) ** 2) ** (-1), axis=1)
+        f = np.prod((a ** (-2) + (x - u_reshaped) ** 2) ** (-1), axis=1)
 
         return f.reshape((n, 1))
 

@@ -5,11 +5,12 @@ from scipy.stats import norm
 from probnum.typing import FloatArgType
 
 __all__ = [
+    "uniform_to_gaussian_quadprob",
     "sum_polynomials",
 ]
 
 
-def uniform_to_gaussian(
+def uniform_to_gaussian_quadprob(
     quadprob: QuadratureProblem, mean: FloatArgType = 0.0, var: FloatArgType = 1.0
 ) -> QuadratureProblem:
 
