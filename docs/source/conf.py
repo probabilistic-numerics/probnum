@@ -173,6 +173,12 @@ html_theme_options = {
     "navbar_align": "right",
     "show_toc_level": 3,
     "navigation_depth": 4,
+    "external_links": [
+        {
+            "name": "Probabilistic Numerics",
+            "url": "https://probabilistic-numerics.github.io/website/",
+        },
+    ],
     "icon_links": [
         {
             "name": "GitHub",
