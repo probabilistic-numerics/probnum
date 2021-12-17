@@ -19,6 +19,7 @@ def test_initial_action_is_negative_gradient(
     policy: policies.ConjugateGradientPolicy, state: LinearSolverState
 ):
     assert state.step == 0
+    state = copy.deepcopy(state)
     action = policy(state)
     np.testing.assert_allclose(action, -state.residual)
 
