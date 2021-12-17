@@ -21,7 +21,7 @@ class RandomUnitVectorPolicy(_linear_solver_policy.LinearSolverPolicy):
     """
 
     def __init__(self, probabilities: str = "uniform", replace=True) -> None:
-        if not probabilities in ["uniform", "rownorm"]:
+        if probabilities not in ["uniform", "rownorm"]:
             raise ValueError(
                 f"Option '{probabilities}' for sampling probabilities not available."
             )
