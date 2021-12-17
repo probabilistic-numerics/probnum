@@ -25,7 +25,7 @@ n = 100
         np.eye(n),
         linops.Identity(n),
         linops.Scaling(factors=1.0, shape=(n, n)),
-        lambda v, w: np.inner(v, w),
+        np.inner,
     ],
 )
 @parametrize(
