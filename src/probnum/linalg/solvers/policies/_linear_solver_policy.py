@@ -28,7 +28,12 @@ class LinearSolverPolicy(abc.ABC):
 
         Parameters
         ----------
-        solver_state :
+        solver_state
             Current state of the linear solver.
+
+        Returns
+        -------
+        action
+            Next action to take.
         """
         raise NotImplementedError

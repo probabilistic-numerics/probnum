@@ -47,7 +47,13 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
             action=solver_state.observation,
             observ=solver_state.action,
         )
-        return LinearSystemBelief(A=A, Ainv=Ainv, x=None, b=solver_state.belief.b)
+
+        if solver_state.belief.b is None:
+            b = randvars.Constant(solver_state.problem.b)
+        else:
+            b = solver_state.belief.b
+
+        return LinearSystemBelief(A=A, Ainv=Ainv, x=None, b=b)
 
     def _symmetric_matrix_based_update(
         self, matrix: randvars.Normal, action: np.ndarray, observ: np.ndarray
@@ -64,7 +70,9 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
         gram = action.T @ covfactor_Ms
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = covfactor_Ms * gram_pinv
-        covfactor_update = gain @ covfactor_Ms.T
+        covfactor_update = linops.aslinop(gain[:, None]) @ linops.aslinop(
+            covfactor_Ms[None, :]
+        )
         resid_gain = linops.aslinop(resid[:, None]) @ linops.aslinop(gain[None, :])
 
         return randvars.Normal(

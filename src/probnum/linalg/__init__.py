@@ -1,10 +1,10 @@
 """Linear Algebra.
 
-This package implements probabilistic numerical methods for the solution
-of problems arising in linear algebra, such as the solution of linear
-systems :math:`Ax=b`.
+This package implements probabilistic numerical methods for the solution of problems
+arising in linear algebra, such as the solution of linear systems :math:`Ax=b`.
 """
-from probnum.linalg._problinsolve import bayescg, problinsolve
+from probnum.linalg._bayescg import bayescg
+from probnum.linalg._problinsolve import problinsolve
 
 from . import solvers
 

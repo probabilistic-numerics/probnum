@@ -71,7 +71,7 @@ def test_against_naive_implementation(
         gram = action.T @ covfactor_Ms
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = covfactor_Ms * gram_pinv
-        covfactor_update = gain @ covfactor_Ms.T
+        covfactor_update = gain[:, None] @ covfactor_Ms[None, :]
         resid_gain = np.outer(resid, gain)
 
         return randvars.Normal(
