@@ -4,8 +4,6 @@ import numpy as np
 import pytest
 
 from scipy.integrate import quad
-from scipy.linalg import sqrtm
-from scipy.special import roots_legendre
 
 from probnum.quad import KernelEmbedding
 

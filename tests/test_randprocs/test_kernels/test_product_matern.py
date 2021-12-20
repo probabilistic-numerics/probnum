@@ -9,7 +9,7 @@ from probnum.randprocs import kernels
 
 @pytest.mark.parametrize("nu", [0.5, 1.5, 2.5, 3.0])
 def test_kernel_matrix(input_dim, nu):
-    """Check that the product Matérn kernel matrix is an elementwise product of 1D 
+    """Check that the product Matérn kernel matrix is an elementwise product of 1D
     Matérn kernel matrices."""
     lengthscale = 1.25
     matern = kernels.Matern(input_dim=1, lengthscale=lengthscale, nu=nu)

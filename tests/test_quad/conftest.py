@@ -158,6 +158,7 @@ def fixture_f1d(request):
     """1D test function for BQ."""
     return request.param
 
+
 # Matern kernels
 @pytest.fixture(
     params=[

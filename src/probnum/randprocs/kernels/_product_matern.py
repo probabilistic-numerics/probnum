@@ -43,7 +43,7 @@ class ProductMatern(Kernel):
     >>> input_dim = 2
     >>> lengthscales = np.array([0.1, 1.2])
     >>> nus = np.array([0.5, 3.5])
-    >>> K = ProductMatern(input_dim=2, lengthscales=lenthscales, nus=nus)
+    >>> K = ProductMatern(input_dim=2, lengthscales=lengthscales, nus=nus)
     >>> xs = np.array([[0.0, 0.5], [1.0, 1.0], [0.5, 0.2]])
     >>> K.matrix(xs)
     array([[1.00000000e+00, 4.03712525e-05, 6.45332482e-03],
