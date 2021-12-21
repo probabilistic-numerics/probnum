@@ -120,9 +120,6 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         if mean.ndim == 0:
             # Scalar Gaussian
-            if self._cov_cholesky is None:
-                self._cov_cholesky = backend.sqrt(cov)
-
             self.__cov_op_cholesky = None
 
             super().__init__(
@@ -255,6 +252,8 @@ class Normal(_random_variable.ContinuousRandomVariable):
                     lower=True,
                 ),
             )
+        elif self.ndim == 0:
+            self._cov_cholesky = backend.sqrt(self.cov)
         else:
             self.__cov_op_cholesky = linops.aslinop(
                 backend.to_numpy(
@@ -275,10 +274,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         initialization or if (ii) the property `self.cov_cholesky` has
         been called before.
         """
-        if self.__cov_op_cholesky is None:
-            return False
-
-        return True
+        return self._cov_cholesky is not None or self.__cov_op_cholesky is not None
 
     def __getitem__(self, key: ArrayIndicesLike) -> "Normal":
         """Marginalization in multi- and matrixvariate normal random variables,

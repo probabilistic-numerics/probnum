@@ -124,7 +124,7 @@ def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
 
 def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
     def sample(seed, sample_shape):
-        seed1, seed2, _ = backend.random.split(seed, 3)
+        seed1, seed2 = backend.random.split(seed, 2)
 
         return op_fn(
             rv1.sample(seed=seed1, sample_shape=sample_shape),
@@ -294,8 +294,16 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
         mean = norm_rv.mean @ constant_rv.support
         cov = constant_rv.support.T @ (norm_rv.cov @ constant_rv.support)
 
-        if cov.shape == () and mean.shape == (1,):
+        if mean.shape == ():
+            cov = cov.reshape(())
+
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape(())
+        elif mean.shape == (1,):
             cov = cov.reshape((1, 1))
+
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape((1, 1))
 
         return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
 
@@ -335,11 +343,22 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
             )
         else:
             cov_cholesky = None
-        return _Normal(
-            mean=constant_rv.support @ norm_rv.mean,
-            cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
-            cov_cholesky=cov_cholesky,
-        )
+
+        mean = constant_rv.support @ norm_rv.mean
+        cov = constant_rv.support @ (norm_rv.cov @ constant_rv.support.T)
+
+        if mean.shape == ():
+            cov = cov.reshape(())
+
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape(())
+        elif mean.shape == (1,):
+            cov = cov.reshape((1, 1))
+
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape((1, 1))
+
+        return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
 
     # This part does not do the Cholesky update,
     # because of performance configurations: currently, there is no way of switching

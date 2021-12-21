@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.utils.linalg as utlin
+from probnum import backend
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 
@@ -13,20 +14,28 @@ def even_ndim():
 
 
 @pytest.fixture
-def rng():
-    return np.random.default_rng(seed=123)
+def spdmats(even_ndim):
+    seed = backend.random.seed(abs(hash(even_ndim)))
+    seed1, seed2 = backend.random.split(seed, num=2)
+
+    spdmat1 = random_spd_matrix(seed1, dim=even_ndim)
+    spdmat2 = random_spd_matrix(seed2, dim=even_ndim)
+
+    return spdmat1, spdmat2
 
 
 @pytest.fixture
-def spdmat1(even_ndim, rng):
-    return random_spd_matrix(rng, dim=even_ndim)
+def spdmat1(spdmats):
+    return spdmats[0]
 
 
 @pytest.fixture
-def spdmat2(even_ndim, rng):
-    return random_spd_matrix(rng, dim=even_ndim)
+def spdmat2(spdmats):
+    return spdmats[1]
 
 
+@pytest.mark.skipif_backend(backend.Backend.JAX)
+@pytest.mark.skipif_backend(backend.Backend.TORCH)
 def test_cholesky_update(spdmat1, spdmat2):
     expected = np.linalg.cholesky(spdmat1 + spdmat2)
 
@@ -36,6 +45,8 @@ def test_cholesky_update(spdmat1, spdmat2):
     np.testing.assert_allclose(expected, received)
 
 
+@pytest.mark.skipif_backend(backend.Backend.JAX)
+@pytest.mark.skipif_backend(backend.Backend.TORCH)
 def test_cholesky_optional(spdmat1, even_ndim):
     """Assert that cholesky_update() transforms a non-square matrix square-root into a
     correct Cholesky factor."""
@@ -46,6 +57,8 @@ def test_cholesky_optional(spdmat1, even_ndim):
     np.testing.assert_allclose(expected, received)
 
 
+@pytest.mark.skipif_backend(backend.Backend.JAX)
+@pytest.mark.skipif_backend(backend.Backend.TORCH)
 def test_tril_to_positive_tril():
 
     # Make a random tril matrix
