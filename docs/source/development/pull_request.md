@@ -240,7 +240,7 @@ Alternatively, you can run a single specific environment through `tox -e <env>`.
 - **Additional arguments passed to pytest via tox:** e.g., only run `doctests` in `linalg`.
 
   ```shell
-  $ tox -e py39 -- src/probnum/linalg
+  $ tox -e py3 -- src/probnum/linalg
   ```
 
 Code coverage of the tests is reported via [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=main).
