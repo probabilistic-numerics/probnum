@@ -111,6 +111,7 @@ __all__ = [
     "cast",
     "promote_types",
     "is_floating",
+    "is_floating_dtype",
     "finfo",
     # Shape Arithmetic
     "reshape",

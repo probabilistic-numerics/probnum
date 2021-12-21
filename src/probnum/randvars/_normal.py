@@ -4,7 +4,7 @@ import functools
 import operator
 from typing import Optional, Union
 
-from probnum import backend, compat, config, linops
+from probnum import backend, config, linops
 from probnum.typing import (
     ArrayIndicesLike,
     ArrayLike,
@@ -81,6 +81,9 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         if not backend.is_floating_dtype(dtype):
             dtype = backend.double
+
+        # Circular dependency -> defer import
+        from probnum import compat  # pylint: disable=import-outside-toplevel
 
         mean = compat.cast(mean, dtype=dtype, casting="safe", copy=False)
         cov = compat.cast(cov, dtype=dtype, casting="safe", copy=False)

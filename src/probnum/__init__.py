@@ -24,19 +24,19 @@ from ._pnmethod import (
     LambdaStoppingCriterion,
 )
 
-# isort: on
-
+# Supporting packages need to be imported before compat
 from . import (
-    diffeq,
-    filtsmooth,
-    linalg,
     linops,
-    problems,
-    quad,
     randprocs,
     randvars,
-    utils,
 )
+
+# Compatibility functionality between backend, linops and randvars
+from . import compat
+
+# isort: on
+
+from . import diffeq, filtsmooth, linalg, problems, quad, utils
 from ._version import version as __version__
 from .randvars import asrandvar
 
