@@ -115,6 +115,4 @@ def _make_rng(seed: np.random.SeedSequence) -> torch.Generator:
     # state = seed.generate_state(_RNG_STATE_SIZE // 4, dtype=np.uint32)
     # rng.set_state(torch.ByteTensor(state.view(np.uint8)))
 
-    rng.manual_seed(int(seed.generate_state(1, dtype=np.uint64)[0]))
-
-    return rng
+    return rng.manual_seed(int(seed.generate_state(1, dtype=np.int64)[0]))
