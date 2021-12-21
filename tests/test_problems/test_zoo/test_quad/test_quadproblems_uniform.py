@@ -1,7 +1,19 @@
 import numpy as np
 import pytest
 
-from probnum.problems.zoo.quad import _quadproblems_uniform
+from probnum.problems.zoo.quad import (
+    bratley1992,
+    genz_continuous,
+    genz_cornerpeak,
+    genz_discontinuous,
+    genz_gaussian,
+    genz_oscillatory,
+    genz_productpeak,
+    gfunction,
+    morokoff_caflisch_1,
+    morokoff_caflisch_2,
+    roos_arnold,
+)
 
 
 @pytest.mark.parametrize(
@@ -9,10 +21,10 @@ from probnum.problems.zoo.quad import _quadproblems_uniform
     [
         (5, 0.5, 1),
         (5.0, 1.0, 1),
-        (2.0, 1.2, 1),
+        (2.0, 0.8, 1),
         (5, 0.5, 4),
         (5.0, 1.0, 4),
-        (2.0, 1.2, 4),
+        (2.0, 0.8, 4),
     ],
 )
 def test_genz_uniform(a, u, dim):
@@ -51,7 +63,7 @@ def test_genz_uniform(a, u, dim):
     np.testing.assert_allclose(
         np.sum(quadprob_genz_cornerpeak.integrand(x_unif)) / n,
         quadprob_genz_cornerpeak.solution,
-        rtol=1e-03,
+        rtol=3e-03,
     )
     np.testing.assert_allclose(
         np.sum(quadprob_genz_discontinuous.integrand(x_unif)) / n,
@@ -59,9 +71,14 @@ def test_genz_uniform(a, u, dim):
         rtol=1e-03,
     )
     np.testing.assert_allclose(
+        np.sum(quadprob_genz_gaussian.integrand(x_unif)) / n,
+        quadprob_genz_gaussian.solution,
+        rtol=2e-03,
+    )
+    np.testing.assert_allclose(
         np.sum(quadprob_genz_oscillatory.integrand(x_unif)) / n,
         quadprob_genz_oscillatory.solution,
-        rtol=1e-03,
+        rtol=3e-02,
     )
     np.testing.assert_allclose(
         np.sum(quadprob_genz_productpeak.integrand(x_unif)) / n,

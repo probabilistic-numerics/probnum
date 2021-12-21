@@ -553,7 +553,7 @@ def genz_productpeak(
         u_reshaped = np.repeat(u.reshape([1, dim]), n, axis=0)
 
         # Compute function values
-        f = np.prod((a ** (-2) + (x - u_reshaped) ** 2) ** (-1), axis=1)
+        f = np.prod(1.0 / (1.0 / a ** 2 + (x - u_reshaped) ** 2), axis=1)
 
         return f.reshape((n, 1))
 
