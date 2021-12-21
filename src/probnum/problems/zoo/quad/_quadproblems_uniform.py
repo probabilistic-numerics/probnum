@@ -1,10 +1,11 @@
+""" Test problems for integration against the Lebesgue measure. """
+
 import itertools
 
 import numpy as np
 from scipy.stats import norm
 
-from probnum.problems import *
-from probnum.typing import FloatArgType, IntArgType
+from probnum.problems import QuadratureProblem
 
 __all__ = [
     "genz_continuous",
@@ -24,21 +25,35 @@ __all__ = [
 def genz_continuous(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    """Genz 'continuous' test function on [0,1]^d.
+    r"""Genz 'continuous' test function on [0,1]^d.
 
-    .. math::  f(x) = \exp(- \sum_{i=1}^d a_i |x_i - u_i|).
+    .. math:: f(x) = \exp(- \sum_{i=1}^d a_i |x_i - u_i|).
+
     Parameters
     ----------
-        dim
-            Dimension of the domain
-        a
-            First set of parameters of shape (dim,) affecting the difficulty of the integration problem
-        u
-            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-            All entries should be in [0,1].
+    dim
+        Dimension of the domain
+    a
+        First set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem.
+    u
+        Second set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem. All entries should be in [0,1].
+
+    Returns
+    -------
+    problem
+        The :class:`QuadratureProblem` corresponding to the Genz 'continuous' test
+        function with the given parameters.
+
+    Raises
+    ------
+    ValueError
+        If any of the parameters have invalid shapes or values.
+
     References
     ----------
-        https://www.sfu.ca/~ssurjano/cont.html
+    .. [1] https://www.sfu.ca/~ssurjano/cont.html
     """
 
     # Specify default values of parameters a and u
@@ -60,20 +75,9 @@ def genz_continuous(
         )
 
     if np.any(u < 0.0) or np.any(u > 1):
-        raise ValueError(f"The parameters `u` must lie in the interval [0.0, 1.0].")
+        raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         nonlocal a, u
         n = x.shape[0]
 
@@ -84,7 +88,7 @@ def genz_continuous(
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Reshape u into an (n,dim) array with identical rows
         u_reshaped = np.repeat(u.reshape([1, dim]), n, axis=0)
@@ -94,7 +98,7 @@ def genz_continuous(
 
         return f.reshape((n, 1))
 
-    solution = np.prod((2.0 - np.exp(-a * u) - np.exp(a * (u - 1))) / a)
+    solution = np.prod((2.0 - np.exp(-1.0 * a * u) - np.exp(a * (u - 1))) / a)
 
     return QuadratureProblem(
         integrand=integrand,
@@ -108,24 +112,24 @@ def genz_continuous(
 def genz_cornerpeak(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-
-    """Genz 'corner peak' test function on [0,1]^d.
+    r"""Genz 'corner peak' test function on [0,1]^d.
 
     .. math:: f(x) = (1+\sum_{i=1}^d a_i x_i)^{-d+1}
 
     Parameters
     ----------
-        dim
-            Dimension of the domain
-        a
-            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-        u
-            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-            All entries should be in [0,1].
+    dim
+        Dimension of the domain
+    a
+        First set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem.
+    u
+        Second set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem. All entries should be in [0,1].
 
     References
     ----------
-        https://www.sfu.ca/~ssurjano/copeak.html
+    .. [1] https://www.sfu.ca/~ssurjano/copeak.html
     """
 
     # Specify default values of parameters a and u
@@ -147,20 +151,9 @@ def genz_cornerpeak(
         )
 
     if np.any(u < 0.0) or np.any(u > 1):
-        raise ValueError(f"The parameters `u` must lie in the interval [0.0, 1.0].")
+        raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         nonlocal a, u
         n = x.shape[0]
 
@@ -171,7 +164,7 @@ def genz_cornerpeak(
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         f = (1.0 + np.sum(a * x, axis=1)) ** (-dim - 1)
@@ -182,8 +175,8 @@ def genz_cornerpeak(
     solution = 0.0
     for k in range(0, dim + 1):
         subsets_k = list(itertools.combinations(range(dim), k))
-        for subset_ind in range(len(subsets_k)):
-            a_subset = a[np.asarray(subsets_k[subset_ind], dtype=int)]
+        for subset in subsets_k:
+            a_subset = a[np.asarray(subset, dtype=int)]
             solution = solution + ((-1.0) ** (k + dim)) * (
                 1.0 + np.sum(a) - np.sum(a_subset)
             ) ** (-1)
@@ -201,24 +194,29 @@ def genz_cornerpeak(
 def genz_discontinuous(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    """Genz 'discontinuous' test function on [0,1]^d.
+    r"""Genz 'discontinuous' test function on [0,1]^d.
 
-    :math:'f(x) = 0' if any :math:'x_i > u_i' and :math:'f(x) = \exp(\sum_{i=1}^d a_i x_i)' otherwise.
-
+    .. math::
+        f(x) =
+        \begin{cases}
+            0 & \text{if any } x_i > u_i \\
+            \exp(\sum_{i=1}^d a_i x_i) & \text{otherwise}
+        \end{cases}
 
     Parameters
     ----------
-        dim
-            Dimension of the domain
-        a
-            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-        u
-            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-            All entries should be in [0,1].
+    dim
+        Dimension of the domain
+    a
+        First set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem.
+    u
+        Second set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem. All entries should be in [0,1].
 
     References
     ----------
-        https://www.sfu.ca/~ssurjano/disc.html
+    .. [1] https://www.sfu.ca/~ssurjano/disc.html
     """
 
     # Specify default values of parameters a and u
@@ -240,20 +238,9 @@ def genz_discontinuous(
         )
 
     if np.any(u < 0.0) or np.any(u > 1):
-        raise ValueError(f"The parameters `u` must lie in the interval [0.0, 1.0].")
+        raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         nonlocal a, u
         n = x.shape[0]
 
@@ -264,7 +251,7 @@ def genz_discontinuous(
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         f = np.exp(np.sum(a * x, axis=1))
@@ -290,23 +277,24 @@ def genz_discontinuous(
 def genz_gaussian(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    """Genz 'Gaussian' test function on [0,1]^d.
+    r"""Genz 'Gaussian' test function on [0,1]^d.
 
     .. math::  f(x) = \exp(- \sum_{i=1}^d a_i^2 (x_i - u_i)^2).
 
     Parameters
     ----------
-        dim
-            Dimension of the domain
-        a
-            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-        u
-            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-            All entries should be in [0,1].
+    dim
+        Dimension of the domain
+    a
+        First set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem.
+    u
+        Second set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem. All entries should be in [0,1].
 
     References
     ----------
-        https://www.sfu.ca/~ssurjano/gaussian.html
+    .. [1] https://www.sfu.ca/~ssurjano/gaussian.html
     """
 
     # Specify default values of parameters a and u
@@ -328,20 +316,9 @@ def genz_gaussian(
         )
 
     if np.any(u < 0.0) or np.any(u > 1):
-        raise ValueError(f"The parameters `u` must lie in the interval [0.0, 1.0].")
+        raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         nonlocal a, u
         n = x.shape[0]
 
@@ -352,7 +329,7 @@ def genz_gaussian(
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Reshape u into an (n,dim) array with identical rows
         u_reshaped = np.repeat(u.reshape([1, dim]), n, axis=0)
@@ -378,24 +355,25 @@ def genz_gaussian(
 def genz_oscillatory(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    """Genz 'oscillatory' test function on [0,1]^d.
+    r"""Genz 'oscillatory' test function on [0,1]^d.
 
     .. math::  f(x) = \cos( 2 \pi u_1 + \sum_{i=1}^d a_i x_i).
 
 
     Parameters
     ----------
-        dim
-            Dimension of the domain
-        a
-            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-        u
-            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-            All entries should be in [0,1].
+    dim
+        Dimension of the domain
+    a
+        First set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem.
+    u
+        Second set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem. All entries should be in [0,1].
 
     References
     ----------
-        https://www.sfu.ca/~ssurjano/oscil.html
+    .. [1] https://www.sfu.ca/~ssurjano/oscil.html
     """
 
     # Specify default values of parameters a and u
@@ -417,20 +395,9 @@ def genz_oscillatory(
         )
 
     if np.any(u < 0.0) or np.any(u > 1):
-        raise ValueError(f"The parameters `u` must lie in the interval [0.0, 1.0].")
+        raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         nonlocal a, u
         n = x.shape[0]
 
@@ -441,7 +408,7 @@ def genz_oscillatory(
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         f = np.cos(2.0 * np.pi * u[0] + np.sum(a * x, axis=1))
@@ -464,8 +431,8 @@ def genz_oscillatory(
     solution = 0.0
     for k in range(0, dim + 1):
         subsets_k = list(itertools.combinations(range(dim), k))
-        for subset_ind in range(len(subsets_k)):
-            a_subset = a[np.asarray(subsets_k[subset_ind], dtype=int)]
+        for subset in subsets_k:
+            a_subset = a[np.asarray(subset, dtype=int)]
             solution = solution + ((-1.0) ** k) * hfunc(
                 (2.0 * np.pi * u[0]) + np.sum(a) - np.sum(a_subset)
             )
@@ -484,24 +451,25 @@ def genz_oscillatory(
 def genz_productpeak(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    """Genz 'Product Peak' test function on [0,1]^d.
+    r"""Genz 'Product Peak' test function on [0,1]^d.
 
     .. math::  f(x) = \prod_{i=1}^d ( a_i^{-2} + (x_i-u_i)^2)^{-1}.
 
 
     Parameters
     ----------
-        dim
-            Dimension of the domain
-        a
-            First set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-        u
-            Second set of parameters of shape (dim,) affecting the difficulty of the integration problem.
-            All entries should be in [0,1].
+    dim
+        Dimension of the domain
+    a
+        First set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem.
+    u
+        Second set of parameters of shape (dim,) affecting the difficulty of the
+        integration problem. All entries should be in [0,1].
 
     References
     ----------
-        https://www.sfu.ca/~ssurjano/prpeak.html
+    .. [1] https://www.sfu.ca/~ssurjano/prpeak.html
     """
 
     # Specify default values of parameters a and u
@@ -523,20 +491,9 @@ def genz_productpeak(
         )
 
     if np.any(u < 0.0) or np.any(u > 1.0):
-        raise ValueError(f"The parameters `u` must lie in the interval [0.0, 1.0].")
+        raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         nonlocal a, u
         n = x.shape[0]
 
@@ -547,7 +504,7 @@ def genz_productpeak(
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Reshape u into an (n,dim) array with identical rows
         u_reshaped = np.repeat(u.reshape([1, dim]), n, axis=0)
@@ -557,7 +514,7 @@ def genz_productpeak(
 
         return f.reshape((n, 1))
 
-    solution = np.prod(a * (np.arctan(a * (1.0 - u)) - np.arctan(-a * u)))
+    solution = np.prod(a * (np.arctan(a * (1.0 - u)) - np.arctan(-1.0 * a * u)))
 
     return QuadratureProblem(
         integrand=integrand,
@@ -569,36 +526,24 @@ def genz_productpeak(
 
 
 def bratley1992(dim: int) -> QuadratureProblem:
-
-    """'Bratley 1992' test function on [0,1]^d.
+    r"""'Bratley 1992' test function on [0,1]^d.
 
     .. math::  f(x) = \sum_{i=1}^d (-1)^i \prod_{j=1}^i x_j.
 
-
-    https://www.sfu.ca/~ssurjano/bratleyetal92.html
-
     Parameters
     ----------
-        dim
-            Dimension of the domain
+    dim
+        Dimension of the domain
 
     References
     ----------
-        Bratley, P., Fox, B. L., & Niederreiter, H. (1992). Implementation and tests of low-discrepancy sequences. ACM Transactions on Modeling and Computer Simulation (TOMACS), 2(3), 195-213.
+    .. [1] Bratley, P., Fox, B. L., & Niederreiter, H. (1992). Implementation and tests
+       of low-discrepancy sequences. ACM Transactions on Modeling and Computer
+       Simulation (TOMACS), 2(3), 195-213.
+    .. [2] https://www.sfu.ca/~ssurjano/bratleyetal92.html
     """
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -608,7 +553,7 @@ def bratley1992(dim: int) -> QuadratureProblem:
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         f = np.sum(
@@ -630,35 +575,23 @@ def bratley1992(dim: int) -> QuadratureProblem:
 
 
 def roos_arnold(dim: int) -> QuadratureProblem:
-    """'Roos & Arnold 1963' test function on [0,1]^d.
+    r"""'Roos & Arnold 1963' test function on [0,1]^d.
 
     .. math::  f(x) = \prod_{i=1}^d |4 x_i - 2 |.
 
-
-    https://www.sfu.ca/~ssurjano/roosarn63.html
-
     Parameters
     ----------
-        dim
-            Dimension of the domain
+    dim
+        Dimension of the domain
 
     References
     ----------
-        Roos, P., & Arnold, L. (1963). Numerische experimente zur mehrdimensionalen quadratur. Springer.
+    .. [1] Roos, P., & Arnold, L. (1963). Numerische experimente zur mehrdimensionalen
+       quadratur. Springer.
+    .. [2] https://www.sfu.ca/~ssurjano/roosarn63.html
     """
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -668,7 +601,7 @@ def roos_arnold(dim: int) -> QuadratureProblem:
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         f = np.prod(np.abs(4.0 * x - 2.0), axis=1)
@@ -687,35 +620,26 @@ def roos_arnold(dim: int) -> QuadratureProblem:
 
 
 def gfunction(dim: int) -> QuadratureProblem:
-    """'G-function' test function on [0,1]^d.
+    r"""'G-function' test function on [0,1]^d.
 
-    .. math::  f(x) = \prod_{i=1}^d \frac{|4 x_i - 2 |+a_i}{1+a_i} \text{ where } a_i = \frac{i-2}{2} \forall i = 1, \ldots,d
+    .. math::  f(x) = \prod_{i=1}^d \frac{|4 x_i - 2 |+a_i}{1+a_i}
 
-    https://www.sfu.ca/~ssurjano/gfunc.html
-
+    where :math:`a_i = \frac{i-2}{2}` for all :math:`i = 1, \dotsc, d`
 
     Parameters
     ----------
-        dim
-            Dimension of the domain
+    dim
+        Dimension of the domain
 
     References
     ----------
-        Marrel, A., Iooss, B., Laurent, B., & Roustant, O. (2009). Calculations of sobol indices for the gaussian process metamodel. Reliability Engineering & System Safety, 94(3), 742-751.
+    .. [1] Marrel, A., Iooss, B., Laurent, B., & Roustant, O. (2009). Calculations of
+       sobol indices for the gaussian process metamodel. Reliability Engineering &
+       System Safety, 94(3), 742-751.
+    .. [2] https://www.sfu.ca/~ssurjano/gfunc.html
     """
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -725,7 +649,7 @@ def gfunction(dim: int) -> QuadratureProblem:
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         a = np.atleast_2d(((np.arange(dim) + 1.0) - 2.0) / 2.0)
@@ -745,35 +669,26 @@ def gfunction(dim: int) -> QuadratureProblem:
 
 
 def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
-    """'Morokoff & Caflisch 1995' test function number 1 on [0,1]^d.
+    r"""'Morokoff & Caflisch 1995' test function number 1 on [0,1]^d.
 
     .. math::  f(x) = (1+1/d)^d \prod_{i=1}^d x_i^{1/d}
 
-    https://www.sfu.ca/~ssurjano/morcaf95a.html
 
     Parameters
     ----------
-        dim
-            Dimension of the domain
+    dim
+        Dimension of the domain
 
     References
     ----------
-        Morokoff, W. J., & Caflisch, R. E. (1995). Quasi-monte carlo integration. Journal of computational physics, 122(2), 218-230.
-        Gerstner, T., & Griebel, M. (1998). Numerical integration using sparse grids. Numerical algorithms, 18(3-4), 209-232.
+    .. [1] Morokoff, W. J., & Caflisch, R. E. (1995). Quasi-monte carlo integration.
+       Journal of computational physics, 122(2), 218-230.
+    .. [2] Gerstner, T., & Griebel, M. (1998). Numerical integration using sparse grids.
+       Numerical algorithms, 18(3-4), 209-232.
+    .. [3] https://www.sfu.ca/~ssurjano/morcaf95a.html
     """
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -783,7 +698,7 @@ def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         f = ((1.0 + 1.0 / dim) ** (dim)) * np.prod(x ** (1.0 / dim), axis=1)
@@ -802,35 +717,23 @@ def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
 
 
 def morokoff_caflisch_2(dim: int) -> QuadratureProblem:
-    """'Morokoff & Caflisch 1995' test function number 2 on [0,1]^d.
+    r"""'Morokoff & Caflisch 1995' test function number 2 on [0,1]^d.
 
     .. math::  f(x) = \frac{1}{(d-0.5)^d} \prod_{i=1}^d (d-x_i)
 
-
-    https://www.sfu.ca/~ssurjano/morcaf95b.html
-
     Parameters
     ----------
-        dim
-            Dimension of the domain
+    dim
+        Dimension of the domain
 
     References
     ----------
-        Morokoff, W. J., & Caflisch, R. E. (1995). Quasi-monte carlo integration. Journal of computational physics, 122(2), 218-230.
+    .. [1] Morokoff, W. J., & Caflisch, R. E. (1995). Quasi-monte carlo integration.
+       Journal of computational physics, 122(2), 218-230.
+    .. [2] https://www.sfu.ca/~ssurjano/morcaf95b.html
     """
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
-        """
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -840,7 +743,7 @@ def morokoff_caflisch_2(dim: int) -> QuadratureProblem:
             )
 
         if np.any(x < 0.0) or np.any(x > 1):
-            raise ValueError(f"The input points `x` must lie in the box [0.0, 1.0]^d.")
+            raise ValueError("The input points `x` must lie in the box [0.0, 1.0]^d.")
 
         # Compute function values
         f = (1.0 / ((dim - 0.5) ** dim)) * np.prod(dim - x, axis=1)
