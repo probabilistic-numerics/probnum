@@ -94,12 +94,12 @@ class Matern(Kernel, IsotropicMixin):
             return backend.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
 
         # The modified Bessel function K_nu is not defined for z=0
-        # distances = backend.maximum(distances, backend.finfo(distances.dtype).eps)
+        distances = backend.maximum(distances, backend.finfo(distances.dtype).eps)
 
-        # scaled_distances = backend.sqrt(2 * self.nu) / self.lengthscale * distances
-        # return (
-        #     2 ** (1.0 - self.nu)
-        #     / backend.special.gamma(self.nu)
-        #     * scaled_distances ** self.nu
-        #     * backend.special.kv(self.nu, scaled_distances)
-        # )
+        scaled_distances = backend.sqrt(2 * self.nu) / self.lengthscale * distances
+        return (
+            2 ** (1.0 - self.nu)
+            / backend.special.gamma(self.nu)
+            * scaled_distances ** self.nu
+            * backend.special.kv(self.nu, scaled_distances)
+        )
