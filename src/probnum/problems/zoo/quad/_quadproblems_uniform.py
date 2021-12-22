@@ -35,10 +35,10 @@ def genz_continuous(
         Dimension of the domain
     a
         First set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem.
+        integration problem. See [1]_.
     u
         Second set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem. All entries should be in [0,1].
+        integration problem. All entries should be in [0,1]. See [1]_.
 
     Returns
     -------
@@ -122,10 +122,10 @@ def genz_cornerpeak(
         Dimension of the domain
     a
         First set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem.
+        integration problem. See [1]_.
     u
         Second set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem. All entries should be in [0,1].
+        integration problem. All entries should be in [0,1]. See [1]_.
 
     References
     ----------
@@ -209,10 +209,10 @@ def genz_discontinuous(
         Dimension of the domain
     a
         First set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem.
+        integration problem. See [1]_.
     u
         Second set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem. All entries should be in [0,1].
+        integration problem. All entries should be in [0,1]. See [1]_.
 
     References
     ----------
@@ -287,10 +287,10 @@ def genz_gaussian(
         Dimension of the domain
     a
         First set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem.
+        integration problem. See [1]_.
     u
         Second set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem. All entries should be in [0,1].
+        integration problem. All entries should be in [0,1]. See [1]_.
 
     References
     ----------
@@ -366,10 +366,10 @@ def genz_oscillatory(
         Dimension of the domain
     a
         First set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem.
+        integration problem. See [1]_.
     u
         Second set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem. All entries should be in [0,1].
+        integration problem. All entries should be in [0,1]. See [1]_.
 
     References
     ----------
@@ -464,10 +464,10 @@ def genz_productpeak(
         Dimension of the domain
     a
         First set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem.
+        integration problem. See [1]_.
     u
         Second set of parameters of shape (dim,) affecting the difficulty of the
-        integration problem. All entries should be in [0,1].
+        integration problem. All entries should be in [0,1]. See [1]_.
 
     References
     ----------
@@ -532,6 +532,8 @@ def bratley1992(dim: int) -> QuadratureProblem:
 
     .. math::  f(x) = \sum_{i=1}^d (-1)^i \prod_{j=1}^i x_j.
 
+    See [1]_, [2]_.
+
     Parameters
     ----------
     dim
@@ -581,6 +583,8 @@ def roos_arnold(dim: int) -> QuadratureProblem:
 
     .. math::  f(x) = \prod_{i=1}^d |4 x_i - 2 |.
 
+    See [1]_, [2]_.
+
     Parameters
     ----------
     dim
@@ -626,7 +630,7 @@ def gfunction(dim: int) -> QuadratureProblem:
 
     .. math::  f(x) = \prod_{i=1}^d \frac{|4 x_i - 2 |+a_i}{1+a_i}
 
-    where :math:`a_i = \frac{i-2}{2}` for all :math:`i = 1, \dotsc, d`
+    where :math:`a_i = \frac{i-2}{2}` for all :math:`i = 1, \dotsc, d`. See [1]_, [2]_.
 
     Parameters
     ----------
@@ -675,6 +679,7 @@ def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
 
     .. math::  f(x) = (1+1/d)^d \prod_{i=1}^d x_i^{1/d}
 
+    See [1]_, [2]_, [3]_.
 
     Parameters
     ----------
@@ -722,6 +727,8 @@ def morokoff_caflisch_2(dim: int) -> QuadratureProblem:
     r"""'Morokoff & Caflisch 1995' test function number 2 on [0,1]^d.
 
     .. math::  f(x) = \frac{1}{(d-0.5)^d} \prod_{i=1}^d (d-x_i)
+
+    See [1]_, [2]_.
 
     Parameters
     ----------

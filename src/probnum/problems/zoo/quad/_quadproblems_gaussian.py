@@ -30,7 +30,7 @@ def uniform_to_gaussian_quadprob(
 
     where :math:`h(x)=f(\Phi((x-mean)/var))`, :math:`\phi(x)` is the Gaussian
     probability density function and :math:`\Phi(x)` an elementwise application of the
-    Gaussian cummulative distribution function.
+    Gaussian cummulative distribution function. See [1]_.
 
     Parameters
     ----------
@@ -46,6 +46,12 @@ def uniform_to_gaussian_quadprob(
     problem
         A new Quadrature Problem instance with a transformed integrand taking inputs in
         :math:`\mathbb{R}^d`.
+
+    Raises
+    ------
+    ValueError
+        If the original quadrature problem is over a domain other than [0, 1]^d or if it
+        does not have a scalar solution.
 
     Example
     -------
@@ -68,8 +74,8 @@ def uniform_to_gaussian_quadprob(
         raise ValueError("quadprob is not an integration problem over [0,1]^d")
 
     # Check that the original quadrature problem has a scalar valued solution
-    if isinstance(quadprob.solution, float) is False:
-        raise TypeError("The solution of quadprob is not a scalar.")
+    if np.ndim(quadprob.solution) != 0:
+        raise ValueError("The solution of quadprob is not a scalar.")
 
     # Construct transformation of the integrand
     def uniform_to_gaussian_integrand(
@@ -108,7 +114,7 @@ def sum_polynomials(
 
     .. math::  f(x) = \sum_{j=0}^p \prod_{i=1}^dim a_{ji} x_i^{b_ji}
 
-    The integrand is integrated against a multivariate normal N(0,var * I_d).
+    The integrand is integrated against a multivariate normal N(0,var * I_d). See [1]_.
 
     Parameters
     ----------
@@ -127,6 +133,10 @@ def sum_polynomials(
     f
         array of size (n,1) giving integrand evaluations at points in 'x'.
 
+    Raises
+    ------
+    ValueError
+        If the given parameters have the wrong shape or contain invalid values.
 
     References
     ----------
