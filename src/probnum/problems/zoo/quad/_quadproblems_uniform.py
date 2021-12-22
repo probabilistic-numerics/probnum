@@ -376,6 +376,8 @@ def genz_oscillatory(
     .. [1] https://www.sfu.ca/~ssurjano/oscil.html
     """
 
+    # pylint: disable=too-complex
+
     # Specify default values of parameters a and u
     if a is None:
         a = np.broadcast_to(5.0, dim)
