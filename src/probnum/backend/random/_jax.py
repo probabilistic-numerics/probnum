@@ -5,7 +5,7 @@ from typing import Optional, Sequence, Tuple
 import jax
 from jax import numpy as jnp
 
-from probnum.typing import DTypeArgType, FloatArgType, ShapeArgType
+from probnum.typing import DTypeArgType, FloatLike, ShapeLike
 
 
 def seed(seed: Optional[int]) -> jnp.ndarray:
@@ -28,9 +28,9 @@ def standard_normal(seed: jnp.ndarray, shape=(), dtype=jnp.double):
 
 def gamma(
     seed: jnp.ndarray,
-    shape_param: FloatArgType,
-    scale_param: FloatArgType = 1.0,
-    shape: ShapeArgType = (),
+    shape_param: FloatLike,
+    scale_param: FloatLike = 1.0,
+    shape: ShapeLike = (),
     dtype: DTypeArgType = jnp.double,
 ):
     return (
@@ -43,7 +43,7 @@ def gamma(
 def uniform_so_group(
     seed: jnp.ndarray,
     n: int,
-    shape: ShapeArgType = (),
+    shape: ShapeLike = (),
     dtype: DTypeArgType = jnp.double,
 ) -> jnp.ndarray:
     if n == 1:

@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from probnum.typing import DTypeArgType, FloatArgType, ShapeArgType
+from probnum.typing import DTypeArgType, FloatLike, ShapeLike
 
 
 def seed(seed: Optional[int]) -> np.random.SeedSequence:
@@ -21,7 +21,7 @@ def split(
 
 def standard_normal(
     seed: np.random.SeedSequence,
-    shape: ShapeArgType = (),
+    shape: ShapeLike = (),
     dtype: DTypeArgType = np.double,
 ) -> np.ndarray:
     return _make_rng(seed).standard_normal(size=shape, dtype=dtype)
@@ -29,9 +29,9 @@ def standard_normal(
 
 def gamma(
     seed: np.random.SeedSequence,
-    shape_param: FloatArgType,
-    scale_param: FloatArgType = 1.0,
-    shape: ShapeArgType = (),
+    shape_param: FloatLike,
+    scale_param: FloatLike = 1.0,
+    shape: ShapeLike = (),
     dtype: DTypeArgType = np.double,
 ) -> np.ndarray:
     return (
@@ -43,7 +43,7 @@ def gamma(
 def uniform_so_group(
     seed: np.random.SeedSequence,
     n: int,
-    shape: ShapeArgType = (),
+    shape: ShapeLike = (),
     dtype: DTypeArgType = np.double,
 ) -> np.ndarray:
     if n == 1:

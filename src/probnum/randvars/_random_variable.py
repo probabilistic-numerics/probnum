@@ -10,7 +10,6 @@ import numpy as np
 from probnum import backend, utils as _utils
 from probnum.typing import (
     ArrayIndicesLike,
-    ArrayLike,
     ArrayType,
     DTypeLike,
     SeedType,
