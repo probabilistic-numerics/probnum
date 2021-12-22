@@ -1,8 +1,12 @@
+"""Test problems for integration against a Gaussian measure."""
+
+from typing import Callable
+
 import numpy as np
 from scipy import special
 from scipy.stats import norm
 
-from probnum.problems import *
+from probnum.problems import QuadratureProblem
 from probnum.typing import FloatArgType
 
 __all__ = [
@@ -14,8 +18,7 @@ __all__ = [
 def uniform_to_gaussian_quadprob(
     quadprob: QuadratureProblem, mean: FloatArgType = 0.0, var: FloatArgType = 1.0
 ) -> QuadratureProblem:
-
-    """Creates a new QuadratureProblem for integration against a Gaussian on R^d by
+    r"""Creates a new QuadratureProblem for integration against a Gaussian on R^d by
     using an existing QuadratureProblem whose integrand is suitable for integration
     against the Lebesgue measure on [0,1]^d.
 
@@ -25,21 +28,24 @@ def uniform_to_gaussian_quadprob(
 
     .. math::  \int_{[0,1]^d} f(x) dx = \int_{\mathbb{R}^d} h(x) \phi(x) dx
 
-    where :math:'h(x)=f(\Phi((x-mean)/var))', :math:'\phi(x)' is the Gaussian probability density function
-    and :math:'\Phi(x)' an elementwise application of the Gaussian cummulative distribution function.
+    where :math:`h(x)=f(\Phi((x-mean)/var))`, :math:`\phi(x)` is the Gaussian
+    probability density function and :math:`\Phi(x)` an elementwise application of the
+    Gaussian cummulative distribution function.
 
     Parameters
     ----------
-        quadprob
-            A QuadratureProblem instance which includes an integrand defined on [0,1]^d
-        mean
-            Mean of the Gaussian distribution.
-        var
-            Diagonal element for the covariance matrix of the Gaussian distribution.
+    quadprob
+        A QuadratureProblem instance which includes an integrand defined on [0,1]^d
+    mean
+        Mean of the Gaussian distribution.
+    var
+        Diagonal element for the covariance matrix of the Gaussian distribution.
 
     Returns
     -------
-            A new Quadrature Problem instance with a transformed integrand taking inputs in :math:'\mathbb{R}^d'.
+    problem
+        A new Quadrature Problem instance with a transformed integrand taking inputs in
+        :math:`\mathbb{R}^d`.
 
     Example
     -------
@@ -47,21 +53,23 @@ def uniform_to_gaussian_quadprob(
 
     References
     ----------
-        Si, S., Oates, C. J., Duncan, A. B., Carin, L. & Briol. F-X. (2021). Scalable control variates for Monte Carlo methods via stochastic optimization.
-        Proceedings of the 14th Monte Carlo and Quasi-Monte Carlo Methods (MCQMC) conference 2020. arXiv:2006.07487.
+    .. [1] Si, S., Oates, C. J., Duncan, A. B., Carin, L. & Briol. F-X. (2021). Scalable
+       control variates for Monte Carlo methods via stochastic optimization. Proceedings
+       of the 14th Monte Carlo and Quasi-Monte Carlo Methods (MCQMC) conference 2020.
+       arXiv:2006.07487.
     """
 
     dim = len(quadprob.lower_bd)
 
     # Check that the original quadrature problem was defined on [0,1]^d
     if np.any(quadprob.lower_bd != 0.0):
-        raise ValueError(f"quadprob is not an integration problem over [0,1]^d")
+        raise ValueError("quadprob is not an integration problem over [0,1]^d")
     if np.any(quadprob.upper_bd != 1.0):
-        raise ValueError(f"quadprob is not an integration problem over [0,1]^d")
+        raise ValueError("quadprob is not an integration problem over [0,1]^d")
 
     # Check that the original quadrature problem has a scalar valued solution
     if isinstance(quadprob.solution, float) is False:
-        raise TypeError(f"The solution of quadprob is not a scalar.")
+        raise TypeError("The solution of quadprob is not a scalar.")
 
     # Construct transformation of the integrand
     def uniform_to_gaussian_integrand(
@@ -69,13 +77,12 @@ def uniform_to_gaussian_quadprob(
         mean: FloatArgType = 0.0,
         var: FloatArgType = 1.0,
     ) -> Callable[[np.ndarray], np.ndarray]:
-
         # mean and var should be either one-dimensional, or an array of dimension d
         if isinstance(mean, float) is False:
-            raise TypeError(f"The mean parameter should be a float.")
+            raise TypeError("The mean parameter should be a float.")
 
         if isinstance(var, float) is False or var <= 0.0:
-            raise TypeError(f"The variance should be a positive float.")
+            raise TypeError("The variance should be a positive float.")
 
         def newfunc(x):
             return func(norm.cdf((x - mean) / var))
@@ -96,8 +103,8 @@ def uniform_to_gaussian_quadprob(
 def sum_polynomials(
     dim: int, a: np.ndarray = None, b: np.ndarray = None, var: FloatArgType = 1.0
 ) -> QuadratureProblem:
-    """Quadrature problem with an integrand taking the form of a sum of polynomials over
-    :math:'\mathbb{R}^d'.
+    r"""Quadrature problem with an integrand taking the form of a sum of polynomials
+    over :math:'\mathbb{R}^d'.
 
     .. math::  f(x) = \sum_{j=0}^p \prod_{i=1}^dim a_{ji} x_i^{b_ji}
 
@@ -105,25 +112,28 @@ def sum_polynomials(
 
     Parameters
     ----------
-        dim
-            Dimension d of the integration domain
-        a
-            2d-array of size (p+1)xd giving coefficients of the polynomials.
-        b
-            2d-array of size (p+1)xd giving orders of the polynomials. All entries should be natural numbers.
-        var
-            diagonal elements of the covariance function.
+    dim
+        Dimension d of the integration domain
+    a
+        2d-array of size (p+1)xd giving coefficients of the polynomials.
+    b
+        2d-array of size (p+1)xd giving orders of the polynomials. All entries
+        should be natural numbers.
+    var
+        diagonal elements of the covariance function.
 
     Returns
     -------
-        f
-            array of size (n,1) giving integrand evaluations at points in 'x'.
+    f
+        array of size (n,1) giving integrand evaluations at points in 'x'.
 
 
     References
     ----------
-        Si, S., Oates, C. J., Duncan, A. B., Carin, L. & Briol. F-X. (2021). Scalable control variates for Monte Carlo methods via stochastic optimization.
-        Proceedings of the 14th Monte Carlo and Quasi-Monte Carlo Methods (MCQMC) conference 2020. arXiv:2006.07487.
+    .. [1] Si, S., Oates, C. J., Duncan, A. B., Carin, L. & Briol. F-X. (2021). Scalable
+       control variates for Monte Carlo methods via stochastic optimization. Proceedings
+       of the 14th Monte Carlo and Quasi-Monte Carlo Methods (MCQMC) conference 2020.
+       arXiv:2006.07487.
     """
 
     # Specify default values of parameters a and u
@@ -144,20 +154,9 @@ def sum_polynomials(
         )
 
     if np.any(b < 0):
-        raise ValueError(f"The parameters `b` must be non-negative.")
+        raise ValueError("The parameters `b` must be non-negative.")
 
     def integrand(x: np.ndarray) -> np.ndarray:
-        """
-        Parameters
-        ----------
-        x
-            Array of points at which to evaluate the integrand of size (n,dim).
-            All entries should be in [0,1].
-        Returns
-        -------
-        f
-            array of integrand evaluations at points in 'x'.
-        """
         n = x.shape[0]
 
         # Compute function values

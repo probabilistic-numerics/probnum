@@ -1,4 +1,4 @@
-""" Test problems for integration against the Lebesgue measure. """
+"""Test problems for integration against the Lebesgue measure."""
 
 import itertools
 
@@ -425,8 +425,10 @@ def genz_oscillatory(
             return -np.cos(x)
         if dim_modulo4 == 3:
             return -np.sin(x)
-        if dim_modulo4 == 0:
-            return np.cos(x)
+
+        assert dim_modulo4 == 0
+
+        return np.cos(x)
 
     solution = 0.0
     for k in range(0, dim + 1):
