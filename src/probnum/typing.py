@@ -19,7 +19,7 @@ from typing import Iterable, Tuple, Union
 import numpy as np
 import scipy.sparse
 from numpy.typing import ArrayLike  # pylint: disable=unused-import
-from numpy.typing import DTypeLike as DTypeArgType  # pylint: disable=unused-import
+from numpy.typing import DTypeLike as _NumPyDTypeLike
 
 ########################################################################################
 # API Types
@@ -50,6 +50,12 @@ ShapeLike = Union[IntLike, Iterable[IntLike]]
 
 Values of this type should always be converted into :class:`ShapeType` using the
 function :func:`probnum.utils.as_shape` before further internal processing."""
+
+DTypeLike = _NumPyDTypeLike
+"""Type of a public API argument for supplying an array's dtype.
+
+Values of this type should always be converted into :class:`np.dtype`\\ s before further
+internal processing."""
 
 ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
 """Type of a public API argument for supplying a scalar value. Values of this type
