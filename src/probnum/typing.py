@@ -83,12 +83,16 @@ ArrayLike = _NumPyArrayLike
 Values of this type should always be converted into :class:`np.ndarray`\\ s using
 the function :func:`np.asarray` before further internal processing."""
 
-LinearOperatorArgType = Union[
-    np.ndarray,
+LinearOperatorLike = Union[
+    ArrayLike,
     scipy.sparse.spmatrix,
     "probnum.linops.LinearOperator",
 ]
-"""Type of a public API argument for supplying a matrix or finite-dimensional linear operator."""
+"""Type of a public API argument for supplying a finite-dimensional linear operator.
+
+Values of this type should always be converted into :class:`probnum.linops.\\
+LinearOperator`\\ s using the function :func:`probnum.linops.aslinop` before further
+internal processing."""
 
 ########################################################################################
 # Other Types
