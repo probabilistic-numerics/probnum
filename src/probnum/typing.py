@@ -25,7 +25,12 @@ from numpy.typing import DTypeLike as _NumPyDTypeLike
 # API Types
 ########################################################################################
 
+# Array Utilities
 ShapeType = Tuple[int, ...]
+
+# Scalars, Arrays and Matrices
+ScalarType = np.number
+MatrixType = Union[np.ndarray, "probnum.linops.LinearOperator"]
 
 ########################################################################################
 # Argument Types
