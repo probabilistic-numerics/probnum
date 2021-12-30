@@ -8,12 +8,7 @@ import scipy.stats
 
 from probnum import config, linops
 from probnum import utils as _utils
-from probnum.typing import (
-    ArrayIndicesLike,
-    FloatLike,
-    ShapeLike,
-    ShapeType,
-)
+from probnum.typing import ArrayIndicesLike, FloatLike, ShapeLike, ShapeType
 
 from . import _random_variable
 
