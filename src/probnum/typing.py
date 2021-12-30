@@ -31,10 +31,16 @@ ShapeType = Tuple[int, ...]
 # Argument Types
 ########################################################################################
 
-IntArgType = Union[int, numbers.Integral, np.integer]
+# Python Numbers
+IntLike = Union[int, numbers.Integral, np.integer]
+"""Type of a public API argument for supplying an integer.
+
+Values of this type should always be converted into :class:`int`\\ s before further
+internal processing."""
+
 FloatArgType = Union[float, numbers.Real, np.floating]
 
-ShapeArgType = Union[IntArgType, Iterable[IntArgType]]
+ShapeArgType = Union[IntLike, Iterable[IntLike]]
 """Type of a public API argument for supplying a shape. Values of this type should
 always be converted into :class:`ShapeType` using the function
 :func:`probnum.utils.as_shape` before further internal processing."""

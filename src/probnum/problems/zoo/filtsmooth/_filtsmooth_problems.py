@@ -4,7 +4,7 @@ import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 __all__ = [
     "benes_daum",
@@ -19,7 +19,7 @@ def car_tracking(
     rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
-    num_prior_derivatives: IntArgType = 1,
+    num_prior_derivatives: IntLike = 1,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
     step: FloatArgType = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
@@ -512,9 +512,9 @@ def logistic_ode(
     params: Tuple[FloatArgType, FloatArgType] = (6.0, 1.0),
     initrv: Optional[randvars.RandomVariable] = None,
     evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
-    ek0_or_ek1: IntArgType = 1,
+    ek0_or_ek1: IntLike = 1,
     exclude_initial_condition: bool = True,
-    order: IntArgType = 3,
+    order: IntLike = 3,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
 ):

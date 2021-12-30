@@ -8,7 +8,7 @@ import scipy.linalg
 
 from probnum import config, linops, randvars
 from probnum.randprocs.markov.discrete import _nonlinear_gaussian
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
 
@@ -38,8 +38,8 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
+        input_dim: IntLike,
+        output_dim: IntLike,
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],

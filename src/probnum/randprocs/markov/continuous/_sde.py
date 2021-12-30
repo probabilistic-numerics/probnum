@@ -5,7 +5,7 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum.randprocs.markov import _transition
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 
 class SDE(_transition.Transition):
@@ -18,8 +18,8 @@ class SDE(_transition.Transition):
 
     def __init__(
         self,
-        state_dimension: IntArgType,
-        wiener_process_dimension: IntArgType,
+        state_dimension: IntLike,
+        wiener_process_dimension: IntLike,
         drift_function: Callable[[FloatArgType, np.ndarray], np.ndarray],
         dispersion_function: Callable[[FloatArgType, np.ndarray], np.ndarray],
         drift_jacobian: Optional[Callable[[FloatArgType, np.ndarray], np.ndarray]],

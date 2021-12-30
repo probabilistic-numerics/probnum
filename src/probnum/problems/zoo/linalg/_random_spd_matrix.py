@@ -5,12 +5,12 @@ from typing import Sequence
 import numpy as np
 import scipy.stats
 
-from probnum.typing import IntArgType
+from probnum.typing import IntLike
 
 
 def random_spd_matrix(
     rng: np.random.Generator,
-    dim: IntArgType,
+    dim: IntLike,
     spectrum: Sequence = None,
 ) -> np.ndarray:
     r"""Random symmetric positive definite matrix.
@@ -92,7 +92,7 @@ def random_spd_matrix(
 
 def random_sparse_spd_matrix(
     rng: np.random.Generator,
-    dim: IntArgType,
+    dim: IntLike,
     density: float,
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,

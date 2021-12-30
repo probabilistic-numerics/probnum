@@ -14,7 +14,7 @@ import numpy as np
 
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 from .solvers import BayesianQuadrature
@@ -30,10 +30,10 @@ def bayesquad(
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
-    max_evals: Optional[IntArgType] = None,
+    max_evals: Optional[IntLike] = None,
     var_tol: Optional[FloatArgType] = None,
     rel_tol: Optional[FloatArgType] = None,
-    batch_size: Optional[IntArgType] = 1,
+    batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
 ) -> Tuple[Normal, Dict]:
     r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`

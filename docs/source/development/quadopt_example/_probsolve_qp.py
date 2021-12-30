@@ -6,7 +6,7 @@ import numpy as np
 import probnum as pn
 import probnum.utils as _utils
 from probnum import linops, randvars
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation
@@ -21,7 +21,7 @@ def probsolve_qp(
     fun_params0: Optional[Union[np.ndarray, randvars.RandomVariable]] = None,
     assume_fun: Optional[str] = None,
     tol: FloatArgType = 10 ** -5,
-    maxiter: IntArgType = 10 ** 4,
+    maxiter: IntLike = 10 ** 4,
     noise_cov: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
     callback: Optional[
         Callable[[FloatArgType, FloatArgType, randvars.RandomVariable], None]

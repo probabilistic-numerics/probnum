@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.typing import IntArgType, ScalarArgType
+from probnum.typing import IntLike, ScalarArgType
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -46,7 +46,7 @@ class ExpQuad(Kernel, IsotropicMixin):
            [1.92874985e-22, 3.72665317e-06, 1.00000000e+00]])
     """
 
-    def __init__(self, input_dim: IntArgType, lengthscale: ScalarArgType = 1.0):
+    def __init__(self, input_dim: IntLike, lengthscale: ScalarArgType = 1.0):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
         super().__init__(input_dim=input_dim)
 

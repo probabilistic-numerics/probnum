@@ -10,7 +10,7 @@ from probnum.typing import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
     FloatArgType,
-    IntArgType,
+    IntLike,
     ShapeArgType,
 )
 
@@ -160,8 +160,8 @@ class TimeSeriesPosterior(abc.ABC):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 

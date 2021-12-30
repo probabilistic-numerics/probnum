@@ -15,7 +15,7 @@ from probnum.filtsmooth.gaussian import approx
 from probnum.typing import (
     DenseOutputLocationArgType,
     FloatArgType,
-    IntArgType,
+    IntLike,
     ShapeArgType,
 )
 
@@ -61,8 +61,8 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
         raise NotImplementedError
 
@@ -172,8 +172,8 @@ class SmoothingPosterior(KalmanPosterior):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
@@ -365,8 +365,8 @@ class FilteringPosterior(KalmanPosterior):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None

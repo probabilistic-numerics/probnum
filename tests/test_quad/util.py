@@ -5,13 +5,13 @@ import numpy as np
 from scipy.linalg import sqrtm
 from scipy.special import roots_legendre
 
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 
 # Auxiliary functions for quadrature tests
 def gauss_hermite_tensor(
-    n_points: IntArgType,
-    input_dim: IntArgType,
+    n_points: IntLike,
+    input_dim: IntLike,
     mean: Union[np.ndarray, FloatArgType],
     cov: Union[np.ndarray, FloatArgType],
 ):
@@ -31,8 +31,8 @@ def gauss_hermite_tensor(
 
 
 def gauss_legendre_tensor(
-    n_points: IntArgType,
-    input_dim: IntArgType,
+    n_points: IntLike,
+    input_dim: IntLike,
     domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
     normalized: Optional[bool] = False,
 ):

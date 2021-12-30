@@ -7,7 +7,7 @@ import numpy as np
 import probnum as pn
 import probnum.utils as _utils
 from probnum import linops, randvars
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation
@@ -34,7 +34,7 @@ QuadOptBeliefUpdateType = Callable[
     randvars.RandomVariable,
 ]
 QuadOptStoppingCriterionType = Callable[
-    [Callable[[FloatArgType], FloatArgType], randvars.RandomVariable, IntArgType],
+    [Callable[[FloatArgType], FloatArgType], randvars.RandomVariable, IntLike],
     Tuple[bool, Union[str, None]],
 ]
 
@@ -131,7 +131,7 @@ class ProbabilisticQuadraticOptimizer:
             self.stopping_criteria = stopping_criteria
 
     def has_converged(
-        self, fun: Callable[[FloatArgType], FloatArgType], iteration: IntArgType
+        self, fun: Callable[[FloatArgType], FloatArgType], iteration: IntLike
     ) -> Tuple[bool, Union[str, None]]:
         """Check whether the optimizer has converged.
 

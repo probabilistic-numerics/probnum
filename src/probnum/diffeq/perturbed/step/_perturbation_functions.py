@@ -4,13 +4,13 @@ from typing import Optional, Union
 import numpy as np
 import scipy
 
-from probnum.typing import FloatArgType, IntArgType, ShapeArgType
+from probnum.typing import FloatArgType, IntLike, ShapeArgType
 
 
 def perturb_uniform(
     rng: np.random.Generator,
     step: FloatArgType,
-    solver_order: IntArgType,
+    solver_order: IntLike,
     noise_scale: FloatArgType,
     size: Optional[ShapeArgType] = (),
 ) -> Union[float, np.ndarray]:
@@ -51,7 +51,7 @@ def perturb_uniform(
 def perturb_lognormal(
     rng: np.random.Generator,
     step: FloatArgType,
-    solver_order: IntArgType,
+    solver_order: IntLike,
     noise_scale: FloatArgType,
     size: Optional[ShapeArgType] = (),
 ) -> Union[float, np.ndarray]:

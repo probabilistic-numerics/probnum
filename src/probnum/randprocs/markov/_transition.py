@@ -5,7 +5,7 @@ import abc
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 
 class Transition(abc.ABC):
@@ -46,7 +46,7 @@ class Transition(abc.ABC):
         Markov-chains and general discrete-time transitions (likelihoods).
     """
 
-    def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
+    def __init__(self, input_dim: IntLike, output_dim: IntLike):
         self.input_dim = input_dim
         self.output_dim = output_dim
 

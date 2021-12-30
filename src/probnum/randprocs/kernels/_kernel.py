@@ -6,7 +6,7 @@ from typing import Optional, Union
 import numpy as np
 
 from probnum import utils as _pn_utils
-from probnum.typing import ArrayLike, IntArgType, ShapeArgType, ShapeType
+from probnum.typing import ArrayLike, IntLike, ShapeArgType, ShapeType
 
 
 class Kernel(abc.ABC):
@@ -134,7 +134,7 @@ class Kernel(abc.ABC):
 
     def __init__(
         self,
-        input_dim: IntArgType,
+        input_dim: IntLike,
         shape: ShapeArgType = (),
     ):
         self._input_dim = int(input_dim)

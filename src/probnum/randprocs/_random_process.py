@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum import randvars
 from probnum import utils as _utils
-from probnum.typing import DTypeArgType, IntArgType, ShapeArgType
+from probnum.typing import DTypeArgType, IntLike, ShapeArgType
 
 _InputType = TypeVar("InputType")
 _OutputType = TypeVar("OutputType")
@@ -47,8 +47,8 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        output_dim: Optional[IntArgType],
+        input_dim: IntLike,
+        output_dim: Optional[IntLike],
         dtype: DTypeArgType,
     ):
         self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))

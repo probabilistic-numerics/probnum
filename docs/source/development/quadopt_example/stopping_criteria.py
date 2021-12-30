@@ -5,13 +5,13 @@ from typing import Callable, Tuple, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 
 def parameter_uncertainty(
     fun: Callable[[FloatArgType], FloatArgType],
     fun_params0: randvars.RandomVariable,
-    current_iter: IntArgType,
+    current_iter: IntLike,
     abstol: FloatArgType,
     reltol: FloatArgType,
 ) -> Tuple[bool, Union[str, None]]:
@@ -43,8 +43,8 @@ def parameter_uncertainty(
 def maximum_iterations(
     fun: Callable[[FloatArgType], FloatArgType],
     fun_params0: randvars.RandomVariable,
-    current_iter: IntArgType,
-    maxiter: IntArgType,
+    current_iter: IntLike,
+    maxiter: IntLike,
 ) -> Tuple[bool, Union[str, None]]:
     """Termination based on maximum number of iterations.
 
@@ -68,7 +68,7 @@ def maximum_iterations(
 def residual(
     fun: Callable[[FloatArgType], FloatArgType],
     fun_params0: randvars.RandomVariable,
-    current_iter: IntArgType,
+    current_iter: IntLike,
     abstol: FloatArgType,
     reltol: FloatArgType,
 ) -> Tuple[bool, Union[str, None]]:

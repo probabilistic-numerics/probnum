@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.typing import FloatArgType, IntArgType, ToleranceDiffusionType
+from probnum.typing import FloatArgType, IntLike, ToleranceDiffusionType
 
 
 class StepRule(ABC):
@@ -19,7 +19,7 @@ class StepRule(ABC):
         self,
         laststep: FloatArgType,
         scaled_error: FloatArgType,
-        localconvrate: Optional[IntArgType] = None,
+        localconvrate: Optional[IntLike] = None,
     ):
         """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
         raise NotImplementedError
@@ -58,7 +58,7 @@ class ConstantSteps(StepRule):
         self,
         laststep: FloatArgType,
         scaled_error: FloatArgType,
-        localconvrate: Optional[IntArgType] = None,
+        localconvrate: Optional[IntLike] = None,
     ):
         return self.step
 
@@ -112,7 +112,7 @@ class AdaptiveSteps(StepRule):
         self,
         laststep: FloatArgType,
         scaled_error: FloatArgType,
-        localconvrate: Optional[IntArgType] = None,
+        localconvrate: Optional[IntLike] = None,
     ):
         small, large = self.limitchange
 

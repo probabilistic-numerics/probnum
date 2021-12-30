@@ -10,7 +10,7 @@ from probnum.filtsmooth.particle import (
     _importance_distributions,
     _particle_filter_posterior,
 )
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 # Terribly long variable names, but internal only, so no worries.
 ParticleFilterMeasurementModelArgType = Union[
@@ -65,7 +65,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         self,
         prior_process: randprocs.markov.MarkovProcess,
         importance_distribution: _importance_distributions.ImportanceDistribution,
-        num_particles: IntArgType,
+        num_particles: IntLike,
         rng: np.random.Generator,
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,

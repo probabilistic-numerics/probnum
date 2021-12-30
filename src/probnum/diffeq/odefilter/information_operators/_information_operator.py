@@ -6,7 +6,7 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatArgType, IntLike
 
 __all__ = ["InformationOperator", "ODEInformationOperator"]
 
@@ -36,7 +36,7 @@ class InformationOperator(abc.ABC):
     Therefore, they are one important component in a probabilistic ODE solver.
     """
 
-    def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
+    def __init__(self, input_dim: IntLike, output_dim: IntLike):
         self.input_dim = input_dim
         self.output_dim = output_dim
 
@@ -84,7 +84,7 @@ class ODEInformationOperator(InformationOperator):
     :class:`InitialValueProblem`. Not all information operators that are used in ODE solvers do.
     """
 
-    def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
+    def __init__(self, input_dim: IntLike, output_dim: IntLike):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
 
         # Initialized once the ODE can be seen
