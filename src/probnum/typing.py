@@ -13,6 +13,8 @@ specify a variety of object types for the same argument, while ensuring a unifie
 internal representation of those same objects.
 """
 
+from __future__ import annotations
+
 import numbers
 from typing import Iterable, Tuple, Union
 
