@@ -57,6 +57,19 @@ DTypeLike = _NumPyDTypeLike
 Values of this type should always be converted into :class:`np.dtype`\\ s before further
 internal processing."""
 
+_ArrayIndexLike = Union[
+    int,
+    slice,
+    type(Ellipsis),
+    None,
+    np.newaxis,
+    np.ndarray,
+]
+ArrayIndicesLike = Union[_ArrayIndexLike, Tuple[_ArrayIndexLike, ...]]
+"""Type of the argument to the :meth:`__getitem__` method of a NumPy-like array type
+such as :class:`np.ndarray`, :class:`probnum.linops.LinearOperator` or
+:class:`probnum.randvars.RandomVariable`."""
+
 ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
 """Type of a public API argument for supplying a scalar value. Values of this type
 should always be converted into :class:`np.generic` using the function
@@ -68,16 +81,6 @@ LinearOperatorArgType = Union[
     "probnum.linops.LinearOperator",
 ]
 """Type of a public API argument for supplying a matrix or finite-dimensional linear operator."""
-
-ArrayLikeGetitemArgType = Union[
-    int,
-    slice,
-    np.ndarray,
-    np.newaxis,
-    None,
-    type(Ellipsis),
-    Tuple[Union[int, slice, np.ndarray, np.newaxis, None, type(Ellipsis)], ...],
-]
 
 ########################################################################################
 # Other Types

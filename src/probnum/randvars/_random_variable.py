@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import utils as _utils
 from probnum.typing import (
-    ArrayLikeGetitemArgType,
+    ArrayIndicesLike,
     DTypeArgType,
     FloatLike,
     ShapeLike,
@@ -537,7 +537,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return quantile
 
-    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "RandomVariable":
+    def __getitem__(self, key: ArrayIndicesLike) -> "RandomVariable":
         return RandomVariable(
             shape=np.empty(shape=self.shape)[key].shape,
             dtype=self.dtype,

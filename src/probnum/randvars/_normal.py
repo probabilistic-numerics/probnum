@@ -9,7 +9,7 @@ import scipy.stats
 from probnum import config, linops
 from probnum import utils as _utils
 from probnum.typing import (
-    ArrayLikeGetitemArgType,
+    ArrayIndicesLike,
     FloatLike,
     ShapeLike,
     ShapeType,
@@ -292,7 +292,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         else:
             return self.cov
 
-    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Normal":
+    def __getitem__(self, key: ArrayIndicesLike) -> "Normal":
         """Marginalization in multi- and matrixvariate normal random variables,
         expressed as (advanced) indexing, masking and slicing.
 

@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import config, linops
 from probnum import utils as _utils
-from probnum.typing import ArrayLikeGetitemArgType, ShapeLike, ShapeType
+from probnum.typing import ArrayIndicesLike, ShapeLike, ShapeType
 
 from . import _random_variable
 
@@ -121,7 +121,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
         """Constant value taken by the random variable."""
         return self._support
 
-    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Constant":
+    def __getitem__(self, key: ArrayIndicesLike) -> "Constant":
         """(Advanced) indexing, masking and slicing.
 
         This method supports all modes of array indexing presented in

@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum import randvars
 from probnum.typing import (
-    ArrayLikeGetitemArgType,
+    ArrayIndicesLike,
     DenseOutputLocationArgType,
     FloatLike,
     IntLike,
@@ -81,7 +81,7 @@ class TimeSeriesPosterior(abc.ABC):
         """
         return len(self.locations)
 
-    def __getitem__(self, idx: ArrayLikeGetitemArgType) -> randvars.RandomVariable:
+    def __getitem__(self, idx: ArrayIndicesLike) -> randvars.RandomVariable:
         return self.states[idx]
 
     def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:

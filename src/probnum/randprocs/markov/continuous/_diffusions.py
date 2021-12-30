@@ -9,7 +9,7 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.typing import (
-    ArrayLikeGetitemArgType,
+    ArrayIndicesLike,
     DenseOutputLocationArgType,
     FloatLike,
     ToleranceDiffusionType,
@@ -31,7 +31,7 @@ class Diffusion(abc.ABC):
 
     @abc.abstractmethod
     def __getitem__(
-        self, idx: ArrayLikeGetitemArgType
+        self, idx: ArrayIndicesLike
     ) -> Union[ToleranceDiffusionType, np.ndarray]:
         raise NotImplementedError
 
@@ -74,7 +74,7 @@ class ConstantDiffusion(Diffusion):
         return self.diffusion * np.ones_like(t)
 
     def __getitem__(
-        self, idx: ArrayLikeGetitemArgType
+        self, idx: ArrayIndicesLike
     ) -> Union[ToleranceDiffusionType, np.ndarray]:
         if self.diffusion is None:
             raise NotImplementedError(
@@ -159,7 +159,7 @@ class PiecewiseConstantDiffusion(Diffusion):
         return self[indices]
 
     def __getitem__(
-        self, idx: ArrayLikeGetitemArgType
+        self, idx: ArrayIndicesLike
     ) -> Union[ToleranceDiffusionType, np.ndarray]:
         if len(self._locations) <= 1:
             raise NotImplementedError(
