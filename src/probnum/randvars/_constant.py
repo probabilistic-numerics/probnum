@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import config, linops
 from probnum import utils as _utils
-from probnum.typing import ArrayLikeGetitemArgType, ShapeArgType, ShapeType
+from probnum.typing import ArrayLikeGetitemArgType, ShapeLike, ShapeType
 
 from . import _random_variable
 
@@ -146,7 +146,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, rng: np.random.Generator, size: ShapeArgType = ()) -> _ValueType:
+    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> _ValueType:
         size = _utils.as_shape(size)
 
         if size == ():

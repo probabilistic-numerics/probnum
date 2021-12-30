@@ -44,10 +44,12 @@ FloatLike = Union[float, numbers.Real, np.floating]
 Values of this type should always be converteg into :class:`float`\\ s before further
 internal processing."""
 
-ShapeArgType = Union[IntLike, Iterable[IntLike]]
-"""Type of a public API argument for supplying a shape. Values of this type should
-always be converted into :class:`ShapeType` using the function
-:func:`probnum.utils.as_shape` before further internal processing."""
+# Array Utilities
+ShapeLike = Union[IntLike, Iterable[IntLike]]
+"""Type of a public API argument for supplying a shape.
+
+Values of this type should always be converted into :class:`ShapeType` using the
+function :func:`probnum.utils.as_shape` before further internal processing."""
 
 ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
 """Type of a public API argument for supplying a scalar value. Values of this type

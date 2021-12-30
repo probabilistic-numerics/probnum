@@ -11,7 +11,7 @@ import numpy as np
 
 from probnum import filtsmooth, randvars
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatLike, IntLike, ShapeArgType
+from probnum.typing import FloatLike, IntLike, ShapeLike
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -61,7 +61,7 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
         self,
         rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         """Sample from the ODE solution.
 

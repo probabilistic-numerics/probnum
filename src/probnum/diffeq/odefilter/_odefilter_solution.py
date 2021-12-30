@@ -7,7 +7,7 @@ import numpy as np
 from probnum import filtsmooth, randvars, utils
 from probnum.diffeq import _odesolution
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatLike, IntLike, ShapeArgType
+from probnum.typing import FloatLike, IntLike, ShapeLike
 
 
 class ODEFilterSolution(_odesolution.ODESolution):
@@ -103,7 +103,7 @@ class ODEFilterSolution(_odesolution.ODESolution):
         self,
         rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
 
         samples = self.kalman_posterior.sample(rng=rng, t=t, size=size)

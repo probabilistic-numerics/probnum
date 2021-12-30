@@ -11,7 +11,7 @@ from probnum.typing import (
     DenseOutputLocationArgType,
     FloatLike,
     IntLike,
-    ShapeArgType,
+    ShapeLike,
 )
 
 DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
@@ -177,7 +177,7 @@ class TimeSeriesPosterior(abc.ABC):
         self,
         rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         """Draw samples from the filtering/smoothing posterior.
 

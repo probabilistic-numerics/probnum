@@ -8,7 +8,7 @@ import scipy.sparse.linalg
 
 import probnum.utils
 from probnum import config
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeLike
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
@@ -101,7 +101,7 @@ class LinearOperator:
 
     def __init__(
         self,
-        shape: ShapeArgType,
+        shape: ShapeLike,
         dtype: DTypeArgType,
         *,
         matmul: Callable[[np.ndarray], np.ndarray],
@@ -979,7 +979,7 @@ class Identity(LinearOperator):
 
     def __init__(
         self,
-        shape: ShapeArgType,
+        shape: ShapeLike,
         dtype: DTypeArgType = np.double,
     ):
         shape = probnum.utils.as_shape(shape)

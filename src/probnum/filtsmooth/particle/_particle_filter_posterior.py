@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import randvars
 from probnum.filtsmooth import _timeseriesposterior
-from probnum.typing import DenseOutputLocationArgType, FloatLike, ShapeArgType
+from probnum.typing import DenseOutputLocationArgType, FloatLike, ShapeLike
 
 
 class ParticleFilterPosterior(_timeseriesposterior.TimeSeriesPosterior):
@@ -24,7 +24,7 @@ class ParticleFilterPosterior(_timeseriesposterior.TimeSeriesPosterior):
         self,
         rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         raise NotImplementedError("Sampling is not implemented.")
 

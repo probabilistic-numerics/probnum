@@ -16,7 +16,7 @@ from probnum.typing import (
     DenseOutputLocationArgType,
     FloatLike,
     IntLike,
-    ShapeArgType,
+    ShapeLike,
 )
 
 GaussMarkovPriorTransitionArgType = Union[
@@ -70,7 +70,7 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
         self,
         rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
 
         size = utils.as_shape(size)
@@ -428,7 +428,7 @@ class FilteringPosterior(KalmanPosterior):
         self,
         rng: np.random.Generator,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         # If this error would not be thrown here, trying to sample from a FilteringPosterior
         # would call FilteringPosterior.transform_base_measure_realizations which is not implemented.

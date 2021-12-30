@@ -5,12 +5,12 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType, ShapeType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeLike, ShapeType
 
 __all__ = ["as_shape", "as_numpy_scalar"]
 
 
-def as_shape(x: ShapeArgType, ndim: Optional[numbers.Integral] = None) -> ShapeType:
+def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType:
     """Convert a shape representation into a shape defined as a tuple of ints.
 
     Parameters

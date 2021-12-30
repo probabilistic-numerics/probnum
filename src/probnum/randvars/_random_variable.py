@@ -9,7 +9,7 @@ from probnum.typing import (
     ArrayLikeGetitemArgType,
     DTypeArgType,
     FloatLike,
-    ShapeArgType,
+    ShapeLike,
     ShapeType,
 )
 
@@ -116,7 +116,7 @@ class RandomVariable(Generic[_ValueType]):
 
     def __init__(
         self,
-        shape: ShapeArgType,
+        shape: ShapeLike,
         dtype: DTypeArgType,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeType], _ValueType]] = None,
@@ -417,7 +417,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return in_support
 
-    def sample(self, rng: np.random.Generator, size: ShapeArgType = ()) -> _ValueType:
+    def sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> _ValueType:
         """Draw realizations from a random variable.
 
         Parameters
@@ -550,7 +550,7 @@ class RandomVariable(Generic[_ValueType]):
             as_value_type=self.__as_value_type,
         )
 
-    def reshape(self, newshape: ShapeArgType) -> "RandomVariable":
+    def reshape(self, newshape: ShapeLike) -> "RandomVariable":
         """Give a new shape to a random variable.
 
         Parameters
@@ -971,12 +971,10 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
     def __init__(
         self,
-        shape: ShapeArgType,
+        shape: ShapeLike,
         dtype: DTypeArgType,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[
-            Callable[[np.random.Generator, ShapeArgType], _ValueType]
-        ] = None,
+        sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         pmf: Optional[Callable[[_ValueType], np.float_]] = None,
         logpmf: Optional[Callable[[_ValueType], np.float_]] = None,
@@ -1189,12 +1187,10 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
     def __init__(
         self,
-        shape: ShapeArgType,
+        shape: ShapeLike,
         dtype: DTypeArgType,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[
-            Callable[[np.random.Generator, ShapeArgType], _ValueType]
-        ] = None,
+        sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         pdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logpdf: Optional[Callable[[_ValueType], np.float_]] = None,

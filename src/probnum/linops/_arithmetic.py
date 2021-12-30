@@ -5,7 +5,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum import config, utils
-from probnum.typing import NotImplementedType, ScalarArgType, ShapeArgType
+from probnum.typing import NotImplementedType, ScalarArgType, ShapeLike
 
 from ._arithmetic_fallbacks import (
     NegatedLinearOperator,
@@ -425,7 +425,7 @@ def _apply(
 ########################################################################################
 
 
-def _operand_to_linop(operand: Any, shape: ShapeArgType) -> Optional[LinearOperator]:
+def _operand_to_linop(operand: Any, shape: ShapeLike) -> Optional[LinearOperator]:
     if isinstance(operand, LinearOperator):
         pass
     elif np.ndim(operand) == 0:

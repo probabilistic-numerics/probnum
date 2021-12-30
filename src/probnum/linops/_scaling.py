@@ -4,7 +4,7 @@ from typing import Optional, Union
 import numpy as np
 
 import probnum.utils
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeArgType, ScalarArgType, ShapeLike
 
 from . import _linear_operator
 
@@ -38,7 +38,7 @@ class Scaling(_linear_operator.LinearOperator):
     def __init__(
         self,
         factors: Union[np.ndarray, ScalarArgType],
-        shape: Optional[ShapeArgType] = None,
+        shape: Optional[ShapeLike] = None,
         dtype: Optional[DTypeArgType] = None,
     ):
         self._factors = None

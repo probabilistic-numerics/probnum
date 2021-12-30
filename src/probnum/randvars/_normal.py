@@ -11,7 +11,7 @@ from probnum import utils as _utils
 from probnum.typing import (
     ArrayLikeGetitemArgType,
     FloatLike,
-    ShapeArgType,
+    ShapeLike,
     ShapeType,
 )
 
@@ -328,7 +328,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             cov=cov,
         )
 
-    def reshape(self, newshape: ShapeArgType) -> "Normal":
+    def reshape(self, newshape: ShapeLike) -> "Normal":
         try:
             reshaped_mean = self.dense_mean.reshape(newshape)
         except ValueError as exc:
