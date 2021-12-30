@@ -12,12 +12,7 @@ from scipy import stats
 from probnum import randprocs, randvars, utils
 from probnum.filtsmooth import _timeseriesposterior
 from probnum.filtsmooth.gaussian import approx
-from probnum.typing import (
-    DenseOutputLocationArgType,
-    FloatLike,
-    IntLike,
-    ShapeLike,
-)
+from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 GaussMarkovPriorTransitionArgType = Union[
     randprocs.markov.discrete.LinearGaussian,
@@ -69,7 +64,7 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: Optional[ArrayLike] = None,
         size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
 
@@ -108,7 +103,7 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: DenseOutputLocationArgType,
+        t: ArrayLike,
     ) -> np.ndarray:
         """Transform samples from a base measure to samples from the KalmanPosterior.
 
@@ -427,7 +422,7 @@ class FilteringPosterior(KalmanPosterior):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: Optional[ArrayLike] = None,
         size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         # If this error would not be thrown here, trying to sample from a FilteringPosterior
@@ -441,7 +436,7 @@ class FilteringPosterior(KalmanPosterior):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: Optional[ArrayLike] = None,
     ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."

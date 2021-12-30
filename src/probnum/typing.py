@@ -98,21 +98,4 @@ internal processing."""
 # Other Types
 ########################################################################################
 
-ToleranceDiffusionType = Union[FloatLike, np.ndarray]
-r"""Type of a quantity that describes tolerances, errors, and diffusions.
-
-Used for absolute (atol) and relative tolerances (rtol), local error estimates, as well as
-(the diagonal entries of diagonal matrices representing) diffusion models.
-atol, rtol, and diffusion are usually floats, but can be generalized to arrays -- essentially,
-to every :math:`\tau` that allows arithmetic operations such as
-
-.. math:: \tau + tau * \text{vec}, \text{ or } L \otimes \text{diag}(\tau)
-
-respectively. Currently, the array-support for diffusions is experimental (at best).
-"""
-
-DenseOutputLocationArgType = Union[FloatLike, np.ndarray]
-"""TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
-or an array of locations."""
-
 NotImplementedType = type(NotImplemented)

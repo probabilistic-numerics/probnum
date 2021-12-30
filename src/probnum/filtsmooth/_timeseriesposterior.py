@@ -6,13 +6,7 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import (
-    ArrayIndicesLike,
-    DenseOutputLocationArgType,
-    FloatLike,
-    IntLike,
-    ShapeLike,
-)
+from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike, IntLike, ShapeLike
 
 DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
 """Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a single location,
@@ -84,7 +78,7 @@ class TimeSeriesPosterior(abc.ABC):
     def __getitem__(self, idx: ArrayIndicesLike) -> randvars.RandomVariable:
         return self.states[idx]
 
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
+    def __call__(self, t: ArrayLike) -> DenseOutputValueType:
         """Evaluate the time-continuous posterior at location `t`
 
         Algorithm:
@@ -176,7 +170,7 @@ class TimeSeriesPosterior(abc.ABC):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: Optional[ArrayLike] = None,
         size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         """Draw samples from the filtering/smoothing posterior.
@@ -213,7 +207,7 @@ class TimeSeriesPosterior(abc.ABC):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType],
+        t: Optional[ArrayLike],
     ) -> np.ndarray:
         """Transform a set of realizations from a base measure into realizations from
         the posterior.

@@ -10,8 +10,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import filtsmooth, randvars
-from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatLike, IntLike, ShapeLike
+from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -60,7 +59,7 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: Optional[ArrayLike] = None,
         size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         """Sample from the ODE solution.
@@ -83,7 +82,7 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: DenseOutputLocationArgType,
+        t: ArrayLike,
     ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."

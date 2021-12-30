@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.typing import FloatLike, IntLike, ToleranceDiffusionType
+from probnum.typing import ArrayLike, FloatLike, IntLike
 
 
 class StepRule(ABC):
@@ -35,9 +35,7 @@ class StepRule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def errorest_to_norm(
-        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
-    ):
+    def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
         """Computes the norm of error per tolerance (usually referred to as 'E').
 
         The norm is usually the current error estimate normalised with
@@ -66,10 +64,8 @@ class ConstantSteps(StepRule):
         """Always True."""
         return True
 
-    def errorest_to_norm(
-        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
-    ):
-        pass
+    def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
+        passArrayLike
 
 
 # Once we have other controls, e.g. PI control, we can rename this into ProportionalControl.
@@ -93,8 +89,8 @@ class AdaptiveSteps(StepRule):
     def __init__(
         self,
         firststep: FloatLike,
-        atol: ToleranceDiffusionType,
-        rtol: ToleranceDiffusionType,
+        atol: ArrayLike,
+        rtol: ArrayLike,
         limitchange: Optional[Tuple[FloatLike]] = (0.2, 10.0),
         safetyscale: Optional[FloatLike] = 0.95,
         minstep: Optional[FloatLike] = 1e-15,
@@ -136,9 +132,7 @@ class AdaptiveSteps(StepRule):
     def is_accepted(self, scaled_error: FloatLike):
         return scaled_error < 1
 
-    def errorest_to_norm(
-        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
-    ):
+    def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
         tolerance = self.atol + self.rtol * reference_state
         ratio = errorest / tolerance
         dim = len(ratio) if ratio.ndim > 0 else 1
