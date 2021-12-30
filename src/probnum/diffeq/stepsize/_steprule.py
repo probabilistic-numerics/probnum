@@ -65,7 +65,7 @@ class ConstantSteps(StepRule):
         return True
 
     def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
-        passArrayLike
+        pass
 
 
 # Once we have other controls, e.g. PI control, we can rename this into ProportionalControl.
