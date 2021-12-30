@@ -18,7 +18,7 @@ from typing import Iterable, Tuple, Union
 
 import numpy as np
 import scipy.sparse
-from numpy.typing import ArrayLike  # pylint: disable=unused-import
+from numpy.typing import ArrayLike as _NumPyArrayLike
 from numpy.typing import DTypeLike as _NumPyDTypeLike
 
 ########################################################################################
@@ -76,6 +76,12 @@ ScalarLike = Union[int, float, complex, numbers.Number, np.number]
 
 Values of this type should always be converted into :class:`np.number`\\ s using the
 function :func:`probnum.utils.as_scalar` before further internal processing."""
+
+ArrayLike = _NumPyArrayLike
+"""Type of a public API argument for supplying an array.
+
+Values of this type should always be converted into :class:`np.ndarray`\\ s using
+the function :func:`np.asarray` before further internal processing."""
 
 LinearOperatorArgType = Union[
     np.ndarray,
