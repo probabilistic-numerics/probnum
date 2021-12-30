@@ -7,7 +7,7 @@ import numpy as np
 from probnum import utils as _utils
 from probnum.typing import (
     ArrayIndicesLike,
-    DTypeArgType,
+    DTypeLike,
     FloatLike,
     ShapeLike,
     ShapeType,
@@ -117,7 +117,7 @@ class RandomVariable(Generic[_ValueType]):
     def __init__(
         self,
         shape: ShapeLike,
-        dtype: DTypeArgType,
+        dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
@@ -758,7 +758,7 @@ class RandomVariable(Generic[_ValueType]):
         return pow_(other, self)
 
     @staticmethod
-    def infer_median_dtype(value_dtype: DTypeArgType) -> np.dtype:
+    def infer_median_dtype(value_dtype: DTypeLike) -> np.dtype:
         """Infer the dtype of the median.
 
         Set the dtype to the dtype arising from
@@ -777,7 +777,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable.infer_moment_dtype(value_dtype)
 
     @staticmethod
-    def infer_moment_dtype(value_dtype: DTypeArgType) -> np.dtype:
+    def infer_moment_dtype(value_dtype: DTypeLike) -> np.dtype:
         """Infer the dtype of any moment.
 
         Infers the dtype of any (function of a) moment of the random variable, e.g. its
@@ -972,7 +972,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     def __init__(
         self,
         shape: ShapeLike,
-        dtype: DTypeArgType,
+        dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
@@ -1188,7 +1188,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     def __init__(
         self,
         shape: ShapeLike,
-        dtype: DTypeArgType,
+        dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
