@@ -5,13 +5,7 @@ from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.typing import (
-    ArrayIndicesLike,
-    DTypeLike,
-    FloatLike,
-    ShapeLike,
-    ShapeType,
-)
+from probnum.typing import ArrayIndicesLike, DTypeLike, FloatLike, ShapeLike, ShapeType
 
 try:
     # functools.cached_property is only available in Python >=3.8
