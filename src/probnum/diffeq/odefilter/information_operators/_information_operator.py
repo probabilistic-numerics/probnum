@@ -6,7 +6,7 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.typing import FloatArgType, IntLike
+from probnum.typing import FloatLike, IntLike
 
 __all__ = ["InformationOperator", "ODEInformationOperator"]
 
@@ -41,17 +41,17 @@ class InformationOperator(abc.ABC):
         self.output_dim = output_dim
 
     @abc.abstractmethod
-    def __call__(self, t: FloatArgType, x: np.ndarray) -> np.ndarray:
+    def __call__(self, t: FloatLike, x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
-    def jacobian(self, t: FloatArgType, x: np.ndarray) -> np.ndarray:
+    def jacobian(self, t: FloatLike, x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
     def as_transition(
         self,
-        measurement_cov_fun: Optional[Callable[[FloatArgType], np.ndarray]] = None,
+        measurement_cov_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
         measurement_cov_cholesky_fun: Optional[
-            Callable[[FloatArgType], np.ndarray]
+            Callable[[FloatLike], np.ndarray]
         ] = None,
     ):
 
@@ -103,9 +103,9 @@ class ODEInformationOperator(InformationOperator):
 
     def as_transition(
         self,
-        measurement_cov_fun: Optional[Callable[[FloatArgType], np.ndarray]] = None,
+        measurement_cov_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
         measurement_cov_cholesky_fun: Optional[
-            Callable[[FloatArgType], np.ndarray]
+            Callable[[FloatLike], np.ndarray]
         ] = None,
     ):
         if not self.ode_has_been_incorporated:

@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import randvars
 from probnum.filtsmooth import _timeseriesposterior
-from probnum.typing import DenseOutputLocationArgType, FloatArgType, ShapeArgType
+from probnum.typing import DenseOutputLocationArgType, FloatLike, ShapeArgType
 
 
 class ParticleFilterPosterior(_timeseriesposterior.TimeSeriesPosterior):
@@ -17,7 +17,7 @@ class ParticleFilterPosterior(_timeseriesposterior.TimeSeriesPosterior):
 
     # The methods below are not implemented (yet?).
 
-    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+    def interpolate(self, t: FloatLike) -> randvars.RandomVariable:
         raise NotImplementedError
 
     def sample(

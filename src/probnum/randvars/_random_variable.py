@@ -8,7 +8,7 @@ from probnum import utils as _utils
 from probnum.typing import (
     ArrayLikeGetitemArgType,
     DTypeArgType,
-    FloatArgType,
+    FloatLike,
     ShapeArgType,
     ShapeType,
 )
@@ -123,7 +123,7 @@ class RandomVariable(Generic[_ValueType]):
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
+        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
         mean: Optional[Callable[[], _ValueType]] = None,
@@ -490,7 +490,7 @@ class RandomVariable(Generic[_ValueType]):
                 f"with type `{type(self).__name__}` is implemented."
             )
 
-    def quantile(self, p: FloatArgType) -> _ValueType:
+    def quantile(self, p: FloatLike) -> _ValueType:
         """Quantile function.
 
         The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
@@ -982,7 +982,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         logpmf: Optional[Callable[[_ValueType], np.float_]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
+        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
         mean: Optional[Callable[[], _ValueType]] = None,
@@ -1200,7 +1200,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         logpdf: Optional[Callable[[_ValueType], np.float_]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
+        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
         mean: Optional[Callable[[], _ValueType]] = None,

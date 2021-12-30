@@ -10,7 +10,7 @@ from probnum import config, linops
 from probnum import utils as _utils
 from probnum.typing import (
     ArrayLikeGetitemArgType,
-    FloatArgType,
+    FloatLike,
     ShapeArgType,
     ShapeType,
 )
@@ -254,7 +254,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def precompute_cov_cholesky(
         self,
-        damping_factor: Optional[FloatArgType] = None,
+        damping_factor: Optional[FloatLike] = None,
     ):
         """(P)recompute Cholesky factors (careful: in-place operation!)."""
         if damping_factor is None:
@@ -414,7 +414,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Univariate Gaussians
     def _univariate_cov_cholesky(
         self,
-        damping_factor: FloatArgType,
+        damping_factor: FloatLike,
     ) -> np.floating:
         return np.sqrt(self.cov + damping_factor)
 
@@ -452,7 +452,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _univariate_logcdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.norm.logcdf(x, loc=self.mean, scale=self.std)
 
-    def _univariate_quantile(self, p: FloatArgType) -> np.floating:
+    def _univariate_quantile(self, p: FloatLike) -> np.floating:
         return scipy.stats.norm.ppf(p, loc=self.mean, scale=self.std)
 
     def _univariate_entropy(self: _ValueType) -> np.float_:
@@ -464,7 +464,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Multi- and matrixvariate Gaussians
     def dense_cov_cholesky(
         self,
-        damping_factor: Optional[FloatArgType] = None,
+        damping_factor: Optional[FloatLike] = None,
     ) -> np.ndarray:
         """Compute the Cholesky factorization of the covariance from its dense
         representation."""
@@ -478,7 +478,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     def _dense_cov_cholesky_as_linop(
-        self, damping_factor: FloatArgType
+        self, damping_factor: FloatLike
     ) -> linops.LinearOperator:
         return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
 
@@ -550,7 +550,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Matrixvariate Gaussian with Kronecker covariance
     def _kronecker_cov_cholesky(
         self,
-        damping_factor: FloatArgType,
+        damping_factor: FloatLike,
     ) -> linops.Kronecker:
         assert isinstance(self.cov, linops.Kronecker)
 
@@ -572,7 +572,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # factors
     def _symmetric_kronecker_identical_factors_cov_cholesky(
         self,
-        damping_factor: FloatArgType,
+        damping_factor: FloatLike,
     ) -> linops.SymmetricKronecker:
         assert (
             isinstance(self.cov, linops.SymmetricKronecker)

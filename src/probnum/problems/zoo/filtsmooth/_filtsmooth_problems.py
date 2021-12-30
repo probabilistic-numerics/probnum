@@ -4,7 +4,7 @@ import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
-from probnum.typing import FloatArgType, IntLike
+from probnum.typing import FloatLike, IntLike
 
 __all__ = [
     "benes_daum",
@@ -17,11 +17,11 @@ __all__ = [
 
 def car_tracking(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.5,
-    process_diffusion: FloatArgType = 1.0,
+    measurement_variance: FloatLike = 0.5,
+    process_diffusion: FloatLike = 1.0,
     num_prior_derivatives: IntLike = 1,
-    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
-    step: FloatArgType = 0.2,
+    timespan: Tuple[FloatLike, FloatLike] = (0.0, 20.0),
+    step: FloatLike = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
@@ -149,9 +149,9 @@ def car_tracking(
 
 def ornstein_uhlenbeck(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.1,
-    driftspeed: FloatArgType = 0.21,
-    process_diffusion: FloatArgType = 0.5,
+    measurement_variance: FloatLike = 0.1,
+    driftspeed: FloatLike = 0.21,
+    process_diffusion: FloatLike = 0.5,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
@@ -252,9 +252,9 @@ def ornstein_uhlenbeck(
 
 def pendulum(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.1024,
-    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
-    step: FloatArgType = 0.0075,
+    measurement_variance: FloatLike = 0.1024,
+    timespan: Tuple[FloatLike, FloatLike] = (0.0, 4.0),
+    step: FloatLike = 0.0075,
     initrv: Optional[randvars.RandomVariable] = None,
     initarg: Optional[float] = None,
 ):
@@ -400,8 +400,8 @@ def pendulum(
 
 def benes_daum(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.1,
-    process_diffusion: FloatArgType = 1.0,
+    measurement_variance: FloatLike = 0.1,
+    process_diffusion: FloatLike = 1.0,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
 ):
@@ -506,12 +506,12 @@ def benes_daum(
 
 
 def logistic_ode(
-    y0: Optional[Union[np.ndarray, FloatArgType]] = None,
-    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 2.0),
-    step: FloatArgType = 0.1,
-    params: Tuple[FloatArgType, FloatArgType] = (6.0, 1.0),
+    y0: Optional[Union[np.ndarray, FloatLike]] = None,
+    timespan: Tuple[FloatLike, FloatLike] = (0.0, 2.0),
+    step: FloatLike = 0.1,
+    params: Tuple[FloatLike, FloatLike] = (6.0, 1.0),
     initrv: Optional[randvars.RandomVariable] = None,
-    evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
+    evlvar: Optional[Union[np.ndarray, FloatLike]] = None,
     ek0_or_ek1: IntLike = 1,
     exclude_initial_condition: bool = True,
     order: IntLike = 3,

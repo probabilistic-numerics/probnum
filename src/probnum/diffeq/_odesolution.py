@@ -11,7 +11,7 @@ import numpy as np
 
 from probnum import filtsmooth, randvars
 from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatArgType, IntLike, ShapeArgType
+from probnum.typing import FloatLike, IntLike, ShapeArgType
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -43,7 +43,7 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
 
     def interpolate(
         self,
-        t: FloatArgType,
+        t: FloatLike,
         previous_index: Optional[IntLike] = None,
         next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:

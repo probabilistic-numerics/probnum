@@ -5,15 +5,15 @@ import numpy as np
 from scipy.linalg import sqrtm
 from scipy.special import roots_legendre
 
-from probnum.typing import FloatArgType, IntLike
+from probnum.typing import FloatLike, IntLike
 
 
 # Auxiliary functions for quadrature tests
 def gauss_hermite_tensor(
     n_points: IntLike,
     input_dim: IntLike,
-    mean: Union[np.ndarray, FloatArgType],
-    cov: Union[np.ndarray, FloatArgType],
+    mean: Union[np.ndarray, FloatLike],
+    cov: Union[np.ndarray, FloatLike],
 ):
     """Returns the points and weights of a tensor-product Gauss-Hermite rule for
     integration w.r.t a Gaussian measure."""
@@ -33,7 +33,7 @@ def gauss_hermite_tensor(
 def gauss_legendre_tensor(
     n_points: IntLike,
     input_dim: IntLike,
-    domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+    domain: Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]],
     normalized: Optional[bool] = False,
 ):
     """Returns the points and weights of a tensor-product Gauss-Legendre rule for

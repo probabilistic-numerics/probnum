@@ -38,7 +38,11 @@ IntLike = Union[int, numbers.Integral, np.integer]
 Values of this type should always be converted into :class:`int`\\ s before further
 internal processing."""
 
-FloatArgType = Union[float, numbers.Real, np.floating]
+FloatLike = Union[float, numbers.Real, np.floating]
+"""Type of a public API argument for supplying a float.
+
+Values of this type should always be converteg into :class:`float`\\ s before further
+internal processing."""
 
 ShapeArgType = Union[IntLike, Iterable[IntLike]]
 """Type of a public API argument for supplying a shape. Values of this type should
@@ -71,7 +75,7 @@ ArrayLikeGetitemArgType = Union[
 # Other Types
 ########################################################################################
 
-ToleranceDiffusionType = Union[FloatArgType, np.ndarray]
+ToleranceDiffusionType = Union[FloatLike, np.ndarray]
 r"""Type of a quantity that describes tolerances, errors, and diffusions.
 
 Used for absolute (atol) and relative tolerances (rtol), local error estimates, as well as
@@ -84,7 +88,7 @@ to every :math:`\tau` that allows arithmetic operations such as
 respectively. Currently, the array-support for diffusions is experimental (at best).
 """
 
-DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
+DenseOutputLocationArgType = Union[FloatLike, np.ndarray]
 """TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
 or an array of locations."""
 

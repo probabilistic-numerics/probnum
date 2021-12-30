@@ -11,7 +11,7 @@ from probnum import randvars
 from probnum.typing import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
-    FloatArgType,
+    FloatLike,
     ToleranceDiffusionType,
 )
 
@@ -40,7 +40,7 @@ class Diffusion(abc.ABC):
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
-        t: FloatArgType,
+        t: FloatLike,
     ) -> ToleranceDiffusionType:
         r"""Estimate the (local) diffusion and update current (global) estimation in-
         place.
@@ -87,7 +87,7 @@ class ConstantDiffusion(Diffusion):
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
-        t: FloatArgType,
+        t: FloatLike,
     ) -> ToleranceDiffusionType:
         new_increment = _compute_local_quasi_mle(meas_rv)
         return new_increment
@@ -171,7 +171,7 @@ class PiecewiseConstantDiffusion(Diffusion):
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
-        t: FloatArgType,
+        t: FloatLike,
     ) -> ToleranceDiffusionType:
         if not t >= self.tmax:
             raise ValueError(

@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import problems, randprocs
 from probnum.diffeq.odefilter.information_operators import _information_operator
-from probnum.typing import FloatArgType, IntLike
+from probnum.typing import FloatLike, IntLike
 
 __all__ = ["ODEResidual"]
 
@@ -56,20 +56,20 @@ class ODEResidual(_information_operator.ODEInformationOperator):
         }
         return choose_implementation[ode_order]
 
-    def __call__(self, t: FloatArgType, x: np.ndarray) -> np.ndarray:
+    def __call__(self, t: FloatLike, x: np.ndarray) -> np.ndarray:
         return self._residual(t, x)
 
-    def jacobian(self, t: FloatArgType, x: np.ndarray) -> np.ndarray:
+    def jacobian(self, t: FloatLike, x: np.ndarray) -> np.ndarray:
         return self._residual_jacobian(t, x)
 
     # Implementation of different residuals
 
-    def _residual_first_order_ode(self, t: FloatArgType, x: np.ndarray) -> np.ndarray:
+    def _residual_first_order_ode(self, t: FloatLike, x: np.ndarray) -> np.ndarray:
         h0, h1 = self.projection_matrices
         return h1 @ x - self.ode.f(t, h0 @ x)
 
     def _residual_first_order_ode_jacobian(
-        self, t: FloatArgType, x: np.ndarray
+        self, t: FloatLike, x: np.ndarray
     ) -> np.ndarray:
         h0, h1 = self.projection_matrices
         return h1 - self.ode.df(t, h0 @ x) @ h0

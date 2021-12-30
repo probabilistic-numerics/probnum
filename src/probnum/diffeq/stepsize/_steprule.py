@@ -5,27 +5,27 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.typing import FloatArgType, IntLike, ToleranceDiffusionType
+from probnum.typing import FloatLike, IntLike, ToleranceDiffusionType
 
 
 class StepRule(ABC):
     """Step-size selection rules for ODE solvers."""
 
-    def __init__(self, firststep: FloatArgType):
+    def __init__(self, firststep: FloatLike):
         self.firststep = firststep
 
     @abstractmethod
     def suggest(
         self,
-        laststep: FloatArgType,
-        scaled_error: FloatArgType,
+        laststep: FloatLike,
+        scaled_error: FloatLike,
         localconvrate: Optional[IntLike] = None,
     ):
         """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
         raise NotImplementedError
 
     @abstractmethod
-    def is_accepted(self, scaled_error: FloatArgType):
+    def is_accepted(self, scaled_error: FloatLike):
         """Check if the proposed step should be accepted or not.
 
         Variable "proposedstep" not used yet, but may be important in
@@ -50,19 +50,19 @@ class StepRule(ABC):
 class ConstantSteps(StepRule):
     """Constant step-sizes."""
 
-    def __init__(self, stepsize: FloatArgType):
+    def __init__(self, stepsize: FloatLike):
         self.step = stepsize
         super().__init__(firststep=stepsize)
 
     def suggest(
         self,
-        laststep: FloatArgType,
-        scaled_error: FloatArgType,
+        laststep: FloatLike,
+        scaled_error: FloatLike,
         localconvrate: Optional[IntLike] = None,
     ):
         return self.step
 
-    def is_accepted(self, scaled_error: FloatArgType):
+    def is_accepted(self, scaled_error: FloatLike):
         """Always True."""
         return True
 
@@ -92,13 +92,13 @@ class AdaptiveSteps(StepRule):
 
     def __init__(
         self,
-        firststep: FloatArgType,
+        firststep: FloatLike,
         atol: ToleranceDiffusionType,
         rtol: ToleranceDiffusionType,
-        limitchange: Optional[Tuple[FloatArgType]] = (0.2, 10.0),
-        safetyscale: Optional[FloatArgType] = 0.95,
-        minstep: Optional[FloatArgType] = 1e-15,
-        maxstep: Optional[FloatArgType] = 1e15,
+        limitchange: Optional[Tuple[FloatLike]] = (0.2, 10.0),
+        safetyscale: Optional[FloatLike] = 0.95,
+        minstep: Optional[FloatLike] = 1e-15,
+        maxstep: Optional[FloatLike] = 1e15,
     ):
         self.safetyscale = safetyscale
         self.limitchange = limitchange
@@ -110,8 +110,8 @@ class AdaptiveSteps(StepRule):
 
     def suggest(
         self,
-        laststep: FloatArgType,
-        scaled_error: FloatArgType,
+        laststep: FloatLike,
+        scaled_error: FloatLike,
         localconvrate: Optional[IntLike] = None,
     ):
         small, large = self.limitchange
@@ -133,7 +133,7 @@ class AdaptiveSteps(StepRule):
             raise RuntimeError("Step-size larger than maximum step-size")
         return step
 
-    def is_accepted(self, scaled_error: FloatArgType):
+    def is_accepted(self, scaled_error: FloatLike):
         return scaled_error < 1
 
     def errorest_to_norm(

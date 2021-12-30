@@ -5,15 +5,15 @@ from typing import Callable, Tuple, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatArgType, IntLike
+from probnum.typing import FloatLike, IntLike
 
 
 def parameter_uncertainty(
-    fun: Callable[[FloatArgType], FloatArgType],
+    fun: Callable[[FloatLike], FloatLike],
     fun_params0: randvars.RandomVariable,
     current_iter: IntLike,
-    abstol: FloatArgType,
-    reltol: FloatArgType,
+    abstol: FloatLike,
+    reltol: FloatLike,
 ) -> Tuple[bool, Union[str, None]]:
     """Termination based on numerical uncertainty about the parameters.
 
@@ -41,7 +41,7 @@ def parameter_uncertainty(
 
 
 def maximum_iterations(
-    fun: Callable[[FloatArgType], FloatArgType],
+    fun: Callable[[FloatLike], FloatLike],
     fun_params0: randvars.RandomVariable,
     current_iter: IntLike,
     maxiter: IntLike,
@@ -66,11 +66,11 @@ def maximum_iterations(
 
 
 def residual(
-    fun: Callable[[FloatArgType], FloatArgType],
+    fun: Callable[[FloatLike], FloatLike],
     fun_params0: randvars.RandomVariable,
     current_iter: IntLike,
-    abstol: FloatArgType,
-    reltol: FloatArgType,
+    abstol: FloatLike,
+    reltol: FloatLike,
 ) -> Tuple[bool, Union[str, None]]:
     """Termination based on the residual.
 

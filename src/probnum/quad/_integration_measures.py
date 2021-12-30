@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats
 
 from probnum.randvars import Normal
-from probnum.typing import FloatArgType, IntLike
+from probnum.typing import FloatLike, IntLike
 
 
 class IntegrationMeasure(abc.ABC):
@@ -27,13 +27,13 @@ class IntegrationMeasure(abc.ABC):
 
     def __init__(
         self,
-        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
+        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
         input_dim: IntLike,
     ) -> None:
 
         self._set_dimension_domain(input_dim, domain)
 
-    def __call__(self, points: Union[FloatArgType, np.ndarray]) -> np.ndarray:
+    def __call__(self, points: Union[FloatLike, np.ndarray]) -> np.ndarray:
         """Evaluate the density function of the integration measure.
 
         Parameters
@@ -77,7 +77,7 @@ class IntegrationMeasure(abc.ABC):
     def _set_dimension_domain(
         self,
         input_dim: IntLike,
-        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
+        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
     ) -> None:
         """Sets the integration domain and input_dimension.
 
@@ -150,7 +150,7 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def __init__(
         self,
-        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
+        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
         input_dim: Optional[IntLike] = None,
         normalized: Optional[bool] = False,
     ) -> None:

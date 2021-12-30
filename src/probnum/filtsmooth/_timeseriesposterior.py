@@ -9,7 +9,7 @@ from probnum import randvars
 from probnum.typing import (
     ArrayLikeGetitemArgType,
     DenseOutputLocationArgType,
-    FloatArgType,
+    FloatLike,
     IntLike,
     ShapeArgType,
 )
@@ -33,14 +33,14 @@ class TimeSeriesPosterior(abc.ABC):
 
     def __init__(
         self,
-        locations: Optional[Iterable[FloatArgType]] = None,
+        locations: Optional[Iterable[FloatLike]] = None,
         states: Optional[Iterable[randvars.RandomVariable]] = None,
     ) -> None:
         self._locations = list(locations) if locations is not None else []
         self._states = list(states) if states is not None else []
         self._frozen = False
 
-    def _check_location(self, location: FloatArgType) -> FloatArgType:
+    def _check_location(self, location: FloatLike) -> FloatLike:
         if len(self._locations) > 0 and location <= self._locations[-1]:
             _err_msg = "Locations have to be strictly ascending. "
             _err_msg += f"Received {location} <= {self._locations[-1]}."
@@ -49,7 +49,7 @@ class TimeSeriesPosterior(abc.ABC):
 
     def append(
         self,
-        location: FloatArgType,
+        location: FloatLike,
         state: randvars.RandomVariable,
     ) -> None:
 
@@ -159,7 +159,7 @@ class TimeSeriesPosterior(abc.ABC):
     @abc.abstractmethod
     def interpolate(
         self,
-        t: FloatArgType,
+        t: FloatLike,
         previous_index: Optional[IntLike] = None,
         next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
