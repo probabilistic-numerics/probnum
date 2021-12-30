@@ -8,10 +8,10 @@ import scipy.sparse.linalg
 
 import probnum.utils
 from probnum import config
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeLike
+from probnum.typing import DTypeArgType, ScalarLike, ShapeLike
 
 BinaryOperandType = Union[
-    "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
+    "LinearOperator", ScalarLike, np.ndarray, scipy.sparse.spmatrix
 ]
 
 # pylint: disable="too-many-lines"

@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.typing import IntLike, ScalarArgType
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import Kernel
 
@@ -45,7 +45,7 @@ class Polynomial(Kernel):
     def __init__(
         self,
         input_dim: IntLike,
-        constant: ScalarArgType = 0.0,
+        constant: ScalarLike = 0.0,
         exponent: IntLike = 1.0,
     ):
         self.constant = _utils.as_numpy_scalar(constant)

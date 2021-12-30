@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeLike, ShapeType
+from probnum.typing import DTypeArgType, ScalarLike, ShapeLike, ShapeType
 
 __all__ = ["as_shape", "as_numpy_scalar"]
 
@@ -42,7 +42,7 @@ def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType
     return shape
 
 
-def as_numpy_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:
+def as_numpy_scalar(x: ScalarLike, dtype: DTypeArgType = None) -> np.generic:
     """Convert a scalar into a NumPy scalar.
 
     Parameters

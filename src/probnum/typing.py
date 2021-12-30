@@ -70,10 +70,12 @@ ArrayIndicesLike = Union[_ArrayIndexLike, Tuple[_ArrayIndexLike, ...]]
 such as :class:`np.ndarray`, :class:`probnum.linops.LinearOperator` or
 :class:`probnum.randvars.RandomVariable`."""
 
-ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
-"""Type of a public API argument for supplying a scalar value. Values of this type
-should always be converted into :class:`np.generic` using the function
-:func:`probnum.utils.as_scalar` before further internal processing."""
+# Scalars, Arrays and Matrices
+ScalarLike = Union[int, float, complex, numbers.Number, np.number]
+"""Type of a public API argument for supplying a scalar value.
+
+Values of this type should always be converted into :class:`np.number`\\ s using the
+function :func:`probnum.utils.as_scalar` before further internal processing."""
 
 LinearOperatorArgType = Union[
     np.ndarray,

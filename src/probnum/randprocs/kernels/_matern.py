@@ -7,7 +7,7 @@ import scipy.spatial.distance
 import scipy.special
 
 import probnum.utils as _utils
-from probnum.typing import IntLike, ScalarArgType
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -64,8 +64,8 @@ class Matern(Kernel, IsotropicMixin):
     def __init__(
         self,
         input_dim: IntLike,
-        lengthscale: ScalarArgType = 1.0,
-        nu: ScalarArgType = 1.5,
+        lengthscale: ScalarLike = 1.0,
+        nu: ScalarLike = 1.5,
     ):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
         if not self.lengthscale > 0:
