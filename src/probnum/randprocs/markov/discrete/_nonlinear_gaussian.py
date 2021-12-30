@@ -8,7 +8,7 @@ import numpy as np
 from probnum import randvars
 from probnum.randprocs.markov import _transition
 from probnum.randprocs.markov.discrete import _condition_state
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 
 class NonlinearGaussian(_transition.Transition):
@@ -43,16 +43,14 @@ class NonlinearGaussian(_transition.Transition):
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
-        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
+        input_dim: IntLike,
+        output_dim: IntLike,
+        state_trans_fun: Callable[[FloatLike, np.ndarray], np.ndarray],
+        proc_noise_cov_mat_fun: Callable[[FloatLike], np.ndarray],
         jacob_state_trans_fun: Optional[
-            Callable[[FloatArgType, np.ndarray], np.ndarray]
+            Callable[[FloatLike, np.ndarray], np.ndarray]
         ] = None,
-        proc_noise_cov_cholesky_fun: Optional[
-            Callable[[FloatArgType], np.ndarray]
-        ] = None,
+        proc_noise_cov_cholesky_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
     ):
         self.state_trans_fun = state_trans_fun
         self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
@@ -152,10 +150,10 @@ class NonlinearGaussian(_transition.Transition):
     @classmethod
     def from_callable(
         cls,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
-        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        jacob_state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        input_dim: IntLike,
+        output_dim: IntLike,
+        state_trans_fun: Callable[[FloatLike, np.ndarray], np.ndarray],
+        jacob_state_trans_fun: Callable[[FloatLike, np.ndarray], np.ndarray],
     ):
         """Turn a callable into a deterministic transition."""
 

@@ -5,11 +5,11 @@ from typing import Callable
 import numpy as np
 
 from probnum import utils
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 def function_evaluation(
-    fun: Callable[[FloatArgType], FloatArgType], action: FloatArgType
+    fun: Callable[[FloatLike], FloatLike], action: FloatLike
 ) -> np.float_:
     """Observe a (noisy) function evaluation of the quadratic objective.
 

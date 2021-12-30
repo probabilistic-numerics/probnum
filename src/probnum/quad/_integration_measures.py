@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats
 
 from probnum.randvars import Normal
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 
 class IntegrationMeasure(abc.ABC):
@@ -27,13 +27,13 @@ class IntegrationMeasure(abc.ABC):
 
     def __init__(
         self,
-        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
-        input_dim: IntArgType,
+        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
+        input_dim: IntLike,
     ) -> None:
 
         self._set_dimension_domain(input_dim, domain)
 
-    def __call__(self, points: Union[FloatArgType, np.ndarray]) -> np.ndarray:
+    def __call__(self, points: Union[FloatLike, np.ndarray]) -> np.ndarray:
         """Evaluate the density function of the integration measure.
 
         Parameters
@@ -51,7 +51,7 @@ class IntegrationMeasure(abc.ABC):
 
     def sample(
         self,
-        n_sample: IntArgType,
+        n_sample: IntLike,
         rng: Optional[np.random.Generator] = np.random.default_rng(),
     ) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
@@ -76,8 +76,8 @@ class IntegrationMeasure(abc.ABC):
 
     def _set_dimension_domain(
         self,
-        input_dim: IntArgType,
-        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
+        input_dim: IntLike,
+        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
     ) -> None:
         """Sets the integration domain and input_dimension.
 
@@ -150,8 +150,8 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def __init__(
         self,
-        domain: Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]],
-        input_dim: Optional[IntArgType] = None,
+        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
+        input_dim: Optional[IntLike] = None,
         normalized: Optional[bool] = False,
     ) -> None:
         super().__init__(input_dim=input_dim, domain=domain)
@@ -181,7 +181,7 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def sample(
         self,
-        n_sample: IntArgType,
+        n_sample: IntLike,
         rng: Optional[np.random.Generator] = np.random.default_rng(),
     ) -> np.ndarray:
         return self.random_variable.rvs(
@@ -211,7 +211,7 @@ class GaussianMeasure(IntegrationMeasure):
         self,
         mean: Union[float, np.floating, np.ndarray],
         cov: Union[float, np.floating, np.ndarray],
-        input_dim: Optional[IntArgType] = None,
+        input_dim: Optional[IntLike] = None,
     ) -> None:
 
         # Extend scalar mean and covariance to higher dimensions if input_dim has been
