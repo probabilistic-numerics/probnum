@@ -31,7 +31,7 @@ from numpy.typing import DTypeLike as _NumPyDTypeLike
 ShapeType = Tuple[int, ...]
 
 # Scalars, Arrays and Matrices
-ScalarType = np.number
+ScalarType = np.ndarray
 MatrixType = Union[np.ndarray, "probnum.linops.LinearOperator"]
 
 ########################################################################################
