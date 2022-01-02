@@ -958,7 +958,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     >>> x.sample(rng=rng, size=3)
     array([1, 0, 1])
     >>> x.pmf(2)
-    0.0
+    array(0.)
     >>> x.mean
     0.0
     """
@@ -1174,7 +1174,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     >>> u.sample(rng=rng, size=3)
     array([0.77395605, 0.43887844, 0.85859792])
     >>> u.pdf(0.5)
-    1.0
+    array(1.)
     >>> u.var
     0.08333333333333333
     """

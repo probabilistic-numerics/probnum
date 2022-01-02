@@ -42,8 +42,8 @@ def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType
     return shape
 
 
-def as_numpy_scalar(x: ScalarLike, dtype: DTypeLike = None) -> np.generic:
-    """Convert a scalar into a NumPy scalar.
+def as_numpy_scalar(x: ScalarLike, dtype: DTypeLike = None) -> np.ndarray:
+    """Convert a scalar into a scalar NumPy array.
 
     Parameters
     ----------
@@ -56,4 +56,4 @@ def as_numpy_scalar(x: ScalarLike, dtype: DTypeLike = None) -> np.generic:
     if np.ndim(x) != 0:
         raise ValueError("The given input is not a scalar.")
 
-    return np.asarray(x, dtype=dtype)[()]
+    return np.asarray(x, dtype=dtype)
