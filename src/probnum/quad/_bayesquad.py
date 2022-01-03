@@ -14,7 +14,7 @@ import numpy as np
 
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 from .solvers import BayesianQuadrature
@@ -26,14 +26,14 @@ def bayesquad(
     input_dim: int,
     kernel: Optional[Kernel] = None,
     domain: Optional[
-        Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]]
+        Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
-    max_evals: Optional[IntArgType] = None,
-    var_tol: Optional[FloatArgType] = None,
-    rel_tol: Optional[FloatArgType] = None,
-    batch_size: Optional[IntArgType] = 1,
+    max_evals: Optional[IntLike] = None,
+    var_tol: Optional[FloatLike] = None,
+    rel_tol: Optional[FloatLike] = None,
+    batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
 ) -> Tuple[Normal, Dict]:
     r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
@@ -162,7 +162,7 @@ def bayesquad_from_data(
     fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
     domain: Optional[
-        Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
+        Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
 ) -> Tuple[Normal, Dict]:

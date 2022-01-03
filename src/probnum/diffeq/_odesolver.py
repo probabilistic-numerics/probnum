@@ -8,7 +8,7 @@ import numpy as np
 
 from probnum import problems
 from probnum.diffeq import callbacks
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 CallbackType = Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
 """Callback interface type."""
@@ -29,7 +29,7 @@ class ODESolver(ABC):
     def solve(
         self,
         ivp: problems.InitialValueProblem,
-        stop_at: Iterable[FloatArgType] = None,
+        stop_at: Iterable[FloatLike] = None,
         callbacks: Optional[CallbackType] = None,
     ):
         """Solve an IVP.
@@ -54,7 +54,7 @@ class ODESolver(ABC):
     def solution_generator(
         self,
         ivp: problems.InitialValueProblem,
-        stop_at: Iterable[FloatArgType] = None,
+        stop_at: Iterable[FloatLike] = None,
         callbacks: Optional[CallbackType] = None,
     ):
         """Generate ODE solver steps."""

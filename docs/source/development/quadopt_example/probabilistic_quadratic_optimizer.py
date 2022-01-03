@@ -7,7 +7,7 @@ import numpy as np
 import probnum as pn
 import probnum.utils as _utils
 from probnum import linops, randvars
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation
@@ -17,24 +17,24 @@ from .stopping_criteria import maximum_iterations, parameter_uncertainty
 # Type aliases for quadratic optimization
 QuadOptPolicyType = Callable[
     [
-        Callable[[FloatArgType], FloatArgType],
+        Callable[[FloatLike], FloatLike],
         randvars.RandomVariable,
     ],
-    FloatArgType,
+    FloatLike,
 ]
 QuadOptObservationOperatorType = Callable[
-    [Callable[[FloatArgType], FloatArgType], FloatArgType], FloatArgType
+    [Callable[[FloatLike], FloatLike], FloatLike], FloatLike
 ]
 QuadOptBeliefUpdateType = Callable[
     [
         randvars.RandomVariable,
-        FloatArgType,
-        FloatArgType,
+        FloatLike,
+        FloatLike,
     ],
     randvars.RandomVariable,
 ]
 QuadOptStoppingCriterionType = Callable[
-    [Callable[[FloatArgType], FloatArgType], randvars.RandomVariable, IntArgType],
+    [Callable[[FloatLike], FloatLike], randvars.RandomVariable, IntLike],
     Tuple[bool, Union[str, None]],
 ]
 
@@ -131,7 +131,7 @@ class ProbabilisticQuadraticOptimizer:
             self.stopping_criteria = stopping_criteria
 
     def has_converged(
-        self, fun: Callable[[FloatArgType], FloatArgType], iteration: IntArgType
+        self, fun: Callable[[FloatLike], FloatLike], iteration: IntLike
     ) -> Tuple[bool, Union[str, None]]:
         """Check whether the optimizer has converged.
 
@@ -152,7 +152,7 @@ class ProbabilisticQuadraticOptimizer:
 
     def optim_iterator(
         self,
-        fun: Callable[[FloatArgType], FloatArgType],
+        fun: Callable[[FloatLike], FloatLike],
     ) -> Tuple[float, float, randvars.RandomVariable]:
         """Generator implementing the optimization iteration.
 
@@ -187,7 +187,7 @@ class ProbabilisticQuadraticOptimizer:
 
     def optimize(
         self,
-        fun: Callable[[FloatArgType], FloatArgType],
+        fun: Callable[[FloatLike], FloatLike],
         callback: Optional[
             Callable[[float, float, randvars.RandomVariable], None]
         ] = None,

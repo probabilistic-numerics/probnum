@@ -11,7 +11,7 @@ from probnum.diffeq.perturbed.step import (
     _perturbation_functions,
     _perturbedstepsolution,
 )
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 class PerturbedStepSolver(_odesolver.ODESolver):
@@ -44,7 +44,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self,
         rng: np.random.Generator,
         solver: scipy_wrapper.WrappedScipyRungeKutta,
-        noise_scale: FloatArgType,
+        noise_scale: FloatLike,
         perturb_function: Callable,
     ):
         def perturb_step(rng, step):
@@ -67,7 +67,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         cls,
         rng: np.random.Generator,
         solver: scipy_wrapper.WrappedScipyRungeKutta,
-        noise_scale: FloatArgType,
+        noise_scale: FloatLike,
     ):
         pertfun = _perturbation_functions.perturb_lognormal
         return cls(
@@ -82,7 +82,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         cls,
         rng: np.random.Generator,
         solver: scipy_wrapper.WrappedScipyRungeKutta,
-        noise_scale: FloatArgType,
+        noise_scale: FloatLike,
     ):
         pertfun = _perturbation_functions.perturb_uniform
         return cls(
@@ -97,7 +97,7 @@ class PerturbedStepSolver(_odesolver.ODESolver):
         self.scales = []
         return self.solver.initialize(ivp)
 
-    def attempt_step(self, state: _odesolver_state.ODESolverState, dt: FloatArgType):
+    def attempt_step(self, state: _odesolver_state.ODESolverState, dt: FloatLike):
         """Perturb the original stopping point.
 
         Perform one perturbed step and project the solution back to the original

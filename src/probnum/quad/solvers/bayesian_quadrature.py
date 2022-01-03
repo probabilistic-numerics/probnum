@@ -13,7 +13,7 @@ from probnum.quad.solvers.stopping_criteria import (
 )
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
@@ -64,13 +64,13 @@ class BayesianQuadrature:
         kernel: Optional[Kernel] = None,
         measure: Optional[IntegrationMeasure] = None,
         domain: Optional[
-            Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]]
+            Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
         ] = None,
         policy: str = "bmc",
-        max_evals: Optional[IntArgType] = None,
-        var_tol: Optional[FloatArgType] = None,
-        rel_tol: Optional[FloatArgType] = None,
-        batch_size: IntArgType = 1,
+        max_evals: Optional[IntLike] = None,
+        var_tol: Optional[FloatLike] = None,
+        rel_tol: Optional[FloatLike] = None,
+        batch_size: IntLike = 1,
         rng: np.random.Generator = None,
     ) -> "BayesianQuadrature":
 

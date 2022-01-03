@@ -5,27 +5,27 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.typing import FloatArgType, IntArgType, ToleranceDiffusionType
+from probnum.typing import ArrayLike, FloatLike, IntLike
 
 
 class StepRule(ABC):
     """Step-size selection rules for ODE solvers."""
 
-    def __init__(self, firststep: FloatArgType):
+    def __init__(self, firststep: FloatLike):
         self.firststep = firststep
 
     @abstractmethod
     def suggest(
         self,
-        laststep: FloatArgType,
-        scaled_error: FloatArgType,
-        localconvrate: Optional[IntArgType] = None,
+        laststep: FloatLike,
+        scaled_error: FloatLike,
+        localconvrate: Optional[IntLike] = None,
     ):
         """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
         raise NotImplementedError
 
     @abstractmethod
-    def is_accepted(self, scaled_error: FloatArgType):
+    def is_accepted(self, scaled_error: FloatLike):
         """Check if the proposed step should be accepted or not.
 
         Variable "proposedstep" not used yet, but may be important in
@@ -35,9 +35,7 @@ class StepRule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def errorest_to_norm(
-        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
-    ):
+    def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
         """Computes the norm of error per tolerance (usually referred to as 'E').
 
         The norm is usually the current error estimate normalised with
@@ -50,25 +48,23 @@ class StepRule(ABC):
 class ConstantSteps(StepRule):
     """Constant step-sizes."""
 
-    def __init__(self, stepsize: FloatArgType):
+    def __init__(self, stepsize: FloatLike):
         self.step = stepsize
         super().__init__(firststep=stepsize)
 
     def suggest(
         self,
-        laststep: FloatArgType,
-        scaled_error: FloatArgType,
-        localconvrate: Optional[IntArgType] = None,
+        laststep: FloatLike,
+        scaled_error: FloatLike,
+        localconvrate: Optional[IntLike] = None,
     ):
         return self.step
 
-    def is_accepted(self, scaled_error: FloatArgType):
+    def is_accepted(self, scaled_error: FloatLike):
         """Always True."""
         return True
 
-    def errorest_to_norm(
-        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
-    ):
+    def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
         pass
 
 
@@ -92,13 +88,13 @@ class AdaptiveSteps(StepRule):
 
     def __init__(
         self,
-        firststep: FloatArgType,
-        atol: ToleranceDiffusionType,
-        rtol: ToleranceDiffusionType,
-        limitchange: Optional[Tuple[FloatArgType]] = (0.2, 10.0),
-        safetyscale: Optional[FloatArgType] = 0.95,
-        minstep: Optional[FloatArgType] = 1e-15,
-        maxstep: Optional[FloatArgType] = 1e15,
+        firststep: FloatLike,
+        atol: ArrayLike,
+        rtol: ArrayLike,
+        limitchange: Optional[Tuple[FloatLike]] = (0.2, 10.0),
+        safetyscale: Optional[FloatLike] = 0.95,
+        minstep: Optional[FloatLike] = 1e-15,
+        maxstep: Optional[FloatLike] = 1e15,
     ):
         self.safetyscale = safetyscale
         self.limitchange = limitchange
@@ -110,9 +106,9 @@ class AdaptiveSteps(StepRule):
 
     def suggest(
         self,
-        laststep: FloatArgType,
-        scaled_error: FloatArgType,
-        localconvrate: Optional[IntArgType] = None,
+        laststep: FloatLike,
+        scaled_error: FloatLike,
+        localconvrate: Optional[IntLike] = None,
     ):
         small, large = self.limitchange
 
@@ -133,12 +129,10 @@ class AdaptiveSteps(StepRule):
             raise RuntimeError("Step-size larger than maximum step-size")
         return step
 
-    def is_accepted(self, scaled_error: FloatArgType):
+    def is_accepted(self, scaled_error: FloatLike):
         return scaled_error < 1
 
-    def errorest_to_norm(
-        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
-    ):
+    def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
         tolerance = self.atol + self.rtol * reference_state
         ratio = errorest / tolerance
         dim = len(ratio) if ratio.ndim > 0 else 1

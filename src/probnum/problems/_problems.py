@@ -8,7 +8,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, randvars
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 @dataclasses.dataclass
@@ -147,7 +147,7 @@ class InitialValueProblem:
     f: Callable[[float, np.ndarray], np.ndarray]
     t0: float
     tmax: float
-    y0: Union[FloatArgType, np.ndarray]
+    y0: Union[FloatLike, np.ndarray]
     df: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
@@ -248,8 +248,8 @@ class QuadratureProblem:
     """
 
     integrand: Callable[[np.ndarray], Union[float, np.ndarray]]
-    lower_bd: Union[FloatArgType, np.ndarray]
-    upper_bd: Union[FloatArgType, np.ndarray]
+    lower_bd: Union[FloatLike, np.ndarray]
+    upper_bd: Union[FloatLike, np.ndarray]
     output_dim: Optional[int] = 1
 
     # For testing and benchmarking

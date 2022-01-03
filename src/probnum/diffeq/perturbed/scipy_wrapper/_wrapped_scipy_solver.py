@@ -10,7 +10,7 @@ from scipy.integrate._ivp.common import OdeSolution
 from probnum import randvars
 from probnum.diffeq import _odesolver, _odesolver_state
 from probnum.diffeq.perturbed.scipy_wrapper import _wrapped_scipy_odesolution
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 class WrappedScipyRungeKutta(_odesolver.ODESolver):
@@ -62,7 +62,7 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         )
         return state
 
-    def attempt_step(self, state: _odesolver_state.ODESolverState, dt: FloatArgType):
+    def attempt_step(self, state: _odesolver_state.ODESolverState, dt: FloatLike):
         """Perform one ODE-step from start to stop and set variables to the
         corresponding values.
 

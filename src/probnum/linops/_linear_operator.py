@@ -8,10 +8,10 @@ import scipy.sparse.linalg
 
 import probnum.utils
 from probnum import config
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeLike, ScalarLike, ShapeLike
 
 BinaryOperandType = Union[
-    "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
+    "LinearOperator", ScalarLike, np.ndarray, scipy.sparse.spmatrix
 ]
 
 # pylint: disable="too-many-lines"
@@ -101,8 +101,8 @@ class LinearOperator:
 
     def __init__(
         self,
-        shape: ShapeArgType,
-        dtype: DTypeArgType,
+        shape: ShapeLike,
+        dtype: DTypeLike,
         *,
         matmul: Callable[[np.ndarray], np.ndarray],
         rmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
@@ -228,7 +228,7 @@ class LinearOperator:
 
     def astype(
         self,
-        dtype: DTypeArgType,
+        dtype: DTypeLike,
         order: str = "K",
         casting: str = "unsafe",
         subok: bool = True,
@@ -828,7 +828,7 @@ class _TypeCastLinearOperator(LinearOperator):
     def __init__(
         self,
         linop: LinearOperator,
-        dtype: DTypeArgType,
+        dtype: DTypeLike,
         order: str = "K",
         casting: str = "unsafe",
         copy: bool = True,
@@ -979,8 +979,8 @@ class Identity(LinearOperator):
 
     def __init__(
         self,
-        shape: ShapeArgType,
-        dtype: DTypeArgType = np.double,
+        shape: ShapeLike,
+        dtype: DTypeLike = np.double,
     ):
         shape = probnum.utils.as_shape(shape)
 
