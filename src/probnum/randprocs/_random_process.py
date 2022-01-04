@@ -5,7 +5,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import randvars, utils as _utils
+from probnum import backend, randvars, utils as _utils
 from probnum.typing import DTypeLike, IntLike, ShapeLike
 
 _InputType = TypeVar("InputType")
@@ -50,12 +50,12 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         output_dim: Optional[IntLike],
         dtype: DTypeLike,
     ):
-        self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
+        self._input_dim = np.int_(backend.as_scalar(input_dim))
 
         self._output_dim = None
 
         if output_dim is not None:
-            self._output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+            self._output_dim = np.int_(backend.as_scalar(output_dim))
 
         self._dtype = np.dtype(dtype)
 

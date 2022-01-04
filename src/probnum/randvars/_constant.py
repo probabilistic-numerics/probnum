@@ -5,7 +5,7 @@ from typing import Callable
 
 import numpy as np
 
-from probnum import backend, config, linops, utils as _utils
+from probnum import backend, config, linops
 from probnum.typing import ArrayIndicesLike, SeedType, ShapeLike, ShapeType
 
 from . import _random_variable
@@ -65,11 +65,11 @@ class Constant(_random_variable.DiscreteRandomVariable):
             cov = lambda: (
                 linops.Zero(shape=((self._support.size, self._support.size)))
                 if self._support.ndim > 0
-                else _utils.as_numpy_scalar(0.0, support_floating.dtype)
+                else backend.as_scalar(0.0, support_floating.dtype)
             )
         else:
             cov = lambda: np.broadcast_to(
-                _utils.as_numpy_scalar(0.0, support_floating.dtype),
+                backend.as_scalar(0.0, support_floating.dtype),
                 shape=(
                     (self._support.size, self._support.size)
                     if self._support.ndim > 0
@@ -78,7 +78,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
             )
 
         var = lambda: np.broadcast_to(
-            _utils.as_numpy_scalar(0.0, support_floating.dtype),
+            backend.as_scalar(0.0, support_floating.dtype),
             shape=self._support.shape,
         )
 

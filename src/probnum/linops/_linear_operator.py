@@ -501,7 +501,7 @@ class LinearOperator:
 
     def _logabsdet_fallback(self) -> np.inexact:
         if self.det() == 0:
-            return probnum.utils.as_numpy_scalar(-np.inf, dtype=self._inexact_dtype)
+            return probnum.backend.as_scalar(-np.inf, dtype=self._inexact_dtype)
         else:
             return np.log(np.abs(self.det()))
 
@@ -1313,13 +1313,9 @@ class Identity(LinearOperator):
             rank=lambda: np.intp(shape[0]),
             eigvals=lambda: np.ones(shape[0], dtype=self._inexact_dtype),
             cond=self._cond,
-            det=lambda: probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype),
-            logabsdet=lambda: probnum.utils.as_numpy_scalar(
-                0.0, dtype=self._inexact_dtype
-            ),
-            trace=lambda: probnum.utils.as_numpy_scalar(
-                self.shape[0], dtype=self.dtype
-            ),
+            det=lambda: probnum.backend.as_scalar(1.0, dtype=self._inexact_dtype),
+            logabsdet=lambda: probnum.backend.as_scalar(0.0, dtype=self._inexact_dtype),
+            trace=lambda: probnum.backend.as_scalar(self.shape[0], dtype=self.dtype),
         )
 
         # Matrix properties
@@ -1331,11 +1327,9 @@ class Identity(LinearOperator):
 
     def _cond(self, p: Union[None, int, float, str]) -> np.inexact:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
-            return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
+            return probnum.backend.as_scalar(1.0, dtype=self._inexact_dtype)
         elif p == "fro":
-            return probnum.utils.as_numpy_scalar(
-                self.shape[0], dtype=self._inexact_dtype
-            )
+            return probnum.backend.as_scalar(self.shape[0], dtype=self._inexact_dtype)
         else:
             return np.linalg.cond(self.todense(cache=False), p=p)
 

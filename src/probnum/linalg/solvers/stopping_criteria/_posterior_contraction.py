@@ -33,8 +33,8 @@ class PosteriorContractionStoppingCriterion(LinearSolverStoppingCriterion):
         rtol: ScalarLike = 10 ** -5,
     ):
         self.qoi = qoi
-        self.atol = probnum.utils.as_numpy_scalar(atol)
-        self.rtol = probnum.utils.as_numpy_scalar(rtol)
+        self.atol = probnum.backend.as_scalar(atol)
+        self.rtol = probnum.backend.as_scalar(rtol)
 
     def __call__(
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"

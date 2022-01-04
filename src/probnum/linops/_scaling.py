@@ -48,7 +48,7 @@ class Scaling(_linear_operator.LinearOperator):
 
         if np.ndim(factors) == 0:
             # Isotropic scaling
-            self._scalar = probnum.utils.as_numpy_scalar(factors, dtype=dtype)
+            self._scalar = probnum.backend.as_scalar(factors, dtype=dtype)
 
             if shape is None:
                 raise ValueError(
@@ -113,7 +113,7 @@ class Scaling(_linear_operator.LinearOperator):
                     self._scalar.astype(self._inexact_dtype, copy=False) ** shape[0]
                 )
                 logabsdet = lambda: (
-                    probnum.utils.as_numpy_scalar(-np.inf, dtype=self._inexact_dtype)
+                    probnum.backend.as_scalar(-np.inf, dtype=self._inexact_dtype)
                     if self._scalar == 0
                     else shape[0] * np.log(np.abs(self._scalar))
                 )
@@ -277,7 +277,7 @@ class Scaling(_linear_operator.LinearOperator):
 
         if abs_min == 0.0:
             # The operator is singular
-            return probnum.utils.as_numpy_scalar(np.inf, dtype=self._inexact_dtype)
+            return probnum.backend.as_scalar(np.inf, dtype=self._inexact_dtype)
 
         if p is None:
             p = 2
@@ -306,9 +306,9 @@ class Scaling(_linear_operator.LinearOperator):
             return self._inexact_dtype.type(np.inf)
 
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
-            return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
+            return probnum.backend.as_scalar(1.0, dtype=self._inexact_dtype)
         elif p == "fro":
-            return probnum.utils.as_numpy_scalar(
+            return probnum.backend.as_scalar(
                 min(self.shape), dtype=self._inexact_dtype
             )
         else:

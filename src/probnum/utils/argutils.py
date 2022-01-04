@@ -5,9 +5,9 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.typing import DTypeLike, ScalarLike, ShapeLike, ShapeType
+from probnum.typing import ShapeLike, ShapeType
 
-__all__ = ["as_shape", "as_numpy_scalar"]
+__all__ = ["as_shape"]
 
 
 def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType:
@@ -40,20 +40,3 @@ def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType
             raise TypeError(f"The given shape {shape} must have {ndim} dimensions.")
 
     return shape
-
-
-def as_numpy_scalar(x: ScalarLike, dtype: DTypeLike = None) -> np.ndarray:
-    """Convert a scalar into a scalar NumPy array.
-
-    Parameters
-    ----------
-    x
-        Scalar value.
-    dtype
-        Data type of the scalar.
-    """
-
-    if np.ndim(x) != 0:
-        raise ValueError("The given input is not a scalar.")
-
-    return np.asarray(x, dtype=dtype)
