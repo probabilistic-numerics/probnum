@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 
-from probnum import backend, utils as _utils
+from probnum import backend
 from probnum.typing import (
     ArrayIndicesLike,
     DTypeLike,
@@ -112,7 +112,7 @@ class RandomVariable:
     ):
         # pylint: disable=too-many-arguments,too-many-locals
         """Create a new random variable."""
-        self.__shape = _utils.as_shape(shape)
+        self.__shape = backend.as_shape(shape)
 
         # Data Types
         self.__dtype = backend.asdtype(dtype)
@@ -408,7 +408,7 @@ class RandomVariable:
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        samples = self.__sample(seed, _utils.as_shape(sample_shape))
+        samples = self.__sample(seed, backend.as_shape(sample_shape))
 
         # TODO: Check shape and dtype
 
@@ -535,7 +535,7 @@ class RandomVariable:
             New shape for the random variable. It must be compatible with the original
             shape.
         """
-        newshape = _utils.as_shape(newshape)
+        newshape = backend.as_shape(newshape)
 
         return RandomVariable(
             shape=newshape,

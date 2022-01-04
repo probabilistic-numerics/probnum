@@ -5,7 +5,7 @@ from typing import Optional, Type, Union
 import numpy as np
 import scipy.stats
 
-from probnum import randvars, utils
+from probnum import backend, randvars, utils
 from probnum.randprocs import _random_process
 from probnum.randprocs.markov import _transition
 from probnum.typing import ShapeLike
@@ -72,7 +72,7 @@ class MarkovProcess(_random_process.RandomProcess):
         size: ShapeLike = (),
     ) -> _OutputType:
 
-        size = utils.as_shape(size)
+        size = backend.as_shape(size)
         args = np.atleast_1d(args)
         if args.ndim > 1:
             raise ValueError(f"Invalid args shape {args.shape}")

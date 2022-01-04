@@ -1,10 +1,9 @@
 """Kernel / covariance function."""
 
 import abc
-import functools
 from typing import Optional
 
-from probnum import backend, utils as _pn_utils
+from probnum import backend
 from probnum.typing import ArrayLike, IntLike, ShapeLike, ShapeType
 
 
@@ -138,7 +137,7 @@ class Kernel(abc.ABC):
     ):
         self._input_dim = int(input_dim)
 
-        self._shape = _pn_utils.as_shape(shape)
+        self._shape = backend.as_shape(shape)
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"

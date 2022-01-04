@@ -4,7 +4,6 @@ from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 import numpy as np
 
 import probnum as pn
-import probnum.utils as _utils
 from probnum import linops, randvars
 from probnum.typing import FloatLike, IntLike
 

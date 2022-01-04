@@ -1,5 +1,7 @@
+from typing import Optional
+
 from probnum import backend as _backend
-from probnum.typing import DTypeLike, ScalarLike
+from probnum.typing import DTypeLike, IntLike, ScalarLike, ShapeLike, ShapeType
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core
@@ -79,6 +81,38 @@ jit = _core.jit
 jit_method = _core.jit_method
 
 
+def as_shape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
+    """Convert a shape representation into a shape defined as a tuple of ints.
+
+    Parameters
+    ----------
+    x
+        Shape representation.
+    """
+
+    try:
+        # x is an `IntLike`
+        shape = (int(x),)
+    except TypeError:
+        # x is an iterable
+        try:
+            _ = iter(x)
+        except TypeError as e:
+            raise TypeError(
+                f"The given shape {x} must be an integer or an iterable of integers."
+            ) from e
+
+        shape = tuple(int(item) for item in x)
+
+    if ndim is not None:
+        ndim = int(ndim)
+
+        if len(shape) != ndim:
+            raise TypeError(f"The given shape {shape} must have {ndim} dimensions.")
+
+    return shape
+
+
 def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ndarray:
     """Convert a scalar into a NumPy scalar.
 
@@ -114,6 +148,7 @@ __all__ = [
     "is_floating_dtype",
     "finfo",
     # Shape Arithmetic
+    "as_shape",
     "reshape",
     "atleast_1d",
     "atleast_2d",

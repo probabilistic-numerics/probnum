@@ -2,7 +2,7 @@
 
 import numpy as np
 
-import probnum  # pylint: disable="unused-import"
+import probnum
 from probnum.typing import ScalarLike
 
 from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion

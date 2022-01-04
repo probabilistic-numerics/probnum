@@ -9,7 +9,7 @@ from typing import Iterable, Optional, Union
 import numpy as np
 from scipy import stats
 
-from probnum import randprocs, randvars, utils
+from probnum import backend, randprocs, randvars
 from probnum.filtsmooth import _timeseriesposterior
 from probnum.filtsmooth.gaussian import approx
 from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
@@ -68,7 +68,7 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
         size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
 
-        size = utils.as_shape(size)
+        size = backend.as_shape(size)
         single_rv_shape = self.states[0].shape
         single_rv_ndim = self.states[0].ndim
 

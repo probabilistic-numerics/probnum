@@ -64,8 +64,7 @@ Many types representing numeric values, shapes, dtypes, random states, etc. have
 possible representations. For example a shape could be specified in the following ways: `n, (n,), (n, 1), [n], [n, 1]`.
 
 For this reason most types should be standardized internally to a core set of types defined
-in `probnum.typing`, e.g. for numeric types `np.generic`, `np.ndarray`. Methods for input
-argument standardization can be found in `probnum.utils.argutils`.
+in `probnum.typing`, e.g. for numeric types `np.generic`, `np.ndarray`.
 
 ### Naming
 

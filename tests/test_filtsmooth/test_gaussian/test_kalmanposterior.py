@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, problems, randprocs, randvars, utils
+from probnum import backend, filtsmooth, problems, randprocs, randvars
 
 
 @pytest.fixture(name="problem")
@@ -195,7 +195,7 @@ def test_sampling_shapes_1d(locs, size):
     )
     posterior, _ = kalman.filtsmooth(regression_problem)
 
-    size = utils.as_shape(size)
+    size = backend.as_shape(size)
     if locs is None:
         base_measure_reals = np.random.randn(*(size + posterior.locations.shape + (1,)))
         samples = posterior.transform_base_measure_realizations(
