@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import probnum as pn
-from probnum.typing import ArrayType, ShapeType
+from probnum.typing import ShapeType
 
 from ._utils import _shape_param_to_id_str
 
@@ -116,7 +116,7 @@ def fixture_call_result_naive(
     return kernel_call_naive(x0, x1)
 
 
-def test_type(call_result: ArrayType):
+def test_type(call_result: pn.backend.ndarray):
     """Test whether the type of the output of ``Kernel.__call__`` is a NumPy type, i.e.
     an ``np.ndarray`` or a ``np.floating``."""
 

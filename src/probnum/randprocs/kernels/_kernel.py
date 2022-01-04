@@ -5,7 +5,7 @@ import functools
 from typing import Optional
 
 from probnum import backend, utils as _pn_utils
-from probnum.typing import ArrayLike, ArrayType, IntLike, ShapeLike, ShapeType
+from probnum.typing import ArrayLike, IntLike, ShapeLike, ShapeType
 
 
 class Kernel(abc.ABC):
@@ -148,7 +148,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> ArrayType:
+    ) -> backend.ndarray:
         """Evaluate the (cross-)covariance function(s).
 
         The inputs are broadcast to a common shape following the "kernel broadcasting"
@@ -231,7 +231,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
-    ) -> ArrayType:
+    ) -> backend.ndarray:
         """A convenience function for computing a kernel matrix for two sets of inputs.
 
         This is syntactic sugar for ``k(x0[:, None, :], x1[None, :, :])``. Hence, it
@@ -309,7 +309,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> ArrayType:
+    ) -> backend.ndarray:
         """Implementation of the kernel evaluation which is called after input checking.
 
         When implementing a particular kernel, the subclass should implement the kernel
@@ -349,8 +349,8 @@ class Kernel(abc.ABC):
 
     def _kernel_broadcast_shapes(
         self,
-        x0: ArrayType,
-        x1: Optional[ArrayType] = None,
+        x0: backend.ndarray,
+        x1: Optional[backend.ndarray] = None,
     ) -> ShapeType:
         """Applies the "kernel broadcasting" rules to the input shapes.
 
@@ -411,8 +411,8 @@ class Kernel(abc.ABC):
 
     @backend.jit_method
     def _euclidean_inner_products(
-        self, x0: ArrayType, x1: Optional[ArrayType]
-    ) -> ArrayType:
+        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
+    ) -> backend.ndarray:
         """Implementation of the Euclidean inner product, which supports kernel
         broadcasting semantics."""
         prods = x0 ** 2 if x1 is None else x0 * x1
@@ -438,8 +438,8 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
 
     @backend.jit_method
     def _squared_euclidean_distances(
-        self, x0: ArrayType, x1: Optional[ArrayType]
-    ) -> ArrayType:
+        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
+    ) -> backend.ndarray:
         """Implementation of the squared Euclidean distance, which supports kernel
         broadcasting semantics."""
         if x1 is None:
@@ -456,7 +456,9 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         return backend.sum(sqdiffs, axis=-1)
 
     @backend.jit_method
-    def _euclidean_distances(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
+    def _euclidean_distances(
+        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
+    ) -> backend.ndarray:
         """Implementation of the Euclidean distance, which supports kernel
         broadcasting semantics."""
         if x1 is None:

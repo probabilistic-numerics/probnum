@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ArrayType, IntLike, ScalarLike
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import Kernel
 
@@ -29,7 +29,9 @@ class WhiteNoise(Kernel):
         self._sigma_sq = self.sigma ** 2
         super().__init__(input_dim=input_dim)
 
-    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
+    def _evaluate(
+        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
+    ) -> backend.ndarray:
         if x1 is None:
             return backend.full_like(x0[..., 0], self._sigma_sq)
 

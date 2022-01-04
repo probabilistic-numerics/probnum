@@ -1,5 +1,5 @@
 from probnum import backend as _backend
-from probnum.typing import ArrayType, DTypeArgType, ScalarLike
+from probnum.typing import DTypeLike, ScalarLike
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core
@@ -79,7 +79,7 @@ jit = _core.jit
 jit_method = _core.jit_method
 
 
-def as_scalar(x: ScalarLike, dtype: DTypeArgType = None) -> ArrayType:
+def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ndarray:
     """Convert a scalar into a NumPy scalar.
 
     Parameters

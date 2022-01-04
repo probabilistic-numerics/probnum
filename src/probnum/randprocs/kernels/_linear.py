@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ArrayType, IntLike, ScalarLike
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import Kernel
 
@@ -43,5 +43,7 @@ class Linear(Kernel):
         super().__init__(input_dim=input_dim)
 
     @backend.jit_method
-    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
+    def _evaluate(
+        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
+    ) -> backend.ndarray:
         return self._euclidean_inner_products(x0, x1) + self.constant

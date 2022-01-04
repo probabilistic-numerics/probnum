@@ -1,10 +1,9 @@
 """Exponentiated quadratic kernel."""
 
-import functools
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ArrayType, IntLike, ScalarLike
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -50,7 +49,9 @@ class ExpQuad(Kernel, IsotropicMixin):
         super().__init__(input_dim=input_dim)
 
     @backend.jit_method
-    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
+    def _evaluate(
+        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
+    ) -> backend.ndarray:
         if x1 is None:
             return backend.ones_like(x0[..., 0])
 
