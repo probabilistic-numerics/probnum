@@ -101,9 +101,6 @@ class ODEFilter(_odesolver.ODESolver):
         )
 
         # Set up the diffusion_model style: constant or piecewise constant.
-        # Default is constant diffusion.
-        # At the moment, mostly because default prior processes have no 'initarg'
-        # so dynamic diffusions cannot be initialised.
         self.diffusion_model = diffusion_model or (
             randprocs.markov.continuous.PiecewiseConstantDiffusion(
                 t0=self.prior_process.initarg
