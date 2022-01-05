@@ -164,7 +164,6 @@ def test_default_arguments(ivp, step):
         num_prior_derivatives=nu, ode_dimension=d
     )
     approx = diffeq.odefilter.approx_strategies.EK0()
-    with_smoothing = True
     solver = diffeq.odefilter.ODEFilter(
         steprule=steprule,
         prior_process=prior_process,
