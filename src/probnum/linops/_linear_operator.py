@@ -909,8 +909,8 @@ class Matrix(LinearOperator):
             shape = self.A.shape
             dtype = self.A.dtype
 
-            matmul = lambda x: A @ x
-            rmatmul = lambda x: x @ A
+            matmul = lambda x: self.A @ x
+            rmatmul = lambda x: x @ self.A
             todense = lambda: self.A
             inverse = None
             trace = lambda: np.trace(self.A)
