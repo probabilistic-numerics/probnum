@@ -287,8 +287,8 @@ def probsolve_ivp(
     rk_init = odefilter.initialization_routines.RungeKuttaInitialization()
 
     solver = odefilter.ODEFilter(
-        steprule,
-        prior_process,
+        steprule=steprule,
+        prior_process=prior_process,
         ode_dimension=ivp.dimension,
         information_operator=info_op,
         approx_strategy=approx_strategy,

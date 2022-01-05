@@ -53,6 +53,7 @@ class ODEFilter(_odesolver.ODESolver):
 
     def __init__(
         self,
+        *,
         steprule: stepsize.StepRule,
         prior_process: randprocs.markov.MarkovProcess,
         ode_dimension: int,
