@@ -56,7 +56,6 @@ class ODEFilter(_odesolver.ODESolver):
         *,
         steprule: stepsize.StepRule,
         prior_process: randprocs.markov.MarkovProcess,
-        ode_dimension: int,
         information_operator: Optional[
             information_operators.ODEInformationOperator
         ] = None,
@@ -69,7 +68,7 @@ class ODEFilter(_odesolver.ODESolver):
         _reference_coordinates: Optional[int] = 0,
     ):
 
-        if not isinstance(
+        if prior_process is not None and not isinstance(
             prior_process.transition,
             randprocs.markov.integrator.IntegratorTransition,
         ):
@@ -82,8 +81,8 @@ class ODEFilter(_odesolver.ODESolver):
         self.information_operator = (
             information_operator
             or information_operators.ODEResidual(
-                num_prior_derivatives=4,
-                ode_dimension=ode_dimension,
+                num_prior_derivatives=prior_process.transition.num_derivatives,
+                ode_dimension=prior_process.transition.wiener_process_dimension,
             )
         )
         self.approx_strategy = approx_strategy or approx_strategies.EK0()
@@ -98,16 +97,17 @@ class ODEFilter(_odesolver.ODESolver):
             initialization_routine or initialization_routines.RungeKuttaInitialization()
         )
         super().__init__(
-            steprule=steprule, order=prior_process.transition.num_derivatives
+            steprule=steprule, order=self.prior_process.transition.num_derivatives
         )
 
         # Set up the diffusion_model style: constant or piecewise constant.
-        self.diffusion_model = (
+        # Default is constant diffusion.
+        # At the moment, mostly because default prior processes have no 'initarg'
+        # so dynamic diffusions cannot be initialised.
+        self.diffusion_model = diffusion_model or (
             randprocs.markov.continuous.PiecewiseConstantDiffusion(
-                t0=prior_process.initarg
+                t0=self.prior_process.initarg
             )
-            if diffusion_model is None
-            else diffusion_model
         )
 
         # Once the diffusion has been calibrated, the covariance can either
