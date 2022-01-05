@@ -68,12 +68,13 @@ class ODEFilter(_odesolver.ODESolver):
         _reference_coordinates: Optional[int] = 0,
     ):
 
-        if prior_process is not None and not isinstance(
+        if not isinstance(
             prior_process.transition,
             randprocs.markov.integrator.IntegratorTransition,
         ):
             raise ValueError(
-                "Please initialise a Gaussian filter with an Integrator (see `probnum.randprocs.markov.integrator`)"
+                "Please initialise a Gaussian filter with an Integrator "
+                "(see `probnum.randprocs.markov.integrator`)."
             )
 
         self.prior_process = prior_process
@@ -101,10 +102,12 @@ class ODEFilter(_odesolver.ODESolver):
         )
 
         # Set up the diffusion_model style: constant or piecewise constant.
-        self.diffusion_model = diffusion_model or (
+        self.diffusion_model = (
             randprocs.markov.continuous.PiecewiseConstantDiffusion(
                 t0=self.prior_process.initarg
             )
+            if diffusion_model is None
+            else diffusion_model
         )
 
         # Once the diffusion has been calibrated, the covariance can either
