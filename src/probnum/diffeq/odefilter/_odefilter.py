@@ -55,7 +55,9 @@ class ODEFilter(_odesolver.ODESolver):
         self,
         steprule: stepsize.StepRule,
         prior_process: randprocs.markov.MarkovProcess,
-        information_operator: information_operators.ODEInformationOperator,
+        information_operator: Optional[
+            information_operators.ODEInformationOperator
+        ] = None,
         approx_strategy: Optional[approx_strategies.ApproximationStrategy] = None,
         with_smoothing: Optional[bool] = True,
         initialization_routine: Optional[
@@ -74,7 +76,13 @@ class ODEFilter(_odesolver.ODESolver):
 
         self.prior_process = prior_process
 
-        self.information_operator = information_operator
+        self.information_operator = (
+            information_operator
+            or information_operators.ODEResidual(
+                num_prior_derivatives=4,
+                ode_dimension=prior_process.transition.wiener_process_dimension,
+            )
+        )
         self.approx_strategy = approx_strategy or approx_strategies.EK0()
 
         # Filled in in initialize(), once the ODE has been seen.
