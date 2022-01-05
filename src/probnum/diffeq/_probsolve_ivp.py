@@ -289,6 +289,7 @@ def probsolve_ivp(
     solver = odefilter.ODEFilter(
         steprule,
         prior_process,
+        ode_dimension=ivp.dimension,
         information_operator=info_op,
         approx_strategy=approx_strategy,
         with_smoothing=dense_output,

@@ -135,6 +135,7 @@ def test_callback(ivp, step):
     with_smoothing = True
     init_strat = diffeq.odefilter.initialization_routines.RungeKuttaInitialization()
     solver = diffeq.odefilter.ODEFilter(
+        ode_dimension=ivp.dimension,
         steprule=steprule,
         prior_process=prior_process,
         information_operator=info_op,
@@ -160,6 +161,7 @@ def test_default_arguments(ivp, step):
         initarg=ivp.t0, num_derivatives=4, wiener_process_dimension=d
     )
     solver = diffeq.odefilter.ODEFilter(
+        ode_dimension=d,
         steprule=steprule,
         prior_process=prior_process,
     )

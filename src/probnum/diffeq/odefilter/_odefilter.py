@@ -55,6 +55,7 @@ class ODEFilter(_odesolver.ODESolver):
         self,
         steprule: stepsize.StepRule,
         prior_process: randprocs.markov.MarkovProcess,
+        ode_dimension: int,
         information_operator: Optional[
             information_operators.ODEInformationOperator
         ] = None,
@@ -66,6 +67,7 @@ class ODEFilter(_odesolver.ODESolver):
         diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
+
         if not isinstance(
             prior_process.transition,
             randprocs.markov.integrator.IntegratorTransition,
@@ -80,7 +82,7 @@ class ODEFilter(_odesolver.ODESolver):
             information_operator
             or information_operators.ODEResidual(
                 num_prior_derivatives=4,
-                ode_dimension=prior_process.transition.wiener_process_dimension,
+                ode_dimension=ode_dimension,
             )
         )
         self.approx_strategy = approx_strategy or approx_strategies.EK0()
