@@ -57,7 +57,7 @@ class ODEFilter(_odesolver.ODESolver):
         prior_process: randprocs.markov.MarkovProcess,
         information_operator: information_operators.ODEInformationOperator,
         approx_strategy: approx_strategies.ApproximationStrategy,
-        with_smoothing: bool,
+        with_smoothing: Optional[bool] = True,
         initialization_routine: Optional[
             initialization_routines.InitializationRoutine
         ] = None,

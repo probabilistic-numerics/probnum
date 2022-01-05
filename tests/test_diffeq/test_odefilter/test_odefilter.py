@@ -170,7 +170,6 @@ def test_default_arguments(ivp, step):
         prior_process=prior_process,
         information_operator=info_op,
         approx_strategy=approx,
-        with_smoothing=with_smoothing,
     )
 
     solver.solve(ivp)
