@@ -58,7 +58,9 @@ class ODEFilter(_odesolver.ODESolver):
         information_operator: information_operators.ODEInformationOperator,
         approx_strategy: approx_strategies.ApproximationStrategy,
         with_smoothing: bool,
-        initialization_routine: initialization_routines.InitializationRoutine,
+        initialization_routine: Optional[
+            initialization_routines.InitializationRoutine
+        ] = None,
         diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
@@ -80,7 +82,10 @@ class ODEFilter(_odesolver.ODESolver):
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
-        self.initialization_routine = initialization_routine
+
+        self.initialization_routine = (
+            initialization_routine or initialization_routines.RungeKuttaInitialization()
+        )
         super().__init__(
             steprule=steprule, order=prior_process.transition.num_derivatives
         )

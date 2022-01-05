@@ -150,3 +150,27 @@ def test_callback(ivp, step):
     callback = diffeq.callbacks.DiscreteCallback(replace=replace, condition=condition)
 
     solver.solve(ivp, stop_at=[t], callbacks=callback)
+
+
+def test_default_arguments(ivp, step):
+    d = ivp.dimension
+    nu = 1
+
+    steprule = diffeq.stepsize.ConstantSteps(step)
+    prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
+        initarg=ivp.t0, num_derivatives=nu, wiener_process_dimension=d
+    )
+    info_op = diffeq.odefilter.information_operators.ODEResidual(
+        num_prior_derivatives=nu, ode_dimension=d
+    )
+    approx = diffeq.odefilter.approx_strategies.EK0()
+    with_smoothing = True
+    solver = diffeq.odefilter.ODEFilter(
+        steprule=steprule,
+        prior_process=prior_process,
+        information_operator=info_op,
+        approx_strategy=approx,
+        with_smoothing=with_smoothing,
+    )
+
+    solver.solve(ivp)
