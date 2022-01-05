@@ -153,6 +153,7 @@ def test_callback(ivp, step):
 
 
 def test_default_arguments(ivp, step):
+    """The ODEFilter class functions with just a prior and a steprule."""
 
     steprule = diffeq.stepsize.ConstantSteps(step)
     prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
