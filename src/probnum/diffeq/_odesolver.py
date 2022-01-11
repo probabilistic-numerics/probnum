@@ -98,7 +98,8 @@ class ODESolver(ABC):
         if callbacks is not None:
             callbacks = promote_callback_type(callbacks)
         if stop_at_locations is not None:
-            time_stopper = _time_stopper(locations=stop_at_locations)
+            loc_iter = iter(stop_at_locations)
+            time_stopper = _time_stopper(location_iter=loc_iter)
         else:
             time_stopper = None
         return callbacks, time_stopper
@@ -170,9 +171,8 @@ class ODESolver(ABC):
         """
 
 
-def _time_stopper(locations):
+def _time_stopper(*, location_iter):
     """Check whether the next time-point is supposed to be stopped at."""
-    location_iter = iter(locations)
     initial_location = next(location_iter)
 
     def adjust(t, dt, next_location=initial_location):
