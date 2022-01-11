@@ -2,7 +2,8 @@
 
 This object is returned by ODESolver.solve().
 
-Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
+Provides dense output (by being callable), is sliceable,
+and collects the time-grid as well as the discrete-time solution.
 """
 
 from typing import Optional
@@ -70,10 +71,14 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             Random number generator.
         t
             Location / time at which to sample.
-            If nothing is specified, samples at the ODE-solver grid points are computed.
-            If it is a float, a sample of the ODE-solution at this time point is computed.
-            Similarly, if it is a list of floats (or an array), samples at the specified grid-points are returned.
-            This is not the same as computing i.i.d samples at the respective locations.
+            If nothing is specified, samples at the ODE-solver
+            grid points are computed.
+            If it is a float, a sample of the ODE-solution
+            at this time point is computed.
+            Similarly, if it is a list of floats (or an array),
+            samples at the specified grid-points are returned.
+            This is not the same as computing i.i.d samples at the respective
+            locations.
         size
             Number of samples.
         """
