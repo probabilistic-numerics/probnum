@@ -25,6 +25,10 @@ METHODS = {
 """Implemented methods for the filtering-based ODE solver."""
 
 
+# This interface function is allowed to have many input arguments.
+# Having many input arguments implies having many local arguments,
+# so we need to disable both here.
+# pylint: disable="too-many-arguments,too-many-locals"
 def probsolve_ivp(
     f: Callable,
     t0: FloatLike,
@@ -290,25 +294,16 @@ def probsolve_ivp(
         backward_implementation="sqrt",
     )
 
-    info_op = odefilter.information_operators.ODEResidual(
-        num_prior_derivatives=prior_process.transition.num_derivatives,
-        ode_dimension=prior_process.transition.wiener_process_dimension,
-    )
-
     method = method.upper()
     if method not in METHODS:
         raise ValueError("Method is not supported.")
     approx_strategy = METHODS[method]()
 
-    rk_init = odefilter.initialization_routines.RungeKuttaInitialization()
-
     solver = odefilter.ODEFilter(
         steprule=steprule,
         prior_process=prior_process,
-        information_operator=info_op,
         approx_strategy=approx_strategy,
         with_smoothing=dense_output,
-        initialization_routine=rk_init,
         diffusion_model=diffusion,
     )
 
