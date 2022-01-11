@@ -65,7 +65,9 @@ class ODESolver(ABC):
     ):
         """Generate ODE solver steps."""
 
-        callbacks, time_stopper = self._process_event_inputs(callbacks, stop_at)
+        callbacks, adjust_dt_to_time_stops = self._process_event_inputs(
+            callbacks, stop_at
+        )
 
         state = self.initialize(ivp)
         yield state
@@ -74,8 +76,8 @@ class ODESolver(ABC):
 
         # Use state.ivp in case a callback modifies the IVP
         while state.t < state.ivp.tmax:
-            if time_stopper is not None:
-                dt = time_stopper.adjust_dt_to_time_stops(state.t, dt)
+            if adjust_dt_to_time_stops is not None:
+                dt = adjust_dt_to_time_stops(t=state.t, dt=dt)
 
             state, dt = self.perform_full_step(state, dt)
 
@@ -96,7 +98,7 @@ class ODESolver(ABC):
         if callbacks is not None:
             callbacks = promote_callback_type(callbacks)
         if stop_at_locations is not None:
-            time_stopper = _TimeStopper(stop_at_locations)
+            time_stopper = _time_stopper(locations=stop_at_locations)
         else:
             time_stopper = None
         return callbacks, time_stopper
@@ -164,25 +166,22 @@ class ODESolver(ABC):
         current guess is accepted, but before storing it. No return. For
         example: tune hyperparameters (sigma).
         """
-        pass
 
 
-class _TimeStopper:
-    """Make the ODE solver stop at specified time-points."""
+def _time_stopper(locations):
+    """Check whether the next time-point is supposed to be stopped at."""
+    location_iter = iter(locations)
+    initial_location = next(location_iter)
 
-    def __init__(self, locations: Iterable):
-        self._locations = iter(locations)
-        self._next_location = next(self._locations)
-
-    def adjust_dt_to_time_stops(self, t, dt):
-        """Check whether the next time-point is supposed to be stopped at."""
-
-        if t >= self._next_location:
+    def adjust(t, dt, next_location=initial_location):
+        if t >= next_location:
             try:
-                self._next_location = next(self._locations)
+                next_location = next(location_iter)
             except StopIteration:
-                self._next_location = np.inf
+                next_location = np.inf
 
-        if t + dt > self._next_location:
-            dt = self._next_location - t
+        if t + dt > next_location:
+            dt = next_location - t
         return dt
+
+    return adjust
