@@ -8,10 +8,13 @@ References
 .. [4] https://arxiv.org/pdf/2004.00623.pdf
 """
 
+from typing import Callable, Optional
+
 import numpy as np
 
 from probnum import problems, randprocs
 from probnum.diffeq import _utils, odefilter
+from probnum.typing import ArrayLike, FloatLike
 
 __all__ = ["probsolve_ivp"]
 
@@ -23,20 +26,20 @@ METHODS = {
 
 
 def probsolve_ivp(
-    f,
-    t0,
-    tmax,
-    y0,
-    df=None,
-    method="EK0",
-    dense_output=True,
-    algo_order=2,
-    adaptive=True,
-    atol=1e-2,
-    rtol=1e-2,
-    step=None,
-    diffusion_model="dynamic",
-    time_stops=None,
+    f: Callable,
+    t0: FloatLike,
+    tmax: FloatLike,
+    y0: ArrayLike,
+    df: Optional[Callable] = None,
+    method: str = "EK0",
+    dense_output: bool = True,
+    algo_order: int = 2,
+    adaptive: bool = True,
+    atol: FloatLike = 1e-2,
+    rtol: FloatLike = 1e-2,
+    step: Optional[FloatLike] = None,
+    diffusion_model: str = "dynamic",
+    time_stops: Optional[ArrayLike] = None,
 ):
     r"""Solve an initial value problem with a filtering-based ODE solver.
 
