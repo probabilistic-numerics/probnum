@@ -43,7 +43,7 @@ class IntegrationMeasure(abc.ABC):
 
         Returns
         -------
-        density_evals :
+        density_evals : numpy.ndarray
             *shape=(n_points,)* -- Density evaluated at given locations.
         """
         # pylint: disable=no-member
@@ -65,7 +65,7 @@ class IntegrationMeasure(abc.ABC):
 
         Returns
         -------
-        points :
+        points : numpy.ndarray
             *shape=(n_sample,input_dim)* -- Sampled points
         """
         # pylint: disable=no-member

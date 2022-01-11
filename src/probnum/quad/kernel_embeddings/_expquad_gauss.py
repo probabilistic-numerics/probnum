@@ -28,7 +28,7 @@ def _kernel_mean_expquad_gauss(
 
     Returns
     -------
-    k_mean :
+    k_mean : numpy.ndarray
         *shape (n_eval,)* -- The kernel integrated w.r.t. its first argument,
         evaluated at locations x.
     """
@@ -66,7 +66,7 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
 
     Returns
     -------
-    k_var :
+    k_var : float
         The kernel integrated w.r.t. both arguments.
     """
     input_dim = kernel.input_dim

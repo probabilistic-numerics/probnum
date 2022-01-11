@@ -27,7 +27,7 @@ def _kernel_mean_expquad_lebesgue(
 
     Returns
     -------
-    k_mean :
+    k_mean : numpy.ndarray
         *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
         evaluated at locations x.
     """
@@ -59,7 +59,7 @@ def _kernel_variance_expquad_lebesgue(
 
     Returns
     -------
-    k_var :
+    k_var : float
         The kernel integrated w.r.t. both arguments.
     """
 

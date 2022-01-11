@@ -56,7 +56,7 @@ class KernelEmbedding:
 
         Returns
         -------
-        k_mean :
+        k_mean : numpy.ndarray
             *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
             evaluated at locations x.
         """
@@ -67,7 +67,7 @@ class KernelEmbedding:
 
         Returns
         -------
-        k_var :
+        k_var : float
             The kernel integrated w.r.t. both arguments.
         """
         return self._kvar(kernel=self.kernel, measure=self.measure)
@@ -87,7 +87,10 @@ def _get_kernel_embedding(
 
     Returns
     -------
-        An instance of _KernelEmbedding.
+    kernel_mean : callable
+        The kernel mean function.
+    kernel_var : callable
+        The kernel variance function.
     """
 
     # Exponentiated quadratic kernel

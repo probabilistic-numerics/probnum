@@ -8,10 +8,11 @@ integral.
 """
 
 import warnings
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 
+from probnum.quad.solvers.bq_state import BQInfo
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
@@ -35,7 +36,7 @@ def bayesquad(
     rel_tol: Optional[FloatLike] = None,
     batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
-) -> Tuple[Normal, Dict]:
+) -> Tuple[Normal, BQInfo]:
     r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
 
@@ -90,9 +91,9 @@ def bayesquad(
 
     Returns
     -------
-    integral :
+    integral : Normal
         The integral of ``fun`` on the domain.
-    info :
+    info : BQInfo
         Information on the performance of the method.
 
     Raises
@@ -165,7 +166,7 @@ def bayesquad_from_data(
         Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
-) -> Tuple[Normal, Dict]:
+) -> Tuple[Normal, BQInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
 
@@ -186,9 +187,9 @@ def bayesquad_from_data(
 
     Returns
     -------
-    integral :
+    integral : Normal
         The integral of ``fun`` on the domain.
-    info :
+    info : BQInfo
         Information on the performance of the method.
 
     Raises

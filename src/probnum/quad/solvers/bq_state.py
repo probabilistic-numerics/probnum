@@ -128,6 +128,11 @@ class BQState:
             The Gram matrix of the given nodes.
         kernel_means :
             The kernel means at the given nodes.
+
+        Returns
+        -------
+        bq_state : BQState
+            An instance of this class.
         """
         return cls(
             measure=prev_state.measure,

@@ -98,6 +98,11 @@ class BayesianQuadrature:
             Batch size used in node acquisition.
         rng :
             The random number generator.
+
+        Returns
+        -------
+        BayesianQuadrature
+            An instance of this class.
         """
         # Set up integration measure
         if measure is None:
@@ -172,8 +177,8 @@ class BayesianQuadrature:
 
         Returns
         -------
-        has_converged:
-            Whether or not the solver has converged.
+        has_converged : bool
+            Whether the solver has converged.
         """
 
         _has_converged = self.stopping_criterion(bq_state)
@@ -211,20 +216,19 @@ class BayesianQuadrature:
             State of the Bayesian quadrature methods. Contains all necessary information about the
             problem and the computation.
 
-        Returns
-        -------
-        integral_belief:
+        Yields
+        ------
+        new_integral_belief : Normal
             Updated belief about the integral.
-        new_nodes:
+        new_nodes : numpy.ndarray
             *shape=(n_new_eval, input_dim)* -- The new location(s) at which
             ``new_fun_evals`` are available found during the iteration.
-        new_fun_evals:
+        new_fun_evals : numpy.ndarray
             *shape=(n_new_eval,)* -- The function evaluations at the new locations
             ``new_nodes``.
-        bq_state:
+        new_bq_state : BQState
             Updated state of the Bayesian quadrature methods.
         """
-        # pylint: disable=missing-yield-doc
 
         # Setup
         if bq_state is None:
@@ -310,9 +314,9 @@ class BayesianQuadrature:
 
         Returns
         -------
-        integral_belief:
+        integral_belief : Normal
             Posterior belief about the integral.
-        bq_state:
+        bq_state : BQState
             Final state of the Bayesian quadrature method.
         """
         if fun is None and fun_evals is None:
