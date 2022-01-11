@@ -11,9 +11,15 @@ References
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.diffeq import odefilter, stepsize
+from probnum.diffeq import _utils, odefilter, stepsize
 
 __all__ = ["probsolve_ivp"]
+
+METHODS = {
+    "EK0": odefilter.approx_strategies.EK0,
+    "EK1": odefilter.approx_strategies.EK1,
+}
+"""Implemented methods for the filtering-based ODE solver."""
 
 
 def probsolve_ivp(
@@ -252,28 +258,17 @@ def probsolve_ivp(
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f, df=df)
 
     # Create steprule
-    if adaptive is True:
-        if atol is None or rtol is None:
-            raise ValueError(
-                "Please provide absolute and relative tolerance for adaptive steps."
-            )
-        firststep = step if step is not None else stepsize.propose_firststep(ivp)
-        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
-    else:
-        if step is None:
-            raise ValueError("Constant steps require a 'step' argument.")
-        steprule = stepsize.ConstantSteps(step)
+    steprule = _utils.construct_steprule(ivp, adaptive, step, atol, rtol)
 
     # Construct diffusion model.
     diffusion_model = diffusion_model.lower()
     if diffusion_model not in ["constant", "dynamic"]:
         raise ValueError("Diffusion model is not supported.")
 
-    choose_diffusion_model = {
-        "constant": randprocs.markov.continuous.ConstantDiffusion(),
-        "dynamic": randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=ivp.t0),
-    }
-    diffusion = choose_diffusion_model[diffusion_model]
+    if diffusion_model == "constant":
+        diffusion = randprocs.markov.continuous.ConstantDiffusion()
+    else:
+        diffusion = randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=ivp.t0)
 
     # Create solver
     prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
@@ -290,14 +285,10 @@ def probsolve_ivp(
         ode_dimension=prior_process.transition.wiener_process_dimension,
     )
 
-    choose_method = {
-        "EK0": odefilter.approx_strategies.EK0(),
-        "EK1": odefilter.approx_strategies.EK1(),
-    }
     method = method.upper()
-    if method not in choose_method.keys():
+    if method not in METHODS:
         raise ValueError("Method is not supported.")
-    approx_strategy = choose_method[method]
+    approx_strategy = METHODS[method]()
 
     rk_init = odefilter.initialization_routines.RungeKuttaInitialization()
 
