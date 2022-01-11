@@ -63,8 +63,8 @@ def perturbsolve_ivp(
         Random number generator.
     method
         Integration method to use.
-        The following are available
-        (docs adapted from `SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_):  # pylint: disable="line-too-long"
+        The following are available (docs adapted from
+        `SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_):
 
             * `RK45` (default): Explicit Runge-Kutta method of order 5(4) [2]_.
               The error is controlled assuming accuracy of the fourth-order
@@ -209,7 +209,10 @@ def perturbsolve_ivp(
     .. [4] P. Bogacki, L.F. Shampine.
         A 3(2) Pair of Runge-Kutta Formulas.
         Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
-    """
+    """  # pylint: disable="line-too-long"
+    # The line-too-long-disable is for
+    # the rather long URL that points to the original SciPy docs,
+    # and which cannot be broken up easily.
 
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
     steprule = _create_steprule(adaptive, atol, ivp, rtol, step)
