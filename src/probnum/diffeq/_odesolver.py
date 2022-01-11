@@ -155,7 +155,9 @@ class ODESolver(ABC):
         """Create an ODESolution object."""
         raise NotImplementedError
 
-    def postprocess(self, odesol):
+    # We disable the pylint warning, because subclasses _do_ use 'self'
+    # but pylint does not seem to realize this.
+    def postprocess(self, odesol):  # pylint: disable="no-self-use"
         """Process the ODESolution object before returning."""
         return odesol
 
