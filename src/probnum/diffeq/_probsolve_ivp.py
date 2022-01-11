@@ -32,7 +32,7 @@ def probsolve_ivp(
     diffusion_model="dynamic",
     time_stops=None,
 ):
-    r"""Solve an initial value problem with a filtering-based probabilistic ODE solver.
+    r"""Solve an initial value problem with a filtering-based ODE solver.
 
     Numerically computes a Gauss-Markov process which solves numerically
     the initial value problem (IVP) based on a system of first order
@@ -49,9 +49,9 @@ def probsolve_ivp(
 
 
     This function turns a prior-string into an :class:`ODEPrior`, a
-    method-string into a filter/smoother of class :class:`GaussFiltSmooth`, creates a
-    :class:`ODEFilter` object and calls the :meth:`solve()` method. For
-    advanced usage we recommend to do this process manually which
+    method-string into a filter/smoother of class :class:`GaussFiltSmooth`,
+    creates a :class:`ODEFilter` object and calls the :meth:`solve()` method.
+    For advanced usage we recommend to do this process manually which
     enables advanced methods of tuning the algorithm.
 
     This function supports the methods:
@@ -65,43 +65,50 @@ def probsolve_ivp(
     unscented Kalman smoothing (UKS).
 
     For adaptive step-size selection of ODE filters, we implement the
-    scheme proposed by Schober et al. (2019), and further examined by Bosch et al (2021),
-    where the local error estimate is derived from the local, calibrated
-    uncertainty estimate.
+    scheme proposed by Schober et al. (2019), and further examined
+    by Bosch et al (2021), where the local error estimate is derived
+    from the local, calibrated uncertainty estimate.
 
     Arguments
     ---------
-    f :
+    f
         ODE vector field.
-    t0 :
+    t0
         Initial time point.
-    tmax :
+    tmax
         Final time point.
-    y0 :
+    y0
         Initial value.
-    df :
+    df
         Jacobian of the ODE vector field.
-    adaptive :
+    adaptive
         Whether to use adaptive steps or not. Default is `True`.
         If `False`, a `step` needs to be specified.
-    atol : float
+    atol
         Absolute tolerance  of the adaptive step-size selection scheme.
         Optional. Default is ``1e-4``.
-    rtol : float
+    rtol
         Relative tolerance   of the adaptive step-size selection scheme.
         Optional. Default is ``1e-4``.
-    step :
-        Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
+    step
+        Step size. If atol and rtol are not specified,
+        this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
-        Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
+        Default is None, in which case the first step is chosen
+        as prescribed by :meth:`propose_firststep`.
         Is required only when `adaptive=False`.
     algo_order
-        Order of the algorithm. This amounts to choosing the number of derivatives of an integrated Wiener process prior.
+        Order of the algorithm. This amounts to choosing the
+        number of derivatives of an integrated Wiener process prior.
         For too high orders, process noise covariance matrices become singular.
-        For integrated Wiener processes, this maximum seems to be ``num_derivatives=11`` (using standard ``float64``).
+        For integrated Wiener processes, this maximum seems to be
+        ``num_derivatives=11`` (using standard ``float64``).
         It is possible that higher orders may work for you.
-        The type of prior relates to prior assumptions about the derivative of the solution.
-        The higher the order of the algorithm, the faster the convergence, but also, the higher-dimensional (and thus the costlier) the state space.
+        The type of prior relates to prior assumptions
+        about the derivative of the solution.
+        The higher the order of the algorithm, the faster the convergence,
+        but also, the higher-dimensional
+        (and thus the more expensive) the state space.
     method : str, optional
         Which method is to be used. Default is ``EK0`` which is the
         method proposed by Schober et al.. The available
@@ -120,16 +127,19 @@ def probsolve_ivp(
         While we recommend to use correct capitalization for the method string,
         lower-case letters will be capitalized internally.
     dense_output : bool
-        Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
-        dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
+        Whether we want dense output. Optional. Default is ``True``.
+        For the ODE filter, dense output requires smoothing,
+        so if ``dense_output`` is False, no smoothing is performed;
         but when it is ``True``, the filter solution is smoothed.
     diffusion_model : str
-        Which diffusion model to use. The choices are ``'constant'`` and ``'dynamic'``,
+        Which diffusion model to use.
+        The choices are ``'constant'`` and ``'dynamic'``,
         which implement different styles of
         online calibration of the underlying diffusion [5]_.
         Optional. Default is ``'dynamic'``.
     time_stops: np.ndarray
-        Time-points through which the solver must step. Optional. Default is None.
+        Time-points through which the solver must step. Optional.
+        Default is None.
 
     Returns
     -------
@@ -151,8 +161,10 @@ def probsolve_ivp(
 
     See Also
     --------
-    ODEFilter : Solve IVPs with Gaussian filtering and smoothing
-    ODEFilterSolution : Solution of ODE problems based on Gaussian filtering and smoothing.
+    ODEFilter :
+        Solve IVPs with Gaussian filtering and smoothing
+    ODEFilterSolution :
+        Solution of ODE problems based on Gaussian filtering and smoothing.
 
     References
     ----------
@@ -212,7 +224,10 @@ def probsolve_ivp(
 
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", algo_order=2, step=0.1, adaptive=False)
+    >>> solution = probsolve_ivp(
+    ...     f, t0, tmax, y0, df=df, method="EK1",
+    ...     algo_order=2, step=0.1, adaptive=False
+    ... )
     >>> print(np.round(solution.states.mean, 2))
     [[0.15]
      [0.21]
