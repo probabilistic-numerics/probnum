@@ -7,10 +7,16 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import problems
-from probnum.diffeq import callbacks
+from probnum.diffeq import callbacks as callback_module  # see below
 from probnum.typing import FloatLike
 
-CallbackType = Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
+# From above:
+# One of the argument to solve() is called 'callback',
+# and we do not want to redefine variable namespaces.
+
+CallbackType = Union[
+    callback_module.ODESolverCallback, Iterable[callback_module.ODESolverCallback]
+]
 """Callback interface type."""
 
 
