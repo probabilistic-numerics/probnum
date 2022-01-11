@@ -11,7 +11,7 @@ References
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.diffeq import _utils, odefilter, stepsize
+from probnum.diffeq import _utils, odefilter
 
 __all__ = ["probsolve_ivp"]
 
@@ -165,6 +165,13 @@ def probsolve_ivp(
             The means and covariances can be accessed with ``solution.y.mean``
             and ``solution.y.cov``.
 
+    Raises
+    ------
+    ValueError
+        If 'diffusion_model' is not in the list of supported diffusion models.
+    ValueError
+        If 'method' is not in the list of supported methods.
+
     See Also
     --------
     ODEFilter :
@@ -256,9 +263,9 @@ def probsolve_ivp(
 
     # Create IVP object
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f, df=df)
-
-    # Create steprule
-    steprule = _utils.construct_steprule(ivp, adaptive, step, atol, rtol)
+    steprule = _utils.construct_steprule(
+        ivp=ivp, adaptive=adaptive, step=step, atol=atol, rtol=rtol
+    )
 
     # Construct diffusion model.
     diffusion_model = diffusion_model.lower()

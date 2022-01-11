@@ -3,7 +3,7 @@
 from probnum.diffeq import stepsize
 
 
-def construct_steprule(ivp, adaptive, step, atol, rtol):
+def construct_steprule(*, ivp, adaptive, step, atol, rtol):
     if adaptive is True:
         if atol is None or rtol is None:
             raise ValueError(
