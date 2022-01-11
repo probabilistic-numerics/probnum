@@ -46,22 +46,22 @@ def perturbsolve_ivp(
     rtol: FloatLike = 1e-3,
     step: Optional[FloatLike] = None,
     time_stops: Optional[ArrayLike] = None,
-):
+) -> perturbed.step.PerturbedStepSolution:
     r"""Solve an initial value problem with a perturbation-based ODE solver.
 
     Parameters
     ----------
-    f :
+    f
         ODE vector field.
-    t0 :
+    t0
         Initial time point.
-    tmax :
+    tmax
         Final time point.
-    y0 :
+    y0
         Initial value.
-    rng :
+    rng
         Random number generator.
-    method :
+    method
         Integration method to use.
         The following are available
         (docs adapted from `SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_):  # pylint: disable="line-too-long"
@@ -79,7 +79,7 @@ def perturbsolve_ivp(
               dense output. Can be applied in the complex domain.
 
         Other integrators are not supported currently.
-    perturb :
+    perturb
         Which perturbation style to use.
         Currently, the following methods are supported:
 
@@ -91,26 +91,39 @@ def perturbsolve_ivp(
               with uniformly distributed perturbation of the step-size [1]_.
 
         Other integrators are not supported currently.
-    noise_scale :
+    noise_scale
         Scale of the perturbation. Optional.
         Default is 10.0. The magnitude of this parameter
         significantly impacts the width of the posterior.
-    adaptive :
+    adaptive
         Whether to use adaptive steps or not. Default is `True`.
-    atol :
+    atol
         Absolute tolerance  of the adaptive step-size selection scheme.
         Optional. Default is ``1e-6``.
-    rtol :
+    rtol
         Relative tolerance   of the adaptive step-size selection scheme.
         Optional. Default is ``1e-3``.
-    step :
+    step
         Step size. If atol and rtol are not specified, this step-size
         is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen
         as prescribed by :meth:`propose_firststep`.
-    time_stops: np.ndarray
+    time_stops
         Time-points through which the solver must step. Optional. Default is None.
+
+    Raises
+    ------
+    ValueError
+        If the 'method' string does not correspond to a supported method.
+    ValueError
+        If the 'perturb' string does not correspond to
+        a supported perturbation style.
+
+    Returns
+    -------
+    perturbed.step.PerturbedStepSolution
+        ODE Solution of the perturbed-step-solver.
 
     Examples
     --------
