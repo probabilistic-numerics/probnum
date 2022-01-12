@@ -34,7 +34,8 @@ def test_call(posterior):
         posterior(0.0)
 
 
-# The tests below -- as a side results -- also cover the specific properties in _RandomVariableList.
+# The tests below -- as a side results -- also
+# cover the specific properties in _RandomVariableList.
 
 
 def test_mode(posterior):
