@@ -178,9 +178,9 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
             # Capture the inputs in a variable for more compact code layout
             inputs = measmod, particles, weights, data, t_old, dt, t
             if t == initarg:
-                particle_generator = self.importance_rv_generator_initial_time(*inputs)
+                particle_generator = self._importance_rv_generator_initial_time(*inputs)
             else:
-                particle_generator = self.importance_rv_generator(*inputs)
+                particle_generator = self._importance_rv_generator(*inputs)
 
             for idx, (importance_rv, dynamics_rv, p, w) in enumerate(
                 particle_generator
@@ -214,7 +214,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
             yield new_rv, {}
             t_old = t
 
-    def importance_rv_generator_initial_time(
+    def _importance_rv_generator_initial_time(
         self,
         measmod,
         particles,
@@ -232,7 +232,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         for p, w in zip(particles, weights):
             yield importance_rv, dynamics_rv, p, w
 
-    def importance_rv_generator(
+    def _importance_rv_generator(
         self,
         measmod,
         particles,

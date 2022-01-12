@@ -15,7 +15,7 @@ class StateSpaceOptimizer(abc.ABC):
         self.stopping_criterion = stopping_criterion
 
     def solve(self, regression_problem, initial_guess):
-
+        """Solve a state-space optimization problem."""
         # Initialization (in case the loop is empty)
         posterior = initial_guess
         info_dicts = None
@@ -31,4 +31,5 @@ class StateSpaceOptimizer(abc.ABC):
 
     @abc.abstractmethod
     def solution_generator(self, regression_problem, initial_guess):
+        """Generate optimization steps."""
         raise NotImplementedError

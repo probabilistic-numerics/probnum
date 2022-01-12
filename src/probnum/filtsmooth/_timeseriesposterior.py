@@ -50,7 +50,7 @@ class TimeSeriesPosterior(abc.ABC):
         location: FloatLike,
         state: randvars.RandomVariable,
     ) -> None:
-
+        """Append a state to the posterior."""
         if self.frozen:
             raise ValueError("Cannot append to frozen TimeSeriesPosterior object.")
 
@@ -58,18 +58,22 @@ class TimeSeriesPosterior(abc.ABC):
         self._states.append(state)
 
     def freeze(self) -> None:
+        """Freeze the posterior."""
         self._frozen = True
 
     @property
     def frozen(self):
+        """Whether the posterior is frozen."""
         return self._frozen
 
     @property
     def locations(self):
+        """Locations of the states of the posterior."""
         return np.asarray(self._locations)
 
     @property
     def states(self):
+        """States of the posterior."""
         return randvars._RandomVariableList(self._states)
 
     def __len__(self) -> int:

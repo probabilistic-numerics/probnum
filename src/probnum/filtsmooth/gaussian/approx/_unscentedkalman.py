@@ -260,4 +260,5 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
 
     @property
     def dimension(self) -> int:
+        """Dimension of the state-space associated with the UKF."""
         return self.ut.dimension
