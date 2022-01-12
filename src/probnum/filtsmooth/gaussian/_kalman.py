@@ -27,9 +27,13 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
     Parameters
     ----------
     prior_process
-        Prior Gauss-Markov process. Usually a :class:`MarkovProcess` with a :class:`Normal` initial random variable,
-        and an :class:`LTISDE` transition or an :class:`IntegratorTransition`, but :class:`LinearSDE`, :class:`ContinuousEKFComponent`,
-        or :class:`ContinuousUKFComponent` are also valid. Describes a random process in :math:`K` dimensions.
+        Prior Gauss-Markov process.
+        Usually a :class:`MarkovProcess` with a
+        :class:`Normal` initial random variable,
+        and an :class:`LTISDE` transition or an :class:`IntegratorTransition`,
+        but :class:`LinearSDE`, :class:`ContinuousEKFComponent`,
+        or :class:`ContinuousUKFComponent` are also valid.
+        Describes a random process in :math:`K` dimensions.
         If the transition is an integrator, `K=d*(nu+1)` for some d and nu.
     """
 
@@ -90,9 +94,9 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         regression_problem :
             Regression problem.
         init_posterior
-            Initial posterior to linearize at. Defaults to computing a (non-iterated)
-            smoothing posterior, which amounts to linearizing at the prediction
-            random variable.
+            Initial posterior to linearize at.
+            Defaults to computing a (non-iterated) smoothing posterior,
+            which amounts to linearizing at the prediction random variable.
         stopcrit:
             A stopping criterion for iterated filtering.
 
@@ -145,8 +149,10 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         regression_problem :
             Regression problem.
         _previous_posterior: KalmanPosterior
-            If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
-            This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
+            If specified, approximate Gaussian filtering and smoothing
+            linearises at this, prescribed posterior.
+            This is used for iterated filtering and smoothing.
+            For standard filtering, this can be ignored.
 
         Returns
         -------
@@ -179,8 +185,10 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         regression_problem :
             Regression problem.
         _previous_posterior: KalmanPosterior
-            If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
-            This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
+            If specified, approximate Gaussian filtering and smoothing
+            linearises at this, prescribed posterior.
+            This is used for iterated filtering and smoothing.
+            For standard filtering, this can be ignored.
 
         Returns
         -------
@@ -219,8 +227,10 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         regression_problem :
             Regression problem.
         _previous_posterior: KalmanPosterior
-            If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
-            This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
+            If specified, approximate Gaussian filtering and smoothing
+            linearises at this, prescribed posterior.
+            This is used for iterated filtering and smoothing.
+            For standard filtering, this can be ignored.
 
         Yields
         ------
