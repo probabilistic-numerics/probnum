@@ -64,8 +64,8 @@ def perturbsolve_ivp(
     method
         Integration method to use.
         The following are available (docs adapted from
-        https://docs.scipy.org/doc/scipy/reference\
-/generated/scipy.integrate.solve_ivp.html):
+        https://docs.scipy.org/doc/scipy/\
+reference/generated/scipy.integrate.solve_ivp.html):
 
             * `RK45` (default): Explicit Runge-Kutta method of order 5(4) [2]_.
               The error is controlled assuming accuracy of the fourth-order
