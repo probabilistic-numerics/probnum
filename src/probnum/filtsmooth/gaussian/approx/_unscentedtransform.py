@@ -1,7 +1,7 @@
 """Unscented Transform."""
 
 
-from typing import Callable
+from typing import Callable, Tuple
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class UnscentedTransform:
             spread, priorpar, self.dimension, self.scale
         )
 
-    def sigma_points(self, rv: randvars.Normal):
+    def sigma_points(self, rv: randvars.Normal) -> np.ndarray:
         """Sigma points.
 
         Parameters
@@ -56,6 +56,7 @@ class UnscentedTransform:
         Returns
         -------
         np.ndarray, shape (2 * d + 1, d)
+            Sigma points.
         """
         if len(rv.mean) != self.dimension:
             raise ValueError("Dimensionality does not match UT")
@@ -88,8 +89,8 @@ class UnscentedTransform:
 
         Returns
         -------
-        np.ndarray, shape=(2 N + 1, M),
-            M is the dimension of the measurement model
+        np.ndarray
+            Shape=(2 N + 1, M). M is the dimension of the measurement model
         """
         propsigpts = np.array([modelfct(time, pt) for pt in sigmapts])
         return propsigpts
@@ -129,70 +130,74 @@ def _compute_scale(dimension, spread, special_scale):
     return spread ** 2 * (dimension + special_scale) - dimension
 
 
-def _unscented_weights(spread, priorpar, dimension, scale):
+def _unscented_weights(
+    spread: FloatLike, priorpar: FloatLike, dimension: int, scale: FloatLike
+) -> Tuple[np.ndarray, np.ndarray]:
     """See BFaS; p. 84.
 
     Parameters
     ----------
-    spread: float
+    spread
         Spread of sigma points around mean (alpha)
-    priorpar: float
+    priorpar
         Prior information parameter (beta)
-    dimension : int
+    dimension
         Dimension of the state space
-    scale : float
+    scale
         Scaling parameter for unscented transform
 
     Returns
     -------
-    np.ndarray, shape (2 * dimension + 1,)
-        constant mean weights.
-    np.ndarray, shape (2 * dimension + 1,)
-        constant kernels weights.
+    np.ndarray
+        Shape (2 * dimension + 1,). constant mean weights.
+    np.ndarray
+        Shape (2 * dimension + 1,). constant kernels weights.
     """
     mweights = _meanweights(dimension, scale)
     cweights = _covarweights(dimension, spread, priorpar, scale)
     return mweights, cweights
 
 
-def _meanweights(dimension, lam):
+def _meanweights(dimension: int, lam: FloatLike) -> np.ndarray:
     """Mean weights.
 
     Parameters
     ----------
-    dimension: int
+    dimension
         Spatial dimensionality of state space model
-    lam: float
+    lam
         Scaling parameter for unscented transform (lambda)
 
     Returns
     -------
-    np.ndarray, shape (2*dimension+1,)
-        Constant mean weights.
+    np.ndarray
+        Shape (2*dimension+1,). Constant mean weights.
     """
     mw0 = np.ones(1) * lam / (dimension + lam)
     mw = np.ones(2 * dimension) / (2.0 * (dimension + lam))
     return np.hstack((mw0, mw))
 
 
-def _covarweights(dimension, alp, bet, lam):
+def _covarweights(
+    dimension: int, alp: FloatLike, bet: FloatLike, lam: FloatLike
+) -> np.ndarray:
     """Covariance weights.
 
     Parameters
     ----------
-    dimension: int
+    dimension
         Spatial dimensionality of state space model
-    alp: float
+    alp
         Spread of sigma points around mean (alpha)
-    bet: float
+    bet
         Prior information parameter (beta)
-    lam: float
+    lam
         Scaling parameter for unscented transform (lambda)
 
     Returns
     -------
-    np.ndarray, shape (2 * dimension + 1,)
-        the constant kernels weights.
+    np.ndarray
+        Shape (2 * dimension + 1,). the constant kernels weights.
     """
     cw0 = np.ones(1) * lam / (dimension + lam) + (1 - alp ** 2 + bet)
     cw = np.ones(2 * dimension) / (2.0 * (dimension + lam))

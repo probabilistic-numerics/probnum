@@ -51,17 +51,18 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem :
+        regression_problem
             Regression problem.
         init_posterior
             Initial posterior to linearize at. If not specified, linearizes
             at the prediction random variable.
-        stopcrit:
+        stopcrit
             A stopping criterion for iterated filtering.
 
         Returns
         -------
         SmoothingPosterior
+            Iterated smoothing posterior.
 
         See Also
         --------
