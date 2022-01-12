@@ -21,7 +21,6 @@ from ._integration_measures import GaussianMeasure, IntegrationMeasure, Lebesgue
 from .solvers import BayesianQuadrature
 
 
-# pylint: disable=too-many-arguments, no-else-raise
 def bayesquad(
     fun: Callable,
     input_dim: int,
@@ -134,7 +133,7 @@ def bayesquad(
     if domain is not None:
         if isinstance(measure, GaussianMeasure):
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        elif isinstance(measure, LebesgueMeasure):
+        if isinstance(measure, LebesgueMeasure):
             warnings.warn(
                 "Both domain and a LebesgueMeasure are specified. The domain "
                 "information will be ignored."
@@ -221,7 +220,7 @@ def bayesquad_from_data(
     if domain is not None:
         if isinstance(measure, GaussianMeasure):
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        elif isinstance(measure, LebesgueMeasure):
+        if isinstance(measure, LebesgueMeasure):
             warnings.warn(
                 "Both domain and a LebesgueMeasure are specified. The domain "
                 "information will be ignored."

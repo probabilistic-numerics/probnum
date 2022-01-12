@@ -8,8 +8,6 @@ import scipy.linalg as slinalg
 from probnum.quad._integration_measures import GaussianMeasure
 from probnum.randprocs.kernels import ExpQuad
 
-# pylint: disable=invalid-name
-
 
 def _kernel_mean_expquad_gauss(
     x: np.ndarray, kernel: ExpQuad, measure: GaussianMeasure

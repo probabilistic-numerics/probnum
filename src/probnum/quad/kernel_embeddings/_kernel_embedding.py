@@ -51,7 +51,6 @@ class KernelEmbedding:
             kernel=self.kernel, measure=self.measure
         )
 
-    # pylint: disable=invalid-name
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
         """Kernel mean w.r.t. its first argument against the integration measure.
 
@@ -109,10 +108,9 @@ def _get_kernel_embedding(
 
     # Exponentiated quadratic kernel
     if isinstance(kernel, ExpQuad):
-        # pylint: disable=no-else-return
         if isinstance(measure, GaussianMeasure):
             return _kernel_mean_expquad_gauss, _kernel_variance_expquad_gauss
-        elif isinstance(measure, LebesgueMeasure):
+        if isinstance(measure, LebesgueMeasure):
             return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
         raise NotImplementedError
 
