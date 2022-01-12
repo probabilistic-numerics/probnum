@@ -55,8 +55,8 @@ class UnscentedTransform:
 
         Returns
         -------
-        np.ndarray, shape (2 * d + 1, d)
-            Sigma points.
+        np.ndarray
+             Shape (2 * d + 1, d). Sigma points.
         """
         if len(rv.mean) != self.dimension:
             raise ValueError("Dimensionality does not match UT")
@@ -216,8 +216,8 @@ def _estimate_mean(mweights, proppts):
 
     Returns
     -------
-    np.ndarray, shape (dimension,)
-        Estimated mean.
+    np.ndarray
+        Shape (dimension,). Estimated mean.
     """
     return mweights @ proppts
 
@@ -227,19 +227,19 @@ def _estimate_covar(cweights, proppts, mean, covmat):
 
     Parameters
     ----------
-    cweights: np.ndarray, shape (2*dimension + 1,)
-        Constant kernels weights for unscented transform.
-    proppts: np.ndarray, shape (2*dimension + 1, dimension)
-        Propagated sigma points
-    mean: np.ndarray, shape (dimension,)
-        Result of _estimate_mean(...)
-    covmat: np.ndarray, shape (dimension, dimension)
-        Covariance of measurement model at current time.
+    cweights: np.ndarray
+        Shape (2*dimension + 1,). Constant kernels weights for unscented transform.
+    proppts: np.ndarray
+        Shape (2*dimension + 1, dimension). Propagated sigma points
+    mean: np.ndarray
+        Shape (dimension,). Result of _estimate_mean(...)
+    covmat: np.ndarray
+        Shape (dimension, dimension). Covariance of measurement model at current time.
 
     Returns
     -------
-    np.ndarray, shape (dimension, dimension)
-        Estimated kernels.
+    np.ndarray
+         Shape (dimension, dimension). Estimated kernels.
     """
     cent = proppts - mean
     empcov = cent.T @ (cweights * cent.T).T
@@ -251,21 +251,21 @@ def _estimate_crosscovar(cweights, proppts, mean, sigpts, mpred):
 
     Parameters
     ----------
-    cweights: np.ndarray, shape (2*dimension + 1,)
-        Constant kernels weights for unscented transform.
-    sigpts: np.ndarray, shape (2*dimension + 1, dimension)
-        Sigma points
-    mpred: np.ndarray, shape (dimension,)
-        Predicted mean
-    proppts: np.ndarray, shape (2*dimension + 1, dimension)
-        Propagated sigma points
-    mean: np.ndarray, shape (dimension,)
-        Result of _estimate_mean(...)
+    cweights: np.ndarray
+        Shape (2*dimension + 1,). Constant kernels weights for unscented transform.
+    sigpts: np.ndarray
+        Shape (2*dimension + 1, dimension). Sigma points
+    mpred: np.ndarray
+        Shape (dimension,). Predicted mean
+    proppts: np.ndarray
+        Shape (2*dimension + 1, dimension). Propagated sigma points
+    mean: np.ndarray
+        Shape (dimension,). Result of _estimate_mean(...)
 
     Returns
     -------
-    np.ndarray, shape (dimension,)
-        Estimated kernels.
+    np.ndarray
+        Shape (dimension,). Estimated kernels.
     """
     cent_prop = proppts - mean
     cent_sig = sigpts - mpred
