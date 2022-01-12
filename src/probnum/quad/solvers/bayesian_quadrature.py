@@ -103,6 +103,14 @@ class BayesianQuadrature:
         -------
         BayesianQuadrature
             An instance of this class.
+
+        Raises
+        ------
+        ValueError
+            If Bayesian Monte Carlo ('bmc') is selected as ``policy`` and no random
+            number generator (``rng``) is given.
+        NotImplementedError
+            If an unknown ``policy`` is given.
         """
         # Set up integration measure
         if measure is None:
@@ -321,6 +329,12 @@ class BayesianQuadrature:
             Posterior belief about the integral.
         bq_state
             Final state of the Bayesian quadrature method.
+
+        Raises
+        ------
+        ValueError
+            If neither the integrand function (``fun``) nor integrand evaluations
+            (``fun_evals``) are given.
         """
         if fun is None and fun_evals is None:
             raise ValueError("You need to provide a function to be integrated!")

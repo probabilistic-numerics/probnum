@@ -27,6 +27,12 @@ class KernelEmbedding:
         Instance of a kernel.
     measure:
         Instance of an integration measure.
+
+    Raises
+    ------
+    ValueError
+        If the input dimension of the kernel does not match the input dimension of the
+        measure.
     """
 
     def __init__(self, kernel: Kernel, measure: IntegrationMeasure) -> None:
@@ -92,6 +98,13 @@ def _get_kernel_embedding(
         The kernel mean function.
     kernel_variance :
         The kernel variance function.
+
+    Raises
+    ------
+    NotImplementedError
+        If the given kernel is unknown.
+    NotImplementedError
+        If the kernel embedding of the kernel-measure pair is unknown.
     """
 
     # Exponentiated quadratic kernel
