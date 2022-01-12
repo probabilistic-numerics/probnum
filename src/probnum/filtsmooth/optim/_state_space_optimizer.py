@@ -6,6 +6,8 @@ from probnum.filtsmooth.optim import _stopping_criterion
 
 
 class StateSpaceOptimizer(abc.ABC):
+    """State-space optimizer."""
+
     def __init__(self, kalman, stopping_criterion=None):
         self.kalman = kalman
         if stopping_criterion is None:
