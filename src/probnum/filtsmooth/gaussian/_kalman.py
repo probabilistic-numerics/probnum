@@ -146,9 +146,9 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem :
+        regression_problem
             Regression problem.
-        _previous_posterior: KalmanPosterior
+        _previous_posterior
             If specified, approximate Gaussian filtering and smoothing
             linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing.
