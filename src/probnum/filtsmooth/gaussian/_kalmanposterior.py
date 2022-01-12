@@ -12,12 +12,7 @@ from scipy import stats
 from probnum import randprocs, randvars, utils
 from probnum.filtsmooth import _timeseriesposterior
 from probnum.filtsmooth.gaussian import approx
-from probnum.typing import (
-    DenseOutputLocationArgType,
-    FloatArgType,
-    IntArgType,
-    ShapeArgType,
-)
+from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 GaussMarkovPriorTransitionArgType = Union[
     randprocs.markov.discrete.LinearGaussian,
@@ -46,7 +41,7 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
     def __init__(
         self,
         transition: GaussMarkovPriorTransitionArgType,
-        locations: Optional[Iterable[FloatArgType]] = None,
+        locations: Optional[Iterable[FloatLike]] = None,
         states: Optional[Iterable[randvars.RandomVariable]] = None,
         diffusion_model=None,
     ) -> None:
@@ -60,17 +55,17 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
     @abc.abstractmethod
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
         raise NotImplementedError
 
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        t: Optional[ArrayLike] = None,
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
 
         size = utils.as_shape(size)
@@ -108,7 +103,7 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: DenseOutputLocationArgType,
+        t: ArrayLike,
     ) -> np.ndarray:
         """Transform samples from a base measure to samples from the KalmanPosterior.
 
@@ -157,7 +152,7 @@ class SmoothingPosterior(KalmanPosterior):
         self,
         filtering_posterior: _timeseriesposterior.TimeSeriesPosterior,
         transition: GaussMarkovPriorTransitionArgType,
-        locations: Iterable[FloatArgType],
+        locations: Iterable[FloatLike],
         states: Iterable[randvars.RandomVariable],
         diffusion_model=None,
     ):
@@ -171,9 +166,9 @@ class SmoothingPosterior(KalmanPosterior):
 
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
@@ -364,9 +359,9 @@ class FilteringPosterior(KalmanPosterior):
 
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
@@ -427,8 +422,8 @@ class FilteringPosterior(KalmanPosterior):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        t: Optional[ArrayLike] = None,
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         # If this error would not be thrown here, trying to sample from a FilteringPosterior
         # would call FilteringPosterior.transform_base_measure_realizations which is not implemented.
@@ -441,7 +436,7 @@ class FilteringPosterior(KalmanPosterior):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: Optional[ArrayLike] = None,
     ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."

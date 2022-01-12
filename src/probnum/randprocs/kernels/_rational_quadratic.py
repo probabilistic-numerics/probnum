@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.typing import IntArgType, ScalarArgType
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -58,9 +58,9 @@ class RatQuad(Kernel, IsotropicMixin):
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        lengthscale: ScalarArgType = 1.0,
-        alpha: ScalarArgType = 1.0,
+        input_dim: IntLike,
+        lengthscale: ScalarLike = 1.0,
+        alpha: ScalarLike = 1.0,
     ):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
         self.alpha = _utils.as_numpy_scalar(alpha)

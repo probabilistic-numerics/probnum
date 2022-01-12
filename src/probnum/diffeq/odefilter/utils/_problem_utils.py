@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import problems, randprocs
 from probnum.diffeq.odefilter import approx_strategies, information_operators
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 __all__ = ["ivp_to_regression_problem"]
 
@@ -19,7 +19,7 @@ def ivp_to_regression_problem(
     locations: Union[Sequence, np.ndarray],
     ode_information_operator: information_operators.InformationOperator,
     approx_strategy: Optional[approx_strategies.ApproximationStrategy] = None,
-    ode_measurement_variance: Optional[FloatArgType] = 0.0,
+    ode_measurement_variance: Optional[FloatLike] = 0.0,
     exclude_initial_condition=False,
 ):
     """Transform an initial value problem into a regression problem.
