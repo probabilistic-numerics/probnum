@@ -1,3 +1,5 @@
+"""Iterated components for iterated filtering and smoothing."""
+
 import numpy as np
 
 from probnum import randprocs
