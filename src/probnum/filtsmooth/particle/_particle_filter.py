@@ -36,10 +36,11 @@ def effective_number_of_events(categ_rv: randvars.Categorical) -> float:
 class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
     r"""Particle filter (PF). Also known as sequential Monte Carlo method.
 
-    A PF estimates the posterior distribution of a Markov process given noisy, non-linear observations,
-    with a set of particles.
+    A PF estimates the posterior distribution of a Markov process
+    given noisy, non-linear observations, with a set of particles.
 
-    The random state of the particle filter is inferred from the random state of the initial random variable.
+    The random state of the particle filter is inferred
+    from the random state of the initial random variable.
 
     Parameters
     ----------
@@ -52,12 +53,15 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
     rng :
         Random number generator.
     with_resampling :
-        Whether after each step the effective number of particles shall be checked, and, if too low,
+        Whether after each step the effective number of particles
+        shall be checked, and, if too low,
         the state should be resampled. Optional. Default is `True`.
     resampling_percentage_threshold :
-        Percentage threshold for resampling. That is, it is the value :math:`p` such that
-        resampling is performed if :math:`N_{\text{eff}} < p \, N_\text{particles}` holds.
-        Optional. Default is 0.1. If this value is non-positive, resampling is never performed.
+        Percentage threshold for resampling.
+        That is, it is the value :math:`p` such that resampling is performed
+        if :math:`N_{\text{eff}} < p \, N_\text{particles}` holds.
+        Optional. Default is 0.1. If this value is non-positive,
+        resampling is never performed.
         If it is larger than 1, resampling is performed after each step.
     """
 
@@ -152,7 +156,8 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         t_old = self.prior_process.initarg
 
         # If the initial time of the prior equals the location of the first data point,
-        # the initial set of particles is overwritten. Here, we set them to unimportant values.
+        # the initial set of particles is overwritten.
+        # Here, we set them to unimportant values.
         # If the initial time of the prior is NOT the location of the first data point,
         # we have to sample an initial set of particles.
         weights = np.ones(self.num_particles) / self.num_particles
