@@ -19,7 +19,8 @@ def _kernel_mean_expquad_lebesgue(
     Parameters
     ----------
     x :
-        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
+        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel
+        mean.
     kernel :
         Instance of an ExpQuad kernel.
     measure :

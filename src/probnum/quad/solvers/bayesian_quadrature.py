@@ -130,8 +130,8 @@ class BayesianQuadrature:
                 "Policies other than random sampling are not available at the moment."
             )
 
-        # Set stopping criteria
-        # If multiple stopping criteria are given, BQ stops once the first criterion is fulfilled.
+        # Set stopping criteria: If multiple stopping criteria are given, BQ stops
+        # once the first criterion is fulfilled.
         def _stopcrit_or(sc1, sc2):
             if sc1 is None:
                 return sc2
@@ -152,7 +152,8 @@ class BayesianQuadrature:
                 _stopping_criterion, RelativeMeanChange(rel_tol)
             )
 
-        # If no stopping criteria are given, use some default values (these are arbitrary values)
+        # If no stopping criteria are given, use some default values
+        # (these are arbitrary values)
         if _stopping_criterion is None:
             _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
                 max_nevals=input_dim * 25
@@ -172,8 +173,8 @@ class BayesianQuadrature:
         Parameters
         ----------
         bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information about the
-            problem and the computation.
+            State of the Bayesian quadrature methods. Contains all necessary
+            information about the problem and the computation.
 
         Returns
         -------
@@ -197,7 +198,8 @@ class BayesianQuadrature:
     ) -> Tuple[Normal, np.ndarray, np.ndarray, BQState]:
         """Generator that implements the iteration of the BQ method.
 
-        This function exposes the state of the BQ method one step at a time while running the loop.
+        This function exposes the state of the BQ method one step at a time while
+        running the loop.
 
         Parameters
         ----------
@@ -213,8 +215,8 @@ class BayesianQuadrature:
         integral_belief:
             Current belief about the integral.
         bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information about the
-            problem and the computation.
+            State of the Bayesian quadrature methods. Contains all necessary information
+            about the problem and the computation.
 
         Yields
         ------
@@ -297,8 +299,9 @@ class BayesianQuadrature:
     ) -> Tuple[Normal, BQState]:
         """Integrate the function ``fun``.
 
-        ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at fixed nodes.
-        This function calls the generator ``bq_iterator`` until the first stopping criterion is met.
+        ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at
+        fixed nodes. This function calls the generator ``bq_iterator`` until the first
+        stopping criterion is met.
 
         Parameters
         ----------

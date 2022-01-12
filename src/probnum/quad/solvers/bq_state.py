@@ -9,7 +9,7 @@ from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 
-# pylint: disable=too-few-public-methods, too-many-instance-attributes, too-many-arguments
+# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments
 
 
 class BQInfo:

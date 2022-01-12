@@ -45,7 +45,8 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         Returns
         -------
         updated_belief :
-            Gaussian integral belief after conditioning on the new nodes and evaluations.
+            Gaussian integral belief after conditioning on the new nodes and
+            evaluations.
         updated_state :
             Updated version of ``bq_state`` that contains all updated quantities.
         """

@@ -37,7 +37,8 @@ def bayesquad(
     batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
 ) -> Tuple[Normal, BQInfo]:
-    r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
+    r"""Infer the solution of the uni- or multivariate integral
+    :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
 
     Bayesian quadrature (BQ) infers integrals of the form
@@ -48,12 +49,12 @@ def bayesquad(
     :math:`\Omega \subset \mathbb{R}^D` against a measure :math:`\mu: \mathbb{R}^D
     \mapsto \mathbb{R}`.
 
-    Bayesian quadrature methods return a probability distribution over the solution :math:`F` with
-    uncertainty arising from finite computation (here a finite number of function evaluations).
-    They start out with a random process encoding the prior belief about the function :math:`f`
-    to be integrated. Conditioned on either existing or acquired function evaluations according to a
-    policy, they update the belief on :math:`f`, which is translated into a posterior measure over
-    the integral :math:`F`.
+    Bayesian quadrature methods return a probability distribution over the solution
+    :math:`F` with uncertainty arising from finite computation (here a finite number
+    of function evaluations). They start out with a random process encoding the prior
+    belief about the function :math:`f` to be integrated. Conditioned on either existing
+    or acquired function evaluations according to a policy, they update the belief on
+    :math:`f`, which is translated into a posterior measure over the integral :math:`F`.
     See Briol et al. [1]_ for a review on Bayesian quadrature.
 
     Parameters
