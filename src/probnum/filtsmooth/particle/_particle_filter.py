@@ -134,6 +134,11 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         regression_problem :
             Regression problem.
 
+        Raises
+        ------
+        ValueError
+            If repeating time-points are encountered.
+
         Yields
         ------
         curr_rv

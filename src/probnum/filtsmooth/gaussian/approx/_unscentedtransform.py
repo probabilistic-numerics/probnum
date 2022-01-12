@@ -43,6 +43,11 @@ class UnscentedTransform:
         rv
             Gaussian random variable. Shape (d,)
 
+        Raises
+        ------
+        ValueError
+            If the random variable does not match the dimension of the UT.
+
         Returns
         -------
         np.ndarray, shape (2 * d + 1, d)

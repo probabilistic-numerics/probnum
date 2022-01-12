@@ -232,6 +232,11 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
             This is used for iterated filtering and smoothing.
             For standard filtering, this can be ignored.
 
+        Raises
+        ------
+        ValueError
+            If time-points are not sorted or not disjoint.
+
         Yields
         ------
         filtrv

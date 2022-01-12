@@ -101,6 +101,11 @@ class TimeSeriesPosterior(abc.ABC):
         t :
             Location, or time, at which to evaluate the posterior.
 
+        Raises
+        ------
+        ValueError
+            If time-points are not strictly increasing.
+
         Returns
         -------
         randvars.RandomVariable or randvars._RandomVariableList
