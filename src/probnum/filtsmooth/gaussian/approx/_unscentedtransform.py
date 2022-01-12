@@ -1,7 +1,12 @@
 """Unscented Transform."""
 
 
+from typing import Callable
+
 import numpy as np
+
+from probnum import randvars
+from probnum.typing import ArrayLike, FloatLike
 
 
 class UnscentedTransform:
@@ -35,7 +40,7 @@ class UnscentedTransform:
             spread, priorpar, self.dimension, self.scale
         )
 
-    def sigma_points(self, rv):
+    def sigma_points(self, rv: randvars.Normal):
         """Sigma points.
 
         Parameters
@@ -66,7 +71,9 @@ class UnscentedTransform:
             )
         return sigpts
 
-    def propagate(self, time, sigmapts, modelfct):
+    def propagate(
+        self, time: FloatLike, sigmapts: ArrayLike, modelfct: Callable
+    ) -> np.ndarray:
         """Propagate sigma points.
 
         Parameters

@@ -1,15 +1,26 @@
 """Convenience functions for filtering and smoothing."""
 
+from typing import Optional
+
 import numpy as np
 
 from probnum import problems, randprocs, randvars
 from probnum.filtsmooth import gaussian
+from probnum.typing import ArrayLike
 
 __all__ = ["filter_kalman", "smooth_rts"]
 
 
 def filter_kalman(
-    observations, locations, F, L, H, R, m0, C0, prior_model="continuous"
+    observations: ArrayLike,
+    locations: ArrayLike,
+    F: ArrayLike,
+    L: ArrayLike,
+    H: ArrayLike,
+    R: ArrayLike,
+    m0: ArrayLike,
+    C0: ArrayLike,
+    prior_model: str = "continuous",
 ):
     r"""Estimate a trajectory with a Kalman filter.
 
@@ -95,7 +106,17 @@ def filter_kalman(
     return kalman.filter(regression_problem)[0]
 
 
-def smooth_rts(observations, locations, F, L, H, R, m0, C0, prior_model="continuous"):
+def smooth_rts(
+    observations: ArrayLike,
+    locations: ArrayLike,
+    F: ArrayLike,
+    L: ArrayLike,
+    H: ArrayLike,
+    R: ArrayLike,
+    m0: ArrayLike,
+    C0: ArrayLike,
+    prior_model: str = "continuous",
+):
     r"""Estimate a trajectory with a Rauch-Tung-Striebel smoother.
 
     A Rauch-Tung-Striebel smoother estimates the unknown trajectory

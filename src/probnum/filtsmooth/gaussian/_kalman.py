@@ -286,7 +286,11 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
             yield t, curr_rv, info_dict
             t_old = t
 
-    def smooth(self, filter_posterior, _previous_posterior=None):
+    def smooth(
+        self,
+        filter_posterior: _kalmanposterior.KalmanPosterior,
+        _previous_posterior: Optional[_timeseriesposterior.TimeSeriesPosterior] = None,
+    ):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
 
         Parameters
