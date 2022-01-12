@@ -85,7 +85,7 @@ def fixture_regression_problem(problem):
     return regression_problem
 
 
-@pytest.fixture(name="regression_problem")
+@pytest.fixture(name="pf_output")
 def fixture_pf_output(particle_filter_setup, regression_problem):
     particle_filter = particle_filter_setup
     posterior, _ = particle_filter.filter(regression_problem)
