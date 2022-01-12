@@ -105,7 +105,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     def backward_realization(
         self,
-        real_obtained,
+        realization_obtained,
         rv,
         rv_forwarded=None,
         gain=None,
@@ -115,7 +115,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
         _linearise_at=None,
     ):
         return self._backward_realization_via_backward_rv(
-            real_obtained,
+            realization_obtained,
             rv=rv,
             rv_forwarded=rv_forwarded,
             gain=gain,
@@ -141,10 +141,16 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
         )
 
     def forward_realization(
-        self, real, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self,
+        realization,
+        t,
+        dt=None,
+        compute_gain=False,
+        _diffusion=1.0,
+        _linearise_at=None,
     ):
         return self._component.forward_realization(
-            real,
+            realization,
             t,
             dt=dt,
             compute_gain=compute_gain,
