@@ -40,10 +40,8 @@ class UnscentedTransform:
 
         Parameters
         ----------
-        mean: np.ndarray, shape (d,)
-            mean of Gaussian distribution
-        covar: np.ndarray, shape (d, d)
-            kernels of Gaussian distribution
+        rv
+            Gaussian random variable. Shape (d,)
 
         Returns
         -------
@@ -87,9 +85,8 @@ class UnscentedTransform:
         """Computes predicted summary statistics, predicted
         mean/kernels/crosscovariance, from (propagated) sigmapoints.
 
-        Not to be confused with mean and kernels resulting from the
-        prediction step of the Bayesian filter. Hence we call it
-        "estimate_*" instead of "predict_*".
+        Not to be confused with mean and kernels resulting from the prediction step of
+        the Bayesian filter. Hence we call it "estimate_*" instead of "predict_*".
         """
         estmean = _estimate_mean(self.mweights, proppts)
         estcovar = _estimate_covar(self.cweights, proppts, estmean, covmat)
