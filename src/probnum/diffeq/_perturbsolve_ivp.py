@@ -47,7 +47,7 @@ def perturbsolve_ivp(
     step: Optional[FloatLike] = None,
     time_stops: Optional[ArrayLike] = None,
 ) -> perturbed.step.PerturbedStepSolution:
-    r"""Solve an initial value problem with a perturbation-based ODE solver.
+    """Solve an initial value problem with a perturbation-based ODE solver.
 
     Parameters
     ----------
