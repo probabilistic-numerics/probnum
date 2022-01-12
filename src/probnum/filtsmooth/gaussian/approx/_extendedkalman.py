@@ -120,14 +120,20 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
     Parameters
     ----------
     non_linear_model
-        Non-linear continuous-time model (:class:`SDE`) that is approximated with the EKF.
+        Non-linear continuous-time model (:class:`SDE`)
+        that is approximated with the EKF.
     mde_atol
-        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Absolute tolerance passed to the solver of the
+        moment differential equations (MDEs). Optional.
     mde_rtol
-        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Relative tolerance passed to the solver of the
+        moment differential equations (MDEs). Optional.
     mde_solver
-        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
-        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+        Method that is chosen in `scipy.integrate.solve_ivp`.
+        Any string that is compatible with
+        ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``.
+        Optional. Default is LSODA.
     """
 
     def __init__(
@@ -224,13 +230,15 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
         def dynamicsmatfun(t):
             return dg(t, x0)
 
+        # alias for otherwise too-long line
+        process_cholesky_alias = self.non_linear_model.proc_noise_cov_cholesky_fun
         return randprocs.markov.discrete.LinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
             shift_vec_fun=force_vector_function,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
-            proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
+            proc_noise_cov_cholesky_fun=process_cholesky_alias,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
