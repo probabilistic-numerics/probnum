@@ -177,7 +177,7 @@ class BayesianQuadrature:
 
         Returns
         -------
-        has_converged : bool
+        has_converged :
             Whether the solver has converged.
         """
 
@@ -314,9 +314,9 @@ class BayesianQuadrature:
 
         Returns
         -------
-        integral_belief : Normal
+        integral_belief
             Posterior belief about the integral.
-        bq_state : BQState
+        bq_state
             Final state of the Bayesian quadrature method.
         """
         if fun is None and fun_evals is None:

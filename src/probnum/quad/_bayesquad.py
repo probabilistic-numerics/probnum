@@ -91,9 +91,9 @@ def bayesquad(
 
     Returns
     -------
-    integral : Normal
+    integral
         The integral of ``fun`` on the domain.
-    info : BQInfo
+    info
         Information on the performance of the method.
 
     Raises
@@ -187,9 +187,9 @@ def bayesquad_from_data(
 
     Returns
     -------
-    integral : Normal
+    integral
         The integral of ``fun`` on the domain.
-    info : BQInfo
+    info
         Information on the performance of the method.
 
     Raises

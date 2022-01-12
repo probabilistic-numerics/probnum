@@ -44,9 +44,9 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
         Returns
         -------
-        updated_belief : Normal
+        updated_belief :
             Gaussian integral belief after conditioning on the new nodes and evaluations.
-        updated_state : BQState
+        updated_state :
             Updated version of ``bq_state`` that contains all updated quantities.
         """
 
@@ -110,7 +110,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
         Returns
         -------
-        x : numpy.ndarray
+        x :
             The solution to the linear system :math:`K x = b`
         """
         jitter = 1.0e-6

@@ -32,7 +32,7 @@ class Policy(abc.ABC):
 
         Returns
         -------
-        nodes : numpy.ndarray
+        nodes :
             *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
         raise NotImplementedError
@@ -70,7 +70,7 @@ class RandomPolicy(Policy):
 
         Returns
         -------
-        nodes : numpy.ndarray
+        nodes :
             *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
         return self.sample_func(self.batch_size, rng=self.rng)

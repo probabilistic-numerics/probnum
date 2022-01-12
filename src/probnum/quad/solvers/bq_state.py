@@ -131,7 +131,7 @@ class BQState:
 
         Returns
         -------
-        bq_state : BQState
+        bq_state :
             An instance of this class.
         """
         return cls(
