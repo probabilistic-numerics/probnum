@@ -171,5 +171,4 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
             "backward_realization",
         ]:
             return self.attr
-        else:
-            return getattr(self._component, attr)
+        return getattr(self._component, attr)

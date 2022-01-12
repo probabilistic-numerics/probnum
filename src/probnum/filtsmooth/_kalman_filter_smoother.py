@@ -1,7 +1,5 @@
 """Convenience functions for filtering and smoothing."""
 
-from typing import Optional
-
 import numpy as np
 
 from probnum import problems, randprocs, randvars
