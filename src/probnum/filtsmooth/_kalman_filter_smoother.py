@@ -11,10 +11,12 @@ __all__ = ["filter_kalman", "smooth_rts"]
 def filter_kalman(
     observations, locations, F, L, H, R, m0, C0, prior_model="continuous"
 ):
-    r"""Estimate an unknown, hidden trajectory from a set of observations with a Kalman filter.
+    r"""Estimate a trajectory with a Kalman filter.
 
-    A Kalman filter estimates the unknown trajectory :math:`X` from a set of observations `Y`.
-    There is a continuous-discrete and a discrete-discrete version (describing whether the prior model and measurement model are continuous/discrete).
+    A Kalman filter estimates the unknown trajectory :math:`X`
+    from a set of observations `Y`.
+    There is a continuous-discrete and a discrete-discrete version
+    (describing whether the prior model and measurement model are continuous/discrete).
 
     In a continuous-discrete model, the prior distribution is described by the SDE
 
@@ -26,17 +28,20 @@ def filter_kalman(
 
     By default, :math:`t_0` is set to the location of the first observation.
 
-    In a discrete-discrete model, the prior distribution is described by the transition
+    In a discrete-discrete model, the prior distribution
+    is described by the transition
 
     .. math:: X_{n+1} \,|\, X_n \sim N(F X_n, L)
 
     subject to the same initial condition.
 
-    In both cases, the measurement model is (write :math:`X(t_n)=X_n` in the continuous case)
+    In both cases, the measurement model is
+    (write :math:`X(t_n)=X_n` in the continuous case)
 
     .. math:: Y_n \,|\, X_n \sim N(H X_n, R)
 
-    and the Kalman filter estimates :math:`X` given :math:`Y_n=y_n`, :math:`Y=[y_1, ..., y_N]`.
+    and the Kalman filter estimates :math:`X` given
+    :math:`Y_n=y_n`, :math:`Y=[y_1, ..., y_N]`.
 
     Parameters
     ----------
@@ -45,12 +50,17 @@ def filter_kalman(
     locations
         *(shape=(N, ))* -- Time-locations of the observations.
     F
-        *(shape=(n, n))* -- State transition matrix. Either the drift matrix in an SDE model,
-        or the transition matrix in a discrete model (depending on the value of `prior_model`).
+        *(shape=(n, n))* -- State transition matrix.
+        Either the drift matrix in an SDE model,
+        or the transition matrix in a discrete model
+        (depending on the value of `prior_model`).
     L
-        *(shape=(n, n))* or *(shape=(n, s))* -- Diffusion/dispersion matrix. Either the dispersion matrix in an SDE model,
-        or the diffusion matrix in a discrete model (depending on the value of `prior_model`).
-        In a continuous model, the matrix has shape (n, s) for s-dimensional driving Wiener process.
+        *(shape=(n, n))* or *(shape=(n, s))* -- Diffusion/dispersion matrix.
+        Either the dispersion matrix in an SDE model,
+        or the diffusion matrix in a discrete model
+        (depending on the value of `prior_model`).
+        In a continuous model, the matrix has shape (n, s)
+        for s-dimensional driving Wiener process.
         In a discrete model, the matrix has shape (n, n).
     H
         *(shape=(m, n))* -- Transition matrix of the (discrete) observation model.
@@ -61,7 +71,8 @@ def filter_kalman(
     C0
         *(shape=(n, n))* -- Initial covariance of the prior model.
     prior_model
-        Either discrete (``discrete``) or continuous (``continuous``). This affects the role of `F` and `L`.
+        Either discrete (``discrete``) or continuous (``continuous``).
+        This affects the role of `F` and `L`.
         Optional. Default is `continuous`.
 
     Raises
@@ -85,10 +96,12 @@ def filter_kalman(
 
 
 def smooth_rts(observations, locations, F, L, H, R, m0, C0, prior_model="continuous"):
-    r"""Estimate an unknown, hidden trajectory from a set of observations with a Rauch-Tung-Striebel smoother.
+    r"""Estimate a trajectory with a Rauch-Tung-Striebel smoother.
 
-    A Rauch-Tung-Striebel smoother estimates the unknown trajectory :math:`X` from a set of observations `Y`.
-    There is a continuous-discrete and a discrete-discrete version (describing whether the prior model and measurement model are continuous/discrete).
+    A Rauch-Tung-Striebel smoother estimates the unknown trajectory
+    :math:`X` from a set of observations `Y`.
+    There is a continuous-discrete and a discrete-discrete version
+    (describing whether the prior model and measurement model are continuous/discrete).
 
     In a continuous-discrete model, the prior distribution is described by the SDE
 
@@ -100,17 +113,20 @@ def smooth_rts(observations, locations, F, L, H, R, m0, C0, prior_model="continu
 
     By default, :math:`t_0` is set to the location of the first observation.
 
-    In a discrete-discrete model, the prior distribution is described by the transition
+    In a discrete-discrete model, the prior distribution
+    is described by the transition
 
     .. math:: X_{n+1} \,|\, X_n \sim N(F X_n, L)
 
     subject to the same initial condition.
 
-    In both cases, the measurement model is (write :math:`X(t_n)=X_n` in the continuous case)
+    In both cases, the measurement model is
+    (write :math:`X(t_n)=X_n` in the continuous case)
 
     .. math:: Y_n \,|\, X_n \sim N(H X_n, R)
 
-    and the Rauch-Tung-Striebel smoother estimates :math:`X` given :math:`Y_n=y_n`, :math:`Y=[y_1, ..., y_N]`.
+    and the Rauch-Tung-Striebel smoother estimates
+    :math:`X` given :math:`Y_n=y_n`, :math:`Y=[y_1, ..., y_N]`.
 
     Parameters
     ----------
@@ -119,12 +135,17 @@ def smooth_rts(observations, locations, F, L, H, R, m0, C0, prior_model="continu
     locations
         *(shape=(N, ))* -- Time-locations of the observations.
     F
-        *(shape=(n, n))* -- State transition matrix. Either the drift matrix in an SDE model,
-        or the transition matrix in a discrete model (depending on the value of `prior_model`).
+        *(shape=(n, n))* -- State transition matrix.
+        Either the drift matrix in an SDE model,
+        or the transition matrix in a discrete model
+        (depending on the value of `prior_model`).
     L
-        *(shape=(n, n))* or *(shape=(n, s))* -- Diffusion/dispersion matrix. Either the dispersion matrix in an SDE model,
-        or the diffusion matrix in a discrete model (depending on the value of `prior_model`).
-        In a continuous model, the matrix has shape (n, s) for s-dimensional driving Wiener process.
+        *(shape=(n, n))* or *(shape=(n, s))* -- Diffusion/dispersion matrix.
+        Either the dispersion matrix in an SDE model,
+        or the diffusion matrix in a discrete model
+        (depending on the value of `prior_model`).
+        In a continuous model, the matrix has shape (n, s)
+        for s-dimensional driving Wiener process.
         In a discrete model, the matrix has shape (n, n).
     H
         *(shape=(m, n))* -- Transition matrix of the (discrete) observation model.
@@ -135,7 +156,8 @@ def smooth_rts(observations, locations, F, L, H, R, m0, C0, prior_model="continu
     C0
         *(shape=(n, n))* -- Initial covariance of the prior model.
     prior_model
-        Either discrete (``discrete``) or continuous (``continuous``). This affects the role of `F` and `L`.
+        Either discrete (``discrete``) or continuous (``continuous``).
+        This affects the role of `F` and `L`.
         Optional. Default is `continuous`.
 
     Raises

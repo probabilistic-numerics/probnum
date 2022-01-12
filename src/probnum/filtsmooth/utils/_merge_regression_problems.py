@@ -68,7 +68,8 @@ def merge_regression_problems(
      3.5  3.75 4.   4.25 4.5  4.75 5.   5.25 5.5  5.75 6.   6.25 6.5  6.75
      7.   7.25 7.5  7.75 8.   8.25 8.5  8.75 9.   9.25 9.5  9.75]
 
-    If you have more than two problems that you want to merge, do this with functools.reduce.
+    If you have more than two problems that you want to merge,
+    do this with functools.reduce.
 
     >>> import functools
     >>> prob3, _ = filtsmooth_zoo.car_tracking(
