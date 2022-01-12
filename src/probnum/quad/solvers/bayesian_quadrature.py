@@ -218,15 +218,15 @@ class BayesianQuadrature:
 
         Yields
         ------
-        new_integral_belief : Normal
+        new_integral_belief
             Updated belief about the integral.
-        new_nodes : numpy.ndarray
+        new_nodes
             *shape=(n_new_eval, input_dim)* -- The new location(s) at which
             ``new_fun_evals`` are available found during the iteration.
-        new_fun_evals : numpy.ndarray
+        new_fun_evals
             *shape=(n_new_eval,)* -- The function evaluations at the new locations
             ``new_nodes``.
-        new_bq_state : BQState
+        new_bq_state 
             Updated state of the Bayesian quadrature methods.
         """
 
