@@ -30,8 +30,8 @@ all_resampling_configurations = pytest.mark.parametrize(
 )
 
 
-@pytest.fixture
-def num_particles():
+@pytest.fixture(name="num_particles")
+def fixture_num_particles():
     return 30
 
 
@@ -39,14 +39,14 @@ def num_particles():
 # if None, the initrv is processed (through the importance distribution)
 # before sampling an initial set of particles.
 # If -10, the initial set of particles is sampled immediately.
-@pytest.fixture(params=[None, -10])
-def problem(request, rng):
+@pytest.fixture(name="problem", params=[None, -10])
+def fixture_problem(request, rng):
     initarg = request.param
     return filtsmooth_zoo.pendulum(rng=rng, step=0.12, initarg=initarg)
 
 
-@pytest.fixture
-def particle_filter_setup(
+@pytest.fixture(name="particle_filter_setup")
+def fixture_particle_filter_setup(
     problem, num_particles, measmod_style, resampling_percentage_threshold, rng
 ):
     _, info = problem
@@ -77,16 +77,16 @@ def particle_filter_setup(
     return particle
 
 
-@pytest.fixture()
-def regression_problem(problem):
+@pytest.fixture(name="regression_problem")
+def fixture_regression_problem(problem):
     """Filter and regression problem."""
     regression_problem, *_ = problem
 
     return regression_problem
 
 
-@pytest.fixture
-def pf_output(particle_filter_setup, regression_problem):
+@pytest.fixture(name="regression_problem")
+def fixture_pf_output(particle_filter_setup, regression_problem):
     particle_filter = particle_filter_setup
     posterior, _ = particle_filter.filter(regression_problem)
     return posterior
