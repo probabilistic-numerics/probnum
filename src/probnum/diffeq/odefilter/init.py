@@ -302,18 +302,18 @@ class _AutoDiffBase(_InitializationRoutineBase):
         raise NotImplementedError
 
 
-class ForwardAutoDiff(_AutoDiffBase):
+class ForwardMode(_AutoDiffBase):
     def jvp_or_vjp(self, *, fun, primals, tangents, jax):
         _, y = jax.jvp(fun, (primals,), (tangents,))
         return y
 
 
-class ForwardAutoDiffNaive(_AutoDiffBase):
+class ForwardModeNaive(_AutoDiffBase):
     def jvp_or_vjp(self, *, fun, primals, tangents, jax):
         return jax.jacfwd(fun)(primals) @ tangents
 
 
-class ReverseAutoDiffNaive(_AutoDiffBase):
+class ReverseModeNaive(_AutoDiffBase):
     def jvp_or_vjp(self, *, fun, primals, tangents, jax):
         # The following should work, but doesn't
         # y, dfx_fun = jax.vjp(fun, primals)

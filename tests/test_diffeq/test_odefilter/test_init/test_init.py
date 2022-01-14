@@ -8,64 +8,14 @@ import pytest_cases
 from jax.config import config  # speed...
 
 from probnum import randprocs
-from probnum.diffeq.odefilter import init
-from probnum.problems.zoo import diffeq as diffeq_zoo
-
-from . import known_initial_derivatives
 
 config.update("jax_disable_jit", True)
 
 
-@pytest.fixture
-def ivp():
-    return
-
-
-@pytest_cases.case(tags=("jax",))
-def problem_threebody():
-    ivp = diffeq_zoo.threebody_jax()
-    threebody_inits_matrix_full = known_initial_derivatives.THREEBODY_INITS
-    return ivp, threebody_inits_matrix_full
-
-
-@pytest_cases.case(tags=("numpy",))
-def problem_lotka_volterra():
-    ivp = diffeq_zoo.lotkavolterra()
-    inits_matrix_full = known_initial_derivatives.LV_INITS
-    return ivp, inits_matrix_full
-
-
-@pytest_cases.case(tags=["is_exact", "requires_jax"])
-def solver_taylor_mode():
-    return init.TaylorMode()
-
-
-@pytest_cases.case(tags=["is_exact", "requires_jax"])
-def solver_auto_diff_forward():
-    return init.ForwardAutoDiff()
-
-
-@pytest_cases.case(tags=["is_exact", "requires_jax"])
-def solver_auto_diff_forward_naive():
-    return init.ForwardAutoDiffNaive()
-
-
-@pytest_cases.case(tags=["is_exact", "requires_jax"])
-def solver_auto_diff_reverse_naive():
-    return init.ReverseAutoDiffNaive()
-
-
-@pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
-def solver_runge_kutta():
-    return init.RungeKutta()
-
-
 @pytest.mark.parametrize("num_derivatives", [2, 3, 5])
+@pytest_cases.parametrize_with_cases("ivp, dy0_true", prefix="problem_", has_tag="jax")
 @pytest_cases.parametrize_with_cases(
-    "ivp, dy0_true", cases=".", prefix="problem_", has_tag="jax"
-)
-@pytest_cases.parametrize_with_cases(
-    "routine", cases=".", prefix="solver_", has_tag=("is_exact", "requires_jax")
+    "routine", prefix="solver_", has_tag=("is_exact", "requires_jax")
 )
 def test_compare_to_reference_values_is_exact_jax(
     ivp,
@@ -81,15 +31,12 @@ def test_compare_to_reference_values_is_exact_jax(
     np.testing.assert_allclose(dy0_approximated.std, 0.0)
 
 
-#
-
-
 @pytest.mark.parametrize("num_derivatives", [3, 4])
 @pytest_cases.parametrize_with_cases(
-    "ivp, dy0_true", cases=".", prefix="problem_", has_tag="numpy"
+    "ivp, dy0_true", prefix="problem_", has_tag="numpy"
 )
 @pytest_cases.parametrize_with_cases(
-    "routine", cases=".", prefix="solver_", has_tag=("is_not_exact", "requires_numpy")
+    "routine", prefix="solver_", has_tag=("is_not_exact", "requires_numpy")
 )
 def test_compare_to_reference_values_is_not_exact_numpy(
     ivp,
