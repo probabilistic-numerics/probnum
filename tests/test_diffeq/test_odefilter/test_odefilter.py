@@ -22,27 +22,45 @@ def step():
 
 
 @pytest.fixture
-def sol(ivp, step):
-    f = ivp.f
-    t0, tmax = ivp.t0, ivp.tmax
-    y0 = ivp.y0
-    return diffeq.probsolve_ivp(
-        f,
-        t0,
-        tmax,
-        y0,
-        method="ek0",
-        algo_order=1,
-        adaptive=False,
-        step=step,
-        diffusion_model="constant",
-        dense_output=False,
+def steprule(step):
+    """Constant step-sizes."""
+    return diffeq.stepsize.ConstantSteps(step)
+
+
+@pytest.fixture
+def prior_iwp(ivp):
+    return randprocs.markov.integrator.IntegratedWienerProcess(
+        initarg=ivp.t0,
+        num_derivatives=1,
+        wiener_process_dimension=ivp.dimension,
+        diffuse=True,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
     )
 
 
+@pytest.fixture
+def diffusion_model():
+    return randprocs.markov.continuous.ConstantDiffusion()
+
+
+@pytest.fixture
+def odefilter(ivp, steprule, prior_iwp, diffusion_model):
+    return diffeq.odefilter.ODEFilter(
+        steprule=steprule,
+        prior_process=prior_iwp,
+        diffusion_model=diffusion_model,
+        with_smoothing=False,
+    )
+
+
+@pytest.fixture
+def sol(ivp, odefilter):
+    return odefilter.solve(ivp)
+
+
 def test_first_iteration(ivp, sol):
-    """Test whether first few means and covariances coincide with Proposition 1 in
-    Schober et al., 2019."""
+    """First mean and cov coincides with Proposition 1 in Schober et al., 2019."""
     state_rvs = sol.kalman_posterior.states
     ms, cs = state_rvs.mean, state_rvs.cov
 
@@ -52,13 +70,12 @@ def test_first_iteration(ivp, sol):
 
 
 def test_second_iteration(ivp, sol, step):
-    """Test whether first few means and covariances coincide with Prop.
+    """Second mean and cov coincides with Prop.
 
     1 in Schober et al., 2019.
     """
 
     state_rvs = sol.kalman_posterior.states
-
     ms, cs = state_rvs.mean, state_rvs.cov
 
     y0 = ivp.y0
@@ -117,21 +134,6 @@ def test_convergence_error(ivp, algo_order):
     # As long as rtol < 1., this test seems meaningful.
     np.testing.assert_allclose(
         err_small_step, expected_decay * err_large_step, rtol=0.95
-    )
-
-
-@pytest.fixture
-def odefilter(ivp, step):
-    d = ivp.dimension
-    nu = 1
-
-    steprule = diffeq.stepsize.ConstantSteps(step)
-    prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
-        initarg=ivp.t0, num_derivatives=nu, wiener_process_dimension=d
-    )
-    return diffeq.odefilter.ODEFilter(
-        steprule=steprule,
-        prior_process=prior_process,
     )
 
 
