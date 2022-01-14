@@ -49,7 +49,7 @@ def solver_runge_kutta():
     return init.RungeKutta()
 
 
-@pytest.mark.parametrize("num_derivatives", [0, 1, 2, 3, 5])
+@pytest.mark.parametrize("num_derivatives", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 @pytest_cases.parametrize_with_cases(
     "ivp, dy0_true", cases=".", prefix="problem_", has_tag="jax"
 )
@@ -63,6 +63,7 @@ def test_compare_to_reference_values_is_exact_jax(
     num_derivatives,
 ):
     dy0_true = _select_derivatives(dy0=dy0_true, n=num_derivatives + 1)
+
     dy0_approximated = _compute_approximation(ivp, num_derivatives, routine)
 
     np.testing.assert_allclose(dy0_approximated.mean, dy0_true)

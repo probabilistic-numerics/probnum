@@ -140,13 +140,11 @@ class TaylorMode(_InitializationRoutineBase):
         prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
 
-        jnp, config, jet = _import_jax()
-
+        _, jnp, _, jet = _import_jax()
         num_derivatives = prior_process.transition.num_derivatives
-
         dt = jnp.array([1.0])
-        evaluate_ode_for_extended_state = partial(
-            _evaluate_ode_for_extended_state, ivp=ivp, dt=dt, jnp=jnp
+        evaluate_ode_as_autonomous_ode = partial(
+            _evaluate_ode_as_autonomous_ode, ivp=ivp, dt=dt, jnp=jnp
         )
         derivs_to_normal_randvar = partial(_derivs_to_normal_randvar, ivp=ivp, jnp=jnp)
 
@@ -163,7 +161,7 @@ class TaylorMode(_InitializationRoutineBase):
         # Corner case 2: num_derivatives == 1
         initial_series = (jnp.ones_like(extended_state),)
         (initial_taylor_coefficient, [*remaining_taylor_coefficents]) = jet(
-            fun=evaluate_ode_for_extended_state,
+            fun=evaluate_ode_as_autonomous_ode,
             primals=(extended_state,),
             series=(initial_series,),
         )
@@ -180,7 +178,7 @@ class TaylorMode(_InitializationRoutineBase):
                 *remaining_taylor_coefficents,
             )
             (_, [*remaining_taylor_coefficents]) = jet(
-                fun=evaluate_ode_for_extended_state,
+                fun=evaluate_ode_as_autonomous_ode,
                 primals=(extended_state,),
                 series=(taylor_coefficients,),
             )
@@ -190,7 +188,7 @@ class TaylorMode(_InitializationRoutineBase):
         )
 
 
-def _evaluate_ode_for_extended_state(extended_state, ivp, dt, jnp):
+def _evaluate_ode_as_autonomous_ode(extended_state, ivp, dt, jnp):
     r"""Evaluate the ODE for an extended state (x(t), t).
 
     More precisely, compute the derivative of the stacked state (x(t), t) according to the ODE.
@@ -232,13 +230,14 @@ def _derivs_to_normal_randvar(derivs, num_derivatives_in_prior, ivp, jnp):
 
 def _import_jax():
     try:
+        import jax
         import jax.numpy as jnp
         from jax.config import config
         from jax.experimental.jet import jet
 
         config.update("jax_enable_x64", True)
 
-        return jnp, config, jet
+        return jax, jnp, config, jet
 
     except ImportError as err:
         raise ImportError(
@@ -256,7 +255,47 @@ class AutoDiff(_InitializationRoutineBase):
         ivp: problems.InitialValueProblem,
         prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
-        pass
+
+        dim = ivp.dimension + 1
+        num_derivatives = prior_process.transition.num_derivatives
+
+        jax, jnp, _, _ = _import_jax()
+        f, y0 = self._make_autonomous(ivp=ivp, jnp=jnp)
+        gen = self._F_generator(f=f, y0=y0, jax=jax)
+
+        mean_matrix = jnp.stack(
+            [next(gen)(y0)[:-1] for _ in range(num_derivatives + 1)]
+        )
+        mean = mean_matrix.reshape((-1,), order="F")
+        cov = jnp.zeros((mean.shape[0], mean.shape[0]))
+        return randvars.Normal(mean=np.asarray(mean), cov=np.asarray(cov))
+
+    def _make_autonomous(self, *, ivp, jnp):
+        y0_autonomous = jnp.concatenate([ivp.y0, jnp.array([ivp.t0])])
+
+        def f_autonomous(y, /):
+            x, t = y[:-1], y[-1]
+            fx = ivp.f(t, x)
+            return jnp.concatenate([fx, jnp.array([1.0])])
+
+        return f_autonomous, y0_autonomous
+
+    @staticmethod
+    def _F_generator(f, y0, jax):
+        def fwd_deriv(f, f0):
+            def df(x):
+                _, y = jax.jvp(f, primals=(x,), tangents=(f0(x),))
+                return y
+
+            return df
+
+        yield lambda x: y0
+
+        g = f
+        f0 = f
+        while True:
+            yield g
+            g = fwd_deriv(g, f0)
 
 
 class RungeKutta(_InitializationRoutineBase):
