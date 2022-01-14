@@ -60,7 +60,10 @@ def sol(ivp, odefilter):
 
 
 def test_first_iteration(ivp, sol):
-    """First mean and cov coincides with Proposition 1 in Schober et al., 2019."""
+    """Compare the first iteration to a closed-form solution.
+
+    First mean and cov coincides with Proposition 1 in Schober et al., 2019.
+    """
     state_rvs = sol.kalman_posterior.states
     ms, cs = state_rvs.mean, state_rvs.cov
 
@@ -70,9 +73,9 @@ def test_first_iteration(ivp, sol):
 
 
 def test_second_iteration(ivp, sol, step):
-    """Second mean and cov coincides with Prop.
+    """Compare the first iteration to a closed-form solution.
 
-    1 in Schober et al., 2019.
+    Second mean and cov coincides with Prop. 1 in Schober et al., 2019.
     """
 
     state_rvs = sol.kalman_posterior.states
