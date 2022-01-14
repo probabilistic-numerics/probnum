@@ -39,6 +39,11 @@ def solver_taylor_mode():
     return init.TaylorMode()
 
 
+@pytest_cases.case(tags=["is_exact", "requires_jax"])
+def solver_auto_diff():
+    return init.AutoDiff()
+
+
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_runge_kutta():
     return init.RungeKutta()

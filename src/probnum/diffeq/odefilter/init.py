@@ -2,6 +2,7 @@
 
 
 import abc
+from functools import partial
 from typing import Optional
 
 import numpy as np
@@ -96,7 +97,7 @@ class TaylorMode(_InitializationRoutineBase):
 
     Initialize with Taylor-mode autodiff.
 
-    >>> taylor_init = TaylorModeInitialization()
+    >>> taylor_init = TaylorMode()
     >>> improved_initrv = taylor_init(ivp=ivp, prior_process=prior_process)
 
     Print the results.
@@ -117,7 +118,7 @@ class TaylorMode(_InitializationRoutineBase):
     [2. 0.]
     >>> prior_process = IntegratedWienerProcess(initarg=ivp.t0, wiener_process_dimension=2, num_derivatives=3)
 
-    >>> taylor_init = TaylorModeInitialization()
+    >>> taylor_init = TaylorMode()
     >>> improved_initrv = taylor_init(ivp=ivp, prior_process=prior_process)
 
     Print the results.
@@ -139,62 +140,15 @@ class TaylorMode(_InitializationRoutineBase):
         prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
 
-        try:
-            import jax.numpy as jnp
-            from jax.config import config
-            from jax.experimental.jet import jet
-
-            config.update("jax_enable_x64", True)
-        except ImportError as err:
-            raise ImportError(
-                "Cannot perform Taylor-mode initialisation without optional "
-                "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
-            ) from err
+        jnp, config, jet = _import_jax()
 
         num_derivatives = prior_process.transition.num_derivatives
 
         dt = jnp.array([1.0])
-
-        def evaluate_ode_for_extended_state(extended_state, ivp=ivp, dt=dt):
-            r"""Evaluate the ODE for an extended state (x(t), t).
-
-            More precisely, compute the derivative of the stacked state (x(t), t) according to the ODE.
-            This function implements a rewriting of non-autonomous as autonomous ODEs.
-            This means that
-
-            .. math:: \dot x(t) = f(t, x(t))
-
-            becomes
-
-            .. math:: \dot z(t) = \dot (x(t), t) = (f(x(t), t), 1).
-
-            Only considering autonomous ODEs makes the jet-implementation
-            (and automatic differentiation in general) easier.
-            """
-            x, t = jnp.reshape(extended_state[:-1], ivp.y0.shape), extended_state[-1]
-            dx = ivp.f(t, x)
-            dx_ravelled = jnp.ravel(dx)
-            stacked_ode_eval = jnp.concatenate((dx_ravelled, dt))
-            return stacked_ode_eval
-
-        def derivs_to_normal_randvar(derivs, num_derivatives_in_prior):
-            """Finalize the output in terms of creating a suitably sized random
-            variable."""
-            all_derivs = (
-                randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
-                    np.asarray(derivs),
-                    num_derivatives=num_derivatives_in_prior,
-                    wiener_process_dimension=ivp.y0.shape[0],
-                )
-            )
-
-            # Wrap all inputs through np.asarray, because 'Normal's
-            # do not like JAX 'DeviceArray's
-            return randvars.Normal(
-                mean=np.asarray(all_derivs),
-                cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
-                cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
-            )
+        evaluate_ode_for_extended_state = partial(
+            _evaluate_ode_for_extended_state, ivp=ivp, dt=dt, jnp=jnp
+        )
+        derivs_to_normal_randvar = partial(_derivs_to_normal_randvar, ivp=ivp, jnp=jnp)
 
         extended_state = jnp.concatenate((jnp.ravel(ivp.y0), jnp.array([ivp.t0])))
         derivs = []
@@ -234,6 +188,75 @@ class TaylorMode(_InitializationRoutineBase):
         return derivs_to_normal_randvar(
             derivs=derivs, num_derivatives_in_prior=num_derivatives
         )
+
+
+def _evaluate_ode_for_extended_state(extended_state, ivp, dt, jnp):
+    r"""Evaluate the ODE for an extended state (x(t), t).
+
+    More precisely, compute the derivative of the stacked state (x(t), t) according to the ODE.
+    This function implements a rewriting of non-autonomous as autonomous ODEs.
+    This means that
+
+    .. math:: \dot x(t) = f(t, x(t))
+
+    becomes
+
+    .. math:: \dot z(t) = \dot (x(t), t) = (f(x(t), t), 1).
+
+    Only considering autonomous ODEs makes the jet-implementation
+    (and automatic differentiation in general) easier.
+    """
+    x, t = jnp.reshape(extended_state[:-1], ivp.y0.shape), extended_state[-1]
+    dx = ivp.f(t, x)
+    dx_ravelled = jnp.ravel(dx)
+    stacked_ode_eval = jnp.concatenate((dx_ravelled, dt))
+    return stacked_ode_eval
+
+
+def _derivs_to_normal_randvar(derivs, num_derivatives_in_prior, ivp, jnp):
+    """Finalize the output in terms of creating a suitably sized random variable."""
+    all_derivs = randprocs.markov.integrator.convert.convert_derivwise_to_coordwise(
+        np.asarray(derivs),
+        num_derivatives=num_derivatives_in_prior,
+        wiener_process_dimension=ivp.y0.shape[0],
+    )
+
+    # Wrap all inputs through np.asarray, because 'Normal's
+    # do not like JAX 'DeviceArray's
+    return randvars.Normal(
+        mean=np.asarray(all_derivs),
+        cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+        cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+    )
+
+
+def _import_jax():
+    try:
+        import jax.numpy as jnp
+        from jax.config import config
+        from jax.experimental.jet import jet
+
+        config.update("jax_enable_x64", True)
+
+        return jnp, config, jet
+
+    except ImportError as err:
+        raise ImportError(
+            "Cannot perform Jax-based initialization without the optional "
+            "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
+        ) from err
+
+
+class AutoDiff(_InitializationRoutineBase):
+    def __init__(self):
+        super().__init__(is_exact=True, requires_jax=True)
+
+    def __call__(
+        self,
+        ivp: problems.InitialValueProblem,
+        prior_process: randprocs.markov.MarkovProcess,
+    ) -> randvars.RandomVariable:
+        pass
 
 
 class RungeKutta(_InitializationRoutineBase):
