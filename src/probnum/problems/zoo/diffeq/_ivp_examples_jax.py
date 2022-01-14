@@ -78,12 +78,15 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
     df = jax.jacfwd(threebody_rhs)
     ddf = jax.jacrev(df)
 
+    @jax.jit
     def rhs(t, y):
         return threebody_rhs(Y=y)
 
+    @jax.jit
     def jac(t, y):
         return df(y)
 
+    @jax.jit
     def hess(t, y):
         return ddf(y)
 
@@ -156,12 +159,15 @@ def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
     df = jax.jacfwd(vanderpol_rhs)
     ddf = jax.jacrev(df)
 
+    @jax.jit
     def rhs(t, y):
         return vanderpol_rhs(Y=y)
 
+    @jax.jit
     def jac(t, y):
         return df(y)
 
+    @jax.jit
     def hess(t, y):
         return ddf(y)
 
