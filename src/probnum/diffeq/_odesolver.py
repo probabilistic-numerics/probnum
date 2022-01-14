@@ -1,8 +1,9 @@
 """ODE solver interface."""
 
+import dataclasses
 from abc import ABC, abstractmethod
 from collections import abc
-from typing import Iterable, Optional, Union
+from typing import Iterable, Iterator, Optional, Union
 
 import numpy as np
 
@@ -65,9 +66,7 @@ class ODESolver(ABC):
     ):
         """Generate ODE solver steps."""
 
-        callbacks, adjust_dt_to_time_stops = self._process_event_inputs(
-            callbacks, stop_at
-        )
+        callbacks, stopper_state = self._process_event_inputs(callbacks, stop_at)
 
         state = self.initialize(ivp)
         yield state
@@ -76,8 +75,9 @@ class ODESolver(ABC):
 
         # Use state.ivp in case a callback modifies the IVP
         while state.t < state.ivp.tmax:
-            if adjust_dt_to_time_stops is not None:
-                dt = adjust_dt_to_time_stops(t=state.t, dt=dt)
+            if stopper_state is not None:
+                dt, stopper_state = _adjust_time_step(stopper_state, t=state.t, dt=dt)
+                # dt = adjust_dt_to_time_stops(t=state.t, dt=dt)
 
             state, dt = self.perform_full_step(state, dt)
 
@@ -99,7 +99,10 @@ class ODESolver(ABC):
             callbacks = promote_callback_type(callbacks)
         if stop_at_locations is not None:
             loc_iter = iter(stop_at_locations)
-            time_stopper = _time_stopper(location_iter=loc_iter)
+            time_stopper = _TimeStopperState(
+                locations=loc_iter, next_location=next(loc_iter)
+            )
+            # time_stopper = _time_stopper(location_iter=loc_iter)
         else:
             time_stopper = None
         return callbacks, time_stopper
@@ -171,19 +174,42 @@ class ODESolver(ABC):
         """
 
 
-def _time_stopper(*, location_iter):
-    """Check whether the next time-point is supposed to be stopped at."""
-    initial_location = next(location_iter)
+@dataclasses.dataclass
+class _TimeStopperState:
+    locations: Iterator
+    next_location: FloatLike
 
-    def adjust(t, dt, next_location=initial_location):
-        if t >= next_location:
-            try:
-                next_location = next(location_iter)
-            except StopIteration:
-                next_location = np.inf
 
-        if t + dt > next_location:
-            dt = next_location - t
-        return dt
+def _adjust_time_step(stopper_state, t, dt):
+    if t >= stopper_state.next_location:
+        try:
+            next_location = next(stopper_state.locations)
+        except StopIteration:
+            next_location = np.inf
+    else:
+        next_location = stopper_state.next_location
 
-    return adjust
+    if t + dt > next_location:
+        dt = next_location - t
+    return dt, _TimeStopperState(
+        locations=stopper_state.locations, next_location=next_location
+    )
+
+
+#
+# def _time_stopper(*, location_iter):
+#     """Check whether the next time-point is supposed to be stopped at."""
+#     initial_location = next(location_iter)
+#
+#     def adjust(t, dt, next_location=initial_location):
+#         if t >= next_location:
+#             try:
+#                 next_location = next(location_iter)
+#             except StopIteration:
+#                 next_location = np.inf
+#
+#         if t + dt > next_location:
+#             dt = next_location - t
+#         return dt
+#     print("jooooo")
+#     return adjust
