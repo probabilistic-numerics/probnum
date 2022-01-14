@@ -120,7 +120,8 @@ def test_convergence_error(ivp, algo_order):
     )
 
 
-def test_callback(ivp, step):
+@pytest.fixture
+def odefilter(ivp, step):
     d = ivp.dimension
     nu = 1
 
@@ -128,41 +129,26 @@ def test_callback(ivp, step):
     prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
         initarg=ivp.t0, num_derivatives=nu, wiener_process_dimension=d
     )
-    info_op = diffeq.odefilter.information_operators.ODEResidual(
-        num_prior_derivatives=nu, ode_dimension=d
-    )
-    approx = diffeq.odefilter.approx_strategies.EK0()
-    with_smoothing = True
-    init_strat = diffeq.odefilter.initialization_routines.RungeKuttaInitialization()
-    solver = diffeq.odefilter.ODEFilter(
+    return diffeq.odefilter.ODEFilter(
         steprule=steprule,
         prior_process=prior_process,
-        information_operator=info_op,
-        approx_strategy=approx,
-        with_smoothing=with_smoothing,
-        initialization_routine=init_strat,
     )
 
+
+@pytest.fixture
+def t_span_midpoint(ivp):
     t0, tmax = ivp.t0, ivp.tmax
     t = 0.5 * (t0 + tmax)
+    return t
+
+
+@pytest.fixture
+def callback(ivp, t_span_midpoint):
     replace = lambda x: x
-    condition = lambda state: state.t == t
+    condition = lambda state: state.t == t_span_midpoint
     callback = diffeq.callbacks.DiscreteCallback(replace=replace, condition=condition)
+    return callback
 
-    solver.solve(ivp, stop_at=[t], callbacks=callback)
 
-
-def test_default_arguments(ivp, step):
-    """The ODEFilter class functions with just a prior and a steprule."""
-
-    steprule = diffeq.stepsize.ConstantSteps(step)
-    prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
-        initarg=ivp.t0, num_derivatives=1, wiener_process_dimension=ivp.dimension
-    )
-
-    # Everything else has appropriate defaults.
-    solver = diffeq.odefilter.ODEFilter(
-        steprule=steprule,
-        prior_process=prior_process,
-    )
-    solver.solve(ivp)
+def test_callback(ivp, callback, t_span_midpoint, odefilter):
+    odefilter.solve(ivp, stop_at=[t_span_midpoint], callbacks=callback)
