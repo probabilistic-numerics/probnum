@@ -246,7 +246,7 @@ def _import_jax():
         ) from err
 
 
-class AutoDiff(_InitializationRoutineBase):
+class _AutoDiffBase(_InitializationRoutineBase):
     def __init__(self):
         super().__init__(is_exact=True, requires_jax=True)
 
@@ -280,12 +280,13 @@ class AutoDiff(_InitializationRoutineBase):
 
         return f_autonomous, y0_autonomous
 
-    @staticmethod
-    def _F_generator(f, y0, jax):
+    def _F_generator(self, f, y0, jax):
         def fwd_deriv(f, f0):
+            def ff(x):
+                return f(x)
+
             def df(x):
-                _, y = jax.jvp(f, primals=(x,), tangents=(f0(x),))
-                return y
+                return self.jvp_or_vjp(fun=f, primals=x, tangents=f0(x), jax=jax)
 
             return df
 
@@ -296,6 +297,31 @@ class AutoDiff(_InitializationRoutineBase):
         while True:
             yield g
             g = fwd_deriv(g, f0)
+
+    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+        raise NotImplementedError
+
+
+class ForwardAutoDiff(_AutoDiffBase):
+    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+        _, y = jax.jvp(fun, (primals,), (tangents,))
+        return y
+
+
+class ForwardAutoDiffNaive(_AutoDiffBase):
+    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+        return jax.jacfwd(fun)(primals) @ tangents
+
+
+class ReverseAutoDiffNaive(_AutoDiffBase):
+    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+        # The following should work, but doesn't
+        # y, dfx_fun = jax.vjp(fun, primals)
+        # a, = dfx_fun(tangents)
+        # return a
+
+        # Therefore we go sledge-hammer
+        return jax.jacrev(fun)(primals) @ tangents
 
 
 class RungeKutta(_InitializationRoutineBase):

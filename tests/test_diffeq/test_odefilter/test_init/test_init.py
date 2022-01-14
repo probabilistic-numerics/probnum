@@ -1,6 +1,7 @@
 """Tests for initialization routines."""
 
 
+import jax
 import numpy as np
 import pytest
 import pytest_cases
@@ -40,8 +41,18 @@ def solver_taylor_mode():
 
 
 @pytest_cases.case(tags=["is_exact", "requires_jax"])
-def solver_auto_diff():
-    return init.AutoDiff()
+def solver_auto_diff_forward():
+    return init.ForwardAutoDiff()
+
+
+@pytest_cases.case(tags=["is_exact", "requires_jax"])
+def solver_auto_diff_forward_naive():
+    return init.ForwardAutoDiffNaive()
+
+
+@pytest_cases.case(tags=["is_exact", "requires_jax"])
+def solver_auto_diff_reverse_naive():
+    return init.ReverseAutoDiffNaive()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
@@ -49,7 +60,7 @@ def solver_runge_kutta():
     return init.RungeKutta()
 
 
-@pytest.mark.parametrize("num_derivatives", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+@pytest.mark.parametrize("num_derivatives", [2, 3, 5])
 @pytest_cases.parametrize_with_cases(
     "ivp, dy0_true", cases=".", prefix="problem_", has_tag="jax"
 )
@@ -105,5 +116,6 @@ def _compute_approximation(ivp, num_derivatives, routine):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    dy0_approximated = routine(ivp=ivp, prior_process=prior_process)
+    with jax.disable_jit():
+        dy0_approximated = routine(ivp=ivp, prior_process=prior_process)
     return dy0_approximated
