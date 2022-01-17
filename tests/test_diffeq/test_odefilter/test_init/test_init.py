@@ -25,7 +25,7 @@ def test_compare_to_reference_values_is_exact_jax(
 ):
     dy0_true = _select_derivatives(dy0=dy0_true, n=num_derivatives + 1)
 
-    dy0_approximated = _compute_approximation(ivp, num_derivatives, routine)
+    dy0_approximated, _ = _compute_approximation(ivp, num_derivatives, routine)
 
     np.testing.assert_allclose(dy0_approximated.mean, dy0_true)
     np.testing.assert_allclose(dy0_approximated.std, 0.0)
@@ -45,15 +45,18 @@ def test_compare_to_reference_values_is_not_exact_numpy(
     num_derivatives,
 ):
     dy0_true = _select_derivatives(dy0=dy0_true, n=num_derivatives + 1)
-    dy0_approximated = _compute_approximation(ivp, num_derivatives, routine)
+    dy0_approximated, prior_process = _compute_approximation(
+        ivp, num_derivatives, routine
+    )
 
     n, d = num_derivatives + 1, ivp.dimension
+    print(dy0_true, dy0_approximated.mean)
 
     # The zeroth and first derivative must always be exact
-    np.testing.assert_allclose(dy0_approximated.mean[:d], dy0_true[:d], rtol=1e-5)
-    np.testing.assert_allclose(
-        dy0_approximated.mean[n : n + d], dy0_true[n : n + d], rtol=1e-5
-    )
+    P0 = prior_process.transition.proj2coord(0)
+    P1 = prior_process.transition.proj2coord(1)
+    np.testing.assert_allclose(P0 @ dy0_approximated.mean, P0 @ dy0_true, rtol=1e-5)
+    np.testing.assert_allclose(P1 @ dy0_approximated.mean, P1 @ dy0_true, rtol=1e-5)
 
     # The error in the remainder must be encoded by a positive standard deviation
     assert np.linalg.norm(dy0_approximated.std) > 0.0
@@ -72,4 +75,4 @@ def _compute_approximation(ivp, num_derivatives, routine):
         backward_implementation="sqrt",
     )
     dy0_approximated = routine(ivp=ivp, prior_process=prior_process)
-    return dy0_approximated
+    return dy0_approximated, prior_process

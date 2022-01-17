@@ -56,6 +56,11 @@ def solver_runge_kutta_with_jacobian():
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
+def solver_odefilter_map():
+    return init.ODEFilterMAP()
+
+
+@pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_stack():
     return init.Stack()
 
