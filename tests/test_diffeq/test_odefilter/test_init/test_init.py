@@ -47,7 +47,13 @@ def test_compare_to_reference_values_is_not_exact_numpy(
     dy0_true = _select_derivatives(dy0=dy0_true, n=num_derivatives + 1)
     dy0_approximated = _compute_approximation(ivp, num_derivatives, routine)
 
-    np.testing.assert_allclose(dy0_approximated.mean, dy0_true, rtol=0.25)
+    n, d = num_derivatives + 1, ivp.dimension
+
+    # The zeroth and first derivative must always be exact
+    np.testing.assert_allclose(dy0_approximated.mean[:d], dy0_true[:d])
+    np.testing.assert_allclose(dy0_approximated.mean[n : n + d], dy0_true[n : n + d])
+
+    # The error in the remainder must be encoded by a positive standard deviation
     assert np.linalg.norm(dy0_approximated.std) > 0.0
 
 
@@ -63,6 +69,5 @@ def _compute_approximation(ivp, num_derivatives, routine):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    with jax.disable_jit():
-        dy0_approximated = routine(ivp=ivp, prior_process=prior_process)
+    dy0_approximated = routine(ivp=ivp, prior_process=prior_process)
     return dy0_approximated

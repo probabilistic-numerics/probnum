@@ -48,3 +48,13 @@ def solver_auto_diff_reverse():
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_runge_kutta():
     return init.RungeKutta()
+
+
+@pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
+def solver_stack():
+    return init.Stack()
+
+
+@pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
+def solver_stack():
+    return init.StackWithJacobian()
