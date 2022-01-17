@@ -15,6 +15,29 @@ class _AutoDiffBase(_InitializationRoutineBase):
         super().__init__(is_exact=True, requires_jax=True)
         self._jax, self._jnp = self._import_jax()
 
+    def _import_jax(self):
+
+        # pylint: disable="import-outside-toplevel"
+        try:
+            import jax
+            import jax.numpy as jnp
+            from jax.config import config
+
+            config.update("jax_enable_x64", True)
+
+            return jax, jnp
+
+        except ImportError as err:
+            raise ImportError(self._import_jax_error_msg) from err
+
+    @property
+    def _import_jax_error_msg(self):
+        return (
+            "Cannot perform Jax-based initialization without the optional "
+            "dependencies jax and jaxlib. "
+            "Try installing them via `pip install jax jaxlib`."
+        )
+
     def __call__(
         self,
         *,
@@ -71,29 +94,6 @@ class _AutoDiffBase(_InitializationRoutineBase):
 
     def _jvp_or_vjp(self, *, fun, primals, tangents):
         raise NotImplementedError
-
-    def _import_jax(self):
-
-        # pylint: disable="import-outside-toplevel"
-        try:
-            import jax
-            import jax.numpy as jnp
-            from jax.config import config
-
-            config.update("jax_enable_x64", True)
-
-            return jax, jnp
-
-        except ImportError as err:
-            raise ImportError(self._import_jax_error_msg) from err
-
-    @property
-    def _import_jax_error_msg(self):
-        return (
-            "Cannot perform Jax-based initialization without the optional "
-            "dependencies jax and jaxlib. "
-            "Try installing them via `pip install jax jaxlib`."
-        )
 
 
 class ForwardModeJVP(_AutoDiffBase):
@@ -204,42 +204,10 @@ class TaylorMode(_AutoDiffBase):
     [0. 0. 0. 0. 0. 0. 0. 0.]
     """
 
-    def _compute_ode_derivatives(self, *, f, y0, num_derivatives):
+    def __init__(self):
+        super().__init__()
+        self._jet = self._import_jet()
 
-        jet = self._import_jet()
-
-        # Corner case 1: num_derivatives == 0
-        derivs = [y0[:-1]]
-        if num_derivatives == 0:
-            return self._jnp.asarray(derivs)
-
-        # Corner case 2: num_derivatives == 1
-        y0_series = (self._jnp.ones_like(y0),)
-        (y0_coeffs_taylor, [*y0_coeffs_remaining]) = jet(
-            fun=f,
-            primals=(y0,),
-            series=(y0_series,),
-        )
-        derivs.append(y0_coeffs_taylor[:-1])
-        if num_derivatives == 1:
-            return self._jnp.asarray(derivs)
-
-        # Order > 1
-        for _ in range(1, num_derivatives):
-            coeffs_taylor = (
-                y0_coeffs_taylor,
-                *y0_coeffs_remaining,
-            )
-            (_, [*y0_coeffs_remaining]) = jet(
-                fun=f,
-                primals=(y0,),
-                series=(coeffs_taylor,),
-            )
-            derivs.append(y0_coeffs_remaining[-2][:-1])
-
-        return self._jnp.asarray(derivs)
-
-    @functools.lru_cache
     def _import_jet(self):
 
         # pylint: disable="import-outside-toplevel"
@@ -250,3 +218,33 @@ class TaylorMode(_AutoDiffBase):
 
         except ImportError as err:
             raise ImportError(self._import_jax_error_msg) from err
+
+    def _compute_ode_derivatives(self, *, f, y0, num_derivatives):
+
+        # Corner case 1: num_derivatives == 0
+        derivs = [y0[:-1]]
+        if num_derivatives == 0:
+            return self._jnp.asarray(derivs)
+
+        # Corner case 2: num_derivatives == 1
+        y0_series = (self._jnp.ones_like(y0),)
+        (y0_coeffs_taylor, [*y0_coeffs_remaining]) = self._jet(
+            fun=f,
+            primals=(y0,),
+            series=(y0_series,),
+        )
+        derivs.append(y0_coeffs_taylor[:-1])
+        if num_derivatives == 1:
+            return self._jnp.asarray(derivs)
+
+        # Order > 1
+        for _ in range(1, num_derivatives):
+            coeffs_taylor = (y0_coeffs_taylor, *y0_coeffs_remaining)
+            (_, [*y0_coeffs_remaining]) = self._jet(
+                fun=f,
+                primals=(y0,),
+                series=(coeffs_taylor,),
+            )
+            derivs.append(y0_coeffs_remaining[-2][:-1])
+
+        return self._jnp.asarray(derivs)
