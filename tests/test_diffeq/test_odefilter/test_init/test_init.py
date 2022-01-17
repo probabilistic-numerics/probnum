@@ -50,8 +50,10 @@ def test_compare_to_reference_values_is_not_exact_numpy(
     n, d = num_derivatives + 1, ivp.dimension
 
     # The zeroth and first derivative must always be exact
-    np.testing.assert_allclose(dy0_approximated.mean[:d], dy0_true[:d])
-    np.testing.assert_allclose(dy0_approximated.mean[n : n + d], dy0_true[n : n + d])
+    np.testing.assert_allclose(dy0_approximated.mean[:d], dy0_true[:d], rtol=1e-5)
+    np.testing.assert_allclose(
+        dy0_approximated.mean[n : n + d], dy0_true[n : n + d], rtol=1e-5
+    )
 
     # The error in the remainder must be encoded by a positive standard deviation
     assert np.linalg.norm(dy0_approximated.std) > 0.0

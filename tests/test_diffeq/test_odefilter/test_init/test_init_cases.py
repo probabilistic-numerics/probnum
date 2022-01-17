@@ -50,11 +50,17 @@ def solver_runge_kutta():
     return init.RungeKutta()
 
 
+#
+# @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
+# def solver_runge_kutta_with_jacobian():
+#     return init.RungeKuttaWithJacobian()
+
+
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_stack():
     return init.Stack()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
-def solver_stack():
+def solver_stack_with_jacobian():
     return init.StackWithJacobian()

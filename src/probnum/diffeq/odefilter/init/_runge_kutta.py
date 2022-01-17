@@ -10,9 +10,96 @@ from probnum import filtsmooth, problems, randprocs, randvars
 from probnum.typing import FloatLike
 
 from ._interface import _InitializationRoutineBase
+from ._stack import Stack, StackWithJacobian
 
 
-class RungeKutta(_InitializationRoutineBase):
+class _RungeKuttaBase(_InitializationRoutineBase):
+    def __init__(self, *, dt: Optional[FloatLike] = 1e-2):
+        super().__init__(is_exact=False, requires_jax=False)
+        self._dt = dt
+
+    def __call__(
+        self,
+        *,
+        ivp: problems.InitialValueProblem,
+        prior_process: randprocs.markov.MarkovProcess,
+    ) -> randvars.RandomVariable:
+
+        num_steps = prior_process.transition.num_derivatives + 1
+        locs = np.linspace(
+            start=ivp.t0,
+            stop=ivp.t0 + num_steps * self._dt,
+            num=num_steps,
+            endpoint=True,
+        )
+
+        data = self._data(ivp=ivp, locs=locs)
+        rv = self._improve(data=data, prior_process=prior_process)
+        return rv
+
+    def _data(self, *, ivp, locs):
+        raise NotImplementedError
+
+    def _improve(self, *, data, prior_process):
+
+        # Measurement model for SciPy observations
+        ode_dim = prior_process.transition.wiener_process_dimension
+        proj_to_y = prior_process.transition.proj2coord(coord=0)
+        observation_noise_std = self._observation_noise_std * np.ones(ode_dim)
+        measmod_scipy = randprocs.markov.discrete.LTIGaussian(
+            state_trans_mat=proj_to_y,
+            shift_vec=np.zeros(ode_dim),
+            proc_noise_cov_mat=np.diag(observation_noise_std ** 2),
+            proc_noise_cov_cholesky=np.diag(observation_noise_std),
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
+
+        # Regression problem
+        ts, ys = data
+        regression_problem = problems.TimeSeriesRegressionProblem(
+            observations=ys, locations=ts, measurement_models=[measmod_scipy] * len(ts)
+        )
+
+        # Infer the solution
+        kalman = filtsmooth.gaussian.Kalman(prior_process)
+        out, _ = kalman.filtsmooth(regression_problem)
+        estimated_initrv = out.states[0]
+        return estimated_initrv
+
+
+class RungeKutta(_RungeKuttaBase):
+    def __init__(
+        self,
+        *,
+        dt: Optional[FloatLike] = 1e-2,
+        method: str = "DOP853",
+        observation_noise_std=1e-7,
+    ):
+        super().__init__(dt=dt)
+        self._method = method
+        self._observation_noise_std = observation_noise_std
+
+    def _data(self, *, ivp, locs):
+
+        sol = sci.solve_ivp(
+            fun=ivp.f,
+            t_span=(np.amin(locs), np.amax(locs)),
+            y0=ivp.y0,
+            atol=1e-12,
+            rtol=1e-12,
+            t_eval=locs,
+            method=self._method,
+        )
+        ts = sol.t
+        ys = sol.y.T
+        return ts, ys
+
+    def _init(self, *, ivp, prior_process):
+        return self._init_routine(ivp=ivp, prior_process=prior_process)
+
+
+class RungeKutta2(_InitializationRoutineBase):
     r"""Initialize a probabilistic ODE solver by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's Runge-Kutta methods.
 
     Parameters
@@ -42,7 +129,7 @@ class RungeKutta(_InitializationRoutineBase):
 
     Next, we call the initialization routine.
 
-    >>> rk_init = RungeKuttaInitialization()
+    >>> rk_init = RungeKutta()
     >>> improved_initrv = rk_init(ivp=ivp, prior_process=prior_process)
     >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
