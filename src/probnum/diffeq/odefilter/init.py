@@ -2,7 +2,7 @@
 
 
 import abc
-from functools import partial
+import functools
 from typing import Optional
 
 import numpy as np
@@ -27,13 +27,14 @@ class _InitializationRoutineBase(abc.ABC):
        *arXiv:2012.10106*, 2020.
     """
 
-    def __init__(self, is_exact: bool, requires_jax: bool):
+    def __init__(self, *, is_exact: bool, requires_jax: bool):
         self._is_exact = is_exact
         self._requires_jax = requires_jax
 
     @abc.abstractmethod
     def __call__(
         self,
+        *,
         ivp: problems.InitialValueProblem,
         prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
@@ -60,17 +61,18 @@ class _AutoDiffBase(_InitializationRoutineBase):
 
     def __call__(
         self,
+        *,
         ivp: problems.InitialValueProblem,
         prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
 
         num_derivatives = prior_process.transition.num_derivatives
 
-        jax, jnp, jet = self._import_jax()
+        jax, jnp = self._import_jax()
         f, y0 = self._make_autonomous(ivp=ivp, jnp=jnp)
 
         mean_matrix = self._compute_ode_derivatives(
-            f=f, y0=y0, num_derivatives=num_derivatives, jax=jax, jnp=jnp, jet=jet
+            f=f, y0=y0, num_derivatives=num_derivatives, jax=jax, jnp=jnp
         )
         mean = mean_matrix.reshape((-1,), order="F")
         zeros = jnp.zeros((mean.shape[0], mean.shape[0]))
@@ -80,7 +82,7 @@ class _AutoDiffBase(_InitializationRoutineBase):
             cov_cholesky=np.asarray(zeros),
         )
 
-    def _compute_ode_derivatives(self, *, f, y0, num_derivatives, jax, jnp, jet):
+    def _compute_ode_derivatives(self, *, f, y0, num_derivatives, jax, jnp):
         gen = self._F_generator(f=f, y0=y0, jax=jax)
         mean_matrix = jnp.stack(
             [next(gen)(y0)[:-1] for _ in range(num_derivatives + 1)]
@@ -98,10 +100,10 @@ class _AutoDiffBase(_InitializationRoutineBase):
 
         return f_autonomous, y0_autonomous
 
-    def _F_generator(self, f, y0, jax):
+    def _F_generator(self, *, f, y0, jax):
         def fwd_deriv(f, f0):
             def df(x):
-                return self.jvp_or_vjp(fun=f, primals=x, tangents=f0(x), jax=jax)
+                return self._jvp_or_vjp(fun=f, primals=x, tangents=f0(x), jax=jax)
 
             return df
 
@@ -113,43 +115,54 @@ class _AutoDiffBase(_InitializationRoutineBase):
             yield g
             g = fwd_deriv(g, f0)
 
-    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+    def _jvp_or_vjp(self, *, fun, primals, tangents, jax):
         raise NotImplementedError
 
-    @staticmethod
-    def _import_jax():
+    @functools.lru_cache
+    def _import_jax(self):
 
         # pylint: disable="import-outside-toplevel"
         try:
             import jax
             import jax.numpy as jnp
             from jax.config import config
-            from jax.experimental.jet import jet
 
             config.update("jax_enable_x64", True)
 
-            return jax, jnp, jet
+            return jax, jnp
 
         except ImportError as err:
-            raise ImportError(
-                "Cannot perform Jax-based initialization without the optional "
-                "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
-            ) from err
+            raise ImportError(self._import_jax_error_msg) from err
+
+    @property
+    def _import_jax_error_msg(self):
+        return (
+            "Cannot perform Jax-based initialization without the optional "
+            "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
+        )
 
 
 class ForwardMode(_AutoDiffBase):
-    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+    """Initialization via Jacobian-vector product automatic differentiation."""
+
+    def _jvp_or_vjp(self, *, fun, primals, tangents, jax):
         _, y = jax.jvp(fun, (primals,), (tangents,))
         return y
 
 
 class ForwardModeNaive(_AutoDiffBase):
-    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+    """Initialization via full-Jacobian-based, forward-mode automatic
+    differentiation."""
+
+    def _jvp_or_vjp(self, *, fun, primals, tangents, jax):
         return jax.jacfwd(fun)(primals) @ tangents
 
 
 class ReverseModeNaive(_AutoDiffBase):
-    def jvp_or_vjp(self, *, fun, primals, tangents, jax):
+    """Initialization via full-Jacobian-based, reverse-mode automatic
+    differentiation."""
+
+    def _jvp_or_vjp(self, *, fun, primals, tangents, jax):
         # The following should work, but doesn't
         # y, dfx_fun = jax.vjp(fun, primals)
         # a, = dfx_fun(tangents)
@@ -236,7 +249,9 @@ class TaylorMode(_AutoDiffBase):
     [0. 0. 0. 0. 0. 0. 0. 0.]
     """
 
-    def _compute_ode_derivatives(self, f, y0, num_derivatives, jax, jnp, jet):
+    def _compute_ode_derivatives(self, *, f, y0, num_derivatives, jax, jnp):
+
+        jet = self._import_jax_jet()
 
         # Corner case 1: num_derivatives == 0
         derivs = [y0[:-1]]
@@ -268,6 +283,18 @@ class TaylorMode(_AutoDiffBase):
             derivs.append(y0_coeffs_remaining[-2][:-1])
 
         return jnp.asarray(derivs)
+
+    @functools.lru_cache
+    def _import_jax_jet(self):
+
+        # pylint: disable="import-outside-toplevel"
+        try:
+            from jax.experimental.jet import jet
+
+            return jet
+
+        except ImportError as err:
+            raise ImportError(self._import_jax_error_msg) from err
 
 
 class RungeKutta(_InitializationRoutineBase):
@@ -311,7 +338,7 @@ class RungeKutta(_InitializationRoutineBase):
     """
 
     def __init__(
-        self, dt: Optional[FloatLike] = 1e-2, method: Optional[str] = "DOP853"
+        self, *, dt: Optional[FloatLike] = 1e-2, method: Optional[str] = "DOP853"
     ):
         self.dt = dt
         self.method = method
@@ -319,6 +346,7 @@ class RungeKutta(_InitializationRoutineBase):
 
     def __call__(
         self,
+        *,
         ivp: problems.InitialValueProblem,
         prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:
