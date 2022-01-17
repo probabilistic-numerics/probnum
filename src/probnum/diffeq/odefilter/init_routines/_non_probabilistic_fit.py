@@ -72,7 +72,7 @@ class _SciPyFitBase(InitializationRoutine):
         return estimated_initrv
 
 
-class SciPyFit(_SciPyFitBase):
+class NonProbabilisticFit(_SciPyFitBase):
     """Fit the prior process to a few steps of a non-probabilistic solver."""
 
     def __init__(
@@ -101,7 +101,7 @@ class SciPyFit(_SciPyFitBase):
         return ts, ys
 
 
-class SciPyFitWithJacobian(_SciPyFitBase):
+class NonProbabilisticFitWithJacobian(_SciPyFitBase):
     """Fit the prior process to a few steps of a non-probabilistic solver and use
     Jacobians."""
 

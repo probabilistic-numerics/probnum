@@ -31,13 +31,13 @@ def diffusion_piecewise_constant():
 
 
 @pytest_cases.case(tags=("numpy",))
-def init_scipy_fit():
-    return diffeq.odefilter.init_routines.SciPyFit()
+def init_non_prob_fit():
+    return diffeq.odefilter.init_routines.NonProbabilisticFit()
 
 
 @pytest_cases.case(tags=("numpy",))
-def init_scipy_fit_with_jacobian():
-    return diffeq.odefilter.init_routines.SciPyFitWithJacobian()
+def init_non_prob_fit_with_jacobian():
+    return diffeq.odefilter.init_routines.NonProbabilisticFitWithJacobian()
 
 
 @pytest_cases.case(tags=("numpy",))

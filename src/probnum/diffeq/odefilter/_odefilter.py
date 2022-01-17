@@ -92,7 +92,7 @@ class ODEFilter(_odesolver.ODESolver):
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
 
-        self.init_routine = init_routine or init_routines.SciPyFit()
+        self.init_routine = init_routine or init_routines.NonProbabilisticFit()
         super().__init__(
             steprule=steprule, order=self.prior_process.transition.num_derivatives
         )

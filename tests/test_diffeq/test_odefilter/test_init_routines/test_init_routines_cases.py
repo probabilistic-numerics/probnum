@@ -46,13 +46,13 @@ def solver_auto_diff_reverse():
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
-def solver_scipy_fit():
-    return init_routines.SciPyFit()
+def solver_non_probabilistic_fit():
+    return init_routines.NonProbabilisticFit()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
-def solver_runge_kutta_with_jacobian():
-    return init_routines.SciPyFitWithJacobian()
+def solver_non_probabilistic_fit_with_jacobian():
+    return init_routines.NonProbabilisticFitWithJacobian()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
