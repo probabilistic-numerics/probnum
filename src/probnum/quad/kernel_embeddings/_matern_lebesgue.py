@@ -21,7 +21,7 @@ def _kernel_mean_matern_lebesgue(
     x :
         *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
     kernel :
-        Instance of a ProductMatern or 1D Matern kernel.
+        A product Matern kernel, or a 1D Matern kernel.
     measure :
         Instance of a LebesgueMeasure.
 
@@ -54,7 +54,7 @@ def _kernel_variance_matern_lebesgue(
     Parameters
     ----------
     kernel :
-        Instance of a ProductMatern or 1D Matern kernel.
+        A product Matern kernel, or a 1D Matern kernel.
     measure :
         Instance of a LebesgueMeasure.
 
@@ -77,7 +77,7 @@ def _kernel_variance_matern_lebesgue(
     return measure.normalization_constant ** 2 * kernel_variance
 
 
-def _convert_to_product_matern(kernel):
+def _convert_to_product_matern(kernel: Matern) -> ProductMatern:
     """Convert a 1D Matern kernel to a ProductMatern for unified treatment."""
     if isinstance(kernel, Matern):
         if kernel.input_dim > 1:
@@ -93,7 +93,9 @@ def _convert_to_product_matern(kernel):
     return kernel
 
 
-def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple):
+def _kernel_mean_matern_1d_lebesgue(
+    x: np.ndarray, kernel: Matern, domain: Tuple
+) -> np.ndarray:
     """Kernel means for 1D Matern kernels.
 
     Note that these are for unnormalized Lebesgue measure.
@@ -154,7 +156,9 @@ def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple
             )
         )
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Kernel mean not available for kernel parameter nu={kernel.nu}"
+        )
     return unnormalized_mean
 
 
@@ -218,5 +222,7 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
             )
         )
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Kernel variance not available for kernel parameter nu={kernel.nu}"
+        )
     return unnormalized_variance

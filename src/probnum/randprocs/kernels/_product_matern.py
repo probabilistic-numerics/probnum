@@ -15,8 +15,8 @@ class ProductMatern(Kernel):
     r"""Product Matern kernel.
 
     Covariance function defined as a product of one-dimensional Matern
-    kernels: :math:`k(x_0, x_1) = \\prod_{i=1}^d k_i(x_{0,i}, x_{1,i})`,
-    where :math:`x_0 = (x_{0,i}, \\ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \\ldots,
+    kernels: :math:`k(x_0, x_1) = \prod_{i=1}^d k_i(x_{0,i}, x_{1,i})`,
+    where :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \ldots,
     x_{0,d})` and :math:`k_i` are one-dimensional Matern kernels.
 
     Parameters
@@ -63,12 +63,12 @@ class ProductMatern(Kernel):
         if np.isscalar(nus):
             nus = np.full((input_dim,), _utils.as_numpy_scalar(nus))
 
-        one_d_materns = []
+        univariate_materns = []
         for dim in range(input_dim):
-            one_d_materns.append(
+            univariate_materns.append(
                 Matern(input_dim=1, lengthscale=lengthscales[dim], nu=nus[dim])
             )
-        self.one_d_materns = one_d_materns
+        self.univariate_materns = univariate_materns
         self.nus = nus
         self.lengthscales = lengthscales
 
