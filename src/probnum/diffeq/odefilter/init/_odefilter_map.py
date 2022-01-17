@@ -9,9 +9,10 @@ from ._interface import _InitializationRoutineBase
 
 
 class ODEFilterMAP(_InitializationRoutineBase):
-    def __init__(self, dt=1e-2):
+    def __init__(self, dt=1e-2, stopping_criterion=None):
         super().__init__(is_exact=False, requires_jax=False)
         self._dt = dt
+        self._stopping_criterion = stopping_criterion
 
     def __call__(
         self,
@@ -42,7 +43,9 @@ class ODEFilterMAP(_InitializationRoutineBase):
 
         # Assemble iterated Kalman smoother
         kalman = filtsmooth.gaussian.Kalman(prior_process=prior_process)
-        gauss_newton = filtsmooth.optim.GaussNewton(kalman=kalman)
+        gauss_newton = filtsmooth.optim.GaussNewton(
+            kalman=kalman, stopping_criterion=self._stopping_criterion
+        )
 
         # Compute initial guess and solution
         initial_guess, _ = kalman.filtsmooth(filter_problem)
