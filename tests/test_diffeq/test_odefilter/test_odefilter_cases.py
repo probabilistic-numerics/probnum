@@ -7,8 +7,7 @@ from probnum import diffeq, randprocs
 
 
 def problem_logistic():
-    y0 = np.array([0.1])
-    return diffeq_zoo.logistic(t0=0.0, tmax=1.5, y0=y0)
+    return diffeq_zoo.logistic()
 
 
 def steprule_constant():
@@ -45,3 +44,11 @@ def init_stack():
 
 def init_stack_with_jacobian():
     return diffeq.odefilter.init.StackWithJacobian()
+
+
+def approx_ek0():
+    return diffeq.odefilter.approx_strategies.EK0()
+
+
+def approx_ek1():
+    return diffeq.odefilter.approx_strategies.EK1()
