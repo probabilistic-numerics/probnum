@@ -284,7 +284,7 @@ def probsolve_ivp(
         raise ValueError("Method is not supported.")
     approx_strategy = choose_method[method]
 
-    rk_init = odefilter.initialization_routines.RungeKuttaInitialization()
+    rk_init = odefilter.init.SciPyFit()
 
     solver = odefilter.ODEFilter(
         steprule=steprule,

@@ -7,14 +7,53 @@ import pytest_cases
 from probnum import diffeq, randprocs
 
 
-@pytest.mark.parametrize("num_derivatives", [2, 4])
+@pytest.mark.parametrize(
+    "num_derivatives",
+    [
+        3,
+    ],
+)
 @pytest.mark.parametrize("with_smoothing", [True, False])
-@pytest_cases.parametrize_with_cases("ivp", prefix="problem_")
 @pytest_cases.parametrize_with_cases("steprule", prefix="steprule_")
 @pytest_cases.parametrize_with_cases("diffusion_model", prefix="diffusion_")
-@pytest_cases.parametrize_with_cases("init", prefix="init_")
 @pytest_cases.parametrize_with_cases("approx_strategy", prefix="approx_")
-def test_solve(
+@pytest_cases.parametrize_with_cases("ivp", prefix="problem_", has_tag="numpy")
+@pytest_cases.parametrize_with_cases("init", prefix="init_", has_tag="numpy")
+def test_solve_numpy(
+    ivp,
+    steprule,
+    num_derivatives,
+    with_smoothing,
+    diffusion_model,
+    init,
+    approx_strategy,
+):
+
+    solver = diffeq.odefilter.ODEFilter(
+        steprule=steprule,
+        prior_process=_prior_process(ivp=ivp, num_derivatives=num_derivatives),
+        with_smoothing=with_smoothing,
+        diffusion_model=diffusion_model,
+        initialization_routine=init,
+        approx_strategy=approx_strategy,
+    )
+
+    solver.solve(ivp)
+
+
+@pytest.mark.parametrize(
+    "num_derivatives",
+    [
+        3,
+    ],
+)
+@pytest.mark.parametrize("with_smoothing", [True, False])
+@pytest_cases.parametrize_with_cases("steprule", prefix="steprule_")
+@pytest_cases.parametrize_with_cases("diffusion_model", prefix="diffusion_")
+@pytest_cases.parametrize_with_cases("approx_strategy", prefix="approx_")
+@pytest_cases.parametrize_with_cases("ivp", prefix="problem_", has_tag="jax")
+@pytest_cases.parametrize_with_cases("init", prefix="init_", has_tag="jax")
+def test_solve_jax(
     ivp,
     steprule,
     num_derivatives,

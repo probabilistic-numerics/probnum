@@ -61,6 +61,7 @@ def fixture_odefilter_large_step(ivp, steprule_large, prior_iwp, diffusion_model
         steprule=steprule_large,
         prior_process=prior_iwp,
         diffusion_model=diffusion_model,
+        initialization_routine=diffeq.odefilter.init.Stack(),
         with_smoothing=False,
     )
 
@@ -71,6 +72,7 @@ def fixture_odefilter_small_step(ivp, steprule_small, prior_iwp, diffusion_model
         steprule=steprule_small,
         prior_process=prior_iwp,
         diffusion_model=diffusion_model,
+        initialization_routine=diffeq.odefilter.init.Stack(),
         with_smoothing=False,
     )
 
@@ -116,7 +118,7 @@ def test_second_iteration(ivp, solution_large_step, step_large):
     np.testing.assert_allclose(ms[1], exp_mean[:, 0], rtol=1e-14)
 
 
-@pytest.mark.parametrize("algo_order", [1, 2, 3])
+@pytest.mark.parametrize("algo_order", [1, 2])
 def test_convergence_error(
     ivp, step_small, step_large, solution_large_step, solution_small_step, algo_order
 ):
