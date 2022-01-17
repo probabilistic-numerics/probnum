@@ -16,15 +16,7 @@ from probnum.quad.solvers.stopping_criteria import (
 
 from ._bayesquad import bayesquad, bayesquad_from_data
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from .kernel_embeddings import (
-    KernelEmbedding,
-    _kernel_mean_expquad_gauss,
-    _kernel_mean_expquad_lebesgue,
-    _kernel_mean_matern_lebesgue,
-    _kernel_variance_expquad_gauss,
-    _kernel_variance_expquad_lebesgue,
-    _kernel_variance_matern_lebesgue,
-)
+from .kernel_embeddings import KernelEmbedding
 from .solvers import (
     BayesianQuadrature,
     BQBeliefUpdate,
