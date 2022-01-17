@@ -2,7 +2,6 @@
 
 import numpy as np
 import pytest
-
 from scipy.integrate import quad
 
 from probnum.quad import KernelEmbedding
@@ -125,7 +124,9 @@ def test_kernel_mean_matern_lebesgue_measure(matern_kernel, measure, num_data):
         for dim in range(kernel_embedding.measure.input_dim):
 
             def fun(x):
-                return kernel_embedding.kernel.univariate_materns[dim](points[indx][dim], x)
+                return kernel_embedding.kernel.univariate_materns[dim](
+                    points[indx][dim], x
+                )
 
             integral_current_dim *= quad(fun, a[dim], b[dim])[0]
         num_kernel_means[indx] = (

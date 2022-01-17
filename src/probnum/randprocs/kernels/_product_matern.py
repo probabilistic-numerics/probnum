@@ -5,7 +5,7 @@ from typing import Optional, Union
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.typing import IntArgType, ScalarArgType
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import Kernel
 from ._matern import Matern
@@ -53,10 +53,12 @@ class ProductMatern(Kernel):
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        lengthscales: Union[np.ndarray, ScalarArgType],
-        nus: Union[np.ndarray, ScalarArgType],
+        input_dim: IntLike,
+        lengthscales: Union[np.ndarray, ScalarLike],
+        nus: Union[np.ndarray, ScalarLike],
     ):
+        input_dim = int(input_dim)
+
         # If only single scalar lengthcsale or nu is given, use this in every dimension
         if np.isscalar(lengthscales):
             lengthscales = np.full((input_dim,), _utils.as_numpy_scalar(lengthscales))
@@ -80,10 +82,10 @@ class ProductMatern(Kernel):
 
         if x1 is None:
             for dim in range(self.input_dim):
-                kernel_eval *= self.one_d_materns[dim](x0[..., dim, None])
+                kernel_eval *= self.univariate_materns[dim](x0[..., dim, None], None)
         else:
             for dim in range(self.input_dim):
-                kernel_eval *= self.one_d_materns[dim](
+                kernel_eval *= self.univariate_materns[dim](
                     x0[..., dim, None], x1[..., dim, None]
                 )
 

@@ -9,8 +9,8 @@ from ._exponentiated_quadratic import ExpQuad
 from ._kernel import IsotropicMixin, Kernel
 from ._linear import Linear
 from ._matern import Matern
-from ._product_matern import ProductMatern
 from ._polynomial import Polynomial
+from ._product_matern import ProductMatern
 from ._rational_quadratic import RatQuad
 from ._white_noise import WhiteNoise
 

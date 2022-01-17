@@ -17,7 +17,7 @@ from probnum.quad.kernel_embeddings import (
     _kernel_variance_expquad_lebesgue,
     _kernel_variance_matern_lebesgue,
 )
-from probnum.randprocs.kernels import ExpQuad, Matern, ProductMatern, Kernel
+from probnum.randprocs.kernels import ExpQuad, Kernel, Matern, ProductMatern
 
 
 class KernelEmbedding:
