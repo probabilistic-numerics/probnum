@@ -38,7 +38,7 @@ def _kernel_mean_matern_lebesgue(
     for dim in range(kernel.input_dim):
         kernel_mean *= _kernel_mean_matern_1d_lebesgue(
             x=x[:, dim],
-            kernel=kernel.one_d_materns[dim],
+            kernel=kernel.univariate_materns[dim],
             domain=(measure.domain[0][dim], measure.domain[1][dim]),
         )
 
@@ -70,7 +70,7 @@ def _kernel_variance_matern_lebesgue(
     kernel_variance = 1.0
     for dim in range(kernel.input_dim):
         kernel_variance *= _kernel_variance_matern_1d_lebesgue(
-            kernel=kernel.one_d_materns[dim],
+            kernel=kernel.univariate_materns[dim],
             domain=(measure.domain[0][dim], measure.domain[1][dim]),
         )
 
