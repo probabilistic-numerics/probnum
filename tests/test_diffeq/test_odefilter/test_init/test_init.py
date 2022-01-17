@@ -1,8 +1,6 @@
 """Tests for initialization routines."""
 
 
-import warnings
-
 import jax
 import numpy as np
 import pytest

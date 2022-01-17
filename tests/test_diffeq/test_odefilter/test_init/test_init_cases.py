@@ -1,10 +1,8 @@
 """Test cases for initialization."""
 
-import pytest
 import pytest_cases
 from jax.config import config  # speed...
 
-from probnum import randprocs
 from probnum.diffeq.odefilter import init
 from probnum.problems.zoo import diffeq as diffeq_zoo
 

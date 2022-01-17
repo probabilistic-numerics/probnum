@@ -1,17 +1,11 @@
-"""Known derivatives of initial values for ODE example problems that are used to test
-the methods in diffeq/odefilter/initialize.py.
+"""Known derivatives of initial values for ODE example problems.
 
-Other than in the ``Integrator`` objects, which stores values coordinate-wise, that is, as ``(y1,
-dy1, ddy1, ..., y2, dy2, ddy2, ...)``,  the values here are stored derivative-wise, that is, as
-``(y1, y2, dy1, dy2, ddy1, ddy2, ...))``. The reason is that in order to
-extract "the first few derivatives", we can conveniently slice the first
-``(d*(q+1))`` entries and reshape accordingly. Otherwise, we would have
-to slice the blocks (:(q+1)), (d*15:d*15+q+1), ...
-
-To convert between the two representations use the static methods
-    * `probnum.statespace.Integrator._convert_derivwise_to_coordwise`; or
-    * `probnum.statespace.Integrator._convert_coordwise_to_derivwise`.
+Used to test the initialization routines.
 """
+
+# The lines below contain some high-accuracy floats,
+# which, due to the indentation, exceed the line-length-limits.
+# pylint: disable="line-too-long"
 
 
 import numpy as np
