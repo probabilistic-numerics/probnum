@@ -7,10 +7,10 @@ import probnum.utils as pnut
 
 
 @pytest.mark.parametrize("scalar", [1, 1.0, 1.0 + 2.0j, np.array(1.0)])
-def test_as_numpy_scalar_scalar_is_good(scalar):
+def test_as_numpy_scalar_returns_scalar_array(scalar):
     """All sorts of scalars are transformed into a np.generic."""
     as_scalar = pnut.as_numpy_scalar(scalar)
-    assert isinstance(as_scalar, np.generic)
+    assert isinstance(as_scalar, np.ndarray) and as_scalar.shape == ()
     np.testing.assert_allclose(as_scalar, scalar, atol=0.0, rtol=1e-12)
 
 

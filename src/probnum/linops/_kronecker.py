@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum.typing import DTypeArgType, NotImplementedType
+from probnum.typing import DTypeLike, NotImplementedType
 
 from . import _linear_operator, _utils
 
@@ -21,7 +21,7 @@ class Symmetrize(_linear_operator.LinearOperator):
         Data type.
     """
 
-    def __init__(self, n: int, dtype: DTypeArgType = np.double):
+    def __init__(self, n: int, dtype: DTypeLike = np.double):
         self._n = n
 
         super().__init__(
@@ -142,7 +142,7 @@ class Kronecker(_linear_operator.LinearOperator):
         )
 
     def _astype(
-        self, dtype: DTypeArgType, order: str, casting: str, copy: bool
+        self, dtype: DTypeLike, order: str, casting: str, copy: bool
     ) -> "Kronecker":
         A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
         B_astype = self.B.astype(dtype, order=order, casting=casting, copy=copy)
@@ -355,7 +355,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         return self._identical_factors
 
     def _astype(
-        self, dtype: DTypeArgType, order: str, casting: str, copy: bool
+        self, dtype: DTypeLike, order: str, casting: str, copy: bool
     ) -> Union["SymmetricKronecker", _linear_operator.LinearOperator]:
         if self._identical_factors:
             A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)

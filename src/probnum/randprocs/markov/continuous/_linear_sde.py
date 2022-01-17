@@ -8,7 +8,7 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.randprocs.markov.continuous import _sde
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 from probnum.utils.linalg import tril_to_positive_tril
 
 
@@ -46,13 +46,13 @@ class LinearSDE(_sde.SDE):
 
     def __init__(
         self,
-        state_dimension: IntArgType,
-        wiener_process_dimension: IntArgType,
-        drift_matrix_function: Callable[[FloatArgType], np.ndarray],
-        force_vector_function: Callable[[FloatArgType], np.ndarray],
-        dispersion_matrix_function: Callable[[FloatArgType], np.ndarray],
-        mde_atol: Optional[FloatArgType] = 1e-6,
-        mde_rtol: Optional[FloatArgType] = 1e-6,
+        state_dimension: IntLike,
+        wiener_process_dimension: IntLike,
+        drift_matrix_function: Callable[[FloatLike], np.ndarray],
+        force_vector_function: Callable[[FloatLike], np.ndarray],
+        dispersion_matrix_function: Callable[[FloatLike], np.ndarray],
+        mde_atol: Optional[FloatLike] = 1e-6,
+        mde_rtol: Optional[FloatLike] = 1e-6,
         mde_solver: Optional[str] = "RK45",
         forward_implementation: Optional[str] = "classic",
     ):

@@ -8,7 +8,7 @@ import scipy.stats
 from probnum import randvars, utils
 from probnum.randprocs import _random_process
 from probnum.randprocs.markov import _transition
-from probnum.typing import ShapeArgType
+from probnum.typing import ShapeLike
 
 _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
@@ -69,7 +69,7 @@ class MarkovProcess(_random_process.RandomProcess):
         self,
         rng: np.random.Generator,
         args: _InputType,
-        size: ShapeArgType = (),
+        size: ShapeLike = (),
     ) -> _OutputType:
 
         size = utils.as_shape(size)

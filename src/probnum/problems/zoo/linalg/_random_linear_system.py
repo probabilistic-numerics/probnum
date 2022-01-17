@@ -6,13 +6,13 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, problems, randvars
-from probnum.typing import LinearOperatorArgType
+from probnum.typing import LinearOperatorLike
 
 
 def random_linear_system(
     rng: np.random.Generator,
     matrix: Union[
-        LinearOperatorArgType,
+        LinearOperatorLike,
         Callable[
             [np.random.Generator, Optional[Any]],
             Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],

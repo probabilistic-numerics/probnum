@@ -6,7 +6,7 @@ from typing import Tuple, Union
 import numpy as np
 
 import probnum.utils
-from probnum.typing import NotImplementedType, ScalarArgType
+from probnum.typing import NotImplementedType, ScalarLike
 
 from ._linear_operator import BinaryOperandType, LinearOperator
 
@@ -18,7 +18,7 @@ from ._linear_operator import BinaryOperandType, LinearOperator
 class ScaledLinearOperator(LinearOperator):
     """Linear operator scaled with a scalar."""
 
-    def __init__(self, linop: LinearOperator, scalar: ScalarArgType):
+    def __init__(self, linop: LinearOperator, scalar: ScalarLike):
         if not isinstance(linop, LinearOperator):
             raise TypeError("`linop` must be a `LinearOperator`")
 

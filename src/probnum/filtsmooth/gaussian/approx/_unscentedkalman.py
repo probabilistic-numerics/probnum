@@ -11,7 +11,7 @@ import numpy as np
 
 from probnum import randprocs, randvars
 from probnum.filtsmooth.gaussian.approx import _unscentedtransform
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 class UKFComponent:
@@ -20,9 +20,9 @@ class UKFComponent:
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatArgType] = 1e-4,
-        priorpar: Optional[FloatArgType] = 2.0,
-        special_scale: Optional[FloatArgType] = 0.0,
+        spread: Optional[FloatLike] = 1e-4,
+        priorpar: Optional[FloatLike] = 2.0,
+        special_scale: Optional[FloatLike] = 0.0,
     ) -> None:
         self.non_linear_model = non_linear_model
         self.ut = _unscentedtransform.UnscentedTransform(
@@ -57,11 +57,11 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatArgType] = 1e-4,
-        priorpar: Optional[FloatArgType] = 2.0,
-        special_scale: Optional[FloatArgType] = 0.0,
-        mde_atol: Optional[FloatArgType] = 1e-6,
-        mde_rtol: Optional[FloatArgType] = 1e-6,
+        spread: Optional[FloatLike] = 1e-4,
+        priorpar: Optional[FloatLike] = 2.0,
+        special_scale: Optional[FloatLike] = 0.0,
+        mde_atol: Optional[FloatLike] = 1e-6,
+        mde_rtol: Optional[FloatLike] = 1e-6,
         mde_solver: Optional[str] = "LSODA",
     ) -> None:
 
@@ -153,9 +153,9 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatArgType] = 1e-4,
-        priorpar: Optional[FloatArgType] = 2.0,
-        special_scale: Optional[FloatArgType] = 0.0,
+        spread: Optional[FloatLike] = 1e-4,
+        priorpar: Optional[FloatLike] = 2.0,
+        special_scale: Optional[FloatLike] = 0.0,
     ) -> None:
         UKFComponent.__init__(
             self,

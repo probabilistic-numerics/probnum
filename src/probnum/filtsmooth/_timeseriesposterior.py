@@ -6,13 +6,7 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import (
-    ArrayLikeGetitemArgType,
-    DenseOutputLocationArgType,
-    FloatArgType,
-    IntArgType,
-    ShapeArgType,
-)
+from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike, IntLike, ShapeLike
 
 DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
 """Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a single location,
@@ -33,14 +27,14 @@ class TimeSeriesPosterior(abc.ABC):
 
     def __init__(
         self,
-        locations: Optional[Iterable[FloatArgType]] = None,
+        locations: Optional[Iterable[FloatLike]] = None,
         states: Optional[Iterable[randvars.RandomVariable]] = None,
     ) -> None:
         self._locations = list(locations) if locations is not None else []
         self._states = list(states) if states is not None else []
         self._frozen = False
 
-    def _check_location(self, location: FloatArgType) -> FloatArgType:
+    def _check_location(self, location: FloatLike) -> FloatLike:
         if len(self._locations) > 0 and location <= self._locations[-1]:
             _err_msg = "Locations have to be strictly ascending. "
             _err_msg += f"Received {location} <= {self._locations[-1]}."
@@ -49,7 +43,7 @@ class TimeSeriesPosterior(abc.ABC):
 
     def append(
         self,
-        location: FloatArgType,
+        location: FloatLike,
         state: randvars.RandomVariable,
     ) -> None:
 
@@ -81,10 +75,10 @@ class TimeSeriesPosterior(abc.ABC):
         """
         return len(self.locations)
 
-    def __getitem__(self, idx: ArrayLikeGetitemArgType) -> randvars.RandomVariable:
+    def __getitem__(self, idx: ArrayIndicesLike) -> randvars.RandomVariable:
         return self.states[idx]
 
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
+    def __call__(self, t: ArrayLike) -> DenseOutputValueType:
         """Evaluate the time-continuous posterior at location `t`
 
         Algorithm:
@@ -159,9 +153,9 @@ class TimeSeriesPosterior(abc.ABC):
     @abc.abstractmethod
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 
@@ -176,8 +170,8 @@ class TimeSeriesPosterior(abc.ABC):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        t: Optional[ArrayLike] = None,
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         """Draw samples from the filtering/smoothing posterior.
 
@@ -213,7 +207,7 @@ class TimeSeriesPosterior(abc.ABC):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType],
+        t: Optional[ArrayLike],
     ) -> np.ndarray:
         """Transform a set of realizations from a base measure into realizations from
         the posterior.

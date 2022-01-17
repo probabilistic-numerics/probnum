@@ -4,7 +4,7 @@ import numpy as np
 
 from probnum.quad.solvers.bq_state import BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 # pylint: disable=too-few-public-methods
 
@@ -23,7 +23,7 @@ class RelativeMeanChange(BQStoppingCriterion):
         Relative error tolerance on consecutive integral mean values.
     """
 
-    def __init__(self, rel_tol: FloatArgType):
+    def __init__(self, rel_tol: FloatLike):
         self.rel_tol = rel_tol
 
     def __call__(self, bq_state: BQState) -> bool:
