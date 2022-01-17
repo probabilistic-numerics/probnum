@@ -61,7 +61,7 @@ def fixture_odefilter_large_step(ivp, steprule_large, prior_iwp, diffusion_model
         steprule=steprule_large,
         prior_process=prior_iwp,
         diffusion_model=diffusion_model,
-        initialization_routine=diffeq.odefilter.init.Stack(),
+        init_routine=diffeq.odefilter.init_routines.Stack(),
         with_smoothing=False,
     )
 
@@ -72,7 +72,7 @@ def fixture_odefilter_small_step(ivp, steprule_small, prior_iwp, diffusion_model
         steprule=steprule_small,
         prior_process=prior_iwp,
         diffusion_model=diffusion_model,
-        initialization_routine=diffeq.odefilter.init.Stack(),
+        init_routine=diffeq.odefilter.init_routines.Stack(),
         with_smoothing=False,
     )
 

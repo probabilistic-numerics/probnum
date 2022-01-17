@@ -7,10 +7,10 @@ import numpy as np
 
 from probnum import problems, randprocs, randvars
 
-from ._interface import _InitializationRoutineBase
+from ._interface import InitializationRoutine
 
 
-class _AutoDiffBase(_InitializationRoutineBase):
+class _AutoDiffBase(InitializationRoutine):
     def __init__(self):
         super().__init__(is_exact=True, requires_jax=True)
         self._jax, self._jnp = self._import_jax()

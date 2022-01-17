@@ -3,7 +3,7 @@
 import pytest_cases
 from jax.config import config  # speed...
 
-from probnum.diffeq.odefilter import init
+from probnum.diffeq.odefilter import init_routines
 from probnum.problems.zoo import diffeq as diffeq_zoo
 
 from . import known_initial_derivatives
@@ -27,44 +27,44 @@ def problem_lotka_volterra():
 
 @pytest_cases.case(tags=["is_exact", "requires_jax"])
 def solver_taylor_mode():
-    return init.TaylorMode()
+    return init_routines.TaylorMode()
 
 
 @pytest_cases.case(tags=["is_exact", "requires_jax"])
 def solver_auto_diff_forward_jvp():
-    return init.ForwardModeJVP()
+    return init_routines.ForwardModeJVP()
 
 
 @pytest_cases.case(tags=["is_exact", "requires_jax"])
 def solver_auto_diff_forward():
-    return init.ForwardMode()
+    return init_routines.ForwardMode()
 
 
 @pytest_cases.case(tags=["is_exact", "requires_jax"])
 def solver_auto_diff_reverse():
-    return init.ReverseMode()
+    return init_routines.ReverseMode()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_scipy_fit():
-    return init.SciPyFit()
+    return init_routines.SciPyFit()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_runge_kutta_with_jacobian():
-    return init.SciPyFitWithJacobian()
+    return init_routines.SciPyFitWithJacobian()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_odefilter_map():
-    return init.ODEFilterMAP()
+    return init_routines.ODEFilterMAP()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_stack():
-    return init.Stack()
+    return init_routines.Stack()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_stack_with_jacobian():
-    return init.StackWithJacobian()
+    return init_routines.StackWithJacobian()

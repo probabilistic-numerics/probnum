@@ -9,14 +9,11 @@ import scipy.integrate as sci
 from probnum import filtsmooth, problems, randprocs, randvars
 from probnum.typing import FloatLike
 
-from ._interface import _InitializationRoutineBase
+from ._interface import InitializationRoutine
 
 
-class _SciPyFitBase(_InitializationRoutineBase):
-    """Initialization by fitting the prior process to a few steps of a non-prob.
-
-    solver.
-    """
+class _SciPyFitBase(InitializationRoutine):
+    """Fit the prior process to a few steps of a non-probabilistic solver."""
 
     def __init__(
         self, *, dt: FloatLike = 1e-2, observation_noise_std: FloatLike = 1e-7
@@ -76,6 +73,8 @@ class _SciPyFitBase(_InitializationRoutineBase):
 
 
 class SciPyFit(_SciPyFitBase):
+    """Fit the prior process to a few steps of a non-probabilistic solver."""
+
     def __init__(
         self,
         *,
@@ -103,6 +102,9 @@ class SciPyFit(_SciPyFitBase):
 
 
 class SciPyFitWithJacobian(_SciPyFitBase):
+    """Fit the prior process to a few steps of a non-probabilistic solver and use
+    Jacobians."""
+
     def __init__(
         self,
         *,

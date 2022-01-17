@@ -5,10 +5,12 @@ import numpy as np
 from probnum import filtsmooth, problems, randprocs, randvars
 from probnum.diffeq.odefilter import approx_strategies, information_operators, utils
 
-from ._interface import _InitializationRoutineBase
+from ._interface import InitializationRoutine
 
 
-class ODEFilterMAP(_InitializationRoutineBase):
+class ODEFilterMAP(InitializationRoutine):
+    """Initialization via maximum-a-posteriori estimation."""
+
     def __init__(self, dt=1e-2, stopping_criterion=None):
         super().__init__(is_exact=False, requires_jax=False)
         self._dt = dt

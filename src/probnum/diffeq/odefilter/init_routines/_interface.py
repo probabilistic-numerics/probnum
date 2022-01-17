@@ -6,7 +6,8 @@ import abc
 from probnum import problems, randprocs, randvars
 
 
-class _InitializationRoutineBase(abc.ABC):
+# Public because it is used as a type
+class InitializationRoutine(abc.ABC):
     """Initialization routines for a filtering-based ODE solver.
 
     One crucial factor for stable implementation of probabilistic ODE solvers is

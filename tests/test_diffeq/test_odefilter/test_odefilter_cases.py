@@ -31,47 +31,47 @@ def diffusion_piecewise_constant():
 
 @pytest_cases.case(tags=("numpy",))
 def init_scipy_fit():
-    return diffeq.odefilter.init.SciPyFit()
+    return diffeq.odefilter.init_routines.SciPyFit()
 
 
 @pytest_cases.case(tags=("numpy",))
 def init_scipy_fit_with_jacobian():
-    return diffeq.odefilter.init.SciPyFitWithJacobian()
+    return diffeq.odefilter.init_routines.SciPyFitWithJacobian()
 
 
 @pytest_cases.case(tags=("numpy",))
 def init_odefilter_map():
-    return diffeq.odefilter.init.ODEFilterMAP()
+    return diffeq.odefilter.init_routines.ODEFilterMAP()
 
 
 @pytest_cases.case(tags=("numpy",))
 def init_stack():
-    return diffeq.odefilter.init.Stack()
+    return diffeq.odefilter.init_routines.Stack()
 
 
 @pytest_cases.case(tags=("numpy",))
 def init_stack_with_jacobian():
-    return diffeq.odefilter.init.StackWithJacobian()
+    return diffeq.odefilter.init_routines.StackWithJacobian()
 
 
 @pytest_cases.case(tags=("jax",))
 def init_forward():
-    return diffeq.odefilter.init.ForwardMode()
+    return diffeq.odefilter.init_routines.ForwardMode()
 
 
 @pytest_cases.case(tags=("jax",))
 def init_forward_jvp():
-    return diffeq.odefilter.init.ForwardModeJVP()
+    return diffeq.odefilter.init_routines.ForwardModeJVP()
 
 
 @pytest_cases.case(tags=("jax",))
 def init_reverse():
-    return diffeq.odefilter.init.ReverseMode()
+    return diffeq.odefilter.init_routines.ReverseMode()
 
 
 @pytest_cases.case(tags=("jax",))
 def init_taylor():
-    return diffeq.odefilter.init.TaylorMode()
+    return diffeq.odefilter.init_routines.TaylorMode()
 
 
 def approx_ek0():

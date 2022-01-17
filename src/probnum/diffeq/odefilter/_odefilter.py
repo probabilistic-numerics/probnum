@@ -11,7 +11,7 @@ from probnum.diffeq.odefilter import (
     _odefilter_solution,
     approx_strategies,
     information_operators,
-    init,
+    init_routines,
 )
 
 
@@ -33,7 +33,7 @@ class ODEFilter(_odesolver.ODESolver):
         ODE measurement model.
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
-    initialization_routine :
+    init :
         Initialization algorithm.
         Either via fitting the prior to a few steps of a Runge-Kutta method (:class:`RungeKuttaInitialization`)
         or via Taylor-mode automatic differentiation (:class:``TaylorModeInitialization``).
@@ -61,7 +61,7 @@ class ODEFilter(_odesolver.ODESolver):
         ] = None,
         approx_strategy: Optional[approx_strategies.ApproximationStrategy] = None,
         with_smoothing: Optional[bool] = True,
-        initialization_routine: Optional[init.InitializationRoutine] = None,
+        init_routine: Optional[init_routines.InitializationRoutine] = None,
         diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
@@ -92,7 +92,7 @@ class ODEFilter(_odesolver.ODESolver):
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
 
-        self.initialization_routine = initialization_routine or init.SciPyFit()
+        self.init_routine = init_routine or init_routines.SciPyFit()
         super().__init__(
             steprule=steprule, order=self.prior_process.transition.num_derivatives
         )
@@ -126,7 +126,7 @@ class ODEFilter(_odesolver.ODESolver):
             self.information_operator
         ).as_transition()
 
-        initrv = self.initialization_routine(
+        initrv = self.init_routine(
             ivp=ivp,
             prior_process=self.prior_process,
         )

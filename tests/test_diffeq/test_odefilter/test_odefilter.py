@@ -34,7 +34,7 @@ def test_solve_numpy(
         prior_process=_prior_process(ivp=ivp, num_derivatives=num_derivatives),
         with_smoothing=with_smoothing,
         diffusion_model=diffusion_model,
-        initialization_routine=init,
+        init_routine=init,
         approx_strategy=approx_strategy,
     )
 
@@ -68,7 +68,7 @@ def test_solve_jax(
         prior_process=_prior_process(ivp=ivp, num_derivatives=num_derivatives),
         with_smoothing=with_smoothing,
         diffusion_model=diffusion_model,
-        initialization_routine=init,
+        init_routine=init,
         approx_strategy=approx_strategy,
     )
     solver.solve(ivp)
