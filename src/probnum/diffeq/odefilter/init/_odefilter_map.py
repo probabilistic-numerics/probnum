@@ -48,6 +48,4 @@ class ODEFilterMAP(_InitializationRoutineBase):
         initial_guess, _ = kalman.filtsmooth(filter_problem)
         solution, _ = gauss_newton.solve(filter_problem, initial_guess=initial_guess)
 
-        # Principally correct, but the ordering is wrong?!?!
-        # WHY???
         return solution.states[0]

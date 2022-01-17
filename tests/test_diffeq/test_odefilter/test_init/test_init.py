@@ -49,9 +49,6 @@ def test_compare_to_reference_values_is_not_exact_numpy(
         ivp, num_derivatives, routine
     )
 
-    n, d = num_derivatives + 1, ivp.dimension
-    print(dy0_true, dy0_approximated.mean)
-
     # The zeroth and first derivative must always be exact
     P0 = prior_process.transition.proj2coord(0)
     P1 = prior_process.transition.proj2coord(1)
