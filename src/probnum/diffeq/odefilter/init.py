@@ -142,25 +142,23 @@ class _AutoDiffBase(_InitializationRoutineBase):
         )
 
 
-class ForwardMode(_AutoDiffBase):
-    """Initialization via Jacobian-vector product automatic differentiation."""
+class ForwardModeJVP(_AutoDiffBase):
+    """Initialization via Jacobian-vector-product-based automatic differentiation."""
 
     def _jvp_or_vjp(self, *, fun, primals, tangents, jax):
         _, y = jax.jvp(fun, (primals,), (tangents,))
         return y
 
 
-class ForwardModeNaive(_AutoDiffBase):
-    """Initialization via full-Jacobian-based, forward-mode automatic
-    differentiation."""
+class ForwardMode(_AutoDiffBase):
+    """Initialization via forward-mode automatic differentiation."""
 
     def _jvp_or_vjp(self, *, fun, primals, tangents, jax):
         return jax.jacfwd(fun)(primals) @ tangents
 
 
-class ReverseModeNaive(_AutoDiffBase):
-    """Initialization via full-Jacobian-based, reverse-mode automatic
-    differentiation."""
+class ReverseMode(_AutoDiffBase):
+    """Initialization via reverse-mode automatic differentiation."""
 
     def _jvp_or_vjp(self, *, fun, primals, tangents, jax):
         # The following should work, but doesn't

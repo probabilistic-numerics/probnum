@@ -31,18 +31,18 @@ def solver_taylor_mode():
 
 
 @pytest_cases.case(tags=["is_exact", "requires_jax"])
+def solver_auto_diff_forward_jvp():
+    return init.ForwardModeJVP()
+
+
+@pytest_cases.case(tags=["is_exact", "requires_jax"])
 def solver_auto_diff_forward():
     return init.ForwardMode()
 
 
 @pytest_cases.case(tags=["is_exact", "requires_jax"])
-def solver_auto_diff_forward_naive():
-    return init.ForwardModeNaive()
-
-
-@pytest_cases.case(tags=["is_exact", "requires_jax"])
-def solver_auto_diff_reverse_naive():
-    return init.ReverseModeNaive()
+def solver_auto_diff_reverse():
+    return init.ReverseMode()
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
