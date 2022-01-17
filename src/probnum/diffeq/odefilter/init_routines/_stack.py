@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from probnum import filtsmooth, problems, randprocs, randvars
+from probnum import problems, randprocs, randvars
 
 from ._interface import InitializationRoutine
 

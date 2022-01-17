@@ -1,4 +1,4 @@
-from functools import partial
+"""IVP examples that use jax."""
 
 import numpy as np
 

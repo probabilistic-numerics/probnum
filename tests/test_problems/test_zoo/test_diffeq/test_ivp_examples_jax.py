@@ -16,7 +16,6 @@ try:
     IVPs = [
         diffeq_zoo.threebody_jax(),
         diffeq_zoo.vanderpol_jax(),
-        diffeq_zoo.logistic_jax(),
     ]
 
 
@@ -66,9 +65,3 @@ def test_threebody():
 def test_vanderpol():
     with pytest.raises(ImportError):
         diffeq_zoo.vanderpol_jax()
-
-
-@only_if_jax_is_not_available
-def test_logistic():
-    with pytest.raises(ImportError):
-        diffeq_zoo.logistic_jax()

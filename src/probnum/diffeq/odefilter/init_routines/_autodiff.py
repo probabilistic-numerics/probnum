@@ -1,8 +1,5 @@
 """Automatic-differentiation-based initialization routines."""
 
-
-import functools
-
 import numpy as np
 
 from probnum import problems, randprocs, randvars

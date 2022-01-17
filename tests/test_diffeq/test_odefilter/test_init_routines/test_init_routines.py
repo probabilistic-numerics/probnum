@@ -1,7 +1,6 @@
 """Tests for initialization routines."""
 
 
-import jax
 import numpy as np
 import pytest
 import pytest_cases

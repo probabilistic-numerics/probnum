@@ -1,5 +1,6 @@
-import numpy as np
-import pytest
+"""Test-cases for ODE filters."""
+
+
 import pytest_cases
 
 import probnum.problems.zoo.diffeq as diffeq_zoo
