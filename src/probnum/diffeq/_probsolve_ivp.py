@@ -8,31 +8,44 @@ References
 .. [4] https://arxiv.org/pdf/2004.00623.pdf
 """
 
+from typing import Callable, Optional
+
 import numpy as np
 
 from probnum import problems, randprocs
-from probnum.diffeq import odefilter, stepsize
+from probnum.diffeq import _utils, odefilter
+from probnum.typing import ArrayLike, FloatLike
 
 __all__ = ["probsolve_ivp"]
 
+METHODS = {
+    "EK0": odefilter.approx_strategies.EK0,
+    "EK1": odefilter.approx_strategies.EK1,
+}
+"""Implemented methods for the filtering-based ODE solver."""
 
+
+# This interface function is allowed to have many input arguments.
+# Having many input arguments implies having many local arguments,
+# so we need to disable both here.
+# pylint: disable="too-many-arguments,too-many-locals"
 def probsolve_ivp(
-    f,
-    t0,
-    tmax,
-    y0,
-    df=None,
-    method="EK0",
-    dense_output=True,
-    algo_order=2,
-    adaptive=True,
-    atol=1e-2,
-    rtol=1e-2,
-    step=None,
-    diffusion_model="dynamic",
-    time_stops=None,
+    f: Callable,
+    t0: FloatLike,
+    tmax: FloatLike,
+    y0: ArrayLike,
+    df: Optional[Callable] = None,
+    method: str = "EK0",
+    dense_output: bool = True,
+    algo_order: int = 2,
+    adaptive: bool = True,
+    atol: FloatLike = 1e-2,
+    rtol: FloatLike = 1e-2,
+    step: Optional[FloatLike] = None,
+    diffusion_model: str = "dynamic",
+    time_stops: Optional[ArrayLike] = None,
 ):
-    r"""Solve an initial value problem with a filtering-based probabilistic ODE solver.
+    r"""Solve an initial value problem with a filtering-based ODE solver.
 
     Numerically computes a Gauss-Markov process which solves numerically
     the initial value problem (IVP) based on a system of first order
@@ -49,9 +62,9 @@ def probsolve_ivp(
 
 
     This function turns a prior-string into an :class:`ODEPrior`, a
-    method-string into a filter/smoother of class :class:`GaussFiltSmooth`, creates a
-    :class:`ODEFilter` object and calls the :meth:`solve()` method. For
-    advanced usage we recommend to do this process manually which
+    method-string into a filter/smoother of class :class:`GaussFiltSmooth`,
+    creates a :class:`ODEFilter` object and calls the :meth:`solve()` method.
+    For advanced usage we recommend to do this process manually which
     enables advanced methods of tuning the algorithm.
 
     This function supports the methods:
@@ -65,43 +78,50 @@ def probsolve_ivp(
     unscented Kalman smoothing (UKS).
 
     For adaptive step-size selection of ODE filters, we implement the
-    scheme proposed by Schober et al. (2019), and further examined by Bosch et al (2021),
-    where the local error estimate is derived from the local, calibrated
-    uncertainty estimate.
+    scheme proposed by Schober et al. (2019), and further examined
+    by Bosch et al (2021), where the local error estimate is derived
+    from the local, calibrated uncertainty estimate.
 
     Arguments
     ---------
-    f :
+    f
         ODE vector field.
-    t0 :
+    t0
         Initial time point.
-    tmax :
+    tmax
         Final time point.
-    y0 :
+    y0
         Initial value.
-    df :
+    df
         Jacobian of the ODE vector field.
-    adaptive :
+    adaptive
         Whether to use adaptive steps or not. Default is `True`.
         If `False`, a `step` needs to be specified.
-    atol : float
+    atol
         Absolute tolerance  of the adaptive step-size selection scheme.
         Optional. Default is ``1e-4``.
-    rtol : float
+    rtol
         Relative tolerance   of the adaptive step-size selection scheme.
         Optional. Default is ``1e-4``.
-    step :
-        Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
+    step
+        Step size. If atol and rtol are not specified,
+        this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
-        Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
+        Default is None, in which case the first step is chosen
+        as prescribed by :meth:`propose_firststep`.
         Is required only when `adaptive=False`.
     algo_order
-        Order of the algorithm. This amounts to choosing the number of derivatives of an integrated Wiener process prior.
+        Order of the algorithm. This amounts to choosing the
+        number of derivatives of an integrated Wiener process prior.
         For too high orders, process noise covariance matrices become singular.
-        For integrated Wiener processes, this maximum seems to be ``num_derivatives=11`` (using standard ``float64``).
+        For integrated Wiener processes, this maximum seems to be
+        ``num_derivatives=11`` (using standard ``float64``).
         It is possible that higher orders may work for you.
-        The type of prior relates to prior assumptions about the derivative of the solution.
-        The higher the order of the algorithm, the faster the convergence, but also, the higher-dimensional (and thus the costlier) the state space.
+        The type of prior relates to prior assumptions
+        about the derivative of the solution.
+        The higher the order of the algorithm, the faster the convergence,
+        but also, the higher-dimensional
+        (and thus the more expensive) the state space.
     method : str, optional
         Which method is to be used. Default is ``EK0`` which is the
         method proposed by Schober et al.. The available
@@ -120,16 +140,19 @@ def probsolve_ivp(
         While we recommend to use correct capitalization for the method string,
         lower-case letters will be capitalized internally.
     dense_output : bool
-        Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
-        dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
+        Whether we want dense output. Optional. Default is ``True``.
+        For the ODE filter, dense output requires smoothing,
+        so if ``dense_output`` is False, no smoothing is performed;
         but when it is ``True``, the filter solution is smoothed.
     diffusion_model : str
-        Which diffusion model to use. The choices are ``'constant'`` and ``'dynamic'``,
+        Which diffusion model to use.
+        The choices are ``'constant'`` and ``'dynamic'``,
         which implement different styles of
         online calibration of the underlying diffusion [5]_.
         Optional. Default is ``'dynamic'``.
     time_stops: np.ndarray
-        Time-points through which the solver must step. Optional. Default is None.
+        Time-points through which the solver must step. Optional.
+        Default is None.
 
     Returns
     -------
@@ -149,10 +172,19 @@ def probsolve_ivp(
             The means and covariances can be accessed with ``solution.y.mean``
             and ``solution.y.cov``.
 
+    Raises
+    ------
+    ValueError
+        If 'diffusion_model' is not in the list of supported diffusion models.
+    ValueError
+        If 'method' is not in the list of supported methods.
+
     See Also
     --------
-    ODEFilter : Solve IVPs with Gaussian filtering and smoothing
-    ODEFilterSolution : Solution of ODE problems based on Gaussian filtering and smoothing.
+    ODEFilter :
+        Solve IVPs with Gaussian filtering and smoothing
+    ODEFilterSolution :
+        Solution of ODE problems based on Gaussian filtering and smoothing.
 
     References
     ----------
@@ -212,7 +244,10 @@ def probsolve_ivp(
 
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", algo_order=2, step=0.1, adaptive=False)
+    >>> solution = probsolve_ivp(
+    ...     f, t0, tmax, y0, df=df, method="EK1",
+    ...     algo_order=2, step=0.1, adaptive=False
+    ... )
     >>> print(np.round(solution.states.mean, 2))
     [[0.15]
      [0.21]
@@ -235,30 +270,19 @@ def probsolve_ivp(
 
     # Create IVP object
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f, df=df)
-
-    # Create steprule
-    if adaptive is True:
-        if atol is None or rtol is None:
-            raise ValueError(
-                "Please provide absolute and relative tolerance for adaptive steps."
-            )
-        firststep = step if step is not None else stepsize.propose_firststep(ivp)
-        steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
-    else:
-        if step is None:
-            raise ValueError("Constant steps require a 'step' argument.")
-        steprule = stepsize.ConstantSteps(step)
+    steprule = _utils.construct_steprule(
+        ivp=ivp, adaptive=adaptive, step=step, atol=atol, rtol=rtol
+    )
 
     # Construct diffusion model.
     diffusion_model = diffusion_model.lower()
     if diffusion_model not in ["constant", "dynamic"]:
         raise ValueError("Diffusion model is not supported.")
 
-    choose_diffusion_model = {
-        "constant": randprocs.markov.continuous.ConstantDiffusion(),
-        "dynamic": randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=ivp.t0),
-    }
-    diffusion = choose_diffusion_model[diffusion_model]
+    if diffusion_model == "constant":
+        diffusion = randprocs.markov.continuous.ConstantDiffusion()
+    else:
+        diffusion = randprocs.markov.continuous.PiecewiseConstantDiffusion(t0=ivp.t0)
 
     # Create solver
     prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
@@ -270,29 +294,16 @@ def probsolve_ivp(
         backward_implementation="sqrt",
     )
 
-    info_op = odefilter.information_operators.ODEResidual(
-        num_prior_derivatives=prior_process.transition.num_derivatives,
-        ode_dimension=prior_process.transition.wiener_process_dimension,
-    )
-
-    choose_method = {
-        "EK0": odefilter.approx_strategies.EK0(),
-        "EK1": odefilter.approx_strategies.EK1(),
-    }
     method = method.upper()
-    if method not in choose_method.keys():
+    if method not in METHODS:
         raise ValueError("Method is not supported.")
-    approx_strategy = choose_method[method]
-
-    rk_init = odefilter.init_routines.SciPyFit()
+    approx_strategy = METHODS[method]()
 
     solver = odefilter.ODEFilter(
         steprule=steprule,
         prior_process=prior_process,
-        information_operator=info_op,
         approx_strategy=approx_strategy,
         with_smoothing=dense_output,
-        init_routine=rk_init,
         diffusion_model=diffusion,
     )
 
