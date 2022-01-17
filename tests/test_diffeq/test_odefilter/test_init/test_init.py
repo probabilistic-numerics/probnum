@@ -3,17 +3,13 @@
 
 import warnings
 
+import jax
 import numpy as np
 import pytest
 import pytest_cases
+from jax.config import config  # speed...
 
 from probnum import randprocs
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    import jax
-
-from jax.config import config  # speed...
 
 config.update("jax_disable_jit", True)
 
