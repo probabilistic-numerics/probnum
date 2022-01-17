@@ -95,8 +95,34 @@ class RungeKutta(_RungeKuttaBase):
         ys = sol.y.T
         return ts, ys
 
-    def _init(self, *, ivp, prior_process):
-        return self._init_routine(ivp=ivp, prior_process=prior_process)
+
+class RungeKuttaWithJacobian(_RungeKuttaBase):
+    def __init__(
+        self,
+        *,
+        dt: Optional[FloatLike] = 1e-2,
+        method: str = "BDF",
+        observation_noise_std=1e-7,
+    ):
+        super().__init__(dt=dt)
+        self._method = method
+        self._observation_noise_std = observation_noise_std
+
+    def _data(self, *, ivp, locs):
+
+        sol = sci.solve_ivp(
+            fun=ivp.f,
+            jac=ivp.df,
+            t_span=(np.amin(locs), np.amax(locs)),
+            y0=ivp.y0,
+            atol=1e-12,
+            rtol=1e-12,
+            t_eval=locs,
+            method=self._method,
+        )
+        ts = sol.t
+        ys = sol.y.T
+        return ts, ys
 
 
 class RungeKutta2(_InitializationRoutineBase):
