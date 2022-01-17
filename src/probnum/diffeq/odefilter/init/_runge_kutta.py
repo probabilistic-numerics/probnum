@@ -1,8 +1,6 @@
-"""Initialization routines."""
+"""Runge-Kutta-based initialization routines."""
 
 
-import abc
-import functools
 from typing import Optional
 
 import numpy as np

@@ -1,19 +1,13 @@
-"""Initialization routines."""
+"""Interface for initialization routines."""
 
 
 import abc
-import functools
-from typing import Optional
-
-import numpy as np
-import scipy.integrate as sci
 
 from probnum import filtsmooth, problems, randprocs, randvars
-from probnum.typing import FloatLike
 
 
 class _InitializationRoutineBase(abc.ABC):
-    """Interface for initialization routines for a filtering-based ODE solver.
+    """Initialization routines for a filtering-based ODE solver.
 
     One crucial factor for stable implementation of probabilistic ODE solvers is
     starting with a good approximation of the derivatives of the initial condition [1]_.
