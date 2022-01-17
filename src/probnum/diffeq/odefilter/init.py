@@ -260,15 +260,18 @@ class _AutoDiffBase(_InitializationRoutineBase):
         num_derivatives = prior_process.transition.num_derivatives
 
         jax, jnp, _, _ = _import_jax()
-        f, y0 = self._make_autonomous(ivp=ivp, jnp=jnp)
-        gen = self._F_generator(f=f, y0=y0, jax=jax)
-
-        mean_matrix = jnp.stack(
-            [next(gen)(y0)[:-1] for _ in range(num_derivatives + 1)]
-        )
+        mean_matrix = self._compute_ode_derivatives(ivp, num_derivatives, jax, jnp)
         mean = mean_matrix.reshape((-1,), order="F")
         cov = jnp.zeros((mean.shape[0], mean.shape[0]))
         return randvars.Normal(mean=np.asarray(mean), cov=np.asarray(cov))
+
+    def _compute_ode_derivatives(self, ivp, num_derivatives, jax, jnp):
+        f, y0 = self._make_autonomous(ivp=ivp, jnp=jnp)
+        gen = self._F_generator(f=f, y0=y0, jax=jax)
+        mean_matrix = jnp.stack(
+            [next(gen)(y0)[:-1] for _ in range(num_derivatives + 1)]
+        )
+        return mean_matrix
 
     def _make_autonomous(self, *, ivp, jnp):
         y0_autonomous = jnp.concatenate([ivp.y0, jnp.array([ivp.t0])])
