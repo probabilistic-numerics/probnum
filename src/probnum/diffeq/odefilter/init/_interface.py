@@ -3,7 +3,7 @@
 
 import abc
 
-from probnum import filtsmooth, problems, randprocs, randvars
+from probnum import problems, randprocs, randvars
 
 
 class _InitializationRoutineBase(abc.ABC):
@@ -13,11 +13,13 @@ class _InitializationRoutineBase(abc.ABC):
     starting with a good approximation of the derivatives of the initial condition [1]_.
     (This is common in all Nordsieck-like ODE solvers.)
     For this reason, efficient methods of initialization need to be devised.
-    All initialization routines in ProbNum implement the interface :class:`InitializationRoutine`.
+    All initialization routines in ProbNum implement
+    the interface :class:`InitializationRoutine`.
 
     References
     ----------
-    .. [1] Krämer, N. and Hennig, P., Stable implementation of probabilistic ODE solvers,
+    .. [1] Krämer, N. and Hennig, P.,
+       Stable implementation of probabilistic ODE solvers,
        *arXiv:2012.10106*, 2020.
     """
 
