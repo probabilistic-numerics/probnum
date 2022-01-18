@@ -65,15 +65,13 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         ]
 
         self.state_trans_mat_fun = state_trans_mat_fun
-        self.process_noise_fun = process_noise_fun
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
             state_trans_fun=lambda t, x: (
                 self.state_trans_mat_fun(t) @ x + self.process_noise_fun(t).mean
             ),
-            proc_noise_cov_mat_fun=lambda t: process_noise_fun(t).cov,
-            proc_noise_cov_cholesky_fun=lambda t: process_noise_fun(t).cov_cholesky,
+            process_noise_fun=process_noise_fun,
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
 

@@ -20,15 +20,16 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
     def _setup(self, test_ndim, spdmat1):
 
         self.g = lambda t, x: np.sin(x)
-        self.S = lambda t: spdmat1
+        self.process_noise_fun = lambda t: randvars.Normal(
+            mean=np.zeros(test_ndim), cov=spdmat1
+        )
         self.dg = lambda t, x: np.cos(x)
         self.transition = randprocs.markov.discrete.NonlinearGaussian(
             input_dim=test_ndim,
             output_dim=test_ndim,
             state_trans_fun=self.g,
-            proc_noise_cov_mat_fun=self.S,
+            process_noise_fun=self.process_noise_fun,
             jacob_state_trans_fun=self.dg,
-            proc_noise_cov_cholesky_fun=None,
         )
 
     # Test access to system matrices
@@ -38,15 +39,11 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
         expected = self.g(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
-    def test_process_noise(self):
-        received = self.transition.proc_noise_cov_mat_fun(0.0)
-        expected = self.S(0.0)
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cholesky(self):
-        received = self.transition.proc_noise_cov_cholesky_fun(0.0)
-        expected = np.linalg.cholesky(self.transition.proc_noise_cov_mat_fun(0.0))
-        np.testing.assert_allclose(received, expected)
+    def test_process_noise_fun(self):
+        received = self.transition.process_noise_fun(0.0)
+        expected = self.process_noise_fun(0.0)
+        np.testing.assert_allclose(received.mean, expected.mean)
+        np.testing.assert_allclose(received.cov, expected.cov)
 
     def test_jacobian(self, some_normal_rv1):
         received = self.transition.jacob_state_trans_fun(0.0, some_normal_rv1.mean)

@@ -47,17 +47,13 @@ class NonlinearGaussian(_transition.Transition):
         input_dim: IntLike,
         output_dim: IntLike,
         state_trans_fun: Callable[[FloatLike, np.ndarray], np.ndarray],
-        proc_noise_cov_mat_fun: Callable[[FloatLike], np.ndarray],
+        process_noise_fun: Callable[[FloatLike], randvars.RandomVariable],
         jacob_state_trans_fun: Optional[
             Callable[[FloatLike, np.ndarray], np.ndarray]
         ] = None,
-        proc_noise_cov_cholesky_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
     ):
         self.state_trans_fun = state_trans_fun
-        self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
-
-        # "Private", bc. if None, overwritten by the property with the same name
-        self._proc_noise_cov_cholesky_fun = proc_noise_cov_cholesky_fun
+        self.process_noise_fun = process_noise_fun
 
         def dummy_if_no_jacobian(t, x):
             raise NotImplementedError
@@ -73,10 +69,11 @@ class NonlinearGaussian(_transition.Transition):
         self, realization, t, compute_gain=False, _diffusion=1.0, **kwargs
     ):
 
-        newmean = self.state_trans_fun(t, realization)
-        newcov = _diffusion * self.proc_noise_cov_mat_fun(t)
-
-        return randvars.Normal(newmean, newcov), {}
+        return (
+            self.state_trans_fun(t, realization)
+            + _diffusion * self.process_noise_fun(t),
+            {},
+        )
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
         raise NotImplementedError("Not available")
@@ -141,13 +138,6 @@ class NonlinearGaussian(_transition.Transition):
             info,
         )
 
-    @lru_cache(maxsize=None)
-    def proc_noise_cov_cholesky_fun(self, t):
-        if self._proc_noise_cov_cholesky_fun is not None:
-            return self._proc_noise_cov_cholesky_fun(t)
-        covmat = self.proc_noise_cov_mat_fun(t)
-        return np.linalg.cholesky(covmat)
-
     @classmethod
     def from_callable(
         cls,
@@ -158,17 +148,10 @@ class NonlinearGaussian(_transition.Transition):
     ):
         """Turn a callable into a deterministic transition."""
 
-        def diff(t):
-            return np.zeros((output_dim, output_dim))
-
-        def diff_cholesky(t):
-            return np.zeros((output_dim, output_dim))
-
         return cls(
             input_dim=input_dim,
             output_dim=output_dim,
             state_trans_fun=state_trans_fun,
             jacob_state_trans_fun=jacob_state_trans_fun,
-            proc_noise_cov_mat_fun=diff,
-            proc_noise_cov_cholesky_fun=diff_cholesky,
+            process_noise=lambda t: randvars.Constant(np.zeros(output_dim)),
         )
