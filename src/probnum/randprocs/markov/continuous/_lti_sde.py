@@ -167,9 +167,9 @@ class LTISDE(_linear_sde.LinearSDE):
             )
             sh = np.zeros(len(ah))
         return discrete.LTIGaussian(
-            ah,
-            sh,
-            qh,
+            state_trans_mat=ah,
+            shift_vec=sh,
+            proc_noise_cov_mat=qh,
             forward_implementation=self._forward_implementation_string,
             backward_implementation=self._backward_implementation_string,
         )

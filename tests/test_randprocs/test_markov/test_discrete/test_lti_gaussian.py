@@ -23,9 +23,9 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         self.S_const = spdmat2
         self.v_const = np.arange(test_ndim)
         self.transition = randprocs.markov.discrete.LTIGaussian(
-            self.G_const,
-            self.v_const,
-            self.S_const,
+            state_trans_mat=self.G_const,
+            shift_vec=self.v_const,
+            proc_noise_cov_mat=self.S_const,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )

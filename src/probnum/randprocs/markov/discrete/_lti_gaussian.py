@@ -45,6 +45,7 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
 
     def __init__(
         self,
+        *,
         state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         proc_noise_cov_mat: np.ndarray,
