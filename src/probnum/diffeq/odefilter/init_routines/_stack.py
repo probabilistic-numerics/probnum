@@ -9,7 +9,7 @@ from ._interface import InitializationRoutine
 
 
 class _StackBase(InitializationRoutine):
-    def __init__(self, scale_cholesky=1e3):
+    def __init__(self, *, scale_cholesky=1e3):
         super().__init__(is_exact=False, requires_jax=False)
         self._scale_cholesky = scale_cholesky
 

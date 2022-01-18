@@ -30,16 +30,3 @@ __all__ = [
     "TaylorMode",
     "ODEFilterMAP",
 ]
-
-# Set correct module paths (for superclasses).
-# Corrects links and module paths in documentation.
-InitializationRoutine.__module__ = "probnum.diffeq.odefilter.init_routines"
-Stack.__module__ = "probnum.diffeq.odefilter.init_routines"
-StackWithJacobian.__module__ = "probnum.diffeq.init_routines"
-NonProbabilisticFit.__module__ = "probnum.diffeq.init_routines"
-NonProbabilisticFitWithJacobian.__module__ = "probnum.diffeq.init_routines"
-ForwardMode.__module__ = "probnum.diffeq.init_routines"
-ForwardModeJVP.__module__ = "probnum.diffeq.init_routines"
-ReverseMode.__module__ = "probnum.diffeq.init_routines"
-TaylorMode.__module__ = "probnum.diffeq.init_routines"
-ODEFilterMAP.__module__ = "probnum.diffeq.init_routines"
