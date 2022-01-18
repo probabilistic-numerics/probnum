@@ -13,10 +13,7 @@ try:
 
     JAX_AVAILABLE = True
 
-    IVPs = [
-        diffeq_zoo.threebody_jax(),
-        diffeq_zoo.vanderpol_jax(),
-    ]
+    IVPs = [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 
 
 except ImportError:
