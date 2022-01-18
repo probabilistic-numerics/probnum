@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs
+from probnum import randprocs, randvars
 from tests.test_randprocs.test_markov.test_discrete import test_linear_gaussian
 
 
@@ -20,20 +20,18 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
     ):
 
         self.G_const = spdmat1
-        self.S_const = spdmat2
-        self.v_const = np.arange(test_ndim)
+        self.process_noise = randvars.Normal(mean=np.arange(test_ndim), cov=spdmat2)
         self.transition = randprocs.markov.discrete.LTIGaussian(
             state_trans_mat=self.G_const,
-            shift_vec=self.v_const,
-            proc_noise_cov_mat=self.S_const,
+            process_noise=self.process_noise,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
         # Compatibility with superclass' test
         self.G = lambda t: self.G_const
-        self.S = lambda t: self.S_const
-        self.v = lambda t: self.v_const
+        self.S = lambda t: self.process_noise.cov
+        self.v = lambda t: self.process_noise.mean
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
 
@@ -44,17 +42,8 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         expected = self.G_const
         np.testing.assert_allclose(received, expected)
 
-    def test_shift_vec(self):
-        received = self.transition.shift_vec
-        expected = self.v_const
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cov_mat(self):
-        received = self.transition.proc_noise_cov_mat
-        expected = self.S_const
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cov_cholesky(self):
-        received = self.transition.proc_noise_cov_cholesky
-        expected = np.linalg.cholesky(self.S_const)
-        np.testing.assert_allclose(received, expected)
+    def test_process_noise(self):
+        received = self.transition.process_noise
+        expected = self.process_noise
+        np.testing.assert_allclose(received.mean, expected.mean)
+        np.testing.assert_allclose(received.cov, expected.cov)

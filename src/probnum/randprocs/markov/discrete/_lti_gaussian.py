@@ -5,6 +5,7 @@ from typing import Optional
 
 import numpy as np
 
+from probnum import randvars
 from probnum.randprocs.markov.discrete import _linear_gaussian
 
 try:
@@ -47,40 +48,27 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         self,
         *,
         state_trans_mat: np.ndarray,
-        shift_vec: np.ndarray,
-        proc_noise_cov_mat: np.ndarray,
-        proc_noise_cov_cholesky: Optional[np.ndarray] = None,
+        process_noise: randvars.Normal,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
+        _check_dimensions(state_trans_mat, process_noise.mean, process_noise.cov)
         output_dim, input_dim = state_trans_mat.shape
 
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
             state_trans_mat_fun=lambda t: state_trans_mat,
-            shift_vec_fun=lambda t: shift_vec,
-            proc_noise_cov_mat_fun=lambda t: proc_noise_cov_mat,
-            proc_noise_cov_cholesky_fun=lambda t: proc_noise_cov_cholesky,
+            shift_vec_fun=lambda t: process_noise.mean,
+            proc_noise_cov_mat_fun=lambda t: process_noise.cov,
+            proc_noise_cov_cholesky_fun=lambda t: process_noise.cov_cholesky,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
         self.state_trans_mat = state_trans_mat
-        self.shift_vec = shift_vec
-        self.proc_noise_cov_mat = proc_noise_cov_mat
-        self._proc_noise_cov_cholesky = proc_noise_cov_cholesky
-
-    def proc_noise_cov_cholesky_fun(self, t):
-        return self.proc_noise_cov_cholesky
-
-    @cached_property
-    def proc_noise_cov_cholesky(self):
-        if self._proc_noise_cov_cholesky is not None:
-            return self._proc_noise_cov_cholesky
-        return np.linalg.cholesky(self.proc_noise_cov_mat)
+        self.process_noise = process_noise
 
     @classmethod
     def from_linop(
@@ -93,14 +81,11 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         """Turn a linear operator (or numpy array) into a deterministic transition."""
         # Currently, this is only a numpy array.
         # In the future, once linops are more widely adopted here, this will become a linop.
-        zero_matrix = np.zeros((state_trans_mat.shape[0], state_trans_mat.shape[0]))
         if state_trans_mat.ndim != 2:
             raise ValueError
         return cls(
             state_trans_mat=state_trans_mat,
-            shift_vec=shift_vec,
-            proc_noise_cov_mat=zero_matrix,
-            proc_noise_cov_cholesky=zero_matrix,
+            process_noise=randvars.Constant(shift_vec),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )

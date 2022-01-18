@@ -207,9 +207,9 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
 
         return discrete.LTIGaussian(
             state_trans_mat=state_transition,
-            shift_vec=empty_shift,
-            proc_noise_cov_mat=process_noise,
-            proc_noise_cov_cholesky=process_noise_cholesky,
+            process_noise=randvars.Normal(
+                mean=empty_shift, cov=process_noise, cov_cholesky=process_noise_cholesky
+            ),
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
@@ -293,7 +293,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
         proc_noise_cov_mat = (
             self.precon(dt)
-            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
+            @ self.equivalent_discretisation_preconditioned.process_noise.cov
             @ self.precon(dt).T
         )
         zero_shift = np.zeros(state_trans_mat.shape[0])
@@ -302,14 +302,16 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         # always exists, even for non-square root implementations.
         proc_noise_cov_cholesky = (
             self.precon(dt)
-            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
+            @ self.equivalent_discretisation_preconditioned.process_noise.cov_cholesky
         )
 
         return discrete.LTIGaussian(
             state_trans_mat=state_trans_mat,
-            shift_vec=zero_shift,
-            proc_noise_cov_mat=proc_noise_cov_mat,
-            proc_noise_cov_cholesky=proc_noise_cov_cholesky,
+            process_noise=randvars.Normal(
+                mean=zero_shift,
+                cov=proc_noise_cov_mat,
+                cov_cholesky=proc_noise_cov_cholesky,
+            ),
             forward_implementation=self.forward_implementation,
             backward_implementation=self.forward_implementation,
         )
