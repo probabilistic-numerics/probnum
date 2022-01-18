@@ -21,6 +21,7 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
 
         self.transition_matrix = spdmat1
         self.process_noise = randvars.Normal(mean=np.arange(test_ndim), cov=spdmat2)
+
         self.transition = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=self.transition_matrix,
             process_noise=self.process_noise,
@@ -29,10 +30,10 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         )
 
         # Compatibility with superclass' test
-        self.G = lambda t: self.transition_matrix
+        self.transition_matrix_fun = lambda t: self.transition_matrix
         self.process_noise_fun = lambda t: self.process_noise
-        self.g = lambda t, x: self.G(t) @ x
-        self.dg = lambda t, x: self.G(t)
+        self.transition_fun = lambda t, x: self.transition_matrix @ x
+        self.transition_fun_jacobian = lambda t, x: self.transition_matrix
 
     # Test access to system matrices
 

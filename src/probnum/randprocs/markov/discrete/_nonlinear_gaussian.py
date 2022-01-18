@@ -46,21 +46,21 @@ class NonlinearGaussian(_transition.Transition):
         *,
         input_dim: IntLike,
         output_dim: IntLike,
-        state_trans_fun: Callable[[FloatLike, np.ndarray], np.ndarray],
+        transition_fun: Callable[[FloatLike, np.ndarray], np.ndarray],
         process_noise_fun: Callable[[FloatLike], randvars.RandomVariable],
-        jacob_state_trans_fun: Optional[
+        transition_fun_jacobian: Optional[
             Callable[[FloatLike, np.ndarray], np.ndarray]
         ] = None,
     ):
-        self.state_trans_fun = state_trans_fun
+        self.transition_fun = transition_fun
         self.process_noise_fun = process_noise_fun
 
         def dummy_if_no_jacobian(t, x):
             raise NotImplementedError
 
-        self.jacob_state_trans_fun = (
-            jacob_state_trans_fun
-            if jacob_state_trans_fun is not None
+        self.transition_fun_jacobian = (
+            transition_fun_jacobian
+            if transition_fun_jacobian is not None
             else dummy_if_no_jacobian
         )
         super().__init__(input_dim=input_dim, output_dim=output_dim)
@@ -70,7 +70,7 @@ class NonlinearGaussian(_transition.Transition):
     ):
 
         return (
-            self.state_trans_fun(t, realization)
+            self.transition_fun(t, realization)
             + _diffusion * self.process_noise_fun(t),
             {},
         )

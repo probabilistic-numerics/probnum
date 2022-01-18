@@ -58,7 +58,7 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
-            state_trans_mat_fun=lambda t: transition_matrix,
+            transition_matrix_fun=lambda t: transition_matrix,
             process_noise_fun=lambda t: process_noise,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
@@ -90,7 +90,7 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         if transition_matrix.ndim != 2:
             raise ValueError
         return cls(
-            state_trans_mat=transition_matrix,
+            transition_matrix=transition_matrix,
             process_noise=randvars.Constant(np.zeros(transition_matrix.shape[0])),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,

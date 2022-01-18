@@ -37,29 +37,28 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
         backw_impl_string_linear_gauss,
     ):
 
-        self.G = lambda t: spdmat1
+        self.transition_matrix_fun = lambda t: spdmat1
         self.process_noise_fun = lambda t: randvars.Normal(
             mean=np.arange(test_ndim), cov=spdmat2
         )
-        self.S = lambda t: self.process_noise_fun(t).cov
-        # self.v = lambda t: np.arange(test_ndim)
+
         self.transition = randprocs.markov.discrete.LinearGaussian(
             input_dim=test_ndim,
             output_dim=test_ndim,
-            state_trans_mat_fun=self.G,
+            transition_matrix_fun=self.transition_matrix_fun,
             process_noise_fun=self.process_noise_fun,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
-        self.g = lambda t, x: self.G(t) @ x
-        self.dg = lambda t, x: self.G(t)
+        self.transition_fun = lambda t, x: self.transition_matrix_fun(t) @ x
+        self.transition_fun_jacobian = lambda t, x: self.transition_matrix_fun(t)
 
     # Test access to system matrices
 
-    def test_state_transition_mat_fun(self):
-        received = self.transition.state_trans_mat_fun(0.0)
-        expected = self.G(0.0)
+    def test_transition_matrix_fun(self):
+        received = self.transition.transition_matrix_fun(0.0)
+        expected = self.transition_matrix_fun(0.0)
         np.testing.assert_allclose(received, expected)
 
     def test_process_noise_fun(self):
@@ -264,13 +263,12 @@ class TestLinearGaussianLinOps:
             self.process_noise_fun = lambda t: randvars.Normal(
                 mean=np.arange(test_ndim), cov=linops.aslinop(spdmat2)
             )
-            self.G = lambda t: linops.aslinop(spdmat1)
-            self.S = lambda t: self.process_noise_fun(t).cov
-            self.v = lambda t: self.process_noise_fun(t).mean
+            self.transition_matrix_fun = lambda t: linops.aslinop(spdmat1)
+
             self.transition = randprocs.markov.discrete.LinearGaussian(
                 input_dim=test_ndim,
                 output_dim=test_ndim,
-                state_trans_mat_fun=self.G,
+                transition_matrix_fun=self.transition_matrix_fun,
                 process_noise_fun=self.process_noise_fun,
                 forward_implementation="classic",
                 backward_implementation="classic",
@@ -278,20 +276,20 @@ class TestLinearGaussianLinOps:
             self.sqrt_transition = randprocs.markov.discrete.LinearGaussian(
                 input_dim=test_ndim,
                 output_dim=test_ndim,
-                state_trans_mat_fun=self.G,
+                transition_matrix_fun=self.transition_matrix_fun,
                 process_noise_fun=self.process_noise_fun,
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             )
 
-            self.g = lambda t, x: self.G(t) @ x + self.v(t)
-            self.dg = lambda t, x: self.G(t)
+            self.transition_fun = lambda t, x: self.transition_matrix_fun(t) @ x
+            self.transition_fun_jacobian = lambda t, x: self.transition_matrix_fun(t)
 
     # Test access to system matrices
 
-    def test_state_transition_mat_fun(self):
-        received = self.transition.state_trans_mat_fun(0.0)
-        expected = self.G(0.0)
+    def test_transition_matrix_fun_fun(self):
+        received = self.transition.transition_matrix_fun(0.0)
+        expected = self.transition_matrix_fun(0.0)
         np.testing.assert_allclose(received.todense(), expected.todense())
 
     # Test forward and backward implementations
