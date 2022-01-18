@@ -43,6 +43,7 @@ class NonlinearGaussian(_transition.Transition):
 
     def __init__(
         self,
+        *,
         input_dim: IntLike,
         output_dim: IntLike,
         state_trans_fun: Callable[[FloatLike, np.ndarray], np.ndarray],

@@ -23,12 +23,12 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
         self.S = lambda t: spdmat1
         self.dg = lambda t, x: np.cos(x)
         self.transition = randprocs.markov.discrete.NonlinearGaussian(
-            test_ndim,
-            test_ndim,
-            self.g,
-            self.S,
-            self.dg,
-            None,
+            input_dim=test_ndim,
+            output_dim=test_ndim,
+            state_trans_fun=self.g,
+            proc_noise_cov_mat_fun=self.S,
+            jacob_state_trans_fun=self.dg,
+            proc_noise_cov_cholesky_fun=None,
         )
 
     # Test access to system matrices
