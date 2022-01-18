@@ -12,7 +12,7 @@ from probnum.typing import FloatLike
 from ._interface import InitializationRoutine
 
 
-class _SciPyFitBase(InitializationRoutine):
+class _NonProbabilisticFitBase(InitializationRoutine):
     """Fit the prior process to a few steps of a non-probabilistic solver."""
 
     def __init__(
@@ -72,7 +72,7 @@ class _SciPyFitBase(InitializationRoutine):
         return estimated_initrv
 
 
-class NonProbabilisticFit(_SciPyFitBase):
+class NonProbabilisticFit(_NonProbabilisticFitBase):
     """Fit the prior process to a few steps of a non-probabilistic solver."""
 
     def __init__(
@@ -101,7 +101,7 @@ class NonProbabilisticFit(_SciPyFitBase):
         return ts, ys
 
 
-class NonProbabilisticFitWithJacobian(_SciPyFitBase):
+class NonProbabilisticFitWithJacobian(_NonProbabilisticFitBase):
     """Fit the prior process to a few steps of a non-probabilistic solver and use
     Jacobians."""
 

@@ -11,7 +11,7 @@ from ._interface import InitializationRoutine
 class ODEFilterMAP(InitializationRoutine):
     """Initialization via maximum-a-posteriori estimation."""
 
-    def __init__(self, dt=1e-2, stopping_criterion=None):
+    def __init__(self, *, dt=1e-2, stopping_criterion=None):
         super().__init__(is_exact=False, requires_jax=False)
         self._dt = dt
         self._stopping_criterion = stopping_criterion
