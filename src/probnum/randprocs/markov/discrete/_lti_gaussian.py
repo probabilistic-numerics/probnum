@@ -56,8 +56,8 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         output_dim, input_dim = state_trans_mat.shape
 
         super().__init__(
-            input_dim,
-            output_dim,
+            input_dim=input_dim,
+            output_dim=output_dim,
             state_trans_mat_fun=lambda t: state_trans_mat,
             shift_vec_fun=lambda t: shift_vec,
             proc_noise_cov_mat_fun=lambda t: proc_noise_cov_mat,

@@ -38,6 +38,7 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
 
     def __init__(
         self,
+        *,
         input_dim: IntLike,
         output_dim: IntLike,
         state_trans_mat_fun: Callable[[FloatLike], np.ndarray],

@@ -41,11 +41,11 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
         self.S = lambda t: spdmat2
         self.v = lambda t: np.arange(test_ndim)
         self.transition = randprocs.markov.discrete.LinearGaussian(
-            test_ndim,
-            test_ndim,
-            self.G,
-            self.v,
-            self.S,
+            input_dim=test_ndim,
+            output_dim=test_ndim,
+            state_trans_mat_fun=self.G,
+            shift_vec_fun=self.v,
+            proc_noise_cov_mat_fun=self.S,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
@@ -262,20 +262,20 @@ class TestLinearGaussianLinOps:
             self.S = lambda t: linops.aslinop(spdmat2)
             self.v = lambda t: np.arange(test_ndim)
             self.transition = randprocs.markov.discrete.LinearGaussian(
-                test_ndim,
-                test_ndim,
-                self.G,
-                self.v,
-                self.S,
+                input_dim=test_ndim,
+                output_dim=test_ndim,
+                state_trans_mat_fun=self.G,
+                shift_vec_fun=self.v,
+                proc_noise_cov_mat_fun=self.S,
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
             self.sqrt_transition = randprocs.markov.discrete.LinearGaussian(
-                test_ndim,
-                test_ndim,
-                self.G,
-                self.v,
-                self.S,
+                input_dim=test_ndim,
+                output_dim=test_ndim,
+                state_trans_mat_fun=self.G,
+                shift_vec_fun=self.v,
+                proc_noise_cov_mat_fun=self.S,
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             )
