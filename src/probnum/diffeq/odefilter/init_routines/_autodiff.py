@@ -67,7 +67,7 @@ class _AutoDiffBase(InitializationRoutine):
     def _make_autonomous(self, *, ivp):
         y0_autonomous = self._jnp.concatenate([ivp.y0, self._jnp.array([ivp.t0])])
 
-        def f_autonomous(y, /):
+        def f_autonomous(y):
             x, t = y[:-1], y[-1]
             fx = ivp.f(t, x)
             return self._jnp.concatenate([fx, self._jnp.array([1.0])])
