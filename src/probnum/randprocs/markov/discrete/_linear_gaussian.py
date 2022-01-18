@@ -42,9 +42,7 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         input_dim: IntLike,
         output_dim: IntLike,
         state_trans_mat_fun: Callable[[FloatLike], np.ndarray],
-        shift_vec_fun: Callable[[FloatLike], np.ndarray],
-        proc_noise_cov_mat_fun: Callable[[FloatLike], np.ndarray],
-        proc_noise_cov_cholesky_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
+        process_noise_fun: Callable[[FloatLike], randvars.RandomVariable],
         forward_implementation="classic",
         backward_implementation="classic",
     ):
@@ -67,15 +65,15 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         ]
 
         self.state_trans_mat_fun = state_trans_mat_fun
-        self.shift_vec_fun = shift_vec_fun
+        self.process_noise_fun = process_noise_fun
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
             state_trans_fun=lambda t, x: (
-                self.state_trans_mat_fun(t) @ x + self.shift_vec_fun(t)
+                self.state_trans_mat_fun(t) @ x + self.process_noise_fun(t).mean
             ),
-            proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
-            proc_noise_cov_cholesky_fun=proc_noise_cov_cholesky_fun,
+            proc_noise_cov_mat_fun=lambda t: process_noise_fun(t).cov,
+            proc_noise_cov_cholesky_fun=lambda t: process_noise_fun(t).cov_cholesky,
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
 
@@ -163,8 +161,8 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         self, rv, t, compute_gain=False, _diffusion=1.0
     ) -> Tuple[randvars.RandomVariable, typing.Dict]:
         H = self.state_trans_mat_fun(t)
-        R = self.proc_noise_cov_mat_fun(t)
-        shift = self.shift_vec_fun(t)
+        process_noise = self.process_noise_fun(t)
+        shift, R = process_noise.mean, process_noise.cov
 
         new_mean = H @ rv.mean + shift
         crosscov = rv.cov @ H.T
@@ -189,8 +187,8 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
             )
 
         H = self.state_trans_mat_fun(t)
-        SR = self.proc_noise_cov_cholesky_fun(t)
-        shift = self.shift_vec_fun(t)
+        process_noise = self.process_noise_fun(t)
+        shift, SR = process_noise.mean, process_noise.cov_cholesky
 
         new_mean = H @ rv.mean + shift
         new_cov_cholesky = cholesky_update(
@@ -242,8 +240,14 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
                 gain = np.zeros((len(rv.mean), len(rv_obtained.mean)))
 
         state_trans = self.state_trans_mat_fun(t)
-        proc_noise_chol = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
-        shift = self.shift_vec_fun(t)
+        process_noise = self.process_noise_fun(t)
+        shift, proc_noise_chol = (
+            process_noise.mean,
+            np.sqrt(_diffusion) * process_noise.cov_cholesky,
+        )
+
+        # proc_noise_chol = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
+        # shift = self.shift_vec_fun(t)
 
         chol_past = rv.cov_cholesky
         chol_obtained = rv_obtained.cov_cholesky
@@ -300,8 +304,10 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
             gain = info_forwarded["gain"]
 
         H = self.state_trans_mat_fun(t)
-        R = _diffusion * self.proc_noise_cov_mat_fun(t)
-        shift = self.shift_vec_fun(t)
+        process_noise = self.process_noise_fun(t)
+        shift, R = process_noise.mean, _diffusion * process_noise.cov
+        # R = _diffusion * self.proc_noise_cov_mat_fun(t)
+        # shift = self.shift_vec_fun(t)
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
         joseph_factor = np.eye(len(rv.mean)) - gain @ H

@@ -48,7 +48,7 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         self,
         *,
         state_trans_mat: np.ndarray,
-        process_noise: randvars.Normal,
+        process_noise: randvars.RandomVariable,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
@@ -59,9 +59,7 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
             input_dim=input_dim,
             output_dim=output_dim,
             state_trans_mat_fun=lambda t: state_trans_mat,
-            shift_vec_fun=lambda t: process_noise.mean,
-            proc_noise_cov_mat_fun=lambda t: process_noise.cov,
-            proc_noise_cov_cholesky_fun=lambda t: process_noise.cov_cholesky,
+            process_noise_fun=lambda t: process_noise,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
