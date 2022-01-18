@@ -1,60 +1,54 @@
 """Discrete, linear, time-invariant Gaussian transitions."""
 
 
-from typing import Optional
-
 import numpy as np
 
 from probnum import randvars
 from probnum.randprocs.markov.discrete import _linear_gaussian
+from probnum.typing import ArrayLike, LinearOperatorLike
 
 try:
     # functools.cached_property is only available in Python >=3.8
     from functools import cached_property  # pylint: disable=ungrouped-imports
 except ImportError:
-
     from cached_property import cached_property
 
 
 class LTIGaussian(_linear_gaussian.LinearGaussian):
-    """Discrete, linear, time-invariant Gaussian transition models of the form.
+    r"""Discrete, linear, time-invariant transitions with additive, Gaussian noise.
 
-    .. math:: x_{i+1} \\sim \\mathcal{N}(G x_i + v, S)
+    .. math:: x_{i+1} = G x_i + v, \quad v \sim \mathcal{N}(m, C)
 
-    for some dynamics matrix :math:`G`, force vector :math:`v`,
-    and diffusion matrix :math:`S`.
+    for some transition matrix :math:`G` and process noise :math:`v`.
 
     Parameters
     ----------
-    state_trans_mat :
-        State transition matrix :math:`G`.
-    shift_vec :
-        Shift vector :math:`v`.
-    proc_noise_cov_mat :
-        Process noise covariance matrix :math:`S`.
+    transition_matrix
+        Transition matrix :math:`G`.
+    process_noise
+        Process noise :math:`v`.
+    forward_implementation
+        A string indicating the choice of forward implementation.
+    backward_implementation
+        A string indicating the choice of backward implementation.
 
     Raises
     ------
     TypeError
-        If state_trans_mat, shift_vec and proc_noise_cov_mat have incompatible shapes.
-
-    See Also
-    --------
-    :class:`DiscreteModel`
-    :class:`NonlinearGaussianLinearModel`
+        If ``transition_matrix`` and ``process_noise`` have incompatible shapes.
     """
 
     def __init__(
         self,
         *,
-        transition_matrix: np.ndarray,
+        transition_matrix: LinearOperatorLike,
         process_noise: randvars.RandomVariable,
-        forward_implementation="classic",
-        backward_implementation="classic",
+        forward_implementation: str = "classic",
+        backward_implementation: str = "classic",
     ):
         _assert_shapes_match(transition_matrix, process_noise)
-        output_dim, input_dim = transition_matrix.shape
 
+        output_dim, input_dim = transition_matrix.shape
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
@@ -63,8 +57,6 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
-        self.forward_implementation = forward_implementation
-        self.backward_implementation = backward_implementation
 
         self._transition_matrix = transition_matrix
         self._process_noise = process_noise
@@ -80,18 +72,20 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
     @classmethod
     def from_linop(
         cls,
-        transition_matrix: np.ndarray,
+        transition_matrix: LinearOperatorLike,
+        process_noise_mean: ArrayLike,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        """Turn a linear operator (or numpy array) into a deterministic transition."""
+        """Turn a linear operator (or numpy array) into a noise-free transition."""
+
         # Currently, this is only a numpy array.
         # In the future, once linops are more widely adopted here, this will become a linop.
         if transition_matrix.ndim != 2:
             raise ValueError
         return cls(
             transition_matrix=transition_matrix,
-            process_noise=randvars.Constant(np.zeros(transition_matrix.shape[0])),
+            process_noise=randvars.Constant(process_noise_mean),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
