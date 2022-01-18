@@ -19,26 +19,26 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         backw_impl_string_linear_gauss,
     ):
 
-        self.G_const = spdmat1
+        self.transition_matrix = spdmat1
         self.process_noise = randvars.Normal(mean=np.arange(test_ndim), cov=spdmat2)
         self.transition = randprocs.markov.discrete.LTIGaussian(
-            state_trans_mat=self.G_const,
+            transition_matrix=self.transition_matrix,
             process_noise=self.process_noise,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
         # Compatibility with superclass' test
-        self.G = lambda t: self.G_const
+        self.G = lambda t: self.transition_matrix
         self.process_noise_fun = lambda t: self.process_noise
         self.g = lambda t, x: self.G(t) @ x
         self.dg = lambda t, x: self.G(t)
 
     # Test access to system matrices
 
-    def test_state_transition_mat(self):
-        received = self.transition.state_trans_mat
-        expected = self.G_const
+    def test_transition_matrix(self):
+        received = self.transition.transition_matrix
+        expected = self.transition_matrix
         np.testing.assert_allclose(received, expected)
 
     def test_process_noise(self):
