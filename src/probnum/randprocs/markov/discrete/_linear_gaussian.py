@@ -68,9 +68,7 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
-            state_trans_fun=lambda t, x: (
-                self.state_trans_mat_fun(t) @ x + self.process_noise_fun(t).mean
-            ),
+            state_trans_fun=lambda t, x: self.state_trans_mat_fun(t) @ x,
             process_noise_fun=process_noise_fun,
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
@@ -168,7 +166,6 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         info = {"crosscov": crosscov}
         if compute_gain:
             if config.matrix_free:
-                # gain = (new_cov.T.inv() @ crosscov.T).T
                 gain = crosscov @ new_cov.inv()
             else:
                 gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
@@ -239,13 +236,8 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
 
         state_trans = self.state_trans_mat_fun(t)
         process_noise = self.process_noise_fun(t)
-        shift, proc_noise_chol = (
-            process_noise.mean,
-            np.sqrt(_diffusion) * process_noise.cov_cholesky,
-        )
-
-        # proc_noise_chol = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
-        # shift = self.shift_vec_fun(t)
+        shift = process_noise.mean
+        proc_noise_chol = np.sqrt(_diffusion) * process_noise.cov_cholesky
 
         chol_past = rv.cov_cholesky
         chol_obtained = rv_obtained.cov_cholesky
@@ -304,8 +296,6 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         H = self.state_trans_mat_fun(t)
         process_noise = self.process_noise_fun(t)
         shift, R = process_noise.mean, _diffusion * process_noise.cov
-        # R = _diffusion * self.proc_noise_cov_mat_fun(t)
-        # shift = self.shift_vec_fun(t)
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
         joseph_factor = np.eye(len(rv.mean)) - gain @ H

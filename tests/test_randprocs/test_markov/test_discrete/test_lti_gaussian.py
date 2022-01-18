@@ -31,9 +31,7 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         # Compatibility with superclass' test
         self.G = lambda t: self.G_const
         self.process_noise_fun = lambda t: self.process_noise
-        # self.S = lambda t: self.process_noise.cov
-        # self.v = lambda t: self.process_noise.mean
-        self.g = lambda t, x: self.G(t) @ x + self.process_noise_fun(t).mean
+        self.g = lambda t, x: self.G(t) @ x
         self.dg = lambda t, x: self.G(t)
 
     # Test access to system matrices

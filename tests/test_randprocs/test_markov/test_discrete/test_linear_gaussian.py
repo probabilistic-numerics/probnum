@@ -52,7 +52,7 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
-        self.g = lambda t, x: self.G(t) @ x + self.process_noise_fun(t).mean
+        self.g = lambda t, x: self.G(t) @ x
         self.dg = lambda t, x: self.G(t)
 
     # Test access to system matrices
