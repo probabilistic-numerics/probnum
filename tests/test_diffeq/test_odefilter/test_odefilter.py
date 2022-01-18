@@ -6,6 +6,15 @@ import pytest_cases
 
 from probnum import diffeq, randprocs
 
+try:
+    import jax as _
+
+    JAX_IS_AVAILABLE = True
+except ImportError:
+    JAX_IS_AVAILABLE = False
+
+only_if_jax_available = pytest.mark.skipif(not JAX_IS_AVAILABLE, reason="requires jax")
+
 
 @pytest.mark.parametrize(
     "num_derivatives",
@@ -41,11 +50,10 @@ def test_solve_numpy(
     solver.solve(ivp)
 
 
+@only_if_jax_available
 @pytest.mark.parametrize(
     "num_derivatives",
-    [
-        3,
-    ],
+    [3],
 )
 @pytest.mark.parametrize("with_smoothing", [True, False])
 @pytest_cases.parametrize_with_cases("steprule", prefix="steprule_")

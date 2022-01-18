@@ -4,13 +4,21 @@
 import numpy as np
 import pytest
 import pytest_cases
-from jax.config import config  # speed...
 
 from probnum import randprocs
 
-config.update("jax_disable_jit", True)
+try:
+    from jax.config import config  # speed...
+
+    config.update("jax_disable_jit", True)
+    JAX_IS_AVAILABLE = True
+except ImportError:
+    JAX_IS_AVAILABLE = False
+
+only_if_jax_available = pytest.mark.skipif(not JAX_IS_AVAILABLE, reason="requires jax")
 
 
+@only_if_jax_available
 @pytest.mark.parametrize("num_derivatives", [2, 3, 5])
 @pytest_cases.parametrize_with_cases("ivp, dy0_true", prefix="problem_", has_tag="jax")
 @pytest_cases.parametrize_with_cases(
