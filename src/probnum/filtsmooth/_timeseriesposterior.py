@@ -201,7 +201,7 @@ class TimeSeriesPosterior(abc.ABC):
         ----------
         rng
             Random number generator.
-        t :
+        t
             Locations on which the samples are wanted.
             Default is none, which implies that
             self.location is used.
