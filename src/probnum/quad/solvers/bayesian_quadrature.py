@@ -327,7 +327,7 @@ class BayesianQuadrature:
         -------
         integral_belief
             Posterior belief about the integral.
-        bq_state
+        bq_state :
             Final state of the Bayesian quadrature method.
 
         Raises
