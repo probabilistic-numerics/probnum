@@ -3,7 +3,7 @@
 import abc
 from typing import Optional
 
-from probnum import filtsmooth
+from probnum import filtsmooth, randvars
 from probnum.diffeq.odefilter.information_operators import _information_operator
 
 __all__ = ["ApproximateInformationOperator"]
@@ -44,8 +44,7 @@ class ApproximateInformationOperator(
     @abc.abstractmethod
     def as_transition(
         self,
-        measurement_cov_fun=None,
-        measurement_cov_cholesky_fun=None,
+        process_noise_fun: Optional[randvars.RandomVariable] = None,
     ):
         raise NotImplementedError
 
@@ -67,16 +66,14 @@ class LocallyLinearizedInformationOperator(ApproximateInformationOperator):
 
     def as_transition(
         self,
-        measurement_cov_fun=None,
-        measurement_cov_cholesky_fun=None,
+        process_noise_fun: Optional[randvars.RandomVariable] = None,
     ):
         """Return an approximate transition.
 
         In this case, an EKF component.
         """
         transition = self.information_operator.as_transition(
-            measurement_cov_fun=measurement_cov_fun,
-            measurement_cov_cholesky_fun=measurement_cov_cholesky_fun,
+            process_noise_fun=process_noise_fun
         )
         return filtsmooth.gaussian.approx.DiscreteEKFComponent(
             non_linear_model=transition,

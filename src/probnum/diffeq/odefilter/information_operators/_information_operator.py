@@ -49,31 +49,40 @@ class InformationOperator(abc.ABC):
 
     def as_transition(
         self,
-        measurement_cov_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
-        measurement_cov_cholesky_fun: Optional[
-            Callable[[FloatLike], np.ndarray]
-        ] = None,
+        process_noise_fun: Optional[randvars.RandomVariable] = None,
+        # measurement_cov_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
+        # measurement_cov_cholesky_fun: Optional[
+        #     Callable[[FloatLike], np.ndarray]
+        # ] = None,
     ):
+        # raise RuntimeError
 
-        if measurement_cov_fun is None:
-            if measurement_cov_cholesky_fun is not None:
-                raise ValueError(
-                    "If a Cholesky function is provided, a covariance function must be provided as well."
-                )
+        # if measurement_cov_fun is None:
+        #     if measurement_cov_cholesky_fun is not None:
+        #         raise ValueError(
+        #             "If a Cholesky function is provided, a covariance function must be provided as well."
+        #         )
+        #     return randprocs.markov.discrete.NonlinearGaussian.from_callable(
+        #         transition_fun=self.__call__,
+        #         transition_fun_jacobian=self.jacobian,
+        #         input_dim=self.input_dim,
+        #         output_dim=self.output_dim,
+        #     )
+        #
+        # def process_noise_fun(t):
+        #     cov = measurement_cov_fun(t)
+        #     cov_cholesky = measurement_cov_cholesky_fun(t)
+        #     mean = np.zeros(cov.shape[0])
+        #     return randvars.Normal(
+        #         mean=mean, cov=cov, cov_cholesky=cov_cholesky
+        #     )
+        if process_noise_fun is None:
             return randprocs.markov.discrete.NonlinearGaussian.from_callable(
                 transition_fun=self.__call__,
                 transition_fun_jacobian=self.jacobian,
                 input_dim=self.input_dim,
                 output_dim=self.output_dim,
             )
-
-        def process_noise_fun(t):
-            return randvars.Normal(
-                mean=np.zeros(measurement_cov_fun.shape[0]),
-                cov=measurement_cov_fun(t),
-                cov_cholesky=measurement_cov_cholesky_fun(t),
-            )
-
         return randprocs.markov.discrete.NonlinearGaussian(
             transition_fun=self.__call__,
             transition_fun_jacobian=self.jacobian,
@@ -109,14 +118,8 @@ class ODEInformationOperator(InformationOperator):
 
     def as_transition(
         self,
-        measurement_cov_fun: Optional[Callable[[FloatLike], np.ndarray]] = None,
-        measurement_cov_cholesky_fun: Optional[
-            Callable[[FloatLike], np.ndarray]
-        ] = None,
+        process_noise_fun: Optional[randvars.RandomVariable] = None,
     ):
         if not self.ode_has_been_incorporated:
             raise ValueError("An ODE has not been incorporated yet.")
-        return super().as_transition(
-            measurement_cov_fun=measurement_cov_fun,
-            measurement_cov_cholesky_fun=measurement_cov_cholesky_fun,
-        )
+        return super().as_transition(process_noise_fun=process_noise_fun)
