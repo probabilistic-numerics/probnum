@@ -1,9 +1,12 @@
 """Perturbation-based probabilistic ODE solver."""
+from typing import Callable, Optional
+
 import numpy as np
 import scipy.integrate
 
 from probnum import problems
 from probnum.diffeq import perturbed, stepsize
+from probnum.typing import ArrayLike, FloatLike
 
 __all__ = ["perturbsolve_ivp"]
 
@@ -14,45 +17,55 @@ METHODS = {
 }
 """Implemented Scipy solvers."""
 
+
+# aliases for (otherwise too-)long lines
+lognorm = perturbed.step.PerturbedStepSolver.construct_with_lognormal_perturbation
+uniform = perturbed.step.PerturbedStepSolver.construct_with_uniform_perturbation
 PERTURBS = {
-    "step-lognormal": perturbed.step.PerturbedStepSolver.construct_with_lognormal_perturbation,
-    "step-uniform": perturbed.step.PerturbedStepSolver.construct_with_uniform_perturbation,
+    "step-lognormal": lognorm,
+    "step-uniform": uniform,
 }
 """Implemented perturbation-styles."""
 
 
+# This interface function is allowed to have many input arguments.
+# Having many input arguments implies having many local arguments,
+# so we need to disable both here.
+# pylint: disable="too-many-arguments,too-many-locals"
 def perturbsolve_ivp(
-    f,
-    t0,
-    tmax,
-    y0,
-    rng,
-    method="RK45",
-    perturb="step-lognormal",
-    noise_scale=10.0,
-    adaptive=True,
-    atol=1e-6,
-    rtol=1e-3,
-    step=None,
-    time_stops=None,
-):
-    r"""Solve an initial value problem with a perturbation-based probabilistic ODE solver.
+    f: Callable,
+    t0: FloatLike,
+    tmax: FloatLike,
+    y0: ArrayLike,
+    rng: np.random.Generator,
+    method: str = "RK45",
+    perturb: str = "step-lognormal",
+    noise_scale: FloatLike = 10.0,
+    adaptive: bool = True,
+    atol: FloatLike = 1e-6,
+    rtol: FloatLike = 1e-3,
+    step: Optional[FloatLike] = None,
+    time_stops: Optional[ArrayLike] = None,
+) -> perturbed.step.PerturbedStepSolution:
+    """Solve an initial value problem with a perturbation-based ODE solver.
 
     Parameters
     ----------
-    f :
+    f
         ODE vector field.
-    t0 :
+    t0
         Initial time point.
-    tmax :
+    tmax
         Final time point.
-    y0 :
+    y0
         Initial value.
-    rng :
+    rng
         Random number generator.
-    method :
+    method
         Integration method to use.
-        The following are available (docs adapted from `SciPy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_):
+        The following are available (docs adapted from
+        https://docs.scipy.org/doc/scipy/\
+reference/generated/scipy.integrate.solve_ivp.html):
 
             * `RK45` (default): Explicit Runge-Kutta method of order 5(4) [2]_.
               The error is controlled assuming accuracy of the fourth-order
@@ -67,33 +80,51 @@ def perturbsolve_ivp(
               dense output. Can be applied in the complex domain.
 
         Other integrators are not supported currently.
-    perturb :
+    perturb
         Which perturbation style to use.
         Currently, the following methods are supported:
 
-            * `step-lognormal`: Perturbed-step (aka random time-step numerical integration) method
+            * `step-lognormal`: Perturbed-step
+              (aka random time-step numerical integration) method
               with lognormally distributed perturbation of the step-size [1]_.
-            * `step-uniform`: Perturbed-step (aka random time-step numerical integration) method
+            * `step-uniform`: Perturbed-step
+              (aka random time-step numerical integration) method
               with uniformly distributed perturbation of the step-size [1]_.
 
         Other integrators are not supported currently.
-    noise_scale :
-        Scale of the perturbation. Optional. Default is 10.0. The magnitude of this parameter
+    noise_scale
+        Scale of the perturbation. Optional.
+        Default is 10.0. The magnitude of this parameter
         significantly impacts the width of the posterior.
-    adaptive :
+    adaptive
         Whether to use adaptive steps or not. Default is `True`.
-    atol :
+    atol
         Absolute tolerance  of the adaptive step-size selection scheme.
         Optional. Default is ``1e-6``.
-    rtol :
+    rtol
         Relative tolerance   of the adaptive step-size selection scheme.
         Optional. Default is ``1e-3``.
-    step :
-        Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
+    step
+        Step size. If atol and rtol are not specified, this step-size
+        is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
-        Default is None, in which case the first step is chosen as prescribed by :meth:`propose_firststep`.
-    time_stops: np.ndarray
+        Default is None, in which case the first step is chosen
+        as prescribed by :meth:`propose_firststep`.
+    time_stops
         Time-points through which the solver must step. Optional. Default is None.
+
+    Raises
+    ------
+    ValueError
+        If the 'method' string does not correspond to a supported method.
+    ValueError
+        If the 'perturb' string does not correspond to
+        a supported perturbation style.
+
+    Returns
+    -------
+    perturbed.step.PerturbedStepSolution
+        ODE Solution of the perturbed-step-solver.
 
     Examples
     --------
@@ -101,7 +132,8 @@ def perturbsolve_ivp(
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.
-    Per default, `perturbsolve_ivp` uses a perturbed-step solver with lognormal perturbation.
+    Per default, `perturbsolve_ivp` uses a perturbed-step solver
+    with lognormal perturbation.
 
     >>> rng = np.random.default_rng(seed=2)
     >>>
@@ -110,7 +142,9 @@ def perturbsolve_ivp(
     >>>
     >>> y0 = np.array([0.15])
     >>> t0, tmax = 0., 1.5
-    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False)
+    >>> solution = perturbsolve_ivp(
+    ...     f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False
+    ... )
     >>> print(np.round(solution.states.mean, 3))
     [[0.15 ]
      [0.325]
@@ -120,10 +154,13 @@ def perturbsolve_ivp(
      [0.964]
      [0.989]]
 
-    Each solution is the result of a randomly-perturbed call of an underlying Runge-Kutta solver.
+    Each solution is the result of a randomly-perturbed call of
+    an underlying Runge-Kutta solver.
     Therefore, if you call it again, the output will be different:
 
-    >>> other_solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False)
+    >>> other_solution = perturbsolve_ivp(
+    ...     f, t0, tmax, y0, rng=rng, step=0.25, method="RK23", adaptive=False
+    ... )
     >>> print(np.round(other_solution.states.mean, 3))
     [[0.15 ]
      [0.319]
@@ -134,10 +171,15 @@ def perturbsolve_ivp(
      [0.989]]
 
 
-    Other methods, such as `RK45` (as well as other perturbation styles) are easily accessible.
-    Let us solve the same equation, with an adaptive RK45 solver that uses uniformly perturbed steps.
+    Other methods, such as `RK45` (as well as other perturbation styles)
+    are easily accessible.
+    Let us solve the same equation, with an adaptive RK45 solver
+    that uses uniformly perturbed steps.
 
-    >>> solution = perturbsolve_ivp(f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6, method="RK45", perturb="step-uniform", adaptive=True)
+    >>> solution = perturbsolve_ivp(
+    ...     f, t0, tmax, y0, rng=rng, atol=1e-5, rtol=1e-6,
+    ...     method="RK45", perturb="step-uniform", adaptive=True
+    ... )
     >>> print(np.round(solution.states.mean, 3))
     [[0.15 ]
      [0.152]
@@ -155,11 +197,13 @@ def perturbsolve_ivp(
     References
     ----------
     .. [1] Abdulle, A. and Garegnani, G..
-        Random time step probabilistic methods for uncertainty quantification in chaotic and geometric numerical integration.
+        Random time step probabilistic methods for uncertainty quantification
+        in chaotic and geometric numerical integration.
         Statistics and Computing. 2020.
     .. [2] J. R. Dormand, P. J. Prince..
         A family of embedded Runge-Kutta formulae.
-        Journal of Computational and Applied Mathematics, Vol. 6, No. 1, pp. 19-26, 1980.
+        Journal of Computational and Applied Mathematics,
+        Vol. 6, No. 1, pp. 19-26, 1980.
     .. [3] L. W. Shampine.
         Some Practical Runge-Kutta Formulas.
         Mathematics of Computation, Vol. 46, No. 173, pp. 135-150, 1986.
@@ -169,8 +213,31 @@ def perturbsolve_ivp(
     """
 
     ivp = problems.InitialValueProblem(t0=t0, tmax=tmax, y0=np.asarray(y0), f=f)
+    steprule = _create_steprule(adaptive, atol, ivp, rtol, step)
 
-    # Create steprule
+    if method not in METHODS:
+        raise ValueError(
+            f"Parameter method='{method}' is not supported. "
+            f"Possible values are {list(METHODS.keys())}."
+        )
+    if perturb not in PERTURBS:
+        raise ValueError(
+            f"Parameter perturb='{perturb}' is not supported. "
+            f"Possible values are {list(PERTURBS.keys())}."
+        )
+
+    wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(
+        METHODS[method], steprule=steprule
+    )
+    perturbed_solver = PERTURBS[perturb](
+        rng=rng,
+        solver=wrapped_scipy_solver,
+        noise_scale=noise_scale,
+    )
+    return perturbed_solver.solve(ivp=ivp, stop_at=time_stops)
+
+
+def _create_steprule(adaptive, atol, ivp, rtol, step):
     if adaptive is True:
         if atol is None or rtol is None:
             raise ValueError(
@@ -180,27 +247,4 @@ def perturbsolve_ivp(
         steprule = stepsize.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
         steprule = stepsize.ConstantSteps(step)
-
-    if method not in METHODS.keys():
-        msg1 = f"Parameter method='{method}' is not supported. "
-        msg2 = f"Possible values are {list(METHODS.keys())}."
-        errormsg = msg1 + msg2
-        raise ValueError(errormsg)
-    scipy_solver = METHODS[method]
-    wrapped_scipy_solver = perturbed.scipy_wrapper.WrappedScipyRungeKutta(
-        scipy_solver, steprule=steprule
-    )
-
-    if perturb not in PERTURBS.keys():
-        msg1 = f"Parameter perturb='{perturb}' is not supported. "
-        msg2 = f"Possible values are {list(PERTURBS.keys())}."
-        errormsg = msg1 + msg2
-        raise ValueError(errormsg)
-
-    perturbed_solver = PERTURBS[perturb](
-        rng=rng,
-        solver=wrapped_scipy_solver,
-        noise_scale=noise_scale,
-    )
-
-    return perturbed_solver.solve(ivp=ivp, stop_at=time_stops)
+    return steprule
