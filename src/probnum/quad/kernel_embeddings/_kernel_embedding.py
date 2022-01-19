@@ -56,7 +56,8 @@ class KernelEmbedding:
         Parameters
         ----------
         x :
-            *shape=(n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
+            *shape=(n_eval, input_dim)* -- n_eval locations where to evaluate the
+            kernel mean.
 
         Returns
         -------
