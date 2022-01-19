@@ -47,6 +47,8 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
         np.testing.assert_allclose(received.cov, expected.cov)
 
     def test_jacobian(self, some_normal_rv1):
+        # For some reason, pylint thinks that the Jacobian is not callable.
+        # pylint: disable="not-callable"
         received = self.transition.transition_fun_jacobian(0.0, some_normal_rv1.mean)
         expected = self.transition_fun_jacobian(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)

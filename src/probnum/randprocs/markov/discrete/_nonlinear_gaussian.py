@@ -1,6 +1,5 @@
 """Discrete transitions."""
 
-from functools import lru_cache
 from typing import Callable, Optional
 
 import numpy as np
@@ -8,7 +7,7 @@ import numpy as np
 from probnum import randvars
 from probnum.randprocs.markov import _transition
 from probnum.randprocs.markov.discrete import _condition_state
-from probnum.typing import ArrayLike, FloatLike, IntLike, LinearOperatorLike
+from probnum.typing import ArrayLike, FloatLike, IntLike
 
 
 class NonlinearGaussian(_transition.Transition):
@@ -46,8 +45,8 @@ class NonlinearGaussian(_transition.Transition):
     ):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
         self._transition_fun = transition_fun
-        self._process_noise_fun = process_noise_fun
         self._transition_fun_jacobian = transition_fun_jacobian
+        self._process_noise_fun = process_noise_fun
 
     @property
     def transition_fun(self):
@@ -55,9 +54,9 @@ class NonlinearGaussian(_transition.Transition):
 
     @property
     def transition_fun_jacobian(self):
-        if self._transition_fun_jacobian is not None:
-            return self._transition_fun_jacobian
-        raise NotImplementedError
+        if self._transition_fun_jacobian is None:
+            raise NotImplementedError
+        return self._transition_fun_jacobian
 
     @property
     def process_noise_fun(self):

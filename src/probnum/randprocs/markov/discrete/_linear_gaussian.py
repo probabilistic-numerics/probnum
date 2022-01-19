@@ -1,7 +1,7 @@
 """Discrete, linear Gaussian transitions."""
 import typing
 import warnings
-from typing import Callable, Optional, Tuple
+from typing import Callable, Tuple
 
 import numpy as np
 import scipy.linalg

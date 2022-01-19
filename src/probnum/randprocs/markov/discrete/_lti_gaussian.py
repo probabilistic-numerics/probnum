@@ -1,17 +1,9 @@
 """Discrete, linear, time-invariant Gaussian transitions."""
 
 
-import numpy as np
-
 from probnum import randvars
 from probnum.randprocs.markov.discrete import _linear_gaussian
 from probnum.typing import ArrayLike, LinearOperatorLike
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property  # pylint: disable=ungrouped-imports
-except ImportError:
-    from cached_property import cached_property
 
 
 class LTIGaussian(_linear_gaussian.LinearGaussian):
@@ -104,5 +96,5 @@ def _assert_shapes_match(transition_matrix, process_noise):
         )
     if transition_matrix.shape[0] != process_noise.shape[0]:
         raise TypeError(
-            f"Dimension of transition_matrix and process_noise do not align."
+            "Dimension of transition_matrix and process_noise do not align."
         )
