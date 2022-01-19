@@ -17,7 +17,7 @@ except ImportError:
 class LTIGaussian(_linear_gaussian.LinearGaussian):
     r"""Discrete, linear, time-invariant transitions with additive, Gaussian noise.
 
-    .. math:: x_{i+1} = G x_i + v, \quad v \sim \mathcal{N}(m, C)
+    .. math:: y = G x + v, \quad v \sim \mathcal{N}(m, C)
 
     for some transition matrix :math:`G` and process noise :math:`v`.
 
@@ -62,11 +62,11 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         self._process_noise = process_noise
 
     @property
-    def transition_matrix(self):
+    def transition_matrix(self) -> LinearOperatorLike:
         return self._transition_matrix
 
     @property
-    def process_noise(self):
+    def process_noise(self) -> randvars.RandomVariable:
         return self._process_noise
 
     @classmethod

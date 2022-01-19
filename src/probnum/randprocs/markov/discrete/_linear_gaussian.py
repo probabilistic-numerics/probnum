@@ -8,32 +8,32 @@ import scipy.linalg
 
 from probnum import config, linops, randvars
 from probnum.randprocs.markov.discrete import _nonlinear_gaussian
-from probnum.typing import FloatLike, IntLike
+from probnum.typing import FloatLike, IntLike, LinearOperatorLike
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
 
 class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
-    """Discrete, linear Gaussian transition models of the form.
+    r"""Discrete, linear Gaussian transition models of the form.
 
-    .. math:: x_{i+1} \\sim \\mathcal{N}(G(t_i) x_i + v(t_i), S(t_i))
+    .. math:: y = G(t) x + v(t), \quad v(t) \sim \mathcal{N}(m(t), C(t))
 
-    for some dynamics matrix :math:`G=G(t)`, force vector :math:`v=v(t)`,
-    and diffusion matrix :math:`S=S(t)`.
-
+    for some transition matrix function :math:`G(t)`,
+    and process noise function :math:`v(t)`.
 
     Parameters
     ----------
-    state_trans_mat_fun : callable
-        State transition matrix function :math:`G=G(t)`. Signature: ``state_trans_mat_fun(t)``.
-    shift_vec_fun : callable
-        Shift vector function :math:`v=v(t)`. Signature: ``shift_vec_fun(t)``.
-    proc_noise_cov_mat_fun : callable
-        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
-
-    See Also
-    --------
-    :class:`DiscreteModel`
-    :class:`NonlinearGaussianLinearModel`
+    input_dim
+        Input dimension.
+    output_dim
+        Output dimension.
+    transition_matrix_fun
+        Transition matrix function :math:`G(t)`.
+    process_noise_fun
+        Process noise function :math:`v(t)`.
+    forward_implementation
+        A string indicating the choice of forward implementation.
+    backward_implementation
+        A string indicating the choice of backward implementation.
     """
 
     def __init__(
@@ -41,30 +41,11 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         *,
         input_dim: IntLike,
         output_dim: IntLike,
-        transition_matrix_fun: Callable[[FloatLike], np.ndarray],
+        transition_matrix_fun: Callable[[FloatLike], LinearOperatorLike],
         process_noise_fun: Callable[[FloatLike], randvars.RandomVariable],
-        forward_implementation="classic",
-        backward_implementation="classic",
+        forward_implementation: str = "classic",
+        backward_implementation: str = "classic",
     ):
-
-        # Choose implementation for forward and backward transitions
-        choose_forward_implementation = {
-            "classic": self._forward_rv_classic,
-            "sqrt": self._forward_rv_sqrt,
-        }
-        choose_backward_implementation = {
-            "classic": self._backward_rv_classic,
-            "sqrt": self._backward_rv_sqrt,
-            "joseph": self._backward_rv_joseph,
-        }
-        self._forward_implementation = choose_forward_implementation[
-            forward_implementation
-        ]
-        self._backward_implementation = choose_backward_implementation[
-            backward_implementation
-        ]
-
-        self._transition_matrix_fun = transition_matrix_fun
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
@@ -72,6 +53,31 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
             process_noise_fun=process_noise_fun,
             transition_fun_jacobian=lambda t, x: transition_matrix_fun(t),
         )
+
+        # Choose implementation for forward and backward transitions
+        self._forward_implementation = self._choose_forward_implementation(
+            forward_implementation=forward_implementation
+        )
+        self._backward_implementation = self._choose_backward_implementation(
+            backward_implementation=backward_implementation
+        )
+
+        self._transition_matrix_fun = transition_matrix_fun
+
+    def _choose_forward_implementation(self, *, forward_implementation: str):
+        implementations = {
+            "classic": self._forward_rv_classic,
+            "sqrt": self._forward_rv_sqrt,
+        }
+        return implementations[forward_implementation]
+
+    def _choose_backward_implementation(self, *, backward_implementation: str):
+        implementations = {
+            "classic": self._backward_rv_classic,
+            "sqrt": self._backward_rv_sqrt,
+            "joseph": self._backward_rv_joseph,
+        }
+        return implementations[backward_implementation]
 
     @property
     def transition_matrix_fun(self):
