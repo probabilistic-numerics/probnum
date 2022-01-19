@@ -205,7 +205,7 @@ class TimeSeriesPosterior(abc.ABC):
             Locations on which the samples are wanted.
             Default is none, which implies that
             self.location is used.
-        size :
+        size
             Indicates how many samples are drawn.
             Default is an empty tuple, in which case
             a single sample is returned.
