@@ -77,7 +77,6 @@ class ODESolver(ABC):
         while state.t < state.ivp.tmax:
             if stopper_state is not None:
                 dt, stopper_state = _adjust_time_step(stopper_state, t=state.t, dt=dt)
-                # dt = adjust_dt_to_time_stops(t=state.t, dt=dt)
 
             state, dt = self.perform_full_step(state, dt)
 
@@ -102,7 +101,6 @@ class ODESolver(ABC):
             time_stopper = _TimeStopperState(
                 locations=loc_iter, next_location=next(loc_iter)
             )
-            # time_stopper = _time_stopper(location_iter=loc_iter)
         else:
             time_stopper = None
         return callbacks, time_stopper
@@ -135,7 +133,6 @@ class ODESolver(ABC):
             else:
                 dt = min(suggested_dt, state.ivp.tmax - state.t)
 
-        # This line of code is unnecessary?!
         self.method_callback(state)
         return proposed_state, dt
 
@@ -194,22 +191,3 @@ def _adjust_time_step(stopper_state, t, dt):
     return dt, _TimeStopperState(
         locations=stopper_state.locations, next_location=next_location
     )
-
-
-#
-# def _time_stopper(*, location_iter):
-#     """Check whether the next time-point is supposed to be stopped at."""
-#     initial_location = next(location_iter)
-#
-#     def adjust(t, dt, next_location=initial_location):
-#         if t >= next_location:
-#             try:
-#                 next_location = next(location_iter)
-#             except StopIteration:
-#                 next_location = np.inf
-#
-#         if t + dt > next_location:
-#             dt = next_location - t
-#         return dt
-#     print("jooooo")
-#     return adjust
