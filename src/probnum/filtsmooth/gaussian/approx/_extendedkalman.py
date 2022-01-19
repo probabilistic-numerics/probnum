@@ -200,10 +200,9 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
             self,
             input_dim=non_linear_model.input_dim,
             output_dim=non_linear_model.output_dim,
-            state_trans_fun=non_linear_model.state_trans_fun,
-            proc_noise_cov_mat_fun=non_linear_model.proc_noise_cov_mat_fun,
-            jacob_state_trans_fun=non_linear_model.jacob_state_trans_fun,
-            proc_noise_cov_cholesky_fun=non_linear_model.proc_noise_cov_cholesky_fun,
+            transition_fun=non_linear_model.transition_fun,
+            process_noise_fun=non_linear_model.process_noise_fun,
+            transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
         )
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
@@ -213,24 +212,24 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
     def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
-        g = self.non_linear_model.state_trans_fun
-        dg = self.non_linear_model.jacob_state_trans_fun
+        g = self.non_linear_model.transition_fun
+        dg = self.non_linear_model.transition_fun_jacobian
 
         x0 = at_this_rv.mean
 
-        def force_vector_function(t):
-            return g(t, x0) - dg(t, x0) @ x0
-
-        def dynamicsmatfun(t):
+        def transition_matrix_fun(t):
             return dg(t, x0)
+
+        def process_noise_fun(t):
+            pnoise = self.non_linear_model.process_noise_fun(t)
+            m = g(t, x0) - dg(t, x0) @ x0
+            return m + pnoise
 
         return randprocs.markov.discrete.LinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
-            state_trans_mat_fun=dynamicsmatfun,
-            shift_vec_fun=force_vector_function,
-            proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
-            proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
+            transition_matrix_fun=transition_matrix_fun,
+            process_noise_fun=process_noise_fun,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
