@@ -106,12 +106,11 @@ def car_tracking(
 
     measurement_matrix = np.eye(measurement_dim, model_dim)
     measurement_cov = measurement_variance * np.eye(measurement_dim)
-    measurement_cov_cholesky = np.sqrt(measurement_variance) * np.eye(measurement_dim)
     measurement_model = randprocs.markov.discrete.LTIGaussian(
-        state_trans_mat=measurement_matrix,
-        shift_vec=np.zeros(measurement_dim),
-        proc_noise_cov_mat=measurement_cov,
-        proc_noise_cov_cholesky=measurement_cov_cholesky,
+        transition_matrix=measurement_matrix,
+        process_noise=randvars.Normal(
+            mean=np.zeros(measurement_dim), cov=measurement_cov
+        ),
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -218,9 +217,10 @@ def ornstein_uhlenbeck(
     )
 
     measurement_model = randprocs.markov.discrete.LTIGaussian(
-        state_trans_mat=np.eye(1),
-        shift_vec=np.zeros(1),
-        proc_noise_cov_mat=measurement_variance * np.eye(1),
+        transition_matrix=np.eye(1),
+        process_noise=randvars.Normal(
+            mean=np.zeros(1), cov=measurement_variance * np.eye(1)
+        ),
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -356,17 +356,21 @@ def pendulum(
     dynamics_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=2,
-        state_trans_fun=f,
-        proc_noise_cov_mat_fun=lambda t: process_noise_cov,
-        jacob_state_trans_fun=df,
+        transition_fun=f,
+        process_noise_fun=lambda t: randvars.Normal(
+            mean=np.zeros(2), cov=process_noise_cov
+        ),
+        transition_fun_jacobian=df,
     )
 
     measurement_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=1,
-        state_trans_fun=h,
-        proc_noise_cov_mat_fun=lambda t: measurement_variance * np.eye(1),
-        jacob_state_trans_fun=dh,
+        transition_fun=h,
+        process_noise_fun=lambda t: randvars.Normal(
+            mean=np.zeros(1), cov=measurement_variance * np.eye(1)
+        ),
+        transition_fun_jacobian=dh,
     )
 
     if initrv is None:
@@ -467,9 +471,10 @@ def benes_daum(
         drift_jacobian=df,
     )
     measurement_model = randprocs.markov.discrete.LTIGaussian(
-        state_trans_mat=np.eye(1),
-        shift_vec=np.zeros(1),
-        proc_noise_cov_mat=measurement_variance * np.eye(1),
+        transition_matrix=np.eye(1),
+        process_noise=randvars.Normal(
+            mean=np.zeros(1), cov=measurement_variance * np.eye(1)
+        ),
     )
 
     # Generate data

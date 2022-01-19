@@ -206,7 +206,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             )
 
         return discrete.LTIGaussian(
-            state_trans_mat=state_transition,
+            transition_matrix=state_transition,
             process_noise=randvars.Normal(
                 mean=empty_shift, cov=process_noise, cov_cholesky=process_noise_cholesky
             ),
@@ -286,9 +286,9 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         user's convenience and to maintain a clean interface. Not used for forward_rv,
         etc..
         """
-        state_trans_mat = (
+        transition_matrix = (
             self.precon(dt)
-            @ self.equivalent_discretisation_preconditioned.state_trans_mat
+            @ self.equivalent_discretisation_preconditioned.transition_matrix
             @ self.precon.inverse(dt)
         )
         proc_noise_cov_mat = (
@@ -296,7 +296,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             @ self.equivalent_discretisation_preconditioned.process_noise.cov
             @ self.precon(dt).T
         )
-        zero_shift = np.zeros(state_trans_mat.shape[0])
+        zero_shift = np.zeros(transition_matrix.shape[0])
 
         # The Cholesky factor of the process noise covariance matrix of the IBM
         # always exists, even for non-square root implementations.
@@ -306,7 +306,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
 
         return discrete.LTIGaussian(
-            state_trans_mat=state_trans_mat,
+            transition_matrix=transition_matrix,
             process_noise=randvars.Normal(
                 mean=zero_shift,
                 cov=proc_noise_cov_mat,
