@@ -91,7 +91,7 @@ def bayesquad(
 
     Returns
     -------
-    integral
+    integral :
         The integral of ``fun`` on the domain.
     info
         Information on the performance of the method.
