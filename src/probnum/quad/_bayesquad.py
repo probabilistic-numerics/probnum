@@ -189,7 +189,7 @@ def bayesquad_from_data(
     -------
     integral :
         The integral of ``fun`` on the domain.
-    info
+    info :
         Information on the performance of the method.
 
     Raises
