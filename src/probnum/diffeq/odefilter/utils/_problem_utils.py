@@ -4,7 +4,7 @@ from typing import Optional, Sequence, Union
 
 import numpy as np
 
-from probnum import problems, randprocs
+from probnum import problems, randprocs, randvars
 from probnum.diffeq.odefilter import approx_strategies, information_operators
 from probnum.typing import FloatLike
 
@@ -136,7 +136,7 @@ def _construct_measurement_models_dirac_likelihood(
 ):
     """Construct measurement models for the IVP with Dirac likelihoods."""
     measmod_initial_condition = randprocs.markov.discrete.LTIGaussian.from_linop(
-        state_trans_mat=transition_matrix, shift_vec=shift_vector
+        transition_matrix=transition_matrix, process_noise_mean=shift_vector
     )
     if approx_strategy is not None:
         ode_information_operator = approx_strategy(ode_information_operator)
