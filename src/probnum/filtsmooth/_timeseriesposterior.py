@@ -233,7 +233,7 @@ class TimeSeriesPosterior(abc.ABC):
         ----------
         base_measure_realizations
             Base measure realizations.
-        t :
+        t
             Locations on which the transformed realizations
             shall represent realizations from the posterior.
 
