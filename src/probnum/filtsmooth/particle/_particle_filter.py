@@ -131,7 +131,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem :
+        regression_problem
             Regression problem.
 
         Raises
