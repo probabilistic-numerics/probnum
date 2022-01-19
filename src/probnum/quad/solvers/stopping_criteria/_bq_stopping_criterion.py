@@ -10,7 +10,8 @@ from probnum.quad.solvers.bq_state import BQState
 class BQStoppingCriterion(StoppingCriterion):
     r"""Stopping criterion of a Bayesian quadrature method.
 
-    Checks whether quantities tracked by the :class:`~probnum.quad.solvers.BQState` meet a desired terminal condition.
+    Checks whether quantities tracked by the :class:`~probnum.quad.solvers.BQState`
+    meet a desired terminal condition.
 
     See Also
     --------

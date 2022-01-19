@@ -98,6 +98,19 @@ class BayesianQuadrature:
             Batch size used in node acquisition.
         rng :
             The random number generator.
+
+        Returns
+        -------
+        BayesianQuadrature
+            An instance of this class.
+
+        Raises
+        ------
+        ValueError
+            If Bayesian Monte Carlo ('bmc') is selected as ``policy`` and no random
+            number generator (``rng``) is given.
+        NotImplementedError
+            If an unknown ``policy`` is given.
         """
         # Set up integration measure
         if measure is None:
@@ -125,8 +138,8 @@ class BayesianQuadrature:
                 "Policies other than random sampling are not available at the moment."
             )
 
-        # Set stopping criteria
-        # If multiple stopping criteria are given, BQ stops once the first criterion is fulfilled.
+        # Set stopping criteria: If multiple stopping criteria are given, BQ stops
+        # once the first criterion is fulfilled.
         def _stopcrit_or(sc1, sc2):
             if sc1 is None:
                 return sc2
@@ -147,7 +160,8 @@ class BayesianQuadrature:
                 _stopping_criterion, RelativeMeanChange(rel_tol)
             )
 
-        # If no stopping criteria are given, use some default values (these are arbitrary values)
+        # If no stopping criteria are given, use some default values
+        # (these are arbitrary values)
         if _stopping_criterion is None:
             _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
                 max_nevals=input_dim * 25
@@ -167,13 +181,13 @@ class BayesianQuadrature:
         Parameters
         ----------
         bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information about the
-            problem and the computation.
+            State of the Bayesian quadrature methods. Contains all necessary
+            information about the problem and the computation.
 
         Returns
         -------
-        has_converged:
-            Whether or not the solver has converged.
+        has_converged :
+            Whether the solver has converged.
         """
 
         _has_converged = self.stopping_criterion(bq_state)
@@ -192,7 +206,8 @@ class BayesianQuadrature:
     ) -> Tuple[Normal, np.ndarray, np.ndarray, BQState]:
         """Generator that implements the iteration of the BQ method.
 
-        This function exposes the state of the BQ method one step at a time while running the loop.
+        This function exposes the state of the BQ method one step at a time while
+        running the loop.
 
         Parameters
         ----------
@@ -208,23 +223,22 @@ class BayesianQuadrature:
         integral_belief:
             Current belief about the integral.
         bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information about the
-            problem and the computation.
+            State of the Bayesian quadrature methods. Contains all necessary information
+            about the problem and the computation.
 
-        Returns
-        -------
-        integral_belief:
+        Yields
+        ------
+        new_integral_belief :
             Updated belief about the integral.
-        new_nodes:
+        new_nodes :
             *shape=(n_new_eval, input_dim)* -- The new location(s) at which
             ``new_fun_evals`` are available found during the iteration.
-        new_fun_evals:
+        new_fun_evals :
             *shape=(n_new_eval,)* -- The function evaluations at the new locations
             ``new_nodes``.
-        bq_state:
+        new_bq_state :
             Updated state of the Bayesian quadrature methods.
         """
-        # pylint: disable=missing-yield-doc
 
         # Setup
         if bq_state is None:
@@ -293,8 +307,9 @@ class BayesianQuadrature:
     ) -> Tuple[Normal, BQState]:
         """Integrate the function ``fun``.
 
-        ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at fixed nodes.
-        This function calls the generator ``bq_iterator`` until the first stopping criterion is met.
+        ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at
+        fixed nodes. This function calls the generator ``bq_iterator`` until the first
+        stopping criterion is met.
 
         Parameters
         ----------
@@ -310,10 +325,16 @@ class BayesianQuadrature:
 
         Returns
         -------
-        integral_belief:
+        integral_belief :
             Posterior belief about the integral.
-        bq_state:
+        bq_state :
             Final state of the Bayesian quadrature method.
+
+        Raises
+        ------
+        ValueError
+            If neither the integrand function (``fun``) nor integrand evaluations
+            (``fun_evals``) are given.
         """
         if fun is None and fun_evals is None:
             raise ValueError("You need to provide a function to be integrated!")

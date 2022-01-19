@@ -8,8 +8,6 @@ import scipy.linalg as slinalg
 from probnum.quad._integration_measures import GaussianMeasure
 from probnum.randprocs.kernels import ExpQuad
 
-# pylint: disable=invalid-name
-
 
 def _kernel_mean_expquad_gauss(
     x: np.ndarray, kernel: ExpQuad, measure: GaussianMeasure
@@ -20,7 +18,8 @@ def _kernel_mean_expquad_gauss(
     Parameters
     ----------
     x :
-        *shape=(n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
+        *shape=(n_eval, input_dim)* -- n_eval locations where to evaluate the kernel
+        mean.
     kernel :
         Instance of an ExpQuad kernel.
     measure :
@@ -28,9 +27,9 @@ def _kernel_mean_expquad_gauss(
 
     Returns
     -------
-    k_mean :
+    kernel_mean :
         *shape (n_eval,)* -- The kernel integrated w.r.t. its first argument,
-        evaluated at locations x.
+        evaluated at locations ``x``.
     """
     input_dim = kernel.input_dim
 
@@ -66,7 +65,7 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
 
     Returns
     -------
-    k_var :
+    kernel_variance :
         The kernel integrated w.r.t. both arguments.
     """
     input_dim = kernel.input_dim
