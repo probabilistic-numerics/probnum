@@ -199,7 +199,7 @@ class TimeSeriesPosterior(abc.ABC):
 
         Parameters
         ----------
-        rng :
+        rng
             Random number generator.
         t :
             Locations on which the samples are wanted.
