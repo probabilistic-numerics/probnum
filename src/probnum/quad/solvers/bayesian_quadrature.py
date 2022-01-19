@@ -228,7 +228,7 @@ class BayesianQuadrature:
 
         Yields
         ------
-        new_integral_belief
+        new_integral_belief :
             Updated belief about the integral.
         new_nodes
             *shape=(n_new_eval, input_dim)* -- The new location(s) at which
