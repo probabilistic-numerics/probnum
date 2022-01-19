@@ -52,7 +52,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         Number of particles to use.
     rng
         Random number generator.
-    with_resampling :
+    with_resampling
         Whether after each step the effective number of particles
         shall be checked, and, if too low,
         the state should be resampled. Optional. Default is `True`.
