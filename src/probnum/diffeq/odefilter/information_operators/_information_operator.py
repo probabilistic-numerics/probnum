@@ -5,7 +5,7 @@ from typing import Callable, Optional
 
 import numpy as np
 
-from probnum import problems, randprocs
+from probnum import problems, randprocs, randvars
 from probnum.typing import FloatLike, IntLike
 
 __all__ = ["InformationOperator", "ODEInformationOperator"]
@@ -61,17 +61,23 @@ class InformationOperator(abc.ABC):
                     "If a Cholesky function is provided, a covariance function must be provided as well."
                 )
             return randprocs.markov.discrete.NonlinearGaussian.from_callable(
-                state_trans_fun=self.__call__,
-                jacob_state_trans_fun=self.jacobian,
+                transition_fun=self.__call__,
+                transition_fun_jacobian=self.jacobian,
                 input_dim=self.input_dim,
                 output_dim=self.output_dim,
             )
 
+        def process_noise_fun(t):
+            return randvars.Normal(
+                mean=np.zeros(measurement_cov_fun.shape[0]),
+                cov=measurement_cov_fun(t),
+                cov_cholesky=measurement_cov_cholesky_fun(t),
+            )
+
         return randprocs.markov.discrete.NonlinearGaussian(
-            state_trans_fun=self.__call__,
-            jacob_state_trans_fun=self.jacobian,
-            proc_noise_cov_mat_fun=measurement_cov_fun,
-            proc_noise_cov_cholesky_fun=measurement_cov_cholesky_fun,
+            transition_fun=self.__call__,
+            transition_fun_jacobian=self.jacobian,
+            process_noise_fun=process_noise_fun,
             input_dim=self.input_dim,
             output_dim=self.output_dim,
         )

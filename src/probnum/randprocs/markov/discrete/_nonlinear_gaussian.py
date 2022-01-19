@@ -151,5 +151,5 @@ class NonlinearGaussian(_transition.Transition):
             output_dim=output_dim,
             transition_fun=transition_fun,
             transition_fun_jacobian=transition_fun_jacobian,
-            process_noise=lambda t: randvars.Constant(np.zeros(output_dim)),
+            process_noise_fun=lambda t: randvars.Constant(np.zeros(output_dim)),
         )
