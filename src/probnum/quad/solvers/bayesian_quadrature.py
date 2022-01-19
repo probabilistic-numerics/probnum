@@ -236,7 +236,7 @@ class BayesianQuadrature:
         new_fun_evals :
             *shape=(n_new_eval,)* -- The function evaluations at the new locations
             ``new_nodes``.
-        new_bq_state
+        new_bq_state :
             Updated state of the Bayesian quadrature methods.
         """
 
