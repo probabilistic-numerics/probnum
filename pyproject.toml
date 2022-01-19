@@ -39,9 +39,9 @@ testpaths = [
 ]
 doctest_optionflags = "NUMBER NORMALIZE_WHITESPACE"
 filterwarnings = [
-    # Jax imports raise this warning.
-    # Ignore taken from https://github.com/google/jax/blob/main/pytest.ini
-    "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning"
+    # "import jax" implies "import flatbuffers", which raises the following warning.
+    # Ignore similar to https://github.com/google/jax/blob/main/pytest.ini
+    "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning:flatbuffers.*"
 ]
 
 
