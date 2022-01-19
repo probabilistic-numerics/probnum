@@ -50,7 +50,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         Importance distribution.
     num_particles :
         Number of particles to use.
-    rng :
+    rng
         Random number generator.
     with_resampling :
         Whether after each step the effective number of particles
