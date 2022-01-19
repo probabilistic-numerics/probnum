@@ -231,7 +231,7 @@ class TimeSeriesPosterior(abc.ABC):
 
         Parameters
         ----------
-        base_measure_realizations :
+        base_measure_realizations
             Base measure realizations.
         t :
             Locations on which the transformed realizations
