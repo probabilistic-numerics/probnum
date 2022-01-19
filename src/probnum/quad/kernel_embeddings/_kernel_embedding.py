@@ -31,6 +31,12 @@ class KernelEmbedding:
         Instance of a kernel.
     measure:
         Instance of an integration measure.
+
+    Raises
+    ------
+    ValueError
+        If the input dimension of the kernel does not match the input dimension of the
+        measure.
     """
 
     def __init__(self, kernel: Kernel, measure: IntegrationMeasure) -> None:
@@ -49,7 +55,6 @@ class KernelEmbedding:
             kernel=self.kernel, measure=self.measure
         )
 
-    # pylint: disable=invalid-name
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
         """Kernel mean w.r.t. its first argument against the integration measure.
 
@@ -61,9 +66,9 @@ class KernelEmbedding:
 
         Returns
         -------
-        k_mean :
+        kernel_mean :
             *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
-            evaluated at locations x.
+            evaluated at locations ``x``.
         """
         return self._kmean(x=x, kernel=self.kernel, measure=self.measure)
 
@@ -72,7 +77,7 @@ class KernelEmbedding:
 
         Returns
         -------
-        k_var :
+        kernel_variance :
             The kernel integrated w.r.t. both arguments.
         """
         return self._kvar(kernel=self.kernel, measure=self.measure)
@@ -92,15 +97,24 @@ def _get_kernel_embedding(
 
     Returns
     -------
-        Function handle to the kernel mean and the scalar kernel variance
+    kernel_mean :
+        The kernel mean function.
+    kernel_variance :
+        The kernel variance function.
+
+    Raises
+    ------
+    NotImplementedError
+        If the given kernel is unknown.
+    NotImplementedError
+        If the kernel embedding of the kernel-measure pair is unknown.
     """
 
     # Exponentiated quadratic kernel
     if isinstance(kernel, ExpQuad):
-        # pylint: disable=no-else-return
         if isinstance(measure, GaussianMeasure):
             return _kernel_mean_expquad_gauss, _kernel_variance_expquad_gauss
-        elif isinstance(measure, LebesgueMeasure):
+        if isinstance(measure, LebesgueMeasure):
             return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
         raise NotImplementedError
 
