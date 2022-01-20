@@ -22,7 +22,7 @@ GaussMarkovPriorTransitionArgType = Union[
     approx.ContinuousEKFComponent,
     approx.ContinuousUKFComponent,
 ]
-"""Any linear and linearised transition can define an (approximate) Gauss-Markov prior."""
+"""Any linear(ized) transition can define an (approximate) Gauss-Markov prior."""
 
 
 class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
@@ -194,7 +194,8 @@ class SmoothingPosterior(KalmanPosterior):
         # This block avoids calling self.diffusion_model, because we do not want
         # to search the full index set -- we already know the index!
         # This is the reason that `Diffusion` objects implement a __getitem__.
-        # The usual diffusion-index is the next index ('Diffusion's include the right-hand side gridpoint!),
+        # The usual diffusion-index is the next index
+        # ('Diffusion's include the right-hand side gridpoint!),
         # but if we are right of the domain, the previous_index matters.
         diffusion_index = next_index if next_index is not None else previous_index
         if diffusion_index >= len(self.locations) - 1:
@@ -207,8 +208,10 @@ class SmoothingPosterior(KalmanPosterior):
         # Corner case 2: are extrapolating to the left
         if previous_location is None:
             raise NotImplementedError("Extrapolation to the left is not implemented.")
-            # The code below would more or less work, but since forward and backward transitions
-            # cannot handle negative time increments reliably, we do not support it.
+            # The code below would more or less work,
+            # but since forward and backward transitions
+            # cannot handle negative time increments reliably,
+            # we do not support it.
             #
             ############################################################
             #
@@ -276,20 +279,24 @@ class SmoothingPosterior(KalmanPosterior):
                 ]
             )
 
-        # Now we are in the setting of jointly sampling a single realization from the posterior.
-        # On time points inside the domain, this is essentially a sequence of smoothing steps.
+        # Now we are in the setting of jointly sampling
+        # a single realization from the posterior.
+        # On time points inside the domain,
+        # this is essentially a sequence of smoothing steps.
 
         t = np.asarray(t) if t is not None else None
         if not np.all(np.isin(self.locations, t)):
             raise ValueError(
-                "Base measure realizations cannot be transformed if the locations don't include self.locations."
+                "Base measure realizations cannot be transformed "
+                "if the locations don't include self.locations."
             )
 
         if not np.all(np.diff(t) >= 0.0):
             raise ValueError("Time-points have to be sorted.")
 
         # Find locations of the diffusions, which amounts to finding the locations
-        # of the grid points in t (think: `all_locations`), which is done via np.searchsorted:
+        # of the grid points in t (think: `all_locations`),
+        # which is done via np.searchsorted:
         diffusion_indices = np.searchsorted(self.locations[:-2], t[1:])
         if self.diffusion_model_has_been_provided:
             squared_diffusion_list = self.diffusion_model[diffusion_indices]
@@ -425,10 +432,14 @@ class FilteringPosterior(KalmanPosterior):
         t: Optional[ArrayLike] = None,
         size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
-        # If this error would not be thrown here, trying to sample from a FilteringPosterior
-        # would call FilteringPosterior.transform_base_measure_realizations which is not implemented.
-        # Since an error thrown by that function instead of one thrown by FilteringPosterior.sample
-        # would likely by hard to parse by a user, we explicitly raise a NotImplementedError here.
+        # If this error would not be thrown here,
+        # trying to sample from a FilteringPosterior
+        # would call FilteringPosterior.transform_base_measure_realizations
+        # which is not implemented.
+        # Since an error thrown by that function instead of one thrown
+        # by FilteringPosterior.sample
+        # would likely by hard to parse by a user, we explicitly raise a
+        # NotImplementedError here.
         raise NotImplementedError(
             "Sampling from the FilteringPosterior is not implemented."
         )

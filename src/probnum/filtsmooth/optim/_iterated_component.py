@@ -1,3 +1,5 @@
+"""Iterated components for iterated filtering and smoothing."""
+
 import numpy as np
 
 from probnum import randprocs
@@ -19,7 +21,9 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     Set up an iterated component.
 
-    >>> iwp = IntegratedWienerProcess(initarg=0., num_derivatives=2, wiener_process_dimension=1)
+    >>> iwp = IntegratedWienerProcess(
+    ...     initarg=0., num_derivatives=2, wiener_process_dimension=1
+    ... )
     >>> H0, H1 = iwp.transition.proj2coord(coord=0), iwp.transition.proj2coord(coord=1)
     >>> call = lambda t, x: H1 @ x - H0 @ x * (1 - H0 @ x)
     >>> jacob = lambda t, x: H1 - (1 - 2*(H0 @ x)) @ H0
@@ -105,7 +109,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
 
     def backward_realization(
         self,
-        real_obtained,
+        realization_obtained,
         rv,
         rv_forwarded=None,
         gain=None,
@@ -115,7 +119,7 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
         _linearise_at=None,
     ):
         return self._backward_realization_via_backward_rv(
-            real_obtained,
+            realization_obtained,
             rv=rv,
             rv_forwarded=rv_forwarded,
             gain=gain,
@@ -141,10 +145,16 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
         )
 
     def forward_realization(
-        self, real, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self,
+        realization,
+        t,
+        dt=None,
+        compute_gain=False,
+        _diffusion=1.0,
+        _linearise_at=None,
     ):
         return self._component.forward_realization(
-            real,
+            realization,
             t,
             dt=dt,
             compute_gain=compute_gain,
@@ -161,5 +171,4 @@ class IteratedDiscreteComponent(randprocs.markov.Transition):
             "backward_realization",
         ]:
             return self.attr
-        else:
-            return getattr(self._component, attr)
+        return getattr(self._component, attr)

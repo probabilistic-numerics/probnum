@@ -29,7 +29,7 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ) -> Tuple[randvars.Normal, Dict]:
-
+        """Approximate forward-propagation of a realization of a random variable."""
         return self._forward_realization_via_forward_rv(
             realization,
             t=t,
@@ -48,6 +48,7 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ) -> Tuple[randvars.Normal, Dict]:
+        """Approximate forward-propagation of a random variable."""
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
@@ -70,6 +71,8 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
+        """Approximate backward-propagation of a realization of a random variable."""
+
         return self._backward_realization_via_backward_rv(
             realization_obtained,
             rv=rv,
@@ -92,6 +95,8 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
+        """Approximate backward-propagation of a random variable."""
+
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
         return self.linearized_model.backward_rv(
@@ -120,14 +125,20 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
     Parameters
     ----------
     non_linear_model
-        Non-linear continuous-time model (:class:`SDE`) that is approximated with the EKF.
+        Non-linear continuous-time model (:class:`SDE`)
+        that is approximated with the EKF.
     mde_atol
-        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Absolute tolerance passed to the solver of the
+        moment differential equations (MDEs). Optional.
     mde_rtol
-        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Relative tolerance passed to the solver of the
+        moment differential equations (MDEs). Optional.
     mde_solver
-        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
-        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+        Method that is chosen in `scipy.integrate.solve_ivp`.
+        Any string that is compatible with
+        ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``.
+        Optional. Default is LSODA.
     """
 
     def __init__(
@@ -224,13 +235,15 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
         def dynamicsmatfun(t):
             return dg(t, x0)
 
+        # alias for otherwise too-long line
+        process_cholesky_alias = self.non_linear_model.proc_noise_cov_cholesky_fun
         return randprocs.markov.discrete.LinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
             shift_vec_fun=force_vector_function,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
-            proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
+            proc_noise_cov_cholesky_fun=process_cholesky_alias,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
