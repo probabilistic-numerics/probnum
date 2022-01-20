@@ -193,31 +193,22 @@ def _covarweights(
         Prior information parameter (beta)
     lam
         Scaling parameter for unscented transform (lambda)
-
-    Returns
-    -------
-    np.ndarray
-        Shape (2 * dimension + 1,). the constant kernels weights.
     """
     cw0 = np.ones(1) * lam / (dimension + lam) + (1 - alp ** 2 + bet)
     cw = np.ones(2 * dimension) / (2.0 * (dimension + lam))
-    return np.hstack((cw0, cw))
+    covarweights = np.hstack((cw0, cw))
+    return covarweights
 
 
-def _estimate_mean(mweights, proppts):
+def _estimate_mean(mweights: np.ndarray, proppts: np.ndarray) -> np.ndarray:
     """See BFaS; p. 88.
 
     Parameters
     ----------
-    mweights: np.ndarray, shape (2*dimension + 1,)
-        Constant mean weights for unscented transform.
-    proppts: np.ndarray, shape (2*dimension + 1, dimension)
-        Propagated sigma points
-
-    Returns
-    -------
-    np.ndarray :
-        Shape (dimension,). Estimated mean.
+    mweights
+        shape (2*dimension + 1,) Constant mean weights for unscented transform.
+    proppts
+        shape (2*dimension + 1, dimension) Propagated sigma points
     """
     return mweights @ proppts
 
