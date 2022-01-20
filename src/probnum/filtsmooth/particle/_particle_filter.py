@@ -50,13 +50,13 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         Importance distribution.
     num_particles :
         Number of particles to use.
-    rng :
+    rng
         Random number generator.
-    with_resampling :
+    with_resampling
         Whether after each step the effective number of particles
         shall be checked, and, if too low,
         the state should be resampled. Optional. Default is `True`.
-    resampling_percentage_threshold :
+    resampling_percentage_threshold
         Percentage threshold for resampling.
         That is, it is the value :math:`p` such that resampling is performed
         if :math:`N_{\text{eff}} < p \, N_\text{particles}` holds.
@@ -131,7 +131,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem :
+        regression_problem
             Regression problem.
 
         Raises

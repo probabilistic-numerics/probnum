@@ -199,13 +199,13 @@ class TimeSeriesPosterior(abc.ABC):
 
         Parameters
         ----------
-        rng :
+        rng
             Random number generator.
-        t :
+        t
             Locations on which the samples are wanted.
             Default is none, which implies that
             self.location is used.
-        size :
+        size
             Indicates how many samples are drawn.
             Default is an empty tuple, in which case
             a single sample is returned.
@@ -231,9 +231,9 @@ class TimeSeriesPosterior(abc.ABC):
 
         Parameters
         ----------
-        base_measure_realizations :
+        base_measure_realizations
             Base measure realizations.
-        t :
+        t
             Locations on which the transformed realizations
             shall represent realizations from the posterior.
 

@@ -216,7 +216,7 @@ def _estimate_mean(mweights, proppts):
 
     Returns
     -------
-    np.ndarray
+    np.ndarray :
         Shape (dimension,). Estimated mean.
     """
     return mweights @ proppts
