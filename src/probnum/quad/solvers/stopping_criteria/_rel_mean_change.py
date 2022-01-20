@@ -1,4 +1,5 @@
-"""Stopping criterion based on the relative change of the successive integral estimators."""
+"""Stopping criterion based on the relative change of the successive integral
+estimators."""
 
 import numpy as np
 
@@ -13,9 +14,11 @@ class RelativeMeanChange(BQStoppingCriterion):
     """Stop once the relative change of consecutive integral estimates are smaller than
     a tolerance.
 
-    The stopping criterion is: :math:`|\\hat{F}_{c} - \\hat{F}_{p}|/ |\\hat{F}_{c}| \\leq r`
-    where :math:`\\hat{F}_{c}` and :math:`\\hat{F}_{p}` are the integral estimates of the current and previous iteration
-    respectively, and :math:`r` is the relative tolerance.
+    The stopping criterion is:
+    :math:`|\\hat{F}_{c} - \\hat{F}_{p}|/ |\\hat{F}_{c}| \\leq r` where
+    :math:`\\hat{F}_{c}` and :math:`\\hat{F}_{p}` are the integral estimates of the
+    current and previous iteration respectively, and :math:`r` is the relative
+    tolerance.
 
     Parameters
     ----------
