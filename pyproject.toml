@@ -76,6 +76,8 @@ disable = [
     "fixme",
     # We want to use "mathematical notation" to name some of our variables, e.g. `A` for matrices
     "invalid-name",
+    # Temporary ignore, see https://github.com/probabilistic-numerics/probnum/discussions/470#discussioncomment-1998097 for an explanation
+    "missing-return-doc",
 ]
 
 [tool.pylint.format]
