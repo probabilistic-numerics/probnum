@@ -9,8 +9,12 @@ from probnum import randvars
 from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike, IntLike, ShapeLike
 
 DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
-"""Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a single location,
-and a _RandomVariableList if evaluated at an array of locations."""
+"""Output type of interpolation.
+
+Dense evaluation of a TimeSeriesPosterior returns a RandomVariable
+if evaluated at a single location,
+and a _RandomVariableList if evaluated at an array of locations.
+"""
 
 
 class TimeSeriesPosterior(abc.ABC):
@@ -46,7 +50,7 @@ class TimeSeriesPosterior(abc.ABC):
         location: FloatLike,
         state: randvars.RandomVariable,
     ) -> None:
-
+        """Append a state to the posterior."""
         if self.frozen:
             raise ValueError("Cannot append to frozen TimeSeriesPosterior object.")
 
@@ -54,18 +58,22 @@ class TimeSeriesPosterior(abc.ABC):
         self._states.append(state)
 
     def freeze(self) -> None:
+        """Freeze the posterior."""
         self._frozen = True
 
     @property
     def frozen(self):
+        """Whether the posterior is frozen."""
         return self._frozen
 
     @property
     def locations(self):
+        """Locations of the states of the posterior."""
         return np.asarray(self._locations)
 
     @property
     def states(self):
+        """States of the posterior."""
         return randvars._RandomVariableList(self._states)
 
     def __len__(self) -> int:
@@ -93,6 +101,11 @@ class TimeSeriesPosterior(abc.ABC):
         t :
             Location, or time, at which to evaluate the posterior.
 
+        Raises
+        ------
+        ValueError
+            If time-points are not strictly increasing.
+
         Returns
         -------
         randvars.RandomVariable or randvars._RandomVariableList
@@ -119,7 +132,8 @@ class TimeSeriesPosterior(abc.ABC):
         t_inter = t[(t0 <= t) & (t <= tmax)]
 
         # Indices of t where they would be inserted
-        # into self.locations ("left": right-closest states -- this is the default in searchsorted)
+        # into self.locations
+        # ("left": right-closest states -- this is the default in searchsorted)
         indices = np.searchsorted(self.locations, t_inter, side="left")
         interpolated_values = [
             self.interpolate(
@@ -175,21 +189,25 @@ class TimeSeriesPosterior(abc.ABC):
     ) -> np.ndarray:
         """Draw samples from the filtering/smoothing posterior.
 
-        If nothing is specified, a single sample is drawn (supported on self.locations).
+        If nothing is specified, a single sample is drawn
+        (supported on self.locations).
         If locations are specified, a single sample is drawn on those locations.
         If size is specified, more than a single sample is drawn.
 
-        Internally, samples from a base measure are drawn and transformed via self.transform_base_measure_realizations.
+        Internally, samples from a base measure are drawn
+        and transformed via self.transform_base_measure_realizations.
 
         Parameters
         ----------
-        rng :
+        rng
             Random number generator.
-        t :
-            Locations on which the samples are wanted. Default is none, which implies that
+        t
+            Locations on which the samples are wanted.
+            Default is none, which implies that
             self.location is used.
-        size :
-            Indicates how many samples are drawn. Default is an empty tuple, in which case
+        size
+            Indicates how many samples are drawn.
+            Default is an empty tuple, in which case
             a single sample is returned.
 
 
@@ -209,15 +227,15 @@ class TimeSeriesPosterior(abc.ABC):
         base_measure_realizations: np.ndarray,
         t: Optional[ArrayLike],
     ) -> np.ndarray:
-        """Transform a set of realizations from a base measure into realizations from
-        the posterior.
+        """Transform base-measure-realizations into posteriors samples.
 
         Parameters
         ----------
-        base_measure_realizations :
+        base_measure_realizations
             Base measure realizations.
-        t :
-            Locations on which the transformed realizations shall represent realizations from the posterior.
+        t
+            Locations on which the transformed realizations
+            shall represent realizations from the posterior.
 
         Returns
         -------

@@ -4,8 +4,8 @@ import pytest
 from probnum import filtsmooth, randvars
 
 
-@pytest.fixture
-def state_list():
+@pytest.fixture(name="state_list")
+def fixture_state_list():
     return [
         randvars.Categorical(
             probabilities=np.ones(10) / 10, support=np.random.rand(10, 2)
@@ -14,8 +14,8 @@ def state_list():
     ]
 
 
-@pytest.fixture
-def posterior(state_list):
+@pytest.fixture(name="posterior")
+def fixture_posterior(state_list):
     return filtsmooth.particle.ParticleFilterPosterior(
         states=state_list, locations=np.arange(20)
     )
@@ -34,7 +34,8 @@ def test_call(posterior):
         posterior(0.0)
 
 
-# The tests below -- as a side results -- also cover the specific properties in _RandomVariableList.
+# The tests below -- as a side results -- also
+# cover the specific properties in _RandomVariableList.
 
 
 def test_mode(posterior):

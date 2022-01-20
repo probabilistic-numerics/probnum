@@ -11,18 +11,19 @@ class InterfaceDiscreteLinearizationTest:
     """Test approximate Gaussian filtering and smoothing.
 
     1. forward_rv is unlocked by linearization
-    2. Applied to a linear model, the outcome is exactly the same as the original transition.
+    2. Applied to a linear model, the outcome is exactly the same
+    as the original transition.
     3. Smoothing RMSE < Filtering RMSE < Data RMSE on the pendulum example.
     """
 
     # Replacement for an __init__ in the pytest language. See:
-    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined  # pylint: disable="line-too-long"
     @pytest.fixture(autouse=True)
     def _setup(self):
         self.linearizing_component = None
 
     def test_transition_rv(self, rng):
-        """forward_rv() not possible for original model but for the linearised model."""
+        """forward_rv() is only possible for the linearised model."""
         # pylint: disable=not-callable
         _, info = filtsmooth_zoo.pendulum(rng=rng)
         non_linear_model = info["prior_process"].transition
