@@ -78,6 +78,7 @@ disable = [
     "invalid-name",
     # Temporary ignore, see https://github.com/probabilistic-numerics/probnum/discussions/470#discussioncomment-1998097 for an explanation
     "missing-return-doc",
+    "missing-yield-doc",
 ]
 
 [tool.pylint.format]
