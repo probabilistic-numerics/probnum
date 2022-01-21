@@ -123,10 +123,8 @@ def test_kernel_mean_matern_lebesgue_measure(matern_kernel, measure, num_data):
         integral_current_dim = 1.0
         for dim in range(kernel_embedding.measure.input_dim):
 
-            def fun(x):
-                return kernel_embedding.kernel.univariate_materns[dim](
-                    points[indx][dim], x
-                )
+            def fun(x, d=dim, ind=indx):
+                return kernel_embedding.kernel.univariate_materns[d](points[ind][d], x)
 
             integral_current_dim *= quad(fun, a[dim], b[dim])[0]
         num_kernel_means[indx] = (
