@@ -13,8 +13,48 @@ from probnum.randprocs.kernels import Matern, ProductMatern
 def _kernel_mean_matern_lebesgue(
     x: np.ndarray, kernel: Union[Matern, ProductMatern], measure: LebesgueMeasure
 ) -> np.ndarray:
-    """Kernel mean of a ProductMatern or 1D Matern kernel w.r.t. its first argument
+    r"""Kernel mean of a ProductMatern or 1D Matern kernel w.r.t. its first argument
     against a Lebesgue measure.
+
+    For a Matern kernel with lengthscale :math:`l` and smoothness :math:`\nu`
+    and the unnormalised Lebesgue measure on :math:`[a, b]` the kernel mean is
+
+    .. math::
+
+        \begin{align}
+            k_P^{\nu=1/2}(x)
+            &=
+            l \bigg[ 2 - \exp\bigg(\frac{a-x}{l}\bigg)
+                        - \exp\bigg(\frac{x-b}{l}\bigg) \bigg]
+            , \\
+            k_P^{\nu=3/2}(x)
+            &=
+            \bigg[ \frac{4 l}{\sqrt{3}} - \frac{1}{3}
+            \exp\bigg( \frac{\sqrt{3}(x-b)}{l} \bigg) \big(3b+2\sqrt{3}\, l-3x\big)
+                -\frac{1}{3} \exp\bigg(\frac{\sqrt{3}(a-x)}{l}\bigg)\big(3x+2\sqrt{3}\,l
+                -3a\big) \bigg]
+            , \\
+            k_P^{\nu=5/2}(x)
+            &=
+            \bigg[ \frac{16 l}{3\sqrt{5}} - \frac{1}{15 l}
+                \exp\bigg( \frac{\sqrt{5}(x-b)}{l} \bigg) \big( 8\sqrt{5}\, l^2
+                    + 25 l(b-x)+5\sqrt{5}(b-x)^2 \big)
+                -\frac{1}{15 l} \exp\bigg( \frac{\sqrt{5}(a-x)}{l} \bigg)
+                \big( 8\sqrt{5}\, l^2 + 25\ell(x-a) + 5\sqrt{5}(a-x)^2 \big) \bigg]
+            , \\
+            k_P^{\nu=7/2}(x)
+            &=
+            \frac{1}{105 l^2} \bigg[ 96\sqrt{7} l^3 -
+                \exp\bigg( \frac{\sqrt{7}(x-b)}{l} \bigg)
+                \big( 48\sqrt{7} l^3-231 l^2(x-b)
+                + 63\sqrt{7} l(x-b)^2 - 49(x-b)^3\big)
+                - \exp\bigg(\frac{\sqrt{7}(a-x)}{l}\bigg)
+                \big( 48\sqrt{7} l^3 + 231 l^2(x-a) + 63\sqrt{7} \, l (x-a)^2
+                + 49(x-a)^3\big) \bigg].
+        \end{align}
+
+    For product Materns kernel means are obtained by taking products of those for
+    1D Materns above.
 
     Parameters
     ----------
@@ -48,8 +88,44 @@ def _kernel_mean_matern_lebesgue(
 def _kernel_variance_matern_lebesgue(
     kernel: Union[Matern, ProductMatern], measure: LebesgueMeasure
 ) -> float:
-    """Kernel variance of a ProductMatern or 1D Matern kernel w.r.t. both arguments
+    r"""Kernel variance of a ProductMatern or 1D Matern kernel w.r.t. both arguments
     against a Lebesgue measure.
+
+    For a Matern kernel with lengthscale :math:`l` and smoothness :math:`\nu`
+    and the unnormalised Lebesgue measure on :math:`[a, b]` the kernel variance is
+
+    .. math::
+
+        \begin{align}
+            k_{PP}^{\nu=1/2}
+            &=
+            2l \bigg[ r + l \bigg( \exp\bigg( -\frac{r}{l} \bigg) - 1 \bigg) \bigg]
+            , \\
+            k_{PP}^{\nu=3/2}
+            &=
+            \frac{2 l}{3} \bigg[ 2\sqrt{3}\,r - 3 l
+                + \exp\bigg( -\frac{\sqrt{3}\,r}{l} \bigg)
+                \big( \sqrt{3}\, r + 3l \big) \bigg]
+            , \\
+            k_{PP}^{\nu=5/2}
+            &=
+            \frac{1}{15} \bigg[ 2l \big( 8\sqrt{5}\, r - 15 l \big)
+                + 2\exp\bigg( -\frac{\sqrt{5}\, r}{l} \bigg)
+                \big( 5a^2 -10ab +5b^2 +7\sqrt{5}\, r l + 15 l^2 \big) \bigg]
+            , \\
+            k_{PP}^{\nu=7/2}
+            &=
+            \frac{1}{105 l} \bigg[ 2\exp\bigg( -\frac{\sqrt{7}\, r}{l} \bigg)
+                \Big( 7\sqrt{7}(b^3-a^3) + 84b^2 l + 57\sqrt{7}\, b l^2
+                + 105 l^3 + 21a^2 \big( \sqrt{7}\, b + 4 l \big)
+                - 3a\big( 7\sqrt{7}\, b^2 + 56b l + 19\sqrt{7}\, l^2 \big) \Big)
+                - 6 l^2\big( 35l - 16\sqrt{7}\, r \big) \bigg],
+        \end{align}
+
+    where :math:`r = b - a`.
+
+    For product Materns kernel variances are obtained by taking products of those for
+    1D Materns above.
 
     Parameters
     ----------
