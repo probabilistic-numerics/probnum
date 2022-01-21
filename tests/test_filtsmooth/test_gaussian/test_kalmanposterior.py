@@ -5,14 +5,14 @@ import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems, randprocs, randvars, utils
 
 
-@pytest.fixture
-def problem(rng):
+@pytest.fixture(name="problem")
+def fixture_problem(rng):
     """Car-tracking problem."""
     return filtsmooth_zoo.car_tracking(rng=rng)
 
 
-@pytest.fixture
-def setup(problem):
+@pytest.fixture(name="setup")
+def fixture_setup(problem):
     """Filter and regression problem."""
     regression_problem, info = problem
     kalman = filtsmooth.gaussian.Kalman(
@@ -22,8 +22,8 @@ def setup(problem):
     return (kalman, regression_problem)
 
 
-@pytest.fixture
-def posterior(setup):
+@pytest.fixture(name="posterior")
+def fixture_posterior(setup):
     """Kalman smoothing posterior."""
     kalman, regression_problem = setup
     posterior, _ = kalman.filtsmooth(regression_problem)
