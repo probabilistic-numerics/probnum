@@ -65,12 +65,9 @@ class NonlinearGaussian(_transition.Transition):
     def forward_realization(
         self, realization, t, compute_gain=False, _diffusion=1.0, **kwargs
     ):
-
-        return (
-            self.transition_fun(t, realization)
-            + _diffusion * self.process_noise_fun(t),
-            {},
-        )
+        fun_eval = self.transition_fun(t, realization)
+        noise = _diffusion * self.process_noise_fun(t)
+        return fun_eval + noise, {}
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
         raise NotImplementedError("Not available")

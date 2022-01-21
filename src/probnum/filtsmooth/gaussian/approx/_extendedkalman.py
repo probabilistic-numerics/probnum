@@ -30,13 +30,18 @@ class EKFComponent(abc.ABC):
         _linearise_at=None,
     ) -> Tuple[randvars.Normal, Dict]:
         """Approximate forward-propagation of a realization of a random variable."""
-        return self._forward_realization_via_forward_rv(
-            realization,
+        compute_jacobian_at = (
+            _linearise_at
+            if _linearise_at is not None
+            else randvars.Constant(realization)
+        )
+        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
+        return self.linearized_model.forward_realization(
+            realization=realization,
             t=t,
             dt=dt,
             compute_gain=compute_gain,
             _diffusion=_diffusion,
-            _linearise_at=_linearise_at,
         )
 
     def forward_rv(
