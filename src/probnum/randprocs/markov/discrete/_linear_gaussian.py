@@ -18,7 +18,7 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
     .. math:: y = G(t) x + v(t), \quad v(t) \sim \mathcal{N}(m(t), C(t))
 
     for some transition matrix function :math:`G(t)`,
-    and process noise function :math:`v(t)`.
+    and Noise function :math:`v(t)`.
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
     transition_matrix_fun
         Transition matrix function :math:`G(t)`.
     noise_fun
-        Process noise function :math:`v(t)`.
+        Noise function :math:`v(t)`.
     forward_implementation
         A string indicating the choice of forward implementation.
     backward_implementation

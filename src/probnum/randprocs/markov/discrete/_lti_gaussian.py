@@ -11,14 +11,14 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
 
     .. math:: y = G x + v, \quad v \sim \mathcal{N}(m, C)
 
-    for some transition matrix :math:`G` and process noise :math:`v`.
+    for some transition matrix :math:`G` and Noise :math:`v`.
 
     Parameters
     ----------
     transition_matrix
         Transition matrix :math:`G`.
     noise
-        Process noise :math:`v`.
+        Noise :math:`v`.
     forward_implementation
         A string indicating the choice of forward implementation.
     backward_implementation

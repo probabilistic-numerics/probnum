@@ -16,7 +16,7 @@ class NonlinearGaussian(_transition.Transition):
     .. math:: y \sim g(t, x) + v(t), \quad v \sim \mathcal{N}(m(t), S(t))
 
     for transition function :math:`g: \mathbb{R}^m \rightarrow \mathbb{R}^n`
-    and process noise :math:`v`.
+    and Noise :math:`v`.
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ class NonlinearGaussian(_transition.Transition):
     transition_fun
         Transition function :math:`g(t, x)`.
     noise_fun
-        Process noise :math:`v(t)`.
+        Noise :math:`v(t)`.
     transition_fun_jacobian
         Jacobian of the transition function :math:`g(t, x)`.
     """
