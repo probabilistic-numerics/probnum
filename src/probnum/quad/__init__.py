@@ -9,6 +9,7 @@ choosing points to evaluate the integrand based on said model.
 from probnum.quad.solvers.policies import Policy, RandomPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
+    ImmediateStop,
     IntegralVarianceTolerance,
     MaxNevals,
     RelativeMeanChange,
@@ -26,7 +27,7 @@ from .kernel_embeddings import (
 from .solvers import (
     BayesianQuadrature,
     BQBeliefUpdate,
-    BQInfo,
+    BQIterInfo,
     BQStandardBeliefUpdate,
     BQState,
 )
@@ -36,6 +37,7 @@ __all__ = [
     "bayesquad",
     "bayesquad_from_data",
     "BayesianQuadrature",
+    "ImmediateStop",
     "IntegrationMeasure",
     "KernelEmbedding",
     "GaussianMeasure",
@@ -49,6 +51,7 @@ __all__ = [
 # Set correct module paths. Corrects links and module paths in documentation.
 BayesianQuadrature.__module__ = "probnum.quad"
 BQStoppingCriterion.__module__ = "probnum.quad"
+ImmediateStop.__module__ = "probnum.quad"
 IntegrationMeasure.__module__ = "probnum.quad"
 KernelEmbedding.__module__ = "probnum.quad"
 GaussianMeasure.__module__ = "probnum.quad"

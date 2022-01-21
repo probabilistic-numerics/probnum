@@ -1,5 +1,6 @@
 """State of a Bayesian quadrature method."""
 
+from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import numpy as np
@@ -9,46 +10,11 @@ from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 
-# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments
-
-
-class BQInfo:
-    """Collect and stores information about the BQ loop.
-
-    Parameters
-    ----------
-    iteration :
-        Iteration of the loop.
-    nevals :
-        Number of evaluations collected.
-    has_converged :
-        True if the BQ loop fulfils a stopping criterion, otherwise False.
-    """
-
-    def __init__(
-        self,
-        iteration: int = 0,
-        nevals: int = 0,
-        has_converged: bool = False,
-    ):
-        self.iteration = iteration
-        self.nevals = nevals
-        self.has_converged = has_converged
-
-    def update_iteration(self, batch_size: int) -> None:
-        """Update the quantities tracking iteration info.
-
-        Parameters
-        ----------
-        batch_size:
-            Number of points added in each iteration.
-        """
-        self.iteration += 1
-        self.nevals += batch_size
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
 
 
 class BQState:
-    """Container for the quantities defining the BQ problem and the BQ loop state.
+    """Container for the quantities defining the BQ problem and the BQ belief.
 
     Parameters
     ----------
@@ -60,12 +26,14 @@ class BQState:
         Normal distribution over the value of the integral.
     info:
         Information about the loop status.
-    batch_size:
-        Size of the batch when acquiring new nodes.
     nodes:
         All locations at which function evaluations are available.
     fun_evals:
         Function evaluations at nodes.
+
+    See Also
+    --------
+    BQIterInfo : Container for quantities concerning the BQ loop interation.
     """
 
     def __init__(
@@ -74,8 +42,6 @@ class BQState:
         kernel: Kernel,
         integral_belief: Optional[Normal] = None,
         previous_integral_beliefs: Tuple[Normal] = (),
-        info: Optional[BQInfo] = None,
-        batch_size: int = 1,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
         gram: np.ndarray = np.array([[]]),
@@ -87,7 +53,6 @@ class BQState:
         self.integral_belief = integral_belief
         self.previous_integral_beliefs = previous_integral_beliefs
         self.input_dim = measure.input_dim
-        self.batch_size = batch_size
 
         if nodes is None:
             self.nodes = np.empty((0, self.input_dim))
@@ -96,9 +61,6 @@ class BQState:
             self.nodes = nodes
             self.fun_evals = fun_evals
 
-        if info is None:
-            info = BQInfo(nevals=self.fun_evals.size)
-        self.info = info
         self.gram = gram
         self.kernel_means = kernel_means
 
@@ -140,10 +102,78 @@ class BQState:
             integral_belief=integral_belief,
             previous_integral_beliefs=prev_state.previous_integral_beliefs
             + (prev_state.integral_belief,),
-            info=prev_state.info,
-            batch_size=prev_state.batch_size,
             nodes=nodes,
             fun_evals=fun_evals,
             gram=gram,
             kernel_means=kernel_means,
+        )
+
+
+@dataclass
+class BQIterInfo:
+    """Container for quantities concerning the BQ loop interation.
+
+    Parameters
+    ----------
+    iteration :
+        Iteration of the loop.
+    nevals :
+        Number of evaluations collected.
+    has_converged :
+        True if the BQ loop fulfils a stopping criterion, otherwise False.
+
+    See Also
+    --------
+    BQState : Container for the quantities defining the BQ problem and the BQ belief.
+    """
+
+    iteration: int = (0,)
+    nevals: int = (0,)
+    has_converged: bool = (False,)
+
+    @classmethod
+    def from_bq_state(cls, bq_state: BQState) -> "BQIterInfo":
+        """Create BQIterInfo container from BQState object.
+
+        Parameters
+        ----------
+        bq_state
+            The initial BQ state.
+
+        Returns
+        -------
+        BQIterInfo
+            An instance of this class.
+        """
+        if bq_state.fun_evals is None:
+            nevals = 0
+        else:
+            nevals = bq_state.fun_evals.size
+
+        return cls(
+            iteration=0,
+            nevals=nevals,
+            has_converged=False,
+        )
+
+    @classmethod
+    def from_iteration(cls, info: "BQIterInfo", dnevals: int) -> "BQIterInfo":
+        """Create BQIterInfo container with updated quantities from iteration.
+
+        Parameters
+        ----------
+        info
+            BQIterInfo from previous iteration.
+        dnevals
+            Number of points added.
+
+        Returns
+        -------
+        BQIterInfo
+            An instance of this class.
+        """
+        return cls(
+            iteration=info.iteration + 1,
+            nevals=info.nevals + dnevals,
+            has_converged=info.has_converged,
         )

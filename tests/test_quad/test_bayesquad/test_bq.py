@@ -5,7 +5,7 @@ import pytest
 from scipy.integrate import quad
 
 from probnum.quad import bayesquad, bayesquad_from_data
-from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
+from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
 from ..util import gauss_hermite_tensor, gauss_legendre_tensor
@@ -56,7 +56,6 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim):
         n_points=n_gh, input_dim=input_dim, mean=measure.mean, cov=measure.cov
     )
     fun_evals = fun(nodes)
-    print(nodes.shape)
     bq_integral, _ = bayesquad_from_data(
         nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
     )

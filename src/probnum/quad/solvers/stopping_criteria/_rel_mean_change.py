@@ -3,7 +3,7 @@ estimators."""
 
 import numpy as np
 
-from probnum.quad.solvers.bq_state import BQState
+from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
 from probnum.typing import FloatLike
 
@@ -29,7 +29,7 @@ class RelativeMeanChange(BQStoppingCriterion):
     def __init__(self, rel_tol: FloatLike):
         self.rel_tol = rel_tol
 
-    def __call__(self, bq_state: BQState) -> bool:
+    def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         integral_belief = bq_state.integral_belief
         return (
             np.abs(

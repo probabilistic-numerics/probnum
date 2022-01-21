@@ -15,6 +15,7 @@ from probnum.randvars import Normal
 class BQBeliefUpdate(abc.ABC):
     """Abstract class for the inference scheme."""
 
+    @abc.abstractmethod
     def __call__(self, *args, **kwargs):
         pass
 
