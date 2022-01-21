@@ -26,7 +26,7 @@ class NonlinearGaussian(_transition.Transition):
         Output dimension.
     transition_fun
         Transition function :math:`g(t, x)`.
-    process_noise_fun
+    noise_fun
         Process noise :math:`v(t)`.
     transition_fun_jacobian
         Jacobian of the transition function :math:`g(t, x)`.
@@ -38,7 +38,7 @@ class NonlinearGaussian(_transition.Transition):
         input_dim: IntLike,
         output_dim: IntLike,
         transition_fun: Callable[[FloatLike, ArrayLike], ArrayLike],
-        process_noise_fun: Callable[[FloatLike], randvars.RandomVariable],
+        noise_fun: Callable[[FloatLike], randvars.RandomVariable],
         transition_fun_jacobian: Optional[
             Callable[[FloatLike, ArrayLike], ArrayLike]
         ] = None,
@@ -46,7 +46,7 @@ class NonlinearGaussian(_transition.Transition):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
         self._transition_fun = transition_fun
         self._transition_fun_jacobian = transition_fun_jacobian
-        self._process_noise_fun = process_noise_fun
+        self._noise_fun = noise_fun
 
     @property
     def transition_fun(self):
@@ -59,14 +59,14 @@ class NonlinearGaussian(_transition.Transition):
         return self._transition_fun_jacobian
 
     @property
-    def process_noise_fun(self):
-        return self._process_noise_fun
+    def noise_fun(self):
+        return self._noise_fun
 
     def forward_realization(
         self, realization, t, compute_gain=False, _diffusion=1.0, **kwargs
     ):
         fun_eval = self.transition_fun(t, realization)
-        noise = _diffusion * self.process_noise_fun(t)
+        noise = _diffusion * self.noise_fun(t)
         return fun_eval + noise, {}
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
@@ -147,5 +147,5 @@ class NonlinearGaussian(_transition.Transition):
             output_dim=output_dim,
             transition_fun=transition_fun,
             transition_fun_jacobian=transition_fun_jacobian,
-            process_noise_fun=lambda t: randvars.Constant(np.zeros(output_dim)),
+            noise_fun=lambda t: randvars.Constant(np.zeros(output_dim)),
         )

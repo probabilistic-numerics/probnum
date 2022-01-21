@@ -20,18 +20,18 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
     ):
 
         self.transition_matrix = spdmat1
-        self.process_noise = randvars.Normal(mean=np.arange(test_ndim), cov=spdmat2)
+        self.noise = randvars.Normal(mean=np.arange(test_ndim), cov=spdmat2)
 
         self.transition = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=self.transition_matrix,
-            process_noise=self.process_noise,
+            noise=self.noise,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
         # Compatibility with superclass' test
         self.transition_matrix_fun = lambda t: self.transition_matrix
-        self.process_noise_fun = lambda t: self.process_noise
+        self.noise_fun = lambda t: self.noise
         self.transition_fun = lambda t, x: self.transition_matrix @ x
         self.transition_fun_jacobian = lambda t, x: self.transition_matrix
 
@@ -42,8 +42,8 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         expected = self.transition_matrix
         np.testing.assert_allclose(received, expected)
 
-    def test_process_noise(self):
-        received = self.transition.process_noise
-        expected = self.process_noise
+    def test_noise(self):
+        received = self.transition.noise
+        expected = self.noise
         np.testing.assert_allclose(received.mean, expected.mean)
         np.testing.assert_allclose(received.cov, expected.cov)

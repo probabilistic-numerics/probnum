@@ -20,7 +20,7 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
     def _setup(self, test_ndim, spdmat1):
 
         self.transition_fun = lambda t, x: np.sin(x)
-        self.process_noise_fun = lambda t: randvars.Normal(
+        self.noise_fun = lambda t: randvars.Normal(
             mean=np.zeros(test_ndim), cov=spdmat1
         )
         self.transition_fun_jacobian = lambda t, x: np.cos(x)
@@ -30,7 +30,7 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
             output_dim=test_ndim,
             transition_fun=self.transition_fun,
             transition_fun_jacobian=self.transition_fun_jacobian,
-            process_noise_fun=self.process_noise_fun,
+            noise_fun=self.noise_fun,
         )
 
     # Test access to system matrices
@@ -40,9 +40,9 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
         expected = self.transition_fun(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
-    def test_process_noise_fun(self):
-        received = self.transition.process_noise_fun(0.0)
-        expected = self.process_noise_fun(0.0)
+    def test_noise_fun(self):
+        received = self.transition.noise_fun(0.0)
+        expected = self.noise_fun(0.0)
         np.testing.assert_allclose(received.mean, expected.mean)
         np.testing.assert_allclose(received.cov, expected.cov)
 

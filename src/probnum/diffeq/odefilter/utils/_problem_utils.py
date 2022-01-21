@@ -114,18 +114,16 @@ def _construct_measurement_models_gaussian_likelihood(
     """Construct measurement models for the IVP with Gaussian likelihoods."""
     diff = ode_measurement_variance * np.eye(ode_information_operator.output_dim)
     diff_cholesky = np.sqrt(diff)
-    process_noise = randvars.Normal(
-        mean=shift_vector, cov=diff, cov_cholesky=diff_cholesky
-    )
+    noise = randvars.Normal(mean=shift_vector, cov=diff, cov_cholesky=diff_cholesky)
 
     measmod_initial_condition = randprocs.markov.discrete.LTIGaussian(
         transition_matrix=transition_matrix,
-        process_noise=process_noise,
+        noise=noise,
     )
     if approx_strategy is not None:
         ode_information_operator = approx_strategy(ode_information_operator)
     measmod_ode = ode_information_operator.as_transition(
-        process_noise_fun=lambda t: process_noise,
+        noise_fun=lambda t: noise,
     )
 
     return measmod_initial_condition, measmod_ode
@@ -136,7 +134,7 @@ def _construct_measurement_models_dirac_likelihood(
 ):
     """Construct measurement models for the IVP with Dirac likelihoods."""
     measmod_initial_condition = randprocs.markov.discrete.LTIGaussian.from_linop(
-        transition_matrix=transition_matrix, process_noise_mean=shift_vector
+        transition_matrix=transition_matrix, noise_mean=shift_vector
     )
     if approx_strategy is not None:
         ode_information_operator = approx_strategy(ode_information_operator)

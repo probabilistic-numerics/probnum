@@ -17,7 +17,7 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
     ----------
     transition_matrix
         Transition matrix :math:`G`.
-    process_noise
+    noise
         Process noise :math:`v`.
     forward_implementation
         A string indicating the choice of forward implementation.
@@ -27,45 +27,45 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
     Raises
     ------
     TypeError
-        If ``transition_matrix`` and ``process_noise`` have incompatible shapes.
+        If ``transition_matrix`` and ``noise`` have incompatible shapes.
     """
 
     def __init__(
         self,
         *,
         transition_matrix: LinearOperatorLike,
-        process_noise: randvars.RandomVariable,
+        noise: randvars.RandomVariable,
         forward_implementation: str = "classic",
         backward_implementation: str = "classic",
     ):
-        _assert_shapes_match(transition_matrix, process_noise)
+        _assert_shapes_match(transition_matrix, noise)
 
         output_dim, input_dim = transition_matrix.shape
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
             transition_matrix_fun=lambda t: transition_matrix,
-            process_noise_fun=lambda t: process_noise,
+            noise_fun=lambda t: noise,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
         self._transition_matrix = transition_matrix
-        self._process_noise = process_noise
+        self._noise = noise
 
     @property
     def transition_matrix(self) -> LinearOperatorLike:
         return self._transition_matrix
 
     @property
-    def process_noise(self) -> randvars.RandomVariable:
-        return self._process_noise
+    def noise(self) -> randvars.RandomVariable:
+        return self._noise
 
     @classmethod
     def from_linop(
         cls,
         transition_matrix: LinearOperatorLike,
-        process_noise_mean: ArrayLike,
+        noise_mean: ArrayLike,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
@@ -77,24 +77,21 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
             raise ValueError
         return cls(
             transition_matrix=transition_matrix,
-            process_noise=randvars.Constant(process_noise_mean),
+            noise=randvars.Constant(noise_mean),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
 
-def _assert_shapes_match(transition_matrix, process_noise):
+def _assert_shapes_match(transition_matrix, noise):
     if transition_matrix.ndim != 2:
         raise TypeError(
             f"transition_matrix.ndim = 2 expected. "
             f"transition_matrix.ndim = {transition_matrix.ndim} received."
         )
-    if process_noise.ndim != 1:
+    if noise.ndim != 1:
         raise TypeError(
-            f"process_noise.ndim = 1 expected. "
-            f"process_noise.ndim = {process_noise.ndim} received."
+            f"noise.ndim = 1 expected. " f"noise.ndim = {noise.ndim} received."
         )
-    if transition_matrix.shape[0] != process_noise.shape[0]:
-        raise TypeError(
-            "Dimension of transition_matrix and process_noise do not align."
-        )
+    if transition_matrix.shape[0] != noise.shape[0]:
+        raise TypeError("Dimension of transition_matrix and noise do not align.")

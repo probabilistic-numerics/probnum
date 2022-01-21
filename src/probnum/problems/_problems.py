@@ -36,9 +36,9 @@ class TimeSeriesRegressionProblem:
     >>> obs = [11.4123, -15.5123]
     >>> loc = [0.1, 0.2]
     >>> transition_matrix = np.eye(1)
-    >>> process_noise = randvars.Normal(mean=np.ones((1,)), cov=np.eye(1))
+    >>> noise = randvars.Normal(mean=np.ones((1,)), cov=np.eye(1))
     >>> model = randprocs.markov.discrete.LTIGaussian(
-    ...     transition_matrix=transition_matrix, process_noise=process_noise
+    ...     transition_matrix=transition_matrix, noise=noise
     ... )
     >>> measurement_models = [model, model]
     >>> rp = TimeSeriesRegressionProblem(

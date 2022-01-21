@@ -116,7 +116,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         zeros_cov = np.zeros((ode_dim, ode_dim))
         measmod_scipy = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=proj_to_y,
-            process_noise=randvars.Normal(
+            noise=randvars.Normal(
                 mean=zeros_shift, cov=zeros_cov, cov_cholesky=zeros_cov
             ),
             forward_implementation="sqrt",
@@ -138,7 +138,7 @@ class RungeKuttaInitialization(_initialization_routine.InitializationRoutine):
         )
         measmod_initcond = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=projmat_initial_conditions,
-            process_noise=randvars.Normal(
+            noise=randvars.Normal(
                 mean=zeros_shift, cov=zeros_cov, cov_cholesky=zeros_cov
             ),
             forward_implementation="sqrt",

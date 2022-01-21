@@ -204,7 +204,7 @@ def _setup_prior_process(F, L, m0, C0, t0, prior_model):
     if prior_model == "discrete":
         prior = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=F,
-            process_noise=randvars.Normal(mean=zero_shift_prior, cov=L),
+            noise=randvars.Normal(mean=zero_shift_prior, cov=L),
         )
     elif prior_model == "continuous":
         prior = randprocs.markov.continuous.LTISDE(
@@ -223,7 +223,7 @@ def _setup_prior_process(F, L, m0, C0, t0, prior_model):
 def _setup_regression_problem(H, R, observations, locations):
     zero_shift_mm = np.zeros(H.shape[0])
     measmod = randprocs.markov.discrete.LTIGaussian(
-        transition_matrix=H, process_noise=randvars.Normal(mean=zero_shift_mm, cov=R)
+        transition_matrix=H, noise=randvars.Normal(mean=zero_shift_mm, cov=R)
     )
     measurement_models = [measmod] * len(locations)
     regression_problem = problems.TimeSeriesRegressionProblem(

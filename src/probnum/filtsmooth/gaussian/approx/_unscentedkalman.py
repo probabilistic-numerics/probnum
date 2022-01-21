@@ -177,7 +177,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
             output_dim=non_linear_model.output_dim,
             transition_fun=non_linear_model.transition_fun,
             transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
-            process_noise_fun=non_linear_model.process_noise_fun,
+            noise_fun=non_linear_model.noise_fun,
         )
 
     def forward_rv(
@@ -189,7 +189,7 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
         proppts = self.ut.propagate(
             t, self.sigma_points, self.non_linear_model.transition_fun
         )
-        meascov = _diffusion * self.non_linear_model.process_noise_fun(t).cov
+        meascov = _diffusion * self.non_linear_model.noise_fun(t).cov
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, self.sigma_points, meascov, rv.mean
         )

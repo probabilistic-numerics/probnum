@@ -108,9 +108,7 @@ def car_tracking(
     measurement_cov = measurement_variance * np.eye(measurement_dim)
     measurement_model = randprocs.markov.discrete.LTIGaussian(
         transition_matrix=measurement_matrix,
-        process_noise=randvars.Normal(
-            mean=np.zeros(measurement_dim), cov=measurement_cov
-        ),
+        noise=randvars.Normal(mean=np.zeros(measurement_dim), cov=measurement_cov),
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -218,9 +216,7 @@ def ornstein_uhlenbeck(
 
     measurement_model = randprocs.markov.discrete.LTIGaussian(
         transition_matrix=np.eye(1),
-        process_noise=randvars.Normal(
-            mean=np.zeros(1), cov=measurement_variance * np.eye(1)
-        ),
+        noise=randvars.Normal(mean=np.zeros(1), cov=measurement_variance * np.eye(1)),
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -347,7 +343,7 @@ def pendulum(
         x1, _ = x
         return np.array([[np.cos(x1), 0.0]])
 
-    process_noise_cov = (
+    noise_cov = (
         np.diag(np.array([step ** 3 / 3, step]))
         + np.diag(np.array([step ** 2 / 2]), 1)
         + np.diag(np.array([step ** 2 / 2]), -1)
@@ -357,9 +353,7 @@ def pendulum(
         input_dim=2,
         output_dim=2,
         transition_fun=f,
-        process_noise_fun=lambda t: randvars.Normal(
-            mean=np.zeros(2), cov=process_noise_cov
-        ),
+        noise_fun=lambda t: randvars.Normal(mean=np.zeros(2), cov=noise_cov),
         transition_fun_jacobian=df,
     )
 
@@ -367,7 +361,7 @@ def pendulum(
         input_dim=2,
         output_dim=1,
         transition_fun=h,
-        process_noise_fun=lambda t: randvars.Normal(
+        noise_fun=lambda t: randvars.Normal(
             mean=np.zeros(1), cov=measurement_variance * np.eye(1)
         ),
         transition_fun_jacobian=dh,
@@ -472,9 +466,7 @@ def benes_daum(
     )
     measurement_model = randprocs.markov.discrete.LTIGaussian(
         transition_matrix=np.eye(1),
-        process_noise=randvars.Normal(
-            mean=np.zeros(1), cov=measurement_variance * np.eye(1)
-        ),
+        noise=randvars.Normal(mean=np.zeros(1), cov=measurement_variance * np.eye(1)),
     )
 
     # Generate data

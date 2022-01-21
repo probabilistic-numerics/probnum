@@ -169,7 +169,7 @@ class LTISDE(_linear_sde.LinearSDE):
             sh = np.zeros(len(ah))
         return discrete.LTIGaussian(
             transition_matrix=ah,
-            process_noise=randvars.Normal(mean=sh, cov=qh),
+            noise=randvars.Normal(mean=sh, cov=qh),
             forward_implementation=self._forward_implementation_string,
             backward_implementation=self._backward_implementation_string,
         )

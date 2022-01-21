@@ -217,7 +217,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
             input_dim=non_linear_model.input_dim,
             output_dim=non_linear_model.output_dim,
             transition_fun=non_linear_model.transition_fun,
-            process_noise_fun=non_linear_model.process_noise_fun,
+            noise_fun=non_linear_model.noise_fun,
             transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
         )
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
@@ -236,8 +236,8 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
         def transition_matrix_fun(t):
             return dg(t, x0)
 
-        def process_noise_fun(t):
-            pnoise = self.non_linear_model.process_noise_fun(t)
+        def noise_fun(t):
+            pnoise = self.non_linear_model.noise_fun(t)
             m = g(t, x0) - dg(t, x0) @ x0
             return m + pnoise
 
@@ -245,7 +245,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             transition_matrix_fun=transition_matrix_fun,
-            process_noise_fun=process_noise_fun,
+            noise_fun=noise_fun,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )

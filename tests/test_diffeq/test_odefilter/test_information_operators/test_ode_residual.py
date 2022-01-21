@@ -44,16 +44,16 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
         transition = self.info_op.as_transition()
         assert isinstance(transition, randprocs.markov.discrete.NonlinearGaussian)
 
-        process_noise_fun = lambda t: randvars.Normal(
+        noise_fun = lambda t: randvars.Normal(
             mean=np.zeros(self.info_op.output_dim), cov=np.eye(self.info_op.output_dim)
         )
         transition = self.info_op.as_transition(
-            process_noise_fun=process_noise_fun,
+            noise_fun=noise_fun,
         )
-        process_noise = transition.process_noise_fun(0.0)
+        noise = transition.noise_fun(0.0)
         assert isinstance(transition, randprocs.markov.discrete.NonlinearGaussian)
-        assert np.linalg.norm(process_noise.cov) > 0.0
-        assert np.linalg.norm(process_noise.cov_cholesky) > 0.0
+        assert np.linalg.norm(noise.cov) > 0.0
+        assert np.linalg.norm(noise.cov_cholesky) > 0.0
 
     def test_incorporate_ode(self, fitzhughnagumo):
         self.info_op.incorporate_ode(ode=fitzhughnagumo)

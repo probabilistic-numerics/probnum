@@ -44,7 +44,7 @@ class ApproximateInformationOperator(
     @abc.abstractmethod
     def as_transition(
         self,
-        process_noise_fun: Optional[randvars.RandomVariable] = None,
+        noise_fun: Optional[randvars.RandomVariable] = None,
     ):
         raise NotImplementedError
 
@@ -66,15 +66,13 @@ class LocallyLinearizedInformationOperator(ApproximateInformationOperator):
 
     def as_transition(
         self,
-        process_noise_fun: Optional[randvars.RandomVariable] = None,
+        noise_fun: Optional[randvars.RandomVariable] = None,
     ):
         """Return an approximate transition.
 
         In this case, an EKF component.
         """
-        transition = self.information_operator.as_transition(
-            process_noise_fun=process_noise_fun
-        )
+        transition = self.information_operator.as_transition(noise_fun=noise_fun)
         return filtsmooth.gaussian.approx.DiscreteEKFComponent(
             non_linear_model=transition,
             forward_implementation=self.forward_implementation,

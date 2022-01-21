@@ -49,9 +49,9 @@ class InformationOperator(abc.ABC):
 
     def as_transition(
         self,
-        process_noise_fun: Optional[randvars.RandomVariable] = None,
+        noise_fun: Optional[randvars.RandomVariable] = None,
     ):
-        if process_noise_fun is None:
+        if noise_fun is None:
             return randprocs.markov.discrete.NonlinearGaussian.from_callable(
                 transition_fun=self.__call__,
                 transition_fun_jacobian=self.jacobian,
@@ -61,7 +61,7 @@ class InformationOperator(abc.ABC):
         return randprocs.markov.discrete.NonlinearGaussian(
             transition_fun=self.__call__,
             transition_fun_jacobian=self.jacobian,
-            process_noise_fun=process_noise_fun,
+            noise_fun=noise_fun,
             input_dim=self.input_dim,
             output_dim=self.output_dim,
         )
@@ -93,8 +93,8 @@ class ODEInformationOperator(InformationOperator):
 
     def as_transition(
         self,
-        process_noise_fun: Optional[randvars.RandomVariable] = None,
+        noise_fun: Optional[randvars.RandomVariable] = None,
     ):
         if not self.ode_has_been_incorporated:
             raise ValueError("An ODE has not been incorporated yet.")
-        return super().as_transition(process_noise_fun=process_noise_fun)
+        return super().as_transition(noise_fun=noise_fun)

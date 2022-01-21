@@ -256,7 +256,7 @@ class TestIntegratedWienerTransitionValues:
     def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):
         discrete_model = self.transition.discretise(dt=dt)
         np.testing.assert_allclose(discrete_model.transition_matrix, ah_22_ibm)
-        np.testing.assert_allclose(discrete_model.process_noise.cov, qh_22_ibm)
+        np.testing.assert_allclose(discrete_model.noise.cov, qh_22_ibm)
 
     def test_forward_rv_values(self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt):
         rv, _ = self.transition.forward_rv(
@@ -302,9 +302,7 @@ class TestIntegratedWienerTransitionValuesLinOps:
             np.testing.assert_allclose(
                 discrete_model.transition_matrix.todense(), ah_22_ibm
             )
-            np.testing.assert_allclose(
-                discrete_model.process_noise.cov.todense(), qh_22_ibm
-            )
+            np.testing.assert_allclose(discrete_model.noise.cov.todense(), qh_22_ibm)
 
     def test_forward_rv_values(self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt):
         with config(matrix_free=True):

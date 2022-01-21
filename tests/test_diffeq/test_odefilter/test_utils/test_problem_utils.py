@@ -86,9 +86,9 @@ def test_ivp_to_regression_problem(
     # If the ODE measurement variance is not None, i.e. not zero,
     # the process noise covariance matrices should be non-zero.
     if ode_measurement_variance > 0.0:
-        process_noise = regprob.measurement_models[1].process_noise_fun(locations[0])
-        assert np.linalg.norm(process_noise.cov > 0.0)
-        assert np.linalg.norm(process_noise.cov_cholesky > 0.0)
+        noise = regprob.measurement_models[1].noise_fun(locations[0])
+        assert np.linalg.norm(noise.cov > 0.0)
+        assert np.linalg.norm(noise.cov_cholesky > 0.0)
 
     # If an approximation strategy is passed, the output should be an EKF component
     # which should suppoert forward_rv().

@@ -38,7 +38,7 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
     ):
 
         self.transition_matrix_fun = lambda t: spdmat1
-        self.process_noise_fun = lambda t: randvars.Normal(
+        self.noise_fun = lambda t: randvars.Normal(
             mean=np.arange(test_ndim), cov=spdmat2
         )
 
@@ -46,7 +46,7 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
             input_dim=test_ndim,
             output_dim=test_ndim,
             transition_matrix_fun=self.transition_matrix_fun,
-            process_noise_fun=self.process_noise_fun,
+            noise_fun=self.noise_fun,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
@@ -61,9 +61,9 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
         expected = self.transition_matrix_fun(0.0)
         np.testing.assert_allclose(received, expected)
 
-    def test_process_noise_fun(self):
-        received = self.transition.process_noise_fun(0.0)
-        expected = self.process_noise_fun(0.0)
+    def test_noise_fun(self):
+        received = self.transition.noise_fun(0.0)
+        expected = self.noise_fun(0.0)
         np.testing.assert_allclose(received.mean, expected.mean)
         np.testing.assert_allclose(received.cov, expected.cov)
 
@@ -260,7 +260,7 @@ class TestLinearGaussianLinOps:
         spdmat2,
     ):
         with config(matrix_free=True):
-            self.process_noise_fun = lambda t: randvars.Normal(
+            self.noise_fun = lambda t: randvars.Normal(
                 mean=np.arange(test_ndim), cov=linops.aslinop(spdmat2)
             )
             self.transition_matrix_fun = lambda t: linops.aslinop(spdmat1)
@@ -269,7 +269,7 @@ class TestLinearGaussianLinOps:
                 input_dim=test_ndim,
                 output_dim=test_ndim,
                 transition_matrix_fun=self.transition_matrix_fun,
-                process_noise_fun=self.process_noise_fun,
+                noise_fun=self.noise_fun,
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
@@ -277,7 +277,7 @@ class TestLinearGaussianLinOps:
                 input_dim=test_ndim,
                 output_dim=test_ndim,
                 transition_matrix_fun=self.transition_matrix_fun,
-                process_noise_fun=self.process_noise_fun,
+                noise_fun=self.noise_fun,
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             )
