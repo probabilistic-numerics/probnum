@@ -207,6 +207,12 @@ class Kronecker(_linear_operator.LinearOperator):
             B=self.B.cholesky(lower),
         )
 
+    def _symmetrize(self) -> Kronecker:
+        return Kronecker(
+            A=self.A.symmetrize(),
+            B=self.B.symmetrize(),
+        )
+
 
 def _kronecker_matmul(
     A: _linear_operator.LinearOperator,
@@ -464,6 +470,12 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             return SymmetricKronecker(A=self.A.cholesky(lower))
 
         return super()._cholesky(lower)
+
+    def _symmetrize(self) -> SymmetricKronecker:
+        if self._identical_factors:
+            return SymmetricKronecker(A=self.A.symmetrize())
+
+        return SymmetricKronecker(A=self.A.symmetrize(), B=self.B.symmetrize())
 
 
 class IdentityKronecker(_linear_operator.LinearOperator):

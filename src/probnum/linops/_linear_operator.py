@@ -168,6 +168,10 @@ class LinearOperator:
 
         self.__cholesky_cache = None
 
+        # Property inference
+        if not self.is_square:
+            self.is_symmetric = False
+
     @property
     def shape(self) -> Tuple[int, int]:
         """Shape of the linear operator.
@@ -622,6 +626,21 @@ class LinearOperator:
             return _InverseLinearOperator(self)
 
         return self.__inverse()
+
+    def symmetrize(self) -> LinearOperator:
+        if not self.is_square:
+            raise np.linalg.LinAlgError("A non-square operator can not be symmetrized.")
+
+        if self.is_symmetric:
+            return self
+
+        linop_sym = self._symmetrize()
+        linop_sym.is_symmetric = True
+
+        return linop_sym
+
+    def _symmetrize(self) -> LinearOperator:
+        return 0.5 * (self + self.T)
 
     ####################################################################################
     # Binary Arithmetic
@@ -1082,6 +1101,9 @@ class Matrix(LinearOperator):
 
     def __neg__(self) -> "Matrix":
         return Matrix(-self.A)
+
+    def _symmetrize(self) -> LinearOperator:
+        return Matrix(0.5 * (self.A + self.A.T))
 
 
 class Identity(LinearOperator):

@@ -1,4 +1,6 @@
 """Fallback-implementations of LinearOperator arithmetic."""
+from __future__ import annotations
+
 import functools
 import operator
 from typing import Tuple, Union
@@ -49,6 +51,12 @@ class ScaledLinearOperator(LinearOperator):
 
     def __repr__(self) -> str:
         return f"{self._scalar} * {self._linop}"
+
+    def _symmetrize(self) -> ScaledLinearOperator:
+        return ScaledLinearOperator(
+            linop=self._linop.symmetrize(),
+            scalar=self._scalar,
+        )
 
 
 class NegatedLinearOperator(ScaledLinearOperator):
@@ -115,6 +123,9 @@ class SumLinearOperator(LinearOperator):
                 expanded_summands.append(summand)
 
         return tuple(expanded_summands)
+
+    def _symmetrize(self) -> SumLinearOperator:
+        return SumLinearOperator(*[summand.symmetrize() for summand in self._summands])
 
 
 def _mul_fallback(
