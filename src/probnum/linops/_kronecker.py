@@ -520,6 +520,9 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             trace=trace,
         )
 
+        if self.B.is_symmetric:
+            self.is_symmetric = True
+
     @property
     def num_blocks(self):
         return self._num_blocks
@@ -561,3 +564,15 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
+
+    def _cholesky(self, lower: bool = True) -> IdentityKronecker:
+        return IdentityKronecker(
+            num_blocks=self.num_blocks,
+            B=self.B.cholesky(lower),
+        )
+
+    def _symmetrize(self) -> IdentityKronecker:
+        return IdentityKronecker(
+            num_blocks=self.num_blocks,
+            B=self.B.symmetrize(),
+        )
