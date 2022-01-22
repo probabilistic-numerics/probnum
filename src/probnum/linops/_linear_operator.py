@@ -929,6 +929,7 @@ class _InverseLinearOperator(LinearOperator):
         self._linop = linop
 
         self.__factorization = None
+        self._cho_solve = False
 
         tmatmul = LinearOperator.broadcast_matmat(self._tmatmat)
 
@@ -949,16 +950,29 @@ class _InverseLinearOperator(LinearOperator):
     @property
     def factorization(self):
         if self.__factorization is None:
-            self.__factorization = scipy.linalg.lu_factor(
-                self._linop.todense(cache=False), overwrite_a=False
-            )
+            try:
+                self.__factorization = (
+                    self._linop.cholesky(lower=True).T.todense(),
+                    False,
+                )
+                self._cho_solve = True
+            except np.linalg.LinAlgError:
+                self.__factorization = scipy.linalg.lu_factor(
+                    self._linop.todense(cache=False), overwrite_a=False
+                )
 
         return self.__factorization
 
     def _matmat(self, x: np.ndarray) -> np.ndarray:
+        if self._cho_solve:
+            return scipy.linalg.cho_solve(self.factorization, x, overwrite_b=False)
+
         return scipy.linalg.lu_solve(self.factorization, x, trans=0, overwrite_b=False)
 
     def _tmatmat(self, x: np.ndarray) -> np.ndarray:
+        if self._cho_solve:
+            return scipy.linalg.cho_solve(self.factorization, x.T, overwrite_b=False)
+
         return scipy.linalg.lu_solve(self.factorization, x, trans=1, overwrite_b=False)
 
 
