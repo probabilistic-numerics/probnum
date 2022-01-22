@@ -140,6 +140,13 @@ class LinearOperator:
         self.__inverse = inverse
 
         # Matrix properties
+        self._is_symmetric = None
+        self._is_lower_triangular = None
+        self._is_upper_triangular = None
+
+        self._is_positive_definite = None
+
+        # Derived quantities
         self.__rank = rank
         self.__eigvals = eigvals
         self.__cond = cond
@@ -295,6 +302,68 @@ class LinearOperator:
             self.__todense_cache = dense
 
         return self.__todense_cache
+
+    ####################################################################################
+    # Matrix Properties
+    ####################################################################################
+
+    @property
+    def is_symmetric(self) -> Optional[bool]:
+        return self._is_symmetric
+
+    @is_symmetric.setter
+    def _(self, value: Optional[bool]) -> None:
+        self._set_property("symmetric", value)
+
+    @property
+    def is_lower_triangular(self) -> Optional[bool]:
+        return self._is_lower_triangular
+
+    @is_lower_triangular.setter
+    def _(self, value: Optional[bool]) -> None:
+        self._set_property("lower_triangular", value)
+
+    @property
+    def is_upper_triangular(self) -> Optional[bool]:
+        return self._is_upper_triangular
+
+    @is_upper_triangular.setter
+    def _(self, value: Optional[bool]) -> None:
+        self._set_property("upper_triangular", value)
+
+    @property
+    def is_positive_definite(self) -> Optional[bool]:
+        return self._is_positive_definite
+
+    @is_positive_definite.setter
+    def _(self, value: Optional[bool]) -> None:
+        self._set_property("positive_definite", value)
+
+    def _set_property(self, name: str, value: Optional[bool]):
+        attr_name = f"_is_{name}"
+
+        try:
+            curr_value = getattr(self, attr_name)
+        except AttributeError as err:
+            raise AttributeError(
+                f"The matrix property `{name}` does not exist."
+            ) from err
+
+        if curr_value == value:
+            return
+
+        if curr_value is not None:
+            assert isinstance(curr_value, bool)
+
+            raise ValueError(f"Can not change the value of the matrix property {name}")
+
+        if not isinstance(value, bool):
+            raise TypeError(
+                f"The value of the matrix property {name} must be a boolean or "
+                f"`None`, not {type(value)}."
+            )
+
+        setattr(self, attr_name, value)
 
     ####################################################################################
     # Derived Quantities
@@ -774,6 +843,16 @@ class TransposedLinearOperator(LinearOperator):
             trace=self._linop.trace,
         )
 
+        # Property Inference
+        self.is_symmetric = self._linop.is_symmetric
+        self.is_positive_definite = self._linop.is_positive_definite
+
+        if self._linop.is_lower_triangular:
+            self._linop.is_upper_triangular = True
+
+        if self._linop.is_upper_triangular:
+            self._linop.is_lower_triangular = True
+
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
     ) -> "LinearOperator":
@@ -1014,6 +1093,13 @@ class Identity(LinearOperator):
                 self.shape[0], dtype=self.dtype
             ),
         )
+
+        # Matrix properties
+        self.is_symmetric = True
+        self.is_lower_triangular = True
+        self.is_upper_triangular = True
+
+        self.is_positive_definite = True
 
     def _cond(self, p: Union[None, int, float, str]) -> np.inexact:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
