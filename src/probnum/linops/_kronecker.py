@@ -1,4 +1,6 @@
 """Operators of Kronecker-type or related."""
+from __future__ import annotations
+
 from typing import Optional, Union
 
 import numpy as np
@@ -141,6 +143,9 @@ class Kronecker(_linear_operator.LinearOperator):
             trace=trace,
         )
 
+        if self.A.is_symmetric and self.B.is_symmetric:
+            self.is_symmetric = True
+
     def _astype(
         self, dtype: DTypeLike, order: str, casting: str, copy: bool
     ) -> "Kronecker":
@@ -195,6 +200,12 @@ class Kronecker(_linear_operator.LinearOperator):
             return Kronecker(A=self.A - other.A, B=other.B)
 
         return NotImplemented
+
+    def _cholesky(self, lower: bool = True) -> Kronecker:
+        return Kronecker(
+            A=self.A.cholesky(lower),
+            B=self.B.cholesky(lower),
+        )
 
 
 def _kronecker_matmul(
@@ -350,6 +361,9 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             ),
         )
 
+        if self.A.is_symmetric and self.B.is_symmetric:
+            self.is_symmetric = True
+
     @property
     def identical_factors(self) -> bool:
         return self._identical_factors
@@ -444,6 +458,12 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
+
+    def _cholesky(self, lower: bool = True) -> _linear_operator.LinearOperator:
+        if self._identical_factors:
+            return SymmetricKronecker(A=self.A.cholesky(lower))
+
+        return super()._cholesky(lower)
 
 
 class IdentityKronecker(_linear_operator.LinearOperator):
