@@ -1,5 +1,7 @@
 """Finite-dimensional linear operators."""
 
+from __future__ import annotations
+
 from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
@@ -163,6 +165,8 @@ class LinearOperator:
         self.__det_cache = None
         self.__logabsdet_cache = None
         self.__trace_cache = None
+
+        self.__cholesky_cache = None
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -516,6 +520,36 @@ class LinearOperator:
         return trace
 
     ####################################################################################
+    # Matrix Decompositions
+    ####################################################################################
+
+    def cholesky(self, lower: bool = True) -> LinearOperator:
+        if self.is_symmetric is None or not self.is_symmetric:
+            raise np.linalg.LinAlgError(
+                "The Cholesky decomposition is only defined for symmetric matrices"
+            )
+
+        if self.__cholesky_cache is None:
+            self.__cholesky_cache = self._cholesky(lower)
+
+            if lower:
+                self.__cholesky_cache.is_lower_triangular = True
+            else:
+                self.__cholesky_cache.is_upper_triangular = True
+
+        if self.__cholesky_cache.is_lower_triangular == lower:
+            return self.__cholesky_cache
+
+        return self.__cholesky_cache.T
+
+    def _cholesky(self, lower: bool = True) -> LinearOperator:
+        return Matrix(
+            scipy.linalg.cholesky(
+                self.todense(), lower=lower, overwrite_a=False, check_finite=True
+            )
+        )
+
+    ####################################################################################
     # Unary Arithmetic
     ####################################################################################
 
@@ -861,6 +895,9 @@ class TransposedLinearOperator(LinearOperator):
     def __repr__(self) -> str:
         return f"Transpose of {self._linop}"
 
+    def _cholesky(self, lower: bool = True) -> LinearOperator:
+        return super().cholesky(lower)
+
 
 class _InverseLinearOperator(LinearOperator):
     def __init__(self, linop: LinearOperator):
@@ -1121,6 +1158,9 @@ class Identity(LinearOperator):
 
     def __eq__(self, other: LinearOperator) -> bool:
         return self._is_type_shape_dtype_equal(other)
+
+    def _cholesky(self, lower: bool = True) -> LinearOperator:
+        return self
 
 
 class Selection(LinearOperator):
