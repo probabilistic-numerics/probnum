@@ -164,6 +164,11 @@ class Scaling(_linear_operator.LinearOperator):
             trace=trace,
         )
 
+        # Matrix properties
+        self.is_symmetric = True
+        self.is_lower_triangular = True
+        self.is_upper_triangular = True
+
     @property
     def factors(self) -> np.ndarray:
         """Scaling factors.
@@ -331,3 +336,10 @@ class Zero(_linear_operator.LinearOperator):
             det=det,
             trace=trace,
         )
+
+        # Matrix properties
+        self.is_symmetric = True
+        self.is_lower_triangular = True
+        self.is_upper_triangular = True
+
+        self.is_positive_definite = False

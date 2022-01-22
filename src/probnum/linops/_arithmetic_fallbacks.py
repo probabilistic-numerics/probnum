@@ -43,6 +43,17 @@ class ScaledLinearOperator(LinearOperator):
             trace=lambda: self._scalar * self._linop.trace(),
         )
 
+        # Matrix properties
+        self.is_symmetric = self._linop.is_symmetric
+        self.is_lower_triangular = self._linop.is_lower_triangular
+        self.is_upper_triangular = self._linop.is_upper_triangular
+
+        if self.is_positive_definite:
+            if self._scalar > 0:
+                self.is_positive_definite = True
+            else:
+                self.is_positive_definite = False
+
     def _inv(self) -> "ScaledLinearOperator":
         if self._scalar == 0:
             raise np.linalg.LinAlgError("The operator is not invertible")
@@ -102,6 +113,19 @@ class SumLinearOperator(LinearOperator):
                 operator.add, (summand.trace() for summand in self._summands)
             ),
         )
+
+        # Matrix properties
+        if all(summand.is_symmetric for summand in self._summands):
+            self.is_symmetric = True
+
+        if all(summand.is_lower_triangular for summand in self._summands):
+            self.is_lower_triangular = True
+
+        if all(summand.is_upper_triangular for summand in self._summands):
+            self.is_upper_triangular = True
+
+        if all(summand.is_positive_definite for summand in self._summands):
+            self.is_positive_definite = True
 
     def __neg__(self):
         return SumLinearOperator(*(-summand for summand in self._summands))
