@@ -944,6 +944,10 @@ class _InverseLinearOperator(LinearOperator):
             logabsdet=lambda: -self._linop.logabsdet(),
         )
 
+        # Matrix properties
+        self.is_symmetric = self._linop.is_symmetric
+        self.is_positive_definite = self._linop.is_positive_definite
+
     def __repr__(self) -> str:
         return f"Inverse of {self._linop}"
 
