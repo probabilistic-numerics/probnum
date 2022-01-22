@@ -544,6 +544,8 @@ class LinearOperator:
             else:
                 self.__cholesky_cache.is_upper_triangular = True
 
+            self.is_positive_definite = True
+
         if self.__cholesky_cache.is_lower_triangular == lower:
             return self.__cholesky_cache
 
