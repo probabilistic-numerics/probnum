@@ -1,4 +1,6 @@
 """Scaling linear operator."""
+from __future__ import annotations
+
 from typing import Optional, Union
 
 import numpy as np
@@ -308,6 +310,20 @@ class Scaling(_linear_operator.LinearOperator):
             )
         else:
             return np.linalg.cond(self.todense(cache=False), p=p)
+
+    def _cholesky(self, lower: bool = True) -> Scaling:
+        if self._scalar is not None:
+            if self._scalar <= 0:
+                raise np.linalg.LinAlgError(
+                    "The linear operator is not positive definite"
+                )
+
+            return Scaling(np.sqrt(self._scalar), shape=self.shape, dtype=self.dtype)
+
+        if np.any(self._factors <= 0):
+            raise np.linalg.LinAlgError("The linear operator is not positive definite")
+
+        return Scaling(np.sqrt(self._factors))
 
 
 class Zero(_linear_operator.LinearOperator):

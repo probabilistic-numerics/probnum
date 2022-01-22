@@ -530,8 +530,11 @@ class LinearOperator:
     def cholesky(self, lower: bool = True) -> LinearOperator:
         if self.is_symmetric is None or not self.is_symmetric:
             raise np.linalg.LinAlgError(
-                "The Cholesky decomposition is only defined for symmetric matrices"
+                "The Cholesky decomposition is only defined for symmetric matrices."
             )
+
+        if self.is_positive_definite is False:
+            raise np.linalg.LinAlgError("The linear operator is not positive definite.")
 
         if self.__cholesky_cache is None:
             self.__cholesky_cache = self._cholesky(lower)
