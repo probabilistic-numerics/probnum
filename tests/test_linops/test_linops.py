@@ -347,3 +347,20 @@ def test_inv(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     else:
         with pytest.raises(np.linalg.LinAlgError):
             linop.inv()
+
+
+@pytest_cases.parametrize_with_cases(
+    "linop,matrix",
+    cases=case_modules,
+    has_tag=(
+        "symmetric",
+        "positive-definite",
+    ),
+)
+def test_cholesky(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    L = linop.cholesky(lower=True)
+
+    np.testing.assert_allclose(
+        (L @ L.T).todense(),
+        matrix,
+    )
