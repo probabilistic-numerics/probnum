@@ -354,8 +354,9 @@ class Zero(_linear_operator.LinearOperator):
         )
 
         # Matrix properties
-        self.is_symmetric = True
-        self.is_lower_triangular = True
-        self.is_upper_triangular = True
+        if self.is_square:
+            self.is_symmetric = True
+            self.is_lower_triangular = True
+            self.is_upper_triangular = True
 
-        self.is_positive_definite = False
+            self.is_positive_definite = False
