@@ -318,7 +318,7 @@ class Scaling(_linear_operator.LinearOperator):
                     "The linear operator is not positive definite"
                 )
 
-            return Scaling(np.sqrt(self._scalar), shape=self.shape, dtype=self.dtype)
+            return Scaling(np.sqrt(self._scalar), shape=self.shape)
 
         if np.any(self._factors <= 0):
             raise np.linalg.LinAlgError("The linear operator is not positive definite")
