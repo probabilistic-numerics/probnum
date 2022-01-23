@@ -11,8 +11,7 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 spd_matrices = (
     pn.linops.Identity(shape=(1, 1)),
     np.array([[1.0, -2.0], [-2.0, 5.0]]),
-    random_spd_matrix(np.random.default_rng(597), dim=10),
-    random_spd_matrix(np.random.default_rng(597), dim=13),
+    random_spd_matrix(np.random.default_rng(597), dim=9),
 )
 
 

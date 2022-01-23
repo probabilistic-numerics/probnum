@@ -72,7 +72,7 @@ def case_positive_isotropic_scaling(
 )
 @pytest_cases.parametrize("n", [3, 4, 8, 12, 15])
 def case_singular_isotropic_scaling(n: int):
-    return pn.linops.Scaling(0.0, shape=n), np.zeros((n,), dtype=np.double)
+    return pn.linops.Scaling(0.0, shape=n), np.zeros((n, n), dtype=np.double)
 
 
 @pytest_cases.case(tags=["square", "symmetric", "negative-definite"])
