@@ -6,7 +6,7 @@ import pytest_cases
 import probnum as pn
 
 
-@pytest_cases.case(tags=["symmetric", "indefinite"])
+@pytest_cases.case(tags=["square", "symmetric", "indefinite"])
 @pytest_cases.parametrize(
     "diagonal",
     [
@@ -19,7 +19,7 @@ def case_anisotropic_scaling(
     return pn.linops.Scaling(diagonal), np.diag(diagonal)
 
 
-@pytest_cases.case(tags=["symmetric", "positive-definite"])
+@pytest_cases.case(tags=["square", "symmetric", "positive-definite"])
 @pytest_cases.parametrize(
     "diagonal",
     [
@@ -32,7 +32,7 @@ def case_positive_anisotropic_scaling(
     return pn.linops.Scaling(diagonal), np.diag(diagonal)
 
 
-@pytest_cases.case(tags=["symmetric", "singular", "indefinite"])
+@pytest_cases.case(tags=["square", "symmetric", "singular", "indefinite"])
 @pytest_cases.parametrize(
     "diagonal",
     [
@@ -45,7 +45,7 @@ def case_singular_anisotropic_scaling(
     return pn.linops.Scaling(diagonal), np.diag(diagonal)
 
 
-@pytest_cases.case(tags=["symmetric", "positive-definite"])
+@pytest_cases.case(tags=["square", "symmetric", "positive-definite"])
 @pytest_cases.parametrize("n", [3, 4, 8, 12, 15])
 @pytest_cases.parametrize(
     "scalar",
@@ -63,6 +63,7 @@ def case_positive_isotropic_scaling(
 
 @pytest_cases.case(
     tags=[
+        "square",
         "symmetric",
         "singular",
         "positive-semidefinite",
@@ -74,7 +75,7 @@ def case_singular_isotropic_scaling(n: int):
     return pn.linops.Scaling(0.0, shape=n), np.zeros((n,), dtype=np.double)
 
 
-@pytest_cases.case(tags=["symmetric", "negative-definite"])
+@pytest_cases.case(tags=["square", "symmetric", "negative-definite"])
 @pytest_cases.parametrize("n", [3, 4, 8, 12, 15])
 @pytest_cases.parametrize(
     "scalar",
