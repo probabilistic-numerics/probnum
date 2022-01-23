@@ -320,7 +320,7 @@ class LinearOperator:
         return self._is_symmetric
 
     @is_symmetric.setter
-    def _(self, value: Optional[bool]) -> None:
+    def is_symmetric(self, value: Optional[bool]) -> None:
         self._set_property("symmetric", value)
 
     @property
@@ -328,7 +328,7 @@ class LinearOperator:
         return self._is_lower_triangular
 
     @is_lower_triangular.setter
-    def _(self, value: Optional[bool]) -> None:
+    def is_lower_triangular(self, value: Optional[bool]) -> None:
         self._set_property("lower_triangular", value)
 
     @property
@@ -336,7 +336,7 @@ class LinearOperator:
         return self._is_upper_triangular
 
     @is_upper_triangular.setter
-    def _(self, value: Optional[bool]) -> None:
+    def is_upper_triangular(self, value: Optional[bool]) -> None:
         self._set_property("upper_triangular", value)
 
     @property
@@ -344,7 +344,7 @@ class LinearOperator:
         return self._is_positive_definite
 
     @is_positive_definite.setter
-    def _(self, value: Optional[bool]) -> None:
+    def is_positive_definite(self, value: Optional[bool]) -> None:
         self._set_property("positive_definite", value)
 
     def _set_property(self, name: str, value: Optional[bool]):
