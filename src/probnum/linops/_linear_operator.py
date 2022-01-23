@@ -970,16 +970,20 @@ class _InverseLinearOperator(LinearOperator):
         return self.__factorization
 
     def _matmat(self, x: np.ndarray) -> np.ndarray:
-        if self._cho_solve:
-            return scipy.linalg.cho_solve(self.factorization, x, overwrite_b=False)
+        factorization = self.factorization  # Precompute, so that _cho_solve will be set
 
-        return scipy.linalg.lu_solve(self.factorization, x, trans=0, overwrite_b=False)
+        if self._cho_solve:
+            return scipy.linalg.cho_solve(factorization, x, overwrite_b=False)
+
+        return scipy.linalg.lu_solve(factorization, x, trans=0, overwrite_b=False)
 
     def _tmatmat(self, x: np.ndarray) -> np.ndarray:
-        if self._cho_solve:
-            return scipy.linalg.cho_solve(self.factorization, x.T, overwrite_b=False)
+        factorization = self.factorization  # Precompute, so that _cho_solve will be set
 
-        return scipy.linalg.lu_solve(self.factorization, x, trans=1, overwrite_b=False)
+        if self._cho_solve:
+            return scipy.linalg.cho_solve(factorization, x.T, overwrite_b=False)
+
+        return scipy.linalg.lu_solve(factorization, x, trans=1, overwrite_b=False)
 
 
 class _TypeCastLinearOperator(LinearOperator):
