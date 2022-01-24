@@ -711,6 +711,36 @@ class LinearOperator:
         return self.__inverse()
 
     def symmetrize(self) -> LinearOperator:
+        """Compute or approximate the closest symmetric :class:`LinearOperator` in the
+        Frobenius norm.
+
+        The closest symmetric matrix to a given square matrix :math:`A` in the Frobenius
+        norm is given by
+
+        .. math::
+            A_s = \\frac{1}{2} (A + A^T).
+
+        However, for efficiency reasons, it is preferrable to approximate this operator
+        in some cases. For example, a Kronecker product :math:`K = A \\ocross B` is more
+        efficiently symmetrized by means of
+
+        .. math::
+            A_s \\ocross B_s
+            = K_s + \\frac{1}{2} \\left( A \\ocross B^T + A^T \\ocross B \\right).
+
+        Returns
+        -------
+        symmetrized_linop :
+            The closest symmetric :class:`LinearOperator` in the Frobenius norm, or an
+            approximation, which makes a reasonable trade-off between accuracy and
+            efficiency (see above). The resulting :class:`LinearOperator` will have its
+            :attr:`is_symmetric` property set to :obj:`True`.
+
+        Raises
+        ------
+        numpy.linalg.LinAlgError
+            If this method is called on a non-square :class:`LinearOperator`.
+        """
         if not self.is_square:
             raise np.linalg.LinAlgError("A non-square operator can not be symmetrized.")
 
