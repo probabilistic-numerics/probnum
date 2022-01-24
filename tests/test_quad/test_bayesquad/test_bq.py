@@ -146,7 +146,7 @@ def test_no_domain_or_measure_raises_error(input_dim):
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
 def test_domain_ignored_if_lebesgue(input_dim, measure):
     domain = (0, 1)
-    fun = lambda x: np.reshape(x, (x.shape[0], ))
+    fun = lambda x: np.reshape(x, (x.shape[0],))
 
     # standard BQ
     bq_integral, _ = bayesquad(

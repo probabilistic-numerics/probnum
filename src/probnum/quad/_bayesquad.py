@@ -117,7 +117,7 @@ def bayesquad(
     >>> input_dim = 1
     >>> domain = (0, 1)
     >>> def f(x):
-    ...     return x
+    ...     return x.reshape(-1, )
     >>> F, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
     >>> print(F.mean)
     0.5
@@ -204,10 +204,10 @@ def bayesquad_from_data(
     >>> import numpy as np
     >>> domain = (0, 1)
     >>> nodes = np.linspace(0, 1, 15)[:, None]
-    >>> fun_evals = 3*nodes**2
+    >>> fun_evals = nodes.reshape(-1, )
     >>> F, info = bayesquad_from_data(nodes=nodes, fun_evals=fun_evals, domain=domain)
     >>> print(F.mean)
-    1.0001
+    0.5
     """
 
     # Check input argument compatibility
