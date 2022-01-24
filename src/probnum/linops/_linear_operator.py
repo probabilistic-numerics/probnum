@@ -557,7 +557,7 @@ class LinearOperator:
 
         The Cholesky decomposition of a symmetric positive-definite matrix :math:`A \in
         \mathbb{R}^{n \times n}` is given by :math:`A = L L^T`, where the unique
-        Cholesky factor `L \in \mathbb{R}^{n \times n}` of :math:`A` is a lower
+        Cholesky factor :math:`L \in \mathbb{R}^{n \times n}` of :math:`A` is a lower
         triangular matrix with a positive diagonal.
 
         As a side-effect, this method will set the value of :attr:`is_positive_definite`
@@ -717,17 +717,23 @@ class LinearOperator:
         norm is given by
 
         .. math::
-            sym(A) = \\frac{1}{2} (A + A^T).
+            \\operatorname{sym}(A) := \\frac{1}{2} (A + A^T).
 
         However, for efficiency reasons, it is preferrable to approximate this operator
-        in some cases. For example, a Kronecker product :math:`K = A \\ocross B` is more
+        in some cases. For example, a Kronecker product :math:`K = A \\otimes B` is more
         efficiently symmetrized by means of
 
         .. math::
-            sym(A) \\ocross sym(B)
-            = sym(K) + \\frac{1}{2} \\left(
-                sym(K) - \frac{1}{2} \\left( A \\ocross B^T + A^T \\ocross B \\right)
-            \\right).
+            :nowrap:
+
+            \\begin{equation}
+                \\operatorname{sym}(A) \\otimes \\operatorname{sym}(B)
+                = \\operatorname{sym}(K) + \\frac{1}{2} \\left(
+                    \\frac{1}{2} \\left(
+                        A \\otimes B^T + A^T \\otimes B
+                    \\right) - \\operatorname{sym}(K)
+                \\right).
+            \\end{equation}
 
         Returns
         -------
