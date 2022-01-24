@@ -7,6 +7,7 @@ from typing import Callable, Optional, Tuple, Union
 import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
+from pytest import raises
 
 import probnum.utils
 from probnum import config
@@ -553,7 +554,45 @@ class LinearOperator:
     ####################################################################################
 
     def cholesky(self, lower: bool = True) -> LinearOperator:
-        if self.is_symmetric is None or not self.is_symmetric:
+        r"""Computes a Cholesky decomposition of the :class:`LinearOperator`.
+
+        The Cholesky decomposition of a symmetric positive-definite matrix :math:`A \in
+        \mathbb{R}^{n \times n}` is given by :math:`A = L L^T`, where the unique
+        Cholesky factor `L \in \mathbb{R}^{n \times n}` of :math:`A` is a lower
+        triangular matrix with a positive diagonal.
+
+        As a side-effect, this method will set the value of :attr:`is_positive_definite`
+        to :obj:`True`, if the computation of the Cholesky factorization succeeds.
+        Otherwise, :attr:`is_positive_definite` will be set to :obj:`False`.
+
+        The result of this computation will be cached. If :meth:`cholesky` is first
+        called with ``lower=True`` first and afterwards with ``lower=False`` or
+        vice-versa, the method simply returns the transpose of the cached value.
+
+        Parameters
+        ----------
+        lower :
+            If this is set to :obj:`False`, this method computes and returns the
+            upper triangular Cholesky factor :math:`U = L^T`, for which :math:`A = U^T
+            U`. By default (:obj:`True`), the method computes the lower triangular
+            Cholesky factor :math:`L`.
+
+        Returns
+        -------
+        cholesky_factor :
+            The lower or upper Cholesky factor of the :class:`LinearOperator`, depending
+            on the value of the parameter ``lower``. The result will have its properties
+            :attr:`is_upper_triangular`\ /:attr:`is_lower_triangular` set accordingly.
+
+        Raises
+        ------
+        numpy.linalg.LinAlgError
+            If the :class:`LinearOperator` is not symmetric, i.e. if
+            :attr:`is_symmetric` is not set to :obj:`True`.
+        numpy.linalg.LinAlgError
+            If the :class:`LinearOperator` is not positive definite.
+        """
+        if not self.is_symmetric:
             raise np.linalg.LinAlgError(
                 "The Cholesky decomposition is only defined for symmetric matrices."
             )
@@ -562,14 +601,19 @@ class LinearOperator:
             raise np.linalg.LinAlgError("The linear operator is not positive definite.")
 
         if self.__cholesky_cache is None:
-            self.__cholesky_cache = self._cholesky(lower)
+            try:
+                self.__cholesky_cache = self._cholesky(lower)
+
+                self.is_positive_definite = True
+            except np.linalg.LinAlgError as err:
+                self.is_positive_definite = False
+
+                raise err
 
             if lower:
                 self.__cholesky_cache.is_lower_triangular = True
             else:
                 self.__cholesky_cache.is_upper_triangular = True
-
-            self.is_positive_definite = True
 
         upper = not lower
 
