@@ -201,14 +201,15 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return NotImplemented
 
-    def _cholesky(self, lower: bool = True) -> _linear_operator.LinearOperator:
-        if self.A.is_symmetric and self.B.is_symmetric:
-            return Kronecker(
-                A=self.A.cholesky(lower),
-                B=self.B.cholesky(lower),
-            )
+    def _cholesky(self, lower: bool = True) -> Kronecker:
+        # A Kronecker product is symmetric iff its factors are symmetric, since
+        # (A (x) B)^T = A^T (x) B^T
+        assert self.A.is_symmetric and self.B.is_symmetric
 
-        return super()._cholesky(lower)
+        return Kronecker(
+            A=self.A.cholesky(lower),
+            B=self.B.cholesky(lower),
+        )
 
     def _symmetrize(self) -> _linear_operator.LinearOperator:
         if self.A.is_square and self.B.is_square:
