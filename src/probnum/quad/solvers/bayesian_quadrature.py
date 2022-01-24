@@ -1,7 +1,7 @@
 """Probabilistic numerical methods for solving integrals."""
 
 import warnings
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -18,13 +18,14 @@ from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
+from .._quad_typing import DomainLike
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQIterInfo, BQState
 
 
 class BayesianQuadrature:
-    r"""A base class for Bayesian quadrature.
+    r"""The Bayesian quadrature method.
 
     Bayesian quadrature solves integrals of the form
 
@@ -32,23 +33,31 @@ class BayesianQuadrature:
 
     Parameters
     ----------
-    kernel :
+    kernel
         The kernel used for the GP model.
-    measure :
+    measure
         The integration measure.
-    policy :
+    policy
         The policy choosing nodes at which to evaluate the integrand.
-    belief_update :
+    belief_update
         The inference method.
-    stopping_criterion :
+    stopping_criterion
         The criterion that determines convergence.
+
+    See Also
+    --------
+    bayesquad : Computes the integral using an acquisition policy.
+    bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
+                          nodes and function evaluations.
+
+
     """
 
     def __init__(
         self,
         kernel: Kernel,
         measure: IntegrationMeasure,
-        policy: Policy,
+        policy: Optional[Policy],
         belief_update: BQBeliefUpdate,
         stopping_criterion: BQStoppingCriterion,
     ) -> None:
@@ -64,9 +73,7 @@ class BayesianQuadrature:
         input_dim: int,
         kernel: Optional[Kernel] = None,
         measure: Optional[IntegrationMeasure] = None,
-        domain: Optional[
-            Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
-        ] = None,
+        domain: Optional[DomainLike] = None,
         policy: Optional[str] = "bmc",
         max_evals: Optional[IntLike] = None,
         var_tol: Optional[FloatLike] = None,
@@ -75,29 +82,30 @@ class BayesianQuadrature:
         rng: np.random.Generator = None,
     ) -> "BayesianQuadrature":
 
-        r"""Creates a ``Bayesian_Quadrature`` object from problem description.
+        r"""Creates an instance of this class from a problem description.
 
         Parameters
         ----------
-        input_dim :
-            Input dimension.
-        kernel :
-            The kernel used for the GP model.
-        measure :
-            The integration measure.
-        domain :
-            The integration bounds.
-        policy :
+        input_dim
+            The input dimension.
+        kernel
+            The kernel used for the GP model. Defaults to the ``ExpQuad`` kernel.
+        measure
+            The integration measure. Defaults to the Lebesgue measure on the ``domain``.
+        domain
+            The integration bounds. Obsolete of ``measure`` is given.
+        policy
             The policy choosing nodes at which to evaluate the integrand.
-        max_evals :
+            Choose ``None`` if you want to integrate from a fixed dataset.
+        max_evals
             Maximum number of evaluations as stopping criterion.
-        var_tol :
+        var_tol
             Variance tolerance as stopping criterion.
-        rel_tol :
+        rel_tol
             Relative tolerance as stopping criterion.
-        batch_size :
+        batch_size
             Batch size used in node acquisition.
-        rng :
+        rng
             The random number generator.
 
         Returns
@@ -108,12 +116,20 @@ class BayesianQuadrature:
         Raises
         ------
         ValueError
+            If neither a ``domain`` nor a ``measure`` are given.
+        ValueError
             If Bayesian Monte Carlo ('bmc') is selected as ``policy`` and no random
             number generator (``rng``) is given.
         NotImplementedError
             If an unknown ``policy`` is given.
         """
+        domain, input_dim = IntegrationMeasure.as_domain(domain, input_dim)
+
         # Set up integration measure
+        if domain is None and measure is None:
+            raise ValueError(
+                "You need to either specify an integration domain or a measure."
+            )
         if measure is None:
             measure = LebesgueMeasure(domain=domain, input_dim=input_dim)
 
@@ -121,20 +137,19 @@ class BayesianQuadrature:
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
 
-        # Select policy.
-        # If policy is not given (None), then the ``integrate'' method will raise an
-        # exception if no nodes and function values or a callable are provided there.
+        # Select policy
         if policy is None:
+            # If policy is None, this implies that the integration problem is defined
+            # through a fixed set of nodes and function evaluations which will not
+            # require an acquisition loop. The error handling is done in ``integrate``.
             pass
         elif policy == "bmc":
-
             if rng is None:
                 errormsg = (
                     "Policy 'bmc' relies on random sampling, "
                     "thus requires a random number generator ('rng')."
                 )
                 raise ValueError(errormsg)
-
             policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
 
         else:
@@ -145,8 +160,8 @@ class BayesianQuadrature:
         # Select the belief updater
         belief_update = BQStandardBeliefUpdate()
 
-        # Set stopping criteria: If multiple stopping criteria are given, BQ stops
-        # once the first criterion is fulfilled.
+        # Select stopping criterion: If multiple stopping criteria are given, BQ stops
+        # once the first criterion is fulfilled (logical `or`).
         def _stopcrit_or(sc1, sc2):
             if sc1 is None:
                 return sc2
@@ -167,14 +182,13 @@ class BayesianQuadrature:
                 _stopping_criterion, RelativeMeanChange(rel_tol)
             )
 
-        # If no stopping criteria are given, use some default values
-        # (these are arbitrary values)
+        # If no stopping criteria are given, use some default values.
         if _stopping_criterion is None:
             _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
-                max_nevals=input_dim * 25
+                max_nevals=input_dim * 25  # 25 is an arbitrary value
             )
 
-        # If no policy is given, then loop need to be terminated immediately.
+        # If no policy is given, then the iteration must terminate immediately.
         if policy is None:
             _stopping_criterion = ImmediateStop()
 
@@ -254,21 +268,22 @@ class BayesianQuadrature:
         nodes: Optional[np.ndarray],
         fun_evals: Optional[np.ndarray],
     ) -> Tuple[Normal, BQState, BQIterInfo]:
-        """Integrate the function ``fun``.
+        """Integrates the function ``fun``.
 
         ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at
         fixed nodes. This function calls the generator ``bq_iterator`` until the first
-        stopping criterion is met.
+        stopping criterion is met. It immediately stops after processing the initial
+        ``nodes`` if ``policy`` is not available.
 
         Parameters
         ----------
-        fun :
+        fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-        nodes :
+        nodes
             *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
             are available as ``fun_evals`` from start.
-        fun_evals :
+        fun_evals
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
 
@@ -285,9 +300,9 @@ class BayesianQuadrature:
             If neither the integrand function (``fun``) nor integrand evaluations
             (``fun_evals``) are given.
         ValueError
-            If nodes are not given when no policy is present.
+            If ``nodes`` are not given and no policy is present.
         ValueError
-            If dimension of ``nodes'' or ``fun_evals'' is incorrect, or if their
+            If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
         """
         # no policy given: Integrate on fixed dataset.

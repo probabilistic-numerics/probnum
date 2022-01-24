@@ -9,6 +9,8 @@ import scipy.stats
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
+from ._quad_typing import DomainLike, _DomainType
+
 
 class IntegrationMeasure(abc.ABC):
     """An abstract class for a measure against which a target function is integrated.
@@ -21,17 +23,17 @@ class IntegrationMeasure(abc.ABC):
     input_dim :
         Dimension of the integration domain.
     domain :
-        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
-         a scalar or ``np.ndarray``.
+        Domain of integration. Contains lower and upper bound as a scalar or
+        ``np.ndarray``. ``None`` if bounds are infinite.
     """
 
     def __init__(
         self,
-        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
-        input_dim: IntLike,
+        domain: Optional[DomainLike],
+        input_dim: Optional[IntLike],
     ) -> None:
 
-        self._set_dimension_domain(input_dim, domain)
+        self.domain, self.input_dim = self.as_domain(domain, input_dim)
 
     def __call__(self, points: Union[FloatLike, np.ndarray]) -> np.ndarray:
         """Evaluate the density function of the integration measure.
@@ -74,12 +76,13 @@ class IntegrationMeasure(abc.ABC):
             newshape=(n_sample, self.input_dim),
         )
 
-    def _set_dimension_domain(
-        self,
-        input_dim: IntLike,
-        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
-    ) -> None:
-        """Sets the integration domain and input_dimension.
+    @staticmethod
+    def as_domain(
+        domain: Optional[DomainLike],
+        input_dim: Optional[IntLike],
+    ) -> Tuple[Optional[_DomainType], Optional[int]]:
+        """Static method that converts the integration domain and input dimension to
+        the correct types.
 
         If no ``input_dim`` is given, the dimension is inferred from the lengths of
         domain limits ``domain[0]`` and ``domain[1]``. These must be either scalars
@@ -88,35 +91,47 @@ class IntegrationMeasure(abc.ABC):
         If ``input_dim`` is given, the domain limits must be either scalars or arrays.
         If they are arrays, their lengths must equal ``input_dim``. If they are scalars,
         the domain is taken to be the hypercube
-
-             [domain[0], domain[1]] x .... x [domain[0], domain[1]]
-
+        ``[domain[0], domain[1]] x .... x [domain[0], domain[1]]``
         of dimension ``input_dim``.
         """
-        # Domain limits must have equal dimensions and input dimension must be positive
-        if np.size(domain[0]) != np.size(domain[1]):
-            raise ValueError(
-                f"Domain limits must be given either as scalars or arrays "
-                f"of equal dimension. Current sizes are ({np.size(domain[0])}) "
-                f"and ({np.size(domain[1])})."
-            )
         if input_dim is not None and input_dim < 1:
             raise ValueError(
                 f"If given, input dimension must be positive. Current value "
                 f"is ({input_dim})."
             )
 
-        domain_dim = np.size(domain[0])
+        # Neither domain, nor input dimension is given: do nothing
+        if domain is None and input_dim is None:
+            return domain, input_dim
 
-        # If no input dimension has been given, infer this from the domain. Else,
-        # if necessary, expand domain limits if they are scalars
+        # Only input dimension is given: convert input dimension only
+        if domain is None:
+            return domain, int(input_dim)
+
+        # Domain is given
+        # Domain limits must have equal dimensions
+        if np.size(domain[0]) != np.size(domain[1]):
+            raise ValueError(
+                f"Domain limits must be given either as scalars or arrays "
+                f"of equal dimension. Current sizes are ({np.size(domain[0])}) "
+                f"and ({np.size(domain[1])})."
+            )
+
+        domain_dim = int(np.size(domain[0]))
+
+        # If no input dimension has been given, infer it from the domain.
         if input_dim is None:
             input_dim = domain_dim
             (domain_a, domain_b) = domain
+
+        # Bounds are given as scalars: Expand domain limits.
         elif input_dim is not None and domain_dim == 1:
             domain_a = np.full((input_dim,), domain[0])
             domain_b = np.full((input_dim,), domain[1])
+
+        # Bounds are given as arrays
         else:
+            # Size of domain and input dimension do not match
             if input_dim != domain_dim:
                 raise ValueError(
                     "If domain limits are not scalars, their lengths "
@@ -127,10 +142,14 @@ class IntegrationMeasure(abc.ABC):
 
         # Make sure the domain is non-empty
         if not np.all(domain_a < domain_b):
-            raise ValueError("Integration domain must be non-empty.")
+            raise ValueError(
+                "Integration domain must be non-empty. For example, some "
+                "lower bounds may be larger than their corresponding "
+                "upper bounds."
+            )
 
-        self.input_dim = input_dim
-        self.domain = (domain_a, domain_b)
+        domain = (domain_a, domain_b)
+        return domain, input_dim
 
 
 class LebesgueMeasure(IntegrationMeasure):
@@ -139,8 +158,8 @@ class LebesgueMeasure(IntegrationMeasure):
     Parameters
     ----------
     domain :
-        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
-         scalars or ``np.ndarray``.
+        Domain of integration. Contains lower and upper bound as a scalar or
+        ``np.ndarray``.
     input_dim :
         Dimension of the integration domain. If not given, inferred from ``domain``.
     normalized :
@@ -150,7 +169,7 @@ class LebesgueMeasure(IntegrationMeasure):
 
     def __init__(
         self,
-        domain: Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]],
+        domain: DomainLike,
         input_dim: Optional[IntLike] = None,
         normalized: Optional[bool] = False,
     ) -> None:
@@ -230,10 +249,7 @@ class GaussianMeasure(IntegrationMeasure):
         else:
             input_dim = mean.size
 
-        super().__init__(
-            input_dim=input_dim,
-            domain=(np.full((input_dim,), -np.Inf), np.full((input_dim,), np.Inf)),
-        )
+        super().__init__(input_dim=input_dim, domain=None)
 
         # Exploit random variables to carry out mean and covariance checks
         # squeezes are needed due to the way random variables are currently implemented

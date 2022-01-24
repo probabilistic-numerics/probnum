@@ -22,7 +22,7 @@ class BQState:
         The integration measure.
     kernel
         The kernel used for BQ.
-    integral_belief :
+    integral_belief
         Normal distribution over the value of the integral.
     nodes
         All locations at which function evaluations are available.
@@ -147,11 +147,7 @@ class BQIterInfo:
         if bq_state.fun_evals is not None:
             nevals = bq_state.fun_evals.size
 
-        return cls(
-            iteration=0,
-            nevals=nevals,
-            has_converged=False
-        )
+        return cls(iteration=0, nevals=nevals, has_converged=False)
 
     @classmethod
     def from_iteration(cls, info: "BQIterInfo", dnevals: int) -> "BQIterInfo":
@@ -172,11 +168,13 @@ class BQIterInfo:
         return cls(
             iteration=info.iteration + 1,
             nevals=info.nevals + dnevals,
-            has_converged=info.has_converged
+            has_converged=info.has_converged,
         )
 
     @classmethod
-    def from_stopping_decision(cls, info: "BQIterInfo", has_converged: bool) -> "BQIterInfo":
+    def from_stopping_decision(
+        cls, info: "BQIterInfo", has_converged: bool
+    ) -> "BQIterInfo":
         """Create BQIterInfo container with updated quantities from stopping decision.
 
         Parameters
@@ -192,7 +190,5 @@ class BQIterInfo:
             An instance of this class.
         """
         return cls(
-            iteration=info.iteration,
-            nevals=info.nevals,
-            has_converged=has_converged
+            iteration=info.iteration, nevals=info.nevals, has_converged=has_converged
         )
