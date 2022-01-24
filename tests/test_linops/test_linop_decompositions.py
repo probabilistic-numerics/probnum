@@ -123,4 +123,4 @@ def test_cholesky_not_positive_definite(
     with pytest.raises(type(expected_exception)):
         linop.cholesky(lower=lower)
 
-    assert linop.is_positive_definite
+    assert linop.is_positive_definite is False
