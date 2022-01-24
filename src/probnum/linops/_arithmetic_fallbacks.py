@@ -48,7 +48,7 @@ class ScaledLinearOperator(LinearOperator):
         self.is_lower_triangular = self._linop.is_lower_triangular
         self.is_upper_triangular = self._linop.is_upper_triangular
 
-        if self.is_positive_definite:
+        if self._linop.is_positive_definite:
             if self._scalar > 0:
                 self.is_positive_definite = True
             else:
