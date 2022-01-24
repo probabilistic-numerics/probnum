@@ -345,10 +345,10 @@ def test_inv(linop: pn.linops.LinearOperator, matrix: np.ndarray):
             np.testing.assert_allclose(linop_inv.todense(), matrix_inv, atol=1e-12)
         else:
             with pytest.raises(type(expected_exception)):
-                linop.inv()
+                linop.inv().todense()
     else:
         with pytest.raises(np.linalg.LinAlgError):
-            linop.inv()
+            linop.inv().todense()
 
 
 @pytest_cases.parametrize_with_cases(
