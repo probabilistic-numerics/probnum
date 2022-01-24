@@ -357,10 +357,30 @@ def test_inv(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         "positive-definite",
     ),
 )
-def test_cholesky(linop: pn.linops.LinearOperator, matrix: np.ndarray):
-    L = linop.cholesky(lower=True)
+@pytest_cases.parametrize("lower", [True, False], ids=["lower", "upper"])
+def test_cholesky(linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool):
+    linop_cho = linop.cholesky(lower=lower)
 
     np.testing.assert_allclose(
-        (L @ L.T).todense(),
+        (linop_cho @ linop_cho.T if lower else linop_cho.T @ linop_cho).todense(),
         matrix,
+        err_msg="Not a valid matrix square root",
+    )
+
+    np.testing.assert_array_equal(
+        np.diag(linop_cho.todense()) > 0,
+        True,
+        err_msg="Diagonal of the Cholesky factor is not positive.",
+    )
+
+    assert linop_cho.is_lower_triangular if lower else linop_cho.is_upper_triangular
+
+    np.testing.assert_array_equal(
+        (
+            np.triu(linop_cho.todense(), k=1)
+            if lower
+            else np.tril(linop_cho.todense(), k=-1)
+        ),
+        0.0,
+        err_msg=f"Cholesky factor is not {'lower' if lower else 'upper'} triangular",
     )
