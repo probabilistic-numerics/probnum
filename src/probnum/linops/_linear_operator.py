@@ -546,12 +546,21 @@ class LinearOperator:
 
             self.is_positive_definite = True
 
-        if self.__cholesky_cache.is_lower_triangular == lower:
+        upper = not lower
+
+        if (lower and self.__cholesky_cache.is_lower_triangular) or (
+            upper and self.__cholesky_cache.is_upper_triangular
+        ):
             return self.__cholesky_cache
+
+        assert (
+            self.__cholesky_cache.is_lower_triangular
+            or self.__cholesky_cache.is_upper_triangular
+        )
 
         return self.__cholesky_cache.T
 
-    def _cholesky(self, lower: bool = True) -> LinearOperator:
+    def _cholesky(self, lower: bool) -> LinearOperator:
         return Matrix(
             scipy.linalg.cholesky(
                 self.todense(), lower=lower, overwrite_a=False, check_finite=True
