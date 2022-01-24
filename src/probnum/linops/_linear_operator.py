@@ -7,7 +7,6 @@ from typing import Callable, Optional, Tuple, Union
 import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
-from pytest import raises
 
 import probnum.utils
 from probnum import config
