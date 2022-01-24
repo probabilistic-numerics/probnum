@@ -42,6 +42,26 @@ def case_kronecker(
     return linop, matrix
 
 
+@pytest_cases.case(tags=["square", "singular"])
+@pytest_cases.parametrize(
+    "A,B",
+    [
+        (
+            np.random.default_rng(78923 + m + n).standard_normal((m, n)),
+            np.random.default_rng(25789 + m + n).standard_normal((n, m)),
+        )
+        for m, n in ((3, 4), (1, 8), (2, 3))
+    ],
+)
+def case_kronecker_square_non_square_factors(
+    A: np.ndarray, B: np.ndarray
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    linop = pn.linops.Kronecker(A, B)
+    matrix = np.kron(A, B)
+
+    return linop, matrix
+
+
 @pytest_cases.case(tags=["square", "symmetric", "positive-definite"])
 @pytest_cases.parametrize("A,B", itertools.product(spd_matrices, spd_matrices))
 def case_kronecker_positive_definite(
