@@ -198,11 +198,6 @@ class LinearOperator:
         """Data type of the linear operator."""
         return self.__dtype
 
-    @property
-    def is_square(self) -> bool:
-        """Whether input dimension matches output dimension."""
-        return self.shape[0] == self.shape[1]
-
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with "
@@ -316,15 +311,31 @@ class LinearOperator:
     ####################################################################################
 
     @property
+    def is_square(self) -> bool:
+        """Whether input dimension matches output dimension."""
+        return self.shape[0] == self.shape[1]
+
+    @property
     def is_symmetric(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` :math:`L` is symmetric, i.e. :math:`L = L^T`.
+
+        If this is ``None``, it is unknown whether the operator is symmetric or not.
+        Only square operators can be symmetric."""
         return self._is_symmetric
 
     @is_symmetric.setter
     def is_symmetric(self, value: Optional[bool]) -> None:
+        if value is True and not self.is_square:
+            raise ValueError("Only square operators can be symmetric.")
+
         self._set_property("symmetric", value)
 
     @property
     def is_lower_triangular(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` represents a lower triangular matrix.
+
+        If this is ``None``, it is unknown whether the matrix is lower triangular or
+        not."""
         return self._is_lower_triangular
 
     @is_lower_triangular.setter
@@ -333,6 +344,10 @@ class LinearOperator:
 
     @property
     def is_upper_triangular(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` represents an upper triangular matrix.
+
+        If this is ``None``, it is unknown whether the matrix is upper triangular or
+        not."""
         return self._is_upper_triangular
 
     @is_upper_triangular.setter
@@ -341,10 +356,20 @@ class LinearOperator:
 
     @property
     def is_positive_definite(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` :math:`L \\in \\mathbb{R}^{n \\times n}` is
+        (strictly) positive-definite, i.e. :math:`x^T L x > 0` for :math:`x \\in \
+        \\mathbb{R}^n`.
+
+        If this is ``None``, it is unknown whether the matrix is positive-definite or
+        not. Only symmetric operators can be positive-definite.
+        """
         return self._is_positive_definite
 
     @is_positive_definite.setter
     def is_positive_definite(self, value: Optional[bool]) -> None:
+        if value is True and not self.is_symmetric:
+            raise ValueError("Only symmetric operators can be positive-definite.")
+
         self._set_property("positive_definite", value)
 
     def _set_property(self, name: str, value: Optional[bool]):
