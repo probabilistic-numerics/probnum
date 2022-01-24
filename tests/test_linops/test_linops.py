@@ -390,19 +390,43 @@ def test_cholesky(linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bo
         err_msg=f"Cholesky factor is not {'lower' if lower else 'upper'} triangular",
     )
 
+    # Test cacheing
+    assert linop.cholesky(lower=lower) is linop_cho
+
+    # Access transpose of the cached Cholesky factor
+    np.testing.assert_array_equal(
+        linop.cholesky(lower=not lower).T.todense(), linop_cho.todense()
+    )
+
 
 @pytest_cases.parametrize_with_cases(
     "linop,matrix",
     cases=case_modules,
 )
 @pytest_cases.parametrize("lower", [True, False], ids=["lower", "upper"])
-def test_cholesky_is_symmetric_not_set(
+def test_cholesky_is_symmetric_not_true(
     linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool
 ):  # pylint: disable=unused-argument
     """Tests whether computing the Cholesky decomposition of a ``LinearOperator``
     whose ``is_symmetric`` property is not set to ``True`` results in an error."""
 
     if linop.is_symmetric is not True:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.cholesky(lower=lower)
+
+
+@pytest_cases.parametrize_with_cases(
+    "linop,matrix",
+    cases=case_modules,
+)
+@pytest_cases.parametrize("lower", [True, False], ids=["lower", "upper"])
+def test_cholesky_is_positive_definite_false(
+    linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool
+):  # pylint: disable=unused-argument
+    """Tests whether computing the Cholesky decomposition of a ``LinearOperator``
+    whose ``is_symmetric`` property is not set to ``True`` results in an error."""
+
+    if linop.is_positive_definite is False:
         with pytest.raises(np.linalg.LinAlgError):
             linop.cholesky(lower=lower)
 
