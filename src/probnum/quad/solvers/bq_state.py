@@ -18,17 +18,15 @@ class BQState:
 
     Parameters
     ----------
-    measure :
+    measure
         The integration measure.
-    kernel :
+    kernel
         The kernel used for BQ.
     integral_belief :
         Normal distribution over the value of the integral.
-    info:
-        Information about the loop status.
-    nodes:
+    nodes
         All locations at which function evaluations are available.
-    fun_evals:
+    fun_evals
         Function evaluations at nodes.
 
     See Also
@@ -78,17 +76,17 @@ class BQState:
 
         Parameters
         ----------
-        nodes:
+        nodes
             All locations at which function evaluations are available.
-        fun_evals:
+        fun_evals
             Function evaluations at nodes.
-        integral_belief :
+        integral_belief
             Normal distribution over the value of the integral.
-        prev_state:
+        prev_state
             Previous state of the BQ loop.
-        gram :
+        gram
             The Gram matrix of the given nodes.
-        kernel_means :
+        kernel_means
             The kernel means at the given nodes.
 
         Returns
@@ -115,11 +113,11 @@ class BQIterInfo:
 
     Parameters
     ----------
-    iteration :
+    iteration
         Iteration of the loop.
-    nevals :
+    nevals
         Number of evaluations collected.
-    has_converged :
+    has_converged
         True if the BQ loop fulfils a stopping criterion, otherwise False.
 
     See Also
@@ -145,9 +143,8 @@ class BQIterInfo:
         BQIterInfo
             An instance of this class.
         """
-        if bq_state.fun_evals is None:
-            nevals = 0
-        else:
+        nevals = 0
+        if bq_state.fun_evals is not None:
             nevals = bq_state.fun_evals.size
 
         return cls(
