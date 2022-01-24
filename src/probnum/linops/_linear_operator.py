@@ -1001,7 +1001,9 @@ class _InverseLinearOperator(LinearOperator):
         because for some reason, the SciPy implementation does not raise an exception
         if the matrix is singular.
         """
-        from scipy.linalg.lapack import get_lapack_funcs
+        from scipy.linalg.lapack import (  # pylint: disable=no-name-in-module,import-outside-toplevel
+            get_lapack_funcs,
+        )
 
         a = np.asarray_chkfinite(a)
         (getrf,) = get_lapack_funcs(("getrf",), (a,))
