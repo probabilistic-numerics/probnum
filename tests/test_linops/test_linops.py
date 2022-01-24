@@ -435,3 +435,16 @@ def test_cholesky_not_positive_definite(
 
     with pytest.raises(type(expected_exception)):
         linop.cholesky(lower=lower)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_symmetrize(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    if linop.is_square:
+        sym_linop = linop.symmetrize()
+
+        assert sym_linop.is_symmetric
+
+        np.testing.assert_array_equal(sym_linop.todense().T, sym_linop.todense())
+    else:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.symmetrize()
