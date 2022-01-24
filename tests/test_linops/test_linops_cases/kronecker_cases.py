@@ -48,7 +48,7 @@ def case_kronecker(
     [
         (
             np.random.default_rng(78923 + m + n).uniform(0.9, 1.1, (m, n)),
-            np.random.default_rng(25789 + m + n).uniform(0.9, 1.1, (n, m)),
+            np.full((n, m), np.random.default_rng(25789 + m + n).uniform(0.9, 1.1)),
         )
         for m, n in ((3, 4), (1, 8), (2, 3))
     ],
@@ -56,10 +56,6 @@ def case_kronecker(
 def case_kronecker_square_non_square_factors(
     A: np.ndarray, B: np.ndarray
 ) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
-    # Set last row to 0 to ensure singularity
-    # Without this, numerical instabilities in the `.inv()` tests lead to test failure
-    A[-1, :] = 0
-
     linop = pn.linops.Kronecker(A, B)
     matrix = np.kron(A, B)
 
