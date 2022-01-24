@@ -717,15 +717,17 @@ class LinearOperator:
         norm is given by
 
         .. math::
-            A_s = \\frac{1}{2} (A + A^T).
+            sym(A) = \\frac{1}{2} (A + A^T).
 
         However, for efficiency reasons, it is preferrable to approximate this operator
         in some cases. For example, a Kronecker product :math:`K = A \\ocross B` is more
         efficiently symmetrized by means of
 
         .. math::
-            A_s \\ocross B_s
-            = K_s + \\frac{1}{2} \\left( A \\ocross B^T + A^T \\ocross B \\right).
+            sym(A) \\ocross sym(B)
+            = sym(K) + \\frac{1}{2} \\left(
+                sym(K) - \frac{1}{2} \\left( A \\ocross B^T + A^T \\ocross B \\right)
+            \\right).
 
         Returns
         -------

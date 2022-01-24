@@ -216,6 +216,9 @@ class Kronecker(_linear_operator.LinearOperator):
         )
 
     def _symmetrize(self) -> _linear_operator.LinearOperator:
+        # This is only an approximation to the closest symmetric matrix in the
+        # Frobenius norm, which is however much more efficient than the exact
+        # solution to the optimization problem
         if self.A.is_square and self.B.is_square:
             return Kronecker(
                 A=self.A.symmetrize(),
@@ -483,6 +486,9 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         return super()._cholesky(lower)
 
     def _symmetrize(self) -> SymmetricKronecker:
+        # This is only an approximation to the closest symmetric matrix in the
+        # Frobenius norm, which is however much more efficient than the exact
+        # solution to the optimization problem
         if self._identical_factors:
             return SymmetricKronecker(A=self.A.symmetrize())
 
@@ -583,6 +589,8 @@ class IdentityKronecker(_linear_operator.LinearOperator):
         )
 
     def _symmetrize(self) -> IdentityKronecker:
+        # In contrast to the implementation for the generic Kronecker product, this is
+        # not only an approximation of the closes symmetric matrix in the Frobenius norm
         return IdentityKronecker(
             num_blocks=self.num_blocks,
             B=self.B.symmetrize(),
