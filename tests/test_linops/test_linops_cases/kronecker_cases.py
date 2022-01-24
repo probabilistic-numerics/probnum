@@ -101,6 +101,35 @@ def case_symmetric_kronecker(
     return linop, matrix
 
 
+@pytest_cases.case(
+    tags=["symmetric_kronecker", "square", "symmetric", "positive-definite"]
+)
+@pytest_cases.parametrize(
+    "A,B",
+    [
+        (
+            random_spd_matrix(np.random.default_rng(234789 + n), dim=n),
+            random_spd_matrix(np.random.default_rng(347892 + n), dim=n),
+        )
+        for n in [1, 2, 3, 6]
+    ],
+)
+def case_symmetric_kronecker_positive_definite(
+    A: Union[np.ndarray, pn.linops.LinearOperator],
+    B: Union[np.ndarray, pn.linops.LinearOperator],
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    A = pn.linops.aslinop(A)
+    A.is_symmetric = True
+
+    B = pn.linops.aslinop(B)
+    B.is_symmetric = True
+
+    linop = pn.linops.SymmetricKronecker(A, B)
+    matrix = (np.kron(A.todense(), B.todense()) + np.kron(B.todense(), A.todense())) / 2
+
+    return linop, matrix
+
+
 @pytest.mark.parametrize(
     "A",
     [
