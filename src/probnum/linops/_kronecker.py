@@ -201,17 +201,23 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return NotImplemented
 
-    def _cholesky(self, lower: bool = True) -> Kronecker:
-        return Kronecker(
-            A=self.A.cholesky(lower),
-            B=self.B.cholesky(lower),
-        )
+    def _cholesky(self, lower: bool = True) -> _linear_operator.LinearOperator:
+        if self.A.is_symmetric and self.B.is_symmetric:
+            return Kronecker(
+                A=self.A.cholesky(lower),
+                B=self.B.cholesky(lower),
+            )
 
-    def _symmetrize(self) -> Kronecker:
-        return Kronecker(
-            A=self.A.symmetrize(),
-            B=self.B.symmetrize(),
-        )
+        return super()._cholesky(lower)
+
+    def _symmetrize(self) -> _linear_operator.LinearOperator:
+        if self.A.is_square and self.B.is_square:
+            return Kronecker(
+                A=self.A.symmetrize(),
+                B=self.B.symmetrize(),
+            )
+
+        return super()._symmetrize()
 
 
 def _kronecker_matmul(
