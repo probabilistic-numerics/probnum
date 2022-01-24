@@ -107,6 +107,9 @@ class Kronecker(_linear_operator.LinearOperator):
         self.B = _utils.aslinop(B)
 
         if self.A.is_square and self.B.is_square:
+            # (A (x) B)^-1 = A^-1 (x) B^-1
+            inverse = lambda: Kronecker(A=self.A.inv(), B=self.B.inv())
+            cond = self._cond_square_factors
             # det(A (x) B) = det(A)^n * det(B)^m
             det = lambda: (
                 self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
@@ -117,6 +120,8 @@ class Kronecker(_linear_operator.LinearOperator):
             )
             trace = lambda: self.A.trace() * self.B.trace()
         else:
+            inverse = None
+            cond = None
             det = None
             logabsdet = None
             trace = None
@@ -134,10 +139,9 @@ class Kronecker(_linear_operator.LinearOperator):
             ),
             # (A (x) B)^T = A^T (x) B^T
             transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
-            # (A (x) B)^-1 = A^-1 (x) B^-1
-            inverse=lambda: Kronecker(A=self.A.inv(), B=self.B.inv()),
+            inverse=inverse,
             rank=lambda: self.A.rank() * self.B.rank(),
-            cond=self._cond,
+            cond=cond,
             det=det,
             logabsdet=logabsdet,
             trace=trace,
@@ -157,7 +161,7 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return Kronecker(A_astype, B_astype)
 
-    def _cond(self, p) -> np.inexact:
+    def _cond_square_factors(self, p) -> np.inexact:
         if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
