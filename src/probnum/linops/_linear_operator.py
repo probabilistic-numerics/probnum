@@ -972,8 +972,8 @@ class _InverseLinearOperator(LinearOperator):
                 )
                 self._cho_solve = True
             except np.linalg.LinAlgError:
-                self.__factorization = scipy.linalg.lu_factor(
-                    self._linop.todense(cache=False), overwrite_a=False
+                self.__factorization = _InverseLinearOperator._lu_factor(
+                    self._linop.todense(cache=False)
                 )
 
         return self.__factorization
@@ -993,6 +993,31 @@ class _InverseLinearOperator(LinearOperator):
             return scipy.linalg.cho_solve(factorization, x.T, overwrite_b=False)
 
         return scipy.linalg.lu_solve(factorization, x, trans=1, overwrite_b=False)
+
+    @staticmethod
+    def _lu_factor(a):
+        """This is a modified version of the original implementation in SciPy:
+        https://github.com/scipy/scipy/blob/v1.7.1/scipy/linalg/decomp_lu.py#L15-L84
+        because for some reason, the SciPy implementation does not raise an exception
+        if the matrix is singular.
+        """
+        from scipy.linalg.lapack import get_lapack_funcs
+
+        a = np.asarray_chkfinite(a)
+        (getrf,) = get_lapack_funcs(("getrf",), (a,))
+        lu, piv, info = getrf(a, overwrite_a=False)
+
+        if info < 0:
+            raise ValueError(
+                f"illegal value in argument {-info} of internal getrf (lu_factor)"
+            )
+
+        if info > 0:
+            raise np.linalg.LinAlgError(
+                f"Diagonal number {info} is exactly zero. Singular matrix."
+            )
+
+        return lu, piv
 
 
 class _TypeCastLinearOperator(LinearOperator):
