@@ -4,6 +4,8 @@ from typing import Optional, Tuple, Union
 import numpy as np
 import pytest
 import pytest_cases
+import scipy.linalg
+from pytest_cases import filters
 
 import probnum as pn
 
@@ -359,6 +361,9 @@ def test_inv(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 )
 @pytest_cases.parametrize("lower", [True, False], ids=["lower", "upper"])
 def test_cholesky(linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool):
+    """Tests whether the lower (upper) Cholesky factor of a ``LinearOperator`` is a
+    lower-triangular (upper-triangular) matrix square-root with positive diagonal."""
+
     linop_cho = linop.cholesky(lower=lower)
 
     np.testing.assert_allclose(
@@ -384,3 +389,49 @@ def test_cholesky(linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bo
         0.0,
         err_msg=f"Cholesky factor is not {'lower' if lower else 'upper'} triangular",
     )
+
+
+@pytest_cases.parametrize_with_cases(
+    "linop,matrix",
+    cases=case_modules,
+)
+@pytest_cases.parametrize("lower", [True, False], ids=["lower", "upper"])
+def test_cholesky_is_symmetric_not_set(
+    linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool
+):  # pylint: disable=unused-argument
+    """Tests whether computing the Cholesky decomposition of a ``LinearOperator``
+    whose ``is_symmetric`` property is not set to ``True`` results in an error."""
+
+    if linop.is_symmetric is not True:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.cholesky(lower=lower)
+
+
+@pytest_cases.parametrize_with_cases(
+    "linop,matrix",
+    cases=case_modules,
+    filter=(
+        filters.has_tag("symmetric")
+        & (
+            filters.has_tag("singular")
+            | filters.has_tag("negative-definite")
+            | filters.has_tag("indefinite")
+        )
+    ),
+)
+@pytest_cases.parametrize("lower", [True, False], ids=["lower", "upper"])
+def test_cholesky_not_positive_definite(
+    linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool
+):
+    """Tests whether computing the Cholesky decomposition of a symmetric, but not
+    positive definite matrix results in an error"""
+
+    expected_exception = None
+
+    try:
+        scipy.linalg.cholesky(matrix, lower=lower)
+    except Exception as e:  # pylint: disable=broad-except
+        expected_exception = e
+
+    with pytest.raises(type(expected_exception)):
+        linop.cholesky(lower=lower)
