@@ -262,8 +262,7 @@ def _check_domain_measure_compatibility(
     # Ignore domain if measure is given
     if domain is not None and measure is not None:
         warnings.warn(
-            "Both domain and a measure are specified. The domain information will be "
-            "ignored."
+            "Both 'domain' and a 'measure' are specified. 'domain' will be ignored."
         )
         domain = None
 
