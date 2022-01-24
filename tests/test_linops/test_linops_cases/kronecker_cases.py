@@ -47,8 +47,8 @@ def case_kronecker(
     "A,B",
     [
         (
-            np.random.default_rng(78923 + m + n).standard_normal((m, n)),
-            np.random.default_rng(25789 + m + n).standard_normal((n, m)),
+            np.random.default_rng(78923 + m + n).uniform(0.9, 1.1, (m, n)),
+            np.random.default_rng(25789 + m + n).uniform(0.9, 1.1, (n, m)),
         )
         for m, n in ((3, 4), (1, 8), (2, 3))
     ],
