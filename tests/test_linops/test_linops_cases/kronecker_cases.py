@@ -56,6 +56,10 @@ def case_kronecker(
 def case_kronecker_square_non_square_factors(
     A: np.ndarray, B: np.ndarray
 ) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    # Set last row to 0 to ensure singularity
+    # Without this, numerical instabilities in the `.inv()` tests lead to test failure
+    A[-1, :] = 0
+
     linop = pn.linops.Kronecker(A, B)
     matrix = np.kron(A, B)
 
