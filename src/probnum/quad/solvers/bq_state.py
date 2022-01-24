@@ -31,7 +31,7 @@ class BQState:
 
     See Also
     --------
-    BQIterInfo : Container for quantities concerning the BQ loop interation.
+    BQIterInfo : Container for quantities concerning the BQ loop iteration.
     """
 
     def __init__(
@@ -109,7 +109,7 @@ class BQState:
 
 @dataclass
 class BQIterInfo:
-    """Container for quantities concerning the BQ loop interation.
+    """Container for quantities concerning the BQ loop iteration.
 
     Parameters
     ----------
@@ -150,7 +150,7 @@ class BQIterInfo:
         return cls(
             iteration=0,
             nevals=nevals,
-            has_converged=False,
+            has_converged=False
         )
 
     @classmethod
@@ -172,5 +172,27 @@ class BQIterInfo:
         return cls(
             iteration=info.iteration + 1,
             nevals=info.nevals + dnevals,
-            has_converged=info.has_converged,
+            has_converged=info.has_converged
+        )
+
+    @classmethod
+    def from_stopping_decision(cls, info: "BQIterInfo", has_converged: bool) -> "BQIterInfo":
+        """Create BQIterInfo container with updated quantities from stopping decision.
+
+        Parameters
+        ----------
+        info
+            BQIterInfo from previous iteration.
+        has_converged
+            Whether the BQ method has converged
+
+        Returns
+        -------
+        BQIterInfo
+            An instance of this class.
+        """
+        return cls(
+            iteration=info.iteration,
+            nevals=info.nevals,
+            has_converged=has_converged
         )

@@ -75,7 +75,7 @@ class BayesianQuadrature:
         rng: np.random.Generator = None,
     ) -> "BayesianQuadrature":
 
-        r"""Alternative way to initialize ``Bayesian_Quadrature``
+        r"""Creates a ``Bayesian_Quadrature`` object from problem description.
 
         Parameters
         ----------
@@ -186,28 +186,6 @@ class BayesianQuadrature:
             stopping_criterion=_stopping_criterion,
         )
 
-    def has_converged(self, bq_state: BQState, info: BQIterInfo) -> bool:
-        """Checks if the BQ method has converged.
-
-        Parameters
-        ----------
-        bq_state
-            State of the BQ belief.
-        info
-            State of the BQ iteration.
-
-        Returns
-        -------
-        has_converged :
-            Whether the solver has converged.
-        """
-
-        _has_converged = self.stopping_criterion(bq_state, info)
-        if _has_converged:
-            info.has_converged = True
-            return True
-        return False
-
     def bq_iterator(
         self,
         bq_state: BQState,
@@ -248,7 +226,8 @@ class BayesianQuadrature:
 
         while True:
             # Have we already converged?
-            if self.has_converged(bq_state=bq_state, info=info):
+            if self.stopping_criterion(bq_state, info):
+                info = BQIterInfo.from_stopping_decision(info, has_converged=True)
                 break
 
             # Select new nodes via policy
@@ -305,6 +284,11 @@ class BayesianQuadrature:
         ValueError
             If neither the integrand function (``fun``) nor integrand evaluations
             (``fun_evals``) are given.
+        ValueError
+            If nodes are not given when no policy is present.
+        ValueError
+            If dimension of ``nodes'' or ``fun_evals'' is incorrect, or if their
+            shapes do not match.
         """
         # no policy given: Integrate on fixed dataset.
         if self.policy is None:
