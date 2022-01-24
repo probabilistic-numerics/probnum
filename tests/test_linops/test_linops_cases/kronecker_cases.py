@@ -121,3 +121,18 @@ def case_symmetric_kronecker_identical_factors_positive_definite(
     matrix = np.kron(A.todense(), A.todense())
 
     return linop, matrix
+
+
+@pytest_cases.case(tags=["square", "symmetric", "positive-definite"])
+@pytest_cases.parametrize("num_blocks", [1, 2, 3])
+@pytest_cases.parametrize("B", spd_matrices)
+def case_identity_kronecker(
+    num_blocks: int, B: Union[np.ndarray, pn.linops.LinearOperator]
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    B = pn.linops.aslinop(B)
+    B.is_symmetric = True
+
+    linop = pn.linops.IdentityKronecker(num_blocks, B)
+    matrix = np.kron(np.eye(num_blocks, dtype=linop.dtype), B.todense())
+
+    return linop, matrix
