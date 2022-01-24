@@ -171,6 +171,9 @@ class Scaling(_linear_operator.LinearOperator):
         self.is_lower_triangular = True
         self.is_upper_triangular = True
 
+        if self._scalar is not None:
+            self.is_positive_definite = bool(self._scalar > 0.0)
+
     @property
     def factors(self) -> np.ndarray:
         """Scaling factors.

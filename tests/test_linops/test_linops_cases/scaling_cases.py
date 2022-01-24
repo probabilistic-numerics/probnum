@@ -16,7 +16,10 @@ import probnum as pn
 def case_anisotropic_scaling(
     diagonal: np.ndarray,
 ) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
-    return pn.linops.Scaling(diagonal), np.diag(diagonal)
+    linop = pn.linops.Scaling(diagonal)
+    linop.is_positive_definite = False
+
+    return linop, np.diag(diagonal)
 
 
 @pytest_cases.case(tags=["square", "symmetric", "positive-definite"])
@@ -42,7 +45,10 @@ def case_positive_anisotropic_scaling(
 def case_singular_anisotropic_scaling(
     diagonal: np.ndarray,
 ) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
-    return pn.linops.Scaling(diagonal), np.diag(diagonal)
+    linop = pn.linops.Scaling(diagonal)
+    linop.is_positive_definite = False
+
+    return linop, np.diag(diagonal)
 
 
 @pytest_cases.case(tags=["square", "symmetric", "positive-definite"])
