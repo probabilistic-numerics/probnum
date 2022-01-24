@@ -210,12 +210,10 @@ class BayesianQuadrature:
 
     def bq_iterator(
         self,
-        fun: Optional[Callable] = None,
-        nodes: Optional[np.ndarray] = None,
-        fun_evals: Optional[np.ndarray] = None,
-        integral_belief: Optional[Normal] = None,
-        bq_state: Optional[BQState] = None,
-    ) -> Tuple[Normal, np.ndarray, np.ndarray, BQState]:
+        bq_state: BQState,
+        info: Optional[BQIterInfo],
+        fun: Optional[Callable],
+    ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Generator that implements the iteration of the BQ method.
 
         This function exposes the state of the BQ method one step at a time while
@@ -223,73 +221,34 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        fun :
+        bq_state
+            State of the Bayesian quadrature methods. Contains the information about
+            the problem and the BQ belief.
+        info
+            The state of the iteration.
+        fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-        nodes :
-            *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
-            are available as ``fun_evals`` from start.
-        fun_evals :
-            *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
-            from the start.
-        integral_belief:
-            Current belief about the integral.
-        bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information
-            about the problem and the computation.
 
         Yields
         ------
         new_integral_belief :
             Updated belief about the integral.
-        new_nodes :
-            *shape=(n_new_eval, input_dim)* -- The new location(s) at which
-            ``new_fun_evals`` are available found during the iteration.
-        new_fun_evals :
-            *shape=(n_new_eval,)* -- The function evaluations at the new locations
-            ``new_nodes``.
         new_bq_state :
-            Updated state of the Bayesian quadrature methods.
+            The updated state of the Bayesian quadrature belief.
+        new_info :
+            The updated state of the iteration.
         """
 
-        # Setup BQ state
-        if bq_state is None:
-            if integral_belief is None:
-                # This encodes a zero-mean prior.
-                integral_belief = Normal(
-                    0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
-                )
-
-            bq_state = BQState(
-                measure=self.measure,
-                kernel=self.kernel,
-                integral_belief=integral_belief,
-            )
-
-        integral_belief = bq_state.integral_belief
-
-        # Initial design given
-        if nodes is not None:
-            if fun_evals is None:
-                fun_evals = fun(nodes)
-
-            integral_belief, bq_state = self.belief_update(
-                bq_state=bq_state,
-                new_nodes=nodes,
-                new_fun_evals=fun_evals,
-            )
-
         # Setup iteration info
-        info = BQIterInfo.from_bq_state(bq_state)
+        if info is None:
+            info = BQIterInfo.from_bq_state(bq_state)
 
-        # Evaluate stopping criteria for the initial belief
-        _has_converged = self.has_converged(bq_state=bq_state, info=info)
-
-        yield integral_belief, None, None, bq_state, info
+        yield bq_state.integral_belief, bq_state, info
 
         while True:
             # Have we already converged?
-            if _has_converged:
+            if self.has_converged(bq_state=bq_state, info=info):
                 break
 
             # Select new nodes via policy
@@ -298,24 +257,23 @@ class BayesianQuadrature:
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)
 
-            integral_belief, bq_state = self.belief_update(
+            # Update the belief about the integrand
+            _, bq_state = self.belief_update(
                 bq_state=bq_state,
                 new_nodes=new_nodes,
                 new_fun_evals=new_fun_evals,
             )
 
+            # Update the state of the iteration
             info = BQIterInfo.from_iteration(info=info, dnevals=self.policy.batch_size)
 
-            # Evaluate stopping criteria
-            _has_converged = self.has_converged(bq_state=bq_state, info=info)
-
-            yield integral_belief, new_nodes, new_fun_evals, bq_state, info
+            yield bq_state.integral_belief, bq_state, info
 
     def integrate(
         self,
-        fun: Optional[Callable] = None,
-        nodes: Optional[np.ndarray] = None,
-        fun_evals: Optional[np.ndarray] = None,
+        fun: Optional[Callable],
+        nodes: Optional[np.ndarray],
+        fun_evals: Optional[np.ndarray],
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Integrate the function ``fun``.
 
@@ -350,50 +308,64 @@ class BayesianQuadrature:
         """
         # no policy given: Integrate on fixed dataset.
         if self.policy is None:
-            # no nodes: not possible without policy
+            # nodes must be provided if no policy is given.
             if nodes is None:
                 raise ValueError("No policy available: Please provide nodes.")
+
+            # Use fun_evals and disregard fun if both are given
+            if fun is not None and fun_evals is not None:
+                warnings.warn(
+                    "No policy available: 'fun_eval' are used instead of 'fun'."
+                )
+                fun = None
 
             # override stopping condition as no policy is given.
             self.stopping_criterion = ImmediateStop()
 
-            # nodes available: no function given
-            if fun is None and fun_evals is None:
-                raise ValueError(
-                    "No policy available: Please provide a function 'fun' to be "
-                    "integrated, or function evaluations 'fun_evals' that correspond "
-                    "to the nodes."
-                )
-
-            # nodes available and fun available: use fun and disregard fun_evals
-            if fun is not None:
-                warnings.warn(
-                    "No policy available: Both 'fun' and 'fun_eval are given. "
-                    "Will disregard 'fun_evals'."
-                )
-                fun_evals = None
-
-            # nodes available and fun_evals available: check shapes
-            if fun_evals is not None:
-                if nodes.shape[0] != fun_evals.shape[0]:
-                    raise ValueError(
-                        f"nodes ({nodes.shape[0]}) and fun_evals "
-                        f"({fun_evals.shape[0]}) need to contain the same number "
-                        f"of evaluations."
-                    )
-
-        # policy given: may run iterator
-        # Todo: there are not enough checks here yet.
+        # Check if integrand function is provided
         if fun is None and fun_evals is None:
-            raise ValueError("Policy available: Please provide nodes.")
+            raise ValueError(
+                "Please provide an integrand function 'fun' or function values "
+                "'fun_evals'."
+            )
 
-        bq_state = None
+        # Setup initial design
+        if nodes is not None and fun_evals is None:
+            fun_evals = fun(nodes)
+
+        # Check if shapes of nodes and function evaluations match
+        if fun_evals is not None and fun_evals.ndim != 1:
+            raise ValueError(
+                f"fun_evals must be one-dimensional " f"({fun_evals.ndim})."
+            )
+        if nodes is not None and nodes.ndim != 2:
+            raise ValueError(f"nodes must be two-dimensional ({nodes.ndim}).")
+
+        if nodes is not None and fun_evals is not None:
+            if nodes.shape[0] != fun_evals.shape[0]:
+                raise ValueError(
+                    f"nodes ({nodes.shape[0]}) and fun_evals "
+                    f"({fun_evals.shape[0]}) need to contain the same number "
+                    f"of evaluations."
+                )
+
+        # Setup BQ state: This encodes a zero-mean prior.
+        bq_state = BQState(
+            measure=self.measure,
+            kernel=self.kernel,
+            integral_belief=Normal(
+                0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
+            ),
+        )
+        if nodes is not None:
+            _, bq_state = self.belief_update(
+                bq_state=bq_state,
+                new_nodes=nodes,
+                new_fun_evals=fun_evals,
+            )
+
         info = None
-        integral_belief = None
-
-        for (integral_belief, _, _, bq_state, info) in self.bq_iterator(
-            fun, nodes, fun_evals
-        ):
+        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun):
             pass
 
-        return integral_belief, bq_state, info
+        return bq_state.integral_belief, bq_state, info
