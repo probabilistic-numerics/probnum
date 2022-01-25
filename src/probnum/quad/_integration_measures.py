@@ -119,12 +119,12 @@ class IntegrationMeasure(abc.ABC):
 
         domain_dim = int(np.size(domain[0]))
 
-        # If no input dimension has been given, infer it from the domain.
+        # Input dimension not given, infer it from the domain.
         if input_dim is None:
             input_dim = domain_dim
-            (domain_a, domain_b) = domain
+            domain_a, domain_b = domain
 
-        # Bounds are given as scalars: Expand domain limits.
+        # Input dimension given and bounds are given as scalars: Expand domain limits.
         elif input_dim is not None and domain_dim == 1:
             domain_a = np.full((input_dim,), domain[0])
             domain_b = np.full((input_dim,), domain[1])
@@ -139,6 +139,13 @@ class IntegrationMeasure(abc.ABC):
                 )
             domain_a = domain[0]
             domain_b = domain[1]
+
+        # convert bounds to 1D arrays if necessary
+        domain_a = np.atleast_1d(domain_a)
+        domain_b = np.atleast_1d(domain_b)
+        if domain_a.ndim > 1 or domain_b.ndim > 1:
+            raise ValueError(f"Upper ({domain_b.ndim}) or lower ({domain_a.ndim}) "
+                             f"bounds have too many dimensions.")
 
         # Make sure the domain is non-empty
         if not np.all(domain_a < domain_b):
