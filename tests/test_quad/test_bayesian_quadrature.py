@@ -3,7 +3,14 @@
 import numpy as np
 import pytest
 
-from probnum.quad import BayesianQuadrature, ImmediateStop
+from probnum import LambdaStoppingCriterion
+from probnum.quad import (
+    BayesianQuadrature,
+    ImmediateStop,
+    LebesgueMeasure,
+    RandomPolicy,
+)
+from probnum.randprocs.kernels import ExpQuad
 
 
 @pytest.fixture
@@ -26,7 +33,6 @@ def bq(input_dim):
     return BayesianQuadrature.from_problem(
         input_dim=input_dim,
         domain=(np.zeros(input_dim), np.ones(input_dim)),
-        policy="bmc",
         rng=np.random.default_rng(),
     )
 
@@ -40,11 +46,30 @@ def bq_no_policy(input_dim):
     )
 
 
-def test_bq_from_problem_defaults(bq_no_policy):
+def test_bq_from_problem_wrong_inputs(input_dim):
+
+    # neither measure nor domain is provided
+    with pytest.raises(ValueError):
+        BayesianQuadrature.from_problem(input_dim=input_dim)
+
+
+def test_bq_from_problem_defaults(bq_no_policy, bq):
+
+    # default policy and stooping criterion
+    assert isinstance(bq.policy, RandomPolicy)
+    assert isinstance(bq.stopping_criterion, LambdaStoppingCriterion)
 
     # default stopping criterion if no policy is available
     assert bq_no_policy.policy is None
     assert isinstance(bq_no_policy.stopping_criterion, ImmediateStop)
+
+    # default measure
+    assert isinstance(bq_no_policy.measure, LebesgueMeasure)
+    assert isinstance(bq.measure, LebesgueMeasure)
+
+    # default kernel
+    assert isinstance(bq_no_policy.kernel, ExpQuad)
+    assert isinstance(bq.kernel, ExpQuad)
 
 
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):

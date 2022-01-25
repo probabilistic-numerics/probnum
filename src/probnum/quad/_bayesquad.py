@@ -111,7 +111,7 @@ def bayesquad(
     -----
         If multiple stopping conditions are provided, the method stops once one of
         them is satisfied. If no stopping condition is provided, it defaults to
-        ``max_evals = 25 * input_dim``.
+        ``max_evals = 25 * input_dim`` and ``var_tol = 1e-6``.
 
     See Also
     --------

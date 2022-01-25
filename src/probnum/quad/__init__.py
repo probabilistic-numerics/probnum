@@ -45,6 +45,7 @@ __all__ = [
     "BQStoppingCriterion",
     "IntegralVarianceTolerance",
     "MaxNevals",
+    "RandomPolicy",
     "RelativeMeanChange",
 ]
 
