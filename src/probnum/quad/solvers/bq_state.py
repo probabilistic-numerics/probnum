@@ -143,11 +143,7 @@ class BQIterInfo:
         BQIterInfo
             An instance of this class.
         """
-        nevals = 0
-        if bq_state.fun_evals is not None:
-            nevals = bq_state.fun_evals.size
-
-        return cls(iteration=0, nevals=nevals, has_converged=False)
+        return cls(iteration=0, nevals=bq_state.fun_evals.size, has_converged=False)
 
     @classmethod
     def from_iteration(cls, info: "BQIterInfo", dnevals: int) -> "BQIterInfo":
