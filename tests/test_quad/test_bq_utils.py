@@ -6,6 +6,7 @@ import pytest
 from probnum.quad import IntegrationMeasure
 
 
+# fmt: off
 @pytest.mark.parametrize(
     "dom, in_dim",
     [
@@ -69,4 +70,4 @@ def test_as_domain_correct_values():
     ub_expanded = ub * np.ones(in_dim)
     np.testing.assert_allclose(as_domain[0], lb_expanded, atol=0.0, rtol=1e-12)
     np.testing.assert_allclose(as_domain[1], ub_expanded, atol=0.0, rtol=1e-12)
-
+# fmt: on

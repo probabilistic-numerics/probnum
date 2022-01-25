@@ -144,8 +144,10 @@ class IntegrationMeasure(abc.ABC):
         domain_a = np.atleast_1d(domain_a)
         domain_b = np.atleast_1d(domain_b)
         if domain_a.ndim > 1 or domain_b.ndim > 1:
-            raise ValueError(f"Upper ({domain_b.ndim}) or lower ({domain_a.ndim}) "
-                             f"bounds have too many dimensions.")
+            raise ValueError(
+                f"Upper ({domain_b.ndim}) or lower ({domain_a.ndim}) "
+                f"bounds have too many dimensions."
+            )
 
         # Make sure the domain is non-empty
         if not np.all(domain_a < domain_b):
