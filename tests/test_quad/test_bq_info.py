@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum.quad import BQState, BQIterInfo, LebesgueMeasure
+from probnum.quad import BQIterInfo, BQState, LebesgueMeasure
 from probnum.randprocs.kernels import ExpQuad
 
 
