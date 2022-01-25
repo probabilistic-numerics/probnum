@@ -93,7 +93,7 @@ class BayesianQuadrature:
         measure
             The integration measure. Defaults to the Lebesgue measure on the ``domain``.
         domain
-            The integration bounds. Obsolete of ``measure`` is given.
+            The integration bounds. Obsolete if ``measure`` is given.
         policy
             The policy choosing nodes at which to evaluate the integrand.
             Choose ``None`` if you want to integrate from a fixed dataset.

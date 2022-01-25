@@ -125,9 +125,9 @@ class BQIterInfo:
     BQState : Container for the quantities defining the BQ problem and the BQ belief.
     """
 
-    iteration: int = (0,)
-    nevals: int = (0,)
-    has_converged: bool = (False,)
+    iteration: int = 0
+    nevals: int = 0
+    has_converged: bool = False
 
     @classmethod
     def from_bq_state(cls, bq_state: BQState) -> "BQIterInfo":
