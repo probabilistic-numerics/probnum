@@ -236,12 +236,15 @@ class BayesianQuadrature:
         if info is None:
             info = BQIterInfo.from_bq_state(bq_state)
 
-        yield bq_state.integral_belief, bq_state, info
-
         while True:
+
+            _has_converged = self.stopping_criterion(bq_state, info)
+            info = BQIterInfo.from_stopping_decision(info, has_converged=_has_converged)
+
+            yield bq_state.integral_belief, bq_state, info
+
             # Have we already converged?
-            if self.stopping_criterion(bq_state, info):
-                info = BQIterInfo.from_stopping_decision(info, has_converged=True)
+            if _has_converged:
                 break
 
             # Select new nodes via policy
@@ -259,8 +262,6 @@ class BayesianQuadrature:
 
             # Update the state of the iteration
             info = BQIterInfo.from_iteration(info=info, dnevals=self.policy.batch_size)
-
-            yield bq_state.integral_belief, bq_state, info
 
     def integrate(
         self,
