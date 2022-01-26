@@ -35,16 +35,4 @@ class RandomPolicy(Policy):
         self.rng = rng
 
     def __call__(self, bq_state: BQState) -> np.ndarray:
-        """Find nodes according to the random policy.
-
-        Parameters
-        ----------
-        bq_state
-            State of the BQ belief.
-
-        Returns
-        -------
-        nodes :
-            *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
-        """
         return self.sample_func(self.batch_size, rng=self.rng)

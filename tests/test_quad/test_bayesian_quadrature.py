@@ -55,7 +55,7 @@ def test_bq_from_problem_wrong_inputs(input_dim):
 
 def test_bq_from_problem_defaults(bq_no_policy, bq):
 
-    # default policy and stooping criterion
+    # default policy and stopping criterion
     assert isinstance(bq.policy, RandomPolicy)
     assert isinstance(bq.stopping_criterion, LambdaStoppingCriterion)
 
