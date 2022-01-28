@@ -44,14 +44,20 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
     Parameters
     ----------
     non_linear_model
-        Non-linear continuous-time model (:class:`SDE`) that is approximated with the UKF.
+        Non-linear continuous-time model (:class:`SDE`) that
+        is approximated with the UKF.
     mde_atol
-        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Absolute tolerance passed to the solver
+        of the moment differential equations (MDEs). Optional.
     mde_rtol
-        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Relative tolerance passed to the solver
+        of the moment differential equations (MDEs). Optional.
     mde_solver
-        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
-        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+        Method that is chosen in `scipy.integrate.solve_ivp`.
+        Any string that is compatible with
+        ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``.
+        Optional. Default is LSODA.
     """
 
     def __init__(
@@ -254,4 +260,5 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
 
     @property
     def dimension(self) -> int:
+        """Dimension of the state-space associated with the UKF."""
         return self.ut.dimension

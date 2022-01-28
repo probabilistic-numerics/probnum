@@ -28,9 +28,9 @@ class StepRule(ABC):
     def is_accepted(self, scaled_error: FloatLike):
         """Check if the proposed step should be accepted or not.
 
-        Variable "proposedstep" not used yet, but may be important in
-        the future, e.g. if we decide that instead of tol_per_step (see
-        AdaptiveSteps) we want to be able to control tol_per_unitstep.
+        Variable "proposedstep" not used yet, but may be important in the future, e.g.
+        if we decide that instead of tol_per_step (see AdaptiveSteps) we want to be able
+        to control tol_per_unitstep.
         """
         raise NotImplementedError
 
@@ -38,9 +38,9 @@ class StepRule(ABC):
     def errorest_to_norm(self, errorest: ArrayLike, reference_state: np.ndarray):
         """Computes the norm of error per tolerance (usually referred to as 'E').
 
-        The norm is usually the current error estimate normalised with
-        atol, rtol, and the magnitude of the previous states. If this is
-        smaller than 1, the step was small enough.
+        The norm is usually the current error estimate normalised with atol, rtol, and
+        the magnitude of the previous states. If this is smaller than 1, the step was
+        small enough.
         """
         raise NotImplementedError
 
@@ -68,24 +68,37 @@ class ConstantSteps(StepRule):
         pass
 
 
-# Once we have other controls, e.g. PI control, we can rename this into ProportionalControl.
+# Once we have other controls, e.g. PI control,
+# we can rename this into ProportionalControl.
 class AdaptiveSteps(StepRule):
     """Adaptive step-size selection (using proportional control).
 
     Parameters
     ----------
-    firststep : float
-        First step to be taken by the ODE solver (which happens in absence of error estimates).
-    limitchange : list with 2 elements, optional
+    firststep
+        First step to be taken by the ODE solver
+        (which happens in absence of error estimates).
+    atol
+        Absolute tolerance.
+    rtol
+        Relative tolerance.
+    limitchange
         Lower and upper bounds for computed change of step.
-    safetyscale : float, optional
+    safetyscale
         Safety factor for proposal of distributions, 0 << safetyscale < 1
-    minstep : float, optional
-        Minimum step that is allowed. A runtime error is thrown if the proposed step is smaller. Default is 1e-15.
-    maxstep : float, optional
-        Maximum step that is allowed. A runtime error is thrown if the proposed step is larger. Default is 1e15.
+    minstep
+        Minimum step that is allowed.
+        A runtime error is thrown if the proposed step is smaller.
+    maxstep
+        Maximum step that is allowed.
+        A runtime error is thrown if the proposed step is larger.
     """
 
+    # We disable the too-many-arguments here,
+    # because adaptive step-size-selection depends on many parameters.
+    # Usability of the object is not decreased by many arguments,
+    # because most of them are optional.
+    # pylint: disable="too-many-arguments"
     def __init__(
         self,
         firststep: FloatLike,

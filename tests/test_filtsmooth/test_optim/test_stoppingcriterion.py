@@ -7,23 +7,23 @@ import pytest
 from probnum.filtsmooth.optim import _stopping_criterion
 
 
-@pytest.fixture
-def d1():
+@pytest.fixture(name="d1")
+def fixture_d1():
     return 5
 
 
-@pytest.fixture
-def d2():
+@pytest.fixture(name="d2")
+def fixture_d2():
     return 4
 
 
-@pytest.fixture
-def maxit():
+@pytest.fixture(name="maxit")
+def fixture_maxit():
     return 10
 
 
-@pytest.fixture
-def stopcrit():
+@pytest.fixture(name="stopcrit")
+def fixture_stopcrit():
     return _stopping_criterion.FiltSmoothStoppingCriterion(
         atol=1e-1, rtol=1e-1, maxit=10
     )
