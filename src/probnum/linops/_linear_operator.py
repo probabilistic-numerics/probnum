@@ -388,7 +388,7 @@ class LinearOperator:
         if curr_value is not None:
             assert isinstance(curr_value, bool)
 
-            raise ValueError(f"Can not change the value of the matrix property {name}")
+            raise ValueError(f"Can not change the value of the matrix property {name}.")
 
         if not isinstance(value, bool):
             raise TypeError(

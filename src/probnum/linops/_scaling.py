@@ -318,13 +318,13 @@ class Scaling(_linear_operator.LinearOperator):
         if self._scalar is not None:
             if self._scalar <= 0:
                 raise np.linalg.LinAlgError(
-                    "The linear operator is not positive definite"
+                    "The linear operator is not positive definite."
                 )
 
             return Scaling(np.sqrt(self._scalar), shape=self.shape)
 
         if np.any(self._factors <= 0):
-            raise np.linalg.LinAlgError("The linear operator is not positive definite")
+            raise np.linalg.LinAlgError("The linear operator is not positive definite.")
 
         return Scaling(np.sqrt(self._factors))
 
