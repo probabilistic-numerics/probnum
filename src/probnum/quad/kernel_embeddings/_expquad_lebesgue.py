@@ -1,7 +1,7 @@
 """Kernel embedding of exponentiated quadratic kernel with Lebesgue integration
 measure."""
 
-# pylint: disable=no-name-in-module, invalid-name
+# pylint: disable=no-name-in-module
 
 import numpy as np
 from scipy.special import erf
@@ -19,7 +19,8 @@ def _kernel_mean_expquad_lebesgue(
     Parameters
     ----------
     x :
-        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
+        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel
+        mean.
     kernel :
         Instance of an ExpQuad kernel.
     measure :
@@ -27,9 +28,9 @@ def _kernel_mean_expquad_lebesgue(
 
     Returns
     -------
-    k_mean :
+    kernel_mean :
         *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
-        evaluated at locations x.
+        evaluated at locations ``x``.
     """
     input_dim = kernel.input_dim
 
@@ -59,7 +60,7 @@ def _kernel_variance_expquad_lebesgue(
 
     Returns
     -------
-    k_var :
+    kernel_variance :
         The kernel integrated w.r.t. both arguments.
     """
 

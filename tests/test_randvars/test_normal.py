@@ -166,7 +166,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # TODO: check dimension of each realization in rv_sample
                 rv = randvars.Normal(mean=mean, cov=cov)
                 rv_sample = rv.sample(rng=self.rng, size=5)
-                if not np.isscalar(rv.mean):
+                if np.ndim(rv.mean) != 0:
                     self.assertEqual(
                         rv_sample.shape[-rv.ndim :],
                         mean.shape,

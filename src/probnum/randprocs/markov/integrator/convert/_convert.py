@@ -3,11 +3,11 @@
 import numpy as np
 
 from probnum.randprocs.markov.integrator import _integrator
-from probnum.typing import IntArgType
+from probnum.typing import IntLike
 
 
 def convert_derivwise_to_coordwise(
-    state: np.ndarray, num_derivatives: IntArgType, wiener_process_dimension: IntArgType
+    state: np.ndarray, num_derivatives: IntLike, wiener_process_dimension: IntLike
 ) -> np.ndarray:
     """Convert coordinate-wise representation to derivative-wise representation.
 
@@ -29,7 +29,7 @@ def convert_derivwise_to_coordwise(
 
 
 def convert_coordwise_to_derivwise(
-    state: np.ndarray, num_derivatives: IntArgType, wiener_process_dimension: IntArgType
+    state: np.ndarray, num_derivatives: IntLike, wiener_process_dimension: IntLike
 ) -> np.ndarray:
     """Convert coordinate-wise representation to derivative-wise representation.
 

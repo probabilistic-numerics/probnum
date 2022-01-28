@@ -5,7 +5,7 @@ import abc
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 
 class Transition(abc.ABC):
@@ -46,7 +46,7 @@ class Transition(abc.ABC):
         Markov-chains and general discrete-time transitions (likelihoods).
     """
 
-    def __init__(self, input_dim: IntArgType, output_dim: IntArgType):
+    def __init__(self, input_dim: IntLike, output_dim: IntLike):
         self.input_dim = input_dim
         self.output_dim = output_dim
 
@@ -300,7 +300,7 @@ class Transition(abc.ABC):
     def jointly_transform_base_measure_realization_list_backward(
         self,
         base_measure_realizations: np.ndarray,
-        t: FloatArgType,
+        t: FloatLike,
         rv_list: randvars._RandomVariableList,
         _diffusion_list: np.ndarray,
         _previous_posterior=None,
@@ -367,7 +367,7 @@ class Transition(abc.ABC):
     def jointly_transform_base_measure_realization_list_forward(
         self,
         base_measure_realizations: np.ndarray,
-        t: FloatArgType,
+        t: FloatLike,
         initrv: randvars.RandomVariable,
         _diffusion_list: np.ndarray,
         _previous_posterior=None,

@@ -15,27 +15,27 @@ import scipy.sparse
 import probnum  # pylint: disable=unused-import
 from probnum import linops, randvars, utils
 from probnum.linalg.solvers.matrixbased import SymmetricMatrixBasedSolver
-from probnum.typing import LinearOperatorArgType
+from probnum.typing import LinearOperatorLike
 
 # pylint: disable=too-many-branches
 
 
 def problinsolve(
     A: Union[
-        LinearOperatorArgType,
-        "randvars.RandomVariable[LinearOperatorArgType]",
+        LinearOperatorLike,
+        "randvars.RandomVariable[LinearOperatorLike]",
     ],
     b: Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"],
     A0: Optional[
         Union[
-            LinearOperatorArgType,
-            "randvars.RandomVariable[LinearOperatorArgType]",
+            LinearOperatorLike,
+            "randvars.RandomVariable[LinearOperatorLike]",
         ]
     ] = None,
     Ainv0: Optional[
         Union[
-            LinearOperatorArgType,
-            "randvars.RandomVariable[LinearOperatorArgType]",
+            LinearOperatorLike,
+            "randvars.RandomVariable[LinearOperatorLike]",
         ]
     ] = None,
     x0: Optional[Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"]] = None,

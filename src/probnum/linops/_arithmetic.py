@@ -5,7 +5,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum import config, utils
-from probnum.typing import NotImplementedType, ScalarArgType, ShapeArgType
+from probnum.typing import NotImplementedType, ScalarLike, ShapeLike
 
 from ._arithmetic_fallbacks import (
     NegatedLinearOperator,
@@ -95,14 +95,14 @@ _matmul_fns: _BinaryOperatorRegistryType = {}
 ########################################################################################
 
 # Scaling
-def _mul_scalar_scaling(scalar: ScalarArgType, scaling: Scaling) -> Scaling:
+def _mul_scalar_scaling(scalar: ScalarLike, scaling: Scaling) -> Scaling:
     if scaling.is_isotropic:
         return Scaling(scalar * scaling.scalar, shape=scaling.shape)
 
     return Scaling(scalar * scaling.factors, shape=scaling.shape)
 
 
-def _mul_scaling_scalar(scaling: Scaling, scalar: ScalarArgType) -> Scaling:
+def _mul_scaling_scalar(scaling: Scaling, scalar: ScalarLike) -> Scaling:
     if scaling.is_isotropic:
         return Scaling(scalar * scaling.scalar, shape=scaling.shape)
 
@@ -157,14 +157,14 @@ def _matmul_kronecker_scaling(kronecker: Kronecker, scaling: Scaling) -> Kroneck
     return NotImplemented
 
 
-def _mul_scalar_kronecker(scalar: ScalarArgType, kronecker: Kronecker) -> Kronecker:
+def _mul_scalar_kronecker(scalar: ScalarLike, kronecker: Kronecker) -> Kronecker:
     if scalar < 0.0:
         return NotImplemented
     sqrt_scalar = np.sqrt(scalar)
     return Kronecker(A=sqrt_scalar * kronecker.A, B=sqrt_scalar * kronecker.B)
 
 
-def _mul_kronecker_scalar(kronecker: Kronecker, scalar: ScalarArgType) -> Kronecker:
+def _mul_kronecker_scalar(kronecker: Kronecker, scalar: ScalarLike) -> Kronecker:
     if scalar < 0.0:
         return NotImplemented
     sqrt_scalar = np.sqrt(scalar)
@@ -213,7 +213,7 @@ def _matmul_idkronecker_scaling(
 
 
 def _mul_scalar_idkronecker(
-    scalar: ScalarArgType, idkronecker: IdentityKronecker
+    scalar: ScalarLike, idkronecker: IdentityKronecker
 ) -> IdentityKronecker:
 
     return IdentityKronecker(
@@ -222,7 +222,7 @@ def _mul_scalar_idkronecker(
 
 
 def _mul_idkronecker_scalar(
-    idkronecker: IdentityKronecker, scalar: ScalarArgType
+    idkronecker: IdentityKronecker, scalar: ScalarLike
 ) -> IdentityKronecker:
 
     return IdentityKronecker(
@@ -425,7 +425,7 @@ def _apply(
 ########################################################################################
 
 
-def _operand_to_linop(operand: Any, shape: ShapeArgType) -> Optional[LinearOperator]:
+def _operand_to_linop(operand: Any, shape: ShapeLike) -> Optional[LinearOperator]:
     if isinstance(operand, LinearOperator):
         pass
     elif np.ndim(operand) == 0:

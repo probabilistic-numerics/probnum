@@ -150,3 +150,19 @@ def test_callback(ivp, step):
     callback = diffeq.callbacks.DiscreteCallback(replace=replace, condition=condition)
 
     solver.solve(ivp, stop_at=[t], callbacks=callback)
+
+
+def test_default_arguments(ivp, step):
+    """The ODEFilter class functions with just a prior and a steprule."""
+
+    steprule = diffeq.stepsize.ConstantSteps(step)
+    prior_process = randprocs.markov.integrator.IntegratedWienerProcess(
+        initarg=ivp.t0, num_derivatives=1, wiener_process_dimension=ivp.dimension
+    )
+
+    # Everything else has appropriate defaults.
+    solver = diffeq.odefilter.ODEFilter(
+        steprule=steprule,
+        prior_process=prior_process,
+    )
+    solver.solve(ivp)

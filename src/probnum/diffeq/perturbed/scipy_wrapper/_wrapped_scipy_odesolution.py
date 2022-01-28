@@ -5,7 +5,7 @@ from scipy.integrate._ivp.common import OdeSolution
 from probnum import randvars
 from probnum.diffeq import _odesolution
 from probnum.filtsmooth._timeseriesposterior import DenseOutputValueType
-from probnum.typing import DenseOutputLocationArgType
+from probnum.typing import ArrayLike
 
 
 class WrappedScipyODESolution(_odesolution.ODESolution):
@@ -19,7 +19,7 @@ class WrappedScipyODESolution(_odesolution.ODESolution):
         rv_states = randvars._RandomVariableList(rvs)
         super().__init__(locations=scipy_solution.ts, states=rv_states)
 
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
+    def __call__(self, t: ArrayLike) -> DenseOutputValueType:
         """Evaluate the time-continuous solution at time t.
 
         Parameters

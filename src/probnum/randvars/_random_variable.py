@@ -5,13 +5,7 @@ from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.typing import (
-    ArrayLikeGetitemArgType,
-    DTypeArgType,
-    FloatArgType,
-    ShapeArgType,
-    ShapeType,
-)
+from probnum.typing import ArrayIndicesLike, DTypeLike, FloatLike, ShapeLike, ShapeType
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -116,14 +110,14 @@ class RandomVariable(Generic[_ValueType]):
 
     def __init__(
         self,
-        shape: ShapeArgType,
-        dtype: DTypeArgType,
+        shape: ShapeLike,
+        dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
+        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
         mean: Optional[Callable[[], _ValueType]] = None,
@@ -417,7 +411,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return in_support
 
-    def sample(self, rng: np.random.Generator, size: ShapeArgType = ()) -> _ValueType:
+    def sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> _ValueType:
         """Draw realizations from a random variable.
 
         Parameters
@@ -490,7 +484,7 @@ class RandomVariable(Generic[_ValueType]):
                 f"with type `{type(self).__name__}` is implemented."
             )
 
-    def quantile(self, p: FloatArgType) -> _ValueType:
+    def quantile(self, p: FloatLike) -> _ValueType:
         """Quantile function.
 
         The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
@@ -537,7 +531,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return quantile
 
-    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "RandomVariable":
+    def __getitem__(self, key: ArrayIndicesLike) -> "RandomVariable":
         return RandomVariable(
             shape=np.empty(shape=self.shape)[key].shape,
             dtype=self.dtype,
@@ -550,7 +544,7 @@ class RandomVariable(Generic[_ValueType]):
             as_value_type=self.__as_value_type,
         )
 
-    def reshape(self, newshape: ShapeArgType) -> "RandomVariable":
+    def reshape(self, newshape: ShapeLike) -> "RandomVariable":
         """Give a new shape to a random variable.
 
         Parameters
@@ -758,7 +752,7 @@ class RandomVariable(Generic[_ValueType]):
         return pow_(other, self)
 
     @staticmethod
-    def infer_median_dtype(value_dtype: DTypeArgType) -> np.dtype:
+    def infer_median_dtype(value_dtype: DTypeLike) -> np.dtype:
         """Infer the dtype of the median.
 
         Set the dtype to the dtype arising from
@@ -777,7 +771,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable.infer_moment_dtype(value_dtype)
 
     @staticmethod
-    def infer_moment_dtype(value_dtype: DTypeArgType) -> np.dtype:
+    def infer_moment_dtype(value_dtype: DTypeLike) -> np.dtype:
         """Infer the dtype of any moment.
 
         Infers the dtype of any (function of a) moment of the random variable, e.g. its
@@ -964,25 +958,23 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     >>> x.sample(rng=rng, size=3)
     array([1, 0, 1])
     >>> x.pmf(2)
-    0.0
+    array(0.)
     >>> x.mean
     0.0
     """
 
     def __init__(
         self,
-        shape: ShapeArgType,
-        dtype: DTypeArgType,
+        shape: ShapeLike,
+        dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[
-            Callable[[np.random.Generator, ShapeArgType], _ValueType]
-        ] = None,
+        sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         pmf: Optional[Callable[[_ValueType], np.float_]] = None,
         logpmf: Optional[Callable[[_ValueType], np.float_]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
+        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
         mean: Optional[Callable[[], _ValueType]] = None,
@@ -1182,25 +1174,23 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     >>> u.sample(rng=rng, size=3)
     array([0.77395605, 0.43887844, 0.85859792])
     >>> u.pdf(0.5)
-    1.0
+    array(1.)
     >>> u.var
     0.08333333333333333
     """
 
     def __init__(
         self,
-        shape: ShapeArgType,
-        dtype: DTypeArgType,
+        shape: ShapeLike,
+        dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[
-            Callable[[np.random.Generator, ShapeArgType], _ValueType]
-        ] = None,
+        sample: Optional[Callable[[np.random.Generator, ShapeLike], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         pdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logpdf: Optional[Callable[[_ValueType], np.float_]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
+        quantile: Optional[Callable[[FloatLike], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
         mean: Optional[Callable[[], _ValueType]] = None,

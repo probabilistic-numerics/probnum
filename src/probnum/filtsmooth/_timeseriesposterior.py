@@ -6,17 +6,15 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import (
-    ArrayLikeGetitemArgType,
-    DenseOutputLocationArgType,
-    FloatArgType,
-    IntArgType,
-    ShapeArgType,
-)
+from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike, IntLike, ShapeLike
 
 DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
-"""Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a single location,
-and a _RandomVariableList if evaluated at an array of locations."""
+"""Output type of interpolation.
+
+Dense evaluation of a TimeSeriesPosterior returns a RandomVariable
+if evaluated at a single location,
+and a _RandomVariableList if evaluated at an array of locations.
+"""
 
 
 class TimeSeriesPosterior(abc.ABC):
@@ -33,14 +31,14 @@ class TimeSeriesPosterior(abc.ABC):
 
     def __init__(
         self,
-        locations: Optional[Iterable[FloatArgType]] = None,
+        locations: Optional[Iterable[FloatLike]] = None,
         states: Optional[Iterable[randvars.RandomVariable]] = None,
     ) -> None:
         self._locations = list(locations) if locations is not None else []
         self._states = list(states) if states is not None else []
         self._frozen = False
 
-    def _check_location(self, location: FloatArgType) -> FloatArgType:
+    def _check_location(self, location: FloatLike) -> FloatLike:
         if len(self._locations) > 0 and location <= self._locations[-1]:
             _err_msg = "Locations have to be strictly ascending. "
             _err_msg += f"Received {location} <= {self._locations[-1]}."
@@ -49,10 +47,10 @@ class TimeSeriesPosterior(abc.ABC):
 
     def append(
         self,
-        location: FloatArgType,
+        location: FloatLike,
         state: randvars.RandomVariable,
     ) -> None:
-
+        """Append a state to the posterior."""
         if self.frozen:
             raise ValueError("Cannot append to frozen TimeSeriesPosterior object.")
 
@@ -60,18 +58,22 @@ class TimeSeriesPosterior(abc.ABC):
         self._states.append(state)
 
     def freeze(self) -> None:
+        """Freeze the posterior."""
         self._frozen = True
 
     @property
     def frozen(self):
+        """Whether the posterior is frozen."""
         return self._frozen
 
     @property
     def locations(self):
+        """Locations of the states of the posterior."""
         return np.asarray(self._locations)
 
     @property
     def states(self):
+        """States of the posterior."""
         return randvars._RandomVariableList(self._states)
 
     def __len__(self) -> int:
@@ -81,10 +83,10 @@ class TimeSeriesPosterior(abc.ABC):
         """
         return len(self.locations)
 
-    def __getitem__(self, idx: ArrayLikeGetitemArgType) -> randvars.RandomVariable:
+    def __getitem__(self, idx: ArrayIndicesLike) -> randvars.RandomVariable:
         return self.states[idx]
 
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
+    def __call__(self, t: ArrayLike) -> DenseOutputValueType:
         """Evaluate the time-continuous posterior at location `t`
 
         Algorithm:
@@ -98,6 +100,11 @@ class TimeSeriesPosterior(abc.ABC):
         ----------
         t :
             Location, or time, at which to evaluate the posterior.
+
+        Raises
+        ------
+        ValueError
+            If time-points are not strictly increasing.
 
         Returns
         -------
@@ -125,7 +132,8 @@ class TimeSeriesPosterior(abc.ABC):
         t_inter = t[(t0 <= t) & (t <= tmax)]
 
         # Indices of t where they would be inserted
-        # into self.locations ("left": right-closest states -- this is the default in searchsorted)
+        # into self.locations
+        # ("left": right-closest states -- this is the default in searchsorted)
         indices = np.searchsorted(self.locations, t_inter, side="left")
         interpolated_values = [
             self.interpolate(
@@ -159,9 +167,9 @@ class TimeSeriesPosterior(abc.ABC):
     @abc.abstractmethod
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 
@@ -176,26 +184,30 @@ class TimeSeriesPosterior(abc.ABC):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        t: Optional[ArrayLike] = None,
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         """Draw samples from the filtering/smoothing posterior.
 
-        If nothing is specified, a single sample is drawn (supported on self.locations).
+        If nothing is specified, a single sample is drawn
+        (supported on self.locations).
         If locations are specified, a single sample is drawn on those locations.
         If size is specified, more than a single sample is drawn.
 
-        Internally, samples from a base measure are drawn and transformed via self.transform_base_measure_realizations.
+        Internally, samples from a base measure are drawn
+        and transformed via self.transform_base_measure_realizations.
 
         Parameters
         ----------
-        rng :
+        rng
             Random number generator.
-        t :
-            Locations on which the samples are wanted. Default is none, which implies that
+        t
+            Locations on which the samples are wanted.
+            Default is none, which implies that
             self.location is used.
-        size :
-            Indicates how many samples are drawn. Default is an empty tuple, in which case
+        size
+            Indicates how many samples are drawn.
+            Default is an empty tuple, in which case
             a single sample is returned.
 
 
@@ -213,17 +225,17 @@ class TimeSeriesPosterior(abc.ABC):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType],
+        t: Optional[ArrayLike],
     ) -> np.ndarray:
-        """Transform a set of realizations from a base measure into realizations from
-        the posterior.
+        """Transform base-measure-realizations into posteriors samples.
 
         Parameters
         ----------
-        base_measure_realizations :
+        base_measure_realizations
             Base measure realizations.
-        t :
-            Locations on which the transformed realizations shall represent realizations from the posterior.
+        t
+            Locations on which the transformed realizations
+            shall represent realizations from the posterior.
 
         Returns
         -------

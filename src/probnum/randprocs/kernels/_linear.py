@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.typing import IntArgType, ScalarArgType
+from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import Kernel
 
@@ -40,7 +40,7 @@ class Linear(Kernel):
            [ 8., 13.]])
     """
 
-    def __init__(self, input_dim: IntArgType, constant: ScalarArgType = 0.0):
+    def __init__(self, input_dim: IntLike, constant: ScalarLike = 0.0):
         self.constant = _utils.as_numpy_scalar(constant)
         super().__init__(input_dim=input_dim)
 

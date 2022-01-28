@@ -1,16 +1,23 @@
 """ODE solver interface."""
 
+import dataclasses
 from abc import ABC, abstractmethod
 from collections import abc
-from typing import Iterable, Optional, Union
+from typing import Iterable, Iterator, Optional, Union
 
 import numpy as np
 
 from probnum import problems
-from probnum.diffeq import callbacks
-from probnum.typing import FloatArgType
+from probnum.diffeq import callbacks as callback_module  # see below
+from probnum.typing import FloatLike
 
-CallbackType = Union[callbacks.ODESolverCallback, Iterable[callbacks.ODESolverCallback]]
+# From above:
+# One of the argument to solve() is called 'callback',
+# and we do not want to redefine variable namespaces.
+
+CallbackType = Union[
+    callback_module.ODESolverCallback, Iterable[callback_module.ODESolverCallback]
+]
 """Callback interface type."""
 
 
@@ -29,7 +36,7 @@ class ODESolver(ABC):
     def solve(
         self,
         ivp: problems.InitialValueProblem,
-        stop_at: Iterable[FloatArgType] = None,
+        stop_at: Iterable[FloatLike] = None,
         callbacks: Optional[CallbackType] = None,
     ):
         """Solve an IVP.
@@ -54,12 +61,12 @@ class ODESolver(ABC):
     def solution_generator(
         self,
         ivp: problems.InitialValueProblem,
-        stop_at: Iterable[FloatArgType] = None,
+        stop_at: Iterable[FloatLike] = None,
         callbacks: Optional[CallbackType] = None,
     ):
         """Generate ODE solver steps."""
 
-        callbacks, time_stopper = self._process_event_inputs(callbacks, stop_at)
+        callbacks, stopper_state = self._process_event_inputs(callbacks, stop_at)
 
         state = self.initialize(ivp)
         yield state
@@ -68,8 +75,8 @@ class ODESolver(ABC):
 
         # Use state.ivp in case a callback modifies the IVP
         while state.t < state.ivp.tmax:
-            if time_stopper is not None:
-                dt = time_stopper.adjust_dt_to_time_stops(state.t, dt)
+            if stopper_state is not None:
+                dt, stopper_state = _adjust_time_step(stopper_state, t=state.t, dt=dt)
 
             state, dt = self.perform_full_step(state, dt)
 
@@ -90,7 +97,10 @@ class ODESolver(ABC):
         if callbacks is not None:
             callbacks = promote_callback_type(callbacks)
         if stop_at_locations is not None:
-            time_stopper = _TimeStopper(stop_at_locations)
+            loc_iter = iter(stop_at_locations)
+            time_stopper = _TimeStopperState(
+                locations=loc_iter, next_location=next(loc_iter)
+            )
         else:
             time_stopper = None
         return callbacks, time_stopper
@@ -123,7 +133,6 @@ class ODESolver(ABC):
             else:
                 dt = min(suggested_dt, state.ivp.tmax - state.t)
 
-        # This line of code is unnecessary?!
         self.method_callback(state)
         return proposed_state, dt
 
@@ -147,7 +156,9 @@ class ODESolver(ABC):
         """Create an ODESolution object."""
         raise NotImplementedError
 
-    def postprocess(self, odesol):
+    # We disable the pylint warning, because subclasses _do_ use 'self'
+    # but pylint does not seem to realize this.
+    def postprocess(self, odesol):  # pylint: disable="no-self-use"
         """Process the ODESolution object before returning."""
         return odesol
 
@@ -158,25 +169,25 @@ class ODESolver(ABC):
         current guess is accepted, but before storing it. No return. For
         example: tune hyperparameters (sigma).
         """
-        pass
 
 
-class _TimeStopper:
-    """Make the ODE solver stop at specified time-points."""
+@dataclasses.dataclass
+class _TimeStopperState:
+    locations: Iterator
+    next_location: FloatLike
 
-    def __init__(self, locations: Iterable):
-        self._locations = iter(locations)
-        self._next_location = next(self._locations)
 
-    def adjust_dt_to_time_stops(self, t, dt):
-        """Check whether the next time-point is supposed to be stopped at."""
+def _adjust_time_step(stopper_state, t, dt):
+    if t >= stopper_state.next_location:
+        try:
+            next_location = next(stopper_state.locations)
+        except StopIteration:
+            next_location = np.inf
+    else:
+        next_location = stopper_state.next_location
 
-        if t >= self._next_location:
-            try:
-                self._next_location = next(self._locations)
-            except StopIteration:
-                self._next_location = np.inf
-
-        if t + dt > self._next_location:
-            dt = self._next_location - t
-        return dt
+    if t + dt > next_location:
+        dt = next_location - t
+    return dt, _TimeStopperState(
+        locations=stopper_state.locations, next_location=next_location
+    )

@@ -7,13 +7,13 @@ import numpy as np
 
 import probnum as pn
 from probnum import linops, randvars
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 def gaussian_belief_update(
     fun_params0: randvars.RandomVariable,
-    action: FloatArgType,
-    observation: FloatArgType,
+    action: FloatLike,
+    observation: FloatLike,
     noise_cov: Union[np.ndarray, linops.LinearOperator],
 ) -> randvars.RandomVariable:
     """Update the belief over the parameters with an observation.
