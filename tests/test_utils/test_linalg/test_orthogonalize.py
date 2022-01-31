@@ -7,9 +7,11 @@ import numpy as np
 import pytest
 
 from probnum import linops
+from probnum.problems.zoo.linalg import random_spd_matrix
 from probnum.utils.linalg import (
     double_gram_schmidt,
     gram_schmidt,
+    inner_product,
     modified_gram_schmidt,
 )
 
@@ -37,7 +39,7 @@ def vector() -> np.ndarray:
         np.inner,
     ],
 )
-def inner_product(request) -> int:
+def inprod(request) -> int:
     return request.param
 
 
@@ -55,7 +57,7 @@ def orthogonalization_fn(request) -> int:
 def test_is_orthogonal(
     vector: np.ndarray,
     basis_size: int,
-    inner_product: Union[
+    inprod: Union[
         np.ndarray,
         linops.LinearOperator,
         Callable[[np.ndarray, np.ndarray], np.ndarray],
@@ -70,7 +72,7 @@ def test_is_orthogonal(
 
     # Orthogonalize vector
     ortho_vector = orthogonalization_fn(
-        v=vector, orthogonal_basis=orthogonal_basis, inner_product=inner_product
+        v=vector, orthogonal_basis=orthogonal_basis, inner_product=inprod
     )
     np.testing.assert_allclose(
         orthogonal_basis @ ortho_vector,
@@ -97,3 +99,36 @@ def test_is_normalized(
     )
 
     assert np.inner(ortho_vector, ortho_vector) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize(
+    "inner_product_matrix",
+    [
+        np.diag(np.random.default_rng(123).standard_gamma(1.0, size=(n,))),
+        5 * np.eye(n),
+        random_spd_matrix(rng=np.random.default_rng(254), dim=100),
+    ],
+)
+def test_noneuclidean_innerprod(
+    vector: np.ndarray,
+    basis_size: int,
+    inner_product_matrix: np.ndarray,
+    orthogonalization_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
+):
+    _, orthogonal_basis = np.linalg.eigh(inner_product_matrix)
+    orthogonal_basis = orthogonal_basis[basis_size, :]
+
+    # Orthogonalize vector
+    ortho_vector = orthogonalization_fn(
+        v=vector,
+        orthogonal_basis=orthogonal_basis,
+        inner_product=inner_product_matrix,
+        normalize=True,
+    )
+
+    np.testing.assert_allclose(
+        orthogonal_basis @ inner_product_matrix @ ortho_vector,
+        np.zeros((basis_size,)),
+        atol=1e-12,
+        rtol=1e-12,
+    )

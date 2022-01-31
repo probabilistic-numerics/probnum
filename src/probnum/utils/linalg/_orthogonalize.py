@@ -44,6 +44,8 @@ def gram_schmidt(
     v_orth :
         Orthogonalized vector.
     """
+    orthogonal_basis = np.atleast_2d(orthogonal_basis)
+
     if inner_product is None:
         inprod_fn = inner_product_fn
         norm_fn = induced_norm
@@ -58,6 +60,13 @@ def gram_schmidt(
 
     for u in orthogonal_basis:
         v_orth -= (inprod_fn(u, v) / inprod_fn(u, u)) * u
+
+    # # if U is the orthonormal basis, then v_orth = v - UU^TAv
+    # basis_norm = inprod_fn(orthogonal_basis, orthogonal_basis)  # Compute norm of basis
+    # orthonormal_basis = (
+    #     (basis_norm) ** (-1 / 2) * orthogonal_basis.T
+    # ).T  # Divide basis vectors by norm
+    # v_orth -= orthonormal_basis @ inprod_fn(orthonormal_basis, v)
 
     if normalize:
         v_orth /= norm_fn(v_orth)
@@ -99,6 +108,8 @@ def modified_gram_schmidt(
     v_orth :
         Orthogonalized vector.
     """
+    orthogonal_basis = np.atleast_2d(orthogonal_basis)
+
     if inner_product is None:
         inprod_fn = inner_product_fn
         norm_fn = induced_norm
