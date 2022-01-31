@@ -34,7 +34,7 @@ def gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class:numpy.ndarray: or a :class:`Callable`
+        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or a :class:`Callable`
         defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
@@ -89,7 +89,7 @@ def modified_gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class:numpy.ndarray: or a :class:`Callable`
+        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or a :class:`Callable`
         defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
@@ -146,7 +146,7 @@ def double_gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class:numpy.ndarray: or a :class:`Callable`
+        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or a :class:`Callable`
         defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
