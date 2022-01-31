@@ -1,5 +1,6 @@
 """Orthogonalization of vectors."""
 
+from functools import partial
 from typing import Callable, Iterable, Optional, Union
 
 import numpy as np
@@ -48,19 +49,19 @@ def gram_schmidt(
 
     if inner_product is None:
         inprod_fn = inner_product_fn
-        norm_fn = induced_norm
+        norm_fn = partial(induced_norm, axis=-1)
     elif isinstance(inner_product, (np.ndarray, linops.LinearOperator)):
         inprod_fn = lambda v, w: inner_product_fn(v, w, A=inner_product)
-        norm_fn = lambda v: induced_norm(v, A=inner_product)
+        norm_fn = lambda v: induced_norm(v, A=inner_product, axis=-1)
     else:
         inprod_fn = inner_product
         norm_fn = lambda v: np.sqrt(inprod_fn(v, v))
 
-    # if U is the orthonormal basis, then v_orth = v - UU^TAv
-    v_orth = v.copy()
-    basis_norm = norm_fn(orthogonal_basis)
-    orthonormal_basis = (basis_norm) ** (-1 / 2) * orthogonal_basis
-    v_orth -= orthonormal_basis @ inprod_fn(orthonormal_basis, v)
+    for u in orthogonal_basis:
+        v_orth -= (inprod_fn(u, v_orth) / inprod_fn(u, u)) * u
+
+    if normalize:
+        v_orth /= norm_fn(v_orth)
 
     if normalize:
         v_orth /= norm_fn(v_orth)
