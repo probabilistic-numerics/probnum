@@ -45,7 +45,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> np.ndarray:
 
-        action = -solver_state.residual.copy()
+        residual = solver_state.residual.copy()
 
         if self._reorthogonalization_fn_residual is not None and solver_state.step == 0:
             solver_state.cache["reorthogonalized_residuals"] = [solver_state.residual]
@@ -62,7 +62,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
 
             # A-conjugacy correction (in exact arithmetic)
             beta = (np.linalg.norm(residual) / np.linalg.norm(prev_residual)) ** 2
-            action += beta * solver_state.actions[solver_state.step - 1]
+            action = -residual + beta * solver_state.actions[solver_state.step - 1]
 
             # Reorthogonalization of the resulting action
             if self._reorthogonalization_fn_action is not None:
@@ -70,7 +70,9 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
                     action=action, solver_state=solver_state
                 )
 
-        return action
+            return action
+
+        return -residual
 
     def _reorthogonalized_residuals(
         self,
@@ -82,7 +84,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
             orthogonal_basis=np.asarray(
                 solver_state.cache["reorthogonalized_residuals"]
             ),
-            inprod=None,
+            inner_product=None,
         )
         solver_state.cache["reorthogonalized_residuals"].append(residual)
         prev_residual = solver_state.cache["reorthogonalized_residuals"][
@@ -110,5 +112,5 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
         return self._reorthogonalization_fn_action(
             v=action,
             orthogonal_basis=orthogonal_basis,
-            inprod=inprod_matrix,
+            inner_product=inprod_matrix,
         )

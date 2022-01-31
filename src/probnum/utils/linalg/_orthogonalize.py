@@ -1,18 +1,20 @@
 """Orthogonalization of vectors."""
 
+from functools import partial
 from typing import Callable, Iterable, Optional, Union
 
 import numpy as np
 
 from probnum import linops
 
-from ._inner_product import euclidean_inprod, euclidean_norm
+from ._inner_product import induced_norm
+from ._inner_product import inner_product as inner_product_fn
 
 
 def gram_schmidt(
     v: np.ndarray,
     orthogonal_basis: Iterable[np.ndarray],
-    inprod: Optional[
+    inner_product: Optional[
         Union[
             np.ndarray,
             linops.LinearOperator,
@@ -32,24 +34,27 @@ def gram_schmidt(
         Vector to orthogonalize.
     orthogonal_basis
         Orthogonal basis.
-    inprod
-        Inner product.
+    inner_product
+        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or a :class:`Callable`
+        defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
 
     Returns
     -------
-    v_orth
+    v_orth :
         Orthogonalized vector.
     """
-    if inprod is None:
-        inprod_fn = euclidean_inprod
-        norm_fn = euclidean_norm
-    elif isinstance(inprod, (np.ndarray, linops.LinearOperator)):
-        inprod_fn = lambda v, w: euclidean_inprod(v, w, A=inprod)
-        norm_fn = lambda v: euclidean_norm(v, A=inprod)
+    orthogonal_basis = np.atleast_2d(orthogonal_basis)
+
+    if inner_product is None:
+        inprod_fn = inner_product_fn
+        norm_fn = partial(induced_norm, axis=-1)
+    elif isinstance(inner_product, (np.ndarray, linops.LinearOperator)):
+        inprod_fn = lambda v, w: inner_product_fn(v, w, A=inner_product)
+        norm_fn = lambda v: induced_norm(v, A=inner_product, axis=-1)
     else:
-        inprod_fn = inprod
+        inprod_fn = inner_product
         norm_fn = lambda v: np.sqrt(inprod_fn(v, v))
 
     v_orth = v.copy()
@@ -66,7 +71,7 @@ def gram_schmidt(
 def modified_gram_schmidt(
     v: np.ndarray,
     orthogonal_basis: Iterable[np.ndarray],
-    inprod: Optional[
+    inner_product: Optional[
         Union[
             np.ndarray,
             linops.LinearOperator,
@@ -86,24 +91,27 @@ def modified_gram_schmidt(
         Vector to orthogonalize.
     orthogonal_basis
         Orthogonal basis.
-    inprod
-        Inner product.
+    inner_product
+        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or a :class:`Callable`
+        defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
 
     Returns
     -------
-    v_orth
+    v_orth :
         Orthogonalized vector.
     """
-    if inprod is None:
-        inprod_fn = euclidean_inprod
-        norm_fn = euclidean_norm
-    elif isinstance(inprod, (np.ndarray, linops.LinearOperator)):
-        inprod_fn = lambda v, w: euclidean_inprod(v, w, A=inprod)
-        norm_fn = lambda v: euclidean_norm(v, A=inprod)
+    orthogonal_basis = np.atleast_2d(orthogonal_basis)
+
+    if inner_product is None:
+        inprod_fn = inner_product_fn
+        norm_fn = induced_norm
+    elif isinstance(inner_product, (np.ndarray, linops.LinearOperator)):
+        inprod_fn = lambda v, w: inner_product_fn(v, w, A=inner_product)
+        norm_fn = lambda v: induced_norm(v, A=inner_product)
     else:
-        inprod_fn = inprod
+        inprod_fn = inner_product
         norm_fn = lambda v: np.sqrt(inprod_fn(v, v))
 
     v_orth = v.copy()
@@ -120,7 +128,7 @@ def modified_gram_schmidt(
 def double_gram_schmidt(
     v: np.ndarray,
     orthogonal_basis: Iterable[np.ndarray],
-    inprod: Optional[
+    inner_product: Optional[
         Union[
             np.ndarray,
             linops.LinearOperator,
@@ -128,11 +136,14 @@ def double_gram_schmidt(
         ]
     ] = None,
     normalize: bool = False,
+    gram_schmidt_fn: Callable = modified_gram_schmidt,
 ) -> np.ndarray:
-    r"""Perform the modified Gram-Schmidt process twice.
+    r"""Perform the (modified) Gram-Schmidt process twice.
 
     Computes a vector :math:`v'` such that :math:`\langle v', b_i \rangle = 0` for
-    all basis vectors :math:`b_i \in B` in the orthogonal basis. This performs the modified Gram-Schmidt orthogonalization process twice, which is generally more stable than just reorthogonalizing once. [1]_ [2]_
+    all basis vectors :math:`b_i \in B` in the orthogonal basis. This performs the
+    (modified) Gram-Schmidt orthogonalization process twice, which is generally more
+    stable than just reorthogonalizing once. [1]_ [2]_
 
     Parameters
     ----------
@@ -140,14 +151,17 @@ def double_gram_schmidt(
         Vector to orthogonalize.
     orthogonal_basis
         Orthogonal basis.
-    inprod
-        Inner product.
+    inner_product
+        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or a :class:`Callable`
+        defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
+    gram_schmidt_fn
+        Gram-Schmidt process to use. One of :meth:`gram_schmidt` or :meth:`modified_gram_schmidt`.
 
     Returns
     -------
-    v_orth
+    v_orth :
         Orthogonalized vector.
 
     References
@@ -157,9 +171,15 @@ def double_gram_schmidt(
     .. [2] L. Giraud, J. Langou, and M. Rozloznik, The loss of orthogonality in the
            Gram-Schmidt orthogonalization process, Comput. Math. Appl., 50 (2005)
     """
-    v_orth = modified_gram_schmidt(
-        v=v, orthogonal_basis=orthogonal_basis, inprod=inprod, normalize=normalize
+    v_orth = gram_schmidt_fn(
+        v=v,
+        orthogonal_basis=orthogonal_basis,
+        inner_product=inner_product,
+        normalize=normalize,
     )
-    return modified_gram_schmidt(
-        v=v_orth, orthogonal_basis=orthogonal_basis, inprod=inprod, normalize=normalize
+    return gram_schmidt_fn(
+        v=v_orth,
+        orthogonal_basis=orthogonal_basis,
+        inner_product=inner_product,
+        normalize=normalize,
     )
