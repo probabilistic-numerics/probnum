@@ -57,7 +57,7 @@ def induced_norm(
     v
         Array.
     A
-        Symmetric positive (semi-)definite matrix defining the geometry.
+        Symmetric positive (semi-)definite linear operator defining the geometry.
     axis
         Specifies the axis along which to compute the vector norms.
 
@@ -70,5 +70,7 @@ def induced_norm(
     if A is None:
         return np.linalg.norm(v, ord=2, axis=axis, keepdims=False)
 
-    v_moved_axis = np.moveaxis(v, axis, -1)
-    return np.sqrt(inner_product(v_moved_axis, v_moved_axis, A))
+    v = np.moveaxis(v, axis, -1)
+    w = np.squeeze(A @ v[..., :, None], axis=-1)
+
+    return np.sqrt(np.sum(v * w, axis=-1))

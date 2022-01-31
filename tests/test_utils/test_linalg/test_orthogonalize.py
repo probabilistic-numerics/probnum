@@ -11,7 +11,6 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 from probnum.utils.linalg import (
     double_gram_schmidt,
     gram_schmidt,
-    inner_product,
     modified_gram_schmidt,
 )
 
@@ -106,7 +105,7 @@ def test_is_normalized(
     [
         np.diag(np.random.default_rng(123).standard_gamma(1.0, size=(n,))),
         5 * np.eye(n),
-        random_spd_matrix(rng=np.random.default_rng(254), dim=100),
+        random_spd_matrix(rng=np.random.default_rng(254), dim=n),
     ],
 )
 def test_noneuclidean_innerprod(
@@ -116,7 +115,7 @@ def test_noneuclidean_innerprod(
     orthogonalization_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
 ):
     _, orthogonal_basis = np.linalg.eigh(inner_product_matrix)
-    orthogonal_basis = orthogonal_basis[basis_size, :]
+    orthogonal_basis = orthogonal_basis[0:basis_size, :]
 
     # Orthogonalize vector
     ortho_vector = orthogonalization_fn(

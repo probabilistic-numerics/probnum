@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from probnum.problems.zoo.linalg import random_spd_matrix
 from probnum.utils.linalg import induced_norm, inner_product
 
 
@@ -58,12 +59,27 @@ def test_inner_product_arrays(array0: np.ndarray, array1: np.ndarray):
     assert inner_product(v=array0, w=array1) == pytest.approx(np.inner(array0, array1))
 
 
-def test_induced_norm_vector(vector0: np.ndarray):
+def test_euclidean_norm_vector(vector0: np.ndarray):
     assert np.linalg.norm(vector0, ord=2) == pytest.approx(induced_norm(v=vector0))
 
 
-@pytest.mark.parametrize("axis", [-1, 0])
-def test_induced_norm_array(array0: np.ndarray, axis: int):
+@pytest.mark.parametrize("axis", [0, 1])
+def test_euclidean_norm_array(array0: np.ndarray, axis: int):
     assert np.linalg.norm(array0, axis=axis, ord=2) == pytest.approx(
         induced_norm(v=array0, axis=axis)
     )
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+def test_induced_norm_array(array0: np.ndarray, axis: int):
+    inprod_mat = random_spd_matrix(
+        rng=np.random.default_rng(254), dim=array0.shape[axis]
+    )
+    array0_moved_axis = np.moveaxis(array0, axis, -1)
+    A_array_0_moved_axis = np.squeeze(
+        inprod_mat @ array0_moved_axis[..., :, None], axis=-1
+    )
+
+    assert np.sqrt(
+        np.sum(array0_moved_axis * A_array_0_moved_axis, axis=-1)
+    ) == pytest.approx(induced_norm(v=array0, A=inprod_mat, axis=axis))
