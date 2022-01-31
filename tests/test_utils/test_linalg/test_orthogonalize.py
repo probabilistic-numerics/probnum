@@ -13,24 +13,41 @@ from probnum.utils.linalg import (
     modified_gram_schmidt,
 )
 
-rng = np.random.default_rng(42)
 n = 100
 
 
-@parametrize("vector", rng.normal(size=(3, n)))
-@parametrize("basis_size", [1, 10, 50])
-@parametrize(
-    "inner_product",
-    [
+@pytest.fixture(scope="module", params=[1, 10, 50])
+def basis_size(request) -> int:
+    """Number of basis vectors."""
+    return request.param
+
+
+@pytest.fixture(scope="module")
+def vector() -> np.ndarray:
+    rng = np.random.default_rng(526367 + n)
+    return rng.standard_normal(size=(n,))
+
+
+@pytest.fixture(
+    scope="module",
+    params=[
         np.eye(n),
         linops.Identity(n),
         linops.Scaling(factors=1.0, shape=(n, n)),
         np.inner,
     ],
 )
-@parametrize(
-    "orthogonalization_fn", [gram_schmidt, modified_gram_schmidt, double_gram_schmidt]
+def inner_product(request) -> int:
+    return request.param
+
+
+@pytest.fixture(
+    scope="module", params=[gram_schmidt, modified_gram_schmidt, double_gram_schmidt]
 )
+def orthogonalization_fn(request) -> int:
+    return request.param
+
+
 def test_is_orthogonal(
     vector: np.ndarray,
     basis_size: int,
@@ -42,7 +59,9 @@ def test_is_orthogonal(
     orthogonalization_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
 ):
     # Compute orthogonal basis
-    orthogonal_basis, _ = np.linalg.qr(rng.normal(size=(vector.shape[0], basis_size)))
+    seed = abs(32 + hash(basis_size))
+    basis = np.random.default_rng(seed).normal(size=(vector.shape[0], basis_size))
+    orthogonal_basis, _ = np.linalg.qr(basis)
     orthogonal_basis = orthogonal_basis.T
 
     # Orthogonalize vector
@@ -57,18 +76,15 @@ def test_is_orthogonal(
     )
 
 
-@parametrize("vector", rng.normal(size=(3, n)))
-@parametrize("basis_size", [1, 10, 50])
-@parametrize(
-    "orthogonalization_fn", [gram_schmidt, modified_gram_schmidt, double_gram_schmidt]
-)
 def test_is_normalized(
     vector: np.ndarray,
     basis_size: int,
     orthogonalization_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
 ):
     # Compute orthogonal basis
-    orthogonal_basis, _ = np.linalg.qr(rng.normal(size=(vector.shape[0], basis_size)))
+    seed = abs(9467 + hash(basis_size))
+    basis = np.random.default_rng(seed).normal(size=(vector.shape[0], basis_size))
+    orthogonal_basis, _ = np.linalg.qr(basis)
     orthogonal_basis = orthogonal_basis.T
 
     # Orthogonalize vector

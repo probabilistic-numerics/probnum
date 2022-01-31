@@ -1,10 +1,12 @@
 """Functions defining useful inner products."""
+from __future__ import annotations
 
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 
-from probnum import linops
+if TYPE_CHECKING:
+    from probnum import linops
 
 
 def inner_product(
@@ -62,7 +64,7 @@ def induced_norm(
     Returns
     -------
     norm :
-        Vector norm of ``v`` along the given.
+        Vector norm of ``v`` along the given ``axis``.
     """
 
     if A is None:

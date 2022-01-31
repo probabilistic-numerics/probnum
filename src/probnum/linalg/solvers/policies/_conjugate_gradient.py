@@ -82,7 +82,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
             orthogonal_basis=np.asarray(
                 solver_state.cache["reorthogonalized_residuals"]
             ),
-            inprod=None,
+            inner_product=None,
         )
         solver_state.cache["reorthogonalized_residuals"].append(residual)
         prev_residual = solver_state.cache["reorthogonalized_residuals"][
@@ -110,5 +110,5 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
         return self._reorthogonalization_fn_action(
             v=action,
             orthogonal_basis=orthogonal_basis,
-            inprod=inprod_matrix,
+            inner_product=inprod_matrix,
         )

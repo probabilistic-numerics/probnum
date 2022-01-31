@@ -89,7 +89,7 @@ def modified_gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or a :class:`Callable`
+        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or a :class:`Callable`
         defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
@@ -131,12 +131,13 @@ def double_gram_schmidt(
         ]
     ] = None,
     normalize: bool = False,
+    gram_schmidt_fn: Callable = modified_gram_schmidt,
 ) -> np.ndarray:
-    r"""Perform the modified Gram-Schmidt process twice.
+    r"""Perform the (modified) Gram-Schmidt process twice.
 
     Computes a vector :math:`v'` such that :math:`\langle v', b_i \rangle = 0` for
     all basis vectors :math:`b_i \in B` in the orthogonal basis. This performs the
-    modified Gram-Schmidt orthogonalization process twice, which is generally more
+    (modified) Gram-Schmidt orthogonalization process twice, which is generally more
     stable than just reorthogonalizing once. [1]_ [2]_
 
     Parameters
@@ -146,10 +147,12 @@ def double_gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or a :class:`Callable`
+        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or a :class:`Callable`
         defining the inner product. Defaults to the euclidean inner product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
+    gram_schmidt_fn
+        Gram-Schmidt process to use. One of :meth:`gram_schmidt` or :meth:`modified_gram_schmidt`.
 
     Returns
     -------
@@ -163,13 +166,13 @@ def double_gram_schmidt(
     .. [2] L. Giraud, J. Langou, and M. Rozloznik, The loss of orthogonality in the
            Gram-Schmidt orthogonalization process, Comput. Math. Appl., 50 (2005)
     """
-    v_orth = modified_gram_schmidt(
+    v_orth = gram_schmidt_fn(
         v=v,
         orthogonal_basis=orthogonal_basis,
         inner_product=inner_product,
         normalize=normalize,
     )
-    return modified_gram_schmidt(
+    return gram_schmidt_fn(
         v=v_orth,
         orthogonal_basis=orthogonal_basis,
         inner_product=inner_product,
