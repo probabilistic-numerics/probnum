@@ -57,11 +57,10 @@ def gram_schmidt(
         inprod_fn = inner_product
         norm_fn = lambda v: np.sqrt(inprod_fn(v, v))
 
-    for u in orthogonal_basis:
-        v_orth -= (inprod_fn(u, v_orth) / inprod_fn(u, u)) * u
+    v_orth = v.copy()
 
-    if normalize:
-        v_orth /= norm_fn(v_orth)
+    for u in orthogonal_basis:
+        v_orth -= (inprod_fn(u, v) / inprod_fn(u, u)) * u
 
     if normalize:
         v_orth /= norm_fn(v_orth)

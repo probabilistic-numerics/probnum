@@ -105,7 +105,7 @@ def test_is_normalized(
     [
         np.diag(np.random.default_rng(123).standard_gamma(1.0, size=(n,))),
         5 * np.eye(n),
-        random_spd_matrix(rng=np.random.default_rng(254), dim=n),
+        random_spd_matrix(rng=np.random.default_rng(46), dim=n),
     ],
 )
 def test_noneuclidean_innerprod(
@@ -114,15 +114,16 @@ def test_noneuclidean_innerprod(
     inner_product_matrix: np.ndarray,
     orthogonalization_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
 ):
-    _, orthogonal_basis = np.linalg.eigh(inner_product_matrix)
-    orthogonal_basis = orthogonal_basis[0:basis_size, :]
+    evals, evecs = np.linalg.eigh(inner_product_matrix)
+    orthogonal_basis = evecs * 1 / np.sqrt(evals)
+    orthogonal_basis = orthogonal_basis[:, 0:basis_size].T
 
     # Orthogonalize vector
     ortho_vector = orthogonalization_fn(
         v=vector,
         orthogonal_basis=orthogonal_basis,
         inner_product=inner_product_matrix,
-        normalize=True,
+        normalize=False,
     )
 
     np.testing.assert_allclose(
