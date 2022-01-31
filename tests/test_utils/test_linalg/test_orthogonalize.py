@@ -20,7 +20,7 @@ n = 100
 @parametrize("vector", rng.normal(size=(3, n)))
 @parametrize("basis_size", [1, 10, 50])
 @parametrize(
-    "inprod",
+    "inner_product",
     [
         np.eye(n),
         linops.Identity(n),
@@ -34,7 +34,7 @@ n = 100
 def test_is_orthogonal(
     vector: np.ndarray,
     basis_size: int,
-    inprod: Union[
+    inner_product: Union[
         np.ndarray,
         linops.LinearOperator,
         Callable[[np.ndarray, np.ndarray], np.ndarray],
@@ -47,7 +47,7 @@ def test_is_orthogonal(
 
     # Orthogonalize vector
     ortho_vector = orthogonalization_fn(
-        v=vector, orthogonal_basis=orthogonal_basis, inprod=inprod
+        v=vector, orthogonal_basis=orthogonal_basis, inner_product=inner_product
     )
     np.testing.assert_allclose(
         orthogonal_basis @ ortho_vector,

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum.utils.linalg import euclidean_inprod, euclidean_norm
+from probnum.utils.linalg import induced_norm, inner_product
 
 
 @pytest.fixture(scope="module", params=[1, 10, 50])
@@ -25,8 +25,8 @@ def vector1(n: int) -> np.ndarray:
 
 
 def test_euclidean_inprod(vector0: np.ndarray, vector1: np.ndarray):
-    assert vector0 @ vector1 == pytest.approx(euclidean_inprod(v=vector0, w=vector1))
+    assert vector0 @ vector1 == pytest.approx(inner_product(v=vector0, w=vector1))
 
 
 def test_euclidean_norm(vector0: np.ndarray):
-    assert np.linalg.norm(vector0, ord=2) == pytest.approx(euclidean_norm(v=vector0))
+    assert np.linalg.norm(vector0, ord=2) == pytest.approx(induced_norm(v=vector0))

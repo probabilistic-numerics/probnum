@@ -7,12 +7,12 @@ import numpy as np
 from probnum import linops
 
 
-def euclidean_inprod(
+def inner_product(
     v: np.ndarray,
     w: np.ndarray,
     A: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
 ) -> np.ndarray:
-    r"""(Modified) Euclidean inner product :math:`\langle v, w \rangle_A := v^T A w`.
+    r"""Inner product :math:`\langle v, w \rangle_A := v^T A w`.
 
     Parameters
     ----------
@@ -25,7 +25,7 @@ def euclidean_inprod(
 
     Returns
     -------
-    inprod
+    inprod :
         Inner product.
     """
 
@@ -40,11 +40,11 @@ def euclidean_inprod(
     return np.squeeze(vw_inprod, axis=(-2, -1))
 
 
-def euclidean_norm(
+def induced_norm(
     v: np.ndarray,
     A: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
 ) -> np.ndarray:
-    r"""(Modified) Euclidean norm :math:`\lVert v \rVert_A := \sqrt{v^T A v}`.
+    r"""Induced norm :math:`\lVert v \rVert_A := \sqrt{v^T A v}`.
 
     Parameters
     ----------
@@ -55,11 +55,11 @@ def euclidean_norm(
 
     Returns
     -------
-    norm
+    norm :
         Vector norm.
     """
 
     if A is None:
         return np.linalg.norm(v, ord=2, axis=-1, keepdims=False)
 
-    return np.sqrt(euclidean_inprod(v, v, A))
+    return np.sqrt(inner_product(v, v, A))
