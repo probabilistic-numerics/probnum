@@ -1,10 +1,10 @@
 """Tests for orthogonalization functions."""
 
+from functools import partial
 from typing import Callable, Union
 
 import numpy as np
 import pytest
-from pytest_cases import parametrize
 
 from probnum import linops
 from probnum.utils.linalg import (
@@ -42,7 +42,11 @@ def inner_product(request) -> int:
 
 
 @pytest.fixture(
-    scope="module", params=[gram_schmidt, modified_gram_schmidt, double_gram_schmidt]
+    scope="module",
+    params=[
+        partial(double_gram_schmidt, gram_schmidt_fn=gram_schmidt),
+        partial(double_gram_schmidt, gram_schmidt_fn=modified_gram_schmidt),
+    ],
 )
 def orthogonalization_fn(request) -> int:
     return request.param
