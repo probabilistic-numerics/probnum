@@ -1,6 +1,7 @@
 """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
 measure."""
 
+# pylint: disable=invalid-name
 
 import numpy as np
 import scipy.linalg as slinalg
@@ -8,7 +9,7 @@ import scipy.linalg as slinalg
 from probnum.quad._integration_measures import GaussianMeasure
 from probnum.randprocs.kernels import ExpQuad
 
-# pylint: disable=invalid-name
+
 def _kernel_mean_expquad_gauss(
     x: np.ndarray, kernel: ExpQuad, measure: GaussianMeasure
 ) -> np.ndarray:

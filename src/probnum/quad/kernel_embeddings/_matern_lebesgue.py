@@ -59,7 +59,8 @@ def _kernel_mean_matern_lebesgue(
     Parameters
     ----------
     x :
-        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
+        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the 
+                                       kernel mean.
     kernel :
         A product Matern kernel, or a 1D Matern kernel.
     measure :
@@ -69,7 +70,7 @@ def _kernel_mean_matern_lebesgue(
     -------
     k_mean :
         *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
-                            evaluated at locations x.
+                             evaluated at locations x.
     """
     kernel = _convert_to_product_matern(kernel)
 
