@@ -59,7 +59,7 @@ def _kernel_mean_matern_lebesgue(
     Parameters
     ----------
     x :
-        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the 
+        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the
                                        kernel mean.
     kernel :
         A product Matern kernel, or a 1D Matern kernel.
