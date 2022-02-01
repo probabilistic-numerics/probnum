@@ -1,4 +1,4 @@
-"""Runge-Kutta-based initialization routines."""
+"""Initialization routines based on fitting the prior to (a few steps of a) non-probabilistc solver."""
 
 
 from typing import Optional
