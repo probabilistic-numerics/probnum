@@ -191,7 +191,7 @@ class ODEFilter(_odesolver.ODESolver):
         # The system matrix H of the measurement model can be accessed after the first forward_*,
         # therefore we read it off further below.
         discrete_dynamics = self.prior_process.transition.discretise(dt)
-        Phi = discrete_dynamics.state_trans_mat
+        Phi = discrete_dynamics.transition_matrix
 
         # Split the current RV into a deterministic part and a noisy part.
         # This split is necessary for efficient calibration; see docstring.
@@ -209,7 +209,9 @@ class ODEFilter(_odesolver.ODESolver):
         meas_rv_error_free, _ = self.measurement_model.forward_rv(
             pred_rv_error_free, t=state.t + dt
         )
-        H = self.measurement_model.linearized_model.state_trans_mat_fun(t=state.t + dt)
+        H = self.measurement_model.linearized_model.transition_matrix_fun(
+            t=state.t + dt
+        )
 
         # Compute the measurements for the full components.
         # Since the means of noise-free and noisy measurements coincide,
