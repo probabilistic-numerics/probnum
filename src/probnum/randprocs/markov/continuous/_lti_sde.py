@@ -3,6 +3,7 @@ import functools
 
 import numpy as np
 
+from probnum import randvars
 from probnum.randprocs.markov import discrete
 from probnum.randprocs.markov.continuous import _linear_sde, _mfd
 
@@ -167,9 +168,8 @@ class LTISDE(_linear_sde.LinearSDE):
             )
             sh = np.zeros(len(ah))
         return discrete.LTIGaussian(
-            ah,
-            sh,
-            qh,
+            transition_matrix=ah,
+            noise=randvars.Normal(mean=sh, cov=qh),
             forward_implementation=self._forward_implementation_string,
             backward_implementation=self._backward_implementation_string,
         )
