@@ -30,13 +30,18 @@ class EKFComponent(abc.ABC):
         _linearise_at=None,
     ) -> Tuple[randvars.Normal, Dict]:
         """Approximate forward-propagation of a realization of a random variable."""
-        return self._forward_realization_via_forward_rv(
-            realization,
+        compute_jacobian_at = (
+            _linearise_at
+            if _linearise_at is not None
+            else randvars.Constant(realization)
+        )
+        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
+        return self.linearized_model.forward_realization(
+            realization=realization,
             t=t,
             dt=dt,
             compute_gain=compute_gain,
             _diffusion=_diffusion,
-            _linearise_at=_linearise_at,
         )
 
     def forward_rv(
@@ -209,12 +214,11 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
 
         randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
-            non_linear_model.input_dim,
-            non_linear_model.output_dim,
-            non_linear_model.state_trans_fun,
-            non_linear_model.proc_noise_cov_mat_fun,
-            non_linear_model.jacob_state_trans_fun,
-            non_linear_model.proc_noise_cov_cholesky_fun,
+            input_dim=non_linear_model.input_dim,
+            output_dim=non_linear_model.output_dim,
+            transition_fun=non_linear_model.transition_fun,
+            noise_fun=non_linear_model.noise_fun,
+            transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
         )
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
@@ -224,26 +228,24 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
     def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
-        g = self.non_linear_model.state_trans_fun
-        dg = self.non_linear_model.jacob_state_trans_fun
+        g = self.non_linear_model.transition_fun
+        dg = self.non_linear_model.transition_fun_jacobian
 
         x0 = at_this_rv.mean
 
-        def force_vector_function(t):
-            return g(t, x0) - dg(t, x0) @ x0
-
-        def dynamicsmatfun(t):
+        def transition_matrix_fun(t):
             return dg(t, x0)
 
-        # alias for otherwise too-long line
-        process_cholesky_alias = self.non_linear_model.proc_noise_cov_cholesky_fun
+        def noise_fun(t):
+            pnoise = self.non_linear_model.noise_fun(t)
+            m = g(t, x0) - dg(t, x0) @ x0
+            return m + pnoise
+
         return randprocs.markov.discrete.LinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
-            state_trans_mat_fun=dynamicsmatfun,
-            shift_vec_fun=force_vector_function,
-            proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
-            proc_noise_cov_cholesky_fun=process_cholesky_alias,
+            transition_matrix_fun=transition_matrix_fun,
+            noise_fun=noise_fun,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )

@@ -173,12 +173,11 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
 
         randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
-            non_linear_model.input_dim,
-            non_linear_model.output_dim,
-            non_linear_model.state_trans_fun,
-            non_linear_model.proc_noise_cov_mat_fun,
-            non_linear_model.jacob_state_trans_fun,
-            non_linear_model.proc_noise_cov_cholesky_fun,
+            input_dim=non_linear_model.input_dim,
+            output_dim=non_linear_model.output_dim,
+            transition_fun=non_linear_model.transition_fun,
+            transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
+            noise_fun=non_linear_model.noise_fun,
         )
 
     def forward_rv(
@@ -188,9 +187,9 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
         self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
 
         proppts = self.ut.propagate(
-            t, self.sigma_points, self.non_linear_model.state_trans_fun
+            t, self.sigma_points, self.non_linear_model.transition_fun
         )
-        meascov = _diffusion * self.non_linear_model.proc_noise_cov_mat_fun(t)
+        meascov = _diffusion * self.non_linear_model.noise_fun(t).cov
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, self.sigma_points, meascov, rv.mean
         )

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs
+from probnum import randprocs, randvars
 from tests.test_randprocs.test_markov.test_discrete import test_linear_gaussian
 
 
@@ -19,42 +19,31 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
         backw_impl_string_linear_gauss,
     ):
 
-        self.G_const = spdmat1
-        self.S_const = spdmat2
-        self.v_const = np.arange(test_ndim)
+        self.transition_matrix = spdmat1
+        self.noise = randvars.Normal(mean=np.arange(test_ndim), cov=spdmat2)
+
         self.transition = randprocs.markov.discrete.LTIGaussian(
-            self.G_const,
-            self.v_const,
-            self.S_const,
+            transition_matrix=self.transition_matrix,
+            noise=self.noise,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
         # Compatibility with superclass' test
-        self.G = lambda t: self.G_const
-        self.S = lambda t: self.S_const
-        self.v = lambda t: self.v_const
-        self.g = lambda t, x: self.G(t) @ x + self.v(t)
-        self.dg = lambda t, x: self.G(t)
+        self.transition_matrix_fun = lambda t: self.transition_matrix
+        self.noise_fun = lambda t: self.noise
+        self.transition_fun = lambda t, x: self.transition_matrix @ x
+        self.transition_fun_jacobian = lambda t, x: self.transition_matrix
 
     # Test access to system matrices
 
-    def test_state_transition_mat(self):
-        received = self.transition.state_trans_mat
-        expected = self.G_const
+    def test_transition_matrix(self):
+        received = self.transition.transition_matrix
+        expected = self.transition_matrix
         np.testing.assert_allclose(received, expected)
 
-    def test_shift_vec(self):
-        received = self.transition.shift_vec
-        expected = self.v_const
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cov_mat(self):
-        received = self.transition.proc_noise_cov_mat
-        expected = self.S_const
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cov_cholesky(self):
-        received = self.transition.proc_noise_cov_cholesky
-        expected = np.linalg.cholesky(self.S_const)
-        np.testing.assert_allclose(received, expected)
+    def test_noise(self):
+        received = self.transition.noise
+        expected = self.noise
+        np.testing.assert_allclose(received.mean, expected.mean)
+        np.testing.assert_allclose(received.cov, expected.cov)
