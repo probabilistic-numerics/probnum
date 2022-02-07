@@ -75,6 +75,7 @@ def _compute_approximation(ivp, num_derivatives, routine):
         initarg=ivp.t0,
         num_derivatives=num_derivatives,
         wiener_process_dimension=ivp.dimension,
+        diffuse=True,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )

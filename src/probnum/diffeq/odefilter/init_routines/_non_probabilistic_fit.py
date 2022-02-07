@@ -1,4 +1,5 @@
-"""Initialization routines based on fitting the prior to (a few steps of a) non-probabilistc solver."""
+"""Initialization routines based on fitting the prior to (a few steps of a) non-
+probabilistc solver."""
 
 
 from typing import Optional
@@ -50,11 +51,14 @@ class _NonProbabilisticFitBase(InitializationRoutine):
         ode_dim = prior_process.transition.wiener_process_dimension
         proj_to_y = prior_process.transition.proj2coord(coord=0)
         observation_noise_std = self._observation_noise_std * np.ones(ode_dim)
+        process_noise = randvars.Normal(
+            mean=np.zeros(ode_dim),
+            cov=np.diag(observation_noise_std ** 2),
+            cov_cholesky=np.diag(observation_noise_std),
+        )
         measmod_scipy = randprocs.markov.discrete.LTIGaussian(
-            state_trans_mat=proj_to_y,
-            shift_vec=np.zeros(ode_dim),
-            proc_noise_cov_mat=np.diag(observation_noise_std ** 2),
-            proc_noise_cov_cholesky=np.diag(observation_noise_std),
+            transition_matrix=proj_to_y,
+            noise=process_noise,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
