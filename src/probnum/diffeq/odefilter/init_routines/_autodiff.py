@@ -56,13 +56,18 @@ class _AutoDiffBase(InitializationRoutine):
         )
 
     def _compute_ode_derivatives(self, *, f, y0, num_derivatives):
-        gen = self._F_generator(f=f, y0=y0)
+        gen = self._initial_derivative_generator(f=f, y0=y0)
         mean_matrix = jnp.stack(
             [next(gen)(y0)[:-1] for _ in range(num_derivatives + 1)]
         )
         return mean_matrix
 
     def _make_autonomous(self, *, ivp):
+        """Preprocess the ODE.
+
+        Turn the ODE into a format that is more convenient to handle with automatic
+        differentiation. This has no effect on the ODE itself. It is purely internal.
+        """
         y0_autonomous = jnp.concatenate([ivp.y0, jnp.array([ivp.t0])])
 
         def f_autonomous(y):
@@ -72,7 +77,9 @@ class _AutoDiffBase(InitializationRoutine):
 
         return f_autonomous, y0_autonomous
 
-    def _F_generator(self, *, f, y0):
+    def _initial_derivative_generator(self, *, f, y0):
+        """Generate the inital derivatives recursively."""
+
         def fwd_deriv(f, f0):
             def df(x):
                 return self._jvp_or_vjp(fun=f, primals=x, tangents=f0(x))
@@ -110,12 +117,6 @@ class ReverseMode(_AutoDiffBase):
     """Initialization via reverse-mode automatic differentiation."""
 
     def _jvp_or_vjp(self, *, fun, primals, tangents):
-        # The following should work, but doesn't
-        # y, dfx_fun = jax.vjp(fun, primals)
-        # a, = dfx_fun(tangents)
-        # return a
-
-        # Therefore we go sledge-hammer
         return jax.jacrev(fun)(primals) @ tangents
 
 
