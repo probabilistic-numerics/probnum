@@ -8,7 +8,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, randvars
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 @dataclasses.dataclass
@@ -32,14 +32,24 @@ class TimeSeriesRegressionProblem:
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum import randprocs
+    >>> from probnum import randprocs, randvars
     >>> obs = [11.4123, -15.5123]
     >>> loc = [0.1, 0.2]
-    >>> model = randprocs.markov.discrete.LTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
+    >>> transition_matrix = np.eye(1)
+    >>> noise = randvars.Normal(mean=np.ones((1,)), cov=np.eye(1))
+    >>> model = randprocs.markov.discrete.LTIGaussian(
+    ...     transition_matrix=transition_matrix, noise=noise
+    ... )
     >>> measurement_models = [model, model]
-    >>> rp = TimeSeriesRegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
+    >>> rp = TimeSeriesRegressionProblem(
+    ...     observations=obs, locations=loc,
+    ...     measurement_models=measurement_models,
+    ... )
     >>> rp
-    TimeSeriesRegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[LTIGaussian(input_dim=1, output_dim=1), LTIGaussian(input_dim=1, output_dim=1)], solution=None)
+    TimeSeriesRegressionProblem(locations=[0.1, 0.2],
+    observations=[11.4123, -15.5123],
+    measurement_models=[LTIGaussian(input_dim=1, output_dim=1),
+    LTIGaussian(input_dim=1, output_dim=1)], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
 
@@ -147,7 +157,7 @@ class InitialValueProblem:
     f: Callable[[float, np.ndarray], np.ndarray]
     t0: float
     tmax: float
-    y0: Union[FloatArgType, np.ndarray]
+    y0: Union[FloatLike, np.ndarray]
     df: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
@@ -248,8 +258,8 @@ class QuadratureProblem:
     """
 
     integrand: Callable[[np.ndarray], Union[float, np.ndarray]]
-    lower_bd: Union[FloatArgType, np.ndarray]
-    upper_bd: Union[FloatArgType, np.ndarray]
+    lower_bd: Union[FloatLike, np.ndarray]
+    upper_bd: Union[FloatLike, np.ndarray]
     output_dim: Optional[int] = 1
 
     # For testing and benchmarking

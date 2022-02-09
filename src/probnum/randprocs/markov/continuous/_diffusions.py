@@ -8,12 +8,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import randvars
-from probnum.typing import (
-    ArrayLikeGetitemArgType,
-    DenseOutputLocationArgType,
-    FloatArgType,
-    ToleranceDiffusionType,
-)
+from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike
 
 
 class Diffusion(abc.ABC):
@@ -23,16 +18,12 @@ class Diffusion(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def __call__(
-        self, t: DenseOutputLocationArgType
-    ) -> Union[ToleranceDiffusionType, np.ndarray]:
+    def __call__(self, t: ArrayLike) -> Union[ArrayLike, np.ndarray]:
         r"""Evaluate the diffusion :math:`\sigma(t)` at :math:`t`."""
         raise NotImplementedError
 
     @abc.abstractmethod
-    def __getitem__(
-        self, idx: ArrayLikeGetitemArgType
-    ) -> Union[ToleranceDiffusionType, np.ndarray]:
+    def __getitem__(self, idx: ArrayIndicesLike) -> Union[ArrayLike, np.ndarray]:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -40,8 +31,8 @@ class Diffusion(abc.ABC):
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
-        t: FloatArgType,
-    ) -> ToleranceDiffusionType:
+        t: FloatLike,
+    ) -> ArrayLike:
         r"""Estimate the (local) diffusion and update current (global) estimation in-
         place.
 
@@ -64,18 +55,14 @@ class ConstantDiffusion(Diffusion):
     def __repr__(self):
         return f"ConstantDiffusion({self.diffusion})"
 
-    def __call__(
-        self, t: DenseOutputLocationArgType
-    ) -> Union[ToleranceDiffusionType, np.ndarray]:
+    def __call__(self, t: ArrayLike) -> Union[ArrayLike, np.ndarray]:
         if self.diffusion is None:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
             )
         return self.diffusion * np.ones_like(t)
 
-    def __getitem__(
-        self, idx: ArrayLikeGetitemArgType
-    ) -> Union[ToleranceDiffusionType, np.ndarray]:
+    def __getitem__(self, idx: ArrayIndicesLike) -> Union[ArrayLike, np.ndarray]:
         if self.diffusion is None:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
@@ -87,8 +74,8 @@ class ConstantDiffusion(Diffusion):
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
-        t: FloatArgType,
-    ) -> ToleranceDiffusionType:
+        t: FloatLike,
+    ) -> ArrayLike:
         new_increment = _compute_local_quasi_mle(meas_rv)
         return new_increment
 
@@ -135,9 +122,7 @@ class PiecewiseConstantDiffusion(Diffusion):
     def __repr__(self):
         return f"PiecewiseConstantDiffusion({self.diffusions})"
 
-    def __call__(
-        self, t: DenseOutputLocationArgType
-    ) -> Union[ToleranceDiffusionType, np.ndarray]:
+    def __call__(self, t: ArrayLike) -> Union[ArrayLike, np.ndarray]:
         if len(self._locations) <= 1:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
@@ -158,9 +143,7 @@ class PiecewiseConstantDiffusion(Diffusion):
 
         return self[indices]
 
-    def __getitem__(
-        self, idx: ArrayLikeGetitemArgType
-    ) -> Union[ToleranceDiffusionType, np.ndarray]:
+    def __getitem__(self, idx: ArrayIndicesLike) -> Union[ArrayLike, np.ndarray]:
         if len(self._locations) <= 1:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
@@ -171,8 +154,8 @@ class PiecewiseConstantDiffusion(Diffusion):
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
-        t: FloatArgType,
-    ) -> ToleranceDiffusionType:
+        t: FloatLike,
+    ) -> ArrayLike:
         if not t >= self.tmax:
             raise ValueError(
                 "This time-point is not right of the current rightmost time-point."

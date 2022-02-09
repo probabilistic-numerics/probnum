@@ -73,6 +73,10 @@ making a pull request.
 A list of core contributors to ProbNum can be found
 [here](https://probnum.readthedocs.io/en/latest/development.html#probnum-team).
 
+## Citing ProbNum
+If you are using ProbNum in your research, please cite as provided. 
+The "Cite this repository" button on the sidebar generates a BibTeX entry or an APA entry. 
+
 ## License and Contact
 This work is released under the [MIT License](https://github.com/probabilistic-numerics/probnum/blob/main/LICENSE.txt).
 

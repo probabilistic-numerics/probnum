@@ -29,14 +29,19 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ) -> Tuple[randvars.Normal, Dict]:
-
-        return self._forward_realization_via_forward_rv(
-            realization,
+        """Approximate forward-propagation of a realization of a random variable."""
+        compute_jacobian_at = (
+            _linearise_at
+            if _linearise_at is not None
+            else randvars.Constant(realization)
+        )
+        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
+        return self.linearized_model.forward_realization(
+            realization=realization,
             t=t,
             dt=dt,
             compute_gain=compute_gain,
             _diffusion=_diffusion,
-            _linearise_at=_linearise_at,
         )
 
     def forward_rv(
@@ -48,6 +53,7 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ) -> Tuple[randvars.Normal, Dict]:
+        """Approximate forward-propagation of a random variable."""
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
@@ -70,6 +76,8 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
+        """Approximate backward-propagation of a realization of a random variable."""
+
         return self._backward_realization_via_backward_rv(
             realization_obtained,
             rv=rv,
@@ -92,6 +100,8 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
+        """Approximate backward-propagation of a random variable."""
+
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
         return self.linearized_model.backward_rv(
@@ -120,14 +130,20 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
     Parameters
     ----------
     non_linear_model
-        Non-linear continuous-time model (:class:`SDE`) that is approximated with the EKF.
+        Non-linear continuous-time model (:class:`SDE`)
+        that is approximated with the EKF.
     mde_atol
-        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Absolute tolerance passed to the solver of the
+        moment differential equations (MDEs). Optional.
     mde_rtol
-        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Relative tolerance passed to the solver of the
+        moment differential equations (MDEs). Optional.
     mde_solver
-        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
-        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+        Method that is chosen in `scipy.integrate.solve_ivp`.
+        Any string that is compatible with
+        ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``.
+        Optional. Default is LSODA.
     """
 
     def __init__(
@@ -198,12 +214,11 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
 
         randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
-            non_linear_model.input_dim,
-            non_linear_model.output_dim,
-            non_linear_model.state_trans_fun,
-            non_linear_model.proc_noise_cov_mat_fun,
-            non_linear_model.jacob_state_trans_fun,
-            non_linear_model.proc_noise_cov_cholesky_fun,
+            input_dim=non_linear_model.input_dim,
+            output_dim=non_linear_model.output_dim,
+            transition_fun=non_linear_model.transition_fun,
+            noise_fun=non_linear_model.noise_fun,
+            transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
         )
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
@@ -213,24 +228,24 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
     def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
-        g = self.non_linear_model.state_trans_fun
-        dg = self.non_linear_model.jacob_state_trans_fun
+        g = self.non_linear_model.transition_fun
+        dg = self.non_linear_model.transition_fun_jacobian
 
         x0 = at_this_rv.mean
 
-        def force_vector_function(t):
-            return g(t, x0) - dg(t, x0) @ x0
-
-        def dynamicsmatfun(t):
+        def transition_matrix_fun(t):
             return dg(t, x0)
+
+        def noise_fun(t):
+            pnoise = self.non_linear_model.noise_fun(t)
+            m = g(t, x0) - dg(t, x0) @ x0
+            return m + pnoise
 
         return randprocs.markov.discrete.LinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
-            state_trans_mat_fun=dynamicsmatfun,
-            shift_vec_fun=force_vector_function,
-            proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
-            proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
+            transition_matrix_fun=transition_matrix_fun,
+            noise_fun=noise_fun,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )

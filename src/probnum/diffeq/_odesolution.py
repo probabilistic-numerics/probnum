@@ -2,7 +2,8 @@
 
 This object is returned by ODESolver.solve().
 
-Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
+Provides dense output (by being callable), is sliceable,
+and collects the time-grid as well as the discrete-time solution.
 """
 
 from typing import Optional
@@ -10,8 +11,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import filtsmooth, randvars
-from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatArgType, IntArgType, ShapeArgType
+from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -43,9 +43,9 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
 
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
         raise NotImplementedError("Dense output is not implemented.")
 
@@ -60,8 +60,8 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        t: Optional[ArrayLike] = None,
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
         """Sample from the ODE solution.
 
@@ -71,10 +71,14 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             Random number generator.
         t
             Location / time at which to sample.
-            If nothing is specified, samples at the ODE-solver grid points are computed.
-            If it is a float, a sample of the ODE-solution at this time point is computed.
-            Similarly, if it is a list of floats (or an array), samples at the specified grid-points are returned.
-            This is not the same as computing i.i.d samples at the respective locations.
+            If nothing is specified, samples at the ODE-solver
+            grid points are computed.
+            If it is a float, a sample of the ODE-solution
+            at this time point is computed.
+            Similarly, if it is a list of floats (or an array),
+            samples at the specified grid-points are returned.
+            This is not the same as computing i.i.d samples at the respective
+            locations.
         size
             Number of samples.
         """
@@ -83,7 +87,7 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: DenseOutputLocationArgType,
+        t: ArrayLike,
     ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."

@@ -10,7 +10,7 @@ from probnum.filtsmooth.particle import (
     _importance_distributions,
     _particle_filter_posterior,
 )
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 # Terribly long variable names, but internal only, so no worries.
 ParticleFilterMeasurementModelArgType = Union[
@@ -36,10 +36,11 @@ def effective_number_of_events(categ_rv: randvars.Categorical) -> float:
 class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
     r"""Particle filter (PF). Also known as sequential Monte Carlo method.
 
-    A PF estimates the posterior distribution of a Markov process given noisy, non-linear observations,
-    with a set of particles.
+    A PF estimates the posterior distribution of a Markov process
+    given noisy, non-linear observations, with a set of particles.
 
-    The random state of the particle filter is inferred from the random state of the initial random variable.
+    The random state of the particle filter is inferred
+    from the random state of the initial random variable.
 
     Parameters
     ----------
@@ -49,15 +50,18 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         Importance distribution.
     num_particles :
         Number of particles to use.
-    rng :
+    rng
         Random number generator.
-    with_resampling :
-        Whether after each step the effective number of particles shall be checked, and, if too low,
+    with_resampling
+        Whether after each step the effective number of particles
+        shall be checked, and, if too low,
         the state should be resampled. Optional. Default is `True`.
-    resampling_percentage_threshold :
-        Percentage threshold for resampling. That is, it is the value :math:`p` such that
-        resampling is performed if :math:`N_{\text{eff}} < p \, N_\text{particles}` holds.
-        Optional. Default is 0.1. If this value is non-positive, resampling is never performed.
+    resampling_percentage_threshold
+        Percentage threshold for resampling.
+        That is, it is the value :math:`p` such that resampling is performed
+        if :math:`N_{\text{eff}} < p \, N_\text{particles}` holds.
+        Optional. Default is 0.1. If this value is non-positive,
+        resampling is never performed.
         If it is larger than 1, resampling is performed after each step.
     """
 
@@ -65,10 +69,10 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         self,
         prior_process: randprocs.markov.MarkovProcess,
         importance_distribution: _importance_distributions.ImportanceDistribution,
-        num_particles: IntArgType,
+        num_particles: IntLike,
         rng: np.random.Generator,
         with_resampling: bool = True,
-        resampling_percentage_threshold: FloatArgType = 0.1,
+        resampling_percentage_threshold: FloatLike = 0.1,
     ) -> None:
         super().__init__(
             prior_process=prior_process,
@@ -127,8 +131,13 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem :
+        regression_problem
             Regression problem.
+
+        Raises
+        ------
+        ValueError
+            If repeating time-points are encountered.
 
         Yields
         ------
@@ -152,7 +161,8 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         t_old = self.prior_process.initarg
 
         # If the initial time of the prior equals the location of the first data point,
-        # the initial set of particles is overwritten. Here, we set them to unimportant values.
+        # the initial set of particles is overwritten.
+        # Here, we set them to unimportant values.
         # If the initial time of the prior is NOT the location of the first data point,
         # we have to sample an initial set of particles.
         weights = np.ones(self.num_particles) / self.num_particles
@@ -173,9 +183,9 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
             # Capture the inputs in a variable for more compact code layout
             inputs = measmod, particles, weights, data, t_old, dt, t
             if t == initarg:
-                particle_generator = self.importance_rv_generator_initial_time(*inputs)
+                particle_generator = self._importance_rv_generator_initial_time(*inputs)
             else:
-                particle_generator = self.importance_rv_generator(*inputs)
+                particle_generator = self._importance_rv_generator(*inputs)
 
             for idx, (importance_rv, dynamics_rv, p, w) in enumerate(
                 particle_generator
@@ -209,7 +219,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
             yield new_rv, {}
             t_old = t
 
-    def importance_rv_generator_initial_time(
+    def _importance_rv_generator_initial_time(
         self,
         measmod,
         particles,
@@ -227,7 +237,7 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
         for p, w in zip(particles, weights):
             yield importance_rv, dynamics_rv, p, w
 
-    def importance_rv_generator(
+    def _importance_rv_generator(
         self,
         measmod,
         particles,

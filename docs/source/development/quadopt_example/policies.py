@@ -5,11 +5,11 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 def explore_exploit_policy(
-    fun: Callable[[FloatArgType], FloatArgType],
+    fun: Callable[[FloatLike], FloatLike],
     fun_params0: randvars.RandomVariable,
     rng: np.random.Generator,
 ) -> float:
@@ -31,7 +31,7 @@ def explore_exploit_policy(
 
 
 def stochastic_policy(
-    fun: Callable[[FloatArgType], FloatArgType],
+    fun: Callable[[FloatLike], FloatLike],
     fun_params0: randvars.RandomVariable,
     rng: np.random.Generator,
 ) -> float:

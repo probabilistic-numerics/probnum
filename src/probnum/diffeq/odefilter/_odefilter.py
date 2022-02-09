@@ -53,42 +53,58 @@ class ODEFilter(_odesolver.ODESolver):
 
     def __init__(
         self,
+        *,
         steprule: stepsize.StepRule,
         prior_process: randprocs.markov.MarkovProcess,
-        information_operator: information_operators.ODEInformationOperator,
-        approx_strategy: approx_strategies.ApproximationStrategy,
-        with_smoothing: bool,
-        initialization_routine: initialization_routines.InitializationRoutine,
+        information_operator: Optional[
+            information_operators.ODEInformationOperator
+        ] = None,
+        approx_strategy: Optional[approx_strategies.ApproximationStrategy] = None,
+        with_smoothing: Optional[bool] = True,
+        initialization_routine: Optional[
+            initialization_routines.InitializationRoutine
+        ] = None,
         diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
+
         if not isinstance(
             prior_process.transition,
             randprocs.markov.integrator.IntegratorTransition,
         ):
             raise ValueError(
-                "Please initialise a Gaussian filter with an Integrator (see `probnum.randprocs.markov.integrator`)"
+                "Please initialise a Gaussian filter with an Integrator "
+                "(see `probnum.randprocs.markov.integrator`)."
             )
 
         self.prior_process = prior_process
 
-        self.information_operator = information_operator
-        self.approx_strategy = approx_strategy
+        self.information_operator = (
+            information_operator
+            or information_operators.ODEResidual(
+                num_prior_derivatives=prior_process.transition.num_derivatives,
+                ode_dimension=prior_process.transition.wiener_process_dimension,
+            )
+        )
+        self.approx_strategy = approx_strategy or approx_strategies.EK0()
 
         # Filled in in initialize(), once the ODE has been seen.
         self.measurement_model = None
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
-        self.initialization_routine = initialization_routine
+
+        self.initialization_routine = (
+            initialization_routine or initialization_routines.RungeKuttaInitialization()
+        )
         super().__init__(
-            steprule=steprule, order=prior_process.transition.num_derivatives
+            steprule=steprule, order=self.prior_process.transition.num_derivatives
         )
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
             randprocs.markov.continuous.PiecewiseConstantDiffusion(
-                t0=prior_process.initarg
+                t0=self.prior_process.initarg
             )
             if diffusion_model is None
             else diffusion_model
@@ -175,7 +191,7 @@ class ODEFilter(_odesolver.ODESolver):
         # The system matrix H of the measurement model can be accessed after the first forward_*,
         # therefore we read it off further below.
         discrete_dynamics = self.prior_process.transition.discretise(dt)
-        Phi = discrete_dynamics.state_trans_mat
+        Phi = discrete_dynamics.transition_matrix
 
         # Split the current RV into a deterministic part and a noisy part.
         # This split is necessary for efficient calibration; see docstring.
@@ -193,7 +209,9 @@ class ODEFilter(_odesolver.ODESolver):
         meas_rv_error_free, _ = self.measurement_model.forward_rv(
             pred_rv_error_free, t=state.t + dt
         )
-        H = self.measurement_model.linearized_model.state_trans_mat_fun(t=state.t + dt)
+        H = self.measurement_model.linearized_model.transition_matrix_fun(
+            t=state.t + dt
+        )
 
         # Compute the measurements for the full components.
         # Since the means of noise-free and noisy measurements coincide,

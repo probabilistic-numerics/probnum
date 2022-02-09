@@ -1,10 +1,12 @@
 """Scaling linear operator."""
+from __future__ import annotations
+
 from typing import Optional, Union
 
 import numpy as np
 
 import probnum.utils
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.typing import DTypeLike, ScalarLike, ShapeLike
 
 from . import _linear_operator
 
@@ -37,9 +39,9 @@ class Scaling(_linear_operator.LinearOperator):
 
     def __init__(
         self,
-        factors: Union[np.ndarray, ScalarArgType],
-        shape: Optional[ShapeArgType] = None,
-        dtype: Optional[DTypeArgType] = None,
+        factors: Union[np.ndarray, ScalarLike],
+        shape: Optional[ShapeLike] = None,
+        dtype: Optional[DTypeLike] = None,
     ):
         self._factors = None
         self._scalar = None
@@ -163,6 +165,14 @@ class Scaling(_linear_operator.LinearOperator):
             logabsdet=logabsdet,
             trace=trace,
         )
+
+        # Matrix properties
+        self.is_symmetric = True
+        self.is_lower_triangular = True
+        self.is_upper_triangular = True
+
+        if self._scalar is not None:
+            self.is_positive_definite = bool(self._scalar > 0.0)
 
     @property
     def factors(self) -> np.ndarray:
@@ -304,6 +314,20 @@ class Scaling(_linear_operator.LinearOperator):
         else:
             return np.linalg.cond(self.todense(cache=False), p=p)
 
+    def _cholesky(self, lower: bool = True) -> Scaling:
+        if self._scalar is not None:
+            if self._scalar <= 0:
+                raise np.linalg.LinAlgError(
+                    "The linear operator is not positive definite."
+                )
+
+            return Scaling(np.sqrt(self._scalar), shape=self.shape)
+
+        if np.any(self._factors <= 0):
+            raise np.linalg.LinAlgError("The linear operator is not positive definite.")
+
+        return Scaling(np.sqrt(self._factors))
+
 
 class Zero(_linear_operator.LinearOperator):
     def __init__(self, shape, dtype=np.float64):
@@ -331,3 +355,11 @@ class Zero(_linear_operator.LinearOperator):
             det=det,
             trace=trace,
         )
+
+        # Matrix properties
+        if self.is_square:
+            self.is_symmetric = True
+            self.is_lower_triangular = True
+            self.is_upper_triangular = True
+
+            self.is_positive_definite = False

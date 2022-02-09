@@ -7,7 +7,7 @@ from scipy.integrate._ivp import rk
 
 from probnum import randvars
 from probnum.diffeq import _odesolution
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 class PerturbedStepSolution(_odesolution.ODESolution):
@@ -26,9 +26,9 @@ class PerturbedStepSolution(_odesolution.ODESolution):
 
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[FloatArgType] = None,
-        next_index: Optional[FloatArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[FloatLike] = None,
+        next_index: Optional[FloatLike] = None,
     ):
         # For the first state, no interpolation has to be performed.
         if t == self.locations[0]:

@@ -11,7 +11,7 @@ import numpy as np
 
 from probnum import randprocs, randvars
 from probnum.filtsmooth.gaussian.approx import _unscentedtransform
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 
 class UKFComponent:
@@ -20,9 +20,9 @@ class UKFComponent:
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatArgType] = 1e-4,
-        priorpar: Optional[FloatArgType] = 2.0,
-        special_scale: Optional[FloatArgType] = 0.0,
+        spread: Optional[FloatLike] = 1e-4,
+        priorpar: Optional[FloatLike] = 2.0,
+        special_scale: Optional[FloatLike] = 0.0,
     ) -> None:
         self.non_linear_model = non_linear_model
         self.ut = _unscentedtransform.UnscentedTransform(
@@ -44,24 +44,30 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
     Parameters
     ----------
     non_linear_model
-        Non-linear continuous-time model (:class:`SDE`) that is approximated with the UKF.
+        Non-linear continuous-time model (:class:`SDE`) that
+        is approximated with the UKF.
     mde_atol
-        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Absolute tolerance passed to the solver
+        of the moment differential equations (MDEs). Optional.
     mde_rtol
-        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Relative tolerance passed to the solver
+        of the moment differential equations (MDEs). Optional.
     mde_solver
-        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
-        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+        Method that is chosen in `scipy.integrate.solve_ivp`.
+        Any string that is compatible with
+        ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``.
+        Optional. Default is LSODA.
     """
 
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatArgType] = 1e-4,
-        priorpar: Optional[FloatArgType] = 2.0,
-        special_scale: Optional[FloatArgType] = 0.0,
-        mde_atol: Optional[FloatArgType] = 1e-6,
-        mde_rtol: Optional[FloatArgType] = 1e-6,
+        spread: Optional[FloatLike] = 1e-4,
+        priorpar: Optional[FloatLike] = 2.0,
+        special_scale: Optional[FloatLike] = 0.0,
+        mde_atol: Optional[FloatLike] = 1e-6,
+        mde_rtol: Optional[FloatLike] = 1e-6,
         mde_solver: Optional[str] = "LSODA",
     ) -> None:
 
@@ -153,9 +159,9 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatArgType] = 1e-4,
-        priorpar: Optional[FloatArgType] = 2.0,
-        special_scale: Optional[FloatArgType] = 0.0,
+        spread: Optional[FloatLike] = 1e-4,
+        priorpar: Optional[FloatLike] = 2.0,
+        special_scale: Optional[FloatLike] = 0.0,
     ) -> None:
         UKFComponent.__init__(
             self,
@@ -167,12 +173,11 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
 
         randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,
-            non_linear_model.input_dim,
-            non_linear_model.output_dim,
-            non_linear_model.state_trans_fun,
-            non_linear_model.proc_noise_cov_mat_fun,
-            non_linear_model.jacob_state_trans_fun,
-            non_linear_model.proc_noise_cov_cholesky_fun,
+            input_dim=non_linear_model.input_dim,
+            output_dim=non_linear_model.output_dim,
+            transition_fun=non_linear_model.transition_fun,
+            transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
+            noise_fun=non_linear_model.noise_fun,
         )
 
     def forward_rv(
@@ -182,9 +187,9 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
         self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
 
         proppts = self.ut.propagate(
-            t, self.sigma_points, self.non_linear_model.state_trans_fun
+            t, self.sigma_points, self.non_linear_model.transition_fun
         )
-        meascov = _diffusion * self.non_linear_model.proc_noise_cov_mat_fun(t)
+        meascov = _diffusion * self.non_linear_model.noise_fun(t).cov
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, self.sigma_points, meascov, rv.mean
         )
@@ -254,4 +259,5 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
 
     @property
     def dimension(self) -> int:
+        """Dimension of the state-space associated with the UKF."""
         return self.ut.dimension

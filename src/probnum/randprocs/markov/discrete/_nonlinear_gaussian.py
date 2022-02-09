@@ -1,6 +1,5 @@
 """Discrete transitions."""
 
-from functools import lru_cache
 from typing import Callable, Optional
 
 import numpy as np
@@ -8,76 +7,67 @@ import numpy as np
 from probnum import randvars
 from probnum.randprocs.markov import _transition
 from probnum.randprocs.markov.discrete import _condition_state
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import ArrayLike, FloatLike, IntLike
 
 
 class NonlinearGaussian(_transition.Transition):
     r"""Discrete transitions with additive Gaussian noise.
 
-    .. math:: x_{i+1} \sim \mathcal{N}(g(t_i, x_i), S(t_i))
+    .. math:: y \sim g(t, x) + v(t), \quad v \sim \mathcal{N}(m(t), S(t))
 
-    for some (potentially non-linear) dynamics :math:`g: \mathbb{R}^m \rightarrow \mathbb{R}^n` and process noise covariance matrix :math:`S`.
+    for transition function :math:`g: \mathbb{R}^m \rightarrow \mathbb{R}^n`
+    and Noise :math:`v`.
 
     Parameters
     ----------
     input_dim
-        Dimension of the support of :math:`g` (in terms of :math:`x`), i.e. the input dimension.
+        Input dimension.
     output_dim
-        Dimension of the image of :math:`g`, i.e. the output dimension.
-    state_trans_fun :
-        State transition function :math:`g=g(t, x)`. Signature: ``state_trans_fun(t, x)``.
-    proc_noise_cov_mat_fun :
-        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
-    jacob_state_trans_fun :
-        Jacobian of the state transition function :math:`g` (with respect to :math:`x`), :math:`Jg=Jg(t, x)`.
-        Signature: ``jacob_state_trans_fun(t, x)``.
-    proc_noise_cov_cholesky_fun :
-        Cholesky factor of the process noise covariance matrix function :math:`\sqrt{S}=\sqrt{S}(t)`. Signature: ``proc_noise_cov_cholesky_fun(t)``.
-
-
-    See Also
-    --------
-    :class:`DiscreteModel`
-    :class:`NonlinearGaussianLinearModel`
+        Output dimension.
+    transition_fun
+        Transition function :math:`g(t, x)`.
+    noise_fun
+        Noise :math:`v(t)`.
+    transition_fun_jacobian
+        Jacobian of the transition function :math:`g(t, x)`.
     """
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
-        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
-        jacob_state_trans_fun: Optional[
-            Callable[[FloatArgType, np.ndarray], np.ndarray]
-        ] = None,
-        proc_noise_cov_cholesky_fun: Optional[
-            Callable[[FloatArgType], np.ndarray]
+        *,
+        input_dim: IntLike,
+        output_dim: IntLike,
+        transition_fun: Callable[[FloatLike, ArrayLike], ArrayLike],
+        noise_fun: Callable[[FloatLike], randvars.RandomVariable],
+        transition_fun_jacobian: Optional[
+            Callable[[FloatLike, ArrayLike], ArrayLike]
         ] = None,
     ):
-        self.state_trans_fun = state_trans_fun
-        self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
-
-        # "Private", bc. if None, overwritten by the property with the same name
-        self._proc_noise_cov_cholesky_fun = proc_noise_cov_cholesky_fun
-
-        def dummy_if_no_jacobian(t, x):
-            raise NotImplementedError
-
-        self.jacob_state_trans_fun = (
-            jacob_state_trans_fun
-            if jacob_state_trans_fun is not None
-            else dummy_if_no_jacobian
-        )
         super().__init__(input_dim=input_dim, output_dim=output_dim)
+        self._transition_fun = transition_fun
+        self._transition_fun_jacobian = transition_fun_jacobian
+        self._noise_fun = noise_fun
+
+    @property
+    def transition_fun(self):
+        return self._transition_fun
+
+    @property
+    def transition_fun_jacobian(self):
+        if self._transition_fun_jacobian is None:
+            raise NotImplementedError
+        return self._transition_fun_jacobian
+
+    @property
+    def noise_fun(self):
+        return self._noise_fun
 
     def forward_realization(
         self, realization, t, compute_gain=False, _diffusion=1.0, **kwargs
     ):
-
-        newmean = self.state_trans_fun(t, realization)
-        newcov = _diffusion * self.proc_noise_cov_mat_fun(t)
-
-        return randvars.Normal(newmean, newcov), {}
+        fun_eval = self.transition_fun(t, realization)
+        noise = _diffusion * self.noise_fun(t)
+        return fun_eval + noise, {}
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
         raise NotImplementedError("Not available")
@@ -142,34 +132,20 @@ class NonlinearGaussian(_transition.Transition):
             info,
         )
 
-    @lru_cache(maxsize=None)
-    def proc_noise_cov_cholesky_fun(self, t):
-        if self._proc_noise_cov_cholesky_fun is not None:
-            return self._proc_noise_cov_cholesky_fun(t)
-        covmat = self.proc_noise_cov_mat_fun(t)
-        return np.linalg.cholesky(covmat)
-
     @classmethod
     def from_callable(
         cls,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
-        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        jacob_state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        input_dim: IntLike,
+        output_dim: IntLike,
+        transition_fun: Callable[[FloatLike, ArrayLike], ArrayLike],
+        transition_fun_jacobian: Callable[[FloatLike, ArrayLike], ArrayLike],
     ):
         """Turn a callable into a deterministic transition."""
-
-        def diff(t):
-            return np.zeros((output_dim, output_dim))
-
-        def diff_cholesky(t):
-            return np.zeros((output_dim, output_dim))
 
         return cls(
             input_dim=input_dim,
             output_dim=output_dim,
-            state_trans_fun=state_trans_fun,
-            jacob_state_trans_fun=jacob_state_trans_fun,
-            proc_noise_cov_mat_fun=diff,
-            proc_noise_cov_cholesky_fun=diff_cholesky,
+            transition_fun=transition_fun,
+            transition_fun_jacobian=transition_fun_jacobian,
+            noise_fun=lambda t: randvars.Constant(np.zeros(output_dim)),
         )

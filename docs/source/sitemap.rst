@@ -9,7 +9,6 @@ Site Map
     tutorials
     api
     development
-    research
 
 Indices
 """""""

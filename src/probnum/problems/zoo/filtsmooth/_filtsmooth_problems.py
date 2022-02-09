@@ -4,7 +4,7 @@ import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 __all__ = [
     "benes_daum",
@@ -17,11 +17,11 @@ __all__ = [
 
 def car_tracking(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.5,
-    process_diffusion: FloatArgType = 1.0,
-    num_prior_derivatives: IntArgType = 1,
-    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
-    step: FloatArgType = 0.2,
+    measurement_variance: FloatLike = 0.5,
+    process_diffusion: FloatLike = 1.0,
+    num_prior_derivatives: IntLike = 1,
+    timespan: Tuple[FloatLike, FloatLike] = (0.0, 20.0),
+    step: FloatLike = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
@@ -106,12 +106,9 @@ def car_tracking(
 
     measurement_matrix = np.eye(measurement_dim, model_dim)
     measurement_cov = measurement_variance * np.eye(measurement_dim)
-    measurement_cov_cholesky = np.sqrt(measurement_variance) * np.eye(measurement_dim)
     measurement_model = randprocs.markov.discrete.LTIGaussian(
-        state_trans_mat=measurement_matrix,
-        shift_vec=np.zeros(measurement_dim),
-        proc_noise_cov_mat=measurement_cov,
-        proc_noise_cov_cholesky=measurement_cov_cholesky,
+        transition_matrix=measurement_matrix,
+        noise=randvars.Normal(mean=np.zeros(measurement_dim), cov=measurement_cov),
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -149,9 +146,9 @@ def car_tracking(
 
 def ornstein_uhlenbeck(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.1,
-    driftspeed: FloatArgType = 0.21,
-    process_diffusion: FloatArgType = 0.5,
+    measurement_variance: FloatLike = 0.1,
+    driftspeed: FloatLike = 0.21,
+    process_diffusion: FloatLike = 0.5,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
@@ -218,9 +215,8 @@ def ornstein_uhlenbeck(
     )
 
     measurement_model = randprocs.markov.discrete.LTIGaussian(
-        state_trans_mat=np.eye(1),
-        shift_vec=np.zeros(1),
-        proc_noise_cov_mat=measurement_variance * np.eye(1),
+        transition_matrix=np.eye(1),
+        noise=randvars.Normal(mean=np.zeros(1), cov=measurement_variance * np.eye(1)),
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
@@ -252,9 +248,9 @@ def ornstein_uhlenbeck(
 
 def pendulum(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.1024,
-    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
-    step: FloatArgType = 0.0075,
+    measurement_variance: FloatLike = 0.1024,
+    timespan: Tuple[FloatLike, FloatLike] = (0.0, 4.0),
+    step: FloatLike = 0.0075,
     initrv: Optional[randvars.RandomVariable] = None,
     initarg: Optional[float] = None,
 ):
@@ -347,7 +343,7 @@ def pendulum(
         x1, _ = x
         return np.array([[np.cos(x1), 0.0]])
 
-    process_noise_cov = (
+    noise_cov = (
         np.diag(np.array([step ** 3 / 3, step]))
         + np.diag(np.array([step ** 2 / 2]), 1)
         + np.diag(np.array([step ** 2 / 2]), -1)
@@ -356,17 +352,19 @@ def pendulum(
     dynamics_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=2,
-        state_trans_fun=f,
-        proc_noise_cov_mat_fun=lambda t: process_noise_cov,
-        jacob_state_trans_fun=df,
+        transition_fun=f,
+        noise_fun=lambda t: randvars.Normal(mean=np.zeros(2), cov=noise_cov),
+        transition_fun_jacobian=df,
     )
 
     measurement_model = randprocs.markov.discrete.NonlinearGaussian(
         input_dim=2,
         output_dim=1,
-        state_trans_fun=h,
-        proc_noise_cov_mat_fun=lambda t: measurement_variance * np.eye(1),
-        jacob_state_trans_fun=dh,
+        transition_fun=h,
+        noise_fun=lambda t: randvars.Normal(
+            mean=np.zeros(1), cov=measurement_variance * np.eye(1)
+        ),
+        transition_fun_jacobian=dh,
     )
 
     if initrv is None:
@@ -400,8 +398,8 @@ def pendulum(
 
 def benes_daum(
     rng: np.random.Generator,
-    measurement_variance: FloatArgType = 0.1,
-    process_diffusion: FloatArgType = 1.0,
+    measurement_variance: FloatLike = 0.1,
+    process_diffusion: FloatLike = 1.0,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
 ):
@@ -467,9 +465,8 @@ def benes_daum(
         drift_jacobian=df,
     )
     measurement_model = randprocs.markov.discrete.LTIGaussian(
-        state_trans_mat=np.eye(1),
-        shift_vec=np.zeros(1),
-        proc_noise_cov_mat=measurement_variance * np.eye(1),
+        transition_matrix=np.eye(1),
+        noise=randvars.Normal(mean=np.zeros(1), cov=measurement_variance * np.eye(1)),
     )
 
     # Generate data
@@ -506,15 +503,15 @@ def benes_daum(
 
 
 def logistic_ode(
-    y0: Optional[Union[np.ndarray, FloatArgType]] = None,
-    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 2.0),
-    step: FloatArgType = 0.1,
-    params: Tuple[FloatArgType, FloatArgType] = (6.0, 1.0),
+    y0: Optional[Union[np.ndarray, FloatLike]] = None,
+    timespan: Tuple[FloatLike, FloatLike] = (0.0, 2.0),
+    step: FloatLike = 0.1,
+    params: Tuple[FloatLike, FloatLike] = (6.0, 1.0),
     initrv: Optional[randvars.RandomVariable] = None,
-    evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
-    ek0_or_ek1: IntArgType = 1,
+    evlvar: Optional[Union[np.ndarray, FloatLike]] = None,
+    ek0_or_ek1: IntLike = 1,
     exclude_initial_condition: bool = True,
-    order: IntArgType = 3,
+    order: IntLike = 3,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
 ):

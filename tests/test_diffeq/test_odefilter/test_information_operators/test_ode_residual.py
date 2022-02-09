@@ -39,35 +39,21 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
         with pytest.raises(ValueError):
             self.info_op.as_transition()
 
-        # Basic functionality works
+        # Basic functionality works: default arguments
         self.info_op.incorporate_ode(ode=fitzhughnagumo)
         transition = self.info_op.as_transition()
         assert isinstance(transition, randprocs.markov.discrete.NonlinearGaussian)
 
-        # meascov-fun and meascov-cholesky-fun accepted
-        meascov_fun = lambda t: np.eye(self.info_op.output_dim)
-        meascov_cholesky_fun = lambda t: np.eye(self.info_op.output_dim)
-        transition = self.info_op.as_transition(
-            measurement_cov_fun=meascov_fun,
-            measurement_cov_cholesky_fun=meascov_cholesky_fun,
+        noise_fun = lambda t: randvars.Normal(
+            mean=np.zeros(self.info_op.output_dim), cov=np.eye(self.info_op.output_dim)
         )
-        assert isinstance(transition, randprocs.markov.discrete.NonlinearGaussian)
-        assert np.linalg.norm(transition.proc_noise_cov_cholesky_fun(0.0)) > 0.0
-        assert np.linalg.norm(transition.proc_noise_cov_mat_fun(0.0)) > 0.0
-
-        # Only meascov-fun accepted
         transition = self.info_op.as_transition(
-            measurement_cov_fun=meascov_fun, measurement_cov_cholesky_fun=None
+            noise_fun=noise_fun,
         )
+        noise = transition.noise_fun(0.0)
         assert isinstance(transition, randprocs.markov.discrete.NonlinearGaussian)
-        assert np.linalg.norm(transition.proc_noise_cov_mat_fun(0.0)) > 0.0
-
-        # Only meascov-cholesky-fun rejected
-        with pytest.raises(ValueError):
-            self.info_op.as_transition(
-                measurement_cov_fun=None,
-                measurement_cov_cholesky_fun=meascov_cholesky_fun,
-            )
+        assert np.linalg.norm(noise.cov) > 0.0
+        assert np.linalg.norm(noise.cov_cholesky) > 0.0
 
     def test_incorporate_ode(self, fitzhughnagumo):
         self.info_op.incorporate_ode(ode=fitzhughnagumo)

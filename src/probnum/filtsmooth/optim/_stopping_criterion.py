@@ -28,9 +28,8 @@ class FiltSmoothStoppingCriterion(StoppingCriterion):
         if magnitude > 1:
             self.iterations += 1
             return False
-        else:
-            self.iterations = 0
-            return True
+        self.iterations = 0
+        return True
 
     def evaluate_error(self, error, reference):
         """Compute the normalised error."""

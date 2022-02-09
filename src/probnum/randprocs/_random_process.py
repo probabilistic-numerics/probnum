@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum import randvars
 from probnum import utils as _utils
-from probnum.typing import DTypeArgType, IntArgType, ShapeArgType
+from probnum.typing import DTypeLike, IntLike, ShapeLike
 
 _InputType = TypeVar("InputType")
 _OutputType = TypeVar("OutputType")
@@ -47,9 +47,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        output_dim: Optional[IntArgType],
-        dtype: DTypeArgType,
+        input_dim: IntLike,
+        output_dim: Optional[IntLike],
+        dtype: DTypeLike,
     ):
         self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
 
@@ -112,7 +112,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         # return self.__call__(args).marginal()
         raise NotImplementedError
 
-    @abc.abstractmethod
     def mean(self, args: _InputType) -> _OutputType:
         """Mean function.
 
@@ -132,7 +131,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
     def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
         r"""Covariance function or kernel.
 
@@ -268,7 +266,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         except NotImplementedError as exc:
             raise NotImplementedError from exc
 
-    @abc.abstractmethod
     def push_forward(
         self,
         args: _InputType,
@@ -296,7 +293,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         self,
         rng: np.random.Generator,
         args: _InputType = None,
-        size: ShapeArgType = (),
+        size: ShapeLike = (),
     ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
         """Sample paths from the random process.
 
@@ -320,12 +317,11 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         return self._sample_at_input(rng=rng, args=args, size=size)
 
-    @abc.abstractmethod
     def _sample_at_input(
         self,
         rng: np.random.Generator,
         args: _InputType,
-        size: ShapeArgType = (),
+        size: ShapeLike = (),
     ) -> _OutputType:
         """Evaluate a set of sample paths at the given inputs.
 

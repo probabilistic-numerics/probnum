@@ -1,84 +1,87 @@
 """Discrete, linear Gaussian transitions."""
 import typing
 import warnings
-from typing import Callable, Optional, Tuple
+from typing import Callable, Tuple
 
 import numpy as np
 import scipy.linalg
 
 from probnum import config, linops, randvars
 from probnum.randprocs.markov.discrete import _nonlinear_gaussian
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike, LinearOperatorLike
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
 
 class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
-    """Discrete, linear Gaussian transition models of the form.
+    r"""Discrete, linear Gaussian transition models of the form.
 
-    .. math:: x_{i+1} \\sim \\mathcal{N}(G(t_i) x_i + v(t_i), S(t_i))
+    .. math:: y = G(t) x + v(t), \quad v(t) \sim \mathcal{N}(m(t), C(t))
 
-    for some dynamics matrix :math:`G=G(t)`, force vector :math:`v=v(t)`,
-    and diffusion matrix :math:`S=S(t)`.
-
+    for some transition matrix function :math:`G(t)`,
+    and Noise function :math:`v(t)`.
 
     Parameters
     ----------
-    state_trans_mat_fun : callable
-        State transition matrix function :math:`G=G(t)`. Signature: ``state_trans_mat_fun(t)``.
-    shift_vec_fun : callable
-        Shift vector function :math:`v=v(t)`. Signature: ``shift_vec_fun(t)``.
-    proc_noise_cov_mat_fun : callable
-        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
-
-    See Also
-    --------
-    :class:`DiscreteModel`
-    :class:`NonlinearGaussianLinearModel`
+    input_dim
+        Input dimension.
+    output_dim
+        Output dimension.
+    transition_matrix_fun
+        Transition matrix function :math:`G(t)`.
+    noise_fun
+        Noise function :math:`v(t)`.
+    forward_implementation
+        A string indicating the choice of forward implementation.
+    backward_implementation
+        A string indicating the choice of backward implementation.
     """
 
     def __init__(
         self,
-        input_dim: IntArgType,
-        output_dim: IntArgType,
-        state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
-        shift_vec_fun: Callable[[FloatArgType], np.ndarray],
-        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
-        proc_noise_cov_cholesky_fun: Optional[
-            Callable[[FloatArgType], np.ndarray]
-        ] = None,
-        forward_implementation="classic",
-        backward_implementation="classic",
+        *,
+        input_dim: IntLike,
+        output_dim: IntLike,
+        transition_matrix_fun: Callable[[FloatLike], LinearOperatorLike],
+        noise_fun: Callable[[FloatLike], randvars.RandomVariable],
+        forward_implementation: str = "classic",
+        backward_implementation: str = "classic",
     ):
+        super().__init__(
+            input_dim=input_dim,
+            output_dim=output_dim,
+            transition_fun=lambda t, x: transition_matrix_fun(t) @ x,
+            noise_fun=noise_fun,
+            transition_fun_jacobian=lambda t, x: transition_matrix_fun(t),
+        )
 
         # Choose implementation for forward and backward transitions
-        choose_forward_implementation = {
+        self._forward_implementation = self._choose_forward_implementation(
+            forward_implementation=forward_implementation
+        )
+        self._backward_implementation = self._choose_backward_implementation(
+            backward_implementation=backward_implementation
+        )
+
+        self._transition_matrix_fun = transition_matrix_fun
+
+    def _choose_forward_implementation(self, *, forward_implementation: str):
+        implementations = {
             "classic": self._forward_rv_classic,
             "sqrt": self._forward_rv_sqrt,
         }
-        choose_backward_implementation = {
+        return implementations[forward_implementation]
+
+    def _choose_backward_implementation(self, *, backward_implementation: str):
+        implementations = {
             "classic": self._backward_rv_classic,
             "sqrt": self._backward_rv_sqrt,
             "joseph": self._backward_rv_joseph,
         }
-        self._forward_implementation = choose_forward_implementation[
-            forward_implementation
-        ]
-        self._backward_implementation = choose_backward_implementation[
-            backward_implementation
-        ]
+        return implementations[backward_implementation]
 
-        self.state_trans_mat_fun = state_trans_mat_fun
-        self.shift_vec_fun = shift_vec_fun
-        super().__init__(
-            input_dim=input_dim,
-            output_dim=output_dim,
-            state_trans_fun=lambda t, x: (
-                self.state_trans_mat_fun(t) @ x + self.shift_vec_fun(t)
-            ),
-            proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
-            proc_noise_cov_cholesky_fun=proc_noise_cov_cholesky_fun,
-            jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
-        )
+    @property
+    def transition_matrix_fun(self):
+        return self._transition_matrix_fun
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
 
@@ -163,9 +166,9 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
     def _forward_rv_classic(
         self, rv, t, compute_gain=False, _diffusion=1.0
     ) -> Tuple[randvars.RandomVariable, typing.Dict]:
-        H = self.state_trans_mat_fun(t)
-        R = self.proc_noise_cov_mat_fun(t)
-        shift = self.shift_vec_fun(t)
+        H = self.transition_matrix_fun(t)
+        noise = self.noise_fun(t)
+        shift, R = noise.mean, noise.cov
 
         new_mean = H @ rv.mean + shift
         crosscov = rv.cov @ H.T
@@ -173,7 +176,6 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         info = {"crosscov": crosscov}
         if compute_gain:
             if config.matrix_free:
-                # gain = (new_cov.T.inv() @ crosscov.T).T
                 gain = crosscov @ new_cov.inv()
             else:
                 gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
@@ -189,9 +191,9 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
                 "Sqrt-implementation does not work with linops for now."
             )
 
-        H = self.state_trans_mat_fun(t)
-        SR = self.proc_noise_cov_cholesky_fun(t)
-        shift = self.shift_vec_fun(t)
+        H = self.transition_matrix_fun(t)
+        noise = self.noise_fun(t)
+        shift, SR = noise.mean, noise.cov_cholesky
 
         new_mean = H @ rv.mean + shift
         new_cov_cholesky = cholesky_update(
@@ -242,9 +244,10 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
             else:
                 gain = np.zeros((len(rv.mean), len(rv_obtained.mean)))
 
-        state_trans = self.state_trans_mat_fun(t)
-        proc_noise_chol = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
-        shift = self.shift_vec_fun(t)
+        state_trans = self.transition_matrix_fun(t)
+        noise = self.noise_fun(t)
+        shift = noise.mean
+        proc_noise_chol = np.sqrt(_diffusion) * noise.cov_cholesky
 
         chol_past = rv.cov_cholesky
         chol_obtained = rv_obtained.cov_cholesky
@@ -300,9 +303,9 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
             )
             gain = info_forwarded["gain"]
 
-        H = self.state_trans_mat_fun(t)
-        R = _diffusion * self.proc_noise_cov_mat_fun(t)
-        shift = self.shift_vec_fun(t)
+        H = self.transition_matrix_fun(t)
+        noise = self.noise_fun(t)
+        shift, R = noise.mean, _diffusion * noise.cov
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
         joseph_factor = np.eye(len(rv.mean)) - gain @ H

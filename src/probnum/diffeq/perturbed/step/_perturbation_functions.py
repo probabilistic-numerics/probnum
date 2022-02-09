@@ -4,15 +4,15 @@ from typing import Optional, Union
 import numpy as np
 import scipy
 
-from probnum.typing import FloatArgType, IntArgType, ShapeArgType
+from probnum.typing import FloatLike, IntLike, ShapeLike
 
 
 def perturb_uniform(
     rng: np.random.Generator,
-    step: FloatArgType,
-    solver_order: IntArgType,
-    noise_scale: FloatArgType,
-    size: Optional[ShapeArgType] = (),
+    step: FloatLike,
+    solver_order: IntLike,
+    noise_scale: FloatLike,
+    size: Optional[ShapeLike] = (),
 ) -> Union[float, np.ndarray]:
     """Perturb the step with uniformly distributed noise.
 
@@ -50,10 +50,10 @@ def perturb_uniform(
 
 def perturb_lognormal(
     rng: np.random.Generator,
-    step: FloatArgType,
-    solver_order: IntArgType,
-    noise_scale: FloatArgType,
-    size: Optional[ShapeArgType] = (),
+    step: FloatLike,
+    solver_order: IntLike,
+    noise_scale: FloatLike,
+    size: Optional[ShapeLike] = (),
 ) -> Union[float, np.ndarray]:
     """Perturb the step with log-normally distributed noise.
 

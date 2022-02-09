@@ -5,7 +5,7 @@ from typing import Callable, Optional, Type, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import ShapeArgType
+from probnum.typing import ShapeLike
 
 from . import _random_process, kernels
 
@@ -107,7 +107,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         self,
         rng: np.random.Generator,
         args: _InputType,
-        size: ShapeArgType = (),
+        size: ShapeLike = (),
     ) -> _OutputType:
         gaussian_rv = self.__call__(args)
         return gaussian_rv.sample(rng=rng, size=size)
