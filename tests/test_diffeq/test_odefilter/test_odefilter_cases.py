@@ -41,11 +41,6 @@ def init_non_prob_fit_with_jacobian():
 
 
 @pytest_cases.case(tags=("numpy",))
-def init_odefilter_map():
-    return diffeq.odefilter.init_routines.ODEFilterMAP()
-
-
-@pytest_cases.case(tags=("numpy",))
 def init_stack():
     return diffeq.odefilter.init_routines.Stack()
 
