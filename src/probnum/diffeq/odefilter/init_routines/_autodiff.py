@@ -6,34 +6,32 @@ from probnum import problems, randprocs, randvars
 
 from ._interface import InitializationRoutine
 
+# pylint: disable="import-outside-toplevel"
+try:
+    import jax
+    import jax.numpy as jnp
+    from jax.config import config
+    from jax.experimental.jet import jet
+
+    config.update("jax_enable_x64", True)
+
+    JAX_IS_AVAILABLE = True
+except ImportError as JAX_IMPORT_ERROR:
+    JAX_IS_AVAILABLE = False
+    JAX_IMPORT_ERROR_MSG = (
+        "Cannot perform Jax-based initialization without the optional "
+        "dependencies jax and jaxlib. "
+        "Try installing them via `pip install jax jaxlib`."
+    )
+
 
 class _AutoDiffBase(InitializationRoutine):
     def __init__(self):
+
+        if not JAX_IS_AVAILABLE:
+            raise ImportError(JAX_IMPORT_ERROR_MSG) from JAX_IMPORT_ERROR
+
         super().__init__(is_exact=True, requires_jax=True)
-        self._jax, self._jnp = self._import_jax()
-
-    def _import_jax(self):
-
-        # pylint: disable="import-outside-toplevel"
-        try:
-            import jax
-            import jax.numpy as jnp
-            from jax.config import config
-
-            config.update("jax_enable_x64", True)
-
-            return jax, jnp
-
-        except ImportError as err:
-            raise ImportError(self._import_jax_error_msg) from err
-
-    @property
-    def _import_jax_error_msg(self):
-        return (
-            "Cannot perform Jax-based initialization without the optional "
-            "dependencies jax and jaxlib. "
-            "Try installing them via `pip install jax jaxlib`."
-        )
 
     def __call__(
         self,
@@ -50,7 +48,7 @@ class _AutoDiffBase(InitializationRoutine):
             f=f, y0=y0, num_derivatives=num_derivatives
         )
         mean = mean_matrix.reshape((-1,), order="F")
-        zeros = self._jnp.zeros((mean.shape[0], mean.shape[0]))
+        zeros = jnp.zeros((mean.shape[0], mean.shape[0]))
         return randvars.Normal(
             mean=np.asarray(mean),
             cov=np.asarray(zeros),
@@ -59,18 +57,18 @@ class _AutoDiffBase(InitializationRoutine):
 
     def _compute_ode_derivatives(self, *, f, y0, num_derivatives):
         gen = self._F_generator(f=f, y0=y0)
-        mean_matrix = self._jnp.stack(
+        mean_matrix = jnp.stack(
             [next(gen)(y0)[:-1] for _ in range(num_derivatives + 1)]
         )
         return mean_matrix
 
     def _make_autonomous(self, *, ivp):
-        y0_autonomous = self._jnp.concatenate([ivp.y0, self._jnp.array([ivp.t0])])
+        y0_autonomous = jnp.concatenate([ivp.y0, jnp.array([ivp.t0])])
 
         def f_autonomous(y):
             x, t = y[:-1], y[-1]
             fx = ivp.f(t, x)
-            return self._jnp.concatenate([fx, self._jnp.array([1.0])])
+            return jnp.concatenate([fx, jnp.array([1.0])])
 
         return f_autonomous, y0_autonomous
 
@@ -97,7 +95,7 @@ class ForwardModeJVP(_AutoDiffBase):
     """Initialization via Jacobian-vector-product-based automatic differentiation."""
 
     def _jvp_or_vjp(self, *, fun, primals, tangents):
-        _, y = self._jax.jvp(fun, (primals,), (tangents,))
+        _, y = jax.jvp(fun, (primals,), (tangents,))
         return y
 
 
@@ -105,7 +103,7 @@ class ForwardMode(_AutoDiffBase):
     """Initialization via forward-mode automatic differentiation."""
 
     def _jvp_or_vjp(self, *, fun, primals, tangents):
-        return self._jax.jacfwd(fun)(primals) @ tangents
+        return jax.jacfwd(fun)(primals) @ tangents
 
 
 class ReverseMode(_AutoDiffBase):
@@ -118,7 +116,7 @@ class ReverseMode(_AutoDiffBase):
         # return a
 
         # Therefore we go sledge-hammer
-        return self._jax.jacrev(fun)(primals) @ tangents
+        return jax.jacrev(fun)(primals) @ tangents
 
 
 class TaylorMode(_AutoDiffBase):
@@ -201,47 +199,32 @@ class TaylorMode(_AutoDiffBase):
     [0. 0. 0. 0. 0. 0. 0. 0.]
     """
 
-    def __init__(self):
-        super().__init__()
-        self._jet = self._import_jet()
-
-    def _import_jet(self):
-
-        # pylint: disable="import-outside-toplevel"
-        try:
-            from jax.experimental.jet import jet
-
-            return jet
-
-        except ImportError as err:
-            raise ImportError(self._import_jax_error_msg) from err
-
     def _compute_ode_derivatives(self, *, f, y0, num_derivatives):
 
         # Corner case 1: num_derivatives == 0
         derivs = [y0[:-1]]
         if num_derivatives == 0:
-            return self._jnp.asarray(derivs)
+            return jnp.asarray(derivs)
 
         # Corner case 2: num_derivatives == 1
-        y0_series = (self._jnp.ones_like(y0),)
-        (y0_coeffs_taylor, [*y0_coeffs_remaining]) = self._jet(
+        y0_series = (jnp.ones_like(y0),)
+        (y0_coeffs_taylor, [*y0_coeffs_remaining]) = jet(
             fun=f,
             primals=(y0,),
             series=(y0_series,),
         )
         derivs.append(y0_coeffs_taylor[:-1])
         if num_derivatives == 1:
-            return self._jnp.asarray(derivs)
+            return jnp.asarray(derivs)
 
         # Order > 1
         for _ in range(1, num_derivatives):
             coeffs_taylor = (y0_coeffs_taylor, *y0_coeffs_remaining)
-            (_, [*y0_coeffs_remaining]) = self._jet(
+            (_, [*y0_coeffs_remaining]) = jet(
                 fun=f,
                 primals=(y0,),
                 series=(coeffs_taylor,),
             )
             derivs.append(y0_coeffs_remaining[-2][:-1])
 
-        return self._jnp.asarray(derivs)
+        return jnp.asarray(derivs)
