@@ -60,11 +60,6 @@ def solver_non_probabilistic_fit_with_jacobian():
 
 
 @pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
-def solver_odefilter_map():
-    return init_routines.ODEFilterMAP()
-
-
-@pytest_cases.case(tags=["is_not_exact", "requires_numpy"])
 def solver_stack():
     return init_routines.Stack()
 

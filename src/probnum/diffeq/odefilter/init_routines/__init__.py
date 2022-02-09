@@ -10,7 +10,7 @@ for low(ish) dimensional ODEs.
   (or choose :class:`ForwardModeJVP` altogether).
 * ``num_derivatives = 3,4,5``: :class:`NonProbabilisticFitWithJacobian`
   if the Jacobian of the ODE vector field is available,
-  or :class:`NonProbabilisticFit` if not. :class:`ODEFilterMap` will also do well.
+  or :class:`NonProbabilisticFit` if not.
 * ``num_derivatives > 5``: :class:`TaylorMode`. For orders 6 and 7, :class:`ForwardModeJVP` might work well too.
   :class:`TaylorMode` shines for ``num_derivatives >> 5``.
 
@@ -33,7 +33,6 @@ It may also be worth noting:
 from ._autodiff import ForwardMode, ForwardModeJVP, ReverseMode, TaylorMode
 from ._interface import InitializationRoutine
 from ._non_probabilistic_fit import NonProbabilisticFit, NonProbabilisticFitWithJacobian
-from ._odefilter_map import ODEFilterMAP
 from ._stack import Stack, StackWithJacobian
 
 __all__ = [
@@ -46,5 +45,4 @@ __all__ = [
     "ForwardModeJVP",
     "ReverseMode",
     "TaylorMode",
-    "ODEFilterMAP",
 ]
