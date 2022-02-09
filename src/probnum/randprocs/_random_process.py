@@ -112,7 +112,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         # return self.__call__(args).marginal()
         raise NotImplementedError
 
-    @abc.abstractmethod
     def mean(self, args: _InputType) -> _OutputType:
         """Mean function.
 
@@ -132,7 +131,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
     def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
         r"""Covariance function or kernel.
 
@@ -268,7 +266,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         except NotImplementedError as exc:
             raise NotImplementedError from exc
 
-    @abc.abstractmethod
     def push_forward(
         self,
         args: _InputType,
@@ -320,7 +317,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         return self._sample_at_input(rng=rng, args=args, size=size)
 
-    @abc.abstractmethod
     def _sample_at_input(
         self,
         rng: np.random.Generator,
