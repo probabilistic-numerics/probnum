@@ -1,14 +1,9 @@
 """Matern processes."""
 import warnings
+from functools import cached_property
 
 import numpy as np
 import scipy.special
-
-try:
-    # cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
 
 from probnum import randvars
 from probnum.randprocs.markov import _markov_process, continuous
@@ -140,7 +135,7 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
 
     @cached_property
-    def _drift_matrix(self):
+    def _drift_matrix(self):  # pylint: disable=method-hidden
         drift_matrix = np.diag(np.ones(self.num_derivatives), 1)
         nu = self.num_derivatives + 0.5
         D, lam = self.num_derivatives + 1, np.sqrt(2 * nu) / self.lengthscale
@@ -150,12 +145,12 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix)
 
     @cached_property
-    def _force_vector(self):
+    def _force_vector(self):  # pylint: disable=method-hidden
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @cached_property
-    def _dispersion_matrix(self):
+    def _dispersion_matrix(self):  # pylint: disable=method-hidden
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T

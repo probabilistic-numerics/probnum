@@ -1,12 +1,7 @@
 """Coordinate changes in state space models."""
 
 import abc
-
-try:
-    # cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
+from functools import cached_property
 
 import numpy as np
 import scipy.special  # for vectorised factorial
