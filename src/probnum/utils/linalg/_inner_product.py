@@ -16,7 +16,7 @@ def inner_product(
 ) -> np.ndarray:
     r"""Inner product :math:`\langle v, w \rangle_A := v^T A w`.
 
-    For arrays the function computes the inner product over the last axes of the
+    For n-d arrays the function computes the inner product over the last axis of the
     two arrays ``v`` and ``w``.
 
     Parameters
@@ -31,16 +31,21 @@ def inner_product(
     Returns
     -------
     inprod :
-        *shape=(\*v.shape[:-1], \*w.shape[:-1])* -- Inner product of ``v`` and ``w``. If they are both 1-D arrays then a scalar is returned; otherwise an array is returned.
+        Inner product(s) of ``v`` and ``w``.
+
+    Notes
+    -----
+    Note that the broadcasting behavior of :func:`inner_product` differs from :func:`numpy.inner`. Rather it follows the broadcasting rules of :func:`numpy.matmul` in that n-d arrays are treated as stacks of vectors.
     """
+    v_T = v[..., None, :]
     w = w[..., :, None]
 
     if A is None:
-        vw_inprod = np.dot(v, w)
+        vw_inprod = v_T @ w
     else:
-        vw_inprod = np.dot(v, A @ w)
+        vw_inprod = v_T @ (A @ w)
 
-    return np.squeeze(vw_inprod, axis=(-1))
+    return np.squeeze(vw_inprod, axis=(-2, -1))
 
 
 def induced_norm(
