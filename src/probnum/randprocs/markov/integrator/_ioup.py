@@ -135,18 +135,18 @@ class IntegratedOrnsteinUhlenbeckTransition(
         )
 
     @cached_property
-    def _drift_matrix(self):
+    def _drift_matrix(self):  # pylint: disable=method-hidden
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         drift_matrix_1d[-1, -1] = -self.driftspeed
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
     @cached_property
-    def _force_vector(self):
+    def _force_vector(self):  # pylint: disable=method-hidden
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
     @cached_property
-    def _dispersion_matrix(self):
+    def _dispersion_matrix(self):  # pylint: disable=method-hidden
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
