@@ -1,12 +1,7 @@
 """Integrated Brownian motion."""
 
-try:
-    # cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 import warnings
+from functools import cached_property
 
 import numpy as np
 import scipy.special
@@ -135,7 +130,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
 
     @cached_property
-    def _drift_matrix(self):
+    def _drift_matrix(self):  # pylint: disable=method-hidden
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.matrix_free:
             return linops.IdentityKronecker(
@@ -145,11 +140,11 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
     @cached_property
-    def _force_vector(self):
+    def _force_vector(self):  # pylint: disable=method-hidden
         return np.zeros((self.wiener_process_dimension * (self.num_derivatives + 1)))
 
     @cached_property
-    def _dispersion_matrix(self):
+    def _dispersion_matrix(self):  # pylint: disable=method-hidden
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
