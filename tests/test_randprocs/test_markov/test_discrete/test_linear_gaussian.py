@@ -37,33 +37,35 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
         backw_impl_string_linear_gauss,
     ):
 
-        self.G = lambda t: spdmat1
-        self.S = lambda t: spdmat2
-        self.v = lambda t: np.arange(test_ndim)
+        self.transition_matrix_fun = lambda t: spdmat1
+        self.noise_fun = lambda t: randvars.Normal(
+            mean=np.arange(test_ndim), cov=spdmat2
+        )
+
         self.transition = randprocs.markov.discrete.LinearGaussian(
-            test_ndim,
-            test_ndim,
-            self.G,
-            self.v,
-            self.S,
+            input_dim=test_ndim,
+            output_dim=test_ndim,
+            transition_matrix_fun=self.transition_matrix_fun,
+            noise_fun=self.noise_fun,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
         )
 
-        self.g = lambda t, x: self.G(t) @ x + self.v(t)
-        self.dg = lambda t, x: self.G(t)
+        self.transition_fun = lambda t, x: self.transition_matrix_fun(t) @ x
+        self.transition_fun_jacobian = lambda t, x: self.transition_matrix_fun(t)
 
     # Test access to system matrices
 
-    def test_state_transition_mat_fun(self):
-        received = self.transition.state_trans_mat_fun(0.0)
-        expected = self.G(0.0)
+    def test_transition_matrix_fun(self):
+        received = self.transition.transition_matrix_fun(0.0)
+        expected = self.transition_matrix_fun(0.0)
         np.testing.assert_allclose(received, expected)
 
-    def test_shift_vec_fun(self):
-        received = self.transition.shift_vec_fun(0.0)
-        expected = self.v(0.0)
-        np.testing.assert_allclose(received, expected)
+    def test_noise_fun(self):
+        received = self.transition.noise_fun(0.0)
+        expected = self.noise_fun(0.0)
+        np.testing.assert_allclose(received.mean, expected.mean)
+        np.testing.assert_allclose(received.cov, expected.cov)
 
     # Test forward and backward implementations
 
@@ -258,42 +260,37 @@ class TestLinearGaussianLinOps:
         spdmat2,
     ):
         with config(matrix_free=True):
-            self.G = lambda t: linops.aslinop(spdmat1)
-            self.S = lambda t: linops.aslinop(spdmat2)
-            self.v = lambda t: np.arange(test_ndim)
+            self.noise_fun = lambda t: randvars.Normal(
+                mean=np.arange(test_ndim), cov=linops.aslinop(spdmat2)
+            )
+            self.transition_matrix_fun = lambda t: linops.aslinop(spdmat1)
+
             self.transition = randprocs.markov.discrete.LinearGaussian(
-                test_ndim,
-                test_ndim,
-                self.G,
-                self.v,
-                self.S,
+                input_dim=test_ndim,
+                output_dim=test_ndim,
+                transition_matrix_fun=self.transition_matrix_fun,
+                noise_fun=self.noise_fun,
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
             self.sqrt_transition = randprocs.markov.discrete.LinearGaussian(
-                test_ndim,
-                test_ndim,
-                self.G,
-                self.v,
-                self.S,
+                input_dim=test_ndim,
+                output_dim=test_ndim,
+                transition_matrix_fun=self.transition_matrix_fun,
+                noise_fun=self.noise_fun,
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             )
 
-            self.g = lambda t, x: self.G(t) @ x + self.v(t)
-            self.dg = lambda t, x: self.G(t)
+            self.transition_fun = lambda t, x: self.transition_matrix_fun(t) @ x
+            self.transition_fun_jacobian = lambda t, x: self.transition_matrix_fun(t)
 
     # Test access to system matrices
 
-    def test_state_transition_mat_fun(self):
-        received = self.transition.state_trans_mat_fun(0.0)
-        expected = self.G(0.0)
+    def test_transition_matrix_fun_fun(self):
+        received = self.transition.transition_matrix_fun(0.0)
+        expected = self.transition_matrix_fun(0.0)
         np.testing.assert_allclose(received.todense(), expected.todense())
-
-    def test_shift_vec_fun(self):
-        received = self.transition.shift_vec_fun(0.0)
-        expected = self.v(0.0)
-        np.testing.assert_allclose(received, expected)
 
     # Test forward and backward implementations
 

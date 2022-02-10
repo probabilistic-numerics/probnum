@@ -4,15 +4,10 @@ Class defining a belief about the quantities of interest of a linear system such
 solution or the matrix inverse and any associated hyperparameters.
 """
 
+from functools import cached_property
 from typing import Mapping, Optional
 
 from probnum import linops, randvars
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
 
 # pylint: disable="invalid-name"
 
