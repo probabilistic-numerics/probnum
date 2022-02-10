@@ -45,7 +45,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> np.ndarray:
 
-        residual = solver_state.residual.copy()
+        residual = solver_state.residual
 
         if self._reorthogonalization_fn_residual is not None and solver_state.step == 0:
             solver_state.cache["reorthogonalized_residuals"] = [solver_state.residual]
@@ -70,9 +70,10 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
                     action=action, solver_state=solver_state
                 )
 
-            return action
+        else:
+            action = -residual
 
-        return -residual
+        return action
 
     def _reorthogonalized_residuals(
         self,

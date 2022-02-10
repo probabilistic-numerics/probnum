@@ -31,7 +31,7 @@ def gram_schmidt(
     Parameters
     ----------
     v
-        Vector to orthogonalize.
+        Vector (or stack of vectors) to orthogonalize against ``orthogonal_basis``.
     orthogonal_basis
         Orthogonal basis.
     inner_product
@@ -60,10 +60,10 @@ def gram_schmidt(
     v_orth = v.copy()
 
     for u in orthogonal_basis:
-        v_orth -= (inprod_fn(u, v) / inprod_fn(u, u)) * u
+        v_orth -= (inprod_fn(u, v)[..., None] / inprod_fn(u, u)) * u
 
     if normalize:
-        v_orth /= norm_fn(v_orth)
+        v_orth /= norm_fn(v_orth)[..., None]
 
     return v_orth
 
@@ -88,7 +88,7 @@ def modified_gram_schmidt(
     Parameters
     ----------
     v
-        Vector to orthogonalize.
+        Vector (or stack of vectors) to orthogonalize against ``orthogonal_basis``.
     orthogonal_basis
         Orthogonal basis.
     inner_product
@@ -117,10 +117,10 @@ def modified_gram_schmidt(
     v_orth = v.copy()
 
     for u in orthogonal_basis:
-        v_orth -= (inprod_fn(u, v_orth) / inprod_fn(u, u)) * u
+        v_orth -= (inprod_fn(u, v_orth)[..., None] / inprod_fn(u, u)) * u
 
     if normalize:
-        v_orth /= norm_fn(v_orth)
+        v_orth /= norm_fn(v_orth)[..., None]
 
     return v_orth
 
@@ -148,7 +148,7 @@ def double_gram_schmidt(
     Parameters
     ----------
     v
-        Vector to orthogonalize.
+        Vector (or stack of vectors) to orthogonalize against ``orthogonal_basis``.
     orthogonal_basis
         Orthogonal basis.
     inner_product

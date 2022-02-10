@@ -9,7 +9,7 @@ name: jupyter-tutorials-env
 channels:
   - conda-forge
 dependencies:
-  - python>=3.7
+  - python>=3.8
   - pip
   - pip:
     - -r docs/notebook-requirements.txt

@@ -56,7 +56,9 @@ def test_inner_product_vectors(vector0: np.ndarray, vector1: np.ndarray):
 
 
 def test_inner_product_arrays(array0: np.ndarray, array1: np.ndarray):
-    assert inner_product(v=array0, w=array1) == pytest.approx(np.inner(array0, array1))
+    assert inner_product(v=array0, w=array1) == pytest.approx(
+        np.einsum("...i,...i", array0, array1)
+    )
 
 
 def test_euclidean_norm_vector(vector0: np.ndarray):
