@@ -29,6 +29,12 @@ def vector() -> np.ndarray:
     return rng.standard_normal(size=(n,))
 
 
+@pytest.fixture(scope="module")
+def vectors() -> np.ndarray:
+    rng = np.random.default_rng(234 + n)
+    return rng.standard_normal(size=(2, 10, n))
+
+
 @pytest.fixture(
     scope="module",
     params=[
@@ -129,6 +135,27 @@ def test_noneuclidean_innerprod(
     np.testing.assert_allclose(
         orthogonal_basis @ inner_product_matrix @ ortho_vector,
         np.zeros((basis_size,)),
+        atol=1e-12,
+        rtol=1e-12,
+    )
+
+
+def test_broadcasting(
+    vectors: np.ndarray,
+    basis_size: int,
+    orthogonalization_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
+):
+    # Compute orthogonal basis
+    seed = abs(32 + hash(basis_size))
+    basis = np.random.default_rng(seed).normal(size=(vectors.shape[-1], basis_size))
+    orthogonal_basis, _ = np.linalg.qr(basis)
+    orthogonal_basis = orthogonal_basis.T
+
+    # Orthogonalize vector
+    ortho_vectors = orthogonalization_fn(v=vectors, orthogonal_basis=orthogonal_basis)
+    np.testing.assert_allclose(
+        np.squeeze(orthogonal_basis @ ortho_vectors[..., None], axis=-1),
+        np.zeros(vectors.shape[:-1] + (basis_size,)),
         atol=1e-12,
         rtol=1e-12,
     )
