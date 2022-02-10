@@ -1,16 +1,11 @@
 """List of random variables."""
 
+from functools import cached_property
 from typing import Union
 
 import numpy as np
 
 from probnum import randvars
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
 
 
 class _RandomVariableList(list):
