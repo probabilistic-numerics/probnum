@@ -50,12 +50,8 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     >>> x = np.linspace(-1, 1, 5)[:, None]
     >>> rng = np.random.default_rng(seed=42)
     >>> gp.sample(rng, x)
-    array([[-0.7539949 ],
-           [-0.6658092 ],
-           [-0.52972512],
-           [ 0.0674298 ],
-           [ 0.72066223]])
-    >>> gp.covmatrix(x)
+    array([-0.7539949 , -0.6658092 , -0.52972512,  0.0674298 ,  0.72066223])
+    >>> gp.cov.matrix(x)
     array([[1.        , 0.8824969 , 0.60653066, 0.32465247, 0.13533528],
            [0.8824969 , 1.        , 0.8824969 , 0.60653066, 0.32465247],
            [0.60653066, 0.8824969 , 1.        , 0.8824969 , 0.60653066],

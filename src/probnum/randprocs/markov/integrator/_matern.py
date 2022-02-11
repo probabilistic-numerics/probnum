@@ -54,19 +54,19 @@ class MaternProcess(_markov_process.MarkovProcess):
     --------
     >>> matern1 = MaternProcess(lengthscale=1., initarg=0.)
     >>> print(matern1)
-    <MaternProcess with input_dim=1, output_dim=2, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(2,), dtype=float64>
 
     >>> matern2 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=2)
     >>> print(matern2)
-    <MaternProcess with input_dim=1, output_dim=3, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(3,), dtype=float64>
 
     >>> matern3 = MaternProcess(lengthscale=1.,initarg=0., wiener_process_dimension=10)
     >>> print(matern3)
-    <MaternProcess with input_dim=1, output_dim=20, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(20,), dtype=float64>
 
     >>> matern4 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(matern4)
-    <MaternProcess with input_dim=1, output_dim=5, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """
 
     def __init__(
