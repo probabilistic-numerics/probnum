@@ -6,7 +6,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 import numpy as np
 
 from probnum import randvars, utils as _utils
-from probnum.typing import DTypeLike, IntLike, ShapeLike
+from probnum.typing import DTypeLike, ShapeLike, ShapeType
 
 _InputType = TypeVar("InputType")
 _OutputType = TypeVar("OutputType")
@@ -46,12 +46,11 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     def __init__(
         self,
-        input_dim: IntLike,
+        input_shape: ShapeLike,
         output_shape: ShapeLike,
         dtype: DTypeLike,
     ):
-        self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
-
+        self._input_shape = _utils.as_shape(input_shape)
         self._output_shape = _utils.as_shape(output_shape)
 
         self._dtype = np.dtype(dtype)
@@ -59,7 +58,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with "
-            f"input_dim={self.input_dim}, output_shape={self.output_shape}, "
+            f"input_shape={self.input_shape}, output_shape={self.output_shape}, "
             f"dtype={self.dtype}>"
         )
 
@@ -82,9 +81,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         raise NotImplementedError
 
     @property
-    def input_dim(self) -> int:
+    def input_shape(self) -> ShapeType:
         """Shape of inputs to the random process."""
-        return self._input_dim
+        return self._input_shape
 
     @property
     def output_shape(self) -> ShapeType:
@@ -200,14 +199,14 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         # Shape checking
         errmsg = (
             "`{argname}` must have shape `(N, D)` or `(D,)`, where `D` is the input "
-            f"dimension of the random process (D = {self.input_dim}), but an array "
+            f"dimension of the random process (D = {self.input_shape}), but an array "
             "with shape `{shape}` was given."
         )
 
-        if not (1 <= args0.ndim <= 2 and args0.shape[-1] == self.input_dim):
+        if not (1 <= args0.ndim <= 2 and args0.shape[-1:] == self.input_shape):
             raise ValueError(errmsg.format(argname="args0", shape=args0.shape))
 
-        if not (1 <= args1.ndim <= 2 and args1.shape[-1] == self.input_dim):
+        if not (1 <= args1.ndim <= 2 and args1.shape[-1:] == self.input_shape):
             raise ValueError(errmsg.format(argname="args1", shape=args1.shape))
 
         # Pairwise kernel evaluation
@@ -238,7 +237,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         if var.ndim == args.ndim - 1:
             return var
 
-        assert var.ndim == args.ndim + 1 and var.shape[-2:] == 2 * (self.output_dim,)
+        assert var.ndim == args.ndim + 1 and var.shape[-2:] == 2 * self.output_shape
 
         return np.diagonal(var, axis1=-2, axis2=-1)
 

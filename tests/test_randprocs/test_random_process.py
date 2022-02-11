@@ -45,7 +45,7 @@ def test_evaluated_random_process_is_random_variable(
 ):
     """Test whether evaluating a random process returns a random variable."""
     n_inputs_args0 = 10
-    args0 = rng.normal(size=(n_inputs_args0, random_process.input_dim))
+    args0 = rng.normal(size=(n_inputs_args0,) + random_process.input_shape)
     y0 = random_process(args0)
 
     assert isinstance(y0, randvars.RandomVariable), (
@@ -78,7 +78,7 @@ def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
     """Check whether the evaluated mean and covariance function of a random process is
     equivalent to the mean and covariance of the evaluated random process as a random
     variable."""
-    x = rng.normal(size=(10, random_process.input_dim))
+    x = rng.normal(size=(10,) + random_process.input_shape)
 
     np.testing.assert_allclose(
         random_process(x).mean,

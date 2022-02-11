@@ -105,7 +105,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         self._cov = cov
 
         super().__init__(
-            input_dim=mean.input_shape[0],
+            input_shape=mean.input_shape,
             output_shape=mean.output_shape,
             dtype=np.dtype(np.float_),
         )

@@ -108,4 +108,4 @@ def fixture_args0(
     rng: np.random.Generator,
 ) -> np.ndarray:
     """Input(s) to a random process."""
-    return rng.normal(size=(request.param, random_process.input_dim))
+    return rng.normal(size=(request.param,) + random_process.input_shape)
