@@ -7,8 +7,7 @@ import numpy as np
 
 from probnum import linops
 
-from ._inner_product import induced_norm
-from ._inner_product import inner_product as inner_product_fn
+from ._inner_product import induced_norm, inner_product as inner_product_fn
 
 
 def gram_schmidt(

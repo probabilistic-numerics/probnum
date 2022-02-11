@@ -6,8 +6,8 @@ from typing import Any, Callable, Dict, Tuple, Union
 
 import numpy as np
 
-import probnum.linops as _linear_operators
 from probnum import utils as _utils
+import probnum.linops as _linear_operators
 
 from ._constant import Constant as _Constant
 from ._normal import Normal as _Normal

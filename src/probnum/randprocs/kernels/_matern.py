@@ -6,8 +6,8 @@ import numpy as np
 import scipy.spatial.distance
 import scipy.special
 
-import probnum.utils as _utils
 from probnum.typing import IntLike, ScalarLike
+import probnum.utils as _utils
 
 from ._kernel import IsotropicMixin, Kernel
 

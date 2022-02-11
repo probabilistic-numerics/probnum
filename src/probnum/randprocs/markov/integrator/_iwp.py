@@ -1,7 +1,7 @@
 """Integrated Wiener process."""
 
-import warnings
 from functools import cached_property
+import warnings
 
 import numpy as np
 import scipy.special

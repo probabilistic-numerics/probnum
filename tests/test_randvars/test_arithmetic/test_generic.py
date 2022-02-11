@@ -1,8 +1,8 @@
 """Tests for generic random variable arithmetic."""
 
 import numpy as np
-import pytest
 from numpy.typing import DTypeLike
+import pytest
 
 from probnum import randvars
 from probnum.typing import ShapeLike

@@ -6,8 +6,8 @@ be provided and is updated with information collected by the solvers to return a
 posterior distribution.
 """
 
-import warnings
 from typing import Callable, Dict, Optional, Tuple, Union
+import warnings
 
 import numpy as np
 import scipy.sparse

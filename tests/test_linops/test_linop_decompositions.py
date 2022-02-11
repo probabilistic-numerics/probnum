@@ -3,8 +3,8 @@ import pathlib
 import numpy as np
 import pytest
 import pytest_cases
-import scipy.linalg
 from pytest_cases import filters
+import scipy.linalg
 
 import probnum as pn
 

@@ -5,9 +5,9 @@ from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 import numpy as np
 
 import probnum as pn
-import probnum.utils as _utils
 from probnum import linops, randvars
 from probnum.typing import FloatLike, IntLike
+import probnum.utils as _utils
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation

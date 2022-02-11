@@ -2,8 +2,7 @@
 
 import numpy as np
 
-from probnum import linops
-from probnum import randvars as rvs
+from probnum import linops, randvars as rvs
 
 # Module level variables
 RV_NAMES = [
