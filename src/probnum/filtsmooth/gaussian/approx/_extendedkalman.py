@@ -1,8 +1,4 @@
-"""Gaussian filtering and smoothing based on making intractable quantities tractable
-through Taylor-method approximations, e.g. linearization."""
-
-import abc
-from typing import Dict, Tuple
+"""Extended Kalman filtering."""
 
 from probnum import randprocs, randvars
 

@@ -1,11 +1,6 @@
-"""General Gaussian filters based on approximating intractable quantities with numerical
-quadrature.
+"""Unscented Kalman filtering / spherical cubature Kalman filtering."""
 
-Examples include the unscented Kalman filter / RTS smoother which is based on a third
-degree fully symmetric rule.
-"""
-
-from typing import Dict, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import scipy.linalg
