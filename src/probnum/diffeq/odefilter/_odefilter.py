@@ -11,7 +11,7 @@ from probnum.diffeq.odefilter import (
     _odefilter_solution,
     approx_strategies,
     information_operators,
-    initialization_routines,
+    init_routines,
 )
 
 
@@ -25,20 +25,22 @@ class ODEFilter(_odesolver.ODESolver):
 
     Parameters
     ----------
-    ivp :
-        Initial value problem to be solved.
     prior_process
         Prior Gauss-Markov process.
-    measurement_model
-        ODE measurement model.
+    steprule
+        Step-size-selection rule.
+    information_operator
+        Information operator.
+    approx_strategy
+        Approximation strategy to turn an intractable information operator into a tractable one.
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
-    initialization_routine :
+    init_routine
         Initialization algorithm.
         Either via fitting the prior to a few steps of a Runge-Kutta method (:class:`RungeKuttaInitialization`)
-        or via Taylor-mode automatic differentiation (:class:``TaylorModeInitialization``).
+        or via Taylor-mode automatic differentiation (:class:``TaylorModeInitialization``) [1]_.
     diffusion_model :
-        Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [1]_ for a survey.
+        Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [2]_ for a survey.
     _reference_coordinates :
         Use this state as a reference state to compute the normalized error estimate.
         Optional. Default is 0 (which amounts to the usual reference state for ODE solvers).
@@ -46,8 +48,11 @@ class ODEFilter(_odesolver.ODESolver):
 
     References
     ----------
-    .. [1] Bosch, N., and Hennig, P., and Tronarp, F..
-        Calibrated Adaptive Probabilistic ODE Solvers.
+    .. [1] Krämer, N., and Hennig, P..
+        Stable implementation of probabilistic ODE solvers.
+        2021.
+    .. [2] Bosch, N., and Hennig, P., and Tronarp, F..
+        Calibrated adaptive probabilistic ODE solvers.
         2021.
     """
 
@@ -61,9 +66,7 @@ class ODEFilter(_odesolver.ODESolver):
         ] = None,
         approx_strategy: Optional[approx_strategies.ApproximationStrategy] = None,
         with_smoothing: Optional[bool] = True,
-        initialization_routine: Optional[
-            initialization_routines.InitializationRoutine
-        ] = None,
+        init_routine: Optional[init_routines.InitializationRoutine] = None,
         diffusion_model: Optional[randprocs.markov.continuous.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
@@ -94,9 +97,7 @@ class ODEFilter(_odesolver.ODESolver):
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
 
-        self.initialization_routine = (
-            initialization_routine or initialization_routines.RungeKuttaInitialization()
-        )
+        self.init_routine = init_routine or init_routines.NonProbabilisticFit()
         super().__init__(
             steprule=steprule, order=self.prior_process.transition.num_derivatives
         )
@@ -130,7 +131,7 @@ class ODEFilter(_odesolver.ODESolver):
             self.information_operator
         ).as_transition()
 
-        initrv = self.initialization_routine(
+        initrv = self.init_routine(
             ivp=ivp,
             prior_process=self.prior_process,
         )

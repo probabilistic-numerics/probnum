@@ -111,7 +111,6 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         --------
         TimeSeriesRegressionProblem: a regression problem data class
         """
-
         if stopcrit is None:
             stopcrit = optim.FiltSmoothStoppingCriterion()
 

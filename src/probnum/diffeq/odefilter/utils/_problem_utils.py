@@ -81,8 +81,11 @@ def _construct_measurement_models(
 ):
     """Construct measurement models for the IVP."""
 
-    transition_matrix = np.eye(
-        ode_information_operator.output_dim, ode_information_operator.input_dim
+    shape = ode_information_operator.output_dim, ode_information_operator.input_dim
+
+    # Make a proj2coord(0)-like matrix without relying on the prior_process
+    transition_matrix = (
+        np.eye(*shape).reshape((-1,), order="C").reshape(shape, order="F")
     )
     shift_vector = -ivp.y0
 

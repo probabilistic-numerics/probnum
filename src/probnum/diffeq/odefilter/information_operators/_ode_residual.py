@@ -66,10 +66,10 @@ class ODEResidual(_information_operator.ODEInformationOperator):
 
     def _residual_first_order_ode(self, t: FloatLike, x: np.ndarray) -> np.ndarray:
         h0, h1 = self.projection_matrices
-        return h1 @ x - self.ode.f(t, h0 @ x)
+        return h1 @ x - np.asarray(self.ode.f(t, h0 @ x))
 
     def _residual_first_order_ode_jacobian(
         self, t: FloatLike, x: np.ndarray
     ) -> np.ndarray:
         h0, h1 = self.projection_matrices
-        return h1 - self.ode.df(t, h0 @ x) @ h0
+        return h1 - np.asarray(self.ode.df(t, h0 @ x) @ h0)
