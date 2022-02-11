@@ -1,11 +1,12 @@
 """Random Processes."""
 
 import abc
-from typing import Callable, Generic, Optional, Type, TypeVar, Union
+from typing import Callable, Generic, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import randvars, utils as _utils
+from probnum import _function, randvars, utils as _utils
+from probnum.randprocs import kernels
 from probnum.typing import DTypeLike, ShapeLike, ShapeType
 
 _InputType = TypeVar("InputType")
@@ -107,110 +108,16 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         # return self.__call__(args).marginal()
         raise NotImplementedError
 
-    def mean(self, args: _InputType) -> _OutputType:
-        """Mean function.
-
-        Returns the mean function evaluated at the given input(s).
-
-        Parameters
-        ----------
-        args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) where the mean
-            function is evaluated.
-
-        Returns
-        -------
-        _OutputType
-            *shape=(), (output_dim, ) or (n, output_dim)* -- Mean function of the
-            process evaluated at inputs ``x``.
-        """
+    @property
+    def mean(self) -> _function.Function:
+        r"""Mean function :math:`m(x) = \mathbb{E}[f(x)]` of the random process"""
         raise NotImplementedError
 
-    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
-        r"""Covariance function or kernel.
-
-        Returns the covariance function :math:`\operatorname{Cov}(f(x_0),
-        f(x_1)) = \mathbb{E}[(f(x_0) - \mathbb{E}[f(x_0)])(f(x_0) - \mathbb{E}[f(
-        x_0)])^\top]` of the process evaluated at :math:`x_0` and :math:`x_1`. If only
-        ``args0`` is given the covariance among the components of the random process
-        at the inputs defined by ``args0`` is computed.
-
-        Parameters
-        ----------
-        args0
-            *shape=(input_dim,) or (n0, input_dim)* -- First input to the covariance
-            function.
-        args1
-            *shape=(input_dim,) or (n1, input_dim)* -- Second input to the covariance
-            function.
-
-        Returns
-        -------
-        _OutputType
-            *shape=(), (output_dim, output_dim), (n0, n1) or (n0, n1, output_dim,
-            output_dim)* -- Covariance of the process at ``args0`` and ``args1``. If
-            only ``args0`` is given the kernel matrix :math:`K=k(x_0, x_0)` is computed.
-        """  # pylint: disable=trailing-whitespace
+    @property
+    def cov(self) -> kernels.Kernel:
+        r"""Covariance function :math:`k(x_0, x_1) = \mathbb{E}[(f(x_0) - \mathbb{E}[
+        f(x_0)])(f(x_0) - \mathbb{E}[f(x_0)])^\top]` of the random process."""
         raise NotImplementedError
-
-    def covmatrix(
-        self, args0: _InputType, args1: Optional[_InputType] = None
-    ) -> _OutputType:
-        """A convenience function for the covariance matrix of two sets of inputs.
-
-        This is syntactic sugar for ``proc.cov(x0[:, None, :], x1[None, :, :])``. Hence,
-        it computes the matrix of pairwise covariances between two sets of input points.
-
-        Parameters
-        ----------
-        x0 : array-like
-            First set of inputs to the covariance function as an array of shape
-            ``(M, D)``, where ``D`` is either 1 or :attr:`input_dim`.
-        x1 : array-like
-            Optional second set of inputs to the covariance function as an array
-            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_dim`.
-            If ``x1`` is not specified, the function behaves as if ``x1 = x0``.
-
-        Returns
-        -------
-        kernmat : numpy.ndarray
-            The matrix / stack of matrices containing the pairwise evaluations of the
-            covariance function(s) on ``x0`` and ``x1`` as an array of shape
-            ``(M, N)`` if :attr:`shape` is ``()`` or
-            ``(S[l - 1], ..., S[1], S[0], M, N)``, where ``S`` is :attr:`shape` if
-            :attr:`shape` is non-empty.
-
-        Raises
-        ------
-        ValueError
-            If the shapes of the inputs don't match the specification.
-
-        See Also
-        --------
-        RandomProcess.cov: Evaluate the kernel more flexibly.
-
-        Examples
-        --------
-        See documentation of class :class:`Kernel`.
-        """
-        args0 = np.array(args0)
-        args1 = args0 if args1 is None else np.array(args1)
-
-        # Shape checking
-        errmsg = (
-            "`{argname}` must have shape `(N, D)` or `(D,)`, where `D` is the input "
-            f"dimension of the random process (D = {self.input_shape}), but an array "
-            "with shape `{shape}` was given."
-        )
-
-        if not (1 <= args0.ndim <= 2 and args0.shape[-1:] == self.input_shape):
-            raise ValueError(errmsg.format(argname="args0", shape=args0.shape))
-
-        if not (1 <= args1.ndim <= 2 and args1.shape[-1:] == self.input_shape):
-            raise ValueError(errmsg.format(argname="args1", shape=args1.shape))
-
-        # Pairwise kernel evaluation
-        return self.cov(args0[:, None, :], args1[None, :, :])
 
     def var(self, args: _InputType) -> _OutputType:
         """Variance function.

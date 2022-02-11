@@ -37,7 +37,7 @@ def test_cov_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the covariance of the random process has the correct shape."""
     n = args0.shape[0]
     expected_shape = 2 * random_process.output_shape + (n, n)
-    assert random_process.covmatrix(args0).shape == expected_shape
+    assert random_process.cov.matrix(args0).shape == expected_shape
 
 
 def test_evaluated_random_process_is_random_variable(
@@ -89,7 +89,7 @@ def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
 
     np.testing.assert_allclose(
         random_process(x).cov,
-        random_process.covmatrix(x),
+        random_process.cov.matrix(x),
         err_msg=f"Covariance of evaluated {repr(random_process)} does not match the "
         f"random process mean function evaluated.",
     )

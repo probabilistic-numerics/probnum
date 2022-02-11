@@ -112,7 +112,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def __call__(self, args: _InputType) -> randvars.Normal:
         return randvars.Normal(
-            mean=np.array(self.mean(args), copy=False), cov=self.covmatrix(args)
+            mean=np.array(self.mean(args), copy=False), cov=self.cov.matrix(args)
         )
 
     @property
