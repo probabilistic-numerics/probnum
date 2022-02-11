@@ -53,9 +53,6 @@ class InterfaceDiscreteLinearizationTest:
         received, info1 = linear_model.forward_rv(initrv, 0.0)
         expected, info2 = linearised_model.forward_rv(initrv, 0.0)
 
-        print("received", received.cov)
-        print("expected", expected.cov)
-
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
         rtol, atol = 1e-10, 1e-10

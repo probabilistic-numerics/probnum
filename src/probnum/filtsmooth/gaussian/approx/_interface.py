@@ -15,10 +15,6 @@ class _LinearizationInterface:
 
         self.non_linear_model = non_linear_model
 
-        # # Will be constructed later
-        # self.linearized_model = None
-        #
-
     def forward_realization(
         self,
         realization,
