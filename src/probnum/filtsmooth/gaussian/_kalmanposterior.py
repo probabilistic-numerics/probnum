@@ -20,7 +20,6 @@ GaussMarkovPriorTransitionArgType = Union[
     approx.DiscreteUKFComponent,
     randprocs.markov.continuous.LinearSDE,
     approx.ContinuousEKFComponent,
-    approx.ContinuousUKFComponent,
 ]
 """Any linear(ized) transition can define an (approximate) Gauss-Markov prior."""
 

@@ -11,54 +11,6 @@ from probnum.typing import FloatLike
 from ._interface import _LinearizationInterface
 
 
-class ContinuousUKFComponent(_LinearizationInterface, randprocs.markov.continuous.SDE):
-    """Continuous-time unscented Kalman filter transition.
-
-    Parameters
-    ----------
-    non_linear_model
-        Non-linear continuous-time model (:class:`SDE`) that
-        is approximated with the UKF.
-    mde_atol
-        Absolute tolerance passed to the solver
-        of the moment differential equations (MDEs). Optional.
-    mde_rtol
-        Relative tolerance passed to the solver
-        of the moment differential equations (MDEs). Optional.
-    mde_solver
-        Method that is chosen in `scipy.integrate.solve_ivp`.
-        Any string that is compatible with
-        ``solve_ivp(..., method=mde_solve,...)`` works here.
-        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``.
-        Optional. Default is LSODA.
-    """
-
-    def __init__(
-        self,
-        non_linear_model,
-        mde_atol: Optional[FloatLike] = 1e-6,
-        mde_rtol: Optional[FloatLike] = 1e-6,
-        mde_solver: Optional[str] = "LSODA",
-    ) -> None:
-
-        _LinearizationInterface.__init__(self, non_linear_model)
-        randprocs.markov.continuous.SDE.__init__(
-            self,
-            state_dimension=non_linear_model.state_dimension,
-            wiener_process_dimension=non_linear_model.wiener_process_dimension,
-            drift_function=non_linear_model.drift_function,
-            dispersion_function=non_linear_model.dispersion_function,
-            drift_jacobian=non_linear_model.drift_jacobian,
-        )
-        self.mde_atol = mde_atol
-        self.mde_rtol = mde_rtol
-        self.mde_solver = mde_solver
-
-        raise NotImplementedError(
-            "Implementation of the continuous UKF is incomplete. It cannot be used."
-        )
-
-
 class DiscreteUKFComponent(
     _LinearizationInterface, randprocs.markov.discrete.NonlinearGaussian
 ):
