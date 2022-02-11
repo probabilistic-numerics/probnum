@@ -1,4 +1,4 @@
-"""Integrated Brownian motion."""
+"""Integrated Wiener process."""
 
 import warnings
 
