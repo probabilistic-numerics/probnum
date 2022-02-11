@@ -9,13 +9,9 @@ from probnum import randprocs, randvars
 from ._interface import _LinearizationInterface
 
 
-class EKFComponent(_LinearizationInterface):
-    """Interface for extended Kalman filtering components."""
-
-
 # Order of inheritance matters, because forward and backward
 # are defined in EKFComponent, and must not be inherited from SDE.
-class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
+class ContinuousEKFComponent(_LinearizationInterface, randprocs.markov.continuous.SDE):
     """Continuous-time extended Kalman filter transition.
 
     Parameters
@@ -54,7 +50,7 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
             dispersion_function=non_linear_model.dispersion_function,
             drift_jacobian=non_linear_model.drift_jacobian,
         )
-        EKFComponent.__init__(self, non_linear_model=non_linear_model)
+        _LinearizationInterface.__init__(self, non_linear_model=non_linear_model)
 
         self.mde_atol = mde_atol
         self.mde_rtol = mde_rtol
@@ -93,7 +89,9 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
         )
 
 
-class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaussian):
+class DiscreteEKFComponent(
+    _LinearizationInterface, randprocs.markov.discrete.NonlinearGaussian
+):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
@@ -111,7 +109,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
             noise_fun=non_linear_model.noise_fun,
             transition_fun_jacobian=non_linear_model.transition_fun_jacobian,
         )
-        EKFComponent.__init__(self, non_linear_model=non_linear_model)
+        _LinearizationInterface.__init__(self, non_linear_model=non_linear_model)
 
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
