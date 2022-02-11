@@ -12,4 +12,4 @@ sphinx-gallery
 sphinxcontrib-bibtex
 
 # Markdown conversion
-myst-parser
+myst-parser<0.17.0
