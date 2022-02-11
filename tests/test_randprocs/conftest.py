@@ -1,12 +1,13 @@
 """Fixtures for random process tests."""
 
+import functools
 from typing import Callable
 
 import numpy as np
 import pytest
 
-from probnum import randprocs
-from probnum.randprocs import kernels
+from probnum import LambdaFunction, randprocs
+from probnum.randprocs import kernels, mean_fns
 
 
 @pytest.fixture(
@@ -43,15 +44,18 @@ def output_dim(request) -> int:
     params=[
         pytest.param(mu, id=mu[0])
         for mu in [
-            ("zero", lambda x: np.zeros(x.shape[0])),
-            ("lin", lambda x: 2 * x.sum(axis=1) + 1.0),
+            ("zero", mean_fns.Zero),
+            (
+                "lin",
+                functools.partial(LambdaFunction, lambda x: 2 * x.sum(axis=1) + 1.0),
+            ),
         ]
     ],
     name="mean",
 )
-def fixture_mean(request) -> Callable:
+def fixture_mean(request, input_dim: int) -> Callable:
     """Mean function of a random process."""
-    return request.param[1]
+    return request.param[1](input_shape=(input_dim,), output_shape=())
 
 
 @pytest.fixture(
@@ -78,7 +82,7 @@ def fixture_cov(request, input_dim: int) -> kernels.Kernel:
             (
                 "gp",
                 randprocs.GaussianProcess(
-                    mean=lambda x: np.zeros(x.shape[0]),
+                    mean=mean_fns.Zero(input_shape=(1,)),
                     cov=kernels.Matern(input_dim=1),
                 ),
             ),
