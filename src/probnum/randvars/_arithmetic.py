@@ -262,7 +262,7 @@ def _mul_normal_constant(
                 cov_cholesky = None
             return _Normal(
                 mean=constant_rv.support * norm_rv.mean,
-                cov=(constant_rv.support ** 2) * norm_rv.cov,
+                cov=(constant_rv.support**2) * norm_rv.cov,
                 cov_cholesky=cov_cholesky,
             )
 
@@ -371,7 +371,7 @@ def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Norma
 
         return _Normal(
             mean=norm_rv.mean / constant_rv.support,
-            cov=norm_rv.cov / (constant_rv.support ** 2),
+            cov=norm_rv.cov / (constant_rv.support**2),
             cov_cholesky=cov_cholesky,
         )
 

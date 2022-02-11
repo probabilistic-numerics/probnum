@@ -99,7 +99,7 @@ class MatrixBasedSolver(abc.ABC):
                 print("Better initialization found, setting x0 = (b'b/b'Ab) * b.")
                 bAb = np.squeeze(b.T @ (A @ b))
                 x0 = bb / bAb * b
-                bx0 = bb ** 2 / bAb
+                bx0 = bb**2 / bAb
 
         # Construct prior mean of A and H
         alpha = 0.5 * bx0 / bb
@@ -574,7 +574,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     # differentiable kernels
                     # ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
                     lnmap = GPy.core.Mapping(1, 1)
-                    lnmap.f = lambda n: np.log(n + 10 ** -16)
+                    lnmap.f = lambda n: np.log(n + 10**-16)
                     lnmap.update_gradients = lambda a, b: None
                     mf = GPy.mappings.Additive(
                         GPy.mappings.Constant(1, 1, value=0),
@@ -667,7 +667,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 @linops.LinearOperator.broadcast_matvec
                 def _matmul(x):
                     # First term of calibration covariance class: AS(S'AS)^{-1}S'A
-                    return (Y * sy ** -1) @ (Y.T @ x.ravel())
+                    return (Y * sy**-1) @ (Y.T @ x.ravel())
 
                 _A_covfactor0 = linops.LinearOperator(
                     shape=(self.n, self.n),

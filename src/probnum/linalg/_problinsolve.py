@@ -41,8 +41,8 @@ def problinsolve(
     x0: Optional[Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"]] = None,
     assume_A: str = "sympos",
     maxiter: Optional[int] = None,
-    atol: float = 10 ** -6,
-    rtol: float = 10 ** -6,
+    atol: float = 10**-6,
+    rtol: float = 10**-6,
     callback: Optional[Callable] = None,
     **kwargs
 ) -> Tuple[
@@ -459,7 +459,7 @@ def _postprocess(info, A):
     # else:
     #     lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='d')
     # machine_eps = lamch('E')
-    machine_eps = 10 ** -16
+    machine_eps = 10**-16
 
     # Singular matrix
     # # TODO: get info from solver

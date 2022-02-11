@@ -125,7 +125,7 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
         else:
             (mu,) = params
 
-        return np.array([y2, mu * (1.0 - y1 ** 2) * y2 - y1])
+        return np.array([y2, mu * (1.0 - y1**2) * y2 - y1])
 
     def jac(t, y, params=params):
         y1, y2 = y
@@ -134,7 +134,7 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
         else:
             (mu,) = params
 
-        return np.array([[0.0, 1.0], [-2.0 * mu * y2 * y1 - 1.0, mu * (1.0 - y1 ** 2)]])
+        return np.array([[0.0, 1.0], [-2.0 * mu * y2 * y1 - 1.0, mu * (1.0 - y1**2)]])
 
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
 
@@ -294,12 +294,12 @@ def fitzhughnagumo(t0=0.0, tmax=20.0, y0=None, params=(0.2, 0.2, 3.0, 1.0)):
     def rhs(t, y, params=params):
         y1, y2 = y
         a, b, c, d = params
-        return np.array([y1 - y1 ** 3.0 / 3.0 - y2 + a, (y1 + b - c * y2) / d])
+        return np.array([y1 - y1**3.0 / 3.0 - y2 + a, (y1 + b - c * y2) / d])
 
     def jac(t, y, params=params):
         y1, y2 = y
         a, b, c, d = params
-        return np.array([[1.0 - y1 ** 2.0, -1.0], [1.0 / d, -c / d]])
+        return np.array([[1.0 - y1**2.0, -1.0], [1.0 / d, -c / d]])
 
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
 

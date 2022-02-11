@@ -97,7 +97,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(iwp_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(iwp_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
             )
 
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)

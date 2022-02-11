@@ -89,12 +89,12 @@ class Matern(Kernel, IsotropicMixin):
 
         if self.nu == 2.5:
             scaled_distances = np.sqrt(5) / self.lengthscale * distances
-            return (1.0 + scaled_distances + scaled_distances ** 2 / 3.0) * np.exp(
+            return (1.0 + scaled_distances + scaled_distances**2 / 3.0) * np.exp(
                 -scaled_distances
             )
 
         if self.nu == np.inf:
-            return np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
+            return np.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)
 
         # The modified Bessel function K_nu is not defined for z=0
         distances = np.maximum(distances, np.finfo(distances.dtype).eps)
@@ -103,6 +103,6 @@ class Matern(Kernel, IsotropicMixin):
         return (
             2 ** (1.0 - self.nu)
             / scipy.special.gamma(self.nu)
-            * scaled_distances ** self.nu
+            * scaled_distances**self.nu
             * scipy.special.kv(self.nu, scaled_distances)
         )

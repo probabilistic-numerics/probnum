@@ -20,8 +20,8 @@ def probsolve_qp(
     fun: Callable[[FloatLike], FloatLike],
     fun_params0: Optional[Union[np.ndarray, randvars.RandomVariable]] = None,
     assume_fun: Optional[str] = None,
-    tol: FloatLike = 10 ** -5,
-    maxiter: IntLike = 10 ** 4,
+    tol: FloatLike = 10**-5,
+    maxiter: IntLike = 10**4,
     noise_cov: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
     callback: Optional[
         Callable[[FloatLike, FloatLike, randvars.RandomVariable], None]

@@ -28,7 +28,7 @@ class WhiteNoise(Kernel):
 
     def __init__(self, input_dim: IntLike, sigma: ScalarLike = 1.0):
         self.sigma = _utils.as_numpy_scalar(sigma)
-        self._sigma_sq = self.sigma ** 2
+        self._sigma_sq = self.sigma**2
         super().__init__(input_dim=input_dim)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:

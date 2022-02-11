@@ -55,5 +55,5 @@ class ExpQuad(Kernel, IsotropicMixin):
             return np.ones_like(x0[..., 0])
 
         return np.exp(
-            -self._squared_euclidean_distances(x0, x1) / (2.0 * self.lengthscale ** 2)
+            -self._squared_euclidean_distances(x0, x1) / (2.0 * self.lengthscale**2)
         )

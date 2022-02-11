@@ -33,7 +33,7 @@ def get_randvar(rv_name):
     mean_1d = np.random.rand(5)
     mean_2d_mat = SPD_MATRIX_5x5
     mean_2d_linop = linops.Matrix(SPD_MATRIX_5x5)
-    cov_0d = np.random.rand() + 10 ** -12
+    cov_0d = np.random.rand() + 10**-12
     cov_1d = SPD_MATRIX_5x5
     cov_2d_kron = linops.Kronecker(A=SPD_MATRIX_5x5, B=SPD_MATRIX_5x5)
     cov_2d_symkron = linops.SymmetricKronecker(A=SPD_MATRIX_5x5)
