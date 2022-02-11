@@ -1,6 +1,6 @@
 """ODE Filtering."""
 
-from . import utils
+from . import init_routines, utils
 from ._odefilter import ODEFilter
 from ._odefilter_solution import ODEFilterSolution
 

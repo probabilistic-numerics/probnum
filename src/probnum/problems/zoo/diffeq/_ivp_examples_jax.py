@@ -1,12 +1,11 @@
+"""IVP examples that use jax."""
+
 import numpy as np
 
 from probnum.problems import InitialValueProblem
 
 __all__ = ["threebody_jax", "vanderpol_jax"]
 # pylint: disable=import-outside-toplevel
-
-
-JAX_ERRORMSG = "IVP instantiation requires jax. Try using the pure numpy versions instead, or install `jax` via `pip install jax jaxlib`"
 
 
 def threebody_jax(tmax=17.0652165601579625588917206249):
@@ -54,15 +53,7 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
         Springer Series in Computational Mathematics, 1993.
     """
 
-    try:
-        import jax
-        import jax.numpy as jnp
-        from jax.config import config
-
-        config.update("jax_enable_x64", True)
-
-    except ImportError as err:
-        raise ImportError(JAX_ERRORMSG) from err
+    jax, jnp = _import_jax()
 
     def threebody_rhs(Y):
         # defining the ODE:
@@ -78,18 +69,40 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
     df = jax.jacfwd(threebody_rhs)
     ddf = jax.jacrev(df)
 
+    @jax.jit
     def rhs(t, y):
         return threebody_rhs(Y=y)
 
+    @jax.jit
     def jac(t, y):
         return df(y)
 
+    @jax.jit
     def hess(t, y):
         return ddf(y)
 
     y0 = np.array([0.994, 0, 0, -2.00158510637908252240537862224])
     t0 = 0.0
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac, ddf=hess)
+
+
+def _import_jax():
+    errormsg = (
+        "IVP instantiation requires jax. "
+        "Try using the pure numpy versions instead, "
+        "or install `jax` via `pip install jax jaxlib`"
+    )
+
+    try:
+        import jax
+        import jax.numpy as jnp
+        from jax.config import config
+
+        config.update("jax_enable_x64", True)
+        return jax, jnp
+
+    except ImportError as err:
+        raise ImportError(errormsg) from err
 
 
 def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
@@ -131,16 +144,7 @@ def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
         IVP object describing the Van der Pol Oscillator IVP with the prescribed
         configuration.
     """
-
-    try:
-        import jax
-        import jax.numpy as jnp
-        from jax.config import config
-
-        config.update("jax_enable_x64", True)
-
-    except ImportError as err:
-        raise ImportError(JAX_ERRORMSG) from err
+    jax, jnp = _import_jax()
 
     if isinstance(params, float):
         mu = params
@@ -156,12 +160,15 @@ def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
     df = jax.jacfwd(vanderpol_rhs)
     ddf = jax.jacrev(df)
 
+    @jax.jit
     def rhs(t, y):
         return vanderpol_rhs(Y=y)
 
+    @jax.jit
     def jac(t, y):
         return df(y)
 
+    @jax.jit
     def hess(t, y):
         return ddf(y)
 
