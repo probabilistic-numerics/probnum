@@ -34,6 +34,7 @@ from . import (
     randvars,
     utils,
 )
+from ._function import Function, LambdaFunction
 from ._version import version as __version__
 from .randvars import asrandvar
 
