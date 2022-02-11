@@ -189,9 +189,8 @@ class ODEFilter(_odesolver.ODESolver):
         # Read off system matrices; required for calibration / error estimation
         # Use only where a full call to forward_*() would be too costly.
         # We use the mathematical symbol `Phi` (and later, `H`), because this makes it easier to read for us.
-        # The system matrix H of the measurement model can be accessed after the first forward_*,
-        # therefore we read it off further below.
         discrete_dynamics = self.prior_process.transition.discretise(dt)
+
         Phi = discrete_dynamics.transition_matrix
 
         # Split the current RV into a deterministic part and a noisy part.
@@ -204,15 +203,16 @@ class ODEFilter(_odesolver.ODESolver):
         )
 
         # Compute the measurements for the error-free component
-        pred_rv_error_free, _ = self.prior_process.transition.forward_realization(
-            error_free_state, t=state.t, dt=dt
+        pred_rv_error_free, _ = discrete_dynamics.forward_realization(
+            error_free_state, t=state.t
         )
-        meas_rv_error_free, _ = self.measurement_model.forward_rv(
+        linearized_observation = self.measurement_model.linearize(
+            state.t + dt, pred_rv_error_free
+        )
+        meas_rv_error_free, _ = linearized_observation.forward_rv(
             pred_rv_error_free, t=state.t + dt
         )
-        H = self.measurement_model.linearized_model.transition_matrix_fun(
-            t=state.t + dt
-        )
+        H = linearized_observation.transition_matrix_fun(t=state.t + dt)
 
         # Compute the measurements for the full components.
         # Since the means of noise-free and noisy measurements coincide,
