@@ -1,12 +1,9 @@
 """Unscented Kalman filtering / spherical cubature Kalman filtering."""
 
-from typing import Optional
-
 import numpy as np
 import scipy.linalg
 
 from probnum import randprocs, randvars
-from probnum.typing import FloatLike
 
 from ._interface import _LinearizationInterface
 
