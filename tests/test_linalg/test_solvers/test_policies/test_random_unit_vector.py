@@ -19,3 +19,8 @@ def test_returns_unit_vector(
 ):
     action = policy(state)
     assert np.linalg.norm(action) == pytest.approx(1.0)
+
+
+def test_raises_error_for_unsupported_probabilities():
+    with pytest.raises(ValueError):
+        policies.RandomUnitVectorPolicy(probabilities="not-valid")
