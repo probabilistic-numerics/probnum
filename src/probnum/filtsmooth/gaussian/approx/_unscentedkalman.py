@@ -13,8 +13,10 @@ from probnum import randprocs, randvars
 from probnum.filtsmooth.gaussian.approx import _unscentedtransform
 from probnum.typing import FloatLike
 
+from ._interface import _LinearizationInterface
 
-class UKFComponent:
+
+class UKFComponent(_LinearizationInterface):
     """Interface for unscented Kalman filtering components."""
 
     def __init__(
@@ -24,7 +26,8 @@ class UKFComponent:
         priorpar: Optional[FloatLike] = 2.0,
         special_scale: Optional[FloatLike] = 0.0,
     ) -> None:
-        self.non_linear_model = non_linear_model
+        super().__init__(non_linear_model=non_linear_model)
+
         self.ut = _unscentedtransform.UnscentedTransform(
             non_linear_model.input_dim, spread, priorpar, special_scale
         )
@@ -36,6 +39,12 @@ class UKFComponent:
     def assemble_sigma_points(self, at_this_rv: randvars.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
         return self.ut.sigma_points(at_this_rv)
+
+    def linearize(
+        self, at_this_rv: randvars.RandomVariable
+    ) -> randprocs.markov.Transition:
+        """Linearize the transition and make it tractable."""
+        raise NotImplementedError
 
 
 class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
