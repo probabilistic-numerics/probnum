@@ -1,2 +1,5 @@
 # Migrate code style to black
 636049eeaa3f515ff39a72d546363bbfd1f140dc
+
+# Update isort config and bump black version
+00359ddb76918dd1f63882fa31cb92f0bcc447fd
