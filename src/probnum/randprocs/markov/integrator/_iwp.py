@@ -1,7 +1,6 @@
 """Integrated Brownian motion."""
 
 import warnings
-from functools import cached_property
 
 import numpy as np
 import scipy.special
