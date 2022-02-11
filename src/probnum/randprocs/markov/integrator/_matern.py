@@ -1,6 +1,5 @@
 """Matern processes."""
 import warnings
-from functools import cached_property
 
 import numpy as np
 import scipy.special
@@ -127,15 +126,14 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._drift_matrix_matern(),
+            force_vector=self._force_vector_matern(),
+            dispersion_matrix=self._dispersion_matrix_matern(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):  # pylint: disable=method-hidden
+    def _drift_matrix_matern(self):
         drift_matrix = np.diag(np.ones(self.num_derivatives), 1)
         nu = self.num_derivatives + 0.5
         D, lam = self.num_derivatives + 1, np.sqrt(2 * nu) / self.lengthscale
@@ -144,13 +142,11 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix)
 
-    @cached_property
-    def _force_vector(self):  # pylint: disable=method-hidden
+    def _force_vector_matern(self):
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
-    @cached_property
-    def _dispersion_matrix(self):  # pylint: disable=method-hidden
+    def _dispersion_matrix_matern(self):
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T

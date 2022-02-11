@@ -1,4 +1,4 @@
-"""Integrated Brownian motion."""
+"""Integrated Wiener process."""
 
 import warnings
 from functools import cached_property
@@ -122,15 +122,14 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._drift_matrix_iwp(),
+            force_vector=self._force_vector_iwp(),
+            dispersion_matrix=self._dispersion_matrix_iwp(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):  # pylint: disable=method-hidden
+    def _drift_matrix_iwp(self):
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.matrix_free:
             return linops.IdentityKronecker(
@@ -139,12 +138,10 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             )
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
-    @cached_property
-    def _force_vector(self):  # pylint: disable=method-hidden
+    def _force_vector_iwp(self):
         return np.zeros((self.wiener_process_dimension * (self.num_derivatives + 1)))
 
-    @cached_property
-    def _dispersion_matrix(self):  # pylint: disable=method-hidden
+    def _dispersion_matrix_iwp(self):
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
