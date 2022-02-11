@@ -1,12 +1,13 @@
 """Gaussian processes."""
 
-from typing import Callable, Optional, Type, Union
+from typing import Type, Union
 
 import numpy as np
 
 from probnum import randvars
 from probnum.typing import ShapeLike
 
+from .. import _function
 from . import _random_process, kernels
 
 _InputType = Union[np.floating, np.ndarray]
@@ -37,9 +38,10 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Define a Gaussian process with a zero mean function and RBF kernel.
 
     >>> import numpy as np
+    >>> from probnum.randprocs.mean_fns import Zero
     >>> from probnum.randprocs.kernels import ExpQuad
     >>> from probnum.randprocs import GaussianProcess
-    >>> mu = lambda x : np.zeros_like(x)  # zero-mean function
+    >>> mu = Zero(input_shape=(1,))  # zero-mean function
     >>> k = ExpQuad(input_dim=1)  # RBF kernel
     >>> gp = GaussianProcess(mu, k)
 
@@ -63,27 +65,47 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def __init__(
         self,
-        mean: Callable[[_InputType], _OutputType],
+        mean: _function.Function,
         cov: kernels.Kernel,
     ):
+        if not isinstance(mean, _function.Function):
+            raise TypeError("The mean function must have type `probnum.Function`.")
+
         if not isinstance(cov, kernels.Kernel):
             raise TypeError(
                 "The covariance functions must be implemented as a " "`Kernel`."
             )
 
-        if cov.shape != () and not (
-            len(cov.shape) == 2 and cov.shape[0] == cov.shape[1]
-        ):
+        if len(mean.input_shape) != 1:
             raise ValueError(
-                "Only kernels with shape `()` or `(D, D)` are allowed as covariance "
-                "functions of random processes."
+                "The mean function must have input shape `(D_in,)`, where `D_in` is the"
+                "input dimension of the Gaussian process."
+            )
+
+        if len(mean.output_shape) > 1:
+            raise ValueError(
+                "The mean function must have output shape `()` or `(D_out,)`, where "
+                "`D_out` is the output dimension of the Gaussian process."
+            )
+
+        if mean.input_shape != (cov.input_dim,):
+            raise ValueError(
+                "The mean and covariance functions must have the same input shapes "
+                f"(`mean.input_shape` is {mean.input_shape} and `cov.input_dim` is "
+                f"{cov.input_dim})."
+            )
+
+        if 2 * mean.output_shape != cov.shape:
+            raise ValueError(
+                "The shape of the `Kernel` must be exactly twice the `output_shape` of "
+                "the mean function."
             )
 
         self._meanfun = mean
         self._covfun = cov
         super().__init__(
-            input_dim=cov.input_dim,
-            output_dim=None if cov.shape == () else cov.shape[0],
+            input_dim=mean.input_shape[0],
+            output_dim=None if mean.output_shape == () else mean.output_shape[0],
             dtype=np.dtype(np.float_),
         )
 
