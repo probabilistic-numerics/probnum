@@ -17,38 +17,7 @@ from probnum.typing import FloatLike
 from ._interface import _LinearizationInterface
 
 
-class UKFComponent(_LinearizationInterface):
-    """Interface for unscented Kalman filtering components."""
-
-    def __init__(
-        self,
-        non_linear_model,
-        spread: Optional[FloatLike] = 1e-4,
-        priorpar: Optional[FloatLike] = 2.0,
-        special_scale: Optional[FloatLike] = 0.0,
-    ) -> None:
-        super().__init__(non_linear_model=non_linear_model)
-
-        self.ut = _unscentedtransform.UnscentedTransform(
-            non_linear_model.input_dim, spread, priorpar, special_scale
-        )
-
-        # Determine the linearization.
-        # Will be constructed later.
-        self.sigma_points = None
-
-    def assemble_sigma_points(self, at_this_rv: randvars.Normal) -> np.ndarray:
-        """Assemble the sigma-points."""
-        return self.ut.sigma_points(at_this_rv)
-
-    def linearize(
-        self, t, at_this_rv: randvars.RandomVariable
-    ) -> randprocs.markov.Transition:
-        """Linearize the transition and make it tractable."""
-        raise NotImplementedError
-
-
-class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
+class ContinuousUKFComponent(_LinearizationInterface, randprocs.markov.continuous.SDE):
     """Continuous-time unscented Kalman filter transition.
 
     Parameters
@@ -73,21 +42,12 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatLike] = 1e-4,
-        priorpar: Optional[FloatLike] = 2.0,
-        special_scale: Optional[FloatLike] = 0.0,
         mde_atol: Optional[FloatLike] = 1e-6,
         mde_rtol: Optional[FloatLike] = 1e-6,
         mde_solver: Optional[str] = "LSODA",
     ) -> None:
 
-        UKFComponent.__init__(
-            self,
-            non_linear_model,
-            spread=spread,
-            priorpar=priorpar,
-            special_scale=special_scale,
-        )
+        _LinearizationInterface.__init__(self, non_linear_model)
         randprocs.markov.continuous.SDE.__init__(
             self,
             state_dimension=non_linear_model.state_dimension,
@@ -105,23 +65,16 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
         )
 
 
-class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaussian):
+class DiscreteUKFComponent(
+    _LinearizationInterface, randprocs.markov.discrete.NonlinearGaussian
+):
     """Discrete unscented Kalman filter transition."""
 
     def __init__(
         self,
         non_linear_model,
-        spread: Optional[FloatLike] = 1e-4,
-        priorpar: Optional[FloatLike] = 2.0,
-        special_scale: Optional[FloatLike] = 0.0,
     ) -> None:
-        UKFComponent.__init__(
-            self,
-            non_linear_model,
-            spread=spread,
-            priorpar=priorpar,
-            special_scale=special_scale,
-        )
+        _LinearizationInterface.__init__(self, non_linear_model)
 
         randprocs.markov.discrete.NonlinearGaussian.__init__(
             self,

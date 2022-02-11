@@ -1,12 +1,11 @@
 """Temporary interface."""
 
-import abc
 from typing import Dict, Tuple
 
 from probnum import randprocs, randvars
 
 
-class _LinearizationInterface(abc.ABC):
+class _LinearizationInterface:
     """Interface for extended Kalman filtering components."""
 
     def __init__(
@@ -113,7 +112,6 @@ class _LinearizationInterface(abc.ABC):
             _diffusion=_diffusion,
         )
 
-    @abc.abstractmethod
     def linearize(
         self, t, at_this_rv: randvars.RandomVariable
     ) -> randprocs.markov.Transition:
