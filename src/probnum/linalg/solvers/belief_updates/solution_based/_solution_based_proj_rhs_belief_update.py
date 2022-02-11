@@ -44,9 +44,12 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> LinearSystemBelief:
 
+        # Compute projected residual
         action_A = solver_state.action @ solver_state.problem.A
         pred = action_A @ solver_state.belief.x.mean
         proj_resid = solver_state.observation - pred
+
+        # Compute gain and covariance update
         cov_xy = solver_state.belief.x.cov @ action_A.T
         gram = action_A @ cov_xy + self._noise_var
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
