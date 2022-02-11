@@ -11,7 +11,6 @@ import numpy as np
 import scipy.linalg
 
 from probnum import randprocs, randvars
-from probnum.filtsmooth.gaussian.approx import _unscentedtransform
 from probnum.typing import FloatLike
 
 from ._interface import _LinearizationInterface
