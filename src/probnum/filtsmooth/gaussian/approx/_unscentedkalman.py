@@ -100,6 +100,18 @@ class DiscreteUKFComponent(
         )
 
 
+def _spherical_cubature_unit_params(*, dim):
+    """Return sigma points and weights for spherical cubature integration.
+
+    Reference:
+    Bayesian Filtering and Smoothing. Simo Särkkä. Page 111.
+    """
+    s, I = np.sqrt(dim), np.eye(dim)
+    unit_sigma_points = s * np.concatenate((I, -I), axis=0)
+    weights = np.ones(2 * dim) / (2.0 * dim)
+    return unit_sigma_points, weights
+
+
 def _linearize_via_cubature(*, t, model, rv, unit_params):
     """Linearize a nonlinear model statistically with spherical cubature integration."""
 
@@ -110,7 +122,7 @@ def _linearize_via_cubature(*, t, model, rv, unit_params):
         [model.transition_fun(t, p) for p in sigma_points], axis=0
     )
 
-    mat, noise_approx = _spherical_cubature_integration_system(
+    mat, noise_approx = _linearization_system_matrices(
         rv_in=rv,
         weights=weights,
         pts=sigma_points,
@@ -124,19 +136,7 @@ def _linearize_via_cubature(*, t, model, rv, unit_params):
     )
 
 
-def _spherical_cubature_unit_params(*, dim):
-    """Return sigma points and weights for spherical cubature integration.
-
-    Reference:
-    Bayesian Filtering and Smoothing. Simo Särkkä. Page 111.
-    """
-    s, I = np.sqrt(dim), np.eye(dim)
-    unit_sigma_points = s * np.concatenate((I, -I), axis=0)
-    weights = np.ones(2 * dim) / (2.0 * dim)
-    return unit_sigma_points, weights
-
-
-def _spherical_cubature_integration_system(*, rv_in, weights, pts, pts_transitioned):
+def _linearization_system_matrices(*, rv_in, weights, pts, pts_transitioned):
     """Notation loosely taken from https://arxiv.org/pdf/2102.00514.pdf."""
 
     pts_centered = pts - rv_in.mean[None, :]
