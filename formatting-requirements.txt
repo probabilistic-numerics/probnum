@@ -1,5 +1,6 @@
 # Dependencies for code formatting
 
+# Bumping the black version requires reformatting the entire codebase in a separate PR
 # black>=22.1,<23
 black == 20.8b0
 isort>=5.10,<6
