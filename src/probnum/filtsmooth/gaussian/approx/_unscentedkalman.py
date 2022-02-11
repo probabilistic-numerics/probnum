@@ -79,6 +79,10 @@ class DiscreteUKFComponent(
             noise_fun=non_linear_model.noise_fun,
         )
 
+        self._cubature_params = _spherical_cubature_unit_params(
+            dim=non_linear_model.input_dim
+        )
+
     @property
     def dimension(self) -> int:
         """Dimension of the state-space associated with the UKF."""
@@ -88,17 +92,19 @@ class DiscreteUKFComponent(
         self, t, at_this_rv: randvars.RandomVariable
     ) -> randprocs.markov.Transition:
         """Linearize the transition and make it tractable."""
-        return _spherical_cubature_integration(
-            t=t, model=self.non_linear_model, rv=at_this_rv
+        return _linearize_via_cubature(
+            t=t,
+            model=self.non_linear_model,
+            rv=at_this_rv,
+            unit_params=self._cubature_params,
         )
 
 
-def _spherical_cubature_integration(*, t, model, rv):
+def _linearize_via_cubature(*, t, model, rv, unit_params):
     """Linearize a nonlinear model statistically with spherical cubature integration."""
 
-    sigma_points, weights = _spherical_cubature_integration_params(
-        rv=rv, dim=model.input_dim
-    )
+    sigma_points_unit, weights = unit_params
+    sigma_points = sigma_points_unit @ rv.cov_cholesky.T + rv.mean[None, :]
 
     sigma_points_transitioned = np.stack(
         [model.transition_fun(t, p) for p in sigma_points], axis=0
@@ -118,7 +124,7 @@ def _spherical_cubature_integration(*, t, model, rv):
     )
 
 
-def _spherical_cubature_integration_params(*, rv, dim):
+def _spherical_cubature_unit_params(*, dim):
     """Return sigma points and weights for spherical cubature integration.
 
     Reference:
@@ -126,9 +132,8 @@ def _spherical_cubature_integration_params(*, rv, dim):
     """
     s, I = np.sqrt(dim), np.eye(dim)
     unit_sigma_points = s * np.concatenate((I, -I), axis=0)
-    sigma_points = unit_sigma_points @ rv.cov_cholesky.T + rv.mean[None, :]
     weights = np.ones(2 * dim) / (2.0 * dim)
-    return sigma_points, weights
+    return unit_sigma_points, weights
 
 
 def _spherical_cubature_integration_system(*, rv_in, weights, pts, pts_transitioned):
