@@ -12,8 +12,6 @@ from ._interface import _LinearizationInterface
 class EKFComponent(_LinearizationInterface):
     """Interface for extended Kalman filtering components."""
 
-    pass
-
 
 # Order of inheritance matters, because forward and backward
 # are defined in EKFComponent, and must not be inherited from SDE.
@@ -64,7 +62,7 @@ class ContinuousEKFComponent(EKFComponent, randprocs.markov.continuous.SDE):
 
         self.forward_implementation = forward_implementation
 
-    def linearize(self, at_this_rv: randvars.Normal):
+    def linearize(self, t, at_this_rv: randvars.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
 
         g = self.non_linear_model.drift_function
@@ -118,7 +116,7 @@ class DiscreteEKFComponent(EKFComponent, randprocs.markov.discrete.NonlinearGaus
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
-    def linearize(self, at_this_rv: randvars.Normal):
+    def linearize(self, t, at_this_rv: randvars.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
         g = self.non_linear_model.transition_fun

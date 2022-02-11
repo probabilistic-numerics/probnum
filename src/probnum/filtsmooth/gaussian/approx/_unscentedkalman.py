@@ -8,6 +8,7 @@ degree fully symmetric rule.
 from typing import Dict, Optional, Tuple
 
 import numpy as np
+import scipy.linalg
 
 from probnum import randprocs, randvars
 from probnum.filtsmooth.gaussian.approx import _unscentedtransform
@@ -41,7 +42,7 @@ class UKFComponent(_LinearizationInterface):
         return self.ut.sigma_points(at_this_rv)
 
     def linearize(
-        self, at_this_rv: randvars.RandomVariable
+        self, t, at_this_rv: randvars.RandomVariable
     ) -> randprocs.markov.Transition:
         """Linearize the transition and make it tractable."""
         raise NotImplementedError
@@ -103,64 +104,6 @@ class ContinuousUKFComponent(UKFComponent, randprocs.markov.continuous.SDE):
             "Implementation of the continuous UKF is incomplete. It cannot be used."
         )
 
-    def forward_realization(
-        self,
-        realization,
-        t,
-        dt=None,
-        compute_gain=False,
-        _diffusion=1.0,
-        _linearise_at=None,
-    ) -> Tuple[randvars.Normal, Dict]:
-        return self._forward_realization_as_rv(
-            realization,
-            t=t,
-            dt=dt,
-            compute_gain=compute_gain,
-            _diffusion=_diffusion,
-            _linearise_at=_linearise_at,
-        )
-
-    def forward_rv(
-        self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
-    ) -> Tuple[randvars.Normal, Dict]:
-        raise NotImplementedError("TODO")  # Issue  #234
-
-    def backward_realization(
-        self,
-        realization_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        dt=None,
-        _diffusion=1.0,
-        _linearise_at=None,
-    ):
-        return self._backward_realization_as_rv(
-            realization_obtained,
-            rv=rv,
-            rv_forwarded=rv_forwarded,
-            gain=gain,
-            t=t,
-            dt=dt,
-            _diffusion=_diffusion,
-            _linearise_at=_linearise_at,
-        )
-
-    def backward_rv(
-        self,
-        rv_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        dt=None,
-        _diffusion=1.0,
-        _linearise_at=None,
-    ):
-        raise NotImplementedError("Not available (yet).")
-
 
 class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaussian):
     """Discrete unscented Kalman filter transition."""
@@ -189,84 +132,80 @@ class DiscreteUKFComponent(UKFComponent, randprocs.markov.discrete.NonlinearGaus
             noise_fun=non_linear_model.noise_fun,
         )
 
-    def forward_rv(
-        self, rv, t, compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
-    ) -> Tuple[randvars.Normal, Dict]:
-        compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
-        self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
-
-        proppts = self.ut.propagate(
-            t, self.sigma_points, self.non_linear_model.transition_fun
-        )
-        meascov = _diffusion * self.non_linear_model.noise_fun(t).cov
-        mean, cov, crosscov = self.ut.estimate_statistics(
-            proppts, self.sigma_points, meascov, rv.mean
-        )
-        info = {"crosscov": crosscov}
-        if compute_gain:
-            gain = crosscov @ np.linalg.inv(cov)
-            info["gain"] = gain
-        return randvars.Normal(mean, cov), info
-
-    def forward_realization(
-        self, realization, t, _diffusion=1.0, _linearise_at=None, **kwargs
-    ):
-
-        return self._forward_realization_via_forward_rv(
-            realization,
-            t=t,
-            compute_gain=False,
-            _diffusion=_diffusion,
-            _linearise_at=_linearise_at,
-        )
-
-    def backward_rv(
-        self,
-        rv_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        _diffusion=1.0,
-        _linearise_at=None,
-        **kwargs
-    ):
-
-        # this method is inherited from NonlinearGaussian.
-        return self._backward_rv_classic(
-            rv_obtained,
-            rv,
-            rv_forwarded,
-            gain=gain,
-            t=t,
-            _diffusion=_diffusion,
-            _linearise_at=None,
-        )
-
-    def backward_realization(
-        self,
-        realization_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        _diffusion=1.0,
-        _linearise_at=None,
-        **kwargs
-    ):
-
-        # this method is inherited from NonlinearGaussian.
-        return self._backward_realization_via_backward_rv(
-            realization_obtained,
-            rv,
-            rv_forwarded,
-            gain=gain,
-            t=t,
-            _diffusion=_diffusion,
-            _linearise_at=_linearise_at,
-        )
-
     @property
     def dimension(self) -> int:
         """Dimension of the state-space associated with the UKF."""
         return self.ut.dimension
+
+    def linearize(
+        self, t, at_this_rv: randvars.RandomVariable
+    ) -> randprocs.markov.Transition:
+        """Linearize the transition and make it tractable."""
+        return _spherical_cubature_integration(
+            t=t, model=self.non_linear_model, rv0=at_this_rv
+        )
+
+
+def _spherical_cubature_integration(*, t, model, rv0):
+    """Linearize a nonlinear model statistically with spherical cubature integration."""
+
+    sigma_points, weights = _spherical_cubature_integration_params(
+        rv=rv0, dim=model.input_dim
+    )
+
+    sigma_points_transitioned = np.stack(
+        [model.transition_fun(t, p) for p in sigma_points], axis=0
+    )
+
+    mat, noise_approx = _spherical_cubature_system_matrices(
+        rv0=rv0,
+        weights=weights,
+        pts=sigma_points,
+        pts_transitioned=sigma_points_transitioned,
+    )
+    return randprocs.markov.discrete.LinearGaussian(
+        input_dim=model.input_dim,
+        output_dim=model.output_dim,
+        transition_matrix_fun=lambda _: mat,
+        noise_fun=lambda s: noise_approx + model.noise_fun(s),
+    )
+
+
+def _spherical_cubature_integration_params(*, rv, dim):
+
+    unit_sigma_points = np.sqrt(dim) * np.concatenate(
+        (
+            np.eye(dim),
+            -np.eye(dim),
+        ),
+        axis=0,
+    )
+    sigma_points = unit_sigma_points @ rv.cov_cholesky.T + rv.mean[None, :]
+    weights = np.ones(2 * dim) / (2.0 * dim)
+    return sigma_points, weights
+
+
+def _spherical_cubature_system_matrices(*, rv0, weights, pts, pts_transitioned):
+    """Notation from: https://arxiv.org/pdf/2102.00514.pdf."""
+
+    mean_input = rv0.mean  # (d_in,)
+    mean_output = weights @ pts_transitioned  # (d_out,)
+
+    centered_input = pts - mean_input[None, :]  # (n, d_in)
+    centered_output = pts_transitioned - mean_output[None, :]  # (n, d_out)
+
+    crosscov_pt = np.einsum(
+        "ijx,ikx->ijk", centered_input[..., None], centered_output[..., None]
+    )  # (n, d_in, d_out)
+    crosscov = np.einsum("i,ijk->jk", weights, crosscov_pt)  # (d_in, d_out)
+
+    cov_input = rv0.cov  # (d_in, d_in)
+    cov_output_pt = np.einsum(
+        "ijx,ikx->ijk", centered_output[..., None], centered_output[..., None]
+    )  # (n, d_out, d_out)
+    cov_output = np.einsum("i,ijk->jk", weights, cov_output_pt)  # (d_out, d_out)
+
+    gain = scipy.linalg.solve(cov_input, crosscov).T  # (d_in, d_out)
+    mean = mean_output - gain @ mean_input  # (d_out,)
+    cov = cov_output - crosscov.T @ gain.T  # (d_out, d_out)
+    return gain, randvars.Normal(mean=mean, cov=cov)

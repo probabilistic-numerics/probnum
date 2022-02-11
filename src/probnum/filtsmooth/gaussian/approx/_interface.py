@@ -16,8 +16,9 @@ class _LinearizationInterface(abc.ABC):
 
         self.non_linear_model = non_linear_model
 
-        # Will be constructed later
-        self.linearized_model = None
+        # # Will be constructed later
+        # self.linearized_model = None
+        #
 
     def forward_realization(
         self,
@@ -34,8 +35,8 @@ class _LinearizationInterface(abc.ABC):
             if _linearise_at is not None
             else randvars.Constant(realization)
         )
-        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
-        return self.linearized_model.forward_realization(
+        linearized_model = self.linearize(t=t, at_this_rv=compute_jacobian_at)
+        return linearized_model.forward_realization(
             realization=realization,
             t=t,
             dt=dt,
@@ -55,8 +56,8 @@ class _LinearizationInterface(abc.ABC):
         """Approximate forward-propagation of a random variable."""
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
-        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
-        return self.linearized_model.forward_rv(
+        linearized_model = self.linearize(t=t, at_this_rv=compute_jacobian_at)
+        return linearized_model.forward_rv(
             rv=rv,
             t=t,
             dt=dt,
@@ -76,7 +77,6 @@ class _LinearizationInterface(abc.ABC):
         _linearise_at=None,
     ):
         """Approximate backward-propagation of a realization of a random variable."""
-
         return self._backward_realization_via_backward_rv(
             realization_obtained,
             rv=rv,
@@ -102,8 +102,8 @@ class _LinearizationInterface(abc.ABC):
         """Approximate backward-propagation of a random variable."""
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
-        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
-        return self.linearized_model.backward_rv(
+        linearized_model = self.linearize(t=t, at_this_rv=compute_jacobian_at)
+        return linearized_model.backward_rv(
             rv_obtained=rv_obtained,
             rv=rv,
             rv_forwarded=rv_forwarded,
@@ -115,7 +115,7 @@ class _LinearizationInterface(abc.ABC):
 
     @abc.abstractmethod
     def linearize(
-        self, at_this_rv: randvars.RandomVariable
+        self, t, at_this_rv: randvars.RandomVariable
     ) -> randprocs.markov.Transition:
         """Linearize the transition and make it tractable."""
         raise NotImplementedError
