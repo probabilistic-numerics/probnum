@@ -1,6 +1,5 @@
 """Integrated Ornstein-Uhlenbeck processes."""
 import warnings
-from functools import cached_property
 
 import numpy as np
 
@@ -127,26 +126,23 @@ class IntegratedOrnsteinUhlenbeckTransition(
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._drift_matrix_ioup(),
+            force_vector=self._force_vector_ioup(),
+            dispersion_matrix=self._dispersion_matrix_ioup(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):  # pylint: disable=method-hidden
+    def _drift_matrix_ioup(self):
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         drift_matrix_1d[-1, -1] = -self.driftspeed
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
-    @cached_property
-    def _force_vector(self):  # pylint: disable=method-hidden
+    def _force_vector_ioup(self):
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
-    @cached_property
-    def _dispersion_matrix(self):  # pylint: disable=method-hidden
+    def _dispersion_matrix_ioup(self):
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T
