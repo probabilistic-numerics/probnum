@@ -101,8 +101,9 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
                 "the mean function."
             )
 
-        self._meanfun = mean
-        self._covfun = cov
+        self._mean = mean
+        self._cov = cov
+
         super().__init__(
             input_dim=mean.input_shape[0],
             output_dim=None if mean.output_shape == () else mean.output_shape[0],
@@ -114,16 +115,13 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
             mean=np.array(self.mean(args), copy=False), cov=self.covmatrix(args)
         )
 
-    def mean(self, args: _InputType) -> _OutputType:
-        return self._meanfun(args)
+    @property
+    def mean(self) -> _function.Function:
+        return self._mean
 
-    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
-        return self._covfun(args0, args1)
-
-    def covmatrix(
-        self, args0: _InputType, args1: Optional[_InputType] = None
-    ) -> _OutputType:
-        return self._covfun.matrix(args0, args1)
+    @property
+    def cov(self) -> kernels.Kernel:
+        return self._cov
 
     def _sample_at_input(
         self,

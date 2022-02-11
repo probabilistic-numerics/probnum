@@ -234,7 +234,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             process at ``args``.
         """
         try:
-            var = self.cov(args0=args)
+            var = self.cov(args, None)
         except NotImplementedError as exc:
             raise NotImplementedError from exc
 
