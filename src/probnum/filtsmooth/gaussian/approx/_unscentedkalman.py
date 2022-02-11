@@ -94,23 +94,23 @@ class DiscreteUKFComponent(
     ) -> randprocs.markov.Transition:
         """Linearize the transition and make it tractable."""
         return _spherical_cubature_integration(
-            t=t, model=self.non_linear_model, rv0=at_this_rv
+            t=t, model=self.non_linear_model, rv=at_this_rv
         )
 
 
-def _spherical_cubature_integration(*, t, model, rv0):
+def _spherical_cubature_integration(*, t, model, rv):
     """Linearize a nonlinear model statistically with spherical cubature integration."""
 
     sigma_points, weights = _spherical_cubature_integration_params(
-        rv=rv0, dim=model.input_dim
+        rv=rv, dim=model.input_dim
     )
 
     sigma_points_transitioned = np.stack(
         [model.transition_fun(t, p) for p in sigma_points], axis=0
     )
 
-    mat, noise_approx = _spherical_cubature_system_matrices(
-        rv0=rv0,
+    mat, noise_approx = _spherical_cubature_integration_system(
+        rv_in=rv,
         weights=weights,
         pts=sigma_points,
         pts_transitioned=sigma_points_transitioned,
@@ -124,40 +124,44 @@ def _spherical_cubature_integration(*, t, model, rv0):
 
 
 def _spherical_cubature_integration_params(*, rv, dim):
+    """Return sigma points and weights for spherical cubature integration.
 
-    unit_sigma_points = np.sqrt(dim) * np.concatenate(
-        (
-            np.eye(dim),
-            -np.eye(dim),
-        ),
-        axis=0,
-    )
+    Reference:
+    Bayesian Filtering and Smoothing. Simo Särkkä. Page 111.
+    """
+    s, I = np.sqrt(dim), np.eye(dim)
+    unit_sigma_points = s * np.concatenate((I, -I), axis=0)
     sigma_points = unit_sigma_points @ rv.cov_cholesky.T + rv.mean[None, :]
     weights = np.ones(2 * dim) / (2.0 * dim)
     return sigma_points, weights
 
 
-def _spherical_cubature_system_matrices(*, rv0, weights, pts, pts_transitioned):
-    """Notation from: https://arxiv.org/pdf/2102.00514.pdf."""
+def _spherical_cubature_integration_system(*, rv_in, weights, pts, pts_transitioned):
+    """Notation loosely taken from https://arxiv.org/pdf/2102.00514.pdf."""
 
-    mean_input = rv0.mean  # (d_in,)
-    mean_output = weights @ pts_transitioned  # (d_out,)
+    pts_centered = pts - rv_in.mean[None, :]
+    rv_out, crosscov = _match_moments(
+        x_centered=pts_centered, fx=pts_transitioned, weights=weights
+    )
 
-    centered_input = pts - mean_input[None, :]  # (n, d_in)
-    centered_output = pts_transitioned - mean_output[None, :]  # (n, d_out)
+    F = scipy.linalg.solve(rv_in.cov, crosscov).T
+    mean = rv_out.mean - F @ rv_in.mean
+    cov = rv_out.cov - crosscov.T @ F.T
+    return F, randvars.Normal(mean=mean, cov=cov)
 
-    crosscov_pt = np.einsum(
-        "ijx,ikx->ijk", centered_input[..., None], centered_output[..., None]
-    )  # (n, d_in, d_out)
-    crosscov = np.einsum("i,ijk->jk", weights, crosscov_pt)  # (d_in, d_out)
 
-    cov_input = rv0.cov  # (d_in, d_in)
-    cov_output_pt = np.einsum(
-        "ijx,ikx->ijk", centered_output[..., None], centered_output[..., None]
-    )  # (n, d_out, d_out)
-    cov_output = np.einsum("i,ijk->jk", weights, cov_output_pt)  # (d_out, d_out)
+def _match_moments(*, x_centered, fx, weights):
 
-    gain = scipy.linalg.solve(cov_input, crosscov).T  # (d_in, d_out)
-    mean = mean_output - gain @ mean_input  # (d_out,)
-    cov = cov_output - crosscov.T @ gain.T  # (d_out, d_out)
-    return gain, randvars.Normal(mean=mean, cov=cov)
+    fx_mean = weights @ fx
+    fx_centered = fx - fx_mean[None, :]
+
+    crosscov = _approx_outer_product(weights, x_centered, fx_centered)
+    fx_cov = _approx_outer_product(weights, fx_centered, fx_centered)
+
+    return randvars.Normal(mean=fx_mean, cov=fx_cov), crosscov
+
+
+def _approx_outer_product(w, a, b):
+    outer_product_pt = np.einsum("ijx,ikx->ijk", a[..., None], b[..., None])
+    outer_product = np.einsum("i,ijk->jk", w, outer_product_pt)
+    return outer_product
