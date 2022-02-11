@@ -1,0 +1,4 @@
+# Dependencies needed to run the benchmarks
+
+# asv>0.5.1,<=0.6
+git+https://github.com/airspeed-velocity/asv.git@a131ca742daf53c4521fbfefeb53507b5c140c84#egg=asv
