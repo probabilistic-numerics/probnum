@@ -1,0 +1,10 @@
+# Dependencies for a full ProbNum development environment
+-e .[full]
+
+tox>=3,<4
+
+-r benchmarks/requirements.txt
+-r docs/requirements.txt
+-r tests/requirements.txt
+-r ./linting-requirements.txt
+-r ./formatting-requirements.txt

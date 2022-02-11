@@ -1,0 +1,4 @@
+# Dependencies for code linting
+
+pylint == 2.9.*
+# mypy
