@@ -2,7 +2,7 @@
 
 import pytest
 
-from probnum import filtsmooth, randprocs
+from probnum import filtsmooth
 
 from ._linearization_test_interface import InterfaceDiscreteLinearizationTest
 
