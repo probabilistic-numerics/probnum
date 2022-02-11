@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs, randvars, utils
+from probnum import randprocs, randvars
 
 
 def test_no_kernel_covariance_raises_error():

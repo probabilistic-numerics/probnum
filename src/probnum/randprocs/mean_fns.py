@@ -13,4 +13,7 @@ class MeanFunction(_function.Function):
 
 class Zero(MeanFunction):
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
-        return np.zeros_like(x, shape=x.shape[:-1] + self._output_shape)
+        return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            x,
+            shape=x.shape[:-1] + self._output_shape,
+        )
