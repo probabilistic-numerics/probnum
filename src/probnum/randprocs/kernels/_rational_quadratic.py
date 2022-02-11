@@ -4,8 +4,8 @@ from typing import Optional
 
 import numpy as np
 
-import probnum.utils as _utils
 from probnum.typing import IntLike, ScalarLike
+import probnum.utils as _utils
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -76,6 +76,6 @@ class RatQuad(Kernel, IsotropicMixin):
             1.0
             + (
                 self._squared_euclidean_distances(x0, x1)
-                / (2.0 * self.alpha * self.lengthscale ** 2)
+                / (2.0 * self.alpha * self.lengthscale**2)
             )
         ) ** -self.alpha

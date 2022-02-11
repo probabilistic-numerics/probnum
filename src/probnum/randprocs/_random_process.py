@@ -5,8 +5,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import randvars
-from probnum import utils as _utils
+from probnum import randvars, utils as _utils
 from probnum.typing import DTypeLike, IntLike, ShapeLike
 
 _InputType = TypeVar("InputType")

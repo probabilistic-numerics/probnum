@@ -53,7 +53,7 @@ class _NonProbabilisticFitBase(InitializationRoutine):
         observation_noise_std = self._observation_noise_std * np.ones(ode_dim)
         process_noise = randvars.Normal(
             mean=np.zeros(ode_dim),
-            cov=np.diag(observation_noise_std ** 2),
+            cov=np.diag(observation_noise_std**2),
             cov_cholesky=np.diag(observation_noise_std),
         )
         measmod_scipy = randprocs.markov.discrete.LTIGaussian(

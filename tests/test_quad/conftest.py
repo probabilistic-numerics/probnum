@@ -148,7 +148,7 @@ def fixture_kernel_embedding(
         pytest.param(fun, id=f"f={key}")
         for key, fun in {
             "x": lambda x: x,
-            "x**2": lambda x: x ** 2,
+            "x**2": lambda x: x**2,
             "sin(x)": lambda x: np.sin(x),
         }.items()
     ],

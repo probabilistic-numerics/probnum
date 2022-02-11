@@ -3,8 +3,8 @@
 import os
 
 import numpy as np
-import scipy
 from pytest_cases import case, parametrize
+import scipy
 
 from probnum import linops
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix

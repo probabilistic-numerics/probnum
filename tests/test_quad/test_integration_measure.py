@@ -102,7 +102,7 @@ def test_lebesgue_normalization(input_dim: int):
         measure = quad.LebesgueMeasure(
             domain=domain, input_dim=input_dim, normalized=True
         )
-        assert measure.normalization_constant == 1 / 2 ** input_dim
+        assert measure.normalization_constant == 1 / 2**input_dim
 
 
 def test_lebesgue_unnormalized(input_dim: int):

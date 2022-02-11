@@ -37,7 +37,7 @@ def _kernel_mean_expquad_lebesgue(
     ell = kernel.lengthscale
     return (
         measure.normalization_constant
-        * (np.pi * ell ** 2 / 2) ** (input_dim / 2)
+        * (np.pi * ell**2 / 2) ** (input_dim / 2)
         * (
             erf((measure.domain[1] - x) / (ell * np.sqrt(2)))
             - erf((measure.domain[0] - x) / (ell * np.sqrt(2)))
@@ -69,10 +69,10 @@ def _kernel_variance_expquad_lebesgue(
     r = measure.domain[1] - measure.domain[0]
     ell = kernel.lengthscale
     return (
-        measure.normalization_constant ** 2
-        * (2 * np.pi * ell ** 2) ** (input_dim / 2)
+        measure.normalization_constant**2
+        * (2 * np.pi * ell**2) ** (input_dim / 2)
         * (
-            ell * np.sqrt(2 / np.pi) * (np.exp(-(r ** 2) / (2 * ell ** 2)) - 1)
+            ell * np.sqrt(2 / np.pi) * (np.exp(-(r**2) / (2 * ell**2)) - 1)
             + r * erf(r / (ell * np.sqrt(2)))
         ).prod()
     )

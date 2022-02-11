@@ -165,7 +165,7 @@ def test_constant_multivariate_normal_multiplication_right(
     )
     np.testing.assert_allclose(
         element_product.cov,
-        scalar_like_constant.support ** 2 * multivariate_normal.cov,
+        scalar_like_constant.support**2 * multivariate_normal.cov,
     )
     assert (
         element_product.cov_cholesky_is_precomputed
@@ -195,7 +195,7 @@ def test_constant_multivariate_normal_multiplication_left(
     )
     np.testing.assert_allclose(
         element_product.cov,
-        multivariate_normal.cov * scalar_like_constant.support ** 2,
+        multivariate_normal.cov * scalar_like_constant.support**2,
     )
     assert (
         element_product.cov_cholesky_is_precomputed
@@ -223,7 +223,7 @@ def test_constant_multivariate_normal_division(constant, multivariate_normal):
     )
     np.testing.assert_allclose(
         element_product.cov,
-        multivariate_normal.cov / scalar_like_constant.support ** 2,
+        multivariate_normal.cov / scalar_like_constant.support**2,
     )
     assert (
         element_product.cov_cholesky_is_precomputed

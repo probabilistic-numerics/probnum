@@ -141,8 +141,8 @@ def test_values(
     np.testing.assert_allclose(
         call_result,
         call_result_naive,
-        rtol=10 ** -12,
-        atol=10 ** -12,
+        rtol=10**-12,
+        atol=10**-12,
     )
 
 
