@@ -7,8 +7,8 @@ import numpy as np
 from probnum import randvars
 from probnum.typing import ShapeLike
 
-from .. import _function
 from . import _random_process, kernels
+from .. import _function
 
 _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
