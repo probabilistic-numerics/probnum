@@ -47,22 +47,19 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def __init__(
         self,
         input_dim: IntLike,
-        output_dim: Optional[IntLike],
+        output_shape: ShapeLike,
         dtype: DTypeLike,
     ):
         self._input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
 
-        self._output_dim = None
-
-        if output_dim is not None:
-            self._output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+        self._output_shape = _utils.as_shape(output_shape)
 
         self._dtype = np.dtype(dtype)
 
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with "
-            f"input_dim={self.input_dim}, output_dim={self.output_dim}, "
+            f"input_dim={self.input_dim}, output_shape={self.output_shape}, "
             f"dtype={self.dtype}>"
         )
 
@@ -90,9 +87,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         return self._input_dim
 
     @property
-    def output_dim(self) -> int:
+    def output_shape(self) -> ShapeType:
         """Shape of the random process evaluated at an input."""
-        return self._output_dim
+        return self._output_shape
 
     @property
     def dtype(self) -> np.dtype:

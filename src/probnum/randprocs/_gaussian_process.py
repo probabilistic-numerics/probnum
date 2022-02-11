@@ -106,7 +106,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
         super().__init__(
             input_dim=mean.input_shape[0],
-            output_dim=None if mean.output_shape == () else mean.output_shape[0],
+            output_shape=mean.output_shape,
             dtype=np.dtype(np.float_),
         )
 
