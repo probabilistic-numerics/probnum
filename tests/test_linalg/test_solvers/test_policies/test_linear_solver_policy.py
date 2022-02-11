@@ -1,4 +1,5 @@
 """Tests for probabilistic linear solver policies."""
+import copy
 import pathlib
 
 import numpy as np
@@ -14,6 +15,7 @@ cases_states = case_modules + ".states"
 @parametrize_with_cases("policy", cases=cases_policies)
 @parametrize_with_cases("state", cases=cases_states)
 def test_returns_ndarray(policy: policies.LinearSolverPolicy, state: LinearSolverState):
+    state = copy.deepcopy(state)
     action = policy(state)
     assert isinstance(action, np.ndarray)
 
@@ -21,6 +23,7 @@ def test_returns_ndarray(policy: policies.LinearSolverPolicy, state: LinearSolve
 @parametrize_with_cases("policy", cases=cases_policies)
 @parametrize_with_cases("state", cases=cases_states)
 def test_shape(policy: policies.LinearSolverPolicy, state: LinearSolverState):
+    state = copy.deepcopy(state)
     action = policy(state)
     assert action.shape[0] == state.problem.A.shape[1]
 
@@ -32,6 +35,7 @@ def test_uses_solver_state_random_number_generator(
 ):
     """Test whether randomized policies make use of the random number generator stored
     in the linear solver state."""
+    state = copy.deepcopy(state)
     rng_state_pre = state.rng.bit_generator.state["state"]["state"]
     _ = policy(state)
     rng_state_post = state.rng.bit_generator.state["state"]["state"]
