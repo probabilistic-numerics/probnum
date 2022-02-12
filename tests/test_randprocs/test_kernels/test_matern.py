@@ -10,14 +10,14 @@ from probnum.randprocs import kernels
 def test_nonpositive_nu_raises_exception(nu):
     """Check whether a non-positive nu parameter raises a ValueError."""
     with pytest.raises(ValueError):
-        kernels.Matern(input_dim=1, nu=nu)
+        kernels.Matern(input_shape=(), nu=nu)
 
 
 def test_nu_large_recovers_rbf_kernel(x0: np.ndarray, x1: np.ndarray, input_dim: int):
     """Test whether a Matern kernel with nu large is close to an RBF kernel."""
     lengthscale = 1.25
-    rbf = kernels.ExpQuad(lengthscale=lengthscale, input_dim=input_dim)
-    matern = kernels.Matern(lengthscale=lengthscale, nu=15, input_dim=input_dim)
+    rbf = kernels.ExpQuad(lengthscale=lengthscale, input_shape=(input_dim,))
+    matern = kernels.Matern(lengthscale=lengthscale, nu=15, input_shape=(input_dim,))
 
     np.testing.assert_allclose(
         rbf.matrix(x0, x1),

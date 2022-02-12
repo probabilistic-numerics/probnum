@@ -41,13 +41,13 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     >>> from probnum.randprocs.mean_fns import Zero
     >>> from probnum.randprocs.kernels import ExpQuad
     >>> from probnum.randprocs import GaussianProcess
-    >>> mu = Zero(input_shape=(1,))  # zero-mean function
-    >>> k = ExpQuad(input_dim=1)  # RBF kernel
+    >>> mu = Zero(input_shape=())  # zero-mean function
+    >>> k = ExpQuad(input_shape=())  # RBF kernel
     >>> gp = GaussianProcess(mu, k)
 
     Sample from the Gaussian process.
 
-    >>> x = np.linspace(-1, 1, 5)[:, None]
+    >>> x = np.linspace(-1, 1, 5)
     >>> rng = np.random.default_rng(seed=42)
     >>> gp.sample(rng, x)
     array([-0.7539949 , -0.6658092 , -0.52972512,  0.0674298 ,  0.72066223])
@@ -72,23 +72,21 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
                 "The covariance functions must be implemented as a " "`Kernel`."
             )
 
-        if len(mean.input_shape) != 1:
+        if len(mean.input_shape) > 1:
             raise ValueError(
-                "The mean function must have input shape `(D_in,)`, where `D_in` is the"
-                "input dimension of the Gaussian process."
+                "The mean function must have input shape `()` or `(D_in,)`."
             )
 
         if len(mean.output_shape) > 1:
             raise ValueError(
-                "The mean function must have output shape `()` or `(D_out,)`, where "
-                "`D_out` is the output dimension of the Gaussian process."
+                "The mean function must have output shape `()` or `(D_out,)`."
             )
 
-        if mean.input_shape != (cov.input_dim,):
+        if mean.input_shape != cov.input_shape:
             raise ValueError(
                 "The mean and covariance functions must have the same input shapes "
-                f"(`mean.input_shape` is {mean.input_shape} and `cov.input_dim` is "
-                f"{cov.input_dim})."
+                f"(`mean.input_shape` is {mean.input_shape} and `cov.input_shape` is "
+                f"{cov.input_shape})."
             )
 
         if 2 * mean.output_shape != cov.shape:

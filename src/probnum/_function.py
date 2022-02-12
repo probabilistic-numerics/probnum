@@ -29,7 +29,7 @@ class Function(abc.ABC):
         try:
             np.broadcast_to(
                 x,
-                shape=x.shape[: -self._input_ndim] + self._input_shape,
+                shape=x.shape[: x.ndim - self._input_ndim] + self._input_shape,
             )
         except ValueError as ve:
             raise ValueError(
@@ -39,7 +39,7 @@ class Function(abc.ABC):
 
         res = self._evaluate(x)
 
-        assert res.shape == (x.shape[: -self._input_ndim] + self._output_shape)
+        assert res.shape == (x.shape[: x.ndim - self._input_ndim] + self._output_shape)
 
         return res
 

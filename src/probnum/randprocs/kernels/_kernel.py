@@ -6,7 +6,7 @@ from typing import Optional, Union
 import numpy as np
 
 from probnum import utils as _pn_utils
-from probnum.typing import ArrayLike, IntLike, ShapeLike, ShapeType
+from probnum.typing import ArrayLike, ShapeLike, ShapeType
 
 
 class Kernel(abc.ABC):
@@ -54,8 +54,8 @@ class Kernel(abc.ABC):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     shape :
         If ``shape`` is set to ``()``, the :class:`Kernel` instance represents a
         single (cross-)covariance function. Otherwise, i.e. if ``shape`` is non-empty,
@@ -66,7 +66,7 @@ class Kernel(abc.ABC):
     --------
 
     >>> D = 3
-    >>> k = pn.randprocs.kernels.Linear(input_dim=D)
+    >>> k = pn.randprocs.kernels.Linear(input_shape=D)
 
     Generate some input data.
 
@@ -134,10 +134,16 @@ class Kernel(abc.ABC):
 
     def __init__(
         self,
-        input_dim: IntLike,
+        input_shape: ShapeLike,
         shape: ShapeLike = (),
     ):
-        self._input_dim = int(input_dim)
+        self._input_shape = _pn_utils.as_shape(input_shape)
+        self._input_ndim = len(self._input_shape)
+
+        if len(self._input_shape) > 1:
+            raise ValueError(
+                "The input shape of a `Kernel` must not have more than 1 dimension."
+            )
 
         self._shape = _pn_utils.as_shape(shape)
 
@@ -219,7 +225,11 @@ class Kernel(abc.ABC):
         # Evaluate the kernel
         k_x0_x1 = self._evaluate(x0, x1)
 
-        assert k_x0_x1.shape == self._shape + broadcast_input_shape[:-1]
+        assert (
+            k_x0_x1.shape
+            == self._shape
+            + broadcast_input_shape[: len(broadcast_input_shape) - self._input_ndim]
+        )
 
         return k_x0_x1
 
@@ -273,24 +283,27 @@ class Kernel(abc.ABC):
 
         # Shape checking
         errmsg = (
-            "`{argname}` must have shape `(N, D)` or `(D,)`, where `D` is the input "
-            f"dimension of the kernel (D = {self.input_dim}), but an array with shape "
-            "`{shape}` was given."
+            "`{argname}` must have shape `(N,) + in_shape` or `in_shape`, where "
+            f"`in_shape` can be broadcast to `input_shape` (= {self.input_shape}), but "
+            "an array with shape `{shape}` was given."
         )
 
-        if not (1 <= x0.ndim <= 2 and x0.shape[-1] in (self.input_dim, 1)):
+        if not (0 <= x0.ndim - self._input_ndim <= 1):
             raise ValueError(errmsg.format(argname="x0", shape=x0.shape))
 
-        if not (1 <= x1.ndim <= 2 and x1.shape[-1] in (self.input_dim, 1)):
+        if not (0 <= x1.ndim - self._input_ndim <= 1):
             raise ValueError(errmsg.format(argname="x1", shape=x1.shape))
 
         # Pairwise kernel evaluation
-        return self(x0[:, None, :], x1[None, :, :])
+        if x0.ndim > self._input_ndim and x1.ndim > self._input_ndim:
+            return self(x0[:, None], x1[None, :])
+
+        return self(x0, x1)
 
     @property
-    def input_dim(self) -> int:
+    def input_shape(self) -> int:
         """Dimension of arguments of the covariance function."""
-        return self._input_dim
+        return self._input_shape
 
     @property
     def shape(self) -> ShapeType:
@@ -374,34 +387,43 @@ class Kernel(abc.ABC):
         """
 
         err_msg = (
-            "`{argname}` can not be broadcast to the kernel's input dimension "
-            f"{self.input_dim} along the last axis, since "
+            "`{argname}` can not be broadcast to the kernel's input shape "
+            f"{self.input_shape}, since "
             "`{argname}.shape = {shape}`."
         )
 
-        if x0.shape[-1] not in (self.input_dim, 1):
-            # This will never be called if the original input was a scalar
-            raise ValueError(err_msg.format(argname="x0", shape=x0.shape))
-
-        broadcast_input_shape = x0.shape
+        try:
+            broadcast_input_shape = np.broadcast_to(
+                x0,
+                shape=x0.shape[: x0.ndim - self._input_ndim] + self.input_shape,
+            ).shape
+        except ValueError as ve:
+            raise ValueError(err_msg.format(argname="x0", shape=x0.shape)) from ve
 
         if x1 is not None:
-            if x1.shape[-1] not in (self.input_dim, 1):
-                # This will never be called if the original input was a scalar
-                raise ValueError(err_msg.format(argname="x1", shape=x1.shape))
+            try:
+                np.broadcast_to(
+                    x1,
+                    shape=x1.shape[: x1.ndim - self._input_ndim] + self.input_shape,
+                )
+            except ValueError as ve:
+                raise ValueError(err_msg.format(argname="x1", shape=x1.shape)) from ve
+
+            input_shape_array = np.broadcast_to(0.0, self.input_shape)
 
             try:
                 # Ironically, `np.broadcast_arrays` seems to be more efficient than
                 # `np.broadcast_shapes`
-                broadcast_input_shape = np.broadcast_arrays(x0, x1)[0].shape
+                broadcast_input_shape = np.broadcast_arrays(
+                    x0,
+                    x1,
+                    input_shape_array,
+                )[0].shape
             except ValueError as v:
                 raise ValueError(
                     f"The input arrays `x0` and `x1` with shapes {x0.shape} and "
                     f"{x1.shape} can not be broadcast to a common shape."
                 ) from v
-
-        if broadcast_input_shape[-1] == 1:
-            broadcast_input_shape = broadcast_input_shape[:-1] + (self.input_dim,)
 
         return broadcast_input_shape
 
@@ -412,8 +434,11 @@ class Kernel(abc.ABC):
         broadcasting semantics."""
         prods = x0**2 if x1 is None else x0 * x1
 
+        if self.input_shape == ():
+            return prods
+
         if prods.shape[-1] == 1:
-            return self.input_dim * prods[..., 0]
+            return self._input_shape[0] * prods[..., 0]
 
         return np.sum(prods, axis=-1)
 
@@ -439,13 +464,16 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                shape=x0.shape[:-1],
+                shape=x0.shape[: -self._input_ndim],
             )
 
         sqdiffs = (x0 - x1) ** 2
 
+        if self.input_shape == ():
+            return sqdiffs
+
         if sqdiffs.shape[-1] == 1:
-            return self.input_dim * sqdiffs[..., 0]
+            return self._input_shape[0] * sqdiffs[..., 0]
 
         return np.sum(sqdiffs, axis=-1)
 
@@ -457,7 +485,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                shape=x0.shape[:-1],
+                shape=x0.shape[: -self._input_ndim],
             )
 
         return np.sqrt(self._squared_euclidean_distances(x0, x1))

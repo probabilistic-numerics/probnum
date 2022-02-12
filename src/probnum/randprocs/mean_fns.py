@@ -15,5 +15,5 @@ class Zero(MeanFunction):
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
         return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
             x,
-            shape=x.shape[:-1] + self._output_shape,
+            shape=x.shape[: x.ndim - self._input_ndim] + self._output_shape,
         )

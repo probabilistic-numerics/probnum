@@ -72,7 +72,7 @@ def fixture_mean(request, input_dim: int) -> Callable:
 )
 def fixture_cov(request, input_dim: int) -> kernels.Kernel:
     """Covariance function."""
-    return request.param[0](**request.param[1], input_dim=input_dim)
+    return request.param[0](**request.param[1], input_shape=(input_dim,))
 
 
 @pytest.fixture(
@@ -83,7 +83,7 @@ def fixture_cov(request, input_dim: int) -> kernels.Kernel:
                 "gp",
                 randprocs.GaussianProcess(
                     mean=mean_fns.Zero(input_shape=(1,)),
-                    cov=kernels.Matern(input_dim=1),
+                    cov=kernels.Matern(input_shape=(1,)),
                 ),
             ),
         ]
