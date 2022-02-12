@@ -288,10 +288,10 @@ class Kernel(abc.ABC):
             "an array with shape `{shape}` was given."
         )
 
-        if not (0 <= x0.ndim - self._input_ndim <= 1):
+        if not 0 <= x0.ndim - self._input_ndim <= 1:
             raise ValueError(errmsg.format(argname="x0", shape=x0.shape))
 
-        if not (0 <= x1.ndim - self._input_ndim <= 1):
+        if not 0 <= x1.ndim - self._input_ndim <= 1:
             raise ValueError(errmsg.format(argname="x1", shape=x1.shape))
 
         # Pairwise kernel evaluation

@@ -120,7 +120,7 @@ class MarkovProcess(_random_process.RandomProcess):
             self._randproc_call = markov_proc.__call__
 
             super().__init__(
-                input_dim=markov_proc.input_shape[0],
+                input_shape=markov_proc.input_shape,
                 shape=markov_proc.output_shape,
             )
 
