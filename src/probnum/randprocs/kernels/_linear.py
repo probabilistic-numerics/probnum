@@ -4,8 +4,8 @@ from typing import Optional
 
 import numpy as np
 
-import probnum.utils as _utils
 from probnum.typing import IntLike, ScalarLike
+import probnum.utils as _utils
 
 from ._kernel import Kernel
 

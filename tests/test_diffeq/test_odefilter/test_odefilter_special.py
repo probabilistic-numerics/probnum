@@ -6,8 +6,8 @@ but the implementation. Therefore this test module is named w.r.t. ivpfiltsmooth
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, randprocs
+import probnum.problems.zoo.diffeq as diffeq_zoo
 
 
 @pytest.fixture(name="ivp")

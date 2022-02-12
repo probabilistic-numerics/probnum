@@ -1,7 +1,7 @@
 """Definitions of problems currently solved by probabilistic numerical methods."""
 
-import dataclasses
 from collections import abc
+import dataclasses
 from typing import Callable, Optional, Sequence, Union
 
 import numpy as np

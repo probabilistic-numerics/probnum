@@ -344,9 +344,9 @@ def pendulum(
         return np.array([[np.cos(x1), 0.0]])
 
     noise_cov = (
-        np.diag(np.array([step ** 3 / 3, step]))
-        + np.diag(np.array([step ** 2 / 2]), 1)
-        + np.diag(np.array([step ** 2 / 2]), -1)
+        np.diag(np.array([step**3 / 3, step]))
+        + np.diag(np.array([step**2 / 2]), 1)
+        + np.diag(np.array([step**2 / 2]), -1)
     )
 
     dynamics_model = randprocs.markov.discrete.NonlinearGaussian(

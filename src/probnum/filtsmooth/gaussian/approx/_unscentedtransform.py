@@ -127,7 +127,7 @@ def _compute_scale(dimension, spread, special_scale):
     float
         Scaling parameter for unscented transform
     """
-    return spread ** 2 * (dimension + special_scale) - dimension
+    return spread**2 * (dimension + special_scale) - dimension
 
 
 def _unscented_weights(
@@ -194,7 +194,7 @@ def _covarweights(
     lam
         Scaling parameter for unscented transform (lambda)
     """
-    cw0 = np.ones(1) * lam / (dimension + lam) + (1 - alp ** 2 + bet)
+    cw0 = np.ones(1) * lam / (dimension + lam) + (1 - alp**2 + bet)
     cw = np.ones(2 * dimension) / (2.0 * (dimension + lam))
     covarweights = np.hstack((cw0, cw))
     return covarweights

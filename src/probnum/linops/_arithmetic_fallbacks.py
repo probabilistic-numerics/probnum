@@ -7,8 +7,8 @@ from typing import Tuple, Union
 
 import numpy as np
 
-import probnum.utils
 from probnum.typing import NotImplementedType, ScalarLike
+import probnum.utils
 
 from ._linear_operator import BinaryOperandType, LinearOperator
 

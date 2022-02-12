@@ -5,8 +5,7 @@ from typing import Callable, TypeVar
 
 import numpy as np
 
-from probnum import config, linops
-from probnum import utils as _utils
+from probnum import config, linops, utils as _utils
 from probnum.typing import ArrayIndicesLike, ShapeLike, ShapeType
 
 from . import _random_variable

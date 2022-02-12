@@ -49,7 +49,7 @@ def gauss_legendre_tensor(
             np.stack(np.meshgrid(*(w_gl,) * input_dim), -1).reshape(-1, input_dim),
             axis=1,
         )
-        / weight_sum ** input_dim
+        / weight_sum**input_dim
     )
     if not normalized:
         w_gl = w_gl * np.prod(domain[1] - domain[0])

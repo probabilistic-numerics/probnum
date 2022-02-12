@@ -410,7 +410,7 @@ class Kernel(abc.ABC):
     ) -> np.ndarray:
         """Implementation of the Euclidean inner product, which supports kernel
         broadcasting semantics."""
-        prods = x0 ** 2 if x1 is None else x0 * x1
+        prods = x0**2 if x1 is None else x0 * x1
 
         if prods.shape[-1] == 1:
             return self.input_dim * prods[..., 0]
