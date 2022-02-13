@@ -10,7 +10,7 @@ from probnum.randprocs import kernels, mean_fns
 def test_mean_not_function_raises_error():
     with pytest.raises(TypeError):
         randprocs.GaussianProcess(
-            mean=lambda x: np.zeros_like(x),
+            mean=np.zeros_like,
             cov=kernels.ExpQuad(input_shape=(1,)),
         )
 
