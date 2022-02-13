@@ -39,12 +39,10 @@ class RandomUnitVectorPolicy(_linear_solver_policy.LinearSolverPolicy):
             if self.probabilities == "uniform":
                 solver_state.cache["row_sample_probs"] = np.ones(nrows) / nrows
             elif self.probabilities == "rownorm":
-                solver_state.cache["row_sample_probs"] = np.sum(
-                    solver_state.problem.A * solver_state.problem.A, axis=1
+                sampling_probs = (solver_state.problem.A**2).T @ np.ones(shape=nrows)
+                solver_state.cache["row_sample_probs"] = (
+                    sampling_probs / sampling_probs.sum()
                 )
-                solver_state.cache["row_sample_probs"] /= solver_state.cache[
-                    "row_sample_probs"
-                ].sum()
             else:
                 raise NotImplementedError
 
