@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from probnum import randprocs, randvars
-from probnum.randprocs import mean_fns
+from probnum.randprocs import kernels, mean_fns
 
 
 def test_no_kernel_covariance_raises_error():
@@ -13,6 +13,28 @@ def test_no_kernel_covariance_raises_error():
     with pytest.raises(TypeError):
         randprocs.GaussianProcess(
             mean=mean_fns.Zero(input_shape=(1,), output_shape=(1,)), cov=np.dot
+        )
+
+
+def test_mean_kernel_shape_mismatch_raises_error():
+    with pytest.raises(ValueError):
+        randprocs.GaussianProcess(
+            mean=mean_fns.Zero(input_shape=(2,), output_shape=(1,)),
+            cov=kernels.ExpQuad(input_shape=(3,)),
+        )
+
+
+def test_mean_wrong_input_shape_raises_error():
+    with pytest.raises(ValueError):
+        randprocs.GaussianProcess(
+            mean=mean_fns.Zero(input_shape=(2, 2), output_shape=(1,)),
+            cov=kernels.ExpQuad(input_shape=(2,)),
+        )
+
+    with pytest.raises(ValueError):
+        randprocs.GaussianProcess(
+            mean=mean_fns.Zero(input_shape=(2,), output_shape=(2, 1)),
+            cov=kernels.ExpQuad(input_shape=(2,)),
         )
 
 
