@@ -12,10 +12,15 @@ cases_policies = case_modules + ".policies"
 cases_states = case_modules + ".states"
 
 
-@parametrize_with_cases("policy", cases=cases_policies, glob="*unit_vector")
+@parametrize_with_cases("policy", cases=cases_policies, glob="*unit_vector*")
 @parametrize_with_cases("state", cases=cases_states)
 def test_returns_unit_vector(
     policy: policies.LinearSolverPolicy, state: LinearSolverState
 ):
     action = policy(state)
     assert np.linalg.norm(action) == pytest.approx(1.0)
+
+
+def test_raises_error_for_unsupported_probabilities():
+    with pytest.raises(ValueError):
+        policies.RandomUnitVectorPolicy(probabilities="not-valid")
