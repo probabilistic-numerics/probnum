@@ -97,7 +97,7 @@ class Kernel(abc.ABC):
            [0.        , 0.66666667, 1.33333333, 2.        ],
            [0.        , 1.        , 2.        , 3.        ]])
 
-    A shape of ``1`` along the last axis is broadcast to :attr:`input_dim`.
+    A shape of ``1`` along the last axis is broadcast to :attr:`input_shape`.
 
     >>> xs_d1 = xs[:, [0]]
     >>> xs_d1.shape
@@ -162,19 +162,19 @@ class Kernel(abc.ABC):
 
         Parameters
         ----------
-        x0 : array-like
+        x0
             An array of shape ``()`` or ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is
-            either ``1`` or :attr:`input_dim`, whose entries will be passed to the first
+            either ``1`` or :attr:`input_shape`, whose entries will be passed to the first
             argument of the kernel.
-        x1 : array-like
+        x1
             An array of shape ``()`` or ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is
-            either ``1`` or :attr:`input_dim`, whose entries will be
+            either ``1`` or :attr:`input_shape`, whose entries will be
             passed to the second argument of the kernel. Can also be set to ``None``,
             in which case the function will behave as if ``x1 = x0``.
 
         Returns
         -------
-        k_x0_x1 : numpy.ndarray
+        k_x0_x1 :
             The (cross-)covariance function(s) evaluated at ``x0`` and ``x1``.
             If :attr:`shape` is ``()``, this method returns an array of shape
             ``(Lk, ..., L2, L1)`` whose entry at index ``(ik, ..., i2, i1)`` contains
@@ -206,7 +206,7 @@ class Kernel(abc.ABC):
         rules. An input with shape ``()`` is promoted to an input with shape ``(1,)``.
         Additionally, a ``1`` along the last axis of an input is interpreted as a (set
         of) point(s) with equal coordinates in all input dimensions, i.e. the inputs are
-        broadcast to :attr:`input_dim` dimensions along the last axis. We refer to this
+        broadcast to :attr:`input_shape` dimensions along the last axis. We refer to this
         modified set of broadcasting rules as "kernel broadcasting".
 
         Examples
@@ -247,17 +247,17 @@ class Kernel(abc.ABC):
 
         Parameters
         ----------
-        x0 : array-like
+        x0
             First set of inputs to the (cross-)covariance function as an array of shape
-            ``(M, D)``, where ``D`` is either 1 or :attr:`input_dim`.
-        x1 : array-like
+            ``(M, D)``, where ``D`` is either 1 or :attr:`input_shape`.
+        x1
             Optional second set of inputs to the (cross-)covariance function as an array
-            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_dim`.
+            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_shape`.
             If ``x1`` is not specified, the function behaves as if ``x1 = x0``.
 
         Returns
         -------
-        kernmat : numpy.ndarray
+        kernmat :
             The matrix / stack of matrices containing the pairwise evaluations of the
             (cross-)covariance function(s) on ``x0`` and ``x1`` as an array of shape
             ``(M, N)`` if :attr:`shape` is ``()`` or
@@ -307,10 +307,13 @@ class Kernel(abc.ABC):
 
     @property
     def shape(self) -> ShapeType:
-        """If :attr:`shape` is ``()``, the :class:`Kernel` instance represents a
-        single (cross-)covariance function. Otherwise, i.e. if :attr:`shape` is
-        non-empty, the :class:`Kernel` instance represents a tensor of
-        (cross-)covariance functions whose shape is given by ``shape``."""
+        """If :attr:`shape` is ``()``, the :class:`Kernel` instance represents a single
+        (cross-)covariance function.
+
+        Otherwise, i.e. if :attr:`shape` is non-empty, the :class:`Kernel` instance
+        represents a tensor of (cross-)covariance functions whose shape is given by
+        ``shape``.
+        """
         return self._shape
 
     @abc.abstractmethod
@@ -333,19 +336,19 @@ class Kernel(abc.ABC):
 
         Parameters
         ----------
-        x0 : array-like
+        x0
             An array of shape ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is either
-            ``1`` or :attr:`input_dim`, whose entries will be passed to the first
+            ``1`` or :attr:`input_shape`, whose entries will be passed to the first
             argument of the kernel.
-        x1 : array-like
+        x1
             An array of shape ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is either
-            ``1`` or :attr:`input_dim`, whose entries will be passed to the second
+            ``1`` or :attr:`input_shape`, whose entries will be passed to the second
             argument of the kernel. Can also be set to ``None``, in which case the
             method must behave as if ``x1 == x0``.
 
         Returns
         -------
-        k_x0_x1 : numpy.ndarray
+        k_x0_x1 :
             The (cross-)covariance function(s) evaluated at ``x0`` and ``x1`` as an
             array of shape ``(S[l - 1], ..., S[1], S[0], Lk, ..., L2, L1)``,
             where ``S`` is :attr:`shape`, whose entry at index
@@ -480,8 +483,8 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     def _euclidean_distances(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
     ) -> np.ndarray:
-        """Implementation of the Euclidean distance, which supports kernel
-        broadcasting semantics."""
+        """Implementation of the Euclidean distance, which supports kernel broadcasting
+        semantics."""
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,

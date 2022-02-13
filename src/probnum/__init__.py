@@ -41,12 +41,16 @@ from .randvars import asrandvar
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandvar",
+    "Function",
+    "LambdaFunction",
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
     "LambdaStoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
+Function.__module__ = "probnum"
+LambdaFunction.__module__ = "probnum"
 ProbabilisticNumericalMethod.__module__ = "probnum"
 StoppingCriterion.__module__ = "probnum"
 LambdaStoppingCriterion.__module__ = "probnum"

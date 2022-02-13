@@ -1,3 +1,5 @@
+"""Function class defining a Callable with fixed in- and output shapes."""
+
 import abc
 from typing import Callable
 
@@ -8,6 +10,22 @@ from .typing import ArrayLike, ShapeLike, ShapeType
 
 
 class Function(abc.ABC):
+    """Function with fixed in- and output shape.
+
+    Parameters
+    ----------
+    input_shape
+        Input shape.
+
+    output_shape
+        Output shape.
+
+    See Also
+    --------
+    LambdaFunction : Define a :class:`Function` from an anonymous function.
+    MeanFunction : Mean function of a random process.
+    """
+
     def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike) -> None:
         self._input_shape = utils.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
@@ -24,6 +42,18 @@ class Function(abc.ABC):
         return self._output_shape
 
     def __call__(self, x: ArrayLike) -> np.ndarray:
+        """Evaluate the function at a given input.
+
+        Parameters
+        ----------
+        x
+            Input(s) to evaluate the function at. Must be an array of shape ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is either ``1`` or :attr:`input_shape`.
+
+        Returns
+        -------
+        fx
+            *shape=(Nn, ..., N2, N1, D_out)* -- Function evaluated at the input(s).
+        """
         x = np.asarray(x)
 
         try:
@@ -49,6 +79,33 @@ class Function(abc.ABC):
 
 
 class LambdaFunction(Function):
+    """Define a :class:`Function` from an anonymous function.
+
+    Creates a :class:`Function` from an anonymous function and in- and output shapes. This provides a convenient interface to define a :class:`Function`.
+
+    Parameters
+    ----------
+    fn
+        Callable defining the function.
+    input_shape
+        Input shape.
+    output_shape
+        Output shape.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum import LambdaFunction
+    >>> fn = LambdaFunction(fn=lambda x: 2 * x + 1, input_shape=(2,), output_shape=(2,))
+    >>> fn(np.array([[1, 2], [4, 5]]))
+    array([[ 3,  5],
+           [ 9, 11]])
+
+    See Also
+    --------
+    Function : Callable with a fixed in- and output shape.
+    """
+
     def __init__(
         self,
         fn: Callable[[np.ndarray], np.ndarray],

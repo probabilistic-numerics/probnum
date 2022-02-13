@@ -4,13 +4,16 @@ import numpy as np
 import pytest
 
 from probnum import randprocs, randvars
+from probnum.randprocs import mean_fns
 
 
 def test_no_kernel_covariance_raises_error():
     """Initializing a GP with a covariance function which is not a kernel raises a
-    TypeErrror."""
+    TypeError."""
     with pytest.raises(TypeError):
-        randprocs.GaussianProcess(mean=np.zeros_like, cov=np.dot)
+        randprocs.GaussianProcess(
+            mean=mean_fns.Zero(input_shape=(1,), output_shape=(1,)), cov=np.dot
+        )
 
 
 def test_finite_evaluation_is_normal(gaussian_process: randprocs.GaussianProcess):
