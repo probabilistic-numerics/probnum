@@ -164,8 +164,8 @@ class Kernel(abc.ABC):
         ----------
         x0
             An array of shape ``()`` or ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is
-            either ``1`` or :attr:`input_shape`, whose entries will be passed to the first
-            argument of the kernel.
+            either ``1`` or :attr:`input_shape`, whose entries will be passed to the
+            first argument of the kernel.
         x1
             An array of shape ``()`` or ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is
             either ``1`` or :attr:`input_shape`, whose entries will be
@@ -206,8 +206,8 @@ class Kernel(abc.ABC):
         rules. An input with shape ``()`` is promoted to an input with shape ``(1,)``.
         Additionally, a ``1`` along the last axis of an input is interpreted as a (set
         of) point(s) with equal coordinates in all input dimensions, i.e. the inputs are
-        broadcast to :attr:`input_shape` dimensions along the last axis. We refer to this
-        modified set of broadcasting rules as "kernel broadcasting".
+        broadcast to :attr:`input_shape` dimensions along the last axis. We refer to
+        this modified set of broadcasting rules as "kernel broadcasting".
 
         Examples
         --------
