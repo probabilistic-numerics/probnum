@@ -57,27 +57,29 @@ class Function(abc.ABC):
         Parameters
         ----------
         x
-            *shape=*``batch_shape + input_shape_comp`` -- (Batch of) input(s) at which
-            to evaluate the function. ``input_shape_comp`` must be a shape that can be
-            broadcast to :attr:`input_shape`.
+            *shape=* ``batch_shape + input_shape_bcastable`` -- (Batch of) input(s) at
+            which to evaluate the function. ``input_shape_bcastable`` must be a shape
+            that can be broadcast to :attr:`input_shape`.
 
         Returns
         -------
         fx
-            *shape=*``batch_shape + output_shape`` -- Function evaluated at the (batch
-            of) input(s).
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Function evaluated at
+            the given (batch of) input(s).
+
+        Raises
+        ------
+        ValueError
+            If ``input_shape_bcastable`` can not be broadcast to :attr:`input_shape`.
         """
         x = np.asarray(x)
 
         try:
-            np.broadcast_to(
-                x,
-                shape=x.shape[: x.ndim - self._input_ndim] + self._input_shape,
-            )
+            np.broadcast_shapes(x.shape, self._input_shape)
         except ValueError as ve:
             raise ValueError(
-                f"The shape of the input {x.shape} is not compatible with the "
-                f"specified `input_shape` of the `Function` {self._input_shape}."
+                f"The shape of the input {x.shape} can not be broadcast to the "
+                f"specified `input_shape` {self._input_shape} of the `Function`."
             ) from ve
 
         res = self._evaluate(x)
