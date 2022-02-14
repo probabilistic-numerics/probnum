@@ -30,7 +30,7 @@ class Function(abc.ABC):
     ~probnum.randprocs.mean_fns.Zero : Zero mean function of a random process.
     """
 
-    def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike) -> None:
+    def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike = ()) -> None:
         self._input_shape = utils.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
 

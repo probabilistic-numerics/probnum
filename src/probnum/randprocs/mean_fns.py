@@ -8,14 +8,7 @@ from ..typing import ShapeLike
 __all__ = ["Zero"]
 
 
-class MeanFunction(_function.Function):
-    """Mean function of a random process."""
-
-    def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike = ()):
-        super().__init__(input_shape, output_shape)
-
-
-class Zero(MeanFunction):
+class Zero(_function.Function):
     """Zero mean function."""
 
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
