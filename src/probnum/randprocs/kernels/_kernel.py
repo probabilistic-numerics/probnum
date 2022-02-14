@@ -140,9 +140,9 @@ class Kernel(abc.ABC):
         self._input_shape = _pn_utils.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
 
-        if len(self._input_shape) > 1:
+        if self._input_ndim > 1:
             raise ValueError(
-                "The input shape of a `Kernel` must not have more than 1 dimension."
+                "Currently, we only support kernels with at most 1 input dimension."
             )
 
         self._shape = _pn_utils.as_shape(shape)
