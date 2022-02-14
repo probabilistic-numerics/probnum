@@ -32,7 +32,7 @@ def _kernel_mean_expquad_lebesgue(
         *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
         evaluated at locations ``x``.
     """
-    input_dim = kernel.input_dim
+    (input_dim,) = kernel.input_shape
 
     ell = kernel.lengthscale
     return (
@@ -64,7 +64,7 @@ def _kernel_variance_expquad_lebesgue(
         The kernel integrated w.r.t. both arguments.
     """
 
-    input_dim = kernel.input_dim
+    (input_dim,) = kernel.input_shape
 
     r = measure.domain[1] - measure.domain[0]
     ell = kernel.lengthscale

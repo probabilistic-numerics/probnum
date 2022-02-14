@@ -31,7 +31,7 @@ def _kernel_mean_expquad_gauss(
         *shape (n_eval,)* -- The kernel integrated w.r.t. its first argument,
         evaluated at locations ``x``.
     """
-    input_dim = kernel.input_dim
+    (input_dim,) = kernel.input_shape
 
     if measure.diagonal_covariance:
         cov_diag = np.diag(measure.cov)
@@ -68,7 +68,7 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
     kernel_variance :
         The kernel integrated w.r.t. both arguments.
     """
-    input_dim = kernel.input_dim
+    (input_dim,) = kernel.input_shape
 
     if measure.diagonal_covariance:
         denom = (kernel.lengthscale**2 + 2.0 * np.diag(measure.cov)).prod()
