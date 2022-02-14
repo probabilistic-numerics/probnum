@@ -3,7 +3,6 @@
 import numpy as np
 
 from .. import _function
-from ..typing import ShapeLike
 
 __all__ = ["Zero"]
 
