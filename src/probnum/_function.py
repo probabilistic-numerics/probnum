@@ -75,7 +75,13 @@ class Function(abc.ABC):
         x = np.asarray(x)
 
         try:
-            np.broadcast_shapes(x.shape, self._input_shape)
+            # Note that this differs from
+            # `np.broadcast_shapes(x.shape, self._input_shape)`
+            # if self._input_shape contains `1`s
+            np.broadcast_to(
+                x,
+                shape=x.shape[: x.ndim - self._input_ndim] + self._input_shape,
+            )
         except ValueError as ve:
             raise ValueError(
                 f"The shape of the input {x.shape} can not be broadcast to the "

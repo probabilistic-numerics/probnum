@@ -218,7 +218,9 @@ class Kernel(abc.ABC):
                 np.empty(self.input_shape),
             )
 
-        had been called on the inputs. We refer to this modified set of broadcasting
+        had been called on the inputs. However, we never allow an entry in
+        ``input_shape_bcastable_{0, 1}`` to be larger than the corresponding entry in
+        :attr:`input_shape`. We refer to this modified set of broadcasting
         rules as "kernel broadcasting".
 
         Examples
@@ -418,10 +420,13 @@ class Kernel(abc.ABC):
 
         if x1 is None:
             try:
-                broadcast_input_shape, _ = np.broadcast_shapes(
-                    x0.shape,
-                    self.input_shape,
-                )
+                # Note that this differs from
+                # `np.broadcast_shapes(x0.shape, self._input_shape)`
+                # if self._input_shape contains `1`s
+                broadcast_input_shape = np.broadcast_to(
+                    x0,
+                    shape=x0.shape[: x0.ndim - self._input_ndim] + self._input_shape,
+                ).shape
             except ValueError as ve:
                 err_msg = (
                     f"The input array `x0` with shape {x0.shape} can not be broadcast "
@@ -430,7 +435,17 @@ class Kernel(abc.ABC):
                 raise ValueError(err_msg) from ve
         else:
             try:
-                broadcast_input_shape, _ = np.broadcast_shapes(
+                np.broadcast_to(
+                    x0,
+                    shape=x0.shape[: x0.ndim - self._input_ndim] + self._input_shape,
+                )
+
+                np.broadcast_to(
+                    x1,
+                    shape=x1.shape[: x1.ndim - self._input_ndim] + self._input_shape,
+                )
+
+                broadcast_input_shape = np.broadcast_shapes(
                     x0.shape,
                     x1.shape,
                     self.input_shape,
