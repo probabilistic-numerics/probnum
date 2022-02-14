@@ -163,30 +163,37 @@ class Kernel(abc.ABC):
         Parameters
         ----------
         x0
-            An array of shape ``()`` or ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is
-            either ``1`` or :attr:`input_shape`, whose entries will be passed to the
-            first argument of the kernel.
+            *shape=* ``batch_shape_0 + input_shape_bcastable_0`` -- (Batch of) input(s)
+            for the first argument of the :class:`Kernel`. ``input_shape_bcastable_0``
+            must be a shape that can be broadcast to :attr:`input_shape`.
         x1
-            An array of shape ``()`` or ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is
-            either ``1`` or :attr:`input_shape`, whose entries will be
-            passed to the second argument of the kernel. Can also be set to ``None``,
-            in which case the function will behave as if ``x1 = x0``.
+            *shape=* ``batch_shape_1 + input_shape_bcastable_1`` -- (Batch of) input(s)
+            for the second argument of the :class:`Kernel`. ``input_shape_bcastable_1``
+            must be a shape that can be broadcast to :attr:`input_shape`.
+            Can also be set to ``None``, in which case the function will behave as if
+            ``x1 = x0``.
 
         Returns
         -------
         k_x0_x1 :
-            The (cross-)covariance function(s) evaluated at ``x0`` and ``x1``.
-            If :attr:`shape` is ``()``, this method returns an array of shape
-            ``(Lk, ..., L2, L1)`` whose entry at index ``(ik, ..., i2, i1)`` contains
-            the evaluation of the (cross-)covariance function at the inputs
-            ``x0[ik, ..., i2, i1, :] and ``x1[il, ..., i2, i1, :])``.
-            For any non-empty :attr:`shape`, it returns an array of shape
-            ``(Sl, ..., S2, S1, Lk, ..., L2, L1)``, where ``S`` is :attr:`shape`, whose
-            entry at index ``(sl, ..., s2, s1, ik, ..., i2, i1)`` contains
-            evaluation of the (cross-)covariance function at index ``(sl, ..., s2, s1)``
-            at the inputs ``x0[ik, ..., i2, i1, :]`` and ``x1[ik, ..., i2, i1, :]``.
-            Above, we assume that ``x0`` and ``x1`` have been broadcast according to the
-            rules described in the "Notes" section.
+            *shape=* :attr:`shape` ``+ bcast_batch_shape`` -- The (cross-)covariance
+            function(s) evaluated at ``(x0, x1)``. The output array contains the
+            following entries:
+
+            .. code-block:: python
+
+                k_x0_x1[output_idx + batch_idx] = k[output_idx](
+                    x0[batch_idx, ...],
+                    x1[batch_idx, ...],
+                )
+
+            where we assume that ``x0`` and ``x1`` have been broadcast according to the
+            rules described in the "Notes" section, and where ``output_idx`` and
+            ``batch_idx`` are indices compatible with :attr:`shape` and
+            ``batch_shape_{0,1}`` (after broadcasting), respectively.
+            By ``k[output_idx]`` we refer to the covariance function at index
+            ``output_idx`` in the tensor of covariance functions represented by the
+            :class:`Kernel` instance.
 
         Raises
         ------
@@ -201,13 +208,18 @@ class Kernel(abc.ABC):
         Notes
         -----
         A :class:`Kernel` operates on its two inputs by a slightly modified version of
-        Numpy's broadcasting rules. First of all, the operation of the kernel is
-        vectorized over all but the last dimension, applying standard broadcasting
-        rules. An input with shape ``()`` is promoted to an input with shape ``(1,)``.
-        Additionally, a ``1`` along the last axis of an input is interpreted as a (set
-        of) point(s) with equal coordinates in all input dimensions, i.e. the inputs are
-        broadcast to :attr:`input_shape` dimensions along the last axis. We refer to
-        this modified set of broadcasting rules as "kernel broadcasting".
+        NumPy's broadcasting rules. Namely, the :meth:`__call__` methods operates as if
+
+        .. code-block:: python
+
+            x0, x1, _ = np.broadcast_arrays(
+                x0,
+                x1,
+                np.empty(self.input_shape),
+            )
+
+        had been called on the inputs. We refer to this modified set of broadcasting
+        rules as "kernel broadcasting".
 
         Examples
         --------
@@ -240,29 +252,33 @@ class Kernel(abc.ABC):
     ) -> np.ndarray:
         """A convenience function for computing a kernel matrix for two sets of inputs.
 
-        This is syntactic sugar for ``k(x0[:, None, :], x1[None, :, :])``. Hence, it
-        computes the matrix of pairwise covariances between two sets of input points.
-        If ``k`` represents a covariance function, then the resulting matrix will be
-        symmetric positive (semi-)definite for ``x0 == x1``.
+        This is syntactic sugar for ``k(x0[:, None, ...], x1[None, :, ...])``. Hence, it
+        computes the matrix (stack) of pairwise covariances between two sets of input
+        points.
+        If ``k`` represents a single covariance function, then the resulting matrix will
+        be symmetric positive-(semi)definite for ``x0 == x1``.
 
         Parameters
         ----------
         x0
-            First set of inputs to the (cross-)covariance function as an array of shape
-            ``(M, D)``, where ``D`` is either 1 or :attr:`input_shape`.
+            *shape=* ``(M,) + input_shape_bcastable_0`` or ``input_shape_bcastable_0``
+            -- Stack of inputs for the first argument of the :class:`Kernel`.
+            ``input_shape_bcastable_0`` must be a shape that can be broadcast to
+            :attr:`input_shape`.
         x1
-            Optional second set of inputs to the (cross-)covariance function as an array
-            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_shape`.
-            If ``x1`` is not specified, the function behaves as if ``x1 = x0``.
+            *shape=* ``(N,) + input_shape_bcastable_1`` or ``input_shape_bcastable_1``
+            -- (Optional) stack of inputs for the second argument of the
+            :class:`Kernel`. ``input_shape_bcastable_1`` must be a shape that can be
+            broadcast to :attr:`input_shape`. If ``x1`` is not specified, the function
+            behaves as if ``x1 = x0``.
 
         Returns
         -------
         kernmat :
-            The matrix / stack of matrices containing the pairwise evaluations of the
-            (cross-)covariance function(s) on ``x0`` and ``x1`` as an array of shape
-            ``(M, N)`` if :attr:`shape` is ``()`` or
-            ``(S[l - 1], ..., S[1], S[0], M, N)``, where ``S`` is :attr:`shape` if
-            :attr:`shape` is non-empty.
+            *shape=* :attr:`shape` ``+ batch_shape`` -- The matrix / stack of matrices
+            containing the pairwise evaluations of the (cross-)covariance function(s) on
+            ``x0`` and ``x1``. Depending on the shape of the inputs, ``batch_shape`` is
+            either ``(M, N)``, ``(M,)``, ``(N,)``, or ``()``.
 
         Raises
         ------
@@ -326,8 +342,7 @@ class Kernel(abc.ABC):
 
         When implementing a particular kernel, the subclass should implement the kernel
         computation by overwriting this method. It is called by the
-        :meth:`Kernel.__call__` method after applying input checking and promoting
-        scalar inputs, i.e. inputs with shape ``()``, to arrays with shape ``(1,)``.
+        :meth:`Kernel.__call__` method after applying input checking.
         The implementation of the kernel must implement the rules of kernel broadcasting
         which are outlined in the "Notes" section of the :meth:`Kernel.__call__`
         docstring. Note that the inputs are not automatically broadcast to a common
@@ -337,26 +352,38 @@ class Kernel(abc.ABC):
         Parameters
         ----------
         x0
-            An array of shape ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is either
-            ``1`` or :attr:`input_shape`, whose entries will be passed to the first
-            argument of the kernel.
+            *shape=* ``(M,) + input_shape_bcastable_0`` or ``input_shape_bcastable_0``
+            -- Stack of inputs for the first argument of the :class:`Kernel`.
+            ``input_shape_bcastable_0`` must be a shape that can be broadcast to
+            :attr:`input_shape`.
         x1
-            An array of shape ``(Mm, ..., M2, M1, D_in)``, where ``D_in`` is either
-            ``1`` or :attr:`input_shape`, whose entries will be passed to the second
-            argument of the kernel. Can also be set to ``None``, in which case the
-            method must behave as if ``x1 == x0``.
+            *shape=* ``(N,) + input_shape_bcastable_1`` or ``input_shape_bcastable_1``
+            -- (Optional) stack of inputs for the second argument of the
+            :class:`Kernel`. ``input_shape_bcastable_1`` must be a shape that can be
+            broadcast to :attr:`input_shape`. If ``x1`` is not specified, the function
+            behaves as if ``x1 = x0``.
 
         Returns
         -------
         k_x0_x1 :
-            The (cross-)covariance function(s) evaluated at ``x0`` and ``x1`` as an
-            array of shape ``(S[l - 1], ..., S[1], S[0], Lk, ..., L2, L1)``,
-            where ``S`` is :attr:`shape`, whose entry at index
-            ``(sl, ..., s2, s1, ik, ..., i2, i1)`` contains the
-            evaluation of the (cross-)covariance function at index ``(sl, ..., s2, s1)``
-            at the inputs ``x0[ik, ..., i2, i1, :]`` and ``x1[ik, ..., i2, i1, :]``,
+            *shape=* :attr:`shape` ``+ bcast_batch_shape`` -- The (cross-)covariance
+            function(s) evaluated at ``(x0, x1)``. The output array contains the
+            following entries:
+
+            .. code-block:: python
+
+                k_x0_x1[output_idx + batch_idx] = k[output_idx](
+                    x0[batch_idx, ...],
+                    x1[batch_idx, ...],
+                )
+
             where we assume that ``x0`` and ``x1`` have been broadcast according to the
-            rules described in the "Notes" section of :meth:`Kernel.__call__`.
+            rules described in the "Notes" section of :meth:`Kernel.__call__`, and where
+            ``output_idx`` and ``batch_idx`` are indices compatible with :attr:`shape`
+            and ``batch_shape_{0,1}`` (after broadcasting), respectively.
+            By ``k[output_idx]`` we refer to the covariance function at index
+            ``output_idx`` in the tensor of covariance functions represented by the
+            :class:`Kernel` instance.
         """
 
     def _kernel_broadcast_shapes(
@@ -389,44 +416,32 @@ class Kernel(abc.ABC):
             If the inputs can not be "kernel broadcast" to a common shape.
         """
 
-        err_msg = (
-            "`{argname}` can not be broadcast to the kernel's input shape "
-            f"{self.input_shape}, since "
-            "`{argname}.shape = {shape}`."
-        )
-
-        try:
-            broadcast_input_shape = np.broadcast_to(
-                x0,
-                shape=x0.shape[: x0.ndim - self._input_ndim] + self.input_shape,
-            ).shape
-        except ValueError as ve:
-            raise ValueError(err_msg.format(argname="x0", shape=x0.shape)) from ve
-
-        if x1 is not None:
+        if x1 is None:
             try:
-                np.broadcast_to(
-                    x1,
-                    shape=x1.shape[: x1.ndim - self._input_ndim] + self.input_shape,
+                broadcast_input_shape, _ = np.broadcast_shapes(
+                    x0.shape,
+                    self.input_shape,
                 )
             except ValueError as ve:
-                raise ValueError(err_msg.format(argname="x1", shape=x1.shape)) from ve
-
-            input_shape_array = np.broadcast_to(0.0, self.input_shape)
-
+                err_msg = (
+                    f"The input array `x0` with shape {x0.shape} can not be broadcast "
+                    f"to the kernel's input shape {self.input_shape}."
+                )
+                raise ValueError(err_msg) from ve
+        else:
             try:
-                # Ironically, `np.broadcast_arrays` seems to be more efficient than
-                # `np.broadcast_shapes`
-                broadcast_input_shape = np.broadcast_arrays(
-                    x0,
-                    x1,
-                    input_shape_array,
-                )[0].shape
-            except ValueError as v:
-                raise ValueError(
+                broadcast_input_shape, _ = np.broadcast_shapes(
+                    x0.shape,
+                    x1.shape,
+                    self.input_shape,
+                )
+            except ValueError as ve:
+                err_msg = (
                     f"The input arrays `x0` and `x1` with shapes {x0.shape} and "
-                    f"{x1.shape} can not be broadcast to a common shape."
-                ) from v
+                    f"{x1.shape} can not be 'kernel broadcast' to a common shape"
+                    f"(`input_shape`: {self.input_shape})."
+                )
+                raise ValueError(err_msg) from ve
 
         return broadcast_input_shape
 
