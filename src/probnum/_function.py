@@ -10,12 +10,16 @@ from .typing import ArrayLike, ShapeLike, ShapeType
 
 
 class Function(abc.ABC):
-    """Function with fixed in- and output shape.
+    """Callable with information about the shape of expected in- and outputs.
+
+    This class represents a, uni- or multivariate, scalar- or tensor-valued,
+    mathematical function. Hence, the call method should not have any observable
+    side-effects.
 
     Parameters
     ----------
     input_shape
-        Input shape.
+        Shape to which inputs are broadcast.
 
     output_shape
         Output shape.
@@ -35,10 +39,16 @@ class Function(abc.ABC):
 
     @property
     def input_shape(self) -> ShapeType:
+        """Shape to which inputs are broadcast.
+
+        For a scalar-input function, this is an empty tuple."""
         return self._input_shape
 
     @property
     def output_shape(self) -> ShapeType:
+        """Shape of the function's output.
+
+        For scalar-valued function, this is an empty tuple."""
         return self._output_shape
 
     def __call__(self, x: ArrayLike) -> np.ndarray:
@@ -47,12 +57,15 @@ class Function(abc.ABC):
         Parameters
         ----------
         x
-            Input(s) to evaluate the function at. Must be an array of shape ``(Nn, ..., N2, N1, D_in)``, where ``D_in`` is either ``1`` or :attr:`input_shape`.
+            *shape=*``batch_shape + input_shape_comp`` -- (Batch of) input(s) at which
+            to evaluate the function. ``input_shape_comp`` must be a shape that can be
+            broadcast to :attr:`input_shape`.
 
         Returns
         -------
         fx
-            *shape=(Nn, ..., N2, N1, D_out)* -- Function evaluated at the input(s).
+            *shape=*``batch_shape + output_shape`` -- Function evaluated at the (batch
+            of) input(s).
         """
         x = np.asarray(x)
 
@@ -81,14 +94,15 @@ class Function(abc.ABC):
 class LambdaFunction(Function):
     """Define a :class:`Function` from an anonymous function.
 
-    Creates a :class:`Function` from an anonymous function and in- and output shapes. This provides a convenient interface to define a :class:`Function`.
+    Creates a :class:`Function` from an anonymous function and in- and output shapes.
+    This provides a convenient interface to define a :class:`Function`.
 
     Parameters
     ----------
     fn
         Callable defining the function.
     input_shape
-        Input shape.
+        Shape to which inputs are broadcast.
     output_shape
         Output shape.
 
