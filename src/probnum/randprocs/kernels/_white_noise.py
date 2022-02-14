@@ -20,8 +20,8 @@ class WhiteNoise(Kernel):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     sigma :
         Noise level :math:`\sigma`.
     """

@@ -20,8 +20,8 @@ class Linear(Kernel):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     constant
         Constant offset :math:`c`.
 

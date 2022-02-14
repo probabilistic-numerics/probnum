@@ -37,8 +37,8 @@ class Matern(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     lengthscale :
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
