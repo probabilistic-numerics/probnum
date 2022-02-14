@@ -23,10 +23,10 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the random process.
-    output_dim :
-        Output dimension of the random process.
+    input_shape :
+        Input shape of the random process.
+    output_shape :
+        Output shape of the random process.
     dtype :
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
@@ -52,7 +52,16 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         dtype: DTypeLike,
     ):
         self._input_shape = _utils.as_shape(input_shape)
+        self._input_ndim = len(self._input_shape)
+
         self._output_shape = _utils.as_shape(output_shape)
+        self._output_ndim = len(self._output_shape)
+
+        if self._output_ndim > 1:
+            raise ValueError(
+                "Currently, we only support random processes with at most one output"
+                "dimension."
+            )
 
         self._dtype = np.dtype(dtype)
 
@@ -70,14 +79,15 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to evaluate random
-            process at.
+            *shape=* ``batch_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the random process. Currently, we require ``batch_shape``
+            to have at most one dimension.
 
         Returns
         -------
         randvars.RandomVariable
-            *shape=(), (output_dim,) or (n, output_dim)* -- Random process evaluated at
-            the inputs.
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Random process evaluated
+            at the input(s).
         """
         raise NotImplementedError
 
@@ -102,8 +112,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to evaluate random
-            process at.
+            *shape=* ``batch_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the random process. Currently, we require ``batch_shape``
+            to have at most one dimension.
         """
         # return self.__call__(args).marginal()
         raise NotImplementedError
@@ -128,25 +139,32 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the variance function.
+            *shape=* ``batch_shape + input_shape_bcastable`` -- (Batch of) input(s) at
+            which to evaluate the variance function. ``input_shape_bcastable`` must be a
+            shape that can be broadcast to :attr:`input_shape`.
 
         Returns
         -------
         _OutputType
-            *shape=(), (output_dim,) or (n, output_dim)* -- Variance of the
-            process at ``args``.
+            *shape=* ``batch_shape`` or ``output_shape[:1] + batch_shape`` -- Variance
+            of the process at ``args``.
         """
         try:
             var = self.cov(args, None)
         except NotImplementedError as exc:
             raise NotImplementedError from exc
 
-        if var.ndim == args.ndim - 1:
+        assert (
+            var.shape
+            == 2 * self._output_shape + args.shape[: args.ndim - self._input_ndim]
+        )
+
+        if self._output_ndim == 0:
             return var
 
-        assert var.ndim == args.ndim + 1 and var.shape[-2:] == 2 * self.output_shape
+        assert self._output_ndim == 1
 
-        return np.diagonal(var, axis1=-2, axis2=-1)
+        return np.diagonal(var, axis1=0, axis2=1)
 
     def std(self, args: _InputType) -> _OutputType:
         """Standard deviation function.
@@ -154,14 +172,15 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the standard
-            deviation function.
+            *shape=* ``batch_shape + input_shape_bcastable`` -- (Batch of) input(s) at
+            which to evaluate the standard deviation function. ``input_shape_bcastable``
+            must be a shape that can be broadcast to :attr:`input_shape`.
 
         Returns
         -------
         _OutputType
-            *shape=(), (output_dim,) or (n, output_dim)* -- Standard deviation of the
-            process at ``args``.
+            *shape=* ``batch_shape`` or ``output_shape[:1] + batch_shape`` -- Standard
+            deviation of the process at ``args``.
         """
         try:
             return np.sqrt(self.var(args=args))
@@ -186,8 +205,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         base_measure
             Base measure. Given as a type of random variable.
         sample
-            *shape=(sample_size, output_dim)* -- Sample(s) from a base measure
-            evaluated at the input arguments.
+            *shape=* ``sample_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the random process. Currently, we require ``sample_shape``
+            to have at most one dimension.
         """
         raise NotImplementedError
 
@@ -208,9 +228,10 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         rng
             Random number generator.
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
-            sample paths of the process. If ``None``, sample paths, i.e. callables are
-            returned.
+            *shape=* ``size + `` :attr:`input_shape` -- (Batch of) input(s) at
+            which the sample paths will be evaluated. Currently, we require
+            ``size`` to have at most one dimension. If ``None``, sample paths,
+            i.e. callables are returned.
         size
             Size of the sample.
         """
@@ -236,8 +257,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         rng
             Random number generator.
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
-            sample paths of the process.
+            *shape=* ``size + `` :attr:`input_shape` -- (Batch of) input(s) at
+            which the sample paths will be evaluated. Currently, we require
+            ``size`` to have at most one dimension.
         size
             Size of the sample.
         """
