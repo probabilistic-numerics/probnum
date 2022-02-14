@@ -5,9 +5,9 @@ from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 import numpy as np
 
 import probnum as pn
-import probnum.utils as _utils
 from probnum import linops, randvars
 from probnum.typing import FloatLike, IntLike
+import probnum.utils as _utils
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation
@@ -255,5 +255,5 @@ class ProbabilisticQuadraticOptimizer:
             Belief over the optimal value of the objective function.
         """
         x_opt = -self.fun_params.mean[1] / self.fun_params.mean[0]
-        fun_opt = np.array([0.5 * x_opt ** 2, x_opt, 1]).T @ self.fun_params
+        fun_opt = np.array([0.5 * x_opt**2, x_opt, 1]).T @ self.fun_params
         return x_opt, fun_opt

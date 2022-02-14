@@ -8,9 +8,9 @@ import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
 
-import probnum.utils
 from probnum import config
 from probnum.typing import DTypeLike, ScalarLike, ShapeLike
+import probnum.utils
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarLike, np.ndarray, scipy.sparse.spmatrix

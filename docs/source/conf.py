@@ -13,10 +13,10 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
-import sys
 from datetime import datetime
+import os
 from pathlib import Path
+import sys
 
 from pkg_resources import DistributionNotFound, get_distribution
 

@@ -7,8 +7,7 @@ import numpy as np
 import scipy.linalg
 import scipy.stats
 
-from probnum import config, linops
-from probnum import utils as _utils
+from probnum import config, linops, utils as _utils
 from probnum.typing import ArrayIndicesLike, FloatLike, ShapeLike, ShapeType
 
 from . import _random_variable

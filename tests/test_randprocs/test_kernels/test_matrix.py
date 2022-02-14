@@ -68,8 +68,8 @@ def test_kernel_matrix_against_naive(
     np.testing.assert_allclose(
         kernmat,
         kernmat_naive,
-        rtol=10 ** -12,
-        atol=10 ** -12,
+        rtol=10**-12,
+        atol=10**-12,
     )
 
 

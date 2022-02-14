@@ -1,8 +1,8 @@
 """ODE solver interface."""
 
-import dataclasses
 from abc import ABC, abstractmethod
 from collections import abc
+import dataclasses
 from typing import Iterable, Iterator, Optional, Union
 
 import numpy as np

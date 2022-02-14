@@ -5,8 +5,8 @@ from typing import Optional, Union
 
 import numpy as np
 
-import probnum.utils
 from probnum.typing import DTypeLike, ScalarLike, ShapeLike
+import probnum.utils
 
 from . import _linear_operator
 

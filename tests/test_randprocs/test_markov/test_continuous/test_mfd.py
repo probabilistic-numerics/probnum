@@ -16,7 +16,7 @@ def Ah_closedform(dt):
 
 @pytest.fixture
 def Qh_closedform(dt):
-    return np.array([[dt ** 3 / 3, dt ** 2 / 2], [dt ** 2 / 2, dt]])
+    return np.array([[dt**3 / 3, dt**2 / 2], [dt**2 / 2, dt]])
 
 
 @pytest.fixture
