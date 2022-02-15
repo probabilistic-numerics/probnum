@@ -9,9 +9,9 @@ from ._interface import InitializationRoutine
 # pylint: disable="import-outside-toplevel"
 try:
     import jax
-    import jax.numpy as jnp
     from jax.config import config
     from jax.experimental.jet import jet
+    import jax.numpy as jnp
 
     config.update("jax_enable_x64", True)
 

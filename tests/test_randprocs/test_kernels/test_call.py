@@ -141,8 +141,8 @@ def test_values(
     np.testing.assert_allclose(
         call_result,
         call_result_naive,
-        rtol=10 ** -12,
-        atol=10 ** -12,
+        rtol=10**-12,
+        atol=10**-12,
     )
 
 
@@ -159,16 +159,16 @@ def test_values(
 def test_wrong_input_dimension(kernel: pn.randprocs.kernels.Kernel, shape: ShapeType):
     """Test whether passing an input with the wrong input dimension raises an error."""
 
-    input_shape = shape + (kernel.input_dim + 1,)
+    input_shape = shape + tuple(dim + 1 for dim in kernel.input_shape)
 
     with pytest.raises(ValueError):
         kernel(np.zeros(input_shape), None)
 
     with pytest.raises(ValueError):
-        kernel(np.ones(input_shape), np.zeros(shape + (kernel.input_dim,)))
+        kernel(np.ones(input_shape), np.zeros(shape + kernel.input_shape))
 
     with pytest.raises(ValueError):
-        kernel(np.ones(shape + (kernel.input_dim,)), np.zeros(input_shape))
+        kernel(np.ones(shape + kernel.input_shape), np.zeros(input_shape))
 
 
 @pytest.mark.parametrize(
@@ -189,6 +189,6 @@ def test_broadcasting_error(
 
     with pytest.raises(ValueError):
         kernel(
-            np.zeros(x0_shape + (kernel.input_dim,)),
-            np.ones(x1_shape + (kernel.input_dim,)),
+            np.zeros(x0_shape + kernel.input_shape),
+            np.ones(x1_shape + kernel.input_shape),
         )

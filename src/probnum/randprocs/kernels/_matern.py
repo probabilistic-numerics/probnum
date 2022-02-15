@@ -6,8 +6,8 @@ import numpy as np
 import scipy.spatial.distance
 import scipy.special
 
+from probnum.typing import ScalarLike, ShapeLike
 import probnum.utils as _utils
-from probnum.typing import IntLike, ScalarLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -37,8 +37,8 @@ class Matern(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     lengthscale :
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
@@ -53,8 +53,8 @@ class Matern(Kernel, IsotropicMixin):
     --------
     >>> import numpy as np
     >>> from probnum.randprocs.kernels import Matern
-    >>> K = Matern(input_dim=1, lengthscale=0.1, nu=2.5)
-    >>> xs = np.linspace(0, 1, 3)[:, None]
+    >>> K = Matern(input_shape=(), lengthscale=0.1, nu=2.5)
+    >>> xs = np.linspace(0, 1, 3)
     >>> K.matrix(xs)
     array([[1.00000000e+00, 7.50933789e-04, 3.69569622e-08],
            [7.50933789e-04, 1.00000000e+00, 7.50933789e-04],
@@ -63,7 +63,7 @@ class Matern(Kernel, IsotropicMixin):
 
     def __init__(
         self,
-        input_dim: IntLike,
+        input_shape: ShapeLike,
         lengthscale: ScalarLike = 1.0,
         nu: ScalarLike = 1.5,
     ):
@@ -74,7 +74,7 @@ class Matern(Kernel, IsotropicMixin):
         if not self.nu > 0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
-        super().__init__(input_dim=input_dim)
+        super().__init__(input_shape=input_shape)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         distances = self._euclidean_distances(x0, x1)
@@ -89,12 +89,12 @@ class Matern(Kernel, IsotropicMixin):
 
         if self.nu == 2.5:
             scaled_distances = np.sqrt(5) / self.lengthscale * distances
-            return (1.0 + scaled_distances + scaled_distances ** 2 / 3.0) * np.exp(
+            return (1.0 + scaled_distances + scaled_distances**2 / 3.0) * np.exp(
                 -scaled_distances
             )
 
         if self.nu == np.inf:
-            return np.exp(-1.0 / (2.0 * self.lengthscale ** 2) * distances ** 2)
+            return np.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)
 
         # The modified Bessel function K_nu is not defined for z=0
         distances = np.maximum(distances, np.finfo(distances.dtype).eps)
@@ -103,6 +103,6 @@ class Matern(Kernel, IsotropicMixin):
         return (
             2 ** (1.0 - self.nu)
             / scipy.special.gamma(self.nu)
-            * scaled_distances ** self.nu
+            * scaled_distances**self.nu
             * scipy.special.kv(self.nu, scaled_distances)
         )

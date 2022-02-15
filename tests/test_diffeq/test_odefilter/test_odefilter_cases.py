@@ -3,8 +3,8 @@
 
 import pytest_cases
 
-import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, randprocs
+import probnum.problems.zoo.diffeq as diffeq_zoo
 
 
 # logistic.rhs is implemented backend-agnostic,

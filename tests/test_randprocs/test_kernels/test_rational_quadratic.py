@@ -9,4 +9,4 @@ from probnum.randprocs import kernels
 def test_nonpositive_alpha_raises_exception(alpha):
     """Check whether a non-positive alpha parameter raises a ValueError."""
     with pytest.raises(ValueError):
-        kernels.RatQuad(input_dim=1, alpha=alpha)
+        kernels.RatQuad(input_shape=(), alpha=alpha)

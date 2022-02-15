@@ -95,8 +95,8 @@ def _import_jax():
 
     try:
         import jax
-        import jax.numpy as jnp
         from jax.config import config
+        import jax.numpy as jnp
 
         config.update("jax_enable_x64", True)
         return jax, jnp

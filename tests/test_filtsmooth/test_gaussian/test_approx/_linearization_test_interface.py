@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems, randprocs, randvars
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 
 
 class InterfaceDiscreteLinearizationTest:

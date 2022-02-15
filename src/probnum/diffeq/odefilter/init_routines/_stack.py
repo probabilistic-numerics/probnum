@@ -28,7 +28,7 @@ class _StackBase(InitializationRoutine):
         std = std_matrix.reshape((-1,), order="F")
         return randvars.Normal(
             mean=np.asarray(mean),
-            cov=np.diag(std ** 2),
+            cov=np.diag(std**2),
             cov_cholesky=np.diag(std),
         )
 

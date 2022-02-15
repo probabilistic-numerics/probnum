@@ -62,7 +62,7 @@ def output_dim(request) -> int:
 )
 def fixture_kernel(request, input_dim: int) -> pn.randprocs.kernels.Kernel:
     """Kernel / covariance function."""
-    return request.param[0](**request.param[1], input_dim=input_dim)
+    return request.param[0](**request.param[1], input_shape=(input_dim,))
 
 
 @pytest.fixture(name="kernel_call_naive")
@@ -84,7 +84,7 @@ def fixture_kernel_call_naive(
             # This broadcasts x0 to have `input_dim` elements along its last axis
             np.empty_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                shape=(kernel.input_dim,),
+                shape=kernel.input_shape,
             ),
         )
 
@@ -96,11 +96,13 @@ def fixture_kernel_call_naive(
                 # This broadcasts x1 to have `input_dim` elements along its last axis
                 np.empty_like(  # pylint: disable=unexpected-keyword-arg
                     x1,
-                    shape=(kernel.input_dim,),
+                    shape=kernel.input_shape,
                 ),
             )
 
-        assert x0.shape[-1] == kernel.input_dim and x1.shape[-1] == kernel.input_dim
+        assert (
+            x0.shape[-1:] == kernel.input_shape and x1.shape[-1:] == kernel.input_shape
+        )
 
         return kernel_vectorized(x0, x1)
 

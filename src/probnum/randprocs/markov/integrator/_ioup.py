@@ -53,19 +53,19 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     --------
     >>> ioup1 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1., initarg=0.)
     >>> print(ioup1)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=2, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(2,), dtype=float64>
 
     >>> ioup2 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=2)
     >>> print(ioup2)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=3, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(3,), dtype=float64>
 
     >>> ioup3 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., wiener_process_dimension=10)
     >>> print(ioup3)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=20, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(20,), dtype=float64>
 
     >>> ioup4 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(ioup4)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=5, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """
 
     def __init__(
@@ -98,7 +98,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(ioup_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(ioup_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
             )
 
         super().__init__(transition=ioup_transition, initrv=initrv, initarg=initarg)
