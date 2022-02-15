@@ -21,7 +21,7 @@ KalmanMeasurementModelArgType = Union[
 ]
 
 
-class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
+class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
     """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
 
     Parameters
@@ -37,12 +37,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         If the transition is an integrator, `K=d*(nu+1)` for some d and nu.
     """
 
-    def iterated_filtsmooth(
-        self,
-        regression_problem: problems.TimeSeriesRegressionProblem,
-        init_posterior: Optional[_kalmanposterior.SmoothingPosterior] = None,
-        stopcrit: Optional[FiltSmoothStoppingCriterion] = None,
-    ):
+    def iterated_filtsmooth(self, *args, **kwargs):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
         If the extended Kalman filter is used, this yields the IEKS. In
@@ -51,13 +46,10 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem
-            Regression problem.
-        init_posterior
-            Initial posterior to linearize at. If not specified, linearizes
-            at the prediction random variable.
-        stopcrit
-            A stopping criterion for iterated filtering.
+        *args
+            Positional arguments of :func:`Kalman.iterated_filtsmooth_posterior_generator`.
+        **kwargs
+            Keyword arguments of :func:`Kalman.iterated_filtsmooth_posterior_generator`.
 
         Returns
         -------
@@ -69,12 +61,9 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         TimeSeriesRegressionProblem: a regression problem data class
         """
 
-        smoothing_post = init_posterior
-        info_dicts = None
-        for smoothing_post, info_dicts in self.iterated_filtsmooth_posterior_generator(
-            regression_problem, init_posterior, stopcrit
-        ):
-            pass
+        *_, (smoothing_post, info_dicts) = self.iterated_filtsmooth_posterior_generator(
+            *args, **kwargs
+        )
 
         return smoothing_post, info_dicts
 
@@ -137,22 +126,15 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
             new_mean = new_posterior.states.mean
             old_mean = old_posterior.states.mean
 
-    def filtsmooth(
-        self,
-        regression_problem: problems.TimeSeriesRegressionProblem,
-        _previous_posterior: Optional[_timeseriesposterior.TimeSeriesPosterior] = None,
-    ):
+    def filtsmooth(self, *args, **kwargs):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
         ----------
-        regression_problem
-            Regression problem.
-        _previous_posterior
-            If specified, approximate Gaussian filtering and smoothing
-            linearises at this, prescribed posterior.
-            This is used for iterated filtering and smoothing.
-            For standard filtering, this can be ignored.
+        *args
+            Positional arguments of :func:`Kalman.filter`.
+        **kwargs
+            Keyword arguments of :func:`Kalman.filter`.
 
         Returns
         -------
@@ -165,30 +147,20 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         --------
         TimeSeriesRegressionProblem: a regression problem data class
         """
-        filter_result = self.filter(
-            regression_problem,
-            _previous_posterior=_previous_posterior,
-        )
+        filter_result = self.filter(*args, **kwargs)
         filter_posterior, info_dicts = filter_result
         smooth_posterior = self.smooth(filter_posterior)
         return smooth_posterior, info_dicts
 
-    def filter(
-        self,
-        regression_problem: problems.TimeSeriesRegressionProblem,
-        _previous_posterior: Optional[_timeseriesposterior.TimeSeriesPosterior] = None,
-    ):
+    def filter(self, *args, **kwargs):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
-        regression_problem
-            Regression problem.
-        _previous_posterior
-            If specified, approximate Gaussian filtering and smoothing
-            linearises at this, prescribed posterior.
-            This is used for iterated filtering and smoothing.
-            For standard filtering, this can be ignored.
+        *args
+            Positional arguments of :func:`Kalman.filtered_states_generator`.
+        **kwargs
+            Keyword arguments of :func:`Kalman.filtered_states_generator`.
 
         Returns
         -------
@@ -207,9 +179,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
         )
         info_dicts = []
 
-        for t, rv, info in self.filtered_states_generator(
-            regression_problem, _previous_posterior
-        ):
+        for t, rv, info in self.filtered_states_generator(*args, **kwargs):
             posterior.append(location=t, state=rv)
             info_dicts.append(info)
 
@@ -316,3 +286,7 @@ class Kalman(_bayesfiltsmooth.BayesFiltSmooth):
             locations=filter_posterior.locations,
             states=rv_list,
         )
+
+
+class Kalman(_KalmanBase):
+    pass
