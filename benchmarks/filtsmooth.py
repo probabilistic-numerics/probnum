@@ -49,7 +49,9 @@ class Filtering:
         )
         self.regression_problem = regression_problem
 
-        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.DiscreteKalman(
+            prior_process=prior_process
+        )
 
     def time_filter(self, linearization_implementation):
         self.kalman_filter.filter(self.regression_problem)
@@ -99,7 +101,9 @@ class Smoothing:
             initarg=regression_problem.locations[0],
         )
 
-        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.DiscreteKalman(
+            prior_process=prior_process
+        )
         self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
 
     def time_smooth(self, linearization_implementation):
@@ -166,7 +170,9 @@ class DenseGridOperations:
             initarg=regression_problem.locations[0],
         )
 
-        self.kalman_filter = filtsmooth.gaussian.Kalman(prior_process=prior_process)
+        self.kalman_filter = filtsmooth.gaussian.DiscreteKalman(
+            prior_process=prior_process
+        )
 
         self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
         self.smoothing_posterior = self.kalman_filter.smooth(
