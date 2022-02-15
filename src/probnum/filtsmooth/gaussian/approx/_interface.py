@@ -1,4 +1,7 @@
-"""Temporary interface. Will eventually be removed as a part of the refactoring detailed in issue #627."""
+"""Temporary interface. 
+
+Will eventually be removed as a part of the refactoring detailed in issue #627.
+"""
 
 from typing import Dict, Tuple
 
