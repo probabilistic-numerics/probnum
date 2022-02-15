@@ -54,19 +54,19 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     --------
     >>> iwp1 = IntegratedWienerProcess(initarg=0.)
     >>> print(iwp1)
-    <IntegratedWienerProcess with input_dim=1, output_dim=2, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(2,), dtype=float64>
 
     >>> iwp2 = IntegratedWienerProcess(initarg=0., num_derivatives=2)
     >>> print(iwp2)
-    <IntegratedWienerProcess with input_dim=1, output_dim=3, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(3,), dtype=float64>
 
     >>> iwp3 = IntegratedWienerProcess(initarg=0., wiener_process_dimension=10)
     >>> print(iwp3)
-    <IntegratedWienerProcess with input_dim=1, output_dim=20, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(20,), dtype=float64>
 
     >>> iwp4 = IntegratedWienerProcess(initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(iwp4)
-    <IntegratedWienerProcess with input_dim=1, output_dim=5, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """
 
     def __init__(
