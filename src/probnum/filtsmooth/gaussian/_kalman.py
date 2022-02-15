@@ -218,6 +218,46 @@ class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
         --------
         TimeSeriesRegressionProblem: a regression problem data class
         """
+        raise NotImplementedError
+
+    def smooth(
+        self,
+        filter_posterior: _kalmanposterior.KalmanPosterior,
+        _previous_posterior: Optional[_timeseriesposterior.TimeSeriesPosterior] = None,
+    ):
+        """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
+
+        Parameters
+        ----------
+        filter_posterior
+            Posterior distribution obtained after filtering
+
+        Returns
+        -------
+        KalmanPosterior
+            Posterior distribution of the smoothed output
+        """
+        diffusion_list = np.ones_like(filter_posterior.locations[1:])
+        rv_list = self.prior_process.transition.smooth_list(
+            filter_posterior.states,
+            filter_posterior.locations,
+            _diffusion_list=diffusion_list,
+        )
+
+        return _kalmanposterior.SmoothingPosterior(
+            filtering_posterior=filter_posterior,
+            transition=self.prior_process.transition,
+            locations=filter_posterior.locations,
+            states=rv_list,
+        )
+
+
+class ContinuousKalman(_KalmanBase):
+    def filtered_states_generator(
+        self,
+        regression_problem: problems.TimeSeriesRegressionProblem,
+        _previous_posterior: Optional[_timeseriesposterior.TimeSeriesPosterior] = None,
+    ):
 
         # It is not clear at the moment how to implement this cleanly.
         if not np.all(np.diff(regression_problem.locations) > 0):
@@ -256,37 +296,47 @@ class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
             yield t, curr_rv, info_dict
             t_old = t
 
-    def smooth(
+
+class DiscreteKalman(_KalmanBase):
+    def filtered_states_generator(
         self,
-        filter_posterior: _kalmanposterior.KalmanPosterior,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         _previous_posterior: Optional[_timeseriesposterior.TimeSeriesPosterior] = None,
     ):
-        """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
 
-        Parameters
-        ----------
-        filter_posterior
-            Posterior distribution obtained after filtering
+        # It is not clear at the moment how to implement this cleanly.
+        if not np.all(np.diff(regression_problem.locations) > 0):
+            raise ValueError(
+                "Gaussian filtering expects sorted, non-repeating time points."
+            )
 
-        Returns
-        -------
-        KalmanPosterior
-            Posterior distribution of the smoothed output
-        """
-        diffusion_list = np.ones_like(filter_posterior.locations[1:])
-        rv_list = self.prior_process.transition.smooth_list(
-            filter_posterior.states,
-            filter_posterior.locations,
-            _diffusion_list=diffusion_list,
-        )
+        # Initialise
+        t_old = self.prior_process.initarg
+        curr_rv = self.prior_process.initrv
 
-        return _kalmanposterior.SmoothingPosterior(
-            filtering_posterior=filter_posterior,
-            transition=self.prior_process.transition,
-            locations=filter_posterior.locations,
-            states=rv_list,
-        )
+        # Iterate over data and measurement models
+        for t, data, measmod in regression_problem:
 
+            dt = t - t_old
+            info_dict = {}
 
-class Kalman(_KalmanBase):
-    pass
+            # Predict if there is a time-increment
+            if dt > 0:
+                linearise_predict_at = (
+                    None if _previous_posterior is None else _previous_posterior(t_old)
+                )
+                output = self.prior_process.transition.forward_rv(
+                    curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
+                )
+                curr_rv, info_dict["predict_info"] = output
+
+            # Update (even if there is no increment)
+            linearise_update_at = (
+                None if _previous_posterior is None else _previous_posterior(t)
+            )
+            curr_rv, info_dict["update_info"] = measmod.backward_realization(
+                realization_obtained=data, rv=curr_rv, _linearise_at=linearise_update_at
+            )
+
+            yield t, curr_rv, info_dict
+            t_old = t

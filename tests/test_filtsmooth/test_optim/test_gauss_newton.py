@@ -15,7 +15,7 @@ def fixture_setup(request):
         atol=1e-1, rtol=1e-1, maxit=10
     )
 
-    kalman = filtsmooth.gaussian.Kalman(
+    kalman = filtsmooth.gaussian.ContinuousKalman(
         info["prior_process"],
     )
     gauss_newton = filtsmooth.optim.GaussNewton(kalman, stopping_criterion=stopcrit)

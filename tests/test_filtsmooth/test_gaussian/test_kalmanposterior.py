@@ -15,7 +15,7 @@ def fixture_problem(rng):
 def fixture_setup(problem):
     """Filter and regression problem."""
     regression_problem, info = problem
-    kalman = filtsmooth.gaussian.Kalman(
+    kalman = filtsmooth.gaussian.DiscreteKalman(
         info["prior_process"],
     )
 
@@ -189,7 +189,7 @@ def test_sampling_shapes_1d(locs, size):
     prior_process = randprocs.markov.MarkovProcess(
         transition=prior, initrv=initrv, initarg=locations[0]
     )
-    kalman = filtsmooth.gaussian.Kalman(prior_process)
+    kalman = filtsmooth.gaussian.ContinuousKalman(prior_process)
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=data, measurement_models=measmod, locations=locations
     )

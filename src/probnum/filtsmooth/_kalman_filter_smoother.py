@@ -8,6 +8,11 @@ from probnum.typing import ArrayLike
 
 __all__ = ["filter_kalman", "smooth_rts"]
 
+MATCH_FILTER = {
+    "continuous": gaussian.ContinuousKalman,
+    "discrete": gaussian.DiscreteKalman,
+}
+
 
 def filter_kalman(
     observations: ArrayLike,
@@ -100,7 +105,7 @@ def filter_kalman(
     prior_process = _setup_prior_process(
         F=F, L=L, m0=m0, C0=C0, t0=locations[0], prior_model=prior_model
     )
-    kalman = gaussian.Kalman(prior_process)
+    kalman = MATCH_FILTER[prior_model](prior_process)
     return kalman.filter(regression_problem)[0]
 
 
@@ -195,7 +200,7 @@ def smooth_rts(
     prior_process = _setup_prior_process(
         F=F, L=L, m0=m0, C0=C0, t0=locations[0], prior_model=prior_model
     )
-    kalman = gaussian.Kalman(prior_process)
+    kalman = MATCH_FILTER[prior_model](prior_process)
     return kalman.filtsmooth(regression_problem)[0]
 
 
