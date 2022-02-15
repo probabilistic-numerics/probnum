@@ -317,26 +317,33 @@ class DiscreteKalman(_KalmanBase):
         # Iterate over data and measurement models
         for t, data, measmod in regression_problem:
 
-            dt = t - t_old
             info_dict = {}
 
-            # Predict if there is a time-increment
-            if dt > 0:
-                linearise_predict_at = (
-                    None if _previous_posterior is None else _previous_posterior(t_old)
-                )
-                output = self.prior_process.transition.forward_rv(
-                    curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
-                )
-                curr_rv, info_dict["predict_info"] = output
-
-            # Update (even if there is no increment)
-            linearise_update_at = (
-                None if _previous_posterior is None else _previous_posterior(t)
+            # Linearise
+            linearise_predict_at, linearise_update_at = self._linearise(
+                t_old, t, _previous_posterior
             )
+
+            # Predict
+            (
+                curr_rv,
+                info_dict["predict_info"],
+            ) = self.prior_process.transition.forward_rv(
+                curr_rv, t, _linearise_at=linearise_predict_at
+            )
+
+            # Update
             curr_rv, info_dict["update_info"] = measmod.backward_realization(
                 realization_obtained=data, rv=curr_rv, _linearise_at=linearise_update_at
             )
 
             yield t, curr_rv, info_dict
             t_old = t
+
+    def _linearise(self, t_old, t, _previous_posterior):
+        if _previous_posterior is None:
+            return None, None
+
+        linearise_predict_at = _previous_posterior(t_old)
+        linearise_update_at = _previous_posterior(t)
+        return linearise_predict_at, linearise_update_at
