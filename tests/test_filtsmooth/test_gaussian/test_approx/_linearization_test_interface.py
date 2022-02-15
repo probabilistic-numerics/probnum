@@ -55,7 +55,7 @@ class InterfaceDiscreteLinearizationTest:
 
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
-        rtol, atol = 1e-10, 1e-10
+        rtol, atol = 1e-9, 1e-9
         np.testing.assert_allclose(received.mean, expected.mean, rtol=rtol, atol=atol)
         np.testing.assert_allclose(received.cov, expected.cov, rtol=rtol, atol=atol)
         np.testing.assert_allclose(crosscov1, crosscov2, rtol=rtol, atol=atol)
@@ -103,7 +103,7 @@ class InterfaceDiscreteLinearizationTest:
             np.linalg.norm(regression_problem.observations[:, 0] - comp) / normaliser
         )
 
-        assert smoormse < filtrmse < obs_rmse
+        assert smoormse < filtrmse < obs_rmse, (smoormse, filtrmse, obs_rmse)
 
 
 class InterfaceContinuousLinearizationTest:
