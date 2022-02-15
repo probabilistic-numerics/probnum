@@ -99,16 +99,11 @@ class LinearizationImportanceDistribution(ImportanceDistribution):
         )
 
     @classmethod
-    def from_ukf(cls, dynamics_model, spread=1e-4, priorpar=2.0, special_scale=0.0):
+    def from_ukf(cls, dynamics_model):
         """Create an importance distribution that uses the UKF for proposals."""
 
         def linearization_strategy(non_linear_model):
-            return gaussian.approx.DiscreteUKFComponent(
-                non_linear_model,
-                spread=spread,
-                priorpar=priorpar,
-                special_scale=special_scale,
-            )
+            return gaussian.approx.DiscreteUKFComponent(non_linear_model)
 
         return cls(
             dynamics_model=dynamics_model, linearization_strategy=linearization_strategy
