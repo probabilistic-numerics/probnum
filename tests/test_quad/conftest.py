@@ -130,7 +130,7 @@ def fixture_measure(measure_params) -> measures.IntegrationMeasure:
 )
 def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
     """Kernel / covariance function."""
-    return request.param[0](**request.param[1], input_dim=input_dim)
+    return request.param[0](**request.param[1], input_shape=(input_dim,))
 
 
 # Kernel Embeddings
