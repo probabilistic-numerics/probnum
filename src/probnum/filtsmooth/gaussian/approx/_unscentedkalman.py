@@ -69,7 +69,7 @@ def _spherical_cubature_unit_params(*, dim):
 
 def _weights(dim):
     spread, priorpar, special_scale = 1.0, 0.0, 0.0
-    scale = spread ** 2 * (dim + special_scale) - dim
+    scale = spread**2 * (dim + special_scale) - dim
 
     weights_mean = _weights_mean(dim, scale)
     weights_cov = _weights_cov(dim, priorpar, scale, spread)
@@ -84,7 +84,7 @@ def _weights_mean(dim, scale):
 
 
 def _weights_cov(dim, priorpar, scale, spread):
-    cw0 = np.ones(1) * scale / (dim + scale) + (1 - spread ** 2 + priorpar)
+    cw0 = np.ones(1) * scale / (dim + scale) + (1 - spread**2 + priorpar)
     cw = np.ones(2 * dim) / (2.0 * (dim + scale))
     weights_cov = np.hstack((cw0, cw))
     return weights_cov
