@@ -70,7 +70,7 @@ class _NonProbabilisticFitBase(InitializationRoutine):
         )
 
         # Infer the solution
-        kalman = filtsmooth.gaussian.Kalman(prior_process)
+        kalman = filtsmooth.gaussian.ContinuousKalman(prior_process)
         out, _ = kalman.filtsmooth(regression_problem)
         estimated_initrv = out.states[0]
         return estimated_initrv
