@@ -1,77 +1,56 @@
 import numpy as np
 import pytest
+import pytest_cases
 
 from probnum import filtsmooth
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 
-# Problems
+
+@pytest.fixture(name="rng")
+def fixture_rng():
+    return np.random.default_rng(seed=4)
 
 
-class SharedTest:
-    @staticmethod
-    def test_rmse_filt_smooth(setup):
-        """Assert that smoothing beats filtering beats nothing."""
-
-        np.random.seed(12345)
-        kalman, regression_problem = setup
-        truth = regression_problem.solution
-
-        posterior, _ = kalman.filtsmooth(regression_problem)
-
-        filtms = posterior.filtering_posterior.states.mean
-        smooms = posterior.states.mean
-
-        filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
-        smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))
-        obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
-
-        assert smooms_rmse < filtms_rmse < obs_rmse
-
-    @staticmethod
-    def test_info_dicts(setup):
-        """Assert that smoothing beats filtering beats nothing."""
-
-        np.random.seed(12345)
-        kalman, regression_problem = setup
-
-        posterior, info_dicts = kalman.filtsmooth(regression_problem)
-
-        assert isinstance(info_dicts, list)
-        assert len(posterior) == len(info_dicts)
+def case_continuous(rng):
+    regression_problem, info = filtsmooth_zoo.ornstein_uhlenbeck(rng=rng)
+    kalman = filtsmooth.gaussian.ContinuousKalman(info["prior_process"])
+    return kalman, regression_problem
 
 
-class TestContinuous(SharedTest):
-    @pytest.fixture(
-        name="setup",
-        params=[
-            filtsmooth_zoo.ornstein_uhlenbeck,
-        ],
-    )
-    @staticmethod
-    def fixture_setup(request, rng):
-        """Filter and regression problem."""
-        problem = request.param
-        regression_problem, info = problem(rng=rng)
-
-        kalman = filtsmooth.gaussian.ContinuousKalman(info["prior_process"])
-        return kalman, regression_problem
+def case_discrete(rng):
+    regression_problem, info = filtsmooth_zoo.car_tracking(rng=rng)
+    kalman = filtsmooth.gaussian.DiscreteKalman(info["prior_process"])
+    return kalman, regression_problem
 
 
-class TestDiscrete:
-    @pytest.fixture(
-        name="setup",
-        params=[
-            filtsmooth_zoo.car_tracking,
-        ],
-    )
-    @staticmethod
-    def fixture_setup(request, rng):
-        """Filter and regression problem."""
-        problem = request.param
-        regression_problem, info = problem(rng=rng)
+@pytest_cases.parametrize_with_cases("kalman, regression_problem", cases=".")
+def test_rmse_filt_smooth(kalman, regression_problem):
+    """Assert that smoothing beats filtering beats nothing."""
 
-        kalman = filtsmooth.gaussian.DiscreteKalman(info["prior_process"])
-        return kalman, regression_problem
+    np.random.seed(12345)
+    truth = regression_problem.solution
+
+    posterior, _ = kalman.filtsmooth(regression_problem)
+
+    filtms = posterior.filtering_posterior.states.mean
+    smooms = posterior.states.mean
+
+    filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
+    smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))
+    obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
+
+    assert smooms_rmse < filtms_rmse < obs_rmse
+
+
+@pytest_cases.parametrize_with_cases("kalman, regression_problem", cases=".")
+def test_info_dicts(kalman, regression_problem):
+    """Assert that smoothing beats filtering beats nothing."""
+
+    np.random.seed(12345)
+    posterior, info_dicts = kalman.filtsmooth(regression_problem)
+
+    assert isinstance(info_dicts, list)
+    assert len(posterior) == len(info_dicts)
 
 
 def test_kalman_smoother_high_order_ibm(rng):
