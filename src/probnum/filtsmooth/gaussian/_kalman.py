@@ -32,9 +32,11 @@ class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
         Parameters
         ----------
         *args
-            Positional arguments of :func:`Kalman.iterated_filtsmooth_posterior_generator`.
+            Positional arguments of
+            :func:`Kalman.iterated_filtsmooth_posterior_generator`.
         **kwargs
-            Keyword arguments of :func:`Kalman.iterated_filtsmooth_posterior_generator`.
+            Keyword arguments of
+            :func:`Kalman.iterated_filtsmooth_posterior_generator`.
 
         Returns
         -------
