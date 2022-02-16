@@ -123,7 +123,7 @@ def car_tracking(
     # Set up regression problem
     time_grid = np.arange(*timespan, step=step)
 
-    prior_process = randprocs.markov.MarkovProcess(
+    prior_process = randprocs.markov.MarkovSequence(
         transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
     )
 
@@ -375,7 +375,7 @@ def pendulum(
 
     if initarg is None:
         initarg = time_grid[0]
-    prior_process = randprocs.markov.MarkovProcess(
+    prior_process = randprocs.markov.MarkovSequence(
         transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
