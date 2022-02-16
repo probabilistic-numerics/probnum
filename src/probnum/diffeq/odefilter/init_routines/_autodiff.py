@@ -1,5 +1,7 @@
 """Automatic-differentiation-based initialization routines."""
 
+import itertools
+
 import numpy as np
 
 from probnum import problems, randprocs, randvars
@@ -201,31 +203,46 @@ class TaylorMode(_AutoDiffBase):
     """
 
     def _compute_ode_derivatives(self, *, f, y0, num_derivatives):
-
-        # Corner case 1: num_derivatives == 0
-        derivs = [y0[:-1]]
-        if num_derivatives == 0:
-            return jnp.asarray(derivs)
-
-        # Corner case 2: num_derivatives == 1
-        y0_series = (jnp.ones_like(y0),)
-        (y0_coeffs_taylor, [*y0_coeffs_remaining]) = jet(
-            fun=f,
-            primals=(y0,),
-            series=(y0_series,),
+        taylor_coefficients = self._taylor_approximation(
+            f=f, y0=y0, order=num_derivatives
         )
-        derivs.append(y0_coeffs_taylor[:-1])
-        if num_derivatives == 1:
-            return jnp.asarray(derivs)
+        return taylor_coefficients[:, :-1]
 
-        # Order > 1
-        for _ in range(1, num_derivatives):
-            coeffs_taylor = (y0_coeffs_taylor, *y0_coeffs_remaining)
-            (_, [*y0_coeffs_remaining]) = jet(
-                fun=f,
-                primals=(y0,),
-                series=(coeffs_taylor,),
-            )
-            derivs.append(y0_coeffs_remaining[-2][:-1])
+    def _taylor_approximation(self, *, f, y0, order):
+        """Compute an `n`th order Taylor approximation of f at y0."""
+        taylor_coefficient_gen = self._taylor_coefficient_generator(f=f, y0=y0)
 
-        return jnp.asarray(derivs)
+        # access the nth entry via itertools.islice
+        derivatives = next(itertools.islice(taylor_coefficient_gen, order - 1, None))
+
+        derivatives_as_array = jnp.stack(derivatives, axis=0)
+        return derivatives_as_array
+
+    @staticmethod
+    def _taylor_coefficient_generator(*, f, y0):
+        """Generate Taylor coefficients of `f` via `jet`()."""
+
+        # This is the position where we evaluate the
+        # derivatives of the ODE solution.
+        # It is the 0th Taylor coefficient.
+        x_primals = y0
+
+        # This contains the higher-order, unnormalised
+        # Taylor coefficients of the input (i.e., the ODE solution).
+        x_series = (f(y0),)
+
+        while True:
+            yield (x_primals,) + x_series
+
+            # jet() computes a Taylor approximation of g(t) := f(x(t))
+            # The output is the zeroth Taylor approximation g(t_0) ('primals')
+            # as well its higher-order Taylor coefficients ('series')
+            g_primals, g_series = jet(fun=f, primals=(x_primals,), series=(x_series,))
+
+            # For ODEs \dot y(t) = f(y(t)),
+            # The nth Taylor coefficient of y is the
+            # (n-1)th Taylor coefficient of g(t) = f(y(t)).
+            # This way, by augmenting x0 with the Taylor series
+            # approximating g(t) = f(y(t)), we increase the order
+            # of the approximation by 1.
+            x_series = (g_primals, *g_series)
