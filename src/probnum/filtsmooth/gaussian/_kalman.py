@@ -45,8 +45,8 @@ class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
         --------
         TimeSeriesRegressionProblem: a regression problem data class
         """
-        *_, final_output = self.iterated_filtsmooth_posterior_generator(*args, **kwargs)
-        return final_output
+        *_, output = self.iterated_filtsmooth_posterior_generator(*args, **kwargs)
+        return output
 
     def iterated_filtsmooth_posterior_generator(
         self,
