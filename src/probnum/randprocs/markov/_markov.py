@@ -95,6 +95,13 @@ class MarkovProcess(_MarkovBase):
         initrv: randvars.RandomVariable,
         transition: continuous.SDE,
     ):
+        if not isinstance(transition, continuous.SDE):
+            msg = (
+                "The transition appears to be discrete. "
+                "Did you mean 'MarkovSequence'?"
+            )
+            raise TypeError(msg)
+
         super().__init__(
             initrv=initrv,
             transition=transition,
@@ -148,6 +155,12 @@ class MarkovSequence(_MarkovBase):
         initrv: randvars.RandomVariable,
         transition: discrete.NonlinearGaussian,
     ):
+        if not isinstance(transition, discrete.NonlinearGaussian):
+            msg = (
+                "The transition appears to be discrete. "
+                "Did you mean 'MarkovSequence'?"
+            )
+            raise TypeError(msg)
 
         super().__init__(
             initrv=initrv,
