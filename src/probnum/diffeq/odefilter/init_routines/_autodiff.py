@@ -127,18 +127,12 @@ class TaylorMode(_AutoDiffBase):
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
 
-    The implementation is inspired by the implementation in
-    https://github.com/jacobjinkelly/easy-neural-ode/blob/master/latent_ode.py
-    See also [2]_.
-
     References
     ----------
     .. [1] Krämer, N. and Hennig, P.,
        Stable implementation of probabilistic ODE solvers,
        *arXiv:2012.10106*, 2020.
-    .. [2] Kelly, J. and Bettencourt, J. and Johnson, M. and Duvenaud, D.,
-        Learning differential equations that are easy to solve,
-        Neurips 2020.
+
 
     Examples
     --------
