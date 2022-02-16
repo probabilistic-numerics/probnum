@@ -7,7 +7,7 @@ import scipy.stats
 
 from probnum import _function, randvars, utils
 from probnum.randprocs import _random_process, kernels
-from probnum.randprocs.markov import _transition
+from probnum.randprocs.markov import _transition, continuous, discrete
 from probnum.typing import ShapeLike
 
 _InputType = Union[np.floating, np.ndarray]
@@ -91,7 +91,7 @@ class MarkovProcess(_MarkovBase):
         self,
         initarg: np.ndarray,
         initrv: randvars.RandomVariable,
-        transition: _transition.Transition,
+        transition: continuous.SDE,
     ):
         super().__init__(
             initrv=initrv,
@@ -140,4 +140,12 @@ class MarkovProcess(_MarkovBase):
 
 
 class MarkovSequence(_MarkovBase):
-    pass
+    def __init__(
+        self,
+        initrv: randvars.RandomVariable,
+        transition: discrete.NonlinearGaussian,
+    ):
+        super().__init__(
+            initrv=initrv,
+            transition=transition,
+        )
