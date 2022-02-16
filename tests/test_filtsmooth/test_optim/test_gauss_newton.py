@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 import pytest_cases
 
 from probnum import filtsmooth, problems, randprocs
