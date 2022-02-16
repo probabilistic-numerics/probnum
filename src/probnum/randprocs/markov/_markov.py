@@ -14,7 +14,56 @@ _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
 
 
-class MarkovProcess(_random_process.RandomProcess):
+class _MarkovBase(_random_process.RandomProcess):
+    def __init__(
+        self,
+        initrv: randvars.RandomVariable,
+        transition: _transition.Transition,
+        input_shape: ShapeLike = (),
+    ):
+        self.initrv = initrv
+        self.transition = transition
+
+        super().__init__(
+            input_shape=input_shape,
+            output_shape=initrv.shape,
+            dtype=np.dtype(np.float_),
+        )
+
+    def __call__(self, args: _InputType) -> randvars.RandomVariable:
+        raise NotImplementedError
+
+    @property
+    def mean(self) -> _function.Function:
+        return _function.LambdaFunction(
+            lambda x: self.__call__(args=x).mean,
+            input_shape=self.input_shape,
+            output_shape=self.output_shape,
+        )
+
+    @property
+    def cov(self) -> "MarkovProcess.Kernel":
+        return MarkovProcess.Kernel(self.__call__)
+
+    class Kernel(kernels.Kernel):
+        def __init__(self, markov_proc: "MarkovProcess"):
+            self._randproc_call = markov_proc.__call__
+
+            super().__init__(
+                input_shape=markov_proc.input_shape,
+                shape=markov_proc.output_shape,
+            )
+
+        def _evaluate(
+            self, x0: np.ndarray, x1: Optional[np.ndarray]
+        ) -> Union[np.ndarray, np.float_]:
+            if x1 is None:
+                return self._randproc_call(args=x0).cov
+
+            raise NotImplementedError
+
+
+class MarkovProcess(_MarkovBase):
     r"""Random processes with the Markov property.
 
     A Markov process is a random process with the additional property that
@@ -44,30 +93,12 @@ class MarkovProcess(_random_process.RandomProcess):
         initrv: randvars.RandomVariable,
         transition: _transition.Transition,
     ):
-        self.initarg = initarg
-        self.initrv = initrv
-        self.transition = transition
-
         super().__init__(
+            initrv=initrv,
+            transition=transition,
             input_shape=np.asarray(initarg).shape,
-            output_shape=initrv.shape,
-            dtype=np.dtype(np.float_),
         )
-
-    def __call__(self, args: _InputType) -> randvars.RandomVariable:
-        raise NotImplementedError
-
-    @property
-    def mean(self) -> _function.Function:
-        return _function.LambdaFunction(
-            lambda x: self.__call__(args=x).mean,
-            input_shape=self.input_shape,
-            output_shape=self.output_shape,
-        )
-
-    @property
-    def cov(self) -> "MarkovProcess.Kernel":
-        return MarkovProcess.Kernel(self.__call__)
+        self.initarg = initarg
 
     def _sample_at_input(
         self,
@@ -107,27 +138,6 @@ class MarkovProcess(_random_process.RandomProcess):
             ]
         )
 
-    def push_forward(
-        self,
-        args: _InputType,
-        base_measure: Type[randvars.RandomVariable],
-        sample: np.ndarray,
-    ) -> np.ndarray:
-        raise NotImplementedError
 
-    class Kernel(kernels.Kernel):
-        def __init__(self, markov_proc: "MarkovProcess"):
-            self._randproc_call = markov_proc.__call__
-
-            super().__init__(
-                input_shape=markov_proc.input_shape,
-                shape=markov_proc.output_shape,
-            )
-
-        def _evaluate(
-            self, x0: np.ndarray, x1: Optional[np.ndarray]
-        ) -> Union[np.ndarray, np.float_]:
-            if x1 is None:
-                return self._randproc_call(args=x0).cov
-
-            raise NotImplementedError
+class MarkovSequence(_MarkovBase):
+    pass
