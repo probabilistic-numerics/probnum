@@ -22,21 +22,6 @@ KalmanMeasurementModelArgType = Union[
 
 
 class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
-    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
-
-    Parameters
-    ----------
-    prior_process
-        Prior Gauss-Markov process.
-        Usually a :class:`MarkovProcess` with a
-        :class:`Normal` initial random variable,
-        and an :class:`LTISDE` transition or an :class:`IntegratorTransition`,
-        but :class:`LinearSDE`, :class:`ContinuousEKFComponent`,
-        or :class:`ContinuousUKFComponent` are also valid.
-        Describes a random process in :math:`K` dimensions.
-        If the transition is an integrator, `K=d*(nu+1)` for some d and nu.
-    """
-
     def iterated_filtsmooth(self, *args, **kwargs):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -60,12 +45,8 @@ class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
         --------
         TimeSeriesRegressionProblem: a regression problem data class
         """
-
-        *_, (smoothing_post, info_dicts) = self.iterated_filtsmooth_posterior_generator(
-            *args, **kwargs
-        )
-
-        return smoothing_post, info_dicts
+        *_, final_output = self.iterated_filtsmooth_posterior_generator(*args, **kwargs)
+        return final_output
 
     def iterated_filtsmooth_posterior_generator(
         self,
@@ -253,6 +234,21 @@ class _KalmanBase(_bayesfiltsmooth.BayesFiltSmooth):
 
 
 class ContinuousKalman(_KalmanBase):
+    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
+
+    Parameters
+    ----------
+    prior_process
+        Prior Gauss-Markov process.
+        Usually a :class:`MarkovProcess` with a
+        :class:`Normal` initial random variable,
+        and an :class:`LTISDE` transition or an :class:`IntegratorTransition`,
+        but :class:`LinearSDE`, :class:`ContinuousEKFComponent`,
+        or :class:`ContinuousUKFComponent` are also valid.
+        Describes a random process in :math:`K` dimensions.
+        If the transition is an integrator, `K=d*(nu+1)` for some d and nu.
+    """
+
     def filtered_states_generator(
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
@@ -298,6 +294,21 @@ class ContinuousKalman(_KalmanBase):
 
 
 class DiscreteKalman(_KalmanBase):
+    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
+
+    Parameters
+    ----------
+    prior_process
+        Prior Gauss-Markov process.
+        Usually a :class:`MarkovProcess` with a
+        :class:`Normal` initial random variable,
+        and an :class:`LTISDE` transition or an :class:`IntegratorTransition`,
+        but :class:`LinearSDE`, :class:`ContinuousEKFComponent`,
+        or :class:`ContinuousUKFComponent` are also valid.
+        Describes a random process in :math:`K` dimensions.
+        If the transition is an integrator, `K=d*(nu+1)` for some d and nu.
+    """
+
     def filtered_states_generator(
         self,
         regression_problem: problems.TimeSeriesRegressionProblem,
