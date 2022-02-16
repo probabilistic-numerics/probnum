@@ -6,15 +6,17 @@ solvers.
 """
 
 from . import continuous, discrete, integrator, utils
-from ._markov import MarkovProcess
+from ._markov import MarkovProcess, MarkovSequence
 from ._transition import Transition
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "MarkovProcess",
+    "MarkovSequence",
     "Transition",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 MarkovProcess.__module__ = "probnum.randprocs.markov"
+MarkovSequence.__module__ = "probnum.randprocs.markov"
 Transition.__module__ = "probnum.randprocs.markov"
