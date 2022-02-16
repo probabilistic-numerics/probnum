@@ -17,6 +17,7 @@ _OutputType = Union[np.floating, np.ndarray]
 class _MarkovBase(_random_process.RandomProcess):
     def __init__(
         self,
+        *,
         initrv: randvars.RandomVariable,
         transition: _transition.Transition,
         input_shape: ShapeLike = (),
@@ -89,6 +90,7 @@ class MarkovProcess(_MarkovBase):
 
     def __init__(
         self,
+        *,
         initarg: np.ndarray,
         initrv: randvars.RandomVariable,
         transition: continuous.SDE,
@@ -142,9 +144,11 @@ class MarkovProcess(_MarkovBase):
 class MarkovSequence(_MarkovBase):
     def __init__(
         self,
+        *,
         initrv: randvars.RandomVariable,
         transition: discrete.NonlinearGaussian,
     ):
+
         super().__init__(
             initrv=initrv,
             transition=transition,
