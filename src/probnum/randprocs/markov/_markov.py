@@ -146,6 +146,8 @@ class MarkovProcess(_MarkovBase):
 
 
 class MarkovSequence(_MarkovBase):
+    """Discrete-time Markov processes."""
+
     def __init__(
         self,
         *,
