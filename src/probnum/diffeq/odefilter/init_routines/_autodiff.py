@@ -203,6 +203,11 @@ class TaylorMode(_AutoDiffBase):
         taylor_coefficients = self._taylor_approximation(
             f=f, y0=y0, order=num_derivatives
         )
+
+        # The `f` parameter is an autonomous ODE vector field that
+        # used to be a non-autonomous ODE vector field.
+        # Therefore, we eliminate the final column of the result,
+        # which would correspond to the `t`-part in f(t, y(t)).
         return taylor_coefficients[:, :-1]
 
     def _taylor_approximation(self, *, f, y0, order):
