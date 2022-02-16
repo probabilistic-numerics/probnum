@@ -1,6 +1,6 @@
 """Markovian processes."""
 
-from typing import Optional, Type, Union
+from typing import Optional, Union
 
 import numpy as np
 import scipy.stats
@@ -134,7 +134,7 @@ class MarkovProcess(_MarkovBase):
         transition: continuous.SDE,
     ):
         if not isinstance(transition, continuous.SDE):
-            msg = "The transition is not continuous. " "Did you mean 'MarkovSequence'?"
+            msg = "The transition is not continuous. Did you mean 'MarkovSequence'?"
             raise TypeError(msg)
 
         super().__init__(
@@ -154,7 +154,7 @@ class MarkovSequence(_MarkovBase):
         transition: continuous.SDE,
     ):
         if not isinstance(transition, discrete.NonlinearGaussian):
-            msg = "The transition is not discrete. " "Did you mean 'MarkovProcess'?"
+            msg = "The transition is not discrete. Did you mean 'MarkovProcess'?"
             raise TypeError(msg)
 
         super().__init__(
