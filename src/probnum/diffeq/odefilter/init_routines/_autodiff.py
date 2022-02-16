@@ -197,6 +197,9 @@ class TaylorMode(_AutoDiffBase):
     """
 
     def _compute_ode_derivatives(self, *, f, y0, num_derivatives):
+
+        # Compute the ODE derivatives by computing an nth-order Taylor
+        # approximation of the function g(t) = f(x(t))
         taylor_coefficients = self._taylor_approximation(
             f=f, y0=y0, order=num_derivatives
         )
@@ -206,23 +209,27 @@ class TaylorMode(_AutoDiffBase):
         """Compute an `n`th order Taylor approximation of f at y0."""
         taylor_coefficient_gen = self._taylor_coefficient_generator(f=f, y0=y0)
 
-        # access the nth entry via itertools.islice
-        derivatives = next(itertools.islice(taylor_coefficient_gen, order - 1, None))
+        # get the nth entry of the coefficient-generator via itertools.islice
+        derivatives = next(itertools.islice(taylor_coefficient_gen, order, None))
 
         derivatives_as_array = jnp.stack(derivatives, axis=0)
         return derivatives_as_array
 
     @staticmethod
     def _taylor_coefficient_generator(*, f, y0):
-        """Generate Taylor coefficients of `f` via `jet`()."""
+        """Generate Taylor coefficients.
 
-        # This is the position where we evaluate the
-        # derivatives of the ODE solution.
-        # It is the 0th Taylor coefficient.
+        Generate Taylor-series-coefficients of the ODE solution `x(t)` via generating
+        Taylor-series-coefficients of `g(t)=f(x(t))` via ``jax.experimental.jet()``.
+        """
+
+        # This is the 0th Taylor coefficient of x(t) at t=t0.
         x_primals = y0
+        yield (x_primals,)
 
         # This contains the higher-order, unnormalised
-        # Taylor coefficients of the input (i.e., the ODE solution).
+        # Taylor coefficients of x(t) at t=t0.
+        # We know them because of the ODE.
         x_series = (f(y0),)
 
         while True:
