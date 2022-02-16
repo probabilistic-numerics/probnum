@@ -214,9 +214,15 @@ class TaylorMode(_AutoDiffBase):
         """Compute an `n`th order Taylor approximation of f at y0."""
         taylor_coefficient_gen = self._taylor_coefficient_generator(f=f, y0=y0)
 
-        # get the nth entry of the coefficient-generator via itertools.islice
+        # Get the 'order'th entry of the coefficient-generator via itertools.islice
+        # The result is a tuple of length 'order+1', each entry of which
+        # corresponds to a derivative / Taylor coefficient.
         derivatives = next(itertools.islice(taylor_coefficient_gen, order, None))
 
+        # The shape of this array is (order+1, ode_dim+1).
+        # 'order+1' since a 0th order approximation has 1 coefficient (f(x0)),
+        # a 1st order approximation has 2 coefficients (f(x0), df(x0)), etc.
+        # 'ode_dim+1' since we tranformed the ODE into an autonomous ODE.
         derivatives_as_array = jnp.stack(derivatives, axis=0)
         return derivatives_as_array
 
