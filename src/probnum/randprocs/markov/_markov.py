@@ -149,8 +149,9 @@ class MarkovSequence(_MarkovBase):
     def __init__(
         self,
         *,
+        initarg: np.ndarray,
         initrv: randvars.RandomVariable,
-        transition: discrete.NonlinearGaussian,
+        transition: continuous.SDE,
     ):
         if not isinstance(transition, discrete.NonlinearGaussian):
             msg = "The transition is not discrete. " "Did you mean 'MarkovProcess'?"
@@ -159,4 +160,6 @@ class MarkovSequence(_MarkovBase):
         super().__init__(
             initrv=initrv,
             transition=transition,
+            input_shape=np.asarray(initarg).shape,
         )
+        self.initarg = initarg
