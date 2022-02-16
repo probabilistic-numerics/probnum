@@ -211,8 +211,7 @@ def _setup_prior_process(F, L, m0, C0, t0, prior_model):
         return randprocs.markov.MarkovSequence(
             transition=prior, initrv=initrv, initarg=initarg
         )
-
-    elif prior_model == "continuous":
+    if prior_model == "continuous":
         prior = randprocs.markov.continuous.LTISDE(
             drift_matrix=F, force_vector=zero_shift_prior, dispersion_matrix=L
         )
