@@ -5,11 +5,11 @@ import numpy as np
 import scipy.special
 
 from probnum import randvars
-from probnum.randprocs.markov import _markov_process, continuous
+from probnum.randprocs.markov import _markov, continuous
 from probnum.randprocs.markov.integrator import _integrator, _preconditioner
 
 
-class MaternProcess(_markov_process.MarkovProcess):
+class MaternProcess(_markov.MarkovProcess):
     r"""Matern process.
 
     Convenience access to (:math:`d` dimensional) Matern(:math:`\nu`) processes.

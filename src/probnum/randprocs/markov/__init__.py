@@ -6,7 +6,7 @@ solvers.
 """
 
 from . import continuous, discrete, integrator, utils
-from ._markov_process import MarkovProcess
+from ._markov import MarkovProcess
 from ._transition import Transition
 
 # Public classes and functions. Order is reflected in documentation.

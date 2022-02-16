@@ -4,11 +4,11 @@ import warnings
 import numpy as np
 
 from probnum import randvars
-from probnum.randprocs.markov import _markov_process, continuous
+from probnum.randprocs.markov import _markov, continuous
 from probnum.randprocs.markov.integrator import _integrator, _preconditioner
 
 
-class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
+class IntegratedOrnsteinUhlenbeckProcess(_markov.MarkovProcess):
     r"""Integrated Ornstein-Uhlenbeck process.
 
     Convenience access to :math:`\nu` times integrated (:math:`d` dimensional) Ornstein-Uhlenbeck processes.

@@ -7,11 +7,11 @@ import numpy as np
 import scipy.special
 
 from probnum import config, linops, randvars
-from probnum.randprocs.markov import _markov_process, continuous, discrete
+from probnum.randprocs.markov import _markov, continuous, discrete
 from probnum.randprocs.markov.integrator import _integrator, _preconditioner
 
 
-class IntegratedWienerProcess(_markov_process.MarkovProcess):
+class IntegratedWienerProcess(_markov.MarkovProcess):
     r"""Integrated Wiener process.
 
     Convenience access to :math:`\nu` times integrated (:math:`d` dimensional) Wiener processes.
