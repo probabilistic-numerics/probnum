@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from probnum.randprocs import kernels
+from probnum.typing import ShapeType
 
 
 @pytest.mark.parametrize("nu", [-1, -1.0, 0.0, 0])
@@ -13,11 +14,13 @@ def test_nonpositive_nu_raises_exception(nu):
         kernels.Matern(input_shape=(), nu=nu)
 
 
-def test_nu_large_recovers_rbf_kernel(x0: np.ndarray, x1: np.ndarray, input_dim: int):
+def test_nu_large_recovers_rbf_kernel(
+    x0: np.ndarray, x1: np.ndarray, input_shape: ShapeType
+):
     """Test whether a Matern kernel with nu large is close to an RBF kernel."""
     lengthscale = 1.25
-    rbf = kernels.ExpQuad(lengthscale=lengthscale, input_shape=(input_dim,))
-    matern = kernels.Matern(lengthscale=lengthscale, nu=15, input_shape=(input_dim,))
+    rbf = kernels.ExpQuad(input_shape=input_shape, lengthscale=lengthscale)
+    matern = kernels.Matern(input_shape=input_shape, lengthscale=lengthscale, nu=15)
 
     np.testing.assert_allclose(
         rbf.matrix(x0, x1),
