@@ -19,7 +19,7 @@ class Function(abc.ABC):
     Parameters
     ----------
     input_shape
-        Shape to which inputs are broadcast.
+        Input shape.
 
     output_shape
         Output shape.
@@ -39,10 +39,15 @@ class Function(abc.ABC):
 
     @property
     def input_shape(self) -> ShapeType:
-        """Shape to which inputs are broadcast.
+        """Shape of the function's input.
 
         For a scalar-input function, this is an empty tuple."""
         return self._input_shape
+
+    @property
+    def input_ndim(self) -> int:
+        """Syntactic sugar for ``len(input_shape)``."""
+        return self._input_ndim
 
     @property
     def output_shape(self) -> ShapeType:
@@ -54,12 +59,13 @@ class Function(abc.ABC):
     def __call__(self, x: ArrayLike) -> np.ndarray:
         """Evaluate the function at a given input.
 
+        The function is vectorized over the batch shape of the input.
+
         Parameters
         ----------
         x
-            *shape=* ``batch_shape + input_shape_bcastable`` -- (Batch of) input(s) at
-            which to evaluate the function. ``input_shape_bcastable`` must be a shape
-            that can be broadcast to :attr:`input_shape`.
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the function.
 
         Returns
         -------
@@ -70,29 +76,28 @@ class Function(abc.ABC):
         Raises
         ------
         ValueError
-            If ``input_shape_bcastable`` can not be broadcast to :attr:`input_shape`.
+            If the shape of ``x`` does not match :attr:`input_shape` along its last
+            dimensions.
         """
         x = np.asarray(x)
 
-        try:
-            # Note that this differs from
-            # `np.broadcast_shapes(x.shape, self._input_shape)`
-            # if self._input_shape contains `1`s
-            np.broadcast_to(
-                x,
-                shape=x.shape[: x.ndim - self._input_ndim] + self._input_shape,
+        # Shape checking
+        if x.shape[x.ndim - self.input_ndim :] != self.input_shape:
+            err_msg = (
+                "The shape of the input array must match the `input_shape` "
+                f"`{self.input_shape}` of the function along its last dimensions, but "
+                f"an array with shape `{x.shape}` was given."
             )
-        except ValueError as ve:
-            raise ValueError(
-                f"The shape of the input {x.shape} can not be broadcast to the "
-                f"specified `input_shape` {self._input_shape} of the `Function`."
-            ) from ve
 
-        res = self._evaluate(x)
+            raise ValueError(err_msg)
 
-        assert res.shape == (x.shape[: x.ndim - self._input_ndim] + self._output_shape)
+        batch_shape = x.shape[: x.ndim - self.input_ndim]
 
-        return res
+        fx = self._evaluate(x)
+
+        assert fx.shape == (batch_shape + self.output_shape)
+
+        return fx
 
     @abc.abstractmethod
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
@@ -100,17 +105,17 @@ class Function(abc.ABC):
 
 
 class LambdaFunction(Function):
-    """Define a :class:`Function` from an anonymous function.
+    """Define a :class:`Function` from a given :class:`callable`.
 
-    Creates a :class:`Function` from an anonymous function and in- and output shapes.
-    This provides a convenient interface to define a :class:`Function`.
+    Creates a :class:`Function` from a given :class:`callable` and in- and output
+    shapes. This provides a convenient interface to define a :class:`Function`.
 
     Parameters
     ----------
     fn
         Callable defining the function.
     input_shape
-        Shape to which inputs are broadcast.
+        Input shape.
     output_shape
         Output shape.
 
