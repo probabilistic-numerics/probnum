@@ -339,7 +339,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> Union[np.ndarray, np.float_]:
+    ) -> np.ndarray:
         """Implementation of the kernel evaluation which is called after input checking.
 
         When implementing a particular kernel, the subclass should implement the kernel
