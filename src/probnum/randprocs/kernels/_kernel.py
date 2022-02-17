@@ -154,7 +154,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> Union[np.ndarray, np.floating]:
+    ) -> np.ndarray:
         """Evaluate the (cross-)covariance function(s).
 
         The inputs are broadcast to a common shape following the "kernel broadcasting"
@@ -228,10 +228,10 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = np.atleast_1d(x0)
+        x0 = np.asarray(x0)
 
         if x1 is not None:
-            x1 = np.atleast_1d(x1)
+            x1 = np.asarray(x1)
 
         # Shape checking
         broadcast_input_shape = self._kernel_broadcast_shapes(x0, x1)
@@ -296,8 +296,8 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = np.array(x0)
-        x1 = x0 if x1 is None else np.array(x1)
+        x0 = np.asarray(x0)
+        x1 = x0 if x1 is None else np.asarray(x1)
 
         # Shape checking
         errmsg = (
