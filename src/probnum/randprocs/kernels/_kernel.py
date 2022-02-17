@@ -181,8 +181,8 @@ class Kernel(abc.ABC):
         -------
         k_x0_x1 :
             *shape=* :attr:`shape` ``+ bcast_batch_shape`` -- The (cross-)covariance
-            function(s) evaluated at ``(x0, x1)``. Since, the function is vectorized
-            over the batch shapes of the inpute, the output array contains the following
+            function(s) evaluated at ``(x0, x1)``. Since the function is vectorized
+            over the batch shapes of the inputs, the output array contains the following
             entries:
 
             .. code-block:: python
