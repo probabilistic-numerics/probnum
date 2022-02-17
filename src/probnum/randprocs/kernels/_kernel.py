@@ -470,6 +470,9 @@ class Kernel(abc.ABC):
         if self.input_shape == ():
             return prods
 
+        if prods.shape == ():
+            return self._input_shape[0] * prods
+
         if prods.shape[-1] == 1:
             return self._input_shape[0] * prods[..., 0]
 
@@ -497,13 +500,18 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                shape=x0.shape[: -self._input_ndim],
+                shape=x0.shape[: x0.ndim - self._input_ndim],
             )
 
         sqdiffs = (x0 - x1) ** 2
 
         if self.input_shape == ():
             return sqdiffs
+
+        assert len(self.input_shape) == 1
+
+        if sqdiffs.shape == ():
+            return self._input_shape[0] * sqdiffs
 
         if sqdiffs.shape[-1] == 1:
             return self._input_shape[0] * sqdiffs[..., 0]

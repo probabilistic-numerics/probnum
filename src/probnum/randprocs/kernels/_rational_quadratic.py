@@ -70,7 +70,7 @@ class RatQuad(Kernel, IsotropicMixin):
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:
-            return np.ones_like(x0[..., 0])
+            return np.ones_like(x0, shape=x0.shape[: x0.ndim - self._input_ndim])
 
         return (
             1.0
