@@ -72,7 +72,7 @@ class RatQuad(Kernel, IsotropicMixin):
         if x1 is None:
             return np.ones_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                shape=x0.shape[: x0.ndim - self._input_ndim],
+                shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
         return (

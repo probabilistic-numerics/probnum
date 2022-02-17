@@ -36,7 +36,7 @@ class WhiteNoise(Kernel):
             return np.full_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 self._sigma_sq,
-                shape=x0.shape[: -self._input_ndim],
+                shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
         if self.input_shape == ():
