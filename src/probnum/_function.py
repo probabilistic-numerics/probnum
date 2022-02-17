@@ -132,7 +132,7 @@ class LambdaFunction(Function):
         self,
         fn: Callable[[np.ndarray], np.ndarray],
         input_shape: ShapeLike,
-        output_shape: ShapeLike,
+        output_shape: ShapeLike = (),
     ) -> None:
         self._fn = fn
 
