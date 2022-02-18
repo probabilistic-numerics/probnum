@@ -19,7 +19,7 @@ only_if_jax_available = pytest.mark.skipif(not JAX_IS_AVAILABLE, reason="require
 
 
 @only_if_jax_available
-@pytest.mark.parametrize("num_derivatives", [2, 3, 5])
+@pytest.mark.parametrize("num_derivatives", [0, 1, 2, 3, 5])
 @pytest_cases.parametrize_with_cases("ivp, dy0_true", prefix="problem_", has_tag="jax")
 @pytest_cases.parametrize_with_cases(
     "routine", prefix="solver_", has_tag=("is_exact", "requires_jax")
