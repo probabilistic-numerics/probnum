@@ -89,7 +89,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             *shape=* ``batch_shape +`` :attr:`output_shape` -- Random process evaluated
             at the input(s).
         """
-        raise NotImplementedError
 
     @property
     def input_shape(self) -> ShapeType:
@@ -126,7 +125,6 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             which to evaluate the random process. Currently, we require ``batch_shape``
             to have at most one dimension.
         """
-        # return self.__call__(args).marginal()
         raise NotImplementedError
 
     @property
@@ -149,9 +147,8 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=* ``batch_shape + input_shape_bcastable`` -- (Batch of) input(s) at
-            which to evaluate the variance function. ``input_shape_bcastable`` must be a
-            shape that can be broadcast to :attr:`input_shape`.
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the variance function.
 
         Returns
         -------
@@ -179,9 +176,8 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=* ``batch_shape + input_shape_bcastable`` -- (Batch of) input(s) at
-            which to evaluate the standard deviation function. ``input_shape_bcastable``
-            must be a shape that can be broadcast to :attr:`input_shape`.
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the standard deviation function.
 
         Returns
         -------
@@ -189,9 +185,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             *shape=* ``batch_shape +`` :attr:`output_shape` -- Standard deviation of the
             process at ``args``.
         """
-            return np.sqrt(self.var(args=args))
-        except NotImplementedError as exc:
-            raise NotImplementedError from exc
+        return np.sqrt(self.var(args=args))
 
     def push_forward(
         self,
