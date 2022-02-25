@@ -116,11 +116,3 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     @property
     def cov(self) -> kernels.Kernel:
         return self._cov
-
-    def push_forward(
-        self,
-        args: _InputType,
-        base_measure: Type[randvars.RandomVariable],
-        sample: np.ndarray,
-    ) -> np.ndarray:
-        raise NotImplementedError

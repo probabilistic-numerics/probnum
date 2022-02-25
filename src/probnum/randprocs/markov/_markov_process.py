@@ -107,14 +107,6 @@ class MarkovProcess(_random_process.RandomProcess):
             ]
         )
 
-    def push_forward(
-        self,
-        args: _InputType,
-        base_measure: Type[randvars.RandomVariable],
-        sample: np.ndarray,
-    ) -> np.ndarray:
-        raise NotImplementedError
-
     class Kernel(kernels.Kernel):
         def __init__(self, markov_proc: "MarkovProcess"):
             self._randproc_call = markov_proc.__call__
