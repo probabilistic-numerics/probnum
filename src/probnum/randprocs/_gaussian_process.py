@@ -72,12 +72,12 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
                 "The covariance functions must be implemented as a " "`Kernel`."
             )
 
-        if len(mean.input_shape) > 1:
+        if mean.input_ndim > 1:
             raise ValueError(
                 "The mean function must have input shape `()` or `(D_in,)`."
             )
 
-        if len(mean.output_shape) > 1:
+        if mean.output_ndim > 1:
             raise ValueError(
                 "The mean function must have output shape `()` or `(D_out,)`."
             )

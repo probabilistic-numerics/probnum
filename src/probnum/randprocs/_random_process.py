@@ -97,9 +97,19 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         return self._input_shape
 
     @property
+    def input_ndim(self) -> int:
+        """Syntactic sugar for ``len(input_shape)``."""
+        return self._input_ndim
+
+    @property
     def output_shape(self) -> ShapeType:
         """Shape of the random process evaluated at an input."""
         return self._output_shape
+
+    @property
+    def output_ndim(self) -> int:
+        """Syntactic sugar for ``len(output_shape)``."""
+        return self._output_ndim
 
     @property
     def dtype(self) -> np.dtype:
