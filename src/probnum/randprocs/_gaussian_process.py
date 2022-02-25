@@ -89,11 +89,10 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
                 f"{cov.input_shape})."
             )
 
-        if 2 * mean.output_shape != cov.shape:
+        if 2 * mean.output_shape != cov.output_shape:
             raise ValueError(
-                "The shape of the `Kernel` must be a tuple of the form "
-                "`(output_shape, output_shape)`, where `output_shape` is the output "
-                "shape of the mean function."
+                "The covariance `Kernel` must have shape "
+                "`mean.output_shape + mean.output_shape`."
             )
 
         self._mean = mean

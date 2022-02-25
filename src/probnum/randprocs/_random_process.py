@@ -146,25 +146,22 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Returns
         -------
         _OutputType
-            *shape=* ``batch_shape`` or ``output_shape[:1] + batch_shape`` -- Variance
-            of the process at ``args``.
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Variance of the process
+            at ``args``.
         """
-        try:
-            var = self.cov(args, None)
-        except NotImplementedError as exc:
-            raise NotImplementedError from exc
+        pointwise_covs = self.cov(args, None)
 
         assert (
-            var.shape
-            == 2 * self._output_shape + args.shape[: args.ndim - self._input_ndim]
+            pointwise_covs.shape
+            == args.shape[: args.ndim - self._input_ndim] + 2 * self._output_shape
         )
 
         if self._output_ndim == 0:
-            return var
+            return pointwise_covs
 
         assert self._output_ndim == 1
 
-        return np.diagonal(var, axis1=0, axis2=1)
+        return np.diagonal(pointwise_covs, axis1=-2, axis2=-1)
 
     def std(self, args: _InputType) -> _OutputType:
         """Standard deviation function.
@@ -179,10 +176,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Returns
         -------
         _OutputType
-            *shape=* ``batch_shape`` or ``output_shape[:1] + batch_shape`` -- Standard
-            deviation of the process at ``args``.
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Standard deviation of the
+            process at ``args``.
         """
-        try:
             return np.sqrt(self.var(args=args))
         except NotImplementedError as exc:
             raise NotImplementedError from exc
