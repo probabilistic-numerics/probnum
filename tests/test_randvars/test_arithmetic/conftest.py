@@ -4,7 +4,7 @@ import pytest
 
 from probnum import linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
-from probnum.typing import ShapeArgType
+from probnum.typing import ShapeLike
 
 
 @pytest.fixture
@@ -13,13 +13,13 @@ def rng() -> np.random.Generator:
 
 
 @pytest.fixture
-def constant(shape_const: ShapeArgType, rng: np.random.Generator) -> randvars.Constant:
+def constant(shape_const: ShapeLike, rng: np.random.Generator) -> randvars.Constant:
     return randvars.Constant(support=rng.normal(size=shape_const))
 
 
 @pytest.fixture
 def multivariate_normal(
-    shape: ShapeArgType, precompute_cov_cholesky: bool, rng: np.random.Generator
+    shape: ShapeLike, precompute_cov_cholesky: bool, rng: np.random.Generator
 ) -> randvars.Normal:
     rv = randvars.Normal(
         mean=rng.normal(size=shape),
@@ -32,7 +32,7 @@ def multivariate_normal(
 
 @pytest.fixture
 def matrixvariate_normal(
-    shape: ShapeArgType, precompute_cov_cholesky: bool, rng: np.random.Generator
+    shape: ShapeLike, precompute_cov_cholesky: bool, rng: np.random.Generator
 ) -> randvars.Normal:
     rv = randvars.Normal(
         mean=rng.normal(size=shape),
@@ -48,7 +48,7 @@ def matrixvariate_normal(
 
 @pytest.fixture
 def symmetric_matrixvariate_normal(
-    shape: ShapeArgType, precompute_cov_cholesky: bool, rng: np.random.Generator
+    shape: ShapeLike, precompute_cov_cholesky: bool, rng: np.random.Generator
 ) -> randvars.Normal:
     rv = randvars.Normal(
         mean=random_spd_matrix(dim=shape[0], rng=rng),

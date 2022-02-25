@@ -1,11 +1,6 @@
-"""Integrated Brownian motion."""
+"""Integrated Wiener process."""
 
-try:
-    # cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
+from functools import cached_property
 import warnings
 
 import numpy as np
@@ -59,19 +54,19 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     --------
     >>> iwp1 = IntegratedWienerProcess(initarg=0.)
     >>> print(iwp1)
-    <IntegratedWienerProcess with input_dim=1, output_dim=2, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(2,), dtype=float64>
 
     >>> iwp2 = IntegratedWienerProcess(initarg=0., num_derivatives=2)
     >>> print(iwp2)
-    <IntegratedWienerProcess with input_dim=1, output_dim=3, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(3,), dtype=float64>
 
     >>> iwp3 = IntegratedWienerProcess(initarg=0., wiener_process_dimension=10)
     >>> print(iwp3)
-    <IntegratedWienerProcess with input_dim=1, output_dim=20, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(20,), dtype=float64>
 
     >>> iwp4 = IntegratedWienerProcess(initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(iwp4)
-    <IntegratedWienerProcess with input_dim=1, output_dim=5, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """
 
     def __init__(
@@ -102,7 +97,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(iwp_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(iwp_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
             )
 
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
@@ -127,15 +122,14 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._drift_matrix_iwp(),
+            force_vector=self._force_vector_iwp(),
+            dispersion_matrix=self._dispersion_matrix_iwp(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):
+    def _drift_matrix_iwp(self):
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.matrix_free:
             return linops.IdentityKronecker(
@@ -144,12 +138,10 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             )
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
-    @cached_property
-    def _force_vector(self):
+    def _force_vector_iwp(self):
         return np.zeros((self.wiener_process_dimension * (self.num_derivatives + 1)))
 
-    @cached_property
-    def _dispersion_matrix(self):
+    def _dispersion_matrix_iwp(self):
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 
@@ -182,34 +174,32 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             state_transition = np.kron(
                 np.eye(self.wiener_process_dimension), state_transition_1d
             )
-        process_noise_1d = np.flip(scipy.linalg.hilbert(self.num_derivatives + 1))
+        noise_1d = np.flip(scipy.linalg.hilbert(self.num_derivatives + 1))
         if config.matrix_free:
-            process_noise = linops.IdentityKronecker(
-                num_blocks=self.wiener_process_dimension, B=process_noise_1d
+            noise = linops.IdentityKronecker(
+                num_blocks=self.wiener_process_dimension, B=noise_1d
             )
         else:
-            process_noise = np.kron(
-                np.eye(self.wiener_process_dimension), process_noise_1d
-            )
+            noise = np.kron(np.eye(self.wiener_process_dimension), noise_1d)
         empty_shift = np.zeros(
             self.wiener_process_dimension * (self.num_derivatives + 1)
         )
 
-        process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
+        noise_cholesky_1d = np.linalg.cholesky(noise_1d)
         if config.matrix_free:
-            process_noise_cholesky = linops.IdentityKronecker(
-                num_blocks=self.wiener_process_dimension, B=process_noise_cholesky_1d
+            noise_cholesky = linops.IdentityKronecker(
+                num_blocks=self.wiener_process_dimension, B=noise_cholesky_1d
             )
         else:
-            process_noise_cholesky = np.kron(
-                np.eye(self.wiener_process_dimension), process_noise_cholesky_1d
+            noise_cholesky = np.kron(
+                np.eye(self.wiener_process_dimension), noise_cholesky_1d
             )
 
         return discrete.LTIGaussian(
-            state_trans_mat=state_transition,
-            shift_vec=empty_shift,
-            proc_noise_cov_mat=process_noise,
-            proc_noise_cov_cholesky=process_noise_cholesky,
+            transition_matrix=state_transition,
+            noise=randvars.Normal(
+                mean=empty_shift, cov=noise, cov_cholesky=noise_cholesky
+            ),
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
@@ -286,30 +276,32 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         user's convenience and to maintain a clean interface. Not used for forward_rv,
         etc..
         """
-        state_trans_mat = (
+        transition_matrix = (
             self.precon(dt)
-            @ self.equivalent_discretisation_preconditioned.state_trans_mat
+            @ self.equivalent_discretisation_preconditioned.transition_matrix
             @ self.precon.inverse(dt)
         )
         proc_noise_cov_mat = (
             self.precon(dt)
-            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
+            @ self.equivalent_discretisation_preconditioned.noise.cov
             @ self.precon(dt).T
         )
-        zero_shift = np.zeros(state_trans_mat.shape[0])
+        zero_shift = np.zeros(transition_matrix.shape[0])
 
         # The Cholesky factor of the process noise covariance matrix of the IBM
         # always exists, even for non-square root implementations.
         proc_noise_cov_cholesky = (
             self.precon(dt)
-            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
+            @ self.equivalent_discretisation_preconditioned.noise.cov_cholesky
         )
 
         return discrete.LTIGaussian(
-            state_trans_mat=state_trans_mat,
-            shift_vec=zero_shift,
-            proc_noise_cov_mat=proc_noise_cov_mat,
-            proc_noise_cov_cholesky=proc_noise_cov_cholesky,
+            transition_matrix=transition_matrix,
+            noise=randvars.Normal(
+                mean=zero_shift,
+                cov=proc_noise_cov_mat,
+                cov_cholesky=proc_noise_cov_cholesky,
+            ),
             forward_implementation=self.forward_implementation,
             backward_implementation=self.forward_implementation,
         )

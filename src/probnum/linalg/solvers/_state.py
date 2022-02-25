@@ -1,7 +1,7 @@
 """State of a probabilistic linear solver."""
 
 import dataclasses
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -31,20 +31,23 @@ class LinearSolverState:
         prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         rng: Optional[np.random.Generator] = None,
     ):
+        self.rng: Optional[np.random.Generator] = rng
         self.problem: problems.LinearSystem = problem
 
+        # Belief
         self.prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
         self._belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
 
-        self._step: int = 0
-
+        # Caches
         self._actions: List[np.ndarray] = [None]
         self._observations: List[Any] = [None]
         self._residuals: List[np.ndarray] = [
             self.problem.A @ self.belief.x.mean - self.problem.b,
-            None,
         ]
-        self.rng: Optional[np.random.Generator] = rng
+        self.cache: Dict[str, Any] = {}
+
+        # Solver info
+        self._step: int = 0
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(step={self.step})"

@@ -6,8 +6,8 @@ be provided and is updated with information collected by the solvers to return a
 posterior distribution.
 """
 
-import warnings
 from typing import Callable, Dict, Optional, Tuple, Union
+import warnings
 
 import numpy as np
 import scipy.sparse
@@ -15,34 +15,34 @@ import scipy.sparse
 import probnum  # pylint: disable=unused-import
 from probnum import linops, randvars, utils
 from probnum.linalg.solvers.matrixbased import SymmetricMatrixBasedSolver
-from probnum.typing import LinearOperatorArgType
+from probnum.typing import LinearOperatorLike
 
 # pylint: disable=too-many-branches
 
 
 def problinsolve(
     A: Union[
-        LinearOperatorArgType,
-        "randvars.RandomVariable[LinearOperatorArgType]",
+        LinearOperatorLike,
+        "randvars.RandomVariable[LinearOperatorLike]",
     ],
     b: Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"],
     A0: Optional[
         Union[
-            LinearOperatorArgType,
-            "randvars.RandomVariable[LinearOperatorArgType]",
+            LinearOperatorLike,
+            "randvars.RandomVariable[LinearOperatorLike]",
         ]
     ] = None,
     Ainv0: Optional[
         Union[
-            LinearOperatorArgType,
-            "randvars.RandomVariable[LinearOperatorArgType]",
+            LinearOperatorLike,
+            "randvars.RandomVariable[LinearOperatorLike]",
         ]
     ] = None,
     x0: Optional[Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"]] = None,
     assume_A: str = "sympos",
     maxiter: Optional[int] = None,
-    atol: float = 10 ** -6,
-    rtol: float = 10 ** -6,
+    atol: float = 10**-6,
+    rtol: float = 10**-6,
     callback: Optional[Callable] = None,
     **kwargs
 ) -> Tuple[
@@ -459,7 +459,7 @@ def _postprocess(info, A):
     # else:
     #     lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='d')
     # machine_eps = lamch('E')
-    machine_eps = 10 ** -16
+    machine_eps = 10**-16
 
     # Singular matrix
     # # TODO: get info from solver

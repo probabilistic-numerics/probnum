@@ -122,9 +122,15 @@ _Other Universities_: For students at other universities, we do not offer thesis
 			</a>
 		</li>
 		<li>
-			<a href="https://github.com/nathanaelbosch">
-				<img class="avatar" alt="nathanaelbosch" src="https://github.com/nathanaelbosch.png?v=3&s=96" width="96" height="96" />
-				<p>Nathanael Bosch</p>
+			<a href="https://github.com/mmahsereci">
+				<img class="avatar" alt="mmahsereci" src="https://github.com/mmahsereci.png?v=3&s=96" width="96" height="96" />
+				<p>Maren Mahsereci</p>
+			</a>
+		</li>
+		<li>
+			<a href="https://github.com/schmidtjonathan">
+				<img class="avatar" alt="schmidtjonathan" src="https://github.com/schmidtjonathan.png?v=3&s=96" width="96" height="96" />
+				<p>Jonathan Schmidt</p>
 			</a>
 		</li>
 	</ul>
@@ -137,6 +143,12 @@ _Other Universities_: For students at other universities, we do not offer thesis
 
 <div class="authorlist text-center">
 	<ul>
+		<li>
+			<a href="https://github.com/nathanaelbosch">
+				<img class="avatar" alt="nathanaelbosch" src="https://github.com/nathanaelbosch.png?v=3&s=96" width="64" height="64" />
+				<p>Nathanael Bosch</p>
+			</a>
+		</li>
 		<li>
 			<a href="https://github.com/fxbriol">
 				<img class="avatar" alt="fxbriol" src="https://github.com/fxbriol.png?v=3&s=96" width="64" height="64" />
@@ -165,18 +177,6 @@ _Other Universities_: For students at other universities, we do not offer thesis
 			<a href="https://github.com/tskarvone">
 				<img class="avatar" alt="tskarvone" src="https://github.com/tskarvone.png?v=3&s=96" width="64" height="64" />
 				<p>Toni Karvonen</p>
-			</a>
-		</li>
-		<li>
-			<a href="https://github.com/mmahsereci">
-				<img class="avatar" alt="mmahsereci" src="https://github.com/mmahsereci.png?v=3&s=96" width="64" height="64" />
-				<p>Maren Mahsereci</p>
-			</a>
-		</li>
-		<li>
-			<a href="https://github.com/schmidtjonathan">
-				<img class="avatar" alt="schmidtjonathan" src="https://github.com/schmidtjonathan.png?v=3&s=96" width="64" height="64" />
-				<p>Jonathan Schmidt</p>
 			</a>
 		</li>
 		<li>

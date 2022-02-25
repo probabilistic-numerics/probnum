@@ -3,7 +3,7 @@
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"
-from probnum.typing import ScalarArgType
+from probnum.typing import ScalarLike
 
 from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 
@@ -29,8 +29,8 @@ class PosteriorContractionStoppingCriterion(LinearSolverStoppingCriterion):
     def __init__(
         self,
         qoi: str = "x",
-        atol: ScalarArgType = 10 ** -5,
-        rtol: ScalarArgType = 10 ** -5,
+        atol: ScalarLike = 10**-5,
+        rtol: ScalarLike = 10**-5,
     ):
         self.qoi = qoi
         self.atol = probnum.utils.as_numpy_scalar(atol)
@@ -51,6 +51,6 @@ class PosteriorContractionStoppingCriterion(LinearSolverStoppingCriterion):
         b_norm = np.linalg.norm(solver_state.problem.b, ord=2)
 
         return (
-            np.abs(trace_cov_qoi) <= self.atol ** 2
+            np.abs(trace_cov_qoi) <= self.atol**2
             or np.abs(trace_cov_qoi) <= (self.rtol * b_norm) ** 2
         )

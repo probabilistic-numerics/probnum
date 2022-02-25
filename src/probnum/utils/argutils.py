@@ -5,12 +5,12 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.typing import DTypeArgType, ScalarArgType, ShapeArgType, ShapeType
+from probnum.typing import DTypeLike, ScalarLike, ShapeLike, ShapeType
 
 __all__ = ["as_shape", "as_numpy_scalar"]
 
 
-def as_shape(x: ShapeArgType, ndim: Optional[numbers.Integral] = None) -> ShapeType:
+def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType:
     """Convert a shape representation into a shape defined as a tuple of ints.
 
     Parameters
@@ -42,8 +42,8 @@ def as_shape(x: ShapeArgType, ndim: Optional[numbers.Integral] = None) -> ShapeT
     return shape
 
 
-def as_numpy_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:
-    """Convert a scalar into a NumPy scalar.
+def as_numpy_scalar(x: ScalarLike, dtype: DTypeLike = None) -> np.ndarray:
+    """Convert a scalar into a scalar NumPy array.
 
     Parameters
     ----------
@@ -56,4 +56,4 @@ def as_numpy_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:
     if np.ndim(x) != 0:
         raise ValueError("The given input is not a scalar.")
 
-    return np.asarray(x, dtype=dtype)[()]
+    return np.asarray(x, dtype=dtype)

@@ -4,9 +4,9 @@ from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 import numpy as np
 
 import probnum as pn
-import probnum.utils as _utils
 from probnum import linops, randvars
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
+import probnum.utils as _utils
 
 from .belief_updates import gaussian_belief_update
 from .observation_operators import function_evaluation
@@ -17,14 +17,14 @@ from .stopping_criteria import maximum_iterations, parameter_uncertainty
 
 def probsolve_qp(
     rng: np.random.Generator,
-    fun: Callable[[FloatArgType], FloatArgType],
+    fun: Callable[[FloatLike], FloatLike],
     fun_params0: Optional[Union[np.ndarray, randvars.RandomVariable]] = None,
     assume_fun: Optional[str] = None,
-    tol: FloatArgType = 10 ** -5,
-    maxiter: IntArgType = 10 ** 4,
+    tol: FloatLike = 10**-5,
+    maxiter: IntLike = 10**4,
     noise_cov: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
     callback: Optional[
-        Callable[[FloatArgType, FloatArgType, randvars.RandomVariable], None]
+        Callable[[FloatLike, FloatLike, randvars.RandomVariable], None]
     ] = None,
 ) -> Tuple[float, randvars.RandomVariable, randvars.RandomVariable, Dict]:
     """Probabilistic 1D Quadratic Optimization.

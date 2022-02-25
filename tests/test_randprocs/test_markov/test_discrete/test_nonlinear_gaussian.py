@@ -19,38 +19,38 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
     @pytest.fixture(autouse=True)
     def _setup(self, test_ndim, spdmat1):
 
-        self.g = lambda t, x: np.sin(x)
-        self.S = lambda t: spdmat1
-        self.dg = lambda t, x: np.cos(x)
+        self.transition_fun = lambda t, x: np.sin(x)
+        self.noise_fun = lambda t: randvars.Normal(
+            mean=np.zeros(test_ndim), cov=spdmat1
+        )
+        self.transition_fun_jacobian = lambda t, x: np.cos(x)
+
         self.transition = randprocs.markov.discrete.NonlinearGaussian(
-            test_ndim,
-            test_ndim,
-            self.g,
-            self.S,
-            self.dg,
-            None,
+            input_dim=test_ndim,
+            output_dim=test_ndim,
+            transition_fun=self.transition_fun,
+            transition_fun_jacobian=self.transition_fun_jacobian,
+            noise_fun=self.noise_fun,
         )
 
     # Test access to system matrices
 
     def test_state_transition(self, some_normal_rv1):
-        received = self.transition.state_trans_fun(0.0, some_normal_rv1.mean)
-        expected = self.g(0.0, some_normal_rv1.mean)
+        received = self.transition.transition_fun(0.0, some_normal_rv1.mean)
+        expected = self.transition_fun(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
-    def test_process_noise(self):
-        received = self.transition.proc_noise_cov_mat_fun(0.0)
-        expected = self.S(0.0)
-        np.testing.assert_allclose(received, expected)
-
-    def test_process_noise_cholesky(self):
-        received = self.transition.proc_noise_cov_cholesky_fun(0.0)
-        expected = np.linalg.cholesky(self.transition.proc_noise_cov_mat_fun(0.0))
-        np.testing.assert_allclose(received, expected)
+    def test_noise_fun(self):
+        received = self.transition.noise_fun(0.0)
+        expected = self.noise_fun(0.0)
+        np.testing.assert_allclose(received.mean, expected.mean)
+        np.testing.assert_allclose(received.cov, expected.cov)
 
     def test_jacobian(self, some_normal_rv1):
-        received = self.transition.jacob_state_trans_fun(0.0, some_normal_rv1.mean)
-        expected = self.dg(0.0, some_normal_rv1.mean)
+        # For some reason, pylint thinks that the Jacobian is not callable.
+        # pylint: disable="not-callable"
+        received = self.transition.transition_fun_jacobian(0.0, some_normal_rv1.mean)
+        expected = self.transition_fun_jacobian(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
     # Test forward and backward implementations

@@ -1,9 +1,11 @@
 """Operators of Kronecker-type or related."""
+from __future__ import annotations
+
 from typing import Optional, Union
 
 import numpy as np
 
-from probnum.typing import DTypeArgType, NotImplementedType
+from probnum.typing import DTypeLike, NotImplementedType
 
 from . import _linear_operator, _utils
 
@@ -21,11 +23,11 @@ class Symmetrize(_linear_operator.LinearOperator):
         Data type.
     """
 
-    def __init__(self, n: int, dtype: DTypeArgType = np.double):
+    def __init__(self, n: int, dtype: DTypeLike = np.double):
         self._n = n
 
         super().__init__(
-            shape=2 * (self._n ** 2,),
+            shape=2 * (self._n**2,),
             dtype=dtype,
             matmul=self._matmul,
         )
@@ -105,6 +107,9 @@ class Kronecker(_linear_operator.LinearOperator):
         self.B = _utils.aslinop(B)
 
         if self.A.is_square and self.B.is_square:
+            # (A (x) B)^-1 = A^-1 (x) B^-1
+            inverse = lambda: Kronecker(A=self.A.inv(), B=self.B.inv())
+            cond = self._cond_square_factors
             # det(A (x) B) = det(A)^n * det(B)^m
             det = lambda: (
                 self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
@@ -115,6 +120,8 @@ class Kronecker(_linear_operator.LinearOperator):
             )
             trace = lambda: self.A.trace() * self.B.trace()
         else:
+            inverse = None
+            cond = None
             det = None
             logabsdet = None
             trace = None
@@ -132,17 +139,19 @@ class Kronecker(_linear_operator.LinearOperator):
             ),
             # (A (x) B)^T = A^T (x) B^T
             transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
-            # (A (x) B)^-1 = A^-1 (x) B^-1
-            inverse=lambda: Kronecker(A=self.A.inv(), B=self.B.inv()),
+            inverse=inverse,
             rank=lambda: self.A.rank() * self.B.rank(),
-            cond=self._cond,
+            cond=cond,
             det=det,
             logabsdet=logabsdet,
             trace=trace,
         )
 
+        if self.A.is_symmetric and self.B.is_symmetric:
+            self.is_symmetric = True
+
     def _astype(
-        self, dtype: DTypeArgType, order: str, casting: str, copy: bool
+        self, dtype: DTypeLike, order: str, casting: str, copy: bool
     ) -> "Kronecker":
         A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
         B_astype = self.B.astype(dtype, order=order, casting=casting, copy=copy)
@@ -152,7 +161,7 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return Kronecker(A_astype, B_astype)
 
-    def _cond(self, p) -> np.inexact:
+    def _cond_square_factors(self, p) -> np.inexact:
         if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
@@ -195,6 +204,28 @@ class Kronecker(_linear_operator.LinearOperator):
             return Kronecker(A=self.A - other.A, B=other.B)
 
         return NotImplemented
+
+    def _cholesky(self, lower: bool = True) -> Kronecker:
+        # A Kronecker product is symmetric iff its factors are symmetric, since
+        # (A (x) B)^T = A^T (x) B^T
+        assert self.A.is_symmetric and self.B.is_symmetric
+
+        return Kronecker(
+            A=self.A.cholesky(lower),
+            B=self.B.cholesky(lower),
+        )
+
+    def _symmetrize(self) -> _linear_operator.LinearOperator:
+        # This is only an approximation to the closest symmetric matrix in the
+        # Frobenius norm, which is however much more efficient than the exact
+        # solution to the optimization problem
+        if self.A.is_square and self.B.is_square:
+            return Kronecker(
+                A=self.A.symmetrize(),
+                B=self.B.symmetrize(),
+            )
+
+        return super()._symmetrize()
 
 
 def _kronecker_matmul(
@@ -335,7 +366,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         super().__init__(
             dtype=dtype,
-            shape=2 * (self._n ** 2,),
+            shape=2 * (self._n**2,),
             matmul=matmul,
             rmatmul=rmatmul,
             todense=todense,
@@ -350,12 +381,15 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             ),
         )
 
+        if self.A.is_symmetric and self.B.is_symmetric:
+            self.is_symmetric = True
+
     @property
     def identical_factors(self) -> bool:
         return self._identical_factors
 
     def _astype(
-        self, dtype: DTypeArgType, order: str, casting: str, copy: bool
+        self, dtype: DTypeLike, order: str, casting: str, copy: bool
     ) -> Union["SymmetricKronecker", _linear_operator.LinearOperator]:
         if self._identical_factors:
             A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
@@ -445,6 +479,21 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         return np.linalg.cond(self.todense(cache=False), p=p)
 
+    def _cholesky(self, lower: bool = True) -> _linear_operator.LinearOperator:
+        if self._identical_factors:
+            return SymmetricKronecker(A=self.A.cholesky(lower))
+
+        return super()._cholesky(lower)
+
+    def _symmetrize(self) -> SymmetricKronecker:
+        # This is only an approximation to the closest symmetric matrix in the
+        # Frobenius norm, which is however much more efficient than the exact
+        # solution to the optimization problem
+        if self._identical_factors:
+            return SymmetricKronecker(A=self.A.symmetrize())
+
+        return SymmetricKronecker(A=self.A.symmetrize(), B=self.B.symmetrize())
+
 
 class IdentityKronecker(_linear_operator.LinearOperator):
     def __init__(self, num_blocks: int, B: _utils.LinearOperatorLike):
@@ -488,6 +537,9 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             trace=trace,
         )
 
+        if self.B.is_symmetric:
+            self.is_symmetric = True
+
     @property
     def num_blocks(self):
         return self._num_blocks
@@ -529,3 +581,17 @@ class IdentityKronecker(_linear_operator.LinearOperator):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
+
+    def _cholesky(self, lower: bool = True) -> IdentityKronecker:
+        return IdentityKronecker(
+            num_blocks=self.num_blocks,
+            B=self.B.cholesky(lower),
+        )
+
+    def _symmetrize(self) -> IdentityKronecker:
+        # In contrast to the implementation for the generic Kronecker product, this is
+        # not only an approximation of the closes symmetric matrix in the Frobenius norm
+        return IdentityKronecker(
+            num_blocks=self.num_blocks,
+            B=self.B.symmetrize(),
+        )

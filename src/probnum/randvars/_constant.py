@@ -1,21 +1,14 @@
 """(Almost surely) constant random variables."""
 
+from functools import cached_property
 from typing import Callable, TypeVar
 
 import numpy as np
 
-from probnum import config, linops
-from probnum import utils as _utils
-from probnum.typing import ArrayLikeGetitemArgType, ShapeArgType, ShapeType
+from probnum import config, linops, utils as _utils
+from probnum.typing import ArrayIndicesLike, ShapeLike, ShapeType
 
 from . import _random_variable
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 
 _ValueType = TypeVar("ValueType")
 
@@ -121,7 +114,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
         """Constant value taken by the random variable."""
         return self._support
 
-    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Constant":
+    def __getitem__(self, key: ArrayIndicesLike) -> "Constant":
         """(Advanced) indexing, masking and slicing.
 
         This method supports all modes of array indexing presented in
@@ -146,7 +139,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, rng: np.random.Generator, size: ShapeArgType = ()) -> _ValueType:
+    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> _ValueType:
         size = _utils.as_shape(size)
 
         if size == ():

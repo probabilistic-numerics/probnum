@@ -6,8 +6,7 @@ import numpy as np
 
 from probnum import filtsmooth, randvars, utils
 from probnum.diffeq import _odesolution
-from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
-from probnum.typing import FloatArgType, IntArgType, ShapeArgType
+from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 
 class ODEFilterSolution(_odesolution.ODESolution):
@@ -90,9 +89,9 @@ class ODEFilterSolution(_odesolution.ODESolution):
 
     def interpolate(
         self,
-        t: FloatArgType,
-        previous_index: Optional[IntArgType] = None,
-        next_index: Optional[IntArgType] = None,
+        t: FloatLike,
+        previous_index: Optional[IntLike] = None,
+        next_index: Optional[IntLike] = None,
     ) -> randvars.RandomVariable:
         out_rv = self.kalman_posterior.interpolate(
             t, previous_index=previous_index, next_index=next_index
@@ -102,8 +101,8 @@ class ODEFilterSolution(_odesolution.ODESolution):
     def sample(
         self,
         rng: np.random.Generator,
-        t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
+        t: Optional[ArrayLike] = None,
+        size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
 
         samples = self.kalman_posterior.sample(rng=rng, t=t, size=size)
@@ -116,7 +115,7 @@ class ODEFilterSolution(_odesolution.ODESolution):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: DenseOutputLocationArgType = None,
+        t: ArrayLike = None,
     ) -> np.ndarray:
         errormsg = (
             "The ODEFilterSolution does not implement transformation of realizations of a base measure."

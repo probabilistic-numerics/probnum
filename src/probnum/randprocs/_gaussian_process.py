@@ -1,13 +1,14 @@
 """Gaussian processes."""
 
-from typing import Callable, Optional, Type, Union
+from typing import Type, Union
 
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import ShapeArgType
+from probnum.typing import ShapeLike
 
 from . import _random_process, kernels
+from .. import _function
 
 _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
@@ -37,23 +38,20 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Define a Gaussian process with a zero mean function and RBF kernel.
 
     >>> import numpy as np
+    >>> from probnum.randprocs.mean_fns import Zero
     >>> from probnum.randprocs.kernels import ExpQuad
     >>> from probnum.randprocs import GaussianProcess
-    >>> mu = lambda x : np.zeros_like(x)  # zero-mean function
-    >>> k = ExpQuad(input_dim=1)  # RBF kernel
+    >>> mu = Zero(input_shape=())  # zero-mean function
+    >>> k = ExpQuad(input_shape=())  # RBF kernel
     >>> gp = GaussianProcess(mu, k)
 
     Sample from the Gaussian process.
 
-    >>> x = np.linspace(-1, 1, 5)[:, None]
+    >>> x = np.linspace(-1, 1, 5)
     >>> rng = np.random.default_rng(seed=42)
     >>> gp.sample(rng, x)
-    array([[-0.7539949 ],
-           [-0.6658092 ],
-           [-0.52972512],
-           [ 0.0674298 ],
-           [ 0.72066223]])
-    >>> gp.covmatrix(x)
+    array([-0.7539949 , -0.6658092 , -0.52972512,  0.0674298 ,  0.72066223])
+    >>> gp.cov.matrix(x)
     array([[1.        , 0.8824969 , 0.60653066, 0.32465247, 0.13533528],
            [0.8824969 , 1.        , 0.8824969 , 0.60653066, 0.32465247],
            [0.60653066, 0.8824969 , 1.        , 0.8824969 , 0.60653066],
@@ -63,51 +61,68 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def __init__(
         self,
-        mean: Callable[[_InputType], _OutputType],
+        mean: _function.Function,
         cov: kernels.Kernel,
     ):
+        if not isinstance(mean, _function.Function):
+            raise TypeError("The mean function must have type `probnum.Function`.")
+
         if not isinstance(cov, kernels.Kernel):
             raise TypeError(
                 "The covariance functions must be implemented as a " "`Kernel`."
             )
 
-        if cov.shape != () and not (
-            len(cov.shape) == 2 and cov.shape[0] == cov.shape[1]
-        ):
+        if len(mean.input_shape) > 1:
             raise ValueError(
-                "Only kernels with shape `()` or `(D, D)` are allowed as covariance "
-                "functions of random processes."
+                "The mean function must have input shape `()` or `(D_in,)`."
             )
 
-        self._meanfun = mean
-        self._covfun = cov
+        if len(mean.output_shape) > 1:
+            raise ValueError(
+                "The mean function must have output shape `()` or `(D_out,)`."
+            )
+
+        if mean.input_shape != cov.input_shape:
+            raise ValueError(
+                "The mean and covariance functions must have the same input shapes "
+                f"(`mean.input_shape` is {mean.input_shape} and `cov.input_shape` is "
+                f"{cov.input_shape})."
+            )
+
+        if 2 * mean.output_shape != cov.shape:
+            raise ValueError(
+                "The shape of the `Kernel` must be a tuple of the form "
+                "`(output_shape, output_shape)`, where `output_shape` is the output "
+                "shape of the mean function."
+            )
+
+        self._mean = mean
+        self._cov = cov
+
         super().__init__(
-            input_dim=cov.input_dim,
-            output_dim=None if cov.shape == () else cov.shape[0],
+            input_shape=mean.input_shape,
+            output_shape=mean.output_shape,
             dtype=np.dtype(np.float_),
         )
 
     def __call__(self, args: _InputType) -> randvars.Normal:
         return randvars.Normal(
-            mean=np.array(self.mean(args), copy=False), cov=self.covmatrix(args)
+            mean=np.array(self.mean(args), copy=False), cov=self.cov.matrix(args)
         )
 
-    def mean(self, args: _InputType) -> _OutputType:
-        return self._meanfun(args)
+    @property
+    def mean(self) -> _function.Function:
+        return self._mean
 
-    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
-        return self._covfun(args0, args1)
-
-    def covmatrix(
-        self, args0: _InputType, args1: Optional[_InputType] = None
-    ) -> _OutputType:
-        return self._covfun.matrix(args0, args1)
+    @property
+    def cov(self) -> kernels.Kernel:
+        return self._cov
 
     def _sample_at_input(
         self,
         rng: np.random.Generator,
         args: _InputType,
-        size: ShapeArgType = (),
+        size: ShapeLike = (),
     ) -> _OutputType:
         gaussian_rv = self.__call__(args)
         return gaussian_rv.sample(rng=rng, size=size)

@@ -41,13 +41,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         # RBF kernel
         lengthscale = 1
         var = 1
-        X_norm = np.sum(X ** 2, axis=-1)
+        X_norm = np.sum(X**2, axis=-1)
         K_rbf = var * np.exp(
             -1
-            / (2 * lengthscale ** 2)
+            / (2 * lengthscale**2)
             * (X_norm[:, None] + X_norm[None, :] - 2 * np.dot(X, X.T))
         )
-        K_rbf = K_rbf + 10 ** -2 * np.eye(n)
+        K_rbf = K_rbf + 10**-2 * np.eye(n)
         x_true = np.random.normal(size=(n,))
         b = K_rbf @ x_true
         self.rbf_kernel_linear_system = K_rbf, b, x_true
@@ -274,7 +274,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         """Posterior covariances of the output must be positive (semi-) definite."""
         # Initialization
         A, f = self.poisson_linear_system
-        eps = 10 ** -12
+        eps = 10**-12
 
         for matblinsolve in self.matblinsolvers:
             with self.subTest():
@@ -368,7 +368,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Conjugate gradient method
         xhat_cg, info_cg = scipy.sparse.linalg.cg(
-            A=A, b=b, x0=x0, tol=10 ** -6, callback=callback_iterates_CG
+            A=A, b=b, x0=x0, tol=10**-6, callback=callback_iterates_CG
         )
         cg_iters_arr = np.array([x0] + cg_iterates)
 
@@ -381,7 +381,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             mean=linops.Identity(A.shape[1]),
             cov=linops.SymmetricKronecker(A),
         )
-        for kwargs in [{"assume_A": "sympos", "rtol": 10 ** -6}]:
+        for kwargs in [{"assume_A": "sympos", "rtol": 10**-6}]:
             with self.subTest():
                 # Define callback function to obtain search directions
                 pls_iterates = []
@@ -403,8 +403,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 )
                 pls_iters_arr = np.array([x0] + pls_iterates)
 
-                self.assertAllClose(xhat_pls.mean, xhat_cg, rtol=10 ** -12)
-                self.assertAllClose(pls_iters_arr, cg_iters_arr, rtol=10 ** -12)
+                self.assertAllClose(xhat_pls.mean, xhat_cg, rtol=10**-12)
+                self.assertAllClose(pls_iters_arr, cg_iters_arr, rtol=10**-12)
 
     def test_prior_distributions(self):
         """The solver should automatically handle different types of prior
@@ -430,7 +430,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     def test_uncertainty_calibration_error(self):
         """Test if the available uncertainty calibration procedures affect the error of
         the returned solution."""
-        tol = 10 ** -6
+        tol = 10**-6
         A, b, x_true = self.rbf_kernel_linear_system
 
         for calib_method in [None, 0, "adhoc", "weightedmean", "gpkern"]:
@@ -500,8 +500,8 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAllClose(
                     A0_mean @ Ainv0_mean @ np.eye(np.shape(A)[0]),
                     np.eye(np.shape(A)[0]),
-                    atol=10 ** -8,
-                    rtol=10 ** -8,
+                    atol=10**-8,
+                    rtol=10**-8,
                 )
 
                 # Symmetry

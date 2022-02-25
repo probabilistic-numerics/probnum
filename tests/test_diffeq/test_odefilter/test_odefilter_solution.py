@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq, randvars
+import probnum.problems.zoo.diffeq as diffeq_zoo
 
 
 @pytest.fixture

@@ -5,7 +5,7 @@ import numpy as np
 import probnum  # pylint: disable="unused-import"
 from probnum import randvars
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 from .._linear_solver_belief_update import LinearSolverBeliefUpdate
 
@@ -35,7 +35,7 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
        Analysis*, 2019, 14, 937-1012
     """
 
-    def __init__(self, noise_var: FloatArgType = 0.0) -> None:
+    def __init__(self, noise_var: FloatLike = 0.0) -> None:
         if noise_var < 0.0:
             raise ValueError(f"Noise variance {noise_var} must be non-negative.")
         self._noise_var = noise_var
@@ -44,9 +44,12 @@ class SolutionBasedProjectedRHSBeliefUpdate(LinearSolverBeliefUpdate):
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"
     ) -> LinearSystemBelief:
 
+        # Compute projected residual
         action_A = solver_state.action @ solver_state.problem.A
         pred = action_A @ solver_state.belief.x.mean
         proj_resid = solver_state.observation - pred
+
+        # Compute gain and covariance update
         cov_xy = solver_state.belief.x.cov @ action_A.T
         gram = action_A @ cov_xy + self._noise_var
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0

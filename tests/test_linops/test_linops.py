@@ -226,7 +226,6 @@ def test_cond(
         linop_cond = linop.cond(p=p)
         matrix_cond = np.linalg.cond(matrix, p=p)
 
-        assert isinstance(linop_cond, np.inexact)
         assert linop_cond.shape == ()
         assert linop_cond.dtype == matrix_cond.dtype
 
@@ -250,7 +249,6 @@ def test_det(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         linop_det = linop.det()
         matrix_det = np.linalg.det(matrix)
 
-        assert isinstance(linop_det, np.inexact)
         assert linop_det.shape == ()
         assert linop_det.dtype == matrix_det.dtype
 
@@ -266,7 +264,6 @@ def test_logabsdet(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         linop_logabsdet = linop.logabsdet()
         _, matrix_logabsdet = np.linalg.slogdet(matrix)
 
-        assert isinstance(linop_logabsdet, np.inexact)
         assert linop_logabsdet.shape == ()
         assert linop_logabsdet.dtype == matrix_logabsdet.dtype
 
@@ -282,7 +279,6 @@ def test_trace(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         linop_trace = linop.trace()
         matrix_trace = np.trace(matrix)
 
-        assert isinstance(linop_trace, np.number)
         assert linop_trace.shape == ()
         assert linop_trace.dtype == matrix_trace.dtype
 
@@ -347,7 +343,20 @@ def test_inv(linop: pn.linops.LinearOperator, matrix: np.ndarray):
             np.testing.assert_allclose(linop_inv.todense(), matrix_inv, atol=1e-12)
         else:
             with pytest.raises(type(expected_exception)):
-                linop.inv()
+                linop.inv().todense()
     else:
         with pytest.raises(np.linalg.LinAlgError):
-            linop.inv()
+            linop.inv().todense()
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_symmetrize(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    if linop.is_square:
+        sym_linop = linop.symmetrize()
+
+        assert sym_linop.is_symmetric
+
+        np.testing.assert_array_equal(sym_linop.todense().T, sym_linop.todense())
+    else:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.symmetrize()

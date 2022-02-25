@@ -1,28 +1,16 @@
 """Normally distributed / Gaussian random variables."""
 
+from functools import cached_property
 from typing import Callable, Optional, Union
 
 import numpy as np
 import scipy.linalg
 import scipy.stats
 
-from probnum import config, linops
-from probnum import utils as _utils
-from probnum.typing import (
-    ArrayLikeGetitemArgType,
-    FloatArgType,
-    ShapeArgType,
-    ShapeType,
-)
+from probnum import config, linops, utils as _utils
+from probnum.typing import ArrayIndicesLike, FloatLike, ShapeLike, ShapeType
 
 from . import _random_variable
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 
 _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
@@ -254,7 +242,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def precompute_cov_cholesky(
         self,
-        damping_factor: Optional[FloatArgType] = None,
+        damping_factor: Optional[FloatLike] = None,
     ):
         """(P)recompute Cholesky factors (careful: in-place operation!)."""
         if damping_factor is None:
@@ -292,7 +280,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         else:
             return self.cov
 
-    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Normal":
+    def __getitem__(self, key: ArrayIndicesLike) -> "Normal":
         """Marginalization in multi- and matrixvariate normal random variables,
         expressed as (advanced) indexing, masking and slicing.
 
@@ -328,7 +316,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             cov=cov,
         )
 
-    def reshape(self, newshape: ShapeArgType) -> "Normal":
+    def reshape(self, newshape: ShapeLike) -> "Normal":
         try:
             reshaped_mean = self.dense_mean.reshape(newshape)
         except ValueError as exc:
@@ -414,7 +402,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Univariate Gaussians
     def _univariate_cov_cholesky(
         self,
-        damping_factor: FloatArgType,
+        damping_factor: FloatLike,
     ) -> np.floating:
         return np.sqrt(self.cov + damping_factor)
 
@@ -452,7 +440,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _univariate_logcdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.norm.logcdf(x, loc=self.mean, scale=self.std)
 
-    def _univariate_quantile(self, p: FloatArgType) -> np.floating:
+    def _univariate_quantile(self, p: FloatLike) -> np.floating:
         return scipy.stats.norm.ppf(p, loc=self.mean, scale=self.std)
 
     def _univariate_entropy(self: _ValueType) -> np.float_:
@@ -464,7 +452,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Multi- and matrixvariate Gaussians
     def dense_cov_cholesky(
         self,
-        damping_factor: Optional[FloatArgType] = None,
+        damping_factor: Optional[FloatLike] = None,
     ) -> np.ndarray:
         """Compute the Cholesky factorization of the covariance from its dense
         representation."""
@@ -478,7 +466,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     def _dense_cov_cholesky_as_linop(
-        self, damping_factor: FloatArgType
+        self, damping_factor: FloatLike
     ) -> linops.LinearOperator:
         return linops.aslinop(self.dense_cov_cholesky(damping_factor=damping_factor))
 
@@ -550,7 +538,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Matrixvariate Gaussian with Kronecker covariance
     def _kronecker_cov_cholesky(
         self,
-        damping_factor: FloatArgType,
+        damping_factor: FloatLike,
     ) -> linops.Kronecker:
         assert isinstance(self.cov, linops.Kronecker)
 
@@ -572,7 +560,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # factors
     def _symmetric_kronecker_identical_factors_cov_cholesky(
         self,
-        damping_factor: FloatArgType,
+        damping_factor: FloatLike,
     ) -> linops.SymmetricKronecker:
         assert (
             isinstance(self.cov, linops.SymmetricKronecker)

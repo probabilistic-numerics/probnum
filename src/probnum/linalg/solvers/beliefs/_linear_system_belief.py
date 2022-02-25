@@ -4,15 +4,10 @@ Class defining a belief about the quantities of interest of a linear system such
 solution or the matrix inverse and any associated hyperparameters.
 """
 
+from functools import cached_property
 from typing import Mapping, Optional
 
-from probnum import randvars
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
+from probnum import linops, randvars
 
 # pylint: disable="invalid-name"
 
@@ -139,6 +134,8 @@ class LinearSystemBelief:
     @property
     def Ainv(self) -> Optional[randvars.RandomVariable]:
         """Belief about the (pseudo-)inverse of the system matrix."""
+        if self._Ainv is None:
+            return self._induced_Ainv()
         return self._Ainv
 
     @property
@@ -154,3 +151,12 @@ class LinearSystemBelief:
         :math:`H` and :math:`b`.
         """
         return self.Ainv @ self.b
+
+    def _induced_Ainv(self) -> randvars.RandomVariable:
+        r"""Induced belief about the inverse from a belief about the solution.
+
+        Computes a consistent belief about the inverse from a belief about the solution.
+        """
+        return randvars.Constant(
+            linops.Scaling(factors=0.0, shape=(self._x.shape[0], self._x.shape[0]))
+        )

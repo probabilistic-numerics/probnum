@@ -5,10 +5,10 @@ from typing import Optional, Type, Union
 import numpy as np
 import scipy.stats
 
-from probnum import randvars, utils
-from probnum.randprocs import _random_process
+from probnum import _function, randvars, utils
+from probnum.randprocs import _random_process, kernels
 from probnum.randprocs.markov import _transition
-from probnum.typing import ShapeArgType
+from probnum.typing import ShapeLike
 
 _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
@@ -49,27 +49,31 @@ class MarkovProcess(_random_process.RandomProcess):
         self.transition = transition
 
         super().__init__(
-            input_dim=1 if np.asarray(initarg).ndim == 0 else initarg.shape[0],
-            output_dim=1 if initrv.ndim == 0 else initrv.shape[0],
+            input_shape=np.asarray(initarg).shape,
+            output_shape=initrv.shape,
             dtype=np.dtype(np.float_),
         )
 
     def __call__(self, args: _InputType) -> randvars.RandomVariable:
         raise NotImplementedError
 
-    def mean(self, args: _InputType) -> _OutputType:
-        return self.__call__(args=args).mean
+    @property
+    def mean(self) -> _function.Function:
+        return _function.LambdaFunction(
+            lambda x: self.__call__(args=x).mean,
+            input_shape=self.input_shape,
+            output_shape=self.output_shape,
+        )
 
-    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
-        if args1 is None:
-            return self.__call__(args=args0).cov
-        raise NotImplementedError
+    @property
+    def cov(self) -> "MarkovProcess.Kernel":
+        return MarkovProcess.Kernel(self.__call__)
 
     def _sample_at_input(
         self,
         rng: np.random.Generator,
         args: _InputType,
-        size: ShapeArgType = (),
+        size: ShapeLike = (),
     ) -> _OutputType:
 
         size = utils.as_shape(size)
@@ -110,3 +114,20 @@ class MarkovProcess(_random_process.RandomProcess):
         sample: np.ndarray,
     ) -> np.ndarray:
         raise NotImplementedError
+
+    class Kernel(kernels.Kernel):
+        def __init__(self, markov_proc: "MarkovProcess"):
+            self._randproc_call = markov_proc.__call__
+
+            super().__init__(
+                input_shape=markov_proc.input_shape,
+                shape=markov_proc.output_shape,
+            )
+
+        def _evaluate(
+            self, x0: np.ndarray, x1: Optional[np.ndarray]
+        ) -> Union[np.ndarray, np.float_]:
+            if x1 is None:
+                return self._randproc_call(args=x0).cov
+
+            raise NotImplementedError

@@ -38,6 +38,7 @@ class ImportanceDistribution(abc.ABC):
     def log_correction_factor(
         self, proposal_state, importance_rv, dynamics_rv, old_weight
     ) -> float:
+        """Logarithmic correction factor."""
         return (
             dynamics_rv.logpdf(proposal_state)
             - importance_rv.logpdf(proposal_state)
@@ -84,6 +85,8 @@ class LinearizationImportanceDistribution(ImportanceDistribution):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
+        """Create an importance distribution that uses the EKF for proposals."""
+
         def linearization_strategy(non_linear_model):
             return gaussian.approx.DiscreteEKFComponent(
                 non_linear_model,
@@ -96,14 +99,11 @@ class LinearizationImportanceDistribution(ImportanceDistribution):
         )
 
     @classmethod
-    def from_ukf(cls, dynamics_model, spread=1e-4, priorpar=2.0, special_scale=0.0):
+    def from_ukf(cls, dynamics_model):
+        """Create an importance distribution that uses the UKF for proposals."""
+
         def linearization_strategy(non_linear_model):
-            return gaussian.approx.DiscreteUKFComponent(
-                non_linear_model,
-                spread=spread,
-                priorpar=priorpar,
-                special_scale=special_scale,
-            )
+            return gaussian.approx.DiscreteUKFComponent(non_linear_model)
 
         return cls(
             dynamics_model=dynamics_model, linearization_strategy=linearization_strategy

@@ -1,12 +1,14 @@
 """Fallback-implementations of LinearOperator arithmetic."""
+from __future__ import annotations
+
 import functools
 import operator
 from typing import Tuple, Union
 
 import numpy as np
 
+from probnum.typing import NotImplementedType, ScalarLike
 import probnum.utils
-from probnum.typing import NotImplementedType, ScalarArgType
 
 from ._linear_operator import BinaryOperandType, LinearOperator
 
@@ -18,7 +20,7 @@ from ._linear_operator import BinaryOperandType, LinearOperator
 class ScaledLinearOperator(LinearOperator):
     """Linear operator scaled with a scalar."""
 
-    def __init__(self, linop: LinearOperator, scalar: ScalarArgType):
+    def __init__(self, linop: LinearOperator, scalar: ScalarLike):
         if not isinstance(linop, LinearOperator):
             raise TypeError("`linop` must be a `LinearOperator`")
 
@@ -41,6 +43,17 @@ class ScaledLinearOperator(LinearOperator):
             trace=lambda: self._scalar * self._linop.trace(),
         )
 
+        # Matrix properties
+        self.is_symmetric = self._linop.is_symmetric
+        self.is_lower_triangular = self._linop.is_lower_triangular
+        self.is_upper_triangular = self._linop.is_upper_triangular
+
+        if self._linop.is_positive_definite:
+            if self._scalar > 0:
+                self.is_positive_definite = True
+            else:
+                self.is_positive_definite = False
+
     def _inv(self) -> "ScaledLinearOperator":
         if self._scalar == 0:
             raise np.linalg.LinAlgError("The operator is not invertible")
@@ -49,6 +62,12 @@ class ScaledLinearOperator(LinearOperator):
 
     def __repr__(self) -> str:
         return f"{self._scalar} * {self._linop}"
+
+    def _symmetrize(self) -> ScaledLinearOperator:
+        return ScaledLinearOperator(
+            linop=self._linop.symmetrize(),
+            scalar=self._scalar,
+        )
 
 
 class NegatedLinearOperator(ScaledLinearOperator):
@@ -95,6 +114,19 @@ class SumLinearOperator(LinearOperator):
             ),
         )
 
+        # Matrix properties
+        if all(summand.is_symmetric for summand in self._summands):
+            self.is_symmetric = True
+
+        if all(summand.is_lower_triangular for summand in self._summands):
+            self.is_lower_triangular = True
+
+        if all(summand.is_upper_triangular for summand in self._summands):
+            self.is_upper_triangular = True
+
+        if all(summand.is_positive_definite for summand in self._summands):
+            self.is_positive_definite = True
+
     def __neg__(self):
         return SumLinearOperator(*(-summand for summand in self._summands))
 
@@ -115,6 +147,9 @@ class SumLinearOperator(LinearOperator):
                 expanded_summands.append(summand)
 
         return tuple(expanded_summands)
+
+    def _symmetrize(self) -> SumLinearOperator:
+        return SumLinearOperator(*[summand.symmetrize() for summand in self._summands])
 
 
 def _mul_fallback(

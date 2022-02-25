@@ -9,7 +9,7 @@ from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 
-# pylint: disable=too-few-public-methods, too-many-instance-attributes, too-many-arguments
+# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments
 
 
 class BQInfo:
@@ -128,6 +128,11 @@ class BQState:
             The Gram matrix of the given nodes.
         kernel_means :
             The kernel means at the given nodes.
+
+        Returns
+        -------
+        bq_state :
+            An instance of this class.
         """
         return cls(
             measure=prev_state.measure,

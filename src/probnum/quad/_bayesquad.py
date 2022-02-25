@@ -7,36 +7,37 @@ methods return a random variable, specifying the belief about the true value of 
 integral.
 """
 
+from typing import Callable, Optional, Tuple, Union
 import warnings
-from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 
+from probnum.quad.solvers.bq_state import BQInfo
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatArgType, IntArgType
+from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 from .solvers import BayesianQuadrature
 
 
-# pylint: disable=too-many-arguments, no-else-raise
 def bayesquad(
     fun: Callable,
     input_dim: int,
     kernel: Optional[Kernel] = None,
     domain: Optional[
-        Union[Tuple[FloatArgType, FloatArgType], Tuple[np.ndarray, np.ndarray]]
+        Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
-    max_evals: Optional[IntArgType] = None,
-    var_tol: Optional[FloatArgType] = None,
-    rel_tol: Optional[FloatArgType] = None,
-    batch_size: Optional[IntArgType] = 1,
+    max_evals: Optional[IntLike] = None,
+    var_tol: Optional[FloatLike] = None,
+    rel_tol: Optional[FloatLike] = None,
+    batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
-) -> Tuple[Normal, Dict]:
-    r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
+) -> Tuple[Normal, BQInfo]:
+    r"""Infer the solution of the uni- or multivariate integral
+    :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
 
     Bayesian quadrature (BQ) infers integrals of the form
@@ -47,12 +48,12 @@ def bayesquad(
     :math:`\Omega \subset \mathbb{R}^D` against a measure :math:`\mu: \mathbb{R}^D
     \mapsto \mathbb{R}`.
 
-    Bayesian quadrature methods return a probability distribution over the solution :math:`F` with
-    uncertainty arising from finite computation (here a finite number of function evaluations).
-    They start out with a random process encoding the prior belief about the function :math:`f`
-    to be integrated. Conditioned on either existing or acquired function evaluations according to a
-    policy, they update the belief on :math:`f`, which is translated into a posterior measure over
-    the integral :math:`F`.
+    Bayesian quadrature methods return a probability distribution over the solution
+    :math:`F` with uncertainty arising from finite computation (here a finite number
+    of function evaluations). They start out with a random process encoding the prior
+    belief about the function :math:`f` to be integrated. Conditioned on either existing
+    or acquired function evaluations according to a policy, they update the belief on
+    :math:`f`, which is translated into a posterior measure over the integral :math:`F`.
     See Briol et al. [1]_ for a review on Bayesian quadrature.
 
     Parameters
@@ -132,7 +133,7 @@ def bayesquad(
     if domain is not None:
         if isinstance(measure, GaussianMeasure):
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        elif isinstance(measure, LebesgueMeasure):
+        if isinstance(measure, LebesgueMeasure):
             warnings.warn(
                 "Both domain and a LebesgueMeasure are specified. The domain "
                 "information will be ignored."
@@ -162,10 +163,10 @@ def bayesquad_from_data(
     fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
     domain: Optional[
-        Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
+        Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
-) -> Tuple[Normal, Dict]:
+) -> Tuple[Normal, BQInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
 
@@ -219,7 +220,7 @@ def bayesquad_from_data(
     if domain is not None:
         if isinstance(measure, GaussianMeasure):
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        elif isinstance(measure, LebesgueMeasure):
+        if isinstance(measure, LebesgueMeasure):
             warnings.warn(
                 "Both domain and a LebesgueMeasure are specified. The domain "
                 "information will be ignored."

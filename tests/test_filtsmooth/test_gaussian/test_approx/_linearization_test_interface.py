@@ -3,26 +3,27 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems, randprocs, randvars
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 
 
 class InterfaceDiscreteLinearizationTest:
     """Test approximate Gaussian filtering and smoothing.
 
     1. forward_rv is unlocked by linearization
-    2. Applied to a linear model, the outcome is exactly the same as the original transition.
+    2. Applied to a linear model, the outcome is exactly the same
+    as the original transition.
     3. Smoothing RMSE < Filtering RMSE < Data RMSE on the pendulum example.
     """
 
     # Replacement for an __init__ in the pytest language. See:
-    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined  # pylint: disable="line-too-long"
     @pytest.fixture(autouse=True)
     def _setup(self):
         self.linearizing_component = None
 
     def test_transition_rv(self, rng):
-        """forward_rv() not possible for original model but for the linearised model."""
+        """forward_rv() is only possible for the linearised model."""
         # pylint: disable=not-callable
         _, info = filtsmooth_zoo.pendulum(rng=rng)
         non_linear_model = info["prior_process"].transition
@@ -51,9 +52,10 @@ class InterfaceDiscreteLinearizationTest:
         # Assert that the give the same outputs.
         received, info1 = linear_model.forward_rv(initrv, 0.0)
         expected, info2 = linearised_model.forward_rv(initrv, 0.0)
+
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
-        rtol, atol = 1e-10, 1e-10
+        rtol, atol = 1e-9, 1e-9
         np.testing.assert_allclose(received.mean, expected.mean, rtol=rtol, atol=atol)
         np.testing.assert_allclose(received.cov, expected.cov, rtol=rtol, atol=atol)
         np.testing.assert_allclose(crosscov1, crosscov2, rtol=rtol, atol=atol)
@@ -101,7 +103,7 @@ class InterfaceDiscreteLinearizationTest:
             np.linalg.norm(regression_problem.observations[:, 0] - comp) / normaliser
         )
 
-        assert smoormse < filtrmse < obs_rmse
+        assert smoormse < filtrmse < obs_rmse, (smoormse, filtrmse, obs_rmse)
 
 
 class InterfaceContinuousLinearizationTest:

@@ -1,18 +1,18 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems, randprocs, randvars, utils
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 
 
-@pytest.fixture
-def problem(rng):
+@pytest.fixture(name="problem")
+def fixture_problem(rng):
     """Car-tracking problem."""
     return filtsmooth_zoo.car_tracking(rng=rng)
 
 
-@pytest.fixture
-def setup(problem):
+@pytest.fixture(name="setup")
+def fixture_setup(problem):
     """Filter and regression problem."""
     regression_problem, info = problem
     kalman = filtsmooth.gaussian.Kalman(
@@ -22,8 +22,8 @@ def setup(problem):
     return (kalman, regression_problem)
 
 
-@pytest.fixture
-def posterior(setup):
+@pytest.fixture(name="posterior")
+def fixture_posterior(setup):
     """Kalman smoothing posterior."""
     kalman, regression_problem = setup
     posterior, _ = kalman.filtsmooth(regression_problem)
@@ -181,7 +181,8 @@ def test_sampling_shapes_1d(locs, size):
 
     prior = randprocs.markov.integrator.IntegratedWienerTransition(0, 1)
     measmod = randprocs.markov.discrete.LTIGaussian(
-        state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
+        transition_matrix=np.eye(1),
+        noise=randvars.Normal(mean=np.zeros(1), cov=np.eye(1)),
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
