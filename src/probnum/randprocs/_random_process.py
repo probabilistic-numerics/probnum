@@ -76,13 +76,13 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             raise TypeError("The mean function must have type `probnum.Function`.")
 
         if mean.input_shape != self._input_shape:
-            raise TypeError(
+            raise ValueError(
                 f"The mean function must have the same `input_shape` as the random "
                 f"process (`{mean.input_shape}` != `{self._input_shape}`)."
             )
 
         if mean.output_shape != self._output_shape:
-            raise TypeError(
+            raise ValueError(
                 f"The mean function must have the same `output_shape` as the random "
                 f"process (`{mean.output_shape}` != `{self._output_shape}`)."
             )
@@ -96,7 +96,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             )
 
         if cov.input_shape != self._input_shape:
-            raise TypeError(
+            raise ValueError(
                 f"The covariance function must have the same `input_shape` as the "
                 f"random process (`{cov.input_shape}` != `{self._input_shape}`)."
             )
@@ -105,7 +105,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             raise ValueError(
                 f"The `output_shape` of the covariance function must be given by "
                 f"`2 * self.output_shape` (`{cov.output_shape}` != "
-                f"`{self._output_shape}`)."
+                f"`{2 * self._output_shape}`)."
             )
 
         self._cov = cov
@@ -138,7 +138,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with "
-            f"input_shape={self.input_shape}, output_shape={self.output_shape}, and "
+            f"input_shape={self.input_shape}, output_shape={self.output_shape}, "
             f"dtype={self.dtype}>"
         )
 

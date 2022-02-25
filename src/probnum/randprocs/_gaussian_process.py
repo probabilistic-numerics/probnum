@@ -58,6 +58,9 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
         mean: _function.Function,
         cov: kernels.Kernel,
     ):
+        if not isinstance(mean, _function.Function):
+            raise TypeError("The mean function must have type `probnum.Function`.")
+
         super().__init__(
             input_shape=mean.input_shape,
             output_shape=mean.output_shape,

@@ -63,7 +63,7 @@ class MarkovProcess(_random_process.RandomProcess):
             cov=MarkovProcess.Kernel(
                 self.__call__,
                 input_shape=input_shape,
-                output_shape=output_shape,
+                output_shape=2 * output_shape,
             ),
         )
 
