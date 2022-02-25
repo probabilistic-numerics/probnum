@@ -1,19 +1,14 @@
 """Gaussian processes."""
-
-from typing import Union
-
 import numpy as np
 
 from probnum import randvars
 
 from . import _random_process, kernels
 from .. import _function
-
-_InputType = Union[np.floating, np.ndarray]
-_OutputType = Union[np.floating, np.ndarray]
+from ..typing import ArrayLike
 
 
-class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
+class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
     """Gaussian processes.
 
     A Gaussian process is a continuous stochastic process which if evaluated at a
@@ -71,7 +66,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
             cov=cov,
         )
 
-    def __call__(self, args: _InputType) -> randvars.Normal:
+    def __call__(self, args: ArrayLike) -> randvars.Normal:
         return randvars.Normal(
             mean=np.array(self.mean(args), copy=False),  # pylint: disable=not-callable
             cov=self.cov.matrix(args),
