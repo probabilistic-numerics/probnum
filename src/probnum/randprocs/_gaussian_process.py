@@ -1,11 +1,10 @@
 """Gaussian processes."""
 
-from typing import Type, Union
+from typing import Union
 
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import ShapeLike
 
 from . import _random_process, kernels
 from .. import _function
@@ -64,55 +63,16 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         mean: _function.Function,
         cov: kernels.Kernel,
     ):
-        if not isinstance(mean, _function.Function):
-            raise TypeError("The mean function must have type `probnum.Function`.")
-
-        if not isinstance(cov, kernels.Kernel):
-            raise TypeError(
-                "The covariance functions must be implemented as a " "`Kernel`."
-            )
-
-        if mean.input_ndim > 1:
-            raise ValueError(
-                "The mean function must have input shape `()` or `(D_in,)`."
-            )
-
-        if mean.output_ndim > 1:
-            raise ValueError(
-                "The mean function must have output shape `()` or `(D_out,)`."
-            )
-
-        if mean.input_shape != cov.input_shape:
-            raise ValueError(
-                "The mean and covariance functions must have the same input shapes "
-                f"(`mean.input_shape` is {mean.input_shape} and `cov.input_shape` is "
-                f"{cov.input_shape})."
-            )
-
-        if 2 * mean.output_shape != cov.output_shape:
-            raise ValueError(
-                "The covariance `Kernel` must have shape "
-                "`mean.output_shape + mean.output_shape`."
-            )
-
-        self._mean = mean
-        self._cov = cov
-
         super().__init__(
             input_shape=mean.input_shape,
             output_shape=mean.output_shape,
             dtype=np.dtype(np.float_),
+            mean=mean,
+            cov=cov,
         )
 
     def __call__(self, args: _InputType) -> randvars.Normal:
         return randvars.Normal(
-            mean=np.array(self.mean(args), copy=False), cov=self.cov.matrix(args)
+            mean=np.array(self.mean(args), copy=False),
+            cov=self.cov.matrix(args),
         )
-
-    @property
-    def mean(self) -> _function.Function:
-        return self._mean
-
-    @property
-    def cov(self) -> kernels.Kernel:
-        return self._cov

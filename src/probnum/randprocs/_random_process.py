@@ -1,7 +1,7 @@
 """Random Processes."""
 
 import abc
-from typing import Callable, Generic, Type, TypeVar, Union
+from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
@@ -30,6 +30,10 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     dtype :
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
+    mean :
+        Mean function of the random process.
+    cov :
+        Covariance function of the random process.
 
     See Also
     --------
@@ -50,6 +54,8 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         input_shape: ShapeLike,
         output_shape: ShapeLike,
         dtype: DTypeLike,
+        mean: Optional[_function.Function] = None,
+        cov: Optional[kernels.Kernel] = None,
     ):
         self._input_shape = _utils.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
@@ -65,30 +71,44 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         self._dtype = np.dtype(dtype)
 
-    def __repr__(self) -> str:
-        return (
-            f"<{self.__class__.__name__} with "
-            f"input_shape={self.input_shape}, output_shape={self.output_shape}, "
-            f"dtype={self.dtype}>"
-        )
+        # Mean function
+        if not isinstance(mean, _function.Function):
+            raise TypeError("The mean function must have type `probnum.Function`.")
 
-    @abc.abstractmethod
-    def __call__(self, args: _InputType) -> randvars.RandomVariable[_OutputType]:
-        """Evaluate the random process at a set of input arguments.
+        if mean.input_shape != self._input_shape:
+            raise TypeError(
+                f"The mean function must have the same `input_shape` as the random "
+                f"process (`{mean.input_shape}` != `{self._input_shape}`)."
+            )
 
-        Parameters
-        ----------
-        args
-            *shape=* ``batch_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
-            which to evaluate the random process. Currently, we require ``batch_shape``
-            to have at most one dimension.
+        if mean.output_shape != self._output_shape:
+            raise TypeError(
+                f"The mean function must have the same `output_shape` as the random "
+                f"process (`{mean.output_shape}` != `{self._output_shape}`)."
+            )
 
-        Returns
-        -------
-        randvars.RandomVariable
-            *shape=* ``batch_shape +`` :attr:`output_shape` -- Random process evaluated
-            at the input(s).
-        """
+        self._mean = mean
+
+        # Covariance function
+        if not isinstance(cov, kernels.Kernel):
+            raise TypeError(
+                "The covariance functions must be implemented as a " "`Kernel`."
+            )
+
+        if cov.input_shape != self._input_shape:
+            raise TypeError(
+                f"The covariance function must have the same `input_shape` as the "
+                f"random process (`{cov.input_shape}` != `{self._input_shape}`)."
+            )
+
+        if cov.output_shape != 2 * self._output_shape:
+            raise ValueError(
+                f"The `output_shape` of the covariance function must be given by "
+                f"`2 * self.output_shape` (`{cov.output_shape}` != "
+                f"`{self._output_shape}`)."
+            )
+
+        self._cov = cov
 
     @property
     def input_shape(self) -> ShapeType:
@@ -115,6 +135,31 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         """Data type of (elements of) the random process evaluated at an input."""
         return self._dtype
 
+    def __repr__(self) -> str:
+        return (
+            f"<{self.__class__.__name__} with "
+            f"input_shape={self.input_shape}, output_shape={self.output_shape}, and "
+            f"dtype={self.dtype}>"
+        )
+
+    @abc.abstractmethod
+    def __call__(self, args: _InputType) -> randvars.RandomVariable[_OutputType]:
+        """Evaluate the random process at a set of input arguments.
+
+        Parameters
+        ----------
+        args
+            *shape=* ``batch_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the random process. Currently, we require ``batch_shape``
+            to have at most one dimension.
+
+        Returns
+        -------
+        randvars.RandomVariable
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Random process evaluated
+            at the input(s).
+        """
+
     def marginal(self, args: _InputType) -> randvars._RandomVariableList:
         """Batch of random variables defining the marginal distributions at the inputs.
 
@@ -129,14 +174,20 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     @property
     def mean(self) -> _function.Function:
-        r"""Mean function :math:`m(x) = \mathbb{E}[f(x)]` of the random process"""
-        raise NotImplementedError
+        r"""Mean function :math:`m(x) = \mathbb{E}[f(x)]` of the random process."""
+        if self._mean is None:
+            raise NotImplementedError
+
+        return self._mean
 
     @property
     def cov(self) -> kernels.Kernel:
         r"""Covariance function :math:`k(x_0, x_1) = \mathbb{E}[(f(x_0) - \mathbb{E}[
         f(x_0)])(f(x_0) - \mathbb{E}[f(x_0)])^\top]` of the random process."""
-        raise NotImplementedError
+        if self._cov is None:
+            raise NotImplementedError
+
+        return self._cov
 
     def var(self, args: _InputType) -> _OutputType:
         """Variance function.
