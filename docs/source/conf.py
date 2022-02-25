@@ -13,10 +13,10 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
-import sys
 from datetime import datetime
+import os
 from pathlib import Path
+import sys
 
 from pkg_resources import DistributionNotFound, get_distribution
 
@@ -144,7 +144,7 @@ nbsphinx_execute_arguments = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
     "matplotlib": ("https://matplotlib.org/", None),
 }
 

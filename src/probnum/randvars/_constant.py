@@ -1,21 +1,14 @@
 """(Almost surely) constant random variables."""
 
+from functools import cached_property
 from typing import Callable, TypeVar
 
 import numpy as np
 
-from probnum import config, linops
-from probnum import utils as _utils
+from probnum import config, linops, utils as _utils
 from probnum.typing import ArrayIndicesLike, ShapeLike, ShapeType
 
 from . import _random_variable
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 
 _ValueType = TypeVar("ValueType")
 

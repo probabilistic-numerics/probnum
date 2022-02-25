@@ -1,2 +1,8 @@
 # Migrate code style to black
 636049eeaa3f515ff39a72d546363bbfd1f140dc
+
+# Update isort config
+00359ddb76918dd1f63882fa31cb92f0bcc447fd
+
+# Update to stable black version to >=22.1
+9c4309d7066e87ac48612cd27a39f32e23af58cf

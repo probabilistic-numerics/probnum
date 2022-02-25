@@ -27,7 +27,7 @@ class Symmetrize(_linear_operator.LinearOperator):
         self._n = n
 
         super().__init__(
-            shape=2 * (self._n ** 2,),
+            shape=2 * (self._n**2,),
             dtype=dtype,
             matmul=self._matmul,
         )
@@ -366,7 +366,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         super().__init__(
             dtype=dtype,
-            shape=2 * (self._n ** 2,),
+            shape=2 * (self._n**2,),
             matmul=matmul,
             rmatmul=rmatmul,
             todense=todense,

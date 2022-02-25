@@ -32,7 +32,7 @@ def gaussian_belief_update(
     """
     # Feature vector
     x = np.asarray(action).reshape(1, -1)
-    Phi = np.vstack((0.5 * x ** 2, x, np.ones_like(x)))
+    Phi = np.vstack((0.5 * x**2, x, np.ones_like(x)))
 
     # Mean and covariance
     mu = fun_params0.mean

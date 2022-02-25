@@ -3,8 +3,8 @@ import functools
 
 import numpy as np
 
-import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, randprocs, randvars
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 
 
 class Filtering:

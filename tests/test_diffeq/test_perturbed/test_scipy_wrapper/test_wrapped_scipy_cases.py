@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from scipy.integrate._ivp import rk
 
-import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum import diffeq
+import probnum.problems.zoo.diffeq as diffeq_zoo
 
 _ADAPTIVE_STEPS = diffeq.stepsize.AdaptiveSteps(atol=1e-4, rtol=1e-4, firststep=0.1)
 _CONSTANT_STEPS = diffeq.stepsize.ConstantSteps(0.1)

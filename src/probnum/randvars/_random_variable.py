@@ -1,18 +1,12 @@
 """Random Variables."""
 
+from functools import cached_property
 from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 
 from probnum import utils as _utils
 from probnum.typing import ArrayIndicesLike, DTypeLike, FloatLike, ShapeLike, ShapeType
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 
 _ValueType = TypeVar("ValueType")
 

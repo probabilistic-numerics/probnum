@@ -1,32 +1,37 @@
-"""Interface for ODE filter initialization."""
+"""Interface for initialization routines."""
+
 
 import abc
 
 from probnum import problems, randprocs, randvars
 
 
+# Public because it is used as a type
 class InitializationRoutine(abc.ABC):
-    """Interface for initialization routines for a filtering-based ODE solver.
+    """Initialization routines for a filtering-based ODE solver.
 
     One crucial factor for stable implementation of probabilistic ODE solvers is
     starting with a good approximation of the derivatives of the initial condition [1]_.
     (This is common in all Nordsieck-like ODE solvers.)
     For this reason, efficient methods of initialization need to be devised.
-    All initialization routines in ProbNum implement the interface :class:`InitializationRoutine`.
+    All initialization routines in ProbNum implement
+    the interface :class:`InitializationRoutine`.
 
     References
     ----------
-    .. [1] Krämer, N. and Hennig, P., Stable implementation of probabilistic ODE solvers,
+    .. [1] Krämer, N. and Hennig, P.,
+       Stable implementation of probabilistic ODE solvers,
        *arXiv:2012.10106*, 2020.
     """
 
-    def __init__(self, is_exact: bool, requires_jax: bool):
+    def __init__(self, *, is_exact: bool, requires_jax: bool):
         self._is_exact = is_exact
         self._requires_jax = requires_jax
 
     @abc.abstractmethod
     def __call__(
         self,
+        *,
         ivp: problems.InitialValueProblem,
         prior_process: randprocs.markov.MarkovProcess,
     ) -> randvars.RandomVariable:

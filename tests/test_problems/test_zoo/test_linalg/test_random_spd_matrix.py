@@ -85,17 +85,17 @@ def test_sparse_formats(
     if spformat == "dia":
         with pytest.warns(scipy.sparse.SparseEfficiencyWarning):
             sparse_mat = random_sparse_spd_matrix(
-                rng=rng, dim=1000, density=10 ** -3, format=spformat
+                rng=rng, dim=1000, density=10**-3, format=spformat
             )
     else:
         sparse_mat = random_sparse_spd_matrix(
-            rng=rng, dim=1000, density=10 ** -3, format=spformat
+            rng=rng, dim=1000, density=10**-3, format=spformat
         )
     assert isinstance(sparse_mat, sparse_matrix_class)
 
 
 def test_large_sparse_matrix(rng: np.random.Generator):
     """Test whether a large random spd matrix can be created."""
-    n = 10 ** 5
-    sparse_mat = random_sparse_spd_matrix(rng=rng, dim=n, density=10 ** -8)
+    n = 10**5
+    sparse_mat = random_sparse_spd_matrix(rng=rng, dim=n, density=10**-8)
     assert sparse_mat.shape == (n, n)
