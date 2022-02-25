@@ -72,41 +72,43 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         self._dtype = np.dtype(dtype)
 
         # Mean function
-        if not isinstance(mean, _function.Function):
-            raise TypeError("The mean function must have type `probnum.Function`.")
+        if mean is not None:
+            if not isinstance(mean, _function.Function):
+                raise TypeError("The mean function must have type `probnum.Function`.")
 
-        if mean.input_shape != self._input_shape:
-            raise ValueError(
-                f"The mean function must have the same `input_shape` as the random "
-                f"process (`{mean.input_shape}` != `{self._input_shape}`)."
-            )
+            if mean.input_shape != self._input_shape:
+                raise ValueError(
+                    f"The mean function must have the same `input_shape` as the random "
+                    f"process (`{mean.input_shape}` != `{self._input_shape}`)."
+                )
 
-        if mean.output_shape != self._output_shape:
-            raise ValueError(
-                f"The mean function must have the same `output_shape` as the random "
-                f"process (`{mean.output_shape}` != `{self._output_shape}`)."
-            )
+            if mean.output_shape != self._output_shape:
+                raise ValueError(
+                    f"The mean function must have the same `output_shape` as the "
+                    f"random process (`{mean.output_shape}` != `{self._output_shape}`)."
+                )
 
         self._mean = mean
 
         # Covariance function
-        if not isinstance(cov, kernels.Kernel):
-            raise TypeError(
-                "The covariance functions must be implemented as a " "`Kernel`."
-            )
+        if cov is not None:
+            if not isinstance(cov, kernels.Kernel):
+                raise TypeError(
+                    "The covariance functions must be implemented as a " "`Kernel`."
+                )
 
-        if cov.input_shape != self._input_shape:
-            raise ValueError(
-                f"The covariance function must have the same `input_shape` as the "
-                f"random process (`{cov.input_shape}` != `{self._input_shape}`)."
-            )
+            if cov.input_shape != self._input_shape:
+                raise ValueError(
+                    f"The covariance function must have the same `input_shape` as the "
+                    f"random process (`{cov.input_shape}` != `{self._input_shape}`)."
+                )
 
-        if cov.output_shape != 2 * self._output_shape:
-            raise ValueError(
-                f"The `output_shape` of the covariance function must be given by "
-                f"`2 * self.output_shape` (`{cov.output_shape}` != "
-                f"`{2 * self._output_shape}`)."
-            )
+            if cov.output_shape != 2 * self._output_shape:
+                raise ValueError(
+                    f"The `output_shape` of the covariance function must be given by "
+                    f"`2 * self.output_shape` (`{cov.output_shape}` != "
+                    f"`{2 * self._output_shape}`)."
+                )
 
         self._cov = cov
 

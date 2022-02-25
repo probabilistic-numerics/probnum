@@ -93,3 +93,77 @@ def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
         err_msg=f"Covariance of evaluated {repr(random_process)} does not match the "
         f"random process mean function evaluated.",
     )
+
+
+class DummyRandomProcess(randprocs.RandomProcess):
+    def __call__(self, args):
+        raise NotImplementedError
+
+
+def test_invalid_mean_type_raises():
+    with pytest.raises(TypeError):
+        DummyRandomProcess(
+            input_shape=(),
+            output_shape=(),
+            dtype=np.double,
+            mean=np.zeros_like,
+        )
+
+
+def test_invalid_cov_type_raises():
+    with pytest.raises(TypeError):
+        DummyRandomProcess(
+            input_shape=(),
+            output_shape=(3,),
+            dtype=np.double,
+            cov=lambda x: np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+                x,
+                shape=x.shape + (3, 3),
+            ),
+        )
+
+
+def test_inconsistent_mean_shape_errors():
+    with pytest.raises(ValueError):
+        DummyRandomProcess(
+            input_shape=(42,),
+            output_shape=(),
+            dtype=np.double,
+            mean=randprocs.mean_fns.Zero(
+                input_shape=(3,),
+                output_shape=(3,),
+            ),
+        )
+
+    with pytest.raises(ValueError):
+        DummyRandomProcess(
+            input_shape=(),
+            output_shape=(1,),
+            dtype=np.double,
+            mean=randprocs.mean_fns.Zero(
+                input_shape=(),
+                output_shape=(3,),
+            ),
+        )
+
+
+def test_inconsistent_cov_shape_errors():
+    with pytest.raises(ValueError):
+        DummyRandomProcess(
+            input_shape=(42,),
+            output_shape=(),
+            dtype=np.double,
+            cov=randprocs.kernels.ExpQuad(
+                input_shape=(3,),
+            ),
+        )
+
+    with pytest.raises(ValueError):
+        DummyRandomProcess(
+            input_shape=(),
+            output_shape=(1,),
+            dtype=np.double,
+            cov=randprocs.kernels.ExpQuad(
+                input_shape=(),
+            ),
+        )
