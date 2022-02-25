@@ -117,15 +117,6 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def cov(self) -> kernels.Kernel:
         return self._cov
 
-    def _sample_at_input(
-        self,
-        rng: np.random.Generator,
-        args: _InputType,
-        size: ShapeLike = (),
-    ) -> _OutputType:
-        gaussian_rv = self.__call__(args)
-        return gaussian_rv.sample(rng=rng, size=size)
-
     def push_forward(
         self,
         args: _InputType,

@@ -269,4 +269,4 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         size
             Size of the sample.
         """
-        raise NotImplementedError
+        return self(args).sample(rng, size=size)
