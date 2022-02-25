@@ -26,14 +26,16 @@ def info():
 
 @pytest.fixture
 def bq_state_no_data():
-    return BQState(measure=LebesgueMeasure(domain=(0, 1)), kernel=ExpQuad(input_dim=1))
+    return BQState(
+        measure=LebesgueMeasure(domain=(0, 1)), kernel=ExpQuad(input_shape=(1,))
+    )
 
 
 @pytest.fixture
 def bq_state(nevals):
     return BQState(
         measure=LebesgueMeasure(domain=(0, 1)),
-        kernel=ExpQuad(input_dim=1),
+        kernel=ExpQuad(input_shape=(1,)),
         nodes=np.zeros([nevals, 1]),
         fun_evals=np.ones(nevals),
     )

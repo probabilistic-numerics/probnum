@@ -8,6 +8,6 @@ probnum.diffeq.odefilter
 .. toctree::
     :hidden:
 
-    odefilter/initialization_routines
+    odefilter/init_routines
     odefilter/information_operators
     odefilter/approx_strategies

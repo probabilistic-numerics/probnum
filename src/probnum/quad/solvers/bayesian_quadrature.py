@@ -1,7 +1,7 @@
 """Probabilistic numerical methods for solving integrals."""
 
-import warnings
 from typing import Callable, Optional, Tuple
+import warnings
 
 import numpy as np
 
@@ -135,7 +135,7 @@ class BayesianQuadrature:
 
         # Select the kernel
         if kernel is None:
-            kernel = ExpQuad(input_dim=input_dim)
+            kernel = ExpQuad(input_shape=(input_dim,))
 
         # Select policy
         if policy is None:

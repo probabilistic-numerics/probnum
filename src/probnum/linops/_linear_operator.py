@@ -1,14 +1,16 @@
 """Finite-dimensional linear operators."""
 
+from __future__ import annotations
+
 from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
 
-import probnum.utils
 from probnum import config
 from probnum.typing import DTypeLike, ScalarLike, ShapeLike
+import probnum.utils
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarLike, np.ndarray, scipy.sparse.spmatrix
@@ -140,6 +142,13 @@ class LinearOperator:
         self.__inverse = inverse
 
         # Matrix properties
+        self._is_symmetric = None
+        self._is_lower_triangular = None
+        self._is_upper_triangular = None
+
+        self._is_positive_definite = None
+
+        # Derived quantities
         self.__rank = rank
         self.__eigvals = eigvals
         self.__cond = cond
@@ -156,6 +165,12 @@ class LinearOperator:
         self.__det_cache = None
         self.__logabsdet_cache = None
         self.__trace_cache = None
+
+        self.__cholesky_cache = None
+
+        # Property inference
+        if not self.is_square:
+            self.is_symmetric = False
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -182,11 +197,6 @@ class LinearOperator:
     def dtype(self) -> np.dtype:
         """Data type of the linear operator."""
         return self.__dtype
-
-    @property
-    def is_square(self) -> bool:
-        """Whether input dimension matches output dimension."""
-        return self.shape[0] == self.shape[1]
 
     def __repr__(self) -> str:
         return (
@@ -295,6 +305,98 @@ class LinearOperator:
             self.__todense_cache = dense
 
         return self.__todense_cache
+
+    ####################################################################################
+    # Matrix Properties
+    ####################################################################################
+
+    @property
+    def is_square(self) -> bool:
+        """Whether input dimension matches output dimension."""
+        return self.shape[0] == self.shape[1]
+
+    @property
+    def is_symmetric(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` :math:`L` is symmetric, i.e. :math:`L = L^T`.
+
+        If this is ``None``, it is unknown whether the operator is symmetric or not.
+        Only square operators can be symmetric."""
+        return self._is_symmetric
+
+    @is_symmetric.setter
+    def is_symmetric(self, value: Optional[bool]) -> None:
+        if value is True and not self.is_square:
+            raise ValueError("Only square operators can be symmetric.")
+
+        self._set_property("symmetric", value)
+
+    @property
+    def is_lower_triangular(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` represents a lower triangular matrix.
+
+        If this is ``None``, it is unknown whether the matrix is lower triangular or
+        not."""
+        return self._is_lower_triangular
+
+    @is_lower_triangular.setter
+    def is_lower_triangular(self, value: Optional[bool]) -> None:
+        self._set_property("lower_triangular", value)
+
+    @property
+    def is_upper_triangular(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` represents an upper triangular matrix.
+
+        If this is ``None``, it is unknown whether the matrix is upper triangular or
+        not."""
+        return self._is_upper_triangular
+
+    @is_upper_triangular.setter
+    def is_upper_triangular(self, value: Optional[bool]) -> None:
+        self._set_property("upper_triangular", value)
+
+    @property
+    def is_positive_definite(self) -> Optional[bool]:
+        """Whether the ``LinearOperator`` :math:`L \\in \\mathbb{R}^{n \\times n}` is
+        (strictly) positive-definite, i.e. :math:`x^T L x > 0` for :math:`x \\in \
+        \\mathbb{R}^n`.
+
+        If this is ``None``, it is unknown whether the matrix is positive-definite or
+        not. Only symmetric operators can be positive-definite.
+        """
+        return self._is_positive_definite
+
+    @is_positive_definite.setter
+    def is_positive_definite(self, value: Optional[bool]) -> None:
+        if value is True and not self.is_symmetric:
+            raise ValueError("Only symmetric operators can be positive-definite.")
+
+        self._set_property("positive_definite", value)
+
+    def _set_property(self, name: str, value: Optional[bool]):
+        attr_name = f"_is_{name}"
+
+        try:
+            curr_value = getattr(self, attr_name)
+        except AttributeError as err:
+            raise AttributeError(
+                f"The matrix property `{name}` does not exist."
+            ) from err
+
+        if curr_value == value:
+            return
+
+        if curr_value is not None:
+            assert isinstance(curr_value, bool)
+
+            raise ValueError(f"Can not change the value of the matrix property {name}.")
+
+        if not isinstance(value, bool):
+            raise TypeError(
+                f"The value of the matrix property {name} must be a boolean or "
+                f"`None`, not {type(value)}."
+            )
+
+        setattr(self, attr_name, value)
 
     ####################################################################################
     # Derived Quantities
@@ -447,6 +549,93 @@ class LinearOperator:
         return trace
 
     ####################################################################################
+    # Matrix Decompositions
+    ####################################################################################
+
+    def cholesky(self, lower: bool = True) -> LinearOperator:
+        r"""Computes a Cholesky decomposition of the :class:`LinearOperator`.
+
+        The Cholesky decomposition of a symmetric positive-definite matrix :math:`A \in
+        \mathbb{R}^{n \times n}` is given by :math:`A = L L^T`, where the unique
+        Cholesky factor :math:`L \in \mathbb{R}^{n \times n}` of :math:`A` is a lower
+        triangular matrix with a positive diagonal.
+
+        As a side-effect, this method will set the value of :attr:`is_positive_definite`
+        to :obj:`True`, if the computation of the Cholesky factorization succeeds.
+        Otherwise, :attr:`is_positive_definite` will be set to :obj:`False`.
+
+        The result of this computation will be cached. If :meth:`cholesky` is first
+        called with ``lower=True`` first and afterwards with ``lower=False`` or
+        vice-versa, the method simply returns the transpose of the cached value.
+
+        Parameters
+        ----------
+        lower :
+            If this is set to :obj:`False`, this method computes and returns the
+            upper triangular Cholesky factor :math:`U = L^T`, for which :math:`A = U^T
+            U`. By default (:obj:`True`), the method computes the lower triangular
+            Cholesky factor :math:`L`.
+
+        Returns
+        -------
+        cholesky_factor :
+            The lower or upper Cholesky factor of the :class:`LinearOperator`, depending
+            on the value of the parameter ``lower``. The result will have its properties
+            :attr:`is_upper_triangular`\ /:attr:`is_lower_triangular` set accordingly.
+
+        Raises
+        ------
+        numpy.linalg.LinAlgError
+            If the :class:`LinearOperator` is not symmetric, i.e. if
+            :attr:`is_symmetric` is not set to :obj:`True`.
+        numpy.linalg.LinAlgError
+            If the :class:`LinearOperator` is not positive definite.
+        """
+        if not self.is_symmetric:
+            raise np.linalg.LinAlgError(
+                "The Cholesky decomposition is only defined for symmetric matrices."
+            )
+
+        if self.is_positive_definite is False:
+            raise np.linalg.LinAlgError("The linear operator is not positive definite.")
+
+        if self.__cholesky_cache is None:
+            try:
+                self.__cholesky_cache = self._cholesky(lower)
+
+                self.is_positive_definite = True
+            except np.linalg.LinAlgError as err:
+                self.is_positive_definite = False
+
+                raise err
+
+            if lower:
+                self.__cholesky_cache.is_lower_triangular = True
+            else:
+                self.__cholesky_cache.is_upper_triangular = True
+
+        upper = not lower
+
+        if (lower and self.__cholesky_cache.is_lower_triangular) or (
+            upper and self.__cholesky_cache.is_upper_triangular
+        ):
+            return self.__cholesky_cache
+
+        assert (
+            self.__cholesky_cache.is_lower_triangular
+            or self.__cholesky_cache.is_upper_triangular
+        )
+
+        return self.__cholesky_cache.T
+
+    def _cholesky(self, lower: bool) -> LinearOperator:
+        return Matrix(
+            scipy.linalg.cholesky(
+                self.todense(), lower=lower, overwrite_a=False, check_finite=True
+            )
+        )
+
+    ####################################################################################
     # Unary Arithmetic
     ####################################################################################
 
@@ -519,6 +708,59 @@ class LinearOperator:
             return _InverseLinearOperator(self)
 
         return self.__inverse()
+
+    def symmetrize(self) -> LinearOperator:
+        """Compute or approximate the closest symmetric :class:`LinearOperator` in the
+        Frobenius norm.
+
+        The closest symmetric matrix to a given square matrix :math:`A` in the Frobenius
+        norm is given by
+
+        .. math::
+            \\operatorname{sym}(A) := \\frac{1}{2} (A + A^T).
+
+        However, for efficiency reasons, it is preferrable to approximate this operator
+        in some cases. For example, a Kronecker product :math:`K = A \\otimes B` is more
+        efficiently symmetrized by means of
+
+        .. math::
+            :nowrap:
+
+            \\begin{equation}
+                \\operatorname{sym}(A) \\otimes \\operatorname{sym}(B)
+                = \\operatorname{sym}(K) + \\frac{1}{2} \\left(
+                    \\frac{1}{2} \\left(
+                        A \\otimes B^T + A^T \\otimes B
+                    \\right) - \\operatorname{sym}(K)
+                \\right).
+            \\end{equation}
+
+        Returns
+        -------
+        symmetrized_linop :
+            The closest symmetric :class:`LinearOperator` in the Frobenius norm, or an
+            approximation, which makes a reasonable trade-off between accuracy and
+            efficiency (see above). The resulting :class:`LinearOperator` will have its
+            :attr:`is_symmetric` property set to :obj:`True`.
+
+        Raises
+        ------
+        numpy.linalg.LinAlgError
+            If this method is called on a non-square :class:`LinearOperator`.
+        """
+        if not self.is_square:
+            raise np.linalg.LinAlgError("A non-square operator can not be symmetrized.")
+
+        if self.is_symmetric:
+            return self
+
+        linop_sym = self._symmetrize()
+        linop_sym.is_symmetric = True
+
+        return linop_sym
+
+    def _symmetrize(self) -> LinearOperator:
+        return 0.5 * (self + self.T)
 
     ####################################################################################
     # Binary Arithmetic
@@ -774,6 +1016,16 @@ class TransposedLinearOperator(LinearOperator):
             trace=self._linop.trace,
         )
 
+        # Property Inference
+        self.is_symmetric = self._linop.is_symmetric
+        self.is_positive_definite = self._linop.is_positive_definite
+
+        if self._linop.is_lower_triangular:
+            self._linop.is_upper_triangular = True
+
+        if self._linop.is_upper_triangular:
+            self._linop.is_lower_triangular = True
+
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
     ) -> "LinearOperator":
@@ -781,6 +1033,9 @@ class TransposedLinearOperator(LinearOperator):
 
     def __repr__(self) -> str:
         return f"Transpose of {self._linop}"
+
+    def _cholesky(self, lower: bool = True) -> LinearOperator:
+        return super().cholesky(lower)
 
 
 class _InverseLinearOperator(LinearOperator):
@@ -791,6 +1046,7 @@ class _InverseLinearOperator(LinearOperator):
         self._linop = linop
 
         self.__factorization = None
+        self._cho_solve = False
 
         tmatmul = LinearOperator.broadcast_matmat(self._tmatmat)
 
@@ -805,23 +1061,71 @@ class _InverseLinearOperator(LinearOperator):
             logabsdet=lambda: -self._linop.logabsdet(),
         )
 
+        # Matrix properties
+        self.is_symmetric = self._linop.is_symmetric
+        self.is_positive_definite = self._linop.is_positive_definite
+
     def __repr__(self) -> str:
         return f"Inverse of {self._linop}"
 
     @property
     def factorization(self):
         if self.__factorization is None:
-            self.__factorization = scipy.linalg.lu_factor(
-                self._linop.todense(cache=False), overwrite_a=False
-            )
+            try:
+                self.__factorization = (
+                    self._linop.cholesky(lower=True).T.todense(),
+                    False,
+                )
+                self._cho_solve = True
+            except np.linalg.LinAlgError:
+                self.__factorization = _InverseLinearOperator._lu_factor(
+                    self._linop.todense(cache=False)
+                )
 
         return self.__factorization
 
     def _matmat(self, x: np.ndarray) -> np.ndarray:
-        return scipy.linalg.lu_solve(self.factorization, x, trans=0, overwrite_b=False)
+        factorization = self.factorization  # Precompute, so that _cho_solve will be set
+
+        if self._cho_solve:
+            return scipy.linalg.cho_solve(factorization, x, overwrite_b=False)
+
+        return scipy.linalg.lu_solve(factorization, x, trans=0, overwrite_b=False)
 
     def _tmatmat(self, x: np.ndarray) -> np.ndarray:
-        return scipy.linalg.lu_solve(self.factorization, x, trans=1, overwrite_b=False)
+        factorization = self.factorization  # Precompute, so that _cho_solve will be set
+
+        if self._cho_solve:
+            return scipy.linalg.cho_solve(factorization, x.T, overwrite_b=False)
+
+        return scipy.linalg.lu_solve(factorization, x, trans=1, overwrite_b=False)
+
+    @staticmethod
+    def _lu_factor(a):
+        """This is a modified version of the original implementation in SciPy:
+        https://github.com/scipy/scipy/blob/v1.7.1/scipy/linalg/decomp_lu.py#L15-L84
+        because for some reason, the SciPy implementation does not raise an exception
+        if the matrix is singular.
+        """
+        from scipy.linalg.lapack import (  # pylint: disable=no-name-in-module,import-outside-toplevel
+            get_lapack_funcs,
+        )
+
+        a = np.asarray_chkfinite(a)
+        (getrf,) = get_lapack_funcs(("getrf",), (a,))
+        lu, piv, info = getrf(a, overwrite_a=False)
+
+        if info < 0:
+            raise ValueError(
+                f"illegal value in argument {-info} of internal getrf (lu_factor)"
+            )
+
+        if info > 0:
+            raise np.linalg.LinAlgError(
+                f"Diagonal number {info} is exactly zero. Singular matrix."
+            )
+
+        return lu, piv
 
 
 class _TypeCastLinearOperator(LinearOperator):
@@ -967,6 +1271,9 @@ class Matrix(LinearOperator):
     def __neg__(self) -> "Matrix":
         return Matrix(-self.A)
 
+    def _symmetrize(self) -> LinearOperator:
+        return Matrix(0.5 * (self.A + self.A.T))
+
 
 class Identity(LinearOperator):
     """The identity operator.
@@ -1015,6 +1322,13 @@ class Identity(LinearOperator):
             ),
         )
 
+        # Matrix properties
+        self.is_symmetric = True
+        self.is_lower_triangular = True
+        self.is_upper_triangular = True
+
+        self.is_positive_definite = True
+
     def _cond(self, p: Union[None, int, float, str]) -> np.inexact:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
@@ -1035,6 +1349,9 @@ class Identity(LinearOperator):
 
     def __eq__(self, other: LinearOperator) -> bool:
         return self._is_type_shape_dtype_equal(other)
+
+    def _cholesky(self, lower: bool = True) -> LinearOperator:
+        return self
 
 
 class Selection(LinearOperator):
