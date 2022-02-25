@@ -217,7 +217,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             *shape=* ``batch_shape +`` :attr:`output_shape` -- Variance of the process
             at ``args``.
         """
-        pointwise_covs = self.cov(args, None)
+        pointwise_covs = self.cov(args, None)  # pylint: disable=not-callable
 
         assert (
             pointwise_covs.shape
