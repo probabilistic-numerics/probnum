@@ -149,7 +149,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=* ``batch_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
             which to evaluate the random process. Currently, we require ``batch_shape``
             to have at most one dimension.
 
@@ -166,7 +166,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=* ``batch_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
             which to evaluate the random process. Currently, we require ``batch_shape``
             to have at most one dimension.
         """
@@ -174,7 +174,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     @property
     def mean(self) -> _function.Function:
-        r"""Mean function :math:`m(x) = \mathbb{E}[f(x)]` of the random process."""
+        r"""Mean function :math:`m(x) := \mathbb{E}[f(x)]` of the random process."""
         if self._mean is None:
             raise NotImplementedError
 
@@ -182,8 +182,18 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     @property
     def cov(self) -> kernels.Kernel:
-        r"""Covariance function :math:`k(x_0, x_1) = \mathbb{E}[(f(x_0) - \mathbb{E}[
-        f(x_0)])(f(x_0) - \mathbb{E}[f(x_0)])^\top]` of the random process."""
+        r"""Covariance function :math:`k(x_0, x_1)` of the random process.
+
+        .. math::
+            :nowrap:
+
+            \begin{equation}
+                k(x_0, x_1) := \mathbb{E} \left[
+                    (f(x_0) - \mathbb{E}[f(x_0)])
+                    (f(x_1) - \mathbb{E}[f(x_1)])^\top
+                \right]
+            \end{equation}
+        """
         if self._cov is None:
             raise NotImplementedError
 
@@ -256,7 +266,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         base_measure
             Base measure. Given as a type of random variable.
         sample
-            *shape=* ``sample_shape + `` :attr:`input_shape` -- (Batch of) input(s) at
+            *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
             which to evaluate the random process. Currently, we require ``sample_shape``
             to have at most one dimension.
         """
@@ -279,7 +289,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         rng
             Random number generator.
         args
-            *shape=* ``size + `` :attr:`input_shape` -- (Batch of) input(s) at
+            *shape=* ``size +`` :attr:`input_shape` -- (Batch of) input(s) at
             which the sample paths will be evaluated. Currently, we require
             ``size`` to have at most one dimension. If ``None``, sample paths,
             i.e. callables are returned.
@@ -308,7 +318,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         rng
             Random number generator.
         args
-            *shape=* ``size + `` :attr:`input_shape` -- (Batch of) input(s) at
+            *shape=* ``size +`` :attr:`input_shape` -- (Batch of) input(s) at
             which the sample paths will be evaluated. Currently, we require
             ``size`` to have at most one dimension.
         size

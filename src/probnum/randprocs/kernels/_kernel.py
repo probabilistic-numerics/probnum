@@ -49,8 +49,8 @@ class Kernel(abc.ABC):
         \end{equation}
 
     of the vector-valued random process :math:`f`. To this end, we understand any
-    :class:`Kernel` with a non-empty :attr:`output_shape` as a tensor with the given
-    :attr:`output_shape`, which contains different (cross-)covariance functions as its entries.
+    :class:`Kernel` as a tensor whose shape is given by :attr:`output_shape`, which
+    contains different (cross-)covariance functions as its entries.
 
     Parameters
     ----------
@@ -58,6 +58,7 @@ class Kernel(abc.ABC):
         Shape of the :class:`Kernel`'s input.
     output_shape :
         Shape of the :class:`Kernel`'s output.
+
         If ``output_shape`` is set to ``()``, the :class:`Kernel` instance represents a
         single (cross-)covariance function. Otherwise, i.e. if ``output_shape`` is a
         non-empty tuple, the :class:`Kernel` instance represents a tensor of
@@ -408,7 +409,7 @@ class Kernel(abc.ABC):
     ) -> np.ndarray:
         """Implementation of the Euclidean inner product, which supports scalar inputs
         and an optional second argument."""
-        prods = x0 ** 2 if x1 is None else x0 * x1
+        prods = x0**2 if x1 is None else x0 * x1
 
         if self.input_ndim == 0:
             return prods
