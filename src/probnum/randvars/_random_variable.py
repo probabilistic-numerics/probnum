@@ -1,8 +1,8 @@
 """Random Variables."""
 
 import functools
-import operator
 from functools import cached_property
+import operator
 from typing import Any, Callable, Dict, Optional
 
 import numpy as np
@@ -194,9 +194,8 @@ class RandomVariable:
     def parameters(self) -> Dict[str, Any]:
         """Parameters of the associated probability distribution.
 
-        The parameters of the probability distribution of the random
-        variable, e.g. mean, variance, scale, rate, etc. stored in a
-        ``dict``.
+        The parameters of the probability distribution of the random variable, e.g.
+        mean, variance, scale, rate, etc. stored in a ``dict``.
         """
         return self.__parameters.copy()
 
