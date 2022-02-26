@@ -1,8 +1,8 @@
 """Test properties of normal random variables."""
-import numpy as np
+
 import pytest
-import scipy.stats
 from pytest_cases import parametrize, parametrize_with_cases
+import scipy.stats
 
 from probnum import backend, compat, randvars
 from probnum.typing import SeedLike, ShapeType
