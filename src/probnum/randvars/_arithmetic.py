@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, Tuple, Union
 
 from probnum import backend, utils as _utils
 import probnum.linops as _linear_operators
+from probnum.typing import NotImplementedType
 
 from ._constant import Constant as _Constant
 from ._normal import Normal as _Normal
@@ -54,7 +55,7 @@ def pow_(rv1: Any, rv2: Any) -> _RandomVariable:
 ########################################################################################
 
 _RandomVariableBinaryOperator = Callable[
-    [_RandomVariable, _RandomVariable], Union[_RandomVariable, type(NotImplemented)]
+    [_RandomVariable, _RandomVariable], Union[_RandomVariable, NotImplementedType]
 ]
 _OperatorRegistryType = Dict[Tuple[type, type], _RandomVariableBinaryOperator]
 
@@ -74,7 +75,7 @@ def _apply(
     op_registry: _OperatorRegistryType,
     rv1: Any,
     rv2: Any,
-) -> Union[_RandomVariable, type(NotImplemented)]:
+) -> Union[_RandomVariable, NotImplementedType]:
     # Convert arguments to random variables
     rv1 = _asrandvar(rv1)
     rv2 = _asrandvar(rv2)
@@ -253,7 +254,7 @@ _sub_fns[(_Constant, _Normal)] = _sub_constant_normal
 
 def _mul_normal_constant(
     norm_rv: _Normal, constant_rv: _Constant
-) -> Union[_Normal, _Constant, type(NotImplemented)]:
+) -> Union[_Normal, _Constant, NotImplementedType]:
     if constant_rv.size == 1:
         if constant_rv.support == 0:
             return _Constant(
