@@ -56,6 +56,11 @@ class Function(abc.ABC):
         For scalar-valued function, this is an empty tuple."""
         return self._output_shape
 
+    @property
+    def output_ndim(self) -> int:
+        """Syntactic sugar for ``len(output_shape)``."""
+        return self._output_ndim
+
     def __call__(self, x: ArrayLike) -> np.ndarray:
         """Evaluate the function at a given input.
 
