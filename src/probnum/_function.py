@@ -3,7 +3,7 @@
 import abc
 from typing import Callable
 
-import numpy as np
+from probnum import backend
 
 from . import utils
 from .typing import ArrayLike, ShapeLike, ShapeType
@@ -41,7 +41,8 @@ class Function(abc.ABC):
     def input_shape(self) -> ShapeType:
         """Shape of the function's input.
 
-        For a scalar-input function, this is an empty tuple."""
+        For a scalar-input function, this is an empty tuple.
+        """
         return self._input_shape
 
     @property
@@ -53,7 +54,8 @@ class Function(abc.ABC):
     def output_shape(self) -> ShapeType:
         """Shape of the function's output.
 
-        For scalar-valued function, this is an empty tuple."""
+        For scalar-valued function, this is an empty tuple.
+        """
         return self._output_shape
 
     @property
@@ -61,7 +63,7 @@ class Function(abc.ABC):
         """Syntactic sugar for ``len(output_shape)``."""
         return self._output_ndim
 
-    def __call__(self, x: ArrayLike) -> np.ndarray:
+    def __call__(self, x: ArrayLike) -> backend.ndarray:
         """Evaluate the function at a given input.
 
         The function is vectorized over the batch shape of the input.
@@ -84,7 +86,7 @@ class Function(abc.ABC):
             If the shape of ``x`` does not match :attr:`input_shape` along its last
             dimensions.
         """
-        x = np.asarray(x)
+        x = backend.asarray(x)
 
         # Shape checking
         if x.shape[x.ndim - self.input_ndim :] != self.input_shape:
@@ -105,7 +107,7 @@ class Function(abc.ABC):
         return fx
 
     @abc.abstractmethod
-    def _evaluate(self, x: np.ndarray) -> np.ndarray:
+    def _evaluate(self, x: backend.ndarray) -> backend.ndarray:
         pass
 
 
@@ -140,7 +142,7 @@ class LambdaFunction(Function):
 
     def __init__(
         self,
-        fn: Callable[[np.ndarray], np.ndarray],
+        fn: Callable[[backend.ndarray], backend.ndarray],
         input_shape: ShapeLike,
         output_shape: ShapeLike = (),
     ) -> None:
@@ -148,5 +150,5 @@ class LambdaFunction(Function):
 
         super().__init__(input_shape, output_shape)
 
-    def _evaluate(self, x: np.ndarray) -> np.ndarray:
+    def _evaluate(self, x: backend.ndarray) -> backend.ndarray:
         return self._fn(x)
