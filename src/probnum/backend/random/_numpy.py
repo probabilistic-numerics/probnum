@@ -71,7 +71,7 @@ def _uniform_so_group_pushforward_fn(omega: np.ndarray) -> np.ndarray:
         x0 = x[0].item()
         D[idx] = np.sign(x[0]) if x[0] != 0 else 1
         x[0] += D[idx] * np.sqrt(norm2)
-        x /= np.sqrt((norm2 - x0 ** 2 + x[0] ** 2) / 2.0)
+        x /= np.sqrt((norm2 - x0**2 + x[0] ** 2) / 2.0)
         # Householder transformation
         H[:, idx:] -= np.outer(np.dot(H[:, idx:], x), x)
     D[-1] = (-1) ** (n - 1) * D[:-1].prod()

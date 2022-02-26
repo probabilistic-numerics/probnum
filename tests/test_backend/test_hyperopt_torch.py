@@ -13,7 +13,7 @@ def test_hyperopt():
     def loss_fn():
         gp = pn.randprocs.GaussianProcess(
             mean=lambda x: backend.zeros_like(x, shape=x.shape[:-1]),
-            cov=pn.kernels.ExpQuad(input_dim=1, lengthscale=lengthscale ** 2),
+            cov=pn.kernels.ExpQuad(input_dim=1, lengthscale=lengthscale**2),
         )
 
         xs = backend.linspace(-1.0, 1.0, 10)

@@ -72,10 +72,10 @@ def _uniform_so_group_pushforward_fn(omega: jnp.ndarray) -> jnp.ndarray:
         ),
     )(X_diag)
 
-    row_norms_sq = jnp.sum(X ** 2, axis=1)
+    row_norms_sq = jnp.sum(X**2, axis=1)
 
     X = X.at[jnp.diag_indices(n - 1)].set(jnp.sqrt(row_norms_sq) * D)
-    X /= jnp.sqrt((row_norms_sq - X_diag ** 2 + jnp.diag(X) ** 2) / 2.0)[:, None]
+    X /= jnp.sqrt((row_norms_sq - X_diag**2 + jnp.diag(X) ** 2) / 2.0)[:, None]
 
     H = jax.lax.fori_loop(
         lower=0,

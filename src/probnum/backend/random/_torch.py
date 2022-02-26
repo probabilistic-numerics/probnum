@@ -82,12 +82,12 @@ def _uniform_so_group_pushforward_fn(omega: torch.Tensor) -> torch.Tensor:
             torch.ones((), dtype=omega.dtype),
         )
 
-        row_norms_sq = torch.sum(X ** 2, dim=1)
+        row_norms_sq = torch.sum(X**2, dim=1)
 
         diag_indices = torch.arange(n - 1)
         X[diag_indices, diag_indices] = torch.sqrt(row_norms_sq) * D
 
-        X /= torch.sqrt((row_norms_sq - X_diag ** 2 + torch.diag(X) ** 2) / 2.0)[
+        X /= torch.sqrt((row_norms_sq - X_diag**2 + torch.diag(X) ** 2) / 2.0)[
             :, None
         ]
 
