@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.distributions.utils import broadcast_all
 
-from probnum.typing import DTypeArgType, ShapeLike
+from probnum.typing import DTypeLike, ShapeLike
 
 _RNG_STATE_SIZE = torch.Generator().get_state().shape[0]
 
@@ -52,7 +52,7 @@ def uniform_so_group(
     seed: np.random.SeedSequence,
     n: int,
     shape: ShapeLike = (),
-    dtype: DTypeArgType = torch.double,
+    dtype: DTypeLike = torch.double,
 ) -> torch.Tensor:
     if n == 1:
         return torch.ones(shape + (1, 1), dtype=dtype)

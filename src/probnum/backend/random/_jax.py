@@ -5,7 +5,7 @@ from typing import Optional, Sequence, Tuple
 import jax
 from jax import numpy as jnp
 
-from probnum.typing import DTypeArgType, FloatLike, ShapeLike
+from probnum.typing import DTypeLike, FloatLike, ShapeLike
 
 
 def seed(seed: Optional[int]) -> jnp.ndarray:
@@ -31,7 +31,7 @@ def gamma(
     shape_param: FloatLike,
     scale_param: FloatLike = 1.0,
     shape: ShapeLike = (),
-    dtype: DTypeArgType = jnp.double,
+    dtype: DTypeLike = jnp.double,
 ):
     return (
         jax.random.gamma(key=seed, a=shape_param, shape=shape, dtype=dtype)
@@ -44,7 +44,7 @@ def uniform_so_group(
     seed: jnp.ndarray,
     n: int,
     shape: ShapeLike = (),
-    dtype: DTypeArgType = jnp.double,
+    dtype: DTypeLike = jnp.double,
 ) -> jnp.ndarray:
     if n == 1:
         return jnp.ones(shape + (1, 1), dtype=dtype)

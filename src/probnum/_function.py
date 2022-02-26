@@ -5,7 +5,6 @@ from typing import Callable
 
 from probnum import backend
 
-from . import utils
 from .typing import ArrayLike, ShapeLike, ShapeType
 
 
@@ -31,10 +30,10 @@ class Function(abc.ABC):
     """
 
     def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike = ()) -> None:
-        self._input_shape = utils.as_shape(input_shape)
+        self._input_shape = backend.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
 
-        self._output_shape = utils.as_shape(output_shape)
+        self._output_shape = backend.as_shape(output_shape)
         self._output_ndim = len(self._output_shape)
 
     @property
