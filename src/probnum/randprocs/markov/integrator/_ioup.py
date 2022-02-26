@@ -1,6 +1,5 @@
 """Integrated Ornstein-Uhlenbeck processes."""
 import warnings
-from functools import cached_property
 
 import numpy as np
 
@@ -54,19 +53,19 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     --------
     >>> ioup1 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1., initarg=0.)
     >>> print(ioup1)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=2, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(2,), dtype=float64>
 
     >>> ioup2 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=2)
     >>> print(ioup2)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=3, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(3,), dtype=float64>
 
     >>> ioup3 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., wiener_process_dimension=10)
     >>> print(ioup3)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=20, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(20,), dtype=float64>
 
     >>> ioup4 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(ioup4)
-    <IntegratedOrnsteinUhlenbeckProcess with input_dim=1, output_dim=5, dtype=float64>
+    <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """
 
     def __init__(
@@ -99,7 +98,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(ioup_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(ioup_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
             )
 
         super().__init__(transition=ioup_transition, initrv=initrv, initarg=initarg)
@@ -127,26 +126,23 @@ class IntegratedOrnsteinUhlenbeckTransition(
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._drift_matrix_ioup(),
+            force_vector=self._force_vector_ioup(),
+            dispersion_matrix=self._dispersion_matrix_ioup(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):  # pylint: disable=method-hidden
+    def _drift_matrix_ioup(self):
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         drift_matrix_1d[-1, -1] = -self.driftspeed
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
-    @cached_property
-    def _force_vector(self):  # pylint: disable=method-hidden
+    def _force_vector_ioup(self):
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
-    @cached_property
-    def _dispersion_matrix(self):  # pylint: disable=method-hidden
+    def _dispersion_matrix_ioup(self):
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T

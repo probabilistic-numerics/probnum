@@ -8,62 +8,52 @@ import pytest
 import probnum as pn
 from probnum.typing import ShapeType
 
-from ._utils import _shape_param_to_id_str
-
-D_IN = None
-
 
 @pytest.fixture(
     params=[
         pytest.param(
             (x0_shape, x1_shape),
-            id=(
-                f"x0{_shape_param_to_id_str(x0_shape)}-"
-                f"x1{_shape_param_to_id_str(x1_shape)}"
-            ),
+            id=(f"x0{x0_shape}-x1{x1_shape}"),
         )
         for x0_shape, x1_shape in [
             [(), None],
             [(), ()],
-            [(1,), None],
-            [(1,), (1,)],
-            [(D_IN,), None],
-            [(D_IN,), (D_IN,)],
             [(), (1,)],
-            [(), (D_IN,)],
+            [(), (3,)],
+            [(1,), None],
             [(1,), ()],
-            [(D_IN,), ()],
-            [(1, D_IN), (1, D_IN)],
-            [(1, D_IN), (1, 1)],
-            [(10, D_IN), (10, 1)],
-            [(10, D_IN), None],
-            [(100, 1), (100, D_IN)],
-            [(1, 1, D_IN), (1, 1, 1)],
-            [(10, 1, D_IN), (10, D_IN)],
-            [(10, 1, D_IN), (1, 2, 1)],
-            [(100, 1, 1), (10, D_IN)],
-            [(100, 1, D_IN), (1, 10, 1)],
-            [(2, 4, 1, 1, 3, D_IN), (1, 4, 5, 1, 1, 1)],
+            [(1,), (1,)],
+            [(1,), (2,)],
+            [(10,), None],
+            [(10,), (1,)],
+            [(10,), (10,)],
+            [(30, 1), (9,)],
+            [(1, 1), (1, 1)],
+            [(10, 1), (10,)],
+            [(10, 1), (1, 2)],
+            [(100, 1), (10,)],
+            [(100, 1), (1, 10)],
+            [(2, 4, 1, 1, 3), (1, 4, 5, 1, 1)],
         ]
     ],
     name="input_shapes",
     scope="module",
 )
 def fixture_input_shapes(
-    request, input_dim: int
+    request, input_shape: ShapeType
 ) -> Tuple[ShapeType, Optional[ShapeType]]:
-    """Shapes for the first and second argument of the covariance function. The second
-    shape is ``None`` if the second argument to the covariance function is ``None``."""
+    """Shapes for the first and second argument of the covariance function.
+
+    The second shape is ``None`` if the second argument to the covariance function is
+    ``None``.
+    """
 
     x0_shape, x1_shape = request.param
 
-    def _construct_shape(shape_param):
-        if shape_param is None:
-            return None
-
-        return tuple(input_dim if dim is D_IN else dim for dim in shape_param)
-
-    return (_construct_shape(x0_shape), _construct_shape(x1_shape))
+    return (
+        x0_shape + input_shape,
+        x1_shape + input_shape if x1_shape is not None else None,
+    )
 
 
 @pytest.fixture(name="x0", scope="module")
@@ -143,8 +133,8 @@ def test_values(
     np.testing.assert_allclose(
         call_result,
         call_result_naive,
-        rtol=10 ** -12,
-        atol=10 ** -12,
+        rtol=10**-12,
+        atol=10**-12,
     )
 
 
@@ -161,16 +151,17 @@ def test_values(
 def test_wrong_input_dimension(kernel: pn.randprocs.kernels.Kernel, shape: ShapeType):
     """Test whether passing an input with the wrong input dimension raises an error."""
 
-    input_shape = shape + (kernel.input_dim + 1,)
+    if kernel.input_ndim > 0:
+        input_shape = shape + tuple(dim + 1 for dim in kernel.input_shape)
 
-    with pytest.raises(ValueError):
-        kernel(np.zeros(input_shape), None)
+        with pytest.raises(ValueError):
+            kernel(np.zeros(input_shape), None)
 
-    with pytest.raises(ValueError):
-        kernel(np.ones(input_shape), np.zeros(shape + (kernel.input_dim,)))
+        with pytest.raises(ValueError):
+            kernel(np.ones(input_shape), np.zeros(shape + kernel.input_shape))
 
-    with pytest.raises(ValueError):
-        kernel(np.ones(shape + (kernel.input_dim,)), np.zeros(input_shape))
+        with pytest.raises(ValueError):
+            kernel(np.ones(shape + kernel.input_shape), np.zeros(input_shape))
 
 
 @pytest.mark.parametrize(
@@ -191,6 +182,6 @@ def test_broadcasting_error(
 
     with pytest.raises(ValueError):
         kernel(
-            np.zeros(x0_shape + (kernel.input_dim,)),
-            np.ones(x1_shape + (kernel.input_dim,)),
+            np.zeros(x0_shape + kernel.input_shape),
+            np.ones(x1_shape + kernel.input_shape),
         )

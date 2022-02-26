@@ -25,8 +25,8 @@ class ResidualNormStoppingCriterion(LinearSolverStoppingCriterion):
 
     def __init__(
         self,
-        atol: ScalarLike = 10 ** -5,
-        rtol: ScalarLike = 10 ** -5,
+        atol: ScalarLike = 10**-5,
+        rtol: ScalarLike = 10**-5,
     ):
         self.atol = probnum.backend.as_scalar(atol)
         self.rtol = probnum.backend.as_scalar(rtol)

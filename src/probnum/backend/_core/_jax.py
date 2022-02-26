@@ -1,8 +1,8 @@
 from typing import Tuple
 
 import jax
-import numpy as np
 from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
+    abs,
     all,
     array,
     asarray,
@@ -14,6 +14,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     cdouble,
     complex64 as csingle,
     diag,
+    diagonal,
     double,
     dtype,
     dtype as asdtype,
@@ -40,11 +41,13 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     sin,
     single,
     sqrt,
+    stack,
     sum,
     swapaxes,
     zeros,
     zeros_like,
 )
+import numpy as np
 
 jax.config.update("jax_enable_x64", True)
 

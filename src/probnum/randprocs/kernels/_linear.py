@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import IntLike, ScalarLike
+from probnum.typing import ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 
@@ -18,8 +18,8 @@ class Linear(Kernel):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     constant
         Constant offset :math:`c`.
 
@@ -31,16 +31,16 @@ class Linear(Kernel):
     --------
     >>> import numpy as np
     >>> from probnum.randprocs.kernels import Linear
-    >>> K = Linear(input_dim=2)
+    >>> K = Linear(input_shape=2)
     >>> xs = np.array([[1, 2], [2, 3]])
     >>> K.matrix(xs)
     array([[ 5.,  8.],
            [ 8., 13.]])
     """
 
-    def __init__(self, input_dim: IntLike, constant: ScalarLike = 0.0):
+    def __init__(self, input_shape: ShapeLike, constant: ScalarLike = 0.0):
         self.constant = backend.as_scalar(constant)
-        super().__init__(input_dim=input_dim)
+        super().__init__(input_shape=input_shape)
 
     @backend.jit_method
     def _evaluate(

@@ -2,6 +2,7 @@ from typing import Tuple
 
 import numpy as np
 from numpy import (  # pylint: disable=redefined-builtin, unused-import
+    abs,
     all,
     array,
     asarray,
@@ -13,6 +14,7 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     cdouble,
     csingle,
     diag,
+    diagonal,
     double,
     dtype,
     dtype as asdtype,
@@ -39,6 +41,7 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     sin,
     single,
     sqrt,
+    stack,
     sum,
     swapaxes,
     zeros,

@@ -4,8 +4,8 @@ variables."""
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
-import probnum.linops as _linear_operators
 from probnum import backend, utils as _utils
+import probnum.linops as _linear_operators
 
 from ._constant import Constant as _Constant
 from ._normal import Normal as _Normal
@@ -123,7 +123,7 @@ def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
 
 
 def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
-    def sample(seed, sample_shape):
+    def sample_fn(seed, sample_shape):
         seed1, seed2 = backend.random.split(seed, 2)
 
         return op_fn(
@@ -132,12 +132,12 @@ def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
         )
 
     # Infer shape and dtype
-    infer_sample = sample(backend.random.seed(1), ())
+    infer_sample = sample_fn(backend.random.seed(1), ())
 
     shape = infer_sample.shape
     dtype = infer_sample.dtype
 
-    return shape, dtype, sample
+    return shape, dtype, sample_fn
 
 
 def _generic_rv_add(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
@@ -266,7 +266,7 @@ def _mul_normal_constant(
             cov_cholesky = None
         return _Normal(
             mean=constant_rv.support * norm_rv.mean,
-            cov=(constant_rv.support ** 2) * norm_rv.cov,
+            cov=(constant_rv.support**2) * norm_rv.cov,
             cov_cholesky=cov_cholesky,
         )
 
@@ -396,7 +396,7 @@ def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Norma
 
         return _Normal(
             mean=norm_rv.mean / constant_rv.support,
-            cov=norm_rv.cov / (constant_rv.support ** 2),
+            cov=norm_rv.cov / (constant_rv.support**2),
             cov_cholesky=cov_cholesky,
         )
 

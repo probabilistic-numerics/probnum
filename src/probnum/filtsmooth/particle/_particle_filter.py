@@ -30,7 +30,7 @@ def effective_number_of_events(categ_rv: randvars.Categorical) -> float:
     In a particle filter, this is used as the effective number of particles which may
     indicate the need for resampling.
     """
-    return 1.0 / np.sum(categ_rv.probabilities ** 2)
+    return 1.0 / np.sum(categ_rv.probabilities**2)
 
 
 class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):

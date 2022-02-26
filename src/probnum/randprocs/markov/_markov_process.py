@@ -1,20 +1,14 @@
 """Markovian processes."""
 
-from typing import Optional, Type, Union
+from typing import Optional
 
-import numpy as np
-import scipy.stats
-
-from probnum import backend, randvars, utils
-from probnum.randprocs import _random_process
+from probnum import _function, backend, randvars
+from probnum.randprocs import _random_process, kernels
 from probnum.randprocs.markov import _transition
-from probnum.typing import ShapeLike
-
-_InputType = Union[np.floating, np.ndarray]
-_OutputType = Union[np.floating, np.ndarray]
+from probnum.typing import ArrayLike, SeedLike, ShapeLike
 
 
-class MarkovProcess(_random_process.RandomProcess):
+class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.ndarray]):
     r"""Random processes with the Markov property.
 
     A Markov process is a random process with the additional property that
@@ -40,7 +34,7 @@ class MarkovProcess(_random_process.RandomProcess):
 
     def __init__(
         self,
-        initarg: np.ndarray,
+        initarg: backend.ndarray,
         initrv: randvars.RandomVariable,
         transition: _transition.Transition,
     ):
@@ -48,65 +42,82 @@ class MarkovProcess(_random_process.RandomProcess):
         self.initrv = initrv
         self.transition = transition
 
+        input_shape = initarg.shape
+        output_shape = initrv.shape
+
         super().__init__(
-            input_dim=1 if np.asarray(initarg).ndim == 0 else initarg.shape[0],
-            output_dim=1 if initrv.ndim == 0 else initrv.shape[0],
-            dtype=np.dtype(np.float_),
+            input_shape=input_shape,
+            output_shape=output_shape,
+            dtype=backend.dtype(backend.double),
+            mean=_function.LambdaFunction(
+                lambda x: self.__call__(args=x).mean,
+                input_shape=input_shape,
+                output_shape=output_shape,
+            ),
+            cov=MarkovProcess.Kernel(
+                self.__call__,
+                input_shape=input_shape,
+                output_shape=2 * output_shape,
+            ),
         )
 
-    def __call__(self, args: _InputType) -> randvars.RandomVariable:
-        raise NotImplementedError
-
-    def mean(self, args: _InputType) -> _OutputType:
-        return self.__call__(args=args).mean
-
-    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
-        if args1 is None:
-            return self.__call__(args=args0).cov
+    def __call__(self, args: ArrayLike) -> randvars.RandomVariable:
         raise NotImplementedError
 
     def _sample_at_input(
         self,
-        rng: np.random.Generator,
-        args: _InputType,
-        size: ShapeLike = (),
-    ) -> _OutputType:
+        seed: SeedLike,
+        args: ArrayLike,
+        sample_shape: ShapeLike = (),
+    ) -> backend.ndarray:
 
         size = backend.as_shape(size)
-        args = np.atleast_1d(args)
+        args = backend.atleast_1d(args)
         if args.ndim > 1:
             raise ValueError(f"Invalid args shape {args.shape}")
 
-        base_measure_realizations = scipy.stats.norm.rvs(
-            size=(size + args.shape + self.initrv.shape), random_state=rng
+        base_measure_realizations = backend.random.standard_normal(
+            seed=backend.random.seed(seed),
+            shape=(sample_shape + args.shape + self.initrv.shape),
         )
 
         if size == ():
-            return np.array(
+            return backend.array(
                 self.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_measure_realizations,
                     t=args,
                     initrv=self.initrv,
-                    _diffusion_list=np.ones_like(args[:-1]),
+                    _diffusion_list=backend.ones_like(args[:-1]),
                 )
             )
 
-        return np.stack(
+        return backend.stack(
             [
                 self.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_real,
                     t=args,
                     initrv=self.initrv,
-                    _diffusion_list=np.ones_like(args[:-1]),
+                    _diffusion_list=backend.ones_like(args[:-1]),
                 )
                 for base_real in base_measure_realizations
             ]
         )
 
-    def push_forward(
-        self,
-        args: _InputType,
-        base_measure: Type[randvars.RandomVariable],
-        sample: np.ndarray,
-    ) -> np.ndarray:
-        raise NotImplementedError
+    class Kernel(kernels.Kernel):
+        def __init__(
+            self, markov_proc_call, input_shape: ShapeLike, output_shape: ShapeLike
+        ):
+            self._markov_proc_call = markov_proc_call
+
+            super().__init__(
+                input_shape=input_shape,
+                output_shape=output_shape,
+            )
+
+        def _evaluate(
+            self, x0: backend.ndarray, x1: Optional[backend.ndarray]
+        ) -> backend.ndarray:
+            if x1 is None:
+                return self._markov_proc_call(args=x0).cov
+
+            raise NotImplementedError

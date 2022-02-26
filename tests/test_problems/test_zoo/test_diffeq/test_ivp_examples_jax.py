@@ -6,8 +6,8 @@ import probnum.problems.zoo.diffeq as diffeq_zoo
 # pylint: disable=unused-import
 try:
     import jax
-    import jax.numpy as jnp
     from jax.config import config
+    import jax.numpy as jnp
 
     config.update("jax_enable_x64", True)
 

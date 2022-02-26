@@ -130,7 +130,7 @@ def fixture_measure(measure_params) -> measures.IntegrationMeasure:
 )
 def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
     """Kernel / covariance function."""
-    return request.param[0](**request.param[1], input_dim=input_dim)
+    return request.param[0](**request.param[1], input_shape=(input_dim,))
 
 
 # Kernel Embeddings
@@ -148,7 +148,7 @@ def fixture_kernel_embedding(
         pytest.param(fun, id=f"f={key}")
         for key, fun in {
             "x": lambda x: x,
-            "x**2": lambda x: x ** 2,
+            "x**2": lambda x: x**2,
             "sin(x)": lambda x: np.sin(x),
         }.items()
     ],

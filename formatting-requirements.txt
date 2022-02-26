@@ -1,0 +1,4 @@
+# Dependencies for code formatting
+
+black>=22.1,<23
+isort>=5.10,<6

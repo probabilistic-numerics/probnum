@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import IntLike, ScalarLike
+from probnum.typing import ScalarLike, ShapeLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -29,8 +29,8 @@ class RatQuad(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     lengthscale :
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
@@ -46,7 +46,7 @@ class RatQuad(Kernel, IsotropicMixin):
     --------
     >>> import numpy as np
     >>> from probnum.randprocs.kernels import RatQuad
-    >>> K = RatQuad(input_dim=1, lengthscale=0.1, alpha=3)
+    >>> K = RatQuad(input_shape=1, lengthscale=0.1, alpha=3)
     >>> xs = np.linspace(0, 1, 3)[:, None]
     >>> K(xs[:, None, :], xs[None, :, :])
     array([[1.00000000e+00, 7.25051190e-03, 1.81357765e-04],
@@ -56,7 +56,7 @@ class RatQuad(Kernel, IsotropicMixin):
 
     def __init__(
         self,
-        input_dim: IntLike,
+        input_shape: ShapeLike,
         lengthscale: ScalarLike = 1.0,
         alpha: ScalarLike = 1.0,
     ):
@@ -64,18 +64,21 @@ class RatQuad(Kernel, IsotropicMixin):
         self.alpha = backend.as_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
-        super().__init__(input_dim=input_dim)
+        super().__init__(input_shape=input_shape)
 
     def _evaluate(
         self, x0: backend.ndarray, x1: Optional[backend.ndarray] = None
     ) -> backend.ndarray:
         if x1 is None:
-            return backend.ones_like(x0[..., 0])
+            return backend.ones_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=x0.shape[: x0.ndim - self.input_ndim],
+            )
 
         return (
             1.0
             + (
                 self._squared_euclidean_distances(x0, x1)
-                / (2.0 * self.alpha * self.lengthscale ** 2)
+                / (2.0 * self.alpha * self.lengthscale**2)
             )
         ) ** -self.alpha

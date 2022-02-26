@@ -10,6 +10,7 @@ import scipy.sparse.linalg
 
 from probnum import backend, config
 from probnum.typing import DTypeLike, ScalarLike, ShapeLike
+import probnum.utils
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarLike, np.ndarray, scipy.sparse.spmatrix
@@ -175,8 +176,7 @@ class LinearOperator:
     def shape(self) -> Tuple[int, int]:
         """Shape of the linear operator.
 
-        Defined as a tuple of the output and input dimension of
-        operator.
+        Defined as a tuple of the output and input dimension of operator.
         """
         return self.__shape
 
@@ -334,7 +334,8 @@ class LinearOperator:
         """Whether the ``LinearOperator`` represents a lower triangular matrix.
 
         If this is ``None``, it is unknown whether the matrix is lower triangular or
-        not."""
+        not.
+        """
         return self._is_lower_triangular
 
     @is_lower_triangular.setter
@@ -346,7 +347,8 @@ class LinearOperator:
         """Whether the ``LinearOperator`` represents an upper triangular matrix.
 
         If this is ``None``, it is unknown whether the matrix is upper triangular or
-        not."""
+        not.
+        """
         return self._is_upper_triangular
 
     @is_upper_triangular.setter
@@ -357,6 +359,7 @@ class LinearOperator:
     def is_positive_definite(self) -> Optional[bool]:
         """Whether the ``LinearOperator`` :math:`L \\in \\mathbb{R}^{n \\times n}` is
         (strictly) positive-definite, i.e. :math:`x^T L x > 0` for :math:`x \\in \
+
         \\mathbb{R}^n`.
 
         If this is ``None``, it is unknown whether the matrix is positive-definite or
@@ -902,9 +905,9 @@ class LinearOperator:
     ) -> Callable[[np.ndarray], np.ndarray]:
         """Broadcasting for a (implicitly defined) matrix-vector product.
 
-        Convenience function / decorator to broadcast the definition of
-        a matrix-vector product. This can be used to easily construct a
-        new linear operator only from a matrix-vector product.
+        Convenience function / decorator to broadcast the definition of a matrix-vector
+        product. This can be used to easily construct a new linear operator only from a
+        matrix-vector product.
         """
 
         def _matmul(x: np.ndarray) -> np.ndarray:
@@ -921,10 +924,9 @@ class LinearOperator:
     ) -> Callable[[np.ndarray], np.ndarray]:
         """Broadcasting for a (implicitly defined) matrix-matrix product.
 
-        Convenience function / decorator to broadcast the definition of
-        a matrix-matrix product to vectors. This can be used to easily
-        construct a new linear operator only from a matrix-matrix
-        product.
+        Convenience function / decorator to broadcast the definition of a matrix-matrix
+        product to vectors. This can be used to easily construct a new linear operator
+        only from a matrix-matrix product.
         """
 
         def _matmul(x: np.ndarray) -> np.ndarray:
@@ -1102,6 +1104,7 @@ class _InverseLinearOperator(LinearOperator):
     @staticmethod
     def _lu_factor(a):
         """This is a modified version of the original implementation in SciPy:
+
         https://github.com/scipy/scipy/blob/v1.7.1/scipy/linalg/decomp_lu.py#L15-L84
         because for some reason, the SciPy implementation does not raise an exception
         if the matrix is singular.

@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-import probnum.utils.linalg as utlin
 from probnum import backend
 from probnum.problems.zoo.linalg import random_spd_matrix
+import probnum.utils.linalg as utlin
 
 
 @pytest.fixture

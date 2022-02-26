@@ -57,6 +57,7 @@ inf = _core.inf
 pi = _core.pi
 
 # Element-wise Unary Operations
+abs = _core.abs
 exp = _core.exp
 isfinite = _core.isfinite
 log = _core.log
@@ -66,12 +67,18 @@ sqrt = _core.sqrt
 # Element-wise Binary Operations
 maximum = _core.maximum
 
+# (Partial) Views
+diagonal = _core.diagonal
+
 # Contractions
 einsum = _core.einsum
 
 # Reductions
 all = _core.all
 sum = _core.sum
+
+# Concatenation and Stacking
+stack = _core.stack
 
 # Misc
 to_numpy = _core.to_numpy
@@ -173,6 +180,7 @@ __all__ = [
     "inf",
     "pi",
     # Element-wise Unary Operations
+    "abs",
     "exp",
     "isfinite",
     "log",
@@ -180,11 +188,15 @@ __all__ = [
     "sqrt",
     # Element-wise Binary Operations
     "maximum",
+    # (Partial) Views
+    "diagonal",
     # Contractions
     "einsum",
     # Reductions
     "all",
     "sum",
+    # Concatenation and Stacking
+    "stack",
     # Misc
     "to_numpy",
     # Just-in-Time Compilation

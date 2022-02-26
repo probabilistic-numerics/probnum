@@ -63,8 +63,10 @@ Gaussian filtering and smoothing in more complex dynamical systems.
 
    tutorials/filtsmooth/discrete_linear_gaussian_filtering_smoothing
    tutorials/filtsmooth/continuous_linear_gaussian_filtering_smoothing
-   tutorials/filtsmooth/nonlinear_gaussian_filtering_smoothing
+   tutorials/filtsmooth/discrete_nonlinear_gaussian_filtering_smoothing
+   tutorials/filtsmooth/continuous_nonlinear_gaussian_filtering_smoothing
    tutorials/filtsmooth/particle_filtering
+   tutorials/filtsmooth/particle_filtering_for_odes
 
 
 Linear Operators

@@ -269,9 +269,8 @@ class Normal(_random_variable.ContinuousRandomVariable):
         """Return truth-value of whether the Cholesky factor of the covariance is
         readily available.
 
-        This happens if (i) the Cholesky factor is specified during
-        initialization or if (ii) the property `self.cov_cholesky` has
-        been called before.
+        This happens if (i) the Cholesky factor is specified during initialization or if
+        (ii) the property `self.cov_cholesky` has been called before.
         """
         return self._cov_cholesky is not None or self.__cov_op_cholesky is not None
 

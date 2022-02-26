@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
     Tensor as ndarray,
+    abs,
     as_tensor as asarray,
     atleast_1d,
     atleast_2d,
@@ -13,6 +14,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     cdouble,
     complex64 as csingle,
     diag,
+    diagonal,
     double,
     dtype,
     einsum,
@@ -32,6 +34,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     reshape,
     sin,
     sqrt,
+    stack,
     swapaxes,
 )
 

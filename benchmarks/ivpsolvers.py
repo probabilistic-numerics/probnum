@@ -1,8 +1,8 @@
 """Benchmarks for probabilistic IVP solvers."""
 import numpy as np
 
-import probnum.problems.zoo.diffeq as diffeq_zoo
 from probnum.diffeq import probsolve_ivp
+import probnum.problems.zoo.diffeq as diffeq_zoo
 
 
 def load_lotkavolterra():

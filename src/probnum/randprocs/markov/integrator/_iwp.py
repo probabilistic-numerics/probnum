@@ -1,7 +1,7 @@
-"""Integrated Brownian motion."""
+"""Integrated Wiener process."""
 
-import warnings
 from functools import cached_property
+import warnings
 
 import numpy as np
 import scipy.special
@@ -54,19 +54,19 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
     --------
     >>> iwp1 = IntegratedWienerProcess(initarg=0.)
     >>> print(iwp1)
-    <IntegratedWienerProcess with input_dim=1, output_dim=2, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(2,), dtype=float64>
 
     >>> iwp2 = IntegratedWienerProcess(initarg=0., num_derivatives=2)
     >>> print(iwp2)
-    <IntegratedWienerProcess with input_dim=1, output_dim=3, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(3,), dtype=float64>
 
     >>> iwp3 = IntegratedWienerProcess(initarg=0., wiener_process_dimension=10)
     >>> print(iwp3)
-    <IntegratedWienerProcess with input_dim=1, output_dim=20, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(20,), dtype=float64>
 
     >>> iwp4 = IntegratedWienerProcess(initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(iwp4)
-    <IntegratedWienerProcess with input_dim=1, output_dim=5, dtype=float64>
+    <IntegratedWienerProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """
 
     def __init__(
@@ -97,7 +97,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(iwp_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(iwp_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
             )
 
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
@@ -122,15 +122,14 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._drift_matrix_iwp(),
+            force_vector=self._force_vector_iwp(),
+            dispersion_matrix=self._dispersion_matrix_iwp(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):  # pylint: disable=method-hidden
+    def _drift_matrix_iwp(self):
         drift_matrix_1d = np.diag(np.ones(self.num_derivatives), 1)
         if config.matrix_free:
             return linops.IdentityKronecker(
@@ -139,12 +138,10 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             )
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix_1d)
 
-    @cached_property
-    def _force_vector(self):  # pylint: disable=method-hidden
+    def _force_vector_iwp(self):
         return np.zeros((self.wiener_process_dimension * (self.num_derivatives + 1)))
 
-    @cached_property
-    def _dispersion_matrix(self):  # pylint: disable=method-hidden
+    def _dispersion_matrix_iwp(self):
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
 

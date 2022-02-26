@@ -1,6 +1,5 @@
 """Matern processes."""
 import warnings
-from functools import cached_property
 
 import numpy as np
 import scipy.special
@@ -55,19 +54,19 @@ class MaternProcess(_markov_process.MarkovProcess):
     --------
     >>> matern1 = MaternProcess(lengthscale=1., initarg=0.)
     >>> print(matern1)
-    <MaternProcess with input_dim=1, output_dim=2, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(2,), dtype=float64>
 
     >>> matern2 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=2)
     >>> print(matern2)
-    <MaternProcess with input_dim=1, output_dim=3, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(3,), dtype=float64>
 
     >>> matern3 = MaternProcess(lengthscale=1.,initarg=0., wiener_process_dimension=10)
     >>> print(matern3)
-    <MaternProcess with input_dim=1, output_dim=20, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(20,), dtype=float64>
 
     >>> matern4 = MaternProcess(lengthscale=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(matern4)
-    <MaternProcess with input_dim=1, output_dim=5, dtype=float64>
+    <MaternProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """
 
     def __init__(
@@ -100,7 +99,7 @@ class MaternProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(matern_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(matern_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky ** 2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
             )
 
         super().__init__(transition=matern_transition, initrv=initrv, initarg=initarg)
@@ -127,15 +126,14 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
         continuous.LTISDE.__init__(
             self,
-            drift_matrix=self._drift_matrix,
-            force_vector=self._force_vector,
-            dispersion_matrix=self._dispersion_matrix,
+            drift_matrix=self._drift_matrix_matern(),
+            force_vector=self._force_vector_matern(),
+            dispersion_matrix=self._dispersion_matrix_matern(),
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
 
-    @cached_property
-    def _drift_matrix(self):  # pylint: disable=method-hidden
+    def _drift_matrix_matern(self):
         drift_matrix = np.diag(np.ones(self.num_derivatives), 1)
         nu = self.num_derivatives + 0.5
         D, lam = self.num_derivatives + 1, np.sqrt(2 * nu) / self.lengthscale
@@ -144,13 +142,11 @@ class MaternTransition(_integrator.IntegratorTransition, continuous.LTISDE):
         )
         return np.kron(np.eye(self.wiener_process_dimension), drift_matrix)
 
-    @cached_property
-    def _force_vector(self):  # pylint: disable=method-hidden
+    def _force_vector_matern(self):
         force_1d = np.zeros(self.num_derivatives + 1)
         return np.kron(np.ones(self.wiener_process_dimension), force_1d)
 
-    @cached_property
-    def _dispersion_matrix(self):  # pylint: disable=method-hidden
+    def _dispersion_matrix_matern(self):
         dispersion_matrix_1d = np.zeros(self.num_derivatives + 1)
         dispersion_matrix_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.wiener_process_dimension), dispersion_matrix_1d).T

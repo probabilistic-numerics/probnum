@@ -29,8 +29,8 @@ class PosteriorContractionStoppingCriterion(LinearSolverStoppingCriterion):
     def __init__(
         self,
         qoi: str = "x",
-        atol: ScalarLike = 10 ** -5,
-        rtol: ScalarLike = 10 ** -5,
+        atol: ScalarLike = 10**-5,
+        rtol: ScalarLike = 10**-5,
     ):
         self.qoi = qoi
         self.atol = probnum.backend.as_scalar(atol)
@@ -51,6 +51,6 @@ class PosteriorContractionStoppingCriterion(LinearSolverStoppingCriterion):
         b_norm = np.linalg.norm(solver_state.problem.b, ord=2)
 
         return (
-            np.abs(trace_cov_qoi) <= self.atol ** 2
+            np.abs(trace_cov_qoi) <= self.atol**2
             or np.abs(trace_cov_qoi) <= (self.rtol * b_norm) ** 2
         )

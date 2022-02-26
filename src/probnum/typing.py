@@ -19,8 +19,8 @@ import numbers
 from typing import Iterable, Optional, Tuple, Union
 
 import numpy as np
-import scipy.sparse
 from numpy.typing import ArrayLike as _NumPyArrayLike, DTypeLike as _NumPyDTypeLike
+import scipy.sparse
 
 ########################################################################################
 # API Types

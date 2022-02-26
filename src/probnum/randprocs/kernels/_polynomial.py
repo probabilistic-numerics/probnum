@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import IntLike, ScalarLike
+from probnum.typing import IntLike, ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 
@@ -18,8 +18,8 @@ class Polynomial(Kernel):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     constant
         Constant offset :math:`c`.
     exponent
@@ -33,7 +33,7 @@ class Polynomial(Kernel):
     --------
     >>> import numpy as np
     >>> from probnum.randprocs.kernels import Polynomial
-    >>> K = Polynomial(input_dim=2, constant=1.0, exponent=3)
+    >>> K = Polynomial(input_shape=2, constant=1.0, exponent=3)
     >>> xs = np.array([[1, -1], [-1, 0]])
     >>> K.matrix(xs)
     array([[27.,  0.],
@@ -42,13 +42,13 @@ class Polynomial(Kernel):
 
     def __init__(
         self,
-        input_dim: IntLike,
+        input_shape: ShapeLike,
         constant: ScalarLike = 0.0,
         exponent: IntLike = 1.0,
     ):
         self.constant = backend.as_scalar(constant)
         self.exponent = backend.as_scalar(exponent)
-        super().__init__(input_dim=input_dim)
+        super().__init__(input_shape=input_shape)
 
     @backend.jit_method
     def _evaluate(

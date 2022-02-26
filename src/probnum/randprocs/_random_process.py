@@ -5,8 +5,9 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import backend, randvars
-from probnum.typing import DTypeLike, IntLike, ShapeLike
+from probnum import _function, backend, randvars
+from probnum.randprocs import kernels
+from probnum.typing import DTypeLike, SeedLike, ShapeLike, ShapeType
 
 _InputType = TypeVar("InputType")
 _OutputType = TypeVar("OutputType")
@@ -22,13 +23,17 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the random process.
-    output_dim :
-        Output dimension of the random process.
+    input_shape :
+        Input shape of the random process.
+    output_shape :
+        Output shape of the random process.
     dtype :
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
+    mean :
+        Mean function of the random process.
+    cov :
+        Covariance function of the random process.
 
     See Also
     --------
@@ -46,23 +51,96 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     def __init__(
         self,
-        input_dim: IntLike,
-        output_dim: Optional[IntLike],
+        input_shape: ShapeLike,
+        output_shape: ShapeLike,
         dtype: DTypeLike,
+        mean: Optional[_function.Function] = None,
+        cov: Optional[kernels.Kernel] = None,
     ):
-        self._input_dim = np.int_(backend.as_scalar(input_dim))
+        self._input_shape = backend.as_shape(input_shape)
+        self._input_ndim = len(self._input_shape)
 
-        self._output_dim = None
+        self._output_shape = backend.as_shape(output_shape)
+        self._output_ndim = len(self._output_shape)
 
-        if output_dim is not None:
-            self._output_dim = np.int_(backend.as_scalar(output_dim))
+        if self._output_ndim > 1:
+            raise ValueError(
+                "Currently, we only support random processes with at most one output"
+                "dimension."
+            )
 
-        self._dtype = np.dtype(dtype)
+        self._dtype = backend.asdtype(dtype)
+
+        # Mean function
+        if mean is not None:
+            if not isinstance(mean, _function.Function):
+                raise TypeError("The mean function must have type `probnum.Function`.")
+
+            if mean.input_shape != self._input_shape:
+                raise ValueError(
+                    f"The mean function must have the same `input_shape` as the random "
+                    f"process (`{mean.input_shape}` != `{self._input_shape}`)."
+                )
+
+            if mean.output_shape != self._output_shape:
+                raise ValueError(
+                    f"The mean function must have the same `output_shape` as the "
+                    f"random process (`{mean.output_shape}` != `{self._output_shape}`)."
+                )
+
+        self._mean = mean
+
+        # Covariance function
+        if cov is not None:
+            if not isinstance(cov, kernels.Kernel):
+                raise TypeError(
+                    "The covariance functions must be implemented as a " "`Kernel`."
+                )
+
+            if cov.input_shape != self._input_shape:
+                raise ValueError(
+                    f"The covariance function must have the same `input_shape` as the "
+                    f"random process (`{cov.input_shape}` != `{self._input_shape}`)."
+                )
+
+            if cov.output_shape != 2 * self._output_shape:
+                raise ValueError(
+                    f"The `output_shape` of the covariance function must be given by "
+                    f"`2 * self.output_shape` (`{cov.output_shape}` != "
+                    f"`{2 * self._output_shape}`)."
+                )
+
+        self._cov = cov
+
+    @property
+    def input_shape(self) -> ShapeType:
+        """Shape of inputs to the random process."""
+        return self._input_shape
+
+    @property
+    def input_ndim(self) -> int:
+        """Syntactic sugar for ``len(input_shape)``."""
+        return self._input_ndim
+
+    @property
+    def output_shape(self) -> ShapeType:
+        """Shape of the random process evaluated at an input."""
+        return self._output_shape
+
+    @property
+    def output_ndim(self) -> int:
+        """Syntactic sugar for ``len(output_shape)``."""
+        return self._output_ndim
+
+    @property
+    def dtype(self) -> backend.dtype:
+        """Data type of (elements of) the random process evaluated at an input."""
+        return self._dtype
 
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with "
-            f"input_dim={self.input_dim}, output_dim={self.output_dim}, "
+            f"input_shape={self.input_shape}, output_shape={self.output_shape}, "
             f"dtype={self.dtype}>"
         )
 
@@ -73,31 +151,16 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to evaluate random
-            process at.
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the random process. Currently, we require ``batch_shape``
+            to have at most one dimension.
 
         Returns
         -------
         randvars.RandomVariable
-            *shape=(), (output_dim,) or (n, output_dim)* -- Random process evaluated at
-            the inputs.
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Random process evaluated
+            at the input(s).
         """
-        raise NotImplementedError
-
-    @property
-    def input_dim(self) -> int:
-        """Shape of inputs to the random process."""
-        return self._input_dim
-
-    @property
-    def output_dim(self) -> int:
-        """Shape of the random process evaluated at an input."""
-        return self._output_dim
-
-    @property
-    def dtype(self) -> np.dtype:
-        """Data type of (elements of) the random process evaluated at an input."""
-        return self._dtype
 
     def marginal(self, args: _InputType) -> randvars._RandomVariableList:
         """Batch of random variables defining the marginal distributions at the inputs.
@@ -105,116 +168,38 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to evaluate random
-            process at.
-        """
-        # return self.__call__(args).marginal()
-        raise NotImplementedError
-
-    def mean(self, args: _InputType) -> _OutputType:
-        """Mean function.
-
-        Returns the mean function evaluated at the given input(s).
-
-        Parameters
-        ----------
-        args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) where the mean
-            function is evaluated.
-
-        Returns
-        -------
-        _OutputType
-            *shape=(), (output_dim, ) or (n, output_dim)* -- Mean function of the
-            process evaluated at inputs ``x``.
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the random process. Currently, we require ``batch_shape``
+            to have at most one dimension.
         """
         raise NotImplementedError
 
-    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
-        r"""Covariance function or kernel.
+    @property
+    def mean(self) -> _function.Function:
+        r"""Mean function :math:`m(x) := \mathbb{E}[f(x)]` of the random process."""
+        if self._mean is None:
+            raise NotImplementedError
 
-        Returns the covariance function :math:`\operatorname{Cov}(f(x_0),
-        f(x_1)) = \mathbb{E}[(f(x_0) - \mathbb{E}[f(x_0)])(f(x_0) - \mathbb{E}[f(
-        x_0)])^\top]` of the process evaluated at :math:`x_0` and :math:`x_1`. If only
-        ``args0`` is given the covariance among the components of the random process
-        at the inputs defined by ``args0`` is computed.
+        return self._mean
 
-        Parameters
-        ----------
-        args0
-            *shape=(input_dim,) or (n0, input_dim)* -- First input to the covariance
-            function.
-        args1
-            *shape=(input_dim,) or (n1, input_dim)* -- Second input to the covariance
-            function.
+    @property
+    def cov(self) -> kernels.Kernel:
+        r"""Covariance function :math:`k(x_0, x_1)` of the random process.
 
-        Returns
-        -------
-        _OutputType
-            *shape=(), (output_dim, output_dim), (n0, n1) or (n0, n1, output_dim,
-            output_dim)* -- Covariance of the process at ``args0`` and ``args1``. If
-            only ``args0`` is given the kernel matrix :math:`K=k(x_0, x_0)` is computed.
-        """  # pylint: disable=trailing-whitespace
-        raise NotImplementedError
+        .. math::
+            :nowrap:
 
-    def covmatrix(
-        self, args0: _InputType, args1: Optional[_InputType] = None
-    ) -> _OutputType:
-        """A convenience function for the covariance matrix of two sets of inputs.
-
-        This is syntactic sugar for ``proc.cov(x0[:, None, :], x1[None, :, :])``. Hence,
-        it computes the matrix of pairwise covariances between two sets of input points.
-
-        Parameters
-        ----------
-        x0 : array-like
-            First set of inputs to the covariance function as an array of shape
-            ``(M, D)``, where ``D`` is either 1 or :attr:`input_dim`.
-        x1 : array-like
-            Optional second set of inputs to the covariance function as an array
-            of shape ``(N, D)``, where ``D`` is either 1 or :attr:`input_dim`.
-            If ``x1`` is not specified, the function behaves as if ``x1 = x0``.
-
-        Returns
-        -------
-        kernmat : numpy.ndarray
-            The matrix / stack of matrices containing the pairwise evaluations of the
-            covariance function(s) on ``x0`` and ``x1`` as an array of shape
-            ``(M, N)`` if :attr:`shape` is ``()`` or
-            ``(S[l - 1], ..., S[1], S[0], M, N)``, where ``S`` is :attr:`shape` if
-            :attr:`shape` is non-empty.
-
-        Raises
-        ------
-        ValueError
-            If the shapes of the inputs don't match the specification.
-
-        See Also
-        --------
-        RandomProcess.cov: Evaluate the kernel more flexibly.
-
-        Examples
-        --------
-        See documentation of class :class:`Kernel`.
+            \begin{equation}
+                k(x_0, x_1) := \mathbb{E} \left[
+                    (f(x_0) - \mathbb{E}[f(x_0)])
+                    (f(x_1) - \mathbb{E}[f(x_1)])^\top
+                \right]
+            \end{equation}
         """
-        args0 = np.array(args0)
-        args1 = args0 if args1 is None else np.array(args1)
+        if self._cov is None:
+            raise NotImplementedError
 
-        # Shape checking
-        errmsg = (
-            "`{argname}` must have shape `(N, D)` or `(D,)`, where `D` is the input "
-            f"dimension of the random process (D = {self.input_dim}), but an array "
-            "with shape `{shape}` was given."
-        )
-
-        if not (1 <= args0.ndim <= 2 and args0.shape[-1] == self.input_dim):
-            raise ValueError(errmsg.format(argname="args0", shape=args0.shape))
-
-        if not (1 <= args1.ndim <= 2 and args1.shape[-1] == self.input_dim):
-            raise ValueError(errmsg.format(argname="args1", shape=args1.shape))
-
-        # Pairwise kernel evaluation
-        return self.cov(args0[:, None, :], args1[None, :, :])
+        return self._cov
 
     def var(self, args: _InputType) -> _OutputType:
         """Variance function.
@@ -225,25 +210,28 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the variance function.
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the variance function.
 
         Returns
         -------
         _OutputType
-            *shape=(), (output_dim,) or (n, output_dim)* -- Variance of the
-            process at ``args``.
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Variance of the process
+            at ``args``.
         """
-        try:
-            var = self.cov(args0=args)
-        except NotImplementedError as exc:
-            raise NotImplementedError from exc
+        pointwise_covs = self.cov(args, None)  # pylint: disable=not-callable
 
-        if var.ndim == args.ndim - 1:
-            return var
+        assert (
+            pointwise_covs.shape
+            == args.shape[: args.ndim - self._input_ndim] + 2 * self._output_shape
+        )
 
-        assert var.ndim == args.ndim + 1 and var.shape[-2:] == 2 * (self.output_dim,)
+        if self._output_ndim == 0:
+            return pointwise_covs
 
-        return np.diagonal(var, axis1=-2, axis2=-1)
+        assert self._output_ndim == 1
+
+        return backend.diagonal(pointwise_covs, axis1=-2, axis2=-1)
 
     def std(self, args: _InputType) -> _OutputType:
         """Standard deviation function.
@@ -251,26 +239,23 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         Parameters
         ----------
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the standard
-            deviation function.
+            *shape=* ``batch_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the standard deviation function.
 
         Returns
         -------
         _OutputType
-            *shape=(), (output_dim,) or (n, output_dim)* -- Standard deviation of the
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- Standard deviation of the
             process at ``args``.
         """
-        try:
-            return np.sqrt(self.var(args=args))
-        except NotImplementedError as exc:
-            raise NotImplementedError from exc
+        return backend.sqrt(self.var(args=args))
 
     def push_forward(
         self,
         args: _InputType,
         base_measure: Type[randvars.RandomVariable],
-        sample: np.ndarray,
-    ) -> np.ndarray:
+        sample: backend.ndarray,
+    ) -> backend.ndarray:
         """Transform samples from a base measure into samples from the random process.
 
         This function can be used to control sampling from the random process by
@@ -283,16 +268,17 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         base_measure
             Base measure. Given as a type of random variable.
         sample
-            *shape=(sample_size, output_dim)* -- Sample(s) from a base measure
-            evaluated at the input arguments.
+            *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which to evaluate the random process. Currently, we require ``sample_shape``
+            to have at most one dimension.
         """
         raise NotImplementedError
 
     def sample(
         self,
-        rng: np.random.Generator,
+        seed: SeedLike,
         args: _InputType = None,
-        size: ShapeLike = (),
+        sample_shape: ShapeLike = (),
     ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
         """Sample paths from the random process.
 
@@ -305,37 +291,39 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         rng
             Random number generator.
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
-            sample paths of the process. If ``None``, sample paths, i.e. callables are
-            returned.
-        size
-            Size of the sample.
+            *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which the sample paths will be evaluated. Currently, we require
+            ``sample_shape`` to have at most one dimension. If ``None``, sample paths,
+            i.e. callables are returned.
+        sample_shape
+            Shape of the sample.
         """
         if args is None:
             raise NotImplementedError
 
-        return self._sample_at_input(rng=rng, args=args, size=size)
+        return self._sample_at_input(seed=seed, args=args, sample_shape=sample_shape)
 
     def _sample_at_input(
         self,
-        rng: np.random.Generator,
+        seed: SeedLike,
         args: _InputType,
-        size: ShapeLike = (),
+        sample_shape: ShapeLike = (),
     ) -> _OutputType:
         """Evaluate a set of sample paths at the given inputs.
 
         This function should be implemented by subclasses of :class:`RandomProcess`.
         This enables :meth:`sample` to both return functions, i.e. sample paths if
-        only a `size` is provided and random variables if inputs are provided as well.
+        only a `sample_shape` is provided and random variables if inputs are provided as well.
 
         Parameters
         ----------
         rng
             Random number generator.
         args
-            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
-            sample paths of the process.
-        size
-            Size of the sample.
+            *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
+            which the sample paths will be evaluated. Currently, we require
+            ``sample_shape`` to have at most one dimension.
+        sample_shape
+            Shape of the sample.
         """
-        raise NotImplementedError
+        return self(args).sample(seed=seed, sample_shape=sample_shape)

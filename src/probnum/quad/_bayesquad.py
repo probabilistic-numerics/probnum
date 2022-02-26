@@ -7,8 +7,8 @@ methods return a random variable, specifying the belief about the true value of 
 integral.
 """
 
-import warnings
 from typing import Callable, Optional, Tuple, Union
+import warnings
 
 import numpy as np
 
