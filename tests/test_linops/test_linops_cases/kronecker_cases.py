@@ -6,12 +6,13 @@ import pytest
 import pytest_cases
 
 import probnum as pn
+from probnum import backend
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 spd_matrices = (
     pn.linops.Identity(shape=(1, 1)),
     np.array([[1.0, -2.0], [-2.0, 5.0]]),
-    random_spd_matrix(np.random.default_rng(597), dim=9),
+    random_spd_matrix(seed=backend.random.seed(597), dim=9),
 )
 
 
@@ -108,8 +109,8 @@ def case_symmetric_kronecker(
     "A,B",
     [
         (
-            random_spd_matrix(np.random.default_rng(234789 + n), dim=n),
-            random_spd_matrix(np.random.default_rng(347892 + n), dim=n),
+            random_spd_matrix(seed=backend.random.seed(234789 + n), dim=n),
+            random_spd_matrix(seed=backend.random.seed(347892 + n), dim=n),
         )
         for n in [1, 2, 3, 6]
     ],

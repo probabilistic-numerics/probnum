@@ -35,13 +35,14 @@ def generate_artificial_measurements(
     """
     obs = np.zeros((len(times), measmod.output_dim))
 
-    latent_states = prior_process.sample(rng, args=times)
-
     seed = backend.random.seed(
         int(rng.bit_generator._seed_seq.generate_state(1, dtype=np.uint64)[0] // 2)
     )
+    latent_states_seed, seed = backend.random.split(seed, num=2)
+    latent_states = prior_process.sample(seed=latent_states_seed, args=times)
 
     for idx, (state, t) in enumerate(zip(latent_states, times)):
         measured_rv, _ = measmod.forward_realization(state, t=t)
-        obs[idx] = measured_rv.sample(seed=seed)
+        sample_seed, seed = backend.random.split(seed, num=2)
+        obs[idx] = measured_rv.sample(seed=sample_seed)
     return latent_states, obs

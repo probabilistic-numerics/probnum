@@ -4,6 +4,7 @@ import numpy as np
 import pytest_cases
 
 import probnum as pn
+from probnum import backend
 from probnum.linops._arithmetic_fallbacks import (
     NegatedLinearOperator,
     ScaledLinearOperator,
@@ -13,16 +14,16 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 
 square_matrix_pairs = [
     (
-        np.random.default_rng(n + 478).standard_normal((n, n)),
-        np.random.default_rng(n + 267).standard_normal((n, n)),
+        backend.random.standard_normal(seed=backend.random.seed(n + 478), shape=(n, n)),
+        backend.random.standard_normal(seed=backend.random.seed(n + 267), shape=(n, n)),
     )
     for n in [1, 2, 3, 5, 8]
 ]
 
 spd_matrix_pairs = [
     (
-        random_spd_matrix(np.random.default_rng(n + 9872), dim=n),
-        random_spd_matrix(np.random.default_rng(n + 1231), dim=n),
+        random_spd_matrix(backend.random.seed(n + 9872), dim=n),
+        random_spd_matrix(backend.random.seed(n + 1231), dim=n),
     )
     for n in [1, 2, 3, 5, 8]
 ]

@@ -32,8 +32,6 @@ API Reference
     :hidden:
 
     api/probnum
-    api/backend
-    api/compat
     api/config
     api/diffeq
     api/filtsmooth

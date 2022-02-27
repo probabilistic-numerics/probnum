@@ -71,7 +71,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.ndarray]):
         sample_shape: ShapeLike = (),
     ) -> backend.ndarray:
 
-        size = backend.as_shape(size)
+        sample_shape = backend.as_shape(sample_shape)
         args = backend.atleast_1d(args)
         if args.ndim > 1:
             raise ValueError(f"Invalid args shape {args.shape}")
@@ -81,7 +81,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.ndarray]):
             shape=(sample_shape + args.shape + self.initrv.shape),
         )
 
-        if size == ():
+        if sample_shape == ():
             return backend.array(
                 self.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_measure_realizations,
