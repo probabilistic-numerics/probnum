@@ -4,7 +4,7 @@ variables."""
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
-from probnum import backend, utils as _utils
+from probnum import backend
 import probnum.linops as _linear_operators
 from probnum.typing import NotImplementedType
 
@@ -286,7 +286,7 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = _utils.linalg.cholesky_update(
+            cov_cholesky = _backend.linalg.cholesky_update(
                 constant_rv.support.T @ norm_rv.cov_cholesky
             )
         else:
@@ -339,7 +339,7 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = _utils.linalg.cholesky_update(
+            cov_cholesky = _backend.linalg.cholesky_update(
                 constant_rv.support @ norm_rv.cov_cholesky
             )
         else:

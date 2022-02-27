@@ -1,18 +1,10 @@
 import collections.abc
-from functools import partial
 from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 
 import numpy as np
 
-import probnum as pn
-from probnum import linops, randvars
+from probnum import randvars
 from probnum.typing import FloatLike, IntLike
-import probnum.utils as _utils
-
-from .belief_updates import gaussian_belief_update
-from .observation_operators import function_evaluation
-from .policies import explore_exploit_policy, stochastic_policy
-from .stopping_criteria import maximum_iterations, parameter_uncertainty
 
 # Type aliases for quadratic optimization
 QuadOptPolicyType = Callable[

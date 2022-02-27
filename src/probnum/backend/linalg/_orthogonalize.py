@@ -6,8 +6,7 @@ from typing import Callable, Iterable, Optional, Union
 import numpy as np
 
 from probnum import linops
-
-from ._inner_product import induced_norm, inner_product as inner_product_fn
+from probnum.backend.linalg import induced_norm, inner_product as inner_product_fn
 
 
 def gram_schmidt(

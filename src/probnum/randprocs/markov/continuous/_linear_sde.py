@@ -7,9 +7,9 @@ import scipy.integrate
 import scipy.linalg
 
 from probnum import randvars
+from probnum.backend.linalg import tril_to_positive_tril
 from probnum.randprocs.markov.continuous import _sde
 from probnum.typing import FloatLike, IntLike
-from probnum.utils.linalg import tril_to_positive_tril
 
 
 class LinearSDE(_sde.SDE):

@@ -3,7 +3,6 @@ import pytest
 
 from probnum import backend
 from probnum.problems.zoo.linalg import random_spd_matrix
-import probnum.utils.linalg as utlin
 
 
 @pytest.fixture
@@ -41,7 +40,7 @@ def test_cholesky_update(spdmat1, spdmat2):
 
     S1 = np.linalg.cholesky(spdmat1)
     S2 = np.linalg.cholesky(spdmat2)
-    received = utlin.cholesky_update(S1, S2)
+    received = backend.linalg.cholesky_update(S1, S2)
     np.testing.assert_allclose(expected, received)
 
 
@@ -53,7 +52,7 @@ def test_cholesky_optional(spdmat1, even_ndim):
     H = np.random.rand(even_ndim // 2, even_ndim)
     expected = np.linalg.cholesky(H @ spdmat1 @ H.T)
     S1 = np.linalg.cholesky(spdmat1)
-    received = utlin.cholesky_update(H @ S1)
+    received = backend.linalg.cholesky_update(H @ S1)
     np.testing.assert_allclose(expected, received)
 
 
@@ -69,7 +68,7 @@ def test_tril_to_positive_tril():
     tril_wrong_signs = tril @ np.diag(signs)
 
     # Call triu_to_positive_til
-    tril_received = utlin.tril_to_positive_tril(tril_wrong_signs)
+    tril_received = backend.linalg.tril_to_positive_tril(tril_wrong_signs)
 
     # Sanity check
     np.testing.assert_allclose(tril @ tril.T, tril_received @ tril_received.T)

@@ -7,9 +7,9 @@ import numpy as np
 import scipy.linalg
 
 from probnum import config, linops, randvars
+from probnum.backend.linalg import cholesky_update, tril_to_positive_tril
 from probnum.randprocs.markov.discrete import _nonlinear_gaussian
 from probnum.typing import FloatLike, IntLike, LinearOperatorLike
-from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
 
 class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):

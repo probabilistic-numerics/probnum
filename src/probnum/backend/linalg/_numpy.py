@@ -2,6 +2,7 @@ import functools
 from typing import Callable
 
 import numpy as np
+from numpy.linalg import norm, qr
 import scipy.linalg
 from scipy.linalg import cholesky
 

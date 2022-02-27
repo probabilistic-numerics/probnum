@@ -1,8 +1,8 @@
 """Test cases defined by policies."""
 from pytest_cases import case
 
+from probnum.backend.linalg import double_gram_schmidt, modified_gram_schmidt
 from probnum.linalg.solvers import policies
-from probnum.utils.linalg import double_gram_schmidt, modified_gram_schmidt
 
 
 def case_conjugate_gradient():

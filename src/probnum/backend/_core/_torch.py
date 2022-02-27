@@ -22,6 +22,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     eye,
     finfo,
     float as single,
+    hstack,
     int32,
     int64,
     is_floating_point as is_floating,
@@ -29,13 +30,17 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     linspace,
     log,
     maximum,
+    moveaxis,
     pi,
     promote_types,
     reshape,
+    sign,
     sin,
     sqrt,
+    squeeze,
     stack,
     swapaxes,
+    vstack,
 )
 
 torch.set_default_dtype(torch.double)

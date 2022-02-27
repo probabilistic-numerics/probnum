@@ -6,13 +6,13 @@ from typing import Callable, Union
 import numpy as np
 import pytest
 
-from probnum import linops
-from probnum.problems.zoo.linalg import random_spd_matrix
-from probnum.utils.linalg import (
+from probnum import backend, linops
+from probnum.backend.linalg import (
     double_gram_schmidt,
     gram_schmidt,
     modified_gram_schmidt,
 )
+from probnum.problems.zoo.linalg import random_spd_matrix
 
 n = 100
 
@@ -111,7 +111,7 @@ def test_is_normalized(
     [
         np.diag(np.random.default_rng(123).standard_gamma(1.0, size=(n,))),
         5 * np.eye(n),
-        random_spd_matrix(rng=np.random.default_rng(46), dim=n),
+        random_spd_matrix(seed=backend.random.seed(46), dim=n),
     ],
 )
 def test_noneuclidean_innerprod(

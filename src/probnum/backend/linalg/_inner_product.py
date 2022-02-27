@@ -1,19 +1,18 @@
-"""Functions defining useful inner products."""
-from __future__ import annotations
+"""Functions defining useful inner products and associated norms."""
 
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Optional
 
 import numpy as np
 
-if TYPE_CHECKING:
-    from probnum import linops
+from probnum import backend
+from probnum.typing import MatrixType
 
 
 def inner_product(
-    v: np.ndarray,
-    w: np.ndarray,
-    A: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
-) -> np.ndarray:
+    v: backend.ndarray,
+    w: backend.ndarray,
+    A: Optional[MatrixType] = None,
+) -> backend.ndarray:
     r"""Inner product :math:`\langle v, w \rangle_A := v^T A w`.
 
     For n-d arrays the function computes the inner product over the last axis of the
@@ -45,14 +44,14 @@ def inner_product(
     else:
         vw_inprod = v_T @ (A @ w)
 
-    return np.squeeze(vw_inprod, axis=(-2, -1))
+    return backend.squeeze(vw_inprod, axis=(-2, -1))
 
 
 def induced_norm(
-    v: np.ndarray,
-    A: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
+    v: backend.ndarray,
+    A: Optional[MatrixType] = None,
     axis: int = -1,
-) -> np.ndarray:
+) -> backend.ndarray:
     r"""Induced norm :math:`\lVert v \rVert_A := \sqrt{v^T A v}`.
 
     Computes the induced norm over the given axis of the array.
@@ -73,9 +72,9 @@ def induced_norm(
     """
 
     if A is None:
-        return np.linalg.norm(v, ord=2, axis=axis, keepdims=False)
+        return backend.linalg.norm(v, ord=2, axis=axis, keepdims=False)
 
-    v = np.moveaxis(v, axis, -1)
-    w = np.squeeze(A @ v[..., :, None], axis=-1)
+    v = backend.moveaxis(v, axis, -1)
+    w = backend.squeeze(A @ v[..., :, None], axis=-1)
 
-    return np.sqrt(np.sum(v * w, axis=-1))
+    return backend.sqrt(backend.sum(v * w, axis=-1))

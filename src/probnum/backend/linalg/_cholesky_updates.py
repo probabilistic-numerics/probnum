@@ -1,16 +1,16 @@
 """Cholesky updates."""
 
 
-import typing
+from typing import Optional
 
-import numpy as np
+from probnum import backend
 
 __all__ = ["cholesky_update", "tril_to_positive_tril"]
 
 
 def cholesky_update(
-    S1: np.ndarray, S2: typing.Optional[np.ndarray] = None
-) -> np.ndarray:
+    S1: backend.ndarray, S2: Optional[backend.ndarray] = None
+) -> backend.ndarray:
     r"""Compute Cholesky update/factorization :math:`L` such that :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` holds.
 
     This can be used in various ways.
@@ -35,7 +35,7 @@ def cholesky_update(
     Examples
     --------
 
-    >>> from probnum.utils.linalg import cholesky_update
+    >>> from probnum.backend.linalg import cholesky_update
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> import numpy as np
 
@@ -59,29 +59,29 @@ def cholesky_update(
     True
     """
     if S2 is not None:
-        stacked_up = np.vstack((S1.T, S2.T))
+        stacked_up = backend.vstack((S1.T, S2.T))
     else:
-        stacked_up = np.vstack(S1.T)
-    upper_sqrtm = np.linalg.qr(stacked_up, mode="r")
+        stacked_up = backend.vstack(S1.T)
+    upper_sqrtm = backend.linalg.qr(stacked_up, mode="r")
     if S1.ndim == 1:
         lower_sqrtm = upper_sqrtm.T
     elif S1.shape[0] <= S1.shape[1]:
         lower_sqrtm = upper_sqrtm.T
     else:
-        lower_sqrtm = np.zeros((S1.shape[0], S1.shape[0]))
+        lower_sqrtm = backend.zeros((S1.shape[0], S1.shape[0]))
         lower_sqrtm[:, : -(S1.shape[0] - S1.shape[1])] = upper_sqrtm.T
 
     return tril_to_positive_tril(lower_sqrtm)
 
 
-def tril_to_positive_tril(tril_mat: np.ndarray) -> np.ndarray:
+def tril_to_positive_tril(tril_mat: backend.ndarray) -> backend.ndarray:
     r"""Orthogonally transform a lower-triangular matrix into a lower-triangular matrix with positive diagonal.
 
     In other words, make it a valid lower Cholesky factor.
 
     The name of the function is based on `np.tril`.
     """
-    d = np.sign(np.diag(tril_mat))
+    d = backend.sign(backend.diag(tril_mat))
 
     # Numpy assigns sign 0 to 0.0, which eliminate entire rows in the operation below.
     d[d == 0] = 1.0

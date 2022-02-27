@@ -10,7 +10,6 @@ import scipy.sparse.linalg
 
 from probnum import backend, config
 from probnum.typing import DTypeLike, ScalarLike, ShapeLike
-import probnum.utils
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarLike, np.ndarray, scipy.sparse.spmatrix

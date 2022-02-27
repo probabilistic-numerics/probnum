@@ -25,8 +25,6 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.randvars`                        | Random variables representing uncertain values.              |
     +-------------------------------------------------+--------------------------------------------------------------+
-    | :mod:`~probnum.utils`                           | Utility functions.                                           |
-    +-------------------------------------------------+--------------------------------------------------------------+
 
 
 .. toctree::
@@ -34,6 +32,8 @@ API Reference
     :hidden:
 
     api/probnum
+    api/backend
+    api/compat
     api/config
     api/diffeq
     api/filtsmooth

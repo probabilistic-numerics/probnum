@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 import scipy.linalg
 
-from probnum import filtsmooth, randprocs, randvars, utils
+from probnum import backend, filtsmooth, randprocs, randvars
 from probnum.diffeq import _odesolver, _odesolver_state, stepsize
 from probnum.diffeq.odefilter import (
     _odefilter_solution,
@@ -220,7 +220,7 @@ class ODEFilter(_odesolver.ODESolver):
         # The first two are only matrix square-roots and will be turned into proper Cholesky factors below.
         pred_sqrtm = Phi @ noisy_component.cov_cholesky
         meas_sqrtm = H @ pred_sqrtm
-        full_meas_cov_cholesky = utils.linalg.cholesky_update(
+        full_meas_cov_cholesky = backend.linalg.cholesky_update(
             meas_rv_error_free.cov_cholesky, meas_sqrtm
         )
         full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
@@ -278,7 +278,7 @@ class ODEFilter(_odesolver.ODESolver):
             # With the updated diffusion, we need to re-compute the covariances of the
             # predicted RV and measured RV.
             # The resulting predicted and measured RV are overwritten herein.
-            full_pred_cov_cholesky = utils.linalg.cholesky_update(
+            full_pred_cov_cholesky = backend.linalg.cholesky_update(
                 np.sqrt(local_diffusion) * pred_rv_error_free.cov_cholesky, pred_sqrtm
             )
             full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T
@@ -288,7 +288,7 @@ class ODEFilter(_odesolver.ODESolver):
                 cov_cholesky=full_pred_cov_cholesky,
             )
 
-            full_meas_cov_cholesky = utils.linalg.cholesky_update(
+            full_meas_cov_cholesky = backend.linalg.cholesky_update(
                 np.sqrt(local_diffusion) * meas_rv_error_free.cov_cholesky, meas_sqrtm
             )
             full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
@@ -303,7 +303,7 @@ class ODEFilter(_odesolver.ODESolver):
             # This has not been assembled as a standalone random variable yet,
             # but is needed for the update below.
             # (The measurement has been updated already.)
-            full_pred_cov_cholesky = utils.linalg.cholesky_update(
+            full_pred_cov_cholesky = backend.linalg.cholesky_update(
                 pred_rv_error_free.cov_cholesky, pred_sqrtm
             )
             full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T

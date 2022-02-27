@@ -36,7 +36,7 @@ from . import compat
 
 # isort: on
 
-from . import diffeq, filtsmooth, linalg, problems, quad, utils
+from . import diffeq, filtsmooth, linalg, problems, quad
 from ._function import Function, LambdaFunction
 from ._version import version as __version__
 from .randvars import asrandvar

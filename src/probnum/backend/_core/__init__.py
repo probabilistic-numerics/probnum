@@ -29,14 +29,14 @@ is_floating = _core.is_floating
 is_floating_dtype = _core.is_floating_dtype
 finfo = _core.finfo
 
-# Shape Arithmetic
+# Array Shape
 reshape = _core.reshape
 atleast_1d = _core.atleast_1d
 atleast_2d = _core.atleast_2d
 broadcast_arrays = _core.broadcast_arrays
 broadcast_shapes = _core.broadcast_shapes
 ndim = _core.ndim
-
+squeeze = _core.squeeze
 swapaxes = _core.swapaxes
 
 # Constructors
@@ -57,6 +57,7 @@ inf = _core.inf
 pi = _core.pi
 
 # Element-wise Unary Operations
+sign = _core.sign
 abs = _core.abs
 exp = _core.exp
 isfinite = _core.isfinite
@@ -69,6 +70,7 @@ maximum = _core.maximum
 
 # (Partial) Views
 diagonal = _core.diagonal
+moveaxis = _core.moveaxis
 
 # Contractions
 einsum = _core.einsum
@@ -79,6 +81,8 @@ sum = _core.sum
 
 # Concatenation and Stacking
 stack = _core.stack
+hstack = _core.hstack
+vstack = _core.vstack
 
 # Misc
 to_numpy = _core.to_numpy
@@ -154,7 +158,7 @@ __all__ = [
     "is_floating",
     "is_floating_dtype",
     "finfo",
-    # Shape Arithmetic
+    # Array Shape
     "as_shape",
     "reshape",
     "atleast_1d",
@@ -162,6 +166,7 @@ __all__ = [
     "broadcast_arrays",
     "broadcast_shapes",
     "ndim",
+    "squeeze",
     "swapaxes",
     # Constructors
     "array",
@@ -180,6 +185,7 @@ __all__ = [
     "inf",
     "pi",
     # Element-wise Unary Operations
+    "sign",
     "abs",
     "exp",
     "isfinite",
@@ -190,6 +196,7 @@ __all__ = [
     "maximum",
     # (Partial) Views
     "diagonal",
+    "moveaxis",
     # Contractions
     "einsum",
     # Reductions
@@ -197,6 +204,8 @@ __all__ = [
     "sum",
     # Concatenation and Stacking
     "stack",
+    "vstack",
+    "hstack",
     # Misc
     "to_numpy",
     # Just-in-Time Compilation

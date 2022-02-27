@@ -1,4 +1,16 @@
+from typing import Optional, Tuple, Union
+
 import torch
+from torch.linalg import qr
+
+
+def norm(
+    x: torch.Tensor,
+    ord: Optional[Union[int, str]] = None,
+    axis: Optional[Tuple[int, ...]] = None,
+    keepdims: bool = False,
+):
+    return torch.linalg.norm(x, ord=ord, dim=axis, keepdim=keepdims)
 
 
 def cholesky(

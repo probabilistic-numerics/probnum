@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
+from probnum.backend.linalg import induced_norm, inner_product
 from probnum.problems.zoo.linalg import random_spd_matrix
-from probnum.utils.linalg import induced_norm, inner_product
 
 
 @pytest.fixture(scope="module", params=[1, 10, 50])
