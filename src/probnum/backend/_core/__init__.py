@@ -169,6 +169,7 @@ __all__ = [
     "broadcast_shapes",
     "ndim",
     "squeeze",
+    "expand_dims",
     "swapaxes",
     # Constructors
     "array",
