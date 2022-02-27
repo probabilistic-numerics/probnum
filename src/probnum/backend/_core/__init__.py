@@ -37,6 +37,7 @@ broadcast_arrays = _core.broadcast_arrays
 broadcast_shapes = _core.broadcast_shapes
 ndim = _core.ndim
 squeeze = _core.squeeze
+expand_dims = _core.expand_dims
 swapaxes = _core.swapaxes
 
 # Constructors
@@ -80,6 +81,7 @@ all = _core.all
 sum = _core.sum
 
 # Concatenation and Stacking
+concatenate = _core.concatenate
 stack = _core.stack
 hstack = _core.hstack
 vstack = _core.vstack
@@ -203,6 +205,7 @@ __all__ = [
     "all",
     "sum",
     # Concatenation and Stacking
+    "concatenate",
     "stack",
     "vstack",
     "hstack",

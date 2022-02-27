@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Sequence, Tuple
 
 import numpy as np
 import torch
@@ -160,6 +160,14 @@ def zeros_like(a, dtype=None, *, shape=None):
         layout=a.layout,
         device=a.device,
     )
+
+
+def concatenate(arrays: Sequence[torch.Tensor], axis: int = 0) -> torch.Tensor:
+    return torch.cat(tensors=arrays, dim=axis)
+
+
+def expand_dims(a: torch.Tensor, axis: int) -> torch.Tensor:
+    return torch.unsqueeze(input=a, dim=axis)
 
 
 def cast(a: torch.Tensor, dtype=None, casting="unsafe", copy=None):
