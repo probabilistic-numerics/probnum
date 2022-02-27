@@ -41,4 +41,3 @@ API Reference
     api/quad
     api/randprocs
     api/randvars
-    api/utils

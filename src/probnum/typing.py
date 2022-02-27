@@ -16,7 +16,11 @@ internal representation of those same objects.
 from __future__ import annotations
 
 import numbers
-from typing import Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
+
+if TYPE_CHECKING:
+    import jax
+    import torch
 
 import numpy as np
 from numpy.typing import ArrayLike as _NumPyArrayLike, DTypeLike as _NumPyDTypeLike
