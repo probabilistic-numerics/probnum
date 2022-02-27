@@ -45,7 +45,7 @@ class ExpQuad(Kernel, IsotropicMixin):
     """
 
     def __init__(self, input_shape: ShapeLike, lengthscale: ScalarLike = 1.0):
-        self.lengthscale = backend.as_numpy_scalar(lengthscale)
+        self.lengthscale = backend.as_scalar(lengthscale)
         super().__init__(input_shape=input_shape)
 
     @backend.jit_method
