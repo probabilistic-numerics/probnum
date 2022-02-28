@@ -152,7 +152,7 @@ def _kernel_variance_matern_lebesgue(
             domain=(measure.domain[0][dim], measure.domain[1][dim]),
         )
 
-    return measure.normalization_constant ** 2 * kernel_variance
+    return measure.normalization_constant**2 * kernel_variance
 
 
 def _convert_to_product_matern(kernel: Matern) -> ProductMatern:
@@ -200,37 +200,37 @@ def _kernel_mean_matern_1d_lebesgue(
             - np.exp(np.sqrt(5.0) * (x - b) / ell)
             / (15.0 * ell)
             * (
-                8.0 * np.sqrt(5.0) * ell ** 2
+                8.0 * np.sqrt(5.0) * ell**2
                 + 25.0 * ell * (b - x)
-                + 5.0 * np.sqrt(5.0) * (b - x) ** 2
+                + 5.0 * np.sqrt(5.0) * (b - x)**2
             )
             - np.exp(np.sqrt(5.0) * (a - x) / ell)
             / (15.0 * ell)
             * (
-                8.0 * np.sqrt(5.0) * ell ** 2
+                8.0 * np.sqrt(5.0) * ell**2
                 + 25.0 * ell * (x - a)
-                + 5.0 * np.sqrt(5.0) * (a - x) ** 2
+                + 5.0 * np.sqrt(5.0) * (a - x)**2
             )
         )
     elif kernel.nu == 3.5:
         unnormalized_mean = (
             1.0
-            / (105.0 * ell ** 2)
+            / (105.0 * ell**2)
             * (
-                96.0 * np.sqrt(7.0) * ell ** 3
+                96.0 * np.sqrt(7.0) * ell**3
                 - np.exp(np.sqrt(7.0) * (x - b) / ell)
                 * (
-                    48.0 * np.sqrt(7.0) * ell ** 3
-                    - 231.0 * ell ** 2 * (x - b)
-                    + 63.0 * np.sqrt(7.0) * ell * (x - b) ** 2
-                    - 49.0 * (x - b) ** 3
+                    48.0 * np.sqrt(7.0) * ell**3
+                    - 231.0 * ell**2 * (x - b)
+                    + 63.0 * np.sqrt(7.0) * ell * (x - b)**2
+                    - 49.0 * (x - b)**3
                 )
                 - np.exp(np.sqrt(7.0) * (a - x) / ell)
                 * (
-                    48.0 * np.sqrt(7.0) * ell ** 3
-                    + 231.0 * ell ** 2 * (x - a)
-                    + 63.0 * np.sqrt(7.0) * ell * (x - a) ** 2
-                    + 49.0 * (x - a) ** 3
+                    48.0 * np.sqrt(7.0) * ell**3
+                    + 231.0 * ell**2 * (x - a)
+                    + 63.0 * np.sqrt(7.0) * ell * (x - a)**2
+                    + 49.0 * (x - a)**3
                 )
             )
         )
@@ -267,11 +267,11 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
                 + 2.0
                 * np.exp(-c / ell)
                 * (
-                    5.0 * a ** 2
+                    5.0 * a**2
                     - 10.0 * a * b
-                    + 5.0 * b ** 2
+                    + 5.0 * b**2
                     + 7.0 * c * ell
-                    + 15.0 * ell ** 2
+                    + 15.0 * ell**2
                 )
             )
         )
@@ -284,20 +284,20 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
                 2.0
                 * np.exp(-c / ell)
                 * (
-                    7.0 * np.sqrt(7.0) * (b ** 3 - a ** 3)
-                    + 84.0 * b ** 2 * ell
-                    + 57.0 * np.sqrt(7.0) * b * ell ** 2
-                    + 105.0 * ell ** 3
-                    + 21.0 * a ** 2 * (np.sqrt(7.0) * b + 4.0 * ell)
+                    7.0 * np.sqrt(7.0) * (b**3 - a**3)
+                    + 84.0 * b**2 * ell
+                    + 57.0 * np.sqrt(7.0) * b * ell**2
+                    + 105.0 * ell**3
+                    + 21.0 * a**2 * (np.sqrt(7.0) * b + 4.0 * ell)
                     - 3.0
                     * a
                     * (
-                        7.0 * np.sqrt(7.0) * b ** 2
+                        7.0 * np.sqrt(7.0) * b**2
                         + 56.0 * b * ell
-                        + 19.0 * np.sqrt(7.0) * ell ** 2
+                        + 19.0 * np.sqrt(7.0) * ell**2
                     )
                 )
-                - 6.0 * ell ** 2 * (35.0 * ell - 16.0 * c)
+                - 6.0 * ell**2 * (35.0 * ell - 16.0 * c)
             )
         )
     else:
