@@ -202,14 +202,14 @@ def _kernel_mean_matern_1d_lebesgue(
             * (
                 8.0 * np.sqrt(5.0) * ell**2
                 + 25.0 * ell * (b - x)
-                + 5.0 * np.sqrt(5.0) * (b - x)**2
+                + 5.0 * np.sqrt(5.0) * (b - x) ** 2
             )
             - np.exp(np.sqrt(5.0) * (a - x) / ell)
             / (15.0 * ell)
             * (
                 8.0 * np.sqrt(5.0) * ell**2
                 + 25.0 * ell * (x - a)
-                + 5.0 * np.sqrt(5.0) * (a - x)**2
+                + 5.0 * np.sqrt(5.0) * (a - x) ** 2
             )
         )
     elif kernel.nu == 3.5:
@@ -222,15 +222,15 @@ def _kernel_mean_matern_1d_lebesgue(
                 * (
                     48.0 * np.sqrt(7.0) * ell**3
                     - 231.0 * ell**2 * (x - b)
-                    + 63.0 * np.sqrt(7.0) * ell * (x - b)**2
-                    - 49.0 * (x - b)**3
+                    + 63.0 * np.sqrt(7.0) * ell * (x - b) ** 2
+                    - 49.0 * (x - b) ** 3
                 )
                 - np.exp(np.sqrt(7.0) * (a - x) / ell)
                 * (
                     48.0 * np.sqrt(7.0) * ell**3
                     + 231.0 * ell**2 * (x - a)
-                    + 63.0 * np.sqrt(7.0) * ell * (x - a)**2
-                    + 49.0 * (x - a)**3
+                    + 63.0 * np.sqrt(7.0) * ell * (x - a) ** 2
+                    + 49.0 * (x - a) ** 3
                 )
             )
         )
