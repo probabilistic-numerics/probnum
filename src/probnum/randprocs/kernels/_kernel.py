@@ -27,9 +27,9 @@ class Kernel(abc.ABC):
 
     is a function of two arguments :math:`x_0` and :math:`x_1`, which represents the
     covariance between two evaluations :math:`f(x_0)` and :math:`g(x_1)` of two
-    scalar-valued random processes :math:`f` and :math:`g` (or, equivalently, two
-    outputs :math:`h_i(x_0)` and :math:`h_j(x_1)` of a vector-valued random process
-    :math:`h`).
+    scalar-valued random processes :math:`f` and :math:`g` on a common probability space
+    (or, equivalently, two outputs :math:`h_i(x_0)` and :math:`h_j(x_1)` of a
+    vector-valued random process :math:`h`).
     If :math:`f = g`, then the cross-covariance function is also referred to as a
     covariance function, in which case it must be symmetric and positive
     (semi-)definite.
@@ -49,18 +49,20 @@ class Kernel(abc.ABC):
         \end{equation}
 
     of the vector-valued random process :math:`f`. To this end, we understand any
-    :class:`Kernel` with a non-empty :attr:`shape` as a tensor with the given
-    :attr:`shape`, which contains different (cross-)covariance functions as its entries.
+    :class:`Kernel` as a tensor whose shape is given by :attr:`output_shape`, which
+    contains different (cross-)covariance functions as its entries.
 
     Parameters
     ----------
     input_shape :
-        Shape of the kernel's input.
-    shape :
-        If ``shape`` is set to ``()``, the :class:`Kernel` instance represents a
-        single (cross-)covariance function. Otherwise, i.e. if ``shape`` is non-empty,
-        the :class:`Kernel` instance represents a tensor of (cross-)covariance
-        functions whose shape is given by ``shape``.
+        Shape of the :class:`Kernel`'s input.
+    output_shape :
+        Shape of the :class:`Kernel`'s output.
+
+        If ``output_shape`` is set to ``()``, the :class:`Kernel` instance represents a
+        single (cross-)covariance function. Otherwise, i.e. if ``output_shape`` is a
+        non-empty tuple, the :class:`Kernel` instance represents a tensor of
+        (cross-)covariance functions whose shape is given by ``output_shape``.
 
     Examples
     --------
@@ -69,6 +71,8 @@ class Kernel(abc.ABC):
     >>> k = pn.randprocs.kernels.Linear(input_shape=D)
     >>> k.input_shape
     (3,)
+    >>> k.output_shape
+    ()
 
     Generate some input data.
 
@@ -116,7 +120,7 @@ class Kernel(abc.ABC):
     def __init__(
         self,
         input_shape: ShapeLike,
-        shape: ShapeLike = (),
+        output_shape: ShapeLike = (),
     ):
         self._input_shape = _pn_utils.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
@@ -126,11 +130,12 @@ class Kernel(abc.ABC):
                 "Currently, we only support kernels with at most 1 input dimension."
             )
 
-        self._shape = _pn_utils.as_shape(shape)
+        self._output_shape = _pn_utils.as_shape(output_shape)
+        self._output_ndim = len(self._output_shape)
 
     @property
     def input_shape(self) -> ShapeType:
-        """Shape of the kernel's input."""
+        """Shape of single, i.e. non-batched, arguments of the covariance function."""
         return self._input_shape
 
     @property
@@ -139,21 +144,27 @@ class Kernel(abc.ABC):
         return self._input_ndim
 
     @property
-    def shape(self) -> ShapeType:
-        """If :attr:`shape` is ``()``, the :class:`Kernel` instance represents a single
-        (cross-)covariance function.
+    def output_shape(self) -> ShapeType:
+        """Shape of single, i.e. non-batched, return values of the covariance function.
 
-        Otherwise, i.e. if :attr:`shape` is non-empty, the :class:`Kernel` instance
-        represents a tensor of (cross-)covariance functions whose shape is given by
-        ``shape``.
+        If :attr:`output_shape` is ``()``, the :class:`Kernel` instance represents
+        a single (cross-)covariance function.
+        Otherwise, i.e. if :attr:`output_shape` is non-empty, the :class:`Kernel`
+        instance represents a tensor of (cross-)covariance functions whose shape is
+        given by ``output_shape``.
         """
-        return self._shape
+        return self._output_shape
+
+    @property
+    def output_ndim(self) -> int:
+        """Syntactic sugar for ``len(output_shape)``."""
+        return self._output_ndim
 
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with"
             f" input_shape={self.input_shape} and"
-            f" shape={self.shape}>"
+            f" output_shape={self.output_shape}>"
         )
 
     def __call__(
@@ -180,21 +191,21 @@ class Kernel(abc.ABC):
         Returns
         -------
         k_x0_x1 :
-            *shape=* :attr:`shape` ``+ bcast_batch_shape`` -- The (cross-)covariance
-            function(s) evaluated at ``(x0, x1)``. Since the function is vectorized
-            over the batch shapes of the inputs, the output array contains the following
-            entries:
+            *shape=* ``bcast_batch_shape +`` :attr:`output_shape` -- The
+            (cross-)covariance function(s) evaluated at ``(x0, x1)``.
+            Since the function is vectorized over the batch shapes of the inputs, the
+            output array contains the following entries:
 
             .. code-block:: python
 
-                k_x0_x1[output_idx + batch_idx] = k[output_idx](
+                k_x0_x1[batch_idx + output_idx] = k[output_idx](
                     x0[batch_idx, ...],
                     x1[batch_idx, ...],
                 )
 
             where we assume that ``x0`` and ``x1`` have been broadcast to a common
             shape ``bcast_batch_shape +`` :attr:`input_shape`, and where ``output_idx``
-            and ``batch_idx`` are indices compatible with :attr:`shape` and
+            and ``batch_idx`` are indices compatible with :attr:`output_shape` and
             ``bcast_batch_shape``, respectively.
             By ``k[output_idx]`` we refer to the covariance function at index
             ``output_idx`` in the tensor of covariance functions represented by the
@@ -231,7 +242,7 @@ class Kernel(abc.ABC):
         # Evaluate the kernel
         k_x0_x1 = self._evaluate(x0, x1)
 
-        assert k_x0_x1.shape == self._shape + broadcast_batch_shape
+        assert k_x0_x1.shape == broadcast_batch_shape + self._output_shape
 
         return k_x0_x1
 
@@ -262,10 +273,11 @@ class Kernel(abc.ABC):
         Returns
         -------
         kernmat :
-            *shape=* :attr:`shape` ``+ batch_shape`` -- The matrix / stack of matrices
-            containing the pairwise evaluations of the (cross-)covariance function(s) on
-            ``x0`` and ``x1``. Depending on the shape of the inputs, ``batch_shape`` is
-            either ``(M, N)``, ``(M,)``, ``(N,)``, or ``()``.
+            *shape=* ``batch_shape +`` :attr:`output_shape` -- The matrix / stack of
+            matrices containing the pairwise evaluations of the (cross-)covariance
+            function(s) on ``x0`` and ``x1``.
+            Depending on the shape of the inputs, ``batch_shape`` is either ``(M, N)``,
+            ``(M,)``, ``(N,)``, or ``()``.
 
         Raises
         ------
