@@ -48,7 +48,7 @@ def _kernel_mean_expquad_lebesgue(
         *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument,
         evaluated at locations ``x``.
     """
-    (input_dim,) = kernel.input_shape
+    input_dim = 1 if kernel.input_shape == () else kernel.input_shape[0]
 
     ell = kernel.lengthscale
     return (
@@ -96,7 +96,7 @@ def _kernel_variance_expquad_lebesgue(
         The kernel integrated w.r.t. both arguments.
     """
 
-    (input_dim,) = kernel.input_shape
+    input_dim = 1 if kernel.input_shape == () else kernel.input_shape[0]
 
     # pylint: disable=invalid-name
     r = measure.domain[1] - measure.domain[0]
