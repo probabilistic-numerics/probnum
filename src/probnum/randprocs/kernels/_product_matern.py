@@ -4,8 +4,8 @@ from typing import Optional, Union
 
 import numpy as np
 
-import probnum.utils as _utils
-from probnum.typing import IntLike, ScalarLike
+from probnum import utils as _utils
+from probnum.typing import ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 from ._matern import Matern
@@ -21,8 +21,8 @@ class ProductMatern(Kernel):
 
     Parameters
     ----------
-    input_dim :
-        Input dimension of the kernel.
+    input_shape :
+        Shape of the kernel's input.
     lengthscales :
         Lengthscales of the one-dimensional Matern kernels. Describes the input scale on
         which the process varies. If a scalar, the same lengthscale is used in each
@@ -40,10 +40,9 @@ class ProductMatern(Kernel):
     --------
     >>> import numpy as np
     >>> from probnum.randprocs.kernels import ProductMatern
-    >>> input_dim = 2
     >>> lengthscales = np.array([0.1, 1.2])
     >>> nus = np.array([0.5, 3.5])
-    >>> K = ProductMatern(input_dim=2, lengthscales=lengthscales, nus=nus)
+    >>> K = ProductMatern(input_shape=(2,), lengthscales=lengthscales, nus=nus)
     >>> xs = np.array([[0.0, 0.5], [1.0, 1.0], [0.5, 0.2]])
     >>> K.matrix(xs)
     array([[1.00000000e+00, 4.03712525e-05, 6.45332482e-03],
@@ -53,11 +52,18 @@ class ProductMatern(Kernel):
 
     def __init__(
         self,
-        input_dim: IntLike,
+        input_shape: ShapeLike,
         lengthscales: Union[np.ndarray, ScalarLike],
         nus: Union[np.ndarray, ScalarLike],
     ):
-        input_dim = int(input_dim)
+        input_shape = _utils.as_shape(input_shape)
+        if input_shape == () and not (np.isscalar(lengthscales) or np.isscalar(nus)):
+            raise ValueError(
+                f"'lengthscales' and 'nus' must be scalar if 'input_shape' is "
+                f"{input_shape}."
+            )
+
+        input_dim = 1 if input_shape == () else input_shape[0]
 
         # If only single scalar lengthcsale or nu is given, use this in every dimension
         if np.isscalar(lengthscales):
@@ -68,25 +74,31 @@ class ProductMatern(Kernel):
         univariate_materns = []
         for dim in range(input_dim):
             univariate_materns.append(
-                Matern(input_dim=1, lengthscale=lengthscales[dim], nu=nus[dim])
+                Matern(input_shape=(), lengthscale=lengthscales[dim], nu=nus[dim])
             )
         self.univariate_materns = univariate_materns
         self.nus = nus
         self.lengthscales = lengthscales
 
-        super().__init__(input_dim=input_dim)
+        super().__init__(input_shape=input_shape)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
 
-        kernel_eval = 1.0
+        # scalar case is same as a scalar Matern
+        if self.input_shape == ():
+            if x1 is None:
+                return self.univariate_materns[0](x0, None)
+            return self.univariate_materns[0](x0, x1)
 
+        # product case
+        (input_dim,) = self.input_shape
+
+        kernel_eval = 1.0
         if x1 is None:
-            for dim in range(self.input_dim):
-                kernel_eval *= self.univariate_materns[dim](x0[..., dim, None], None)
+            for dim in range(input_dim):
+                kernel_eval *= self.univariate_materns[dim](x0[..., dim], None)
         else:
-            for dim in range(self.input_dim):
-                kernel_eval *= self.univariate_materns[dim](
-                    x0[..., dim, None], x1[..., dim, None]
-                )
+            for dim in range(input_dim):
+                kernel_eval *= self.univariate_materns[dim](x0[..., dim], x1[..., dim])
 
         return kernel_eval

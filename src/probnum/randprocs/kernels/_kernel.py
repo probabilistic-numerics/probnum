@@ -129,8 +129,8 @@ class Kernel(abc.ABC):
         self._shape = _pn_utils.as_shape(shape)
 
     @property
-    def input_shape(self) -> int:
-        """Dimension of single arguments of the covariance function."""
+    def input_shape(self) -> ShapeType:
+        """Shape of the kernel's input."""
         return self._input_shape
 
     @property

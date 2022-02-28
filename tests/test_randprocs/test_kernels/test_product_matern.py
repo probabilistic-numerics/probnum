@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-import probnum.utils as _utils
 from probnum.randprocs import kernels
+import probnum.utils as _utils
 
 
 @pytest.mark.parametrize("nu", [0.5, 1.5, 2.5, 3.0])
@@ -12,9 +12,9 @@ def test_kernel_matrix(input_dim, nu):
     """Check that the product Matérn kernel matrix is an elementwise product of 1D
     Matérn kernel matrices."""
     lengthscale = 1.25
-    matern = kernels.Matern(input_dim=1, lengthscale=lengthscale, nu=nu)
+    matern = kernels.Matern(input_shape=(1,), lengthscale=lengthscale, nu=nu)
     product_matern = kernels.ProductMatern(
-        input_dim=input_dim, lengthscales=lengthscale, nus=nu
+        input_shape=(input_dim,), lengthscales=lengthscale, nus=nu
     )
     rng = np.random.default_rng(42)
     num_xs = 15

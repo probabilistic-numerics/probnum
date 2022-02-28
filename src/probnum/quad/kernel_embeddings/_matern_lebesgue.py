@@ -76,7 +76,7 @@ def _kernel_mean_matern_lebesgue(
 
     # Compute kernel mean via a product of one-dimensional kernel means
     kernel_mean = np.ones((x.shape[0],))
-    for dim in range(kernel.input_dim):
+    for dim in range(kernel.input_shape[0]):
         kernel_mean *= _kernel_mean_matern_1d_lebesgue(
             x=x[:, dim],
             kernel=kernel.univariate_materns[dim],
@@ -142,10 +142,11 @@ def _kernel_variance_matern_lebesgue(
     """
 
     kernel = _convert_to_product_matern(kernel)
+    input_dim = 1 if kernel.input_shape == () else kernel.input_shape[0]
 
     # Compute kernel mean via a product of one-dimensional kernel variances
     kernel_variance = 1.0
-    for dim in range(kernel.input_dim):
+    for dim in range(input_dim):
         kernel_variance *= _kernel_variance_matern_1d_lebesgue(
             kernel=kernel.univariate_materns[dim],
             domain=(measure.domain[0][dim], measure.domain[1][dim]),
@@ -156,14 +157,15 @@ def _kernel_variance_matern_lebesgue(
 
 def _convert_to_product_matern(kernel: Matern) -> ProductMatern:
     """Convert a 1D Matern kernel to a ProductMatern for unified treatment."""
+    input_dim = 1 if kernel.input_shape == () else kernel.input_shape[0]
     if isinstance(kernel, Matern):
-        if kernel.input_dim > 1:
+        if input_dim > 1:
             raise NotImplementedError(
                 "Kernel embeddings have been implemented only for "
                 "Matérn kernels in dimension one and product Matern kernels."
             )
         kernel = ProductMatern(
-            input_dim=kernel.input_dim,
+            input_shape=kernel.input_shape,
             lengthscales=kernel.lengthscale,
             nus=kernel.nu,
         )

@@ -190,5 +190,5 @@ def fixture_matern_kernel(
 ) -> kernels.Kernel:
     """Set up Matern kernel."""
     return kernels.ProductMatern(
-        input_dim=input_dim, nus=matern_nu, lengthscales=matern_lengthscale
+        input_shape=(input_dim,), nus=matern_nu, lengthscales=matern_lengthscale
     )
