@@ -29,12 +29,15 @@ def test_kernel_matrix(input_dim, nu):
     )
 
 
-def test_wrong_initialization_raises_exception():
+@pytest.mark.parametrize(
+    "ell,nu",
+    [
+        (np.array([3.0]), 0.5),
+        (3.0, np.array([0.5])),
+        (np.array([3.0]), np.array([0.5])),
+    ],
+)
+def test_wrong_initialization_raises_exception(ell, nu):
+    """Parameters must be scalars if kernel input is scalar."""
     with pytest.raises(ValueError):
-        kernels.ProductMatern(input_shape=(), lengthscales=np.array([3.0]), nus=3.0)
-    with pytest.raises(ValueError):
-        kernels.ProductMatern(input_shape=(), lengthscales=3.0, nus=np.array([0.5]))
-    with pytest.raises(ValueError):
-        kernels.ProductMatern(
-            input_shape=(), lengthscales=np.array([3.0]), nus=np.array([0.5])
-        )
+        kernels.ProductMatern(input_shape=(), lengthscales=ell, nus=nu)
