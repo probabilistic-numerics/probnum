@@ -48,6 +48,11 @@ class ProductMatern(Kernel):
     array([[1.00000000e+00, 4.03712525e-05, 6.45332482e-03],
            [4.03712525e-05, 1.00000000e+00, 5.05119251e-03],
            [6.45332482e-03, 5.05119251e-03, 1.00000000e+00]])
+
+    Raises
+    ------
+    ValueError
+        If kernel input is scalar, but  ``lengthscales`` or ``nus`` or not.
     """
 
     def __init__(
@@ -57,7 +62,7 @@ class ProductMatern(Kernel):
         nus: Union[np.ndarray, ScalarLike],
     ):
         input_shape = _utils.as_shape(input_shape)
-        if input_shape == () and not (np.isscalar(lengthscales) or np.isscalar(nus)):
+        if input_shape == () and not (np.isscalar(lengthscales) and np.isscalar(nus)):
             raise ValueError(
                 f"'lengthscales' and 'nus' must be scalar if 'input_shape' is "
                 f"{input_shape}."

@@ -27,3 +27,14 @@ def test_kernel_matrix(input_dim, nu):
         kernel_matrix1,
         kernel_matrix2,
     )
+
+
+def test_wrong_initialization_raises_exception():
+    with pytest.raises(ValueError):
+        kernels.ProductMatern(input_shape=(), lengthscales=np.array([3.0]), nus=3.0)
+    with pytest.raises(ValueError):
+        kernels.ProductMatern(input_shape=(), lengthscales=3.0, nus=np.array([0.5]))
+    with pytest.raises(ValueError):
+        kernels.ProductMatern(
+            input_shape=(), lengthscales=np.array([3.0]), nus=np.array([0.5])
+        )
