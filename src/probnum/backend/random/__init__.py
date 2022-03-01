@@ -12,6 +12,7 @@ seed = _random.seed
 split = _random.split
 
 # Sample functions
+uniform = _random.uniform
 standard_normal = _random.standard_normal
 gamma = _random.gamma
 uniform_so_group = _random.uniform_so_group
