@@ -74,7 +74,8 @@ class SumKernel(Kernel):
     Parameters
     ----------
     summands
-        Kernels to sum together. Must have the same ``input_shape`` and ``output_shape``.
+        Kernels to sum together. Must have the same ``input_shape`` and
+        ``output_shape``.
     """
 
     def __init__(self, *summands: Kernel):
@@ -109,7 +110,9 @@ class SumKernel(Kernel):
 
         for summand in summands:
             if isinstance(summand, SumKernel):
-                expanded_summands.extend(summand._summands)
+                expanded_summands.extend(
+                    summand._summands
+                )  # pylint: disable="protected-access"
             else:
                 expanded_summands.append(summand)
 
@@ -129,7 +132,8 @@ class ProductKernel(Kernel):
     Parameters
     ----------
     factors
-        Kernels to multiply together. Must have the same ``input_shape`` and ``output_shape``.
+        Kernels to multiply together. Must have the same ``input_shape`` and
+        ``output_shape``.
     """
 
     def __init__(self, *factors: Kernel):
@@ -164,7 +168,9 @@ class ProductKernel(Kernel):
 
         for factor in factors:
             if isinstance(factor, ProductKernel):
-                expanded_factors.extend(factor._factors)
+                expanded_factors.extend(
+                    factor._factors
+                )  # pylint: disable="protected-access"
             else:
                 expanded_factors.append(factor)
 

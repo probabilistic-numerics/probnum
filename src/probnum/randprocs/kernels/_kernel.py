@@ -126,7 +126,7 @@ class Kernel(abc.ABC):
 
     >>> from probnum.randprocs.kernels import WhiteNoise
     >>> k_noise = k + 0.1 * WhiteNoise(input_shape=D)
-    >>> k.matrix(xs)
+    >>> k_noise.matrix(xs)
     array([[0.14132231, 0.11570248, 0.19008264, 0.26446281],
            [0.11570248, 0.51322314, 0.7107438 , 1.00826446],
            [0.19008264, 0.7107438 , 1.33140496, 1.75206612],
