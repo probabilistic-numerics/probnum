@@ -1,12 +1,16 @@
 """Kernel / covariance function."""
 
+from __future__ import annotations
+
 import abc
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 
 from probnum import utils as _pn_utils
-from probnum.typing import ArrayLike, ShapeLike, ShapeType
+from probnum.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
+
+BinaryOperandType = Union["Kernel", ScalarLike]
 
 
 class Kernel(abc.ABC):
@@ -147,11 +151,10 @@ class Kernel(abc.ABC):
     def output_shape(self) -> ShapeType:
         """Shape of single, i.e. non-batched, return values of the covariance function.
 
-        If :attr:`output_shape` is ``()``, the :class:`Kernel` instance represents
-        a single (cross-)covariance function.
-        Otherwise, i.e. if :attr:`output_shape` is non-empty, the :class:`Kernel`
-        instance represents a tensor of (cross-)covariance functions whose shape is
-        given by ``output_shape``.
+        If :attr:`output_shape` is ``()``, the :class:`Kernel` instance represents a
+        single (cross-)covariance function. Otherwise, i.e. if :attr:`output_shape` is
+        non-empty, the :class:`Kernel` instance represents a tensor of
+        (cross-)covariance functions whose shape is given by ``output_shape``.
         """
         return self._output_shape
 
@@ -342,6 +345,7 @@ class Kernel(abc.ABC):
         k_x0_x1 :
             See "Returns" section in the docstring of :meth:`__call__`.
         """
+        raise NotImplementedError
 
     def _check_shapes(
         self,
@@ -418,6 +422,38 @@ class Kernel(abc.ABC):
 
         return np.sum(prods, axis=-1)
 
+    ####################################################################################
+    # Binary Arithmetic
+    ####################################################################################
+
+    __array_ufunc__ = None
+    """
+    This prevents numpy from calling elementwise arithmetic operations allowing
+    expressions like `y = np.array([1, 1]) + linop` to call the arithmetic operations
+    defined by `LinearOperator` instead of elementwise. Thus no array of
+    `LinearOperator`s but a `LinearOperator` with the correct shape is returned.
+    """
+
+    def __add__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+
+        return add(self, other)
+
+    def __radd__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+
+        return add(other, self)
+
+    def __mul__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+
+        return mul(self, other)
+
+    def __rmul__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+
+        return mul(other, self)
+
 
 class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     r"""Mixin for isotropic kernels.
@@ -455,8 +491,8 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     def _euclidean_distances(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
     ) -> np.ndarray:
-        """Implementation of the Euclidean distance, which supports scalar
-        inputs and an optional second argument."""
+        """Implementation of the Euclidean distance, which supports scalar inputs and an
+        optional second argument."""
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
