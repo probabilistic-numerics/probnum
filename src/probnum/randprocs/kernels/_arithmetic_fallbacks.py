@@ -110,9 +110,8 @@ class SumKernel(Kernel):
 
         for summand in summands:
             if isinstance(summand, SumKernel):
-                expanded_summands.extend(
-                    summand._summands
-                )  # pylint: disable="protected-access"
+                # pylint: disable="protected-access"
+                expanded_summands.extend(summand._summands)
             else:
                 expanded_summands.append(summand)
 
@@ -168,9 +167,8 @@ class ProductKernel(Kernel):
 
         for factor in factors:
             if isinstance(factor, ProductKernel):
-                expanded_factors.extend(
-                    factor._factors
-                )  # pylint: disable="protected-access"
+                # pylint: disable="protected-access"
+                expanded_factors.extend(factor._factors)
             else:
                 expanded_factors.append(factor)
 
