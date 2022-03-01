@@ -1,4 +1,5 @@
 """(Almost surely) constant random variables."""
+from __future__ import annotations
 
 from functools import cached_property
 from typing import Callable, TypeVar
@@ -10,10 +11,10 @@ from probnum.typing import ArrayIndicesLike, ShapeLike, ShapeType
 
 from . import _random_variable
 
-_ValueType = TypeVar("ValueType")
+ValueType = TypeVar("ValueType")
 
 
-class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
+class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
     """Random variable representing a constant value.
 
     Discrete random variable which (with probability one) takes a constant value. The
@@ -55,7 +56,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     def __init__(
         self,
-        support: _ValueType,
+        support: ValueType,
     ):
         if np.isscalar(support):
             support = _utils.as_numpy_scalar(support)
@@ -110,7 +111,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
         return self.cov
 
     @property
-    def support(self) -> _ValueType:
+    def support(self) -> ValueType:
         """Constant value taken by the random variable."""
         return self._support
 
@@ -139,7 +140,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> _ValueType:
+    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> ValueType:
         size = _utils.as_shape(size)
 
         if size == ():
@@ -168,7 +169,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     @staticmethod
     def _binary_operator_factory(
-        operator: Callable[[_ValueType, _ValueType], _ValueType]
+        operator: Callable[[ValueType, ValueType], ValueType]
     ) -> Callable[["Constant", "Constant"], "Constant"]:
         def _constant_rv_binary_operator(
             constant_rv1: Constant, constant_rv2: Constant

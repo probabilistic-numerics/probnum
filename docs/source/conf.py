@@ -28,13 +28,11 @@ sys.path.append(os.path.abspath("./_ext"))
 
 # -- General configuration ------------------------------------------------
 
-# If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.0"
-
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
@@ -43,8 +41,6 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx_automodapi.automodapi",
-    "sphinx_autodoc_typehints",
-    "sphinxcontrib.bibtex",
     "sphinx_gallery.load_style",
     "myst_parser",
     "nbsphinx",
@@ -61,14 +57,23 @@ napoleon_use_param = True
 # autodoc_default_flags = ['no-members']
 numpydoc_show_class_members = True
 
+# Settings for autodoc
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "all"
+autodoc_typehints_format = "short"
+autodoc_type_aliases = {
+    "ArrayIndicesLike": "ArrayIndicesLike",
+    "ArrayLike": "ArrayLike",
+    "DTypeLike": "DTypeLike",
+    "FloatLike": "FloatLike",
+    "IntLike": "IntLike",
+    "ShapeLike": "ShapeLike",
+}
+
 # Settings for automodapi
 automodapi_toctreedirnm = "api/automod"
 automodapi_writereprocessed = False
 automodsumm_inherited_members = True
-
-# Settings for autodoc_typehints
-typehints_fully_qualified = False
-typehints_document_rtype = True
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:

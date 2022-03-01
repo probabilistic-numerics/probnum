@@ -1,5 +1,7 @@
 """Kernel / covariance function."""
 
+from __future__ import annotations
+
 import abc
 from typing import Optional
 
@@ -147,11 +149,10 @@ class Kernel(abc.ABC):
     def output_shape(self) -> ShapeType:
         """Shape of single, i.e. non-batched, return values of the covariance function.
 
-        If :attr:`output_shape` is ``()``, the :class:`Kernel` instance represents
-        a single (cross-)covariance function.
-        Otherwise, i.e. if :attr:`output_shape` is non-empty, the :class:`Kernel`
-        instance represents a tensor of (cross-)covariance functions whose shape is
-        given by ``output_shape``.
+        If :attr:`output_shape` is ``()``, the :class:`Kernel` instance represents a
+        single (cross-)covariance function. Otherwise, i.e. if :attr:`output_shape` is
+        non-empty, the :class:`Kernel` instance represents a tensor of
+        (cross-)covariance functions whose shape is given by ``output_shape``.
         """
         return self._output_shape
 
@@ -455,8 +456,8 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     def _euclidean_distances(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
     ) -> np.ndarray:
-        """Implementation of the Euclidean distance, which supports scalar
-        inputs and an optional second argument."""
+        """Implementation of the Euclidean distance, which supports scalar inputs and an
+        optional second argument."""
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,

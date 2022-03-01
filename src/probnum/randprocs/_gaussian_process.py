@@ -1,4 +1,7 @@
 """Gaussian processes."""
+
+from __future__ import annotations
+
 import numpy as np
 
 from probnum import randvars

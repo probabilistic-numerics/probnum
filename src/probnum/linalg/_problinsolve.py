@@ -6,6 +6,8 @@ be provided and is updated with information collected by the solvers to return a
 posterior distribution.
 """
 
+from __future__ import annotations
+
 from typing import Callable, Dict, Optional, Tuple, Union
 import warnings
 
@@ -44,7 +46,7 @@ def problinsolve(
     atol: float = 10**-6,
     rtol: float = 10**-6,
     callback: Optional[Callable] = None,
-    **kwargs
+    **kwargs,
 ) -> Tuple[
     "randvars.RandomVariable[np.ndarray]",
     "randvars.RandomVariable[linops.LinearOperator]",

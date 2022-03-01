@@ -1,5 +1,7 @@
 """State of a probabilistic linear solver."""
 
+from __future__ import annotations
+
 import dataclasses
 from typing import Any, Dict, List, Optional, Tuple
 

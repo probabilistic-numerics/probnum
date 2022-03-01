@@ -10,8 +10,8 @@ from probnum.randprocs import _random_process, kernels
 from probnum.randprocs.markov import _transition
 from probnum.typing import ShapeLike
 
-_InputType = Union[np.floating, np.ndarray]
-_OutputType = Union[np.floating, np.ndarray]
+InputType = Union[np.floating, np.ndarray]
+OutputType = Union[np.floating, np.ndarray]
 
 
 class MarkovProcess(_random_process.RandomProcess):
@@ -67,15 +67,15 @@ class MarkovProcess(_random_process.RandomProcess):
             ),
         )
 
-    def __call__(self, args: _InputType) -> randvars.RandomVariable:
+    def __call__(self, args: InputType) -> randvars.RandomVariable:
         raise NotImplementedError
 
     def _sample_at_input(
         self,
         rng: np.random.Generator,
-        args: _InputType,
+        args: InputType,
         size: ShapeLike = (),
-    ) -> _OutputType:
+    ) -> OutputType:
 
         size = utils.as_shape(size)
         args = np.atleast_1d(args)
