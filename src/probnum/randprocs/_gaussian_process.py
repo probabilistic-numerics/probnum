@@ -5,10 +5,10 @@ from __future__ import annotations
 import numpy as np
 
 from probnum import randvars
+from probnum.typing import ArrayLike
 
 from . import _random_process, kernels
 from .. import _function
-from ..typing import ArrayLike
 
 
 class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
