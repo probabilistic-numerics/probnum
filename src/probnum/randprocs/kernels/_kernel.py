@@ -71,8 +71,9 @@ class Kernel(abc.ABC):
     Examples
     --------
 
+    >>> from probnum.randprocs.kernels import Linear
     >>> D = 3
-    >>> k = pn.randprocs.kernels.Linear(input_shape=D)
+    >>> k = Linear(input_shape=D)
     >>> k.input_shape
     (3,)
     >>> k.output_shape
@@ -119,6 +120,17 @@ class Kernel(abc.ABC):
 
     >>> k(xs[:-1, :], xs[1:, :])
     array([0.11570248, 0.7107438 , 1.75206612])
+
+    Kernels support basic arithmetic operations. For example we can add noise to the
+    kernel in the following fashion.
+
+    >>> from probnum.randprocs.kernels import WhiteNoise
+    >>> k_noise = k + 0.1 * WhiteNoise(input_shape=D)
+    >>> k.matrix(xs)
+    array([[0.14132231, 0.11570248, 0.19008264, 0.26446281],
+           [0.11570248, 0.51322314, 0.7107438 , 1.00826446],
+           [0.19008264, 0.7107438 , 1.33140496, 1.75206612],
+           [0.26446281, 1.00826446, 1.75206612, 2.59586777]])
     """
 
     def __init__(
