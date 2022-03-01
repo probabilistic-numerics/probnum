@@ -52,7 +52,7 @@ class ProductMatern(Kernel):
     Raises
     ------
     ValueError
-        If kernel input is scalar, but  ``lengthscales`` or ``nus`` or not.
+        If kernel input is scalar, but  ``lengthscales`` or ``nus`` are not.
     """
 
     def __init__(

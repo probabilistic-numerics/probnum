@@ -73,10 +73,11 @@ def _kernel_mean_matern_lebesgue(
                              evaluated at locations x.
     """
     kernel = _convert_to_product_matern(kernel)
+    (input_dim,) = kernel.input_shape
 
     # Compute kernel mean via a product of one-dimensional kernel means
     kernel_mean = np.ones((x.shape[0],))
-    for dim in range(kernel.input_shape[0]):
+    for dim in range(input_dim):
         kernel_mean *= _kernel_mean_matern_1d_lebesgue(
             x=x[:, dim],
             kernel=kernel.univariate_materns[dim],
@@ -142,7 +143,7 @@ def _kernel_variance_matern_lebesgue(
     """
 
     kernel = _convert_to_product_matern(kernel)
-    input_dim = 1 if kernel.input_shape == () else kernel.input_shape[0]
+    (input_dim,) = kernel.input_shape
 
     # Compute kernel mean via a product of one-dimensional kernel variances
     kernel_variance = 1.0
@@ -157,7 +158,7 @@ def _kernel_variance_matern_lebesgue(
 
 def _convert_to_product_matern(kernel: Matern) -> ProductMatern:
     """Convert a 1D Matern kernel to a ProductMatern for unified treatment."""
-    input_dim = 1 if kernel.input_shape == () else kernel.input_shape[0]
+    (input_dim,) = kernel.input_shape
     if isinstance(kernel, Matern):
         if input_dim > 1:
             raise NotImplementedError(
