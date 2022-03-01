@@ -1,8 +1,6 @@
 """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
 measure."""
 
-# pylint: disable=invalid-name
-
 import numpy as np
 import scipy.linalg as slinalg
 

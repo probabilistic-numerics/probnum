@@ -48,7 +48,7 @@ class KernelEmbedding:
                 "Input dimensions of kernel and measure need to be the same."
             )
 
-        (self.input_dim,) = kernel.input_shape
+        (self.input_dim,) = self.kernel.input_shape
 
         # retrieve the functions for the provided combination of kernel and measure
         self._kmean, self._kvar = _get_kernel_embedding(

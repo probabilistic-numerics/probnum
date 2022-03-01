@@ -1,6 +1,5 @@
 """Kernel embedding of Matern kernels with Lebesgue integration measure."""
 
-# pylint: disable=invalid-name
 
 from typing import Tuple, Union
 
@@ -180,7 +179,6 @@ def _kernel_mean_matern_1d_lebesgue(
 
     Note that these are for unnormalized Lebesgue measure.
     """
-    # pylint: disable="invalid-name"
     (a, b) = domain
     ell = kernel.lengthscale
     if kernel.nu == 0.5:
@@ -247,7 +245,6 @@ def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
 
     Note that these are for unnormalized Lebesgue measure.
     """
-    # pylint: disable="invalid-name"
     (a, b) = domain
     r = b - a
     ell = kernel.lengthscale

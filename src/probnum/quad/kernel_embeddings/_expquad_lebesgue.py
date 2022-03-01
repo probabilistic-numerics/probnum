@@ -10,7 +10,6 @@ from probnum.quad._integration_measures import LebesgueMeasure
 from probnum.randprocs.kernels import ExpQuad
 
 
-# pylint: disable=invalid-name
 def _kernel_mean_expquad_lebesgue(
     x: np.ndarray, kernel: ExpQuad, measure: LebesgueMeasure
 ) -> np.ndarray:
@@ -97,7 +96,6 @@ def _kernel_variance_expquad_lebesgue(
     """
     (input_dim,) = kernel.input_shape
 
-    # pylint: disable=invalid-name
     r = measure.domain[1] - measure.domain[0]
     ell = kernel.lengthscale
     return (
