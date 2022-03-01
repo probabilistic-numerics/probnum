@@ -27,12 +27,12 @@ def uniform(
     minval: FloatLike = 0.0,
     maxval: FloatLike = 1.0,
 ) -> np.ndarray:
-    return _make_rng(seed).uniform(
+    minval = backend.as_scalar(minval, dtype=dtype)
+    maxval = backend.as_scalar(maxval, dtype=dtype)
+    return (maxval - minval) * _make_rng(seed).random(
         size=shape,
         dtype=dtype,
-        low=backend.as_scalar(minval),
-        high=backend.as_scalar(maxval),
-    )
+    ) + minval
 
 
 def standard_normal(
