@@ -22,6 +22,12 @@ def split(seed: jnp.ndarray, num: int = 2) -> Sequence[jnp.ndarray]:
     return jax.random.split(key=seed, num=num)
 
 
+def uniform(seed: jnp.ndarray, shape=(), dtype=jnp.double, minval=0.0, maxval=1.0):
+    return jax.random.uniform(
+        key=seed, shape=shape, dtype=dtype, minval=minval, maxval=maxval
+    )
+
+
 def standard_normal(seed: jnp.ndarray, shape=(), dtype=jnp.double):
     return jax.random.normal(key=seed, shape=shape, dtype=dtype)
 

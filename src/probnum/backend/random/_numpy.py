@@ -3,6 +3,7 @@ from typing import Optional, Sequence
 
 import numpy as np
 
+from probnum import backend
 from probnum.typing import DTypeLike, FloatLike, ShapeLike
 
 
@@ -17,6 +18,21 @@ def split(
     seed: np.random.SeedSequence, num: int = 2
 ) -> Sequence[np.random.SeedSequence]:
     return seed.spawn(num)
+
+
+def uniform(
+    seed: np.random.SeedSequence,
+    shape: ShapeLike = (),
+    dtype: DTypeLike = np.double,
+    minval: FloatLike = 0.0,
+    maxval: FloatLike = 1.0,
+) -> np.ndarray:
+    return _make_rng(seed).uniform(
+        size=shape,
+        dtype=dtype,
+        low=backend.as_scalar(minval),
+        high=backend.as_scalar(maxval),
+    )
 
 
 def standard_normal(

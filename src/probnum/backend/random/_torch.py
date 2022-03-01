@@ -19,6 +19,12 @@ def split(
     return seed.spawn(num)
 
 
+def uniform(seed: np.random.SeedSequence, shape=(), dtype=torch.double):
+    rng = _make_rng(seed)
+
+    return torch.rand(shape, generator=rng, dtype=dtype)
+
+
 def standard_normal(seed: np.random.SeedSequence, shape=(), dtype=torch.double):
     rng = _make_rng(seed)
 
