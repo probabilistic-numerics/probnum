@@ -428,10 +428,8 @@ class Kernel(abc.ABC):
 
     __array_ufunc__ = None
     """
-    This prevents numpy from calling elementwise arithmetic operations allowing
-    expressions like `y = np.array([1, 1]) + linop` to call the arithmetic operations
-    defined by `LinearOperator` instead of elementwise. Thus no array of
-    `LinearOperator`s but a `LinearOperator` with the correct shape is returned.
+    This prevents numpy from calling elementwise arithmetic operations instead of
+    the arithmetic operations defined by `Kernel`.
     """
 
     def __add__(self, other: BinaryOperandType) -> Kernel:

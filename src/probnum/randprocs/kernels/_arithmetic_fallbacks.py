@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import functools
 import operator
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
 from probnum import utils
-from probnum.typing import ScalarLike
+from probnum.typing import NotImplementedType, ScalarLike
 
-from ._kernel import Kernel
+from ._kernel import BinaryOperandType, Kernel
 
 ########################################################################################
 # Generic Linear Operator Arithmetic (Fallbacks)
@@ -84,18 +84,15 @@ class SumKernel(Kernel):
         ):
             raise ValueError("All summands must have the same in- and output shape.")
 
-        self._summands = SumKernel._expand_sum_ops(*summands)
+        self._summands = SumKernel._expand_sum_kernels(*summands)
 
         super().__init__(
             input_shape=summands[0].input_shape, output_shape=summands[0].output_shape
         )
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
-        return (
-            lambda: functools.reduce(
-                operator.add,
-                (summand(x0, x1) for summand in self._summands),
-            ),
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+        return functools.reduce(
+            operator.add, (summand(x0, x1) for summand in self._summands)
         )
 
     def __repr__(self):
@@ -142,18 +139,15 @@ class ProductKernel(Kernel):
         ):
             raise ValueError("All factors must have the same in- and output shape.")
 
-        self._factors = ProductKernel._expand_prod_ops(*factors)
+        self._factors = ProductKernel._expand_prod_kernels(*factors)
 
         super().__init__(
             input_shape=factors[0].input_shape, output_shape=factors[0].output_shape
         )
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
-        return (
-            lambda: functools.reduce(
-                operator.mul,
-                (factor(x0, x1) for factor in self._factors),
-            ),
+    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+        return functools.reduce(
+            operator.mul, (factor(x0, x1) for factor in self._factors)
         )
 
     def __repr__(self):
@@ -173,3 +167,17 @@ class ProductKernel(Kernel):
                 expanded_factors.append(factor)
 
         return tuple(expanded_factors)
+
+
+def _mul_fallback(
+    op1: BinaryOperandType, op2: BinaryOperandType
+) -> Union[Kernel, NotImplementedType]:
+    res = NotImplemented
+
+    if isinstance(op1, Kernel):
+        if np.ndim(op2) == 0:
+            res = ScaledKernel(kernel=op1, scalar=op2)
+    elif isinstance(op2, Kernel):
+        if np.ndim(op1) == 0:
+            res = ScaledKernel(kernel=op2, scalar=op1)
+    return res
