@@ -50,7 +50,9 @@ class ScaledKernel(Kernel):
         self._kernel = kernel
         self._scalar = utils.as_numpy_scalar(scalar)
 
-        super().__init__(kernel.input_shape, kernel.output_shape)
+        super().__init__(
+            input_shape=kernel.input_shape, output_shape=kernel.output_shape
+        )
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         return self._scalar * self._kernel(x0, x1)
@@ -115,7 +117,7 @@ class SumKernel(Kernel):
 
 
 class ProductKernel(Kernel):
-    """(Element-wise) Product of kernels.
+    r"""(Element-wise) Product of kernels.
 
     Define a new kernel
 
@@ -175,7 +177,9 @@ def _mul_fallback(
     res = NotImplemented
 
     if isinstance(op1, Kernel):
-        if np.ndim(op2) == 0:
+        if isinstance(op2, Kernel):
+            res = ProductKernel(op1, op2)
+        elif np.ndim(op2) == 0:
             res = ScaledKernel(kernel=op1, scalar=op2)
     elif isinstance(op2, Kernel):
         if np.ndim(op1) == 0:

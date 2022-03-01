@@ -54,6 +54,13 @@ def test_sum_kernel_shape_mismatch_raises_error():
         )
 
 
+def test_sum_kernel_contracts():
+    input_shape = ()
+    k = kernels.ExpQuad(input_shape=input_shape)
+    k_sum = SumKernel(k, SumKernel(k, k))
+    assert all(not isinstance(summand, SumKernel) for summand in k_sum._summands)
+
+
 def test_product_kernel_evaluation(kernel: kernels.Kernel, x0: np.ndarray):
     k_poly = kernels.Polynomial(input_shape=kernel.input_shape)
     k_sum = ProductKernel(kernel, k_poly)
@@ -65,3 +72,10 @@ def test_product_kernel_shape_mismatch_raises_error():
         ProductKernel(
             kernels.WhiteNoise(input_shape=()), kernels.WhiteNoise(input_shape=(1,))
         )
+
+
+def test_product_kernel_contracts():
+    input_shape = ()
+    k = kernels.ExpQuad(input_shape=input_shape)
+    k_prod = ProductKernel(k, ProductKernel(k, k))
+    assert all(not isinstance(factor, ProductKernel) for factor in k_prod._factors)
