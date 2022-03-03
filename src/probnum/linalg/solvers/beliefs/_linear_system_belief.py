@@ -69,7 +69,7 @@ class LinearSystemBelief:
                 if A.shape[1] != x.shape[0]:
                     raise dim_mismatch_error(A=A, x=x)
 
-            if x.ndim > 1:
+            if x.ndim > 1 and b is not None:
                 if x.shape[1] != b.shape[1]:
                     raise dim_mismatch_error(x=x, b=b)
             elif b is not None:
@@ -151,8 +151,6 @@ class LinearSystemBelief:
     @property
     def Ainv(self) -> Optional[randvars.RandomVariable]:
         """Belief about the (pseudo-)inverse of the system matrix."""
-        if self._Ainv is None:
-            return self._induced_Ainv()
         return self._Ainv
 
     @property
@@ -168,12 +166,3 @@ class LinearSystemBelief:
         :math:`H` and :math:`b`.
         """
         return self.Ainv @ self.b
-
-    def _induced_Ainv(self) -> randvars.RandomVariable:
-        r"""Induced belief about the inverse from a belief about the solution.
-
-        Computes a consistent belief about the inverse from a belief about the solution.
-        """
-        return randvars.Constant(
-            linops.Scaling(factors=0.0, shape=(self._x.shape[0], self._x.shape[0]))
-        )

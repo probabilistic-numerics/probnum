@@ -93,10 +93,10 @@ def test_non_randvar_arguments_raises_type_error():
         LinearSystemBelief(Ainv=Ainv)
 
     with pytest.raises(TypeError):
-        LinearSystemBelief(A=A)
+        LinearSystemBelief(x=randvars.Constant(x), A=A)
 
     with pytest.raises(TypeError):
-        LinearSystemBelief(b=b)
+        LinearSystemBelief(x=randvars.Constant(x), b=b)
 
 
 def test_induced_solution_belief(rng: np.random.Generator):
