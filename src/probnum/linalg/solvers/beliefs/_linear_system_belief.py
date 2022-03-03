@@ -79,7 +79,7 @@ class LinearSystemBelief:
         if Ainv is not None:
             if Ainv.ndim != 2:
                 raise ValueError(
-                    f"Belief over the inverse system matrix may have at most two dimensions, but has {A.ndim}."
+                    f"Belief over the inverse system matrix may have at most two dimensions, but has {Ainv.ndim}."
                 )
             if A is not None:
                 if A.shape != Ainv.shape:
