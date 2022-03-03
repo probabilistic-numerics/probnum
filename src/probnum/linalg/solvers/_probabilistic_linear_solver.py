@@ -152,7 +152,7 @@ class ProbabilisticLinearSolver(
         solver_state
             State of the probabilistic linear solver.
         """
-        solver_state = LinearSolverState(problem=problem, prior=prior, rng=rng)
+        solver_state = LinearSolverState(problem=problem, prior=prior)
 
         while True:
 
@@ -163,7 +163,7 @@ class ProbabilisticLinearSolver(
                 break
 
             # Compute action via policy
-            solver_state.action = self.policy(solver_state=solver_state)
+            solver_state.action = self.policy(solver_state=solver_state, rng=rng)
 
             # Make observation via information operator
             solver_state.observation = self.information_op(solver_state=solver_state)

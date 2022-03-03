@@ -43,7 +43,9 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
         self._reorthogonalization_fn_action = reorthogonalization_fn_action
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+        self,
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
+        rng: Optional[np.random.Generator] = None,
     ) -> np.ndarray:
 
         residual = solver_state.residual
@@ -54,7 +56,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
         if solver_state.step > 0:
             # Reorthogonalization of the residual
             if self._reorthogonalization_fn_residual is not None:
-                residual, prev_residual = self._reorthogonalized_residuals(
+                residual, prev_residual = self._reorthogonalized_residual(
                     solver_state=solver_state
                 )
             else:
@@ -76,7 +78,7 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
 
         return action
 
-    def _reorthogonalized_residuals(
+    def _reorthogonalized_residual(
         self,
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Tuple[np.ndarray, np.ndarray]:
