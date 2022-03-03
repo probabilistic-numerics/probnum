@@ -42,7 +42,7 @@ class ProjectedResidualBeliefUpdate(LinearSolverBeliefUpdate):
         proj_resid = solver_state.observation
 
         # Compute gain and covariance update
-        action_A = solver_state.action @ solver_state.problem.A
+        action_A = solver_state.action.T @ solver_state.problem.A
         cov_xy = solver_state.belief.x.cov @ action_A.T
         gram = action_A @ cov_xy + self.noise_var
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
