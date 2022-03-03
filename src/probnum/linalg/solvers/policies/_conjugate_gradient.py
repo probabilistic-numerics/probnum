@@ -50,17 +50,20 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
 
         residual = solver_state.residual
 
-        if self._reorthogonalization_fn_residual is not None and solver_state.step == 0:
-            solver_state.cache["reorthogonalized_residuals"] = [solver_state.residual]
+        if solver_state.step == 0:
+            if self._reorthogonalization_fn_residual is not None:
+                solver_state.cache["reorthogonalized_residuals"].append(
+                    solver_state.residual
+                )
 
-        if solver_state.step > 0:
+            return residual
+        else:
             # Reorthogonalization of the residual
             if self._reorthogonalization_fn_residual is not None:
                 residual, prev_residual = self._reorthogonalized_residual(
                     solver_state=solver_state
                 )
             else:
-                residual = solver_state.residual
                 prev_residual = solver_state.residuals[solver_state.step - 1]
 
             # A-conjugacy correction (in exact arithmetic)
@@ -69,14 +72,11 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
 
             # Reorthogonalization of the resulting action
             if self._reorthogonalization_fn_action is not None:
-                return self._reorthogonalized_action(
+                action = self._reorthogonalized_action(
                     action=action, solver_state=solver_state
                 )
 
-        else:
-            action = residual
-
-        return action
+            return action
 
     def _reorthogonalized_residual(
         self,
