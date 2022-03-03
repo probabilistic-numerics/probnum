@@ -44,7 +44,7 @@ class ProjectedResidualBeliefUpdate(LinearSolverBeliefUpdate):
         # Compute gain and covariance update
         action_A = solver_state.action @ solver_state.problem.A
         cov_xy = solver_state.belief.x.cov @ action_A.T
-        gram = action_A @ cov_xy + self._noise_var
+        gram = action_A @ cov_xy + self.noise_var
         gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
         gain = cov_xy * gram_pinv
         cov_update = np.outer(gain, cov_xy)
@@ -61,3 +61,8 @@ class ProjectedResidualBeliefUpdate(LinearSolverBeliefUpdate):
         return LinearSystemBelief(
             x=x, A=solver_state.belief.A, Ainv=Ainv, b=solver_state.belief.b
         )
+
+    @property
+    def noise_var(self) -> float:
+        """Observation noise."""
+        return self._noise_var
