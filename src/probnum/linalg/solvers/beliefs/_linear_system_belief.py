@@ -7,7 +7,7 @@ solution or the matrix inverse and any associated hyperparameters.
 from functools import cached_property
 from typing import Mapping, Optional
 
-from probnum import linops, randvars
+from probnum import randvars
 
 # pylint: disable="invalid-name"
 
