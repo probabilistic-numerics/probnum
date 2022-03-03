@@ -4,7 +4,8 @@ import numpy as np
 import torch
 from torch.distributions.utils import broadcast_all
 
-from probnum.typing import DTypeLike, ShapeLike
+from probnum import backend
+from probnum.typing import DTypeLike, FloatLike, ShapeLike
 
 _RNG_STATE_SIZE = torch.Generator().get_state().shape[0]
 
@@ -19,10 +20,17 @@ def split(
     return seed.spawn(num)
 
 
-def uniform(seed: np.random.SeedSequence, shape=(), dtype=torch.double):
+def uniform(
+    seed: np.random.SeedSequence,
+    shape=(),
+    dtype: DTypeLike = torch.double,
+    minval: FloatLike = 0.0,
+    maxval: FloatLike = 1.0,
+):
     rng = _make_rng(seed)
-
-    return torch.rand(shape, generator=rng, dtype=dtype)
+    minval = backend.as_scalar(minval, dtype=dtype)
+    maxval = backend.as_scalar(maxval, dtype=dtype)
+    return (maxval - minval) * torch.rand(shape, generator=rng, dtype=dtype) + minval
 
 
 def standard_normal(seed: np.random.SeedSequence, shape=(), dtype=torch.double):
