@@ -33,7 +33,7 @@ def bayescg(
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the
         dimension of :math:`A`.
     atol
-        Absolute residual tolerance. If :math:`\lVert r_i \rVert = \lVert Ax_i - b
+        Absolute residual tolerance. If :math:`\lVert r_i \rVert = \lVert b - Ax_i
         \rVert < \text{atol}`, the iteration terminates.
     rtol
         Relative residual tolerance. If :math:`\lVert r_i \rVert  < \text{rtol}

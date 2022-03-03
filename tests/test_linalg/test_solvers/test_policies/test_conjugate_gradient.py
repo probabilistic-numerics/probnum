@@ -21,7 +21,7 @@ def test_initial_action_is_negative_gradient(
     assert state.step == 0
     state = copy.deepcopy(state)
     action = policy(state)
-    np.testing.assert_allclose(action, -state.residual)
+    np.testing.assert_allclose(action, state.residual)
 
 
 @parametrize_with_cases("policy", cases=cases_policies, glob="*conjugate_*")
