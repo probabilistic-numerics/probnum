@@ -22,4 +22,4 @@ class ProjectedResidualInformationOp(LinearSolverInformationOp):
         solver_state :
             Current state of the linear solver.
         """
-        return solver_state.action @ solver_state.residual
+        return solver_state.action.T @ solver_state.residual
