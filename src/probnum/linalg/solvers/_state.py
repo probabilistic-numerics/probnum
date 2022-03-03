@@ -116,7 +116,7 @@ class LinearSolverState:
 
     @property
     def residual(self) -> np.ndarray:
-        r"""Cached residual :math:`r_{i-1} = b - Ax_{i-1}` for the current solution estimate :math:`x_{i-1}`."""
+        r"""Residual :math:`r_{i} = b - Ax_{i}`."""
         if self._residuals[self.step] is None:
             self._residuals[self.step] = (
                 self.problem.b - self.problem.A @ self.belief.x.mean
@@ -125,7 +125,7 @@ class LinearSolverState:
 
     @property
     def residuals(self) -> Tuple[np.ndarray, ...]:
-        r"""Residuals :math:`\{b - Ax_j\}_j^{i-1}`."""
+        r"""Residuals :math:`\{b - Ax_i\}_i`."""
         return tuple(self._residuals)
 
     def next_step(self) -> None:
