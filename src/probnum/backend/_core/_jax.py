@@ -24,6 +24,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     expand_dims,
     eye,
     finfo,
+    flip,
     full,
     full_like,
     hstack,

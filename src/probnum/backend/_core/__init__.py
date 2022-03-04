@@ -75,6 +75,7 @@ maximum = _core.maximum
 # (Partial) Views
 diagonal = _core.diagonal
 moveaxis = _core.moveaxis
+flip = _core.flip
 
 # Contractions
 einsum = _core.einsum
@@ -207,6 +208,7 @@ __all__ = [
     # (Partial) Views
     "diagonal",
     "moveaxis",
+    "flip",
     # Contractions
     "einsum",
     # Reductions

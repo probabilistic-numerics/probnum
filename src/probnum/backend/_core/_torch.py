@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -181,6 +181,12 @@ def concatenate(arrays: Sequence[torch.Tensor], axis: int = 0) -> torch.Tensor:
 
 def expand_dims(a: torch.Tensor, axis: int) -> torch.Tensor:
     return torch.unsqueeze(input=a, dim=axis)
+
+
+def flip(
+    m: torch.Tensor, axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> torch.Tensor:
+    return torch.flip(m, dims=axis)
 
 
 def cast(a: torch.Tensor, dtype=None, casting="unsafe", copy=None):
