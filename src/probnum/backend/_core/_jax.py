@@ -42,6 +42,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     pi,
     promote_types,
     reshape,
+    result_type,
     sign,
     sin,
     single,

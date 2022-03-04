@@ -25,6 +25,7 @@ csingle = _core.csingle
 cdouble = _core.cdouble
 cast = _core.cast
 promote_types = _core.promote_types
+result_type = _core.result_type
 is_floating = _core.is_floating
 is_floating_dtype = _core.is_floating_dtype
 finfo = _core.finfo
@@ -159,6 +160,7 @@ __all__ = [
     "cdouble",
     "cast",
     "promote_types",
+    "result_type",
     "is_floating",
     "is_floating_dtype",
     "finfo",
