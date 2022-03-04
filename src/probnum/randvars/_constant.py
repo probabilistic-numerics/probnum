@@ -61,7 +61,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
         self._support = support
 
         support_floating = self._support.astype(
-            np.promote_types(self._support.dtype, np.float_)
+            backend.promote_types(self._support.dtype, backend.double)
         )
 
         if config.matrix_free:
@@ -71,7 +71,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
                 else backend.as_scalar(0.0, support_floating.dtype)
             )
         else:
-            cov = lambda: np.broadcast_to(
+            cov = lambda: backend.broadcast_to(
                 backend.as_scalar(0.0, support_floating.dtype),
                 shape=(
                     (self._support.size, self._support.size)
@@ -80,7 +80,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
                 ),
             )
 
-        var = lambda: np.broadcast_to(
+        var = lambda: backend.broadcast_to(
             backend.as_scalar(0.0, support_floating.dtype),
             shape=self._support.shape,
         )
@@ -90,9 +90,13 @@ class Constant(_random_variable.DiscreteRandomVariable):
             dtype=self._support.dtype,
             parameters={"support": self._support},
             sample=self._sample,
-            in_support=lambda x: np.all(x == self._support),
-            pmf=lambda x: np.float_(1.0 if np.all(x == self._support) else 0.0),
-            cdf=lambda x: np.float_(1.0 if np.all(x >= self._support) else 0.0),
+            in_support=lambda x: backend.all(x == self._support),
+            pmf=lambda x: backend.double(
+                1.0 if backend.all(x == self._support) else 0.0
+            ),
+            cdf=lambda x: backend.double(
+                1.0 if backend.all(x >= self._support) else 0.0
+            ),
             mode=lambda: self._support,
             median=lambda: support_floating,
             mean=lambda: support_floating,
@@ -143,7 +147,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
         if sample_shape == ():
             return self._support.copy()
 
-        return np.tile(self._support, reps=sample_shape + (1,) * self.ndim)
+        return backend.tile(self._support, reps=sample_shape + (1,) * self.ndim)
 
     # Unary arithmetic operations
 

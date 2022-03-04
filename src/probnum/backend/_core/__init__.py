@@ -35,6 +35,7 @@ atleast_1d = _core.atleast_1d
 atleast_2d = _core.atleast_2d
 broadcast_arrays = _core.broadcast_arrays
 broadcast_shapes = _core.broadcast_shapes
+broadcast_to = _core.broadcast_to
 ndim = _core.ndim
 squeeze = _core.squeeze
 expand_dims = _core.expand_dims
@@ -85,6 +86,7 @@ concatenate = _core.concatenate
 stack = _core.stack
 hstack = _core.hstack
 vstack = _core.vstack
+tile = _core.tile
 
 # Misc
 to_numpy = _core.to_numpy
@@ -167,6 +169,7 @@ __all__ = [
     "atleast_2d",
     "broadcast_arrays",
     "broadcast_shapes",
+    "broadcast_to",
     "ndim",
     "squeeze",
     "expand_dims",
@@ -210,6 +213,7 @@ __all__ = [
     "stack",
     "vstack",
     "hstack",
+    "tile",
     # Misc
     "to_numpy",
     # Just-in-Time Compilation

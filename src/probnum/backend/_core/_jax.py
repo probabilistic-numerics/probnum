@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Union
 
 import jax
 from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
@@ -50,6 +50,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     stack,
     sum,
     swapaxes,
+    tile,
     vstack,
     zeros,
     zeros_like,
@@ -57,6 +58,12 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
 import numpy as np
 
 jax.config.update("jax_enable_x64", True)
+
+
+def broadcast_to(
+    array: jax.numpy.ndarray, shape: Union[int, Tuple]
+) -> jax.numpy.ndarray:
+    return jax.numpy.broadcast_to(arr=array, shape=shape)
 
 
 def cast(a: jax.numpy.ndarray, dtype=None, casting="unsafe", copy=None):

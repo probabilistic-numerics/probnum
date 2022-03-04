@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -44,6 +44,10 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
 )
 
 torch.set_default_dtype(torch.double)
+
+
+def broadcast_to(array: torch.Tensor, shape: Union[int, Tuple]) -> torch.Tensor:
+    return torch.broadcast_to(input=array, size=tuple(shape))
 
 
 def asdtype(x) -> torch.dtype:
@@ -114,6 +118,10 @@ def full_like(
         device=a.device,
         requires_grad=a.requires_grad,
     )
+
+
+def tile(A: torch.Tensor, reps: torch.Tensor) -> torch.Tensor:
+    return torch.tile(input=A, dims=reps)
 
 
 def ndim(a):
