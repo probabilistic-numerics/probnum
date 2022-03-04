@@ -121,7 +121,7 @@ def full_like(
     )
 
 
-def meshgrid(*xi: torch.Tensor, indexing: str = "xy") -> torch.Tensor:
+def meshgrid(*xi: torch.Tensor, indexing: str = "xy") -> Tuple[torch.Tensor, ...]:
     return torch.meshgrid(*xi, indexing=indexing)
 
 
