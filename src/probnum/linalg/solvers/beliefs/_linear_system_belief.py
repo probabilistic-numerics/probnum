@@ -150,7 +150,7 @@ class LinearSystemBelief:
         to) the random variable :math:`x=Hb`. This assumes independence between
         :math:`H` and :math:`b`.
         """
-        return self.Ainv @ self.b
+        return randvars.asrandvar(self.Ainv @ self.b)
 
     def _induced_Ainv(self) -> randvars.RandomVariable:
         r"""Induced belief about the inverse from a belief about the solution.
