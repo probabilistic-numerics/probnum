@@ -55,7 +55,10 @@ class Constant(_random_variable.DiscreteRandomVariable):
         self,
         support: backend.ndarray,
     ):
-        self._support = backend.asarray(support)
+        if not isinstance(support, linops.LinearOperator):
+            support = backend.asarray(support)
+
+        self._support = support
 
         support_floating = self._support.astype(
             np.promote_types(self._support.dtype, np.float_)
