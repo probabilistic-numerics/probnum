@@ -35,6 +35,7 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     linspace,
     log,
     maximum,
+    meshgrid,
     moveaxis,
     ndarray,
     ndim,

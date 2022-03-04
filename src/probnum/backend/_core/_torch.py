@@ -121,6 +121,10 @@ def full_like(
     )
 
 
+def meshgrid(*xi: torch.Tensor, indexing: str = "xy") -> torch.Tensor:
+    return torch.meshgrid(*xi, indexing=indexing)
+
+
 def tile(A: torch.Tensor, reps: torch.Tensor) -> torch.Tensor:
     return torch.tile(input=A, dims=reps)
 
