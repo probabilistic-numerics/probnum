@@ -47,6 +47,10 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
 torch.set_default_dtype(torch.double)
 
 
+def arange(start, stop=None, step=None, dtype=None):
+    return torch.arange(start=start, end=stop, step=step, dtype=dtype)
+
+
 def broadcast_to(array: torch.Tensor, shape: Union[int, Tuple]) -> torch.Tensor:
     return torch.broadcast_to(input=array, size=tuple(shape))
 

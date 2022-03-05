@@ -4,6 +4,7 @@ import jax
 from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     abs,
     all,
+    arange,
     array,
     asarray,
     atleast_1d,

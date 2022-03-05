@@ -54,6 +54,7 @@ ones_like = _core.ones_like
 zeros = _core.zeros
 zeros_like = _core.zeros_like
 linspace = _core.linspace
+arange = _core.arange
 meshgrid = _core.meshgrid
 
 # Constants
@@ -190,6 +191,7 @@ __all__ = [
     "ones_like",
     "zeros",
     "zeros_like",
+    "arange",
     "linspace",
     "meshgrid",
     # Constants
