@@ -71,7 +71,7 @@ class LinSolve:
         problinsolve(A=self.linsys.A, b=self.linsys.b)
 
     def track_residual_norm(self, linsys, dim):
-        return np.linalg.norm(self.linsys.A @ self.xhat.mean - self.linsys.b)
+        return np.linalg.norm(self.linsys.b - self.linsys.A @ self.xhat.mean)
 
     def track_error_2norm(self, linsys, dim):
         return np.linalg.norm(self.linsys.solution - self.xhat.mean)
