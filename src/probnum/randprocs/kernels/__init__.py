@@ -3,6 +3,9 @@
 Kernels describe the spatial or temporal variation of a random process.
 If evaluated at two sets of points a kernel is defined as the covariance
 of the values of the random process at these locations.
+
+Kernels support basic algebraic operations, including scaling, addition
+and multiplication.
 """
 
 from ._exponentiated_quadratic import ExpQuad
