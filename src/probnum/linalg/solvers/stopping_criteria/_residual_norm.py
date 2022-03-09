@@ -11,7 +11,7 @@ from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 class ResidualNormStoppingCriterion(LinearSolverStoppingCriterion):
     r"""Residual stopping criterion.
 
-    Terminate when the euclidean norm of the residual :math:`r_{i} = A x_{i} - b` is
+    Terminate when the euclidean norm of the residual :math:`r_{i} = b - A x_{i}` is
     sufficiently small, i.e. if it satisfies :math:`\lVert r_i \rVert_2 \leq \max(
     \text{atol}, \text{rtol} \lVert b \rVert_2)`.
 

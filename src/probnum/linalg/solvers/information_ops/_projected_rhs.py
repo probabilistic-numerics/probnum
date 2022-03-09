@@ -1,4 +1,4 @@
-"""Information operator returning a projection of the residual."""
+"""Information operator returning a projection of the right-hand-side."""
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"

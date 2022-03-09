@@ -13,7 +13,10 @@ from probnum import problems
 class LinearSolverState:
     """State of a probabilistic linear solver.
 
-    The solver state separates the state of a probabilistic linear solver from the algorithm itself, making the solver stateless. The state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities computed during an iteration of a probabilistic linear solver. The solver state is passed between the different components of the solver and may be used internally to cache quantities which are used more than once.
+    The solver state separates the state of a probabilistic linear solver from the algorithm itself, making the solver stateless.
+    The state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities
+    computed during an iteration of a probabilistic linear solver. The solver state is passed between the different components of the
+    solver and may be used internally to cache quantities which are used more than once.
 
     Parameters
     ----------
@@ -42,7 +45,7 @@ class LinearSolverState:
         self._actions: List[np.ndarray] = [None]
         self._observations: List[Any] = [None]
         self._residuals: List[np.ndarray] = [
-            self.problem.A @ self.belief.x.mean - self.problem.b,
+            self.problem.b - self.problem.A @ self.belief.x.mean,
         ]
         self.cache: Dict[str, Any] = {}
 
@@ -107,16 +110,16 @@ class LinearSolverState:
 
     @property
     def residual(self) -> np.ndarray:
-        r"""Cached residual :math:`Ax_i-b` for the current solution estimate :math:`x_i`."""
+        r"""Cached residual :math:`b - Ax_i` for the current solution estimate :math:`x_i`."""
         if self._residuals[self.step] is None:
             self._residuals[self.step] = (
-                self.problem.A @ self.belief.x.mean - self.problem.b
+                self.problem.b - self.problem.A @ self.belief.x.mean
             )
         return self._residuals[self.step]
 
     @property
     def residuals(self) -> Tuple[np.ndarray, ...]:
-        r"""Residuals :math:`\{Ax_i - b\}_i`."""
+        r"""Residuals :math:`\{b - Ax_i\}_i`."""
         return tuple(self._residuals)
 
     def next_step(self) -> None:
