@@ -45,6 +45,7 @@ def fixture_input_shape(request) -> ShapeType:
             (pn.randprocs.kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
+            (pn.randprocs.kernels.ProductMatern, {"lengthscales": 0.5, "nus": 0.5}),
         ]
     ],
     name="kernel",
