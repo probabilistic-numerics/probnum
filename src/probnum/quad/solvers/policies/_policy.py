@@ -1,4 +1,4 @@
-"""Abstract base class for BQ acquisition policies."""
+"""Abstract base class for BQ policies."""
 
 import abc
 
@@ -27,9 +27,8 @@ class Policy(abc.ABC):
 
         Parameters
         ----------
-        bq_state
+        bq_state :
             State of the BQ belief.
-
         Returns
         -------
         nodes :
