@@ -1,7 +1,7 @@
 """Base class for Bayesian quadrature stopping criteria."""
 
 from probnum import StoppingCriterion
-from probnum.quad.solvers.bq_state import BQState
+from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 
 # pylint: disable=too-few-public-methods, fixme
 # pylint: disable=arguments-differ
@@ -21,12 +21,12 @@ class BQStoppingCriterion(StoppingCriterion):
     ImmediateStop : Dummy stopping criterion that always stops.
     """
 
-    def __call__(self, bq_state: BQState) -> bool:
+    def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         """Check whether tracked quantities meet a desired terminal condition.
 
         Parameters
         ----------
-        bq_state:
+        bq_state
             State of the BQ loop.
         """
         raise NotImplementedError

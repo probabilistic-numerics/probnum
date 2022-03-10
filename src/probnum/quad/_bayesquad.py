@@ -12,7 +12,7 @@ import warnings
 
 import numpy as np
 
-from probnum.quad.solvers.bq_state import BQInfo
+from probnum.quad.solvers.bq_state import BQIterInfo
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
@@ -35,7 +35,7 @@ def bayesquad(
     rel_tol: Optional[FloatLike] = None,
     batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
-) -> Tuple[Normal, BQInfo]:
+) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
     :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
@@ -153,9 +153,9 @@ def bayesquad(
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(fun=fun)
+    integral_belief, bq_state, info = bq_method.integrate(fun=fun)
 
-    return integral_belief, bq_state.info
+    return integral_belief, info
 
 
 def bayesquad_from_data(
@@ -166,7 +166,7 @@ def bayesquad_from_data(
         Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
-) -> Tuple[Normal, BQInfo]:
+) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
 
@@ -243,6 +243,8 @@ def bayesquad_from_data(
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(nodes=nodes, fun_evals=fun_evals)
+    integral_belief, bq_state, info = bq_method.integrate(
+        nodes=nodes, fun_evals=fun_evals
+    )
 
-    return integral_belief, bq_state.info
+    return integral_belief, info

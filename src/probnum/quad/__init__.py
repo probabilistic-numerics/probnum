@@ -21,7 +21,7 @@ from .kernel_embeddings import KernelEmbedding
 from .solvers import (
     BayesianQuadrature,
     BQBeliefUpdate,
-    BQInfo,
+    BQIterInfo,
     BQStandardBeliefUpdate,
     BQState,
 )
