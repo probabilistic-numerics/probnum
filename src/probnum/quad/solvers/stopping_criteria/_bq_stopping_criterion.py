@@ -18,6 +18,7 @@ class BQStoppingCriterion(StoppingCriterion):
     IntegralVarianceTolerance : Stop based on the variance of the integral estimator.
     RelativeMeanChange : Stop based on the absolute value of the integral variance.
     MaxNevals : Stop based on a maximum number of iterations.
+    ImmediateStop : Dummy stopping criterion that always stops.
     """
 
     def __call__(self, bq_state: BQState) -> bool:
