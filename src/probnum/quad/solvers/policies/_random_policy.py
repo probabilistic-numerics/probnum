@@ -13,6 +13,7 @@ from ._policy import Policy
 
 class RandomPolicy(Policy):
     """Random sampling from an objective.
+
     Parameters
     ----------
     sample_func :

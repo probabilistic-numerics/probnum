@@ -1,4 +1,4 @@
-"""Abstract base class for BQ acquisition policies."""
+"""Abstract base class for BQ policies."""
 
 import abc
 
