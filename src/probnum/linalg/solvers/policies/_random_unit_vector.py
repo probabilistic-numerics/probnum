@@ -1,4 +1,7 @@
 """Policy returning randomly drawn standard unit vectors."""
+
+from typing import Optional
+
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"
@@ -29,7 +32,9 @@ class RandomUnitVectorPolicy(_linear_solver_policy.LinearSolverPolicy):
         self.replace = replace
 
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+        self,
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
+        rng: Optional[np.random.Generator] = None,
     ) -> np.ndarray:
 
         nrows = solver_state.problem.A.shape[0]
@@ -47,7 +52,7 @@ class RandomUnitVectorPolicy(_linear_solver_policy.LinearSolverPolicy):
                 raise NotImplementedError
 
         # Sample unit vector
-        idx = solver_state.rng.choice(
+        idx = rng.choice(
             a=nrows,
             size=1,
             p=solver_state.cache["row_sample_probs"],

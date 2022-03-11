@@ -16,7 +16,9 @@ cases_states = case_modules + ".states"
 
 
 @parametrize_with_cases(
-    "belief_update", cases=cases_belief_updates, glob="*solution_based_projected_rhs*"
+    "belief_update",
+    cases=cases_belief_updates,
+    glob="*solution_based_projected_residual*",
 )
 @parametrize_with_cases(
     "state",
@@ -24,7 +26,7 @@ cases_states = case_modules + ".states"
     has_tag=["has_action", "has_observation", "solution_based"],
 )
 def test_returns_linear_system_belief(
-    belief_update: belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate,
+    belief_update: belief_updates.solution_based.ProjectedResidualBeliefUpdate,
     state: LinearSolverState,
 ):
     belief = belief_update(solver_state=state)
@@ -33,13 +35,13 @@ def test_returns_linear_system_belief(
 
 def test_negative_noise_variance_raises_error():
     with pytest.raises(ValueError):
-        belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(
-            noise_var=-1.0
-        )
+        belief_updates.solution_based.ProjectedResidualBeliefUpdate(noise_var=-1.0)
 
 
 @parametrize_with_cases(
-    "belief_update", cases=cases_belief_updates, glob="*solution_based_projected_rhs*"
+    "belief_update",
+    cases=cases_belief_updates,
+    glob="*solution_based_projected_residual*",
 )
 @parametrize_with_cases(
     "state",
@@ -47,7 +49,7 @@ def test_negative_noise_variance_raises_error():
     has_tag=["has_action", "has_observation", "solution_based"],
 )
 def test_beliefs_against_naive_implementation(
-    belief_update: belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate,
+    belief_update: belief_updates.solution_based.ProjectedResidualBeliefUpdate,
     state: LinearSolverState,
 ):
     """Compare the updated belief to a naive implementation."""
@@ -61,8 +63,7 @@ def test_beliefs_against_naive_implementation(
     noise_var = belief_update._noise_var
 
     action_A = action @ state.problem.A
-    pred = action_A @ belief.x.mean
-    proj_resid = observ - pred
+    proj_resid = observ
     cov_xy = belief.x.cov @ action_A.T
     gram = action_A @ cov_xy + noise_var
     gram_pinv = 1.0 / gram if gram > 0.0 else 0.0
