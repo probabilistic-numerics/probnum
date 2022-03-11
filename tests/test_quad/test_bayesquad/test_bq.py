@@ -165,4 +165,3 @@ def test_domain_ignored_if_lebesgue(input_dim, measure):
         nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
     )
     assert isinstance(bq_integral, Normal)
-
