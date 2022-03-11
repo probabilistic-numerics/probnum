@@ -243,8 +243,6 @@ def bayesquad_from_data(
     )
 
     # Integrate
-    integral_belief, _, info = bq_method.integrate(
-        nodes=nodes, fun_evals=fun_evals
-    )
+    integral_belief, _, info = bq_method.integrate(nodes=nodes, fun_evals=fun_evals)
 
     return integral_belief, info
