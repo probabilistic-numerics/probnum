@@ -16,7 +16,7 @@ cases_states = case_modules + ".states"
 @parametrize_with_cases("state", cases=cases_states)
 def test_returns_ndarray(policy: policies.LinearSolverPolicy, state: LinearSolverState):
     state = copy.deepcopy(state)
-    action = policy(state)
+    action = policy(state, rng=np.random.default_rng(1))
     assert isinstance(action, np.ndarray)
 
 
@@ -24,7 +24,7 @@ def test_returns_ndarray(policy: policies.LinearSolverPolicy, state: LinearSolve
 @parametrize_with_cases("state", cases=cases_states)
 def test_shape(policy: policies.LinearSolverPolicy, state: LinearSolverState):
     state = copy.deepcopy(state)
-    action = policy(state)
+    action = policy(state, rng=np.random.default_rng(1))
     assert action.shape[0] == state.problem.A.shape[1]
 
 
@@ -33,10 +33,9 @@ def test_shape(policy: policies.LinearSolverPolicy, state: LinearSolverState):
 def test_uses_solver_state_random_number_generator(
     policy: policies.LinearSolverPolicy, state: LinearSolverState
 ):
-    """Test whether randomized policies make use of the random number generator stored
-    in the linear solver state."""
-    state = copy.deepcopy(state)
-    rng_state_pre = state.rng.bit_generator.state["state"]["state"]
-    _ = policy(state)
-    rng_state_post = state.rng.bit_generator.state["state"]["state"]
+    """Test whether randomized policies make use of the given random state."""
+    rng = np.random.default_rng(1)
+    rng_state_pre = rng.bit_generator.state["state"]["state"]
+    _ = policy(state, rng=rng)
+    rng_state_post = rng.bit_generator.state["state"]["state"]
     assert rng_state_pre != rng_state_post
