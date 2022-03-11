@@ -1,6 +1,6 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -16,6 +16,7 @@ from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
+from .._quad_typing import DomainLike
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
@@ -30,15 +31,15 @@ class BayesianQuadrature:
 
     Parameters
     ----------
-    kernel :
+    kernel
         The kernel used for the GP model.
-    measure :
+    measure
         The integration measure.
-    policy :
+    policy
         The policy choosing nodes at which to evaluate the integrand.
-    belief_update :
+    belief_update
         The inference method.
-    stopping_criterion :
+    stopping_criterion
         The criterion that determines convergence.
     """
     # pylint: disable=too-many-arguments
@@ -63,9 +64,7 @@ class BayesianQuadrature:
         input_dim: int,
         kernel: Optional[Kernel] = None,
         measure: Optional[IntegrationMeasure] = None,
-        domain: Optional[
-            Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
-        ] = None,
+        domain: Optional[DomainLike] = None,
         policy: str = "bmc",
         max_evals: Optional[IntLike] = None,
         var_tol: Optional[FloatLike] = None,
@@ -78,25 +77,25 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        input_dim :
+        input_dim
             Input dimension.
-        kernel :
+        kernel
             The kernel used for the GP model.
-        measure :
+        measure
             The integration measure.
-        domain :
+        domain
             The integration bounds.
-        policy :
+        policy
             The policy choosing nodes at which to evaluate the integrand.
-        max_evals :
+        max_evals
             Maximum number of evaluations as stopping criterion.
-        var_tol :
+        var_tol
             Variance tolerance as stopping criterion.
-        rel_tol :
+        rel_tol
             Relative tolerance as stopping criterion.
-        batch_size :
+        batch_size
             Batch size used in node acquisition.
-        rng :
+        rng
             The random number generator.
 
         Returns
