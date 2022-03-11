@@ -27,6 +27,11 @@ class BQStoppingCriterion(StoppingCriterion):
         Parameters
         ----------
         bq_state
-            State of the BQ loop.
+            State of the BQ belief.
+
+        Returns
+        -------
+        stopping_decision :
+            Whether the stopping condition is met.
         """
         raise NotImplementedError

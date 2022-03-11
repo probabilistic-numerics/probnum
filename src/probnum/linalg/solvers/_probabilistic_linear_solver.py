@@ -90,8 +90,8 @@ class ProbabilisticLinearSolver(
 
     >>> pls = ProbabilisticLinearSolver(
     ...     policy=policies.ConjugateGradientPolicy(),
-    ...     information_op=information_ops.ProjectedRHSInformationOp(),
-    ...     belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+    ...     information_op=information_ops.ProjectedResidualInformationOp(),
+    ...     belief_update=belief_updates.solution_based.ProjectedResidualBeliefUpdate(),
     ...     stopping_criterion=(
     ...         stopping_criteria.MaxIterationsStoppingCriterion(100)
     ...         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5)
@@ -152,7 +152,7 @@ class ProbabilisticLinearSolver(
         solver_state
             State of the probabilistic linear solver.
         """
-        solver_state = LinearSolverState(problem=problem, prior=prior, rng=rng)
+        solver_state = LinearSolverState(problem=problem, prior=prior)
 
         while True:
 
@@ -163,7 +163,7 @@ class ProbabilisticLinearSolver(
                 break
 
             # Compute action via policy
-            solver_state.action = self.policy(solver_state=solver_state)
+            solver_state.action = self.policy(solver_state=solver_state, rng=rng)
 
             # Make observation via information operator
             solver_state.observation = self.information_op(solver_state=solver_state)
@@ -234,8 +234,8 @@ class BayesCG(ProbabilisticLinearSolver):
     ):
         super().__init__(
             policy=policies.ConjugateGradientPolicy(),
-            information_op=information_ops.ProjectedRHSInformationOp(),
-            belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+            information_op=information_ops.ProjectedResidualInformationOp(),
+            belief_update=belief_updates.solution_based.ProjectedResidualBeliefUpdate(),
             stopping_criterion=stopping_criterion,
         )
 
@@ -267,8 +267,8 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
     ):
         super().__init__(
             policy=policies.RandomUnitVectorPolicy(),
-            information_op=information_ops.ProjectedRHSInformationOp(),
-            belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+            information_op=information_ops.ProjectedResidualInformationOp(),
+            belief_update=belief_updates.solution_based.ProjectedResidualBeliefUpdate(),
             stopping_criterion=stopping_criterion,
         )
 
