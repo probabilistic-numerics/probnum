@@ -13,6 +13,7 @@ __all__ = [
     "cholesky_update",
     "tril_to_positive_tril",
     "qr",
+    "svd",
 ]
 
 from .. import BACKEND, Backend
