@@ -33,6 +33,7 @@ __all__ = [
     "BayesianQuadrature",
     "ImmediateStop",
     "IntegrationMeasure",
+    "ImmediateStop",
     "KernelEmbedding",
     "GaussianMeasure",
     "LebesgueMeasure",
