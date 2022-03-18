@@ -48,6 +48,7 @@ class Matern(Kernel, IsotropicMixin):
     See Also
     --------
     ExpQuad : Exponentiated Quadratic / RBF kernel.
+    ProductMatern : Product Matern kernel.
 
     Examples
     --------
@@ -92,6 +93,14 @@ class Matern(Kernel, IsotropicMixin):
             return (1.0 + scaled_distances + scaled_distances**2 / 3.0) * np.exp(
                 -scaled_distances
             )
+        if self.nu == 3.5:
+            scaled_distances = np.sqrt(7) / self.lengthscale * distances
+            # Using Horner's method speeds up computations substantially
+            return (
+                1.0
+                + (1.0 + (2.0 / 5.0 + scaled_distances / 15.0) * scaled_distances)
+                * scaled_distances
+            ) * np.exp(-scaled_distances)
 
         if self.nu == np.inf:
             return np.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)

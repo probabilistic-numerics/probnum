@@ -157,3 +157,38 @@ def fixture_kernel_embedding(
 def fixture_f1d(request):
     """1D test function for BQ."""
     return request.param
+
+
+# Matern kernels
+@pytest.fixture(
+    params=[
+        pytest.param(matern_nu, id=f"nu={matern_nu}")
+        for matern_nu in [0.5, 1.5, 2.5, 3.5]
+    ],
+    name="matern_nu",
+)
+def fixture_matern_nu(request) -> int:
+    """Input dimension of the covariance function."""
+    return request.param
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(matern_lengthscale, id=f"lengthscale={matern_lengthscale}")
+        for matern_lengthscale in [0.8, 1.0, 1.25]
+    ],
+    name="matern_lengthscale",
+)
+def fixture_matern_lengthscale(request) -> int:
+    """Input dimension of the covariance function."""
+    return request.param
+
+
+@pytest.fixture(name="matern_kernel")
+def fixture_matern_kernel(
+    request, input_dim: int, matern_nu: float, matern_lengthscale: float
+) -> kernels.Kernel:
+    """Set up Matern kernel."""
+    return kernels.ProductMatern(
+        input_shape=(input_dim,), nus=matern_nu, lengthscales=matern_lengthscale
+    )

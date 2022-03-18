@@ -22,7 +22,7 @@ class Linear(Kernel):
     ----------
     input_shape :
         Shape of the kernel's input.
-    constant
+    constant :
         Constant offset :math:`c`.
 
     See Also

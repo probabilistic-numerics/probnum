@@ -1,7 +1,6 @@
 """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
 measure."""
 
-
 import numpy as np
 import scipy.linalg as slinalg
 
@@ -12,8 +11,21 @@ from probnum.randprocs.kernels import ExpQuad
 def _kernel_mean_expquad_gauss(
     x: np.ndarray, kernel: ExpQuad, measure: GaussianMeasure
 ) -> np.ndarray:
-    """Kernel mean of the ExpQuad kernel w.r.t. its first argument against a Gaussian
-    measure.
+    r"""Kernel mean of the ExpQuad kernel with lenghtscale :math:`l` w.r.t. its first
+    argument against a Gaussian measure with mean vector :math:`\mu` and covariance
+    matrix :math:`\Sigma`. The kernel mean is
+
+    .. math::
+
+        \begin{equation}
+            k_P(x)
+            =
+            \det( I + \Sigma / l^2)^{-1/2}
+            \exp\bigg(-\frac{1}{2}(x-\mu)^\maths{T} (l^2 I + \Sigma)^{-1}
+                        (x-\mu) \bigg),
+        \end{equation}
+
+    where :math:`I` is the identity matrix.
 
     Parameters
     ----------
@@ -53,8 +65,19 @@ def _kernel_mean_expquad_gauss(
 
 
 def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) -> float:
-    """Kernel variance of the ExpQuad kernel w.r.t. both arguments against a Gaussian
-    measure.
+    r"""Kernel variance of the ExpQuad kernel with lenghtscale :math:`l` w.r.t. both
+    arguments against a :math:`D`-dimensional Gaussian measure with mean vector
+    :math:`\mu` and covariance matrix :math:`\Sigma`. The kernel variance is
+
+    .. math::
+
+        \begin{equation}
+            k_{PP}
+            =
+            l^D \sqrt{\frac{1}{\det(l^2 I + 2\b{\Sigma})}}
+        \end{equation}
+
+    where :math:`I` is the identity matrix.
 
     Parameters
     ----------
