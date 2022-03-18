@@ -74,7 +74,6 @@ autodoc_type_aliases = {
     "ArrayLike": "typing.ArrayLike",
     "LinearOperatorLike": "typing.LinearOperatorLike",
     "NotImplementedType": "typing.NotImplementedType",
-    # TODO: add all types
 }
 
 # Settings for automodapi
