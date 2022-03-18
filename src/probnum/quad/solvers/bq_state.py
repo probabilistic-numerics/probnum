@@ -106,6 +106,7 @@ class BQState:
 @dataclass
 class BQIterInfo:
     """Container for quantities concerning the BQ loop iteration.
+
     Parameters
     ----------
     iteration
@@ -126,6 +127,7 @@ class BQIterInfo:
     @classmethod
     def from_bq_state(cls, bq_state: BQState) -> "BQIterInfo":
         """Create BQIterInfo container from BQState object.
+
         Parameters
         ----------
         bq_state
@@ -140,6 +142,7 @@ class BQIterInfo:
     @classmethod
     def from_iteration(cls, info: "BQIterInfo", dnevals: int) -> "BQIterInfo":
         """Create BQIterInfo container with updated quantities from iteration.
+
         Parameters
         ----------
         info
@@ -162,6 +165,7 @@ class BQIterInfo:
         cls, info: "BQIterInfo", has_converged: bool
     ) -> "BQIterInfo":
         """Create BQIterInfo container with updated quantities from stopping decision.
+
         Parameters
         ----------
         info
