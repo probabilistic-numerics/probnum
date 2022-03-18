@@ -22,16 +22,37 @@ import numpy as np
 from numpy.typing import ArrayLike as _NumPyArrayLike, DTypeLike as _NumPyDTypeLike
 import scipy.sparse
 
+__all__ = [
+    # API Types
+    "ShapeType",
+    "ScalarType",
+    "MatrixType",
+    # Argument Types
+    "IntLike",
+    "FloatLike",
+    "ShapeLike",
+    "DTypeLike",
+    "ArrayIndicesLike",
+    "ScalarLike",
+    "ArrayLike",
+    "LinearOperatorLike",
+    "NotImplementedType",
+]
+
 ########################################################################################
 # API Types
 ########################################################################################
 
 # Array Utilities
 ShapeType = Tuple[int, ...]
+"""Type defining a shape of an object."""
 
 # Scalars, Arrays and Matrices
 ScalarType = np.ndarray
+"""Type defining a scalar."""
+
 MatrixType = Union[np.ndarray, "probnum.linops.LinearOperator"]
+"""Type defining a matrix, i.e. a linear map between finite-dimensional vector spaces."""
 
 ########################################################################################
 # Argument Types

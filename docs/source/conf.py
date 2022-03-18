@@ -62,12 +62,13 @@ autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
 autodoc_type_aliases = {
-    "ArrayIndicesLike": "ArrayIndicesLike",
-    "ArrayLike": "ArrayLike",
-    "DTypeLike": "DTypeLike",
-    "FloatLike": "FloatLike",
-    "IntLike": "IntLike",
-    "ShapeLike": "ShapeLike",
+    "ArrayIndicesLike": "probnum.typing.ArrayIndicesLike",
+    "ArrayLike": "probnum.typing.ArrayLike",
+    "DTypeLike": "probnum.typing.DTypeLike",
+    "FloatLike": "probnum.typing.FloatLike",
+    "IntLike": "probnum.typing.IntLike",
+    "ShapeLike": "probnum.typing.ShapeLike",
+    # TODO: add all types
 }
 
 # Settings for automodapi
