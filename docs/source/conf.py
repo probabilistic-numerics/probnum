@@ -62,12 +62,18 @@ autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
 autodoc_type_aliases = {
-    "ArrayIndicesLike": "probnum.typing.ArrayIndicesLike",
-    "ArrayLike": "probnum.typing.ArrayLike",
-    "DTypeLike": "probnum.typing.DTypeLike",
-    "FloatLike": "probnum.typing.FloatLike",
-    "IntLike": "probnum.typing.IntLike",
-    "ShapeLike": "probnum.typing.ShapeLike",
+    "ShapeType": "typing.ShapeType",
+    "ScalarType": "typing.ScalarType",
+    "MatrixType": "typing.MatrixType",
+    "IntLike": "typing.IntLike",
+    "FloatLike": "typing.FloatLike",
+    "ShapeLike": "typing.ShapeLike",
+    "DTypeLike": "typing.DTypeLike",
+    "ArrayIndicesLike": "typing.ArrayIndicesLike",
+    "ScalarLike": "typing.ScalarLike",
+    "ArrayLike": "typing.ArrayLike",
+    "LinearOperatorLike": "typing.LinearOperatorLike",
+    "NotImplementedType": "typing.NotImplementedType",
     # TODO: add all types
 }
 
