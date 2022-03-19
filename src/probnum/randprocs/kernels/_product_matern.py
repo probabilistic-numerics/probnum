@@ -21,13 +21,13 @@ class ProductMatern(Kernel):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    lengthscales :
+    lengthscales
         Lengthscales of the one-dimensional Matern kernels. Describes the input scale on
         which the process varies. If a scalar, the same lengthscale is used in each
         dimension.
-    nus :
+    nus
         Hyperparameters controlling differentiability of the one-dimensional Matern
         kernels. If a scalar, the same smoothness is used in each dimension.
 

@@ -20,9 +20,9 @@ class Linear(Kernel):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    constant :
+    constant
         Constant offset :math:`c`.
 
     See Also

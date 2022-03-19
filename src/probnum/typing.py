@@ -81,7 +81,7 @@ function :func:`probnum.utils.as_shape` before further internal processing."""
 DTypeLike = _NumPyDTypeLike
 """Type of a public API argument for supplying an array's dtype.
 
-Values of this type should always be converted into :class:`np.dtype`\\ s before further
+Values of this type should always be converted into :class:`numpy.dtype`\\ s before further
 internal processing."""
 
 _ArrayIndexLike = Union[
@@ -94,20 +94,20 @@ _ArrayIndexLike = Union[
 ]
 ArrayIndicesLike = Union[_ArrayIndexLike, Tuple[_ArrayIndexLike, ...]]
 """Type of the argument to the :meth:`__getitem__` method of a NumPy-like array type
-such as :class:`np.ndarray`, :class:`probnum.linops.LinearOperator` or
+such as :class:`numpy.ndarray`, :class:`probnum.linops.LinearOperator` or
 :class:`probnum.randvars.RandomVariable`."""
 
 # Scalars, Arrays and Matrices
 ScalarLike = Union[int, float, complex, numbers.Number, np.number]
 """Type of a public API argument for supplying a scalar value.
 
-Values of this type should always be converted into :class:`np.number`\\ s using the
+Values of this type should always be converted into :class:`numpy.number`\\ s using the
 function :func:`probnum.utils.as_scalar` before further internal processing."""
 
 ArrayLike = _NumPyArrayLike
 """Type of a public API argument for supplying an array.
 
-Values of this type should always be converted into :class:`np.ndarray`\\ s using
+Values of this type should always be converted into :class:`numpy.ndarray`\\ s using
 the function :func:`np.asarray` before further internal processing."""
 
 LinearOperatorLike = Union[
@@ -126,3 +126,4 @@ internal processing."""
 ########################################################################################
 
 NotImplementedType = type(NotImplemented)
+"""Type of the `NotImplemented` constant."""

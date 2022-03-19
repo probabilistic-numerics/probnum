@@ -20,9 +20,9 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
 
     Parameters
     ----------
-    mean :
+    mean
         Mean function.
-    cov :
+    cov
         Covariance function or kernel.
 
     See Also

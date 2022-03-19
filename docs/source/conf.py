@@ -50,13 +50,6 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
-# Settings for napoleon
-napoleon_use_param = True
-
-# Remove possible duplicate methods when using 'automodapi'
-# autodoc_default_flags = ['no-members']
-numpydoc_show_class_members = True
-
 # Settings for autodoc
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
@@ -75,6 +68,14 @@ autodoc_type_aliases = {
     "LinearOperatorLike": "typing.LinearOperatorLike",
     "NotImplementedType": "typing.NotImplementedType",
 }
+
+# Settings for napoleon
+napoleon_use_param = True
+
+# Remove possible duplicate methods when using 'automodapi'
+# autodoc_default_flags = ['no-members']
+numpydoc_show_class_members = True
+
 
 # Settings for automodapi
 automodapi_toctreedirnm = "api/automod"

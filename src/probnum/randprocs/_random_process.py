@@ -25,16 +25,16 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Input shape of the random process.
-    output_shape :
+    output_shape
         Output shape of the random process.
-    dtype :
+    dtype
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
-    mean :
+    mean
         Mean function of the random process.
-    cov :
+    cov
         Covariance function of the random process.
 
     See Also
