@@ -44,9 +44,6 @@ class ScaledKernel(Kernel):
         if np.ndim(scalar) != 0:
             raise TypeError("`scalar` must be a scalar.")
 
-        if not scalar > 0.0:
-            raise ValueError("'scalar' must be positive.")
-
         self._kernel = kernel
         self._scalar = utils.as_numpy_scalar(scalar)
 
