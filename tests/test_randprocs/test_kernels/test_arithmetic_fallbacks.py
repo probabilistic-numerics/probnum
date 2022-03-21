@@ -21,14 +21,6 @@ def test_scaled_kernel_evaluation(
     np.testing.assert_allclose(k_scaled.matrix(x0), scalar * kernel.matrix(x0))
 
 
-def test_non_positive_scalar_raises_error():
-    with pytest.raises(ValueError):
-        ScaledKernel(kernel=kernels.WhiteNoise(input_shape=()), scalar=0.0)
-
-    with pytest.raises(ValueError):
-        ScaledKernel(kernel=kernels.WhiteNoise(input_shape=()), scalar=-1.0)
-
-
 def test_non_scalar_raises_error():
     with pytest.raises(TypeError):
         ScaledKernel(kernel=kernels.WhiteNoise(input_shape=()), scalar=np.array([0, 1]))
