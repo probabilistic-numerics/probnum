@@ -12,13 +12,14 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-
 from datetime import datetime
 import os
 from pathlib import Path
 import sys
 
 from pkg_resources import DistributionNotFound, get_distribution
+
+import probnum
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -54,7 +55,9 @@ templates_path = ["_templates"]
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
-autodoc_type_aliases = {type_alias: f"typing.{type_alias}" for type_alias in pn.typing.__all__}
+autodoc_type_aliases = {
+    type_alias: f"typing.{type_alias}" for type_alias in probnum.typing.__all__
+}  # Ensures type aliases are correctly displayed and linked in the documentation
 
 # Settings for napoleon
 napoleon_use_param = True

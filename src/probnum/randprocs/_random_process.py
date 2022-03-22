@@ -41,7 +41,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
     --------
     ~probnum.randvars.RandomVariable : Random variables.
     ~probnum.randprocs.GaussianProcess : Gaussian processes.
-    ~probnum.randprocs.markov.MarkovProcess : Random processes with the Markov property.
+    ~probnum.randprocs.markov.MarkovProcess : Random processes with the Maqrkov property.
 
     Notes
     -----
