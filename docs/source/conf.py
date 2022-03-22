@@ -54,20 +54,7 @@ templates_path = ["_templates"]
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
-autodoc_type_aliases = {
-    "ShapeType": "typing.ShapeType",
-    "ScalarType": "typing.ScalarType",
-    "MatrixType": "typing.MatrixType",
-    "IntLike": "typing.IntLike",
-    "FloatLike": "typing.FloatLike",
-    "ShapeLike": "typing.ShapeLike",
-    "DTypeLike": "typing.DTypeLike",
-    "ArrayIndicesLike": "typing.ArrayIndicesLike",
-    "ScalarLike": "typing.ScalarLike",
-    "ArrayLike": "typing.ArrayLike",
-    "LinearOperatorLike": "typing.LinearOperatorLike",
-    "NotImplementedType": "typing.NotImplementedType",
-}
+autodoc_type_aliases = {type_alias: f"typing.{type_alias}" for type_alias in pn.typing.__all__}
 
 # Settings for napoleon
 napoleon_use_param = True
