@@ -2,7 +2,7 @@ import functools
 from typing import Callable
 
 import numpy as np
-from numpy.linalg import norm, qr, svd
+from numpy.linalg import eigh, norm, qr, svd
 import scipy.linalg
 from scipy.linalg import cholesky
 

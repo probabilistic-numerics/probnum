@@ -1,7 +1,7 @@
 import functools
 
 import jax
-from jax.numpy.linalg import norm, qr, svd
+from jax.numpy.linalg import eigh, norm, qr, svd
 from jax.scipy.linalg import cholesky
 
 

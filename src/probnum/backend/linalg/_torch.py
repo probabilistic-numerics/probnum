@@ -1,7 +1,7 @@
 from typing import Optional, Tuple, Union
 
 import torch
-from torch.linalg import qr, svd
+from torch.linalg import eigh, qr, svd
 
 
 def norm(

@@ -14,6 +14,7 @@ __all__ = [
     "tril_to_positive_tril",
     "qr",
     "svd",
+    "eigh",
 ]
 
 from .. import BACKEND, Backend
