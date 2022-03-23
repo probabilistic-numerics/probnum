@@ -84,6 +84,7 @@ einsum = _core.einsum
 # Reductions
 all = _core.all
 sum = _core.sum
+max = _core.max
 
 # Concatenation and Stacking
 concatenate = _core.concatenate
@@ -217,6 +218,7 @@ __all__ = [
     # Reductions
     "all",
     "sum",
+    "max",
     # Concatenation and Stacking
     "concatenate",
     "stack",

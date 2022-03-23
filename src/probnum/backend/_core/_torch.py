@@ -30,6 +30,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     kron,
     linspace,
     log,
+    max,
     maximum,
     moveaxis,
     pi,
