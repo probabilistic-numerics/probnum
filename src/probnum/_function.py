@@ -1,5 +1,7 @@
 """Function class defining a Callable with fixed in- and output shapes."""
 
+from __future__ import annotations
+
 import abc
 from typing import Callable
 
@@ -41,7 +43,8 @@ class Function(abc.ABC):
     def input_shape(self) -> ShapeType:
         """Shape of the function's input.
 
-        For a scalar-input function, this is an empty tuple."""
+        For a scalar-input function, this is an empty tuple.
+        """
         return self._input_shape
 
     @property
@@ -53,7 +56,8 @@ class Function(abc.ABC):
     def output_shape(self) -> ShapeType:
         """Shape of the function's output.
 
-        For scalar-valued function, this is an empty tuple."""
+        For scalar-valued function, this is an empty tuple.
+        """
         return self._output_shape
 
     @property

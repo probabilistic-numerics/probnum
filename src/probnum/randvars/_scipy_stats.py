@@ -9,7 +9,7 @@ from probnum import utils as _utils
 
 from . import _normal, _random_variable
 
-_ValueType = Union[np.generic, np.ndarray]
+ValueType = Union[np.generic, np.ndarray]
 
 # pylint: disable=protected-access
 
@@ -24,7 +24,7 @@ class _SciPyRandomVariableMixin:
 
 
 class WrappedSciPyRandomVariable(
-    _SciPyRandomVariableMixin, _random_variable.RandomVariable[_ValueType]
+    _SciPyRandomVariableMixin, _random_variable.RandomVariable[ValueType]
 ):
     """Wrapper for SciPy random variable objects.
 
@@ -47,7 +47,7 @@ class WrappedSciPyRandomVariable(
 
 
 class WrappedSciPyDiscreteRandomVariable(
-    _SciPyRandomVariableMixin, _random_variable.DiscreteRandomVariable[_ValueType]
+    _SciPyRandomVariableMixin, _random_variable.DiscreteRandomVariable[ValueType]
 ):
     """Wrapper for discrete SciPy random variable objects.
 
@@ -86,7 +86,7 @@ class WrappedSciPyDiscreteRandomVariable(
 
 
 class WrappedSciPyContinuousRandomVariable(
-    _SciPyRandomVariableMixin, _random_variable.ContinuousRandomVariable[_ValueType]
+    _SciPyRandomVariableMixin, _random_variable.ContinuousRandomVariable[ValueType]
 ):
     """Wrapper for continuous SciPy random variable objects.
 

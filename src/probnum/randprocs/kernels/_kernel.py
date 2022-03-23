@@ -58,9 +58,9 @@ class Kernel(abc.ABC):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the :class:`Kernel`'s input.
-    output_shape :
+    output_shape
         Shape of the :class:`Kernel`'s output.
 
         If ``output_shape`` is set to ``()``, the :class:`Kernel` instance represents a

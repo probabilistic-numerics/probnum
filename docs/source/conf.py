@@ -12,13 +12,14 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-
 from datetime import datetime
 import os
 from pathlib import Path
 import sys
 
 from pkg_resources import DistributionNotFound, get_distribution
+
+import probnum
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -28,13 +29,11 @@ sys.path.append(os.path.abspath("./_ext"))
 
 # -- General configuration ------------------------------------------------
 
-# If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.0"
-
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
@@ -43,8 +42,6 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx_automodapi.automodapi",
-    "sphinx_autodoc_typehints",
-    "sphinxcontrib.bibtex",
     "sphinx_gallery.load_style",
     "myst_parser",
     "nbsphinx",
@@ -54,6 +51,14 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
+# Settings for autodoc
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "all"
+autodoc_typehints_format = "short"
+autodoc_type_aliases = {
+    type_alias: f"typing.{type_alias}" for type_alias in probnum.typing.__all__
+}  # Ensures type aliases are correctly displayed and linked in the documentation
+
 # Settings for napoleon
 napoleon_use_param = True
 
@@ -61,14 +66,11 @@ napoleon_use_param = True
 # autodoc_default_flags = ['no-members']
 numpydoc_show_class_members = True
 
+
 # Settings for automodapi
 automodapi_toctreedirnm = "api/automod"
 automodapi_writereprocessed = False
 automodsumm_inherited_members = True
-
-# Settings for autodoc_typehints
-typehints_fully_qualified = False
-typehints_document_rtype = True
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:
@@ -145,7 +147,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy", None),
-    "matplotlib": ("https://matplotlib.org/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
 # -- Options for HTML output ----------------------------------------------

@@ -1,5 +1,7 @@
 """Linear covariance function."""
 
+from __future__ import annotations
+
 from typing import Optional
 
 import numpy as np
@@ -20,9 +22,9 @@ class Linear(Kernel):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    constant :
+    constant
         Constant offset :math:`c`.
 
     See Also

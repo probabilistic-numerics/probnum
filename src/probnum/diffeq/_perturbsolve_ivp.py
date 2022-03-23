@@ -1,4 +1,7 @@
 """Perturbation-based probabilistic ODE solver."""
+
+from __future__ import annotations
+
 from typing import Callable, Optional
 
 import numpy as np
