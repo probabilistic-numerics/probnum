@@ -1,6 +1,7 @@
 """Backend functions for linear algebra."""
 
 __all__ = [
+    "LinAlgError",
     "norm",
     "induced_norm",
     "inner_product",
@@ -25,6 +26,8 @@ elif BACKEND is Backend.JAX:
     from ._jax import *
 elif BACKEND is Backend.TORCH:
     from ._torch import *
+
+from numpy.linalg import LinAlgError
 
 from ._cholesky_updates import cholesky_update, tril_to_positive_tril
 from ._inner_product import induced_norm, inner_product
