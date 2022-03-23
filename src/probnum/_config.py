@@ -119,14 +119,6 @@ _GLOBAL_CONFIG_SINGLETON = Configuration()
 _DEFAULT_CONFIG_OPTIONS = [
     # list of tuples (config_key, default_value)
     (
-        "covariance_inversion_damping",
-        1e-12,
-        (
-            "A (typically small) value that is per default added to the diagonal "
-            "of covariance matrices in order to make inversion numerically stable."
-        ),
-    ),
-    (
         "matrix_free",
         False,
         (
