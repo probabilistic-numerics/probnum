@@ -3,7 +3,7 @@
 This module defines commonly used types in the library. These are separated into two
 different kinds, API types and argument types.
 
-**API types** are aliases which define custom types used throughout the library. Objects of
+**API types** (``*Type``) are aliases which define custom types used throughout the library. Objects of
 this type may be supplied as arguments or returned by a method.
 
 **Argument types** (``*Like``) are aliases which define commonly used method
@@ -14,7 +14,7 @@ supply a variety of objects of different types for the same argument, while ensu
 internal representation of those same objects. As an example, take the different ways a user might
 specify a shape: ``2``, ``(2,)``, ``[2, 2]``. These may all be acceptable arguments to a function
 taking a shape, but internally should always be converted to a :attr:`ShapeType`, i.e. a tuple of
-``int``s.
+``int``\\ s.
 """
 
 from __future__ import annotations
@@ -97,7 +97,9 @@ _ArrayIndexLike = Union[
     np.ndarray,
 ]
 ArrayIndicesLike = Union[_ArrayIndexLike, Tuple[_ArrayIndexLike, ...]]
-"""Type of the argument to the :meth:`__getitem__` method of a NumPy-like array type
+"""Object that can be converted to indices of an array.
+
+Type of the argument to the :meth:`__getitem__` method of a NumPy-like array type
 such as :class:`numpy.ndarray`, :class:`probnum.linops.LinearOperator` or
 :class:`probnum.randvars.RandomVariable`."""
 
