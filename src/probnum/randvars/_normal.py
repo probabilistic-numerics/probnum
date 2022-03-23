@@ -60,7 +60,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
            [ 1.2504512 ,  1.44056472]])
     """
 
-    # TODO (#569): `cov_cholesky` should be passed to the `cov` `LinearOperator`
+    # TODO (#xyz): `cov_cholesky` should be passed to the `cov` `LinearOperator`
     def __init__(
         self,
         mean: Union[ArrayLike, linops.LinearOperator],
@@ -89,11 +89,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         cov = compat.cast(cov, dtype=dtype, casting="safe", copy=False)
 
         if cov_cholesky is not None:
-            # TODO: (#xyz) Handle if-statements like this via `pn.compat.cast`
-            if isinstance(cov_cholesky, linops.LinearOperator):
-                cov_cholesky = cov_cholesky.astype(dtype, casting="safe", copy=False)
-            else:
-                cov_cholesky = backend.asarray(cov_cholesky, dtype=dtype)
+            cov_cholesky = compat.cast(cov_cholesky, dtype, copy=False)
 
         # Shape checking
         expected_cov_shape = (
@@ -111,7 +107,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if cov_cholesky is not None:
             if cov_cholesky.shape != cov.shape:
                 raise ValueError(
-                    f"The cholesky decomposition of the covariance matrix must "
+                    f"The Cholesky decomposition of the covariance matrix must "
                     f"have the same shape as the covariance matrix, i.e. "
                     f"{cov.shape}, but shape {cov_cholesky.shape} was given"
                 )
@@ -582,7 +578,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
             # ||L^{-1}(x - \mu)||_2^2 = (x - \mu)^T \Sigma^{-1} (x - \mu)
             backend.sum(self._cov_sqrtm_solve(x_centered) ** 2, axis=-1)
             + self.size * backend.log(backend.array(2.0 * backend.pi))
-            # TODO (#569): Replace this with `self._cov_op.logdet()`
+            # TODO (#xyz): Replace this with `self._cov_op.logdet()`
             + self._cov_logdet
         )
 
@@ -618,7 +614,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
     @backend.jit_method
     def _entropy(self) -> ScalarType:
         entropy = 0.5 * self.size * (backend.log(2.0 * backend.pi) + 1.0)
-        # TODO (#569): Replace this with `0.5 * self._cov_op.logdet()`
+        # TODO (#xyz): Replace this with `0.5 * self._cov_op.logdet()`
         entropy += 0.5 * self._cov_logdet
 
         return entropy
