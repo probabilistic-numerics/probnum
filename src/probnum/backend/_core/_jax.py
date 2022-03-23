@@ -82,7 +82,7 @@ def is_floating_dtype(dtype) -> bool:
     return is_floating(jax.numpy.empty((), dtype=dtype))
 
 
-def to_numpy(*arrays: jax.numpy.ndarray) -> Tuple[np.ndarray, ...]:
+def to_numpy(*arrays: jax.numpy.ndarray) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:
     if len(arrays) == 1:
         return np.array(arrays[0])
 

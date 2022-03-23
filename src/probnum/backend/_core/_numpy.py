@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 from numpy import (  # pylint: disable=redefined-builtin, unused-import
@@ -74,7 +74,7 @@ def is_floating_dtype(dtype) -> bool:
     return np.issubdtype(dtype, np.floating)
 
 
-def to_numpy(*arrays: np.ndarray) -> Tuple[np.ndarray, ...]:
+def to_numpy(*arrays: np.ndarray) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:
     if len(arrays) == 1:
         return arrays[0]
 
