@@ -121,9 +121,9 @@ LinearOperatorLike = Union[
     scipy.sparse.spmatrix,
     "probnum.linops.LinearOperator",
 ]
-"""Object that can be converted to a (finite-dimensional) linear operator.
+"""Object that can be converted to a :class:`~probnum.linops.LinearOperator`.
 
-Arguments of type :attr:`LinearOperatorLike` should always be converted into :class:`probnum.linops.\\
+Arguments of type :attr:`LinearOperatorLike` should always be converted into :class:`~probnum.linops.\\
 LinearOperator`\\ s using the function :func:`probnum.linops.aslinop` before further
 internal processing."""
 
