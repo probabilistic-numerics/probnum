@@ -71,10 +71,21 @@ class ProductMatern(Kernel):
         input_dim = 1 if input_shape == () else input_shape[0]
 
         # If only single scalar lengthcsale or nu is given, use this in every dimension
+        def expand_array(x, ndim):
+            return np.full((ndim,), _utils.as_numpy_scalar(x))
+
+        if isinstance(lengthscales, np.ndarray):
+            if lengthscales.shape == ():
+                lengthscales = expand_array(lengthscales, input_dim)
+        if isinstance(nus, np.ndarray):
+            if nus.shape == ():
+                nus = expand_array(nus, input_dim)
+
+        # also expand if scalars are given
         if np.isscalar(lengthscales):
-            lengthscales = np.full((input_dim,), _utils.as_numpy_scalar(lengthscales))
+            lengthscales = expand_array(lengthscales, input_dim)
         if np.isscalar(nus):
-            nus = np.full((input_dim,), _utils.as_numpy_scalar(nus))
+            nus = expand_array(nus, input_dim)
 
         univariate_materns = []
         for dim in range(input_dim):
