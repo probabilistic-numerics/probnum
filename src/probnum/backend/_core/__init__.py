@@ -83,6 +83,7 @@ einsum = _core.einsum
 
 # Reductions
 all = _core.all
+any = _core.any
 sum = _core.sum
 max = _core.max
 
@@ -217,6 +218,7 @@ __all__ = [
     "einsum",
     # Reductions
     "all",
+    "any",
     "sum",
     "max",
     # Concatenation and Stacking

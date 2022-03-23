@@ -92,6 +92,25 @@ def all(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
     return res
 
 
+def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
+    if isinstance(axis, int):
+        return torch.any(
+            a,
+            dim=axis,
+            keepdim=keepdims,
+        )
+
+    axes = sorted(axis)
+
+    res = a
+
+    # If `keepdims is True`, this only works because axes is sorted!
+    for axis in reversed(axes):
+        res = torch.any(res, dim=axis, keepdims=keepdims)
+
+    return res
+
+
 def array(object, dtype=None, *, copy=True):
     if copy:
         return torch.tensor(object, dtype=dtype)
