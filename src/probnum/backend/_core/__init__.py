@@ -91,6 +91,7 @@ stack = _core.stack
 hstack = _core.hstack
 vstack = _core.vstack
 tile = _core.tile
+kron = _core.kron
 
 # Misc
 to_numpy = _core.to_numpy
@@ -222,6 +223,7 @@ __all__ = [
     "vstack",
     "hstack",
     "tile",
+    "kron",
     # Misc
     "to_numpy",
     # Just-in-Time Compilation
