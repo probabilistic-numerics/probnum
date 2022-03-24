@@ -114,7 +114,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
                     f"{cov.shape}, but shape {cov_cholesky.shape} was given"
                 )
 
-        self._cov_cholesky = cov_cholesky
+        self.__cov_cholesky = cov_cholesky
         self.__cov_eigh = None
 
         if mean.ndim == 0:
@@ -187,177 +187,6 @@ class Normal(_random_variable.ContinuousRandomVariable):
             return self.cov
 
         return linops.aslinop(self.cov)
-
-    # TODO (#678): Use `LinearOperator.cholesky` once the backend is supported
-
-    @property
-    def cov_cholesky(self) -> MatrixType:
-        """Cholesky factor :math:`L` of the covariance
-        :math:`\\operatorname{Cov}(X) =LL^\\top`."""
-
-        if not self.cov_cholesky_is_precomputed:
-            self.compute_cov_cholesky()
-
-        return self._cov_cholesky
-
-    @functools.cached_property
-    def _cov_matrix_cholesky(self) -> ArrayType:
-        if isinstance(self._cov_cholesky, linops.LinearOperator):
-            return self._cov_cholesky.todense()
-
-        return self._cov_cholesky
-
-    @functools.cached_property
-    def _cov_op_cholesky(self) -> linops.LinearOperator:
-        if backend.isarray(self._cov_cholesky):
-            return linops.aslinop(self._cov_cholesky)
-
-        return self._cov_cholesky
-
-    def compute_cov_cholesky(self) -> None:
-        """Compute Cholesky factor (careful: in-place operation!)."""
-
-        if self.cov_cholesky_is_precomputed:
-            raise Exception("A Cholesky factor is already available.")
-
-        if self.ndim == 0:
-            self._cov_cholesky = backend.sqrt(self.cov)
-        elif backend.isarray(self.cov):
-            self._cov_cholesky = backend.linalg.cholesky(self.cov, lower=True)
-        else:
-            assert isinstance(self.cov, linops.LinearOperator)
-
-            self._cov_cholesky = self.cov.cholesky(lower=True)
-
-    @property
-    def cov_cholesky_is_precomputed(self) -> bool:
-        """Return truth-value of whether the Cholesky factor of the covariance is
-        readily available.
-
-        This happens if (i) the Cholesky factor is specified during initialization or if
-        (ii) the property `self.cov_cholesky` has been called before.
-        """
-        return self._cov_cholesky is not None
-
-    # TODO (#569,#678): Use `LinearOperator.eig` it is implemented and once the backend
-    # is supported
-
-    @property
-    def _cov_eigh(self):
-        return self.__cov_eigh
-
-    def compute_cov_eigh(self) -> None:
-        if self.cov_eigh_is_precomputed:
-            raise Exception("An eigendecomposition is already available.")
-
-        if self.ndim == 0:
-            eigvals = self.cov
-            Q = backend.ones_like(self.cov)
-        elif backend.isarray(self.cov):
-            eigvals, Q = backend.linalg.eigh(self.cov)
-        elif isinstance(self.cov, linops.Kronecker):
-            A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
-            B_eigvals, B_eigvecs = backend.linalg.eigh(self.cov.B.todense())
-
-            eigvals = backend.kron(A_eigvals, B_eigvals)
-            Q = linops.Kronecker(A_eigvecs, B_eigvecs)
-        elif (
-            isinstance(self.cov, linops.SymmetricKronecker)
-            and self.cov.identical_factors
-        ):
-            A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
-
-            eigvals = backend.kron(A_eigvals, B_eigvals)
-            Q = linops.SymmetricKronecker(A_eigvecs)
-        else:
-            assert isinstance(self.cov, linops.LinearOperator)
-
-            eigvals, Q = backend.linalg.eigh(self.dense_cov)
-
-            Q = linops.aslinop(Q)
-
-        # Clip eigenvalues as in
-        # https://github.com/scipy/scipy/blob/b5d8bab88af61d61de09641243848df63380a67f/scipy/stats/_multivariate.py#L60-L166
-        if self.dtype == backend.double:
-            eigvals_clip = 1e6
-        elif self.dtype == backend.single:
-            eigvals_clip = 1e3
-        else:
-            raise TypeError("Unsupported dtype")
-
-        eigvals_clip *= backend.finfo(self.dtype).eps
-        eigvals_clip *= backend.max(backend.abs(eigvals))
-
-        if backend.any(eigvals < -eigvals_clip):
-            raise backend.linalg.LinAlgError(
-                "The covariance matrix is not positive semi-definite."
-            )
-
-        eigvals = eigvals * (eigvals >= eigvals_clip)
-
-        self._cov_eigh = (eigvals, Q)
-
-    @property
-    def cov_eigh_is_precomputed(self) -> bool:
-        return self.__cov_eigh is not None
-
-    # TODO (#569,#678): Replace `_cov_{sqrtm,sqrtm_solve,logdet}` with
-    # `self._cov_op.{sqrtm,inv,logdet}` once they are supported and once linops support
-    # the backend
-
-    @functools.cached_property
-    def _cov_sqrtm(self) -> MatrixType:
-        if not self.cov_eigh_is_precomputed:
-            # Attempt Cholesky factorization
-            try:
-                return self.cov_cholesky
-            except backend.linalg.LinAlgError:
-                pass
-
-        # Fall back to symmetric eigendecomposition
-        eigvals, Q = self._cov_eigh
-
-        if isinstance(Q, linops.LinearOperator):
-            return Q @ linops.Scaling(backend.sqrt(eigvals))
-
-        return Q * backend.sqrt(eigvals)[None, :]
-
-    def _cov_sqrtm_solve(self, x: ArrayType) -> ArrayType:
-        if not self.cov_eigh_is_precomputed:
-            # Attempt Cholesky factorization
-            try:
-                cov_matrix_cholesky = self._cov_matrix_cholesky
-            except backend.linalg.LinAlgError:
-                cov_matrix_cholesky = None
-
-            if cov_matrix_cholesky is not None:
-                return backend.linalg.solve_triangular(
-                    self._cov_matrix_cholesky,
-                    x[..., None],
-                    lower=True,
-                )[..., 0]
-
-        # Fall back to symmetric eigendecomposition
-        eigvals, Q = self._cov_eigh
-
-        return (x @ Q) / backend.sqrt(eigvals)
-
-    @functools.cached_property
-    def _cov_logdet(self) -> ArrayType:
-        if not self.cov_eigh_is_precomputed:
-            # Attempt Cholesky factorization
-            try:
-                cov_matrix_cholesky = self._cov_matrix_cholesky
-            except backend.linalg.LinAlgError:
-                cov_matrix_cholesky = None
-
-            if cov_matrix_cholesky is not None:
-                return 2.0 * backend.sum(backend.log(backend.diag(cov_matrix_cholesky)))
-
-        # Fall back to symmetric eigendecomposition
-        eigvals, _ = self._cov_eigh
-
-        return backend.sum(backend.log(eigvals))
 
     def __getitem__(self, key: ArrayIndicesLike) -> "Normal":
         """Marginalization in multi- and matrixvariate normal random variables,
@@ -589,7 +418,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         scipy_cdf = scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
-            cov=self.dense_cov,
+            cov=self.cov_matrix,
         )
 
         # scipy's implementation happily squeezes `1` dimensions out of the batch
@@ -615,3 +444,176 @@ class Normal(_random_variable.ContinuousRandomVariable):
         entropy += 0.5 * self._cov_logdet
 
         return entropy
+
+    # TODO (#678): Use `LinearOperator.cholesky` once the backend is supported
+
+    @property
+    def cov_cholesky(self) -> MatrixType:
+        if not self.cov_cholesky_is_precomputed:
+            self.compute_cov_cholesky()
+
+        return self.__cov_cholesky
+
+    @functools.cached_property
+    def _cov_matrix_cholesky(self) -> ArrayType:
+        if isinstance(self.__cov_cholesky, linops.LinearOperator):
+            return self.__cov_cholesky.todense()
+
+        return self.__cov_cholesky
+
+    @functools.cached_property
+    def _cov_op_cholesky(self) -> linops.LinearOperator:
+        if backend.isarray(self.__cov_cholesky):
+            return linops.aslinop(self.__cov_cholesky)
+
+        return self.__cov_cholesky
+
+    def compute_cov_cholesky(self) -> None:
+        """Compute Cholesky factor (careful: in-place operation!)."""
+
+        if self.cov_cholesky_is_precomputed:
+            raise Exception("A Cholesky factor is already available.")
+
+        if self.ndim == 0:
+            self.__cov_cholesky = backend.sqrt(self.cov)
+        elif backend.isarray(self.cov):
+            self.__cov_cholesky = backend.linalg.cholesky(self.cov, lower=True)
+        else:
+            assert isinstance(self.cov, linops.LinearOperator)
+
+            self.__cov_cholesky = self.cov.cholesky(lower=True)
+
+    @property
+    def cov_cholesky_is_precomputed(self) -> bool:
+        """Return truth-value of whether the Cholesky factor of the covariance is
+        readily available.
+
+        This happens if (i) the Cholesky factor is specified during initialization or if
+        (ii) the property `self.cov_cholesky` has been called before.
+        """
+        return self.__cov_cholesky is not None
+
+    # TODO (#569,#678): Use `LinearOperator.eig` it is implemented and once the backend
+    # is supported
+
+    @property
+    def _cov_eigh(self) -> MatrixType:
+        if not self._cov_eigh_is_precomputed:
+            self._compute_cov_eigh()
+
+            assert self._cov_eigh_is_precomputed
+
+        return self.__cov_eigh
+
+    def _compute_cov_eigh(self) -> None:
+        if self._cov_eigh_is_precomputed:
+            raise Exception("An eigendecomposition is already available.")
+
+        if self.ndim == 0:
+            eigvals = self.cov
+            Q = backend.ones_like(self.cov)
+        elif backend.isarray(self.cov):
+            eigvals, Q = backend.linalg.eigh(self.cov)
+        elif isinstance(self.cov, linops.Kronecker):
+            A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
+            B_eigvals, B_eigvecs = backend.linalg.eigh(self.cov.B.todense())
+
+            eigvals = backend.kron(A_eigvals, B_eigvals)
+            Q = linops.Kronecker(A_eigvecs, B_eigvecs)
+        elif (
+            isinstance(self.cov, linops.SymmetricKronecker)
+            and self.cov.identical_factors
+        ):
+            A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
+
+            eigvals = backend.kron(A_eigvals, B_eigvals)
+            Q = linops.SymmetricKronecker(A_eigvecs)
+        else:
+            assert isinstance(self.cov, linops.LinearOperator)
+
+            eigvals, Q = backend.linalg.eigh(self.cov_matrix)
+
+            Q = linops.aslinop(Q)
+
+        # Clip eigenvalues as in
+        # https://github.com/scipy/scipy/blob/b5d8bab88af61d61de09641243848df63380a67f/scipy/stats/_multivariate.py#L60-L166
+        if self.dtype == backend.double:
+            eigvals_clip = 1e6
+        elif self.dtype == backend.single:
+            eigvals_clip = 1e3
+        else:
+            raise TypeError("Unsupported dtype")
+
+        eigvals_clip *= backend.finfo(self.dtype).eps
+        eigvals_clip *= backend.max(backend.abs(eigvals))
+
+        if backend.any(eigvals < -eigvals_clip):
+            raise backend.linalg.LinAlgError(
+                "The covariance matrix is not positive semi-definite."
+            )
+
+        eigvals = eigvals * (eigvals >= eigvals_clip)
+
+        self._cov_eigh = (eigvals, Q)
+
+    @property
+    def _cov_eigh_is_precomputed(self) -> bool:
+        return self.__cov_eigh is not None
+
+    # TODO (#569,#678): Replace `_cov_{sqrtm,sqrtm_solve,logdet}` with
+    # `self._cov_op.{sqrtm,inv,logdet}` once they are supported and once linops support
+    # the backend
+
+    @functools.cached_property
+    def _cov_sqrtm(self) -> MatrixType:
+        if not self._cov_eigh_is_precomputed:
+            # Attempt Cholesky factorization
+            try:
+                return self.cov_cholesky
+            except backend.linalg.LinAlgError:
+                pass
+
+        # Fall back to symmetric eigendecomposition
+        eigvals, Q = self._cov_eigh
+
+        if isinstance(Q, linops.LinearOperator):
+            return Q @ linops.Scaling(backend.sqrt(eigvals))
+
+        return Q * backend.sqrt(eigvals)[None, :]
+
+    def _cov_sqrtm_solve(self, x: ArrayType) -> ArrayType:
+        if not self._cov_eigh_is_precomputed:
+            # Attempt Cholesky factorization
+            try:
+                cov_matrix_cholesky = self._cov_matrix_cholesky
+            except backend.linalg.LinAlgError:
+                cov_matrix_cholesky = None
+
+            if cov_matrix_cholesky is not None:
+                return backend.linalg.solve_triangular(
+                    self._cov_matrix_cholesky,
+                    x[..., None],
+                    lower=True,
+                )[..., 0]
+
+        # Fall back to symmetric eigendecomposition
+        eigvals, Q = self._cov_eigh
+
+        return (x @ Q) / backend.sqrt(eigvals)
+
+    @functools.cached_property
+    def _cov_logdet(self) -> ArrayType:
+        if not self._cov_eigh_is_precomputed:
+            # Attempt Cholesky factorization
+            try:
+                cov_matrix_cholesky = self._cov_matrix_cholesky
+            except backend.linalg.LinAlgError:
+                cov_matrix_cholesky = None
+
+            if cov_matrix_cholesky is not None:
+                return 2.0 * backend.sum(backend.log(backend.diag(cov_matrix_cholesky)))
+
+        # Fall back to symmetric eigendecomposition
+        eigvals, _ = self._cov_eigh
+
+        return backend.sum(backend.log(eigvals))
