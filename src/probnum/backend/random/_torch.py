@@ -130,3 +130,6 @@ def _make_rng(seed: np.random.SeedSequence) -> torch.Generator:
     # rng.set_state(torch.ByteTensor(state.view(np.uint8)))
 
     return rng.manual_seed(int(seed.generate_state(1, dtype=np.int64)[0]))
+
+
+_SeedType = np.random.SeedSequence

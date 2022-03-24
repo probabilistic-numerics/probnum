@@ -1,7 +1,21 @@
-from typing import Optional
+"""Core of the compute backend.
+
+The interface provided by this module follows the Python array API standard
+(https://data-apis.org/array-api/latest/index.html), which defines a common
+common API for array and tensor Python libraries.
+"""
+
+from typing import Any, Optional, Union
 
 from probnum import backend as _backend
-from probnum.typing import DTypeLike, IntLike, ScalarLike, ShapeLike, ShapeType
+from probnum.typing import (
+    DTypeLike,
+    IntLike,
+    ScalarLike,
+    ScalarType,
+    ShapeLike,
+    ShapeType,
+)
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core
@@ -11,7 +25,10 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
     from . import _torch as _core
 
 # Assignments for common docstrings across backends
-ndarray = _core.ndarray
+
+# Arrays and scalars
+_Array = _core.Array
+_Scalar = _core.Scalar
 
 # DType
 dtype = _core.dtype
@@ -135,7 +152,11 @@ def as_shape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
     return shape
 
 
-def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ndarray:
+def isarray(x: Any) -> bool:
+    return isinstance(x, (_Array, _Scalar))
+
+
+def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ScalarType:
     """Convert a scalar into a NumPy scalar.
 
     Parameters
@@ -152,8 +173,9 @@ def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ndarray:
     return asarray(x, dtype=dtype)[()]
 
 
+_ArrayType = Union[_Scalar, _Array]
+
 __all__ = [
-    "ndarray",
     # DTypes
     "dtype",
     "asdtype",

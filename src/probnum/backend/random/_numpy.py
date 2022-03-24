@@ -98,6 +98,11 @@ def _uniform_so_group_pushforward_fn(omega: np.ndarray) -> np.ndarray:
 
 def _make_rng(seed: np.random.SeedSequence) -> np.random.Generator:
     if not isinstance(seed, np.random.SeedSequence):
-        raise TypeError("`seed`s should always be created by")
+        raise TypeError(
+            "`seed`s should always have type :class:`~numpy.random.SeedSequence`."
+        )
 
     return np.random.default_rng(seed)
+
+
+_SeedType = np.random.SeedSequence

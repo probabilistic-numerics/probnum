@@ -7,6 +7,8 @@ elif _backend.BACKEND is _backend.Backend.JAX:
 elif _backend.BACKEND is _backend.Backend.TORCH:
     from . import _torch as _random
 
+_SeedType = _random.SeedType
+
 # Seed constructors
 seed = _random.seed
 split = _random.split

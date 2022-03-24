@@ -1,6 +1,6 @@
 import functools
 import secrets
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence
 
 import jax
 from jax import numpy as jnp
@@ -96,3 +96,6 @@ def _uniform_so_group_pushforward_fn(omega: jnp.ndarray) -> jnp.ndarray:
     )
 
     return D[:, None] * H
+
+
+_SeedType = jax.random.PRNGKey

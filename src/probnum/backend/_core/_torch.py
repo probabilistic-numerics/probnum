@@ -3,7 +3,8 @@ from typing import Optional, Sequence, Tuple, Union
 import numpy as np
 import torch
 from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
-    Tensor as ndarray,
+    Tensor as Array,
+    Tensor as Scalar,
     abs,
     as_tensor as asarray,
     atleast_1d,
