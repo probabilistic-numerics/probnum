@@ -116,8 +116,10 @@ def seed_from_sampling_args(
     for key, value in kwargs.items():
         h.update(key.encode())
 
-        if isinstance(value, numbers.Number) and not isinstance(
-            value, numbers.Rational
+        if isinstance(value, numbers.Number) and (
+            # NumPy doesn't handle `fractions.Fraction` too well
+            not isinstance(value, numbers.Rational)
+            or isinstance(value, numbers.Real)
         ):
             h.update(np.asarray(value).tobytes())
         elif isinstance(value, np.ndarray):
