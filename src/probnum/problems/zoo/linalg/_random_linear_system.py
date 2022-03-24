@@ -24,10 +24,11 @@ def random_linear_system(
 ) -> problems.LinearSystem:
     """Random linear system.
 
-    Generate a random linear system from a (random) matrix. If ``matrix`` is a callable instead of a matrix or
-    linear operator, the system matrix is sampled by passing the random generator instance ``rng``. The solution
-    of the linear system is set to a realization from ``solution_rv``. If ``None`` the solution is drawn from a
-    standard normal distribution with iid components.
+    Generate a random linear system from a (random) matrix. If ``matrix`` is 
+    a callable instead of a matrix or linear operator, the system matrix is 
+    sampled by passing the random generator instance ``rng``. 
+    The solution of the linear system is set to a realization from ``solution_rv``.
+    If ``None`` the solution is drawn from a standard normal distribution with iid components.
 
     Parameters
     ----------
