@@ -29,10 +29,14 @@ def uniform(
 ) -> np.ndarray:
     minval = backend.as_scalar(minval, dtype=dtype)
     maxval = backend.as_scalar(maxval, dtype=dtype)
-    return (maxval - minval) * _make_rng(seed).random(
-        size=shape,
-        dtype=dtype,
-    ) + minval
+    return np.asarray(
+        (maxval - minval)
+        * _make_rng(seed).random(
+            size=shape,
+            dtype=dtype,
+        )
+        + minval
+    )
 
 
 def standard_normal(
@@ -40,7 +44,7 @@ def standard_normal(
     shape: ShapeLike = (),
     dtype: DTypeLike = np.double,
 ) -> np.ndarray:
-    return _make_rng(seed).standard_normal(size=shape, dtype=dtype)
+    return np.asarray(_make_rng(seed).standard_normal(size=shape, dtype=dtype))
 
 
 def gamma(
@@ -50,7 +54,7 @@ def gamma(
     shape: ShapeLike = (),
     dtype: DTypeLike = np.double,
 ) -> np.ndarray:
-    return (
+    return np.asarray(
         _make_rng(seed).standard_gamma(shape=shape_param, size=shape, dtype=dtype)
         * scale_param
     )
@@ -65,8 +69,10 @@ def uniform_so_group(
     if n == 1:
         return np.ones(shape + (1, 1), dtype=dtype)
 
-    return _uniform_so_group_pushforward_fn(
-        standard_normal(seed, shape=shape + (n - 1, n), dtype=dtype)
+    return np.asarray(
+        _uniform_so_group_pushforward_fn(
+            standard_normal(seed, shape=shape + (n - 1, n), dtype=dtype)
+        )
     )
 
 
