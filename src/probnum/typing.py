@@ -34,7 +34,9 @@ __all__ = [
     # API Types
     "ShapeType",
     "ScalarType",
+    "ArrayType",
     "MatrixType",
+    "SeedType",
     # Argument Types
     "IntLike",
     "FloatLike",
@@ -44,6 +46,7 @@ __all__ = [
     "ScalarLike",
     "ArrayLike",
     "LinearOperatorLike",
+    "SeedLike",
     "NotImplementedType",
 ]
 
@@ -59,11 +62,18 @@ ShapeType = Tuple[int, ...]
 ScalarType = "probnum.backend.ndarray"
 """Type defining a scalar."""
 
-MatrixType = Union["probnum.backend.ndarray", "probnum.linops.LinearOperator"]
-"""Type defining a matrix, i.e. a linear map between finite-dimensional vector spaces."""
+ArrayType = "probnum.backend.ndarray"
+"""Type defining a (possibly multi-dimensional) array."""
 
-MatrixType = Union[np.ndarray, "probnum.linops.LinearOperator"]
-"""Type defining a matrix, i.e. a linear map between finite-dimensional vector spaces."""
+MatrixType = Union["probnum.backend.ndarray", "probnum.linops.LinearOperator"]
+"""Type defining a matrix, i.e. a linear map between finite-dimensional vector spaces.
+
+An object :code:`matrix` of :attr:`MatrixType` behaves like a :class`~probnum.backend.ndarray` with
+:code:`matrix.ndim == 2`.
+"""
+
+# Random Number Generation
+SeedType = Union[np.random.SeedSequence, "jax.random.PRNGKey"]
 
 ########################################################################################
 # Argument Types
