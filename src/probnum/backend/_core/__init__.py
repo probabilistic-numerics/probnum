@@ -132,16 +132,14 @@ def as_shape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
     try:
         # x is an `IntLike`
         shape = (int(x),)
-    except TypeError:
+    except (TypeError, ValueError):
         # x is an iterable
         try:
-            _ = iter(x)
-        except TypeError as e:
+            shape = tuple(int(item) for item in x)
+        except (TypeError, ValueError) as err:
             raise TypeError(
                 f"The given shape {x} must be an integer or an iterable of integers."
-            ) from e
-
-        shape = tuple(int(item) for item in x)
+            ) from err
 
     if ndim is not None:
         ndim = int(ndim)
