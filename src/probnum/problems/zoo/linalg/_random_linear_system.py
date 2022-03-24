@@ -35,7 +35,8 @@ def random_linear_system(
     rng
         Random number generator.
     matrix
-        Matrix, linear operator or callable returning either for a given random number generator instance.
+        Matrix, linear operator or callable returning either for a given 
+        random number generator instance.
     solution_rv
         Random variable from which the solution of the linear system is sampled.
     kwargs
@@ -66,7 +67,8 @@ def random_linear_system(
     >>> linsys_spd = random_linear_system(rng, random_spd_matrix, dim=2)
     >>> linsys_spd
     LinearSystem(A=array([[ 9.62543582,  3.14955953],
-           [ 3.14955953, 13.28720426]]), b=array([-2.7108139 ,  1.10779288]), solution=array([-0.33488503,  0.16275307]))
+           [ 3.14955953, 13.28720426]]), b=array([-2.7108139 ,  1.10779288]),
+           solution=array([-0.33488503,  0.16275307]))
 
 
     Linear system with random sparse matrix.
