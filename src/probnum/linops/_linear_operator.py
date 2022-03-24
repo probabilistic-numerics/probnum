@@ -48,11 +48,11 @@ class LinearOperator:
 
     Parameters
     ----------
-    shape :
+    shape
         Matrix dimensions `(M, N)`.
-    dtype :
+    dtype
         Data type of the operator.
-    matmul :
+    matmul
         Callable which computes the matrix-matrix product :math:`y = A V`, where
         :math:`A` is the linear operator and :math:`V` is an :math:`N \times K` matrix.
         The callable must support broadcasted matrix products, i.e. the argument
@@ -60,19 +60,19 @@ class LinearOperator:
         of :func:`np.matmul` must apply.
         Note that the argument to this callable is guaranteed to have at least two
         dimensions.
-    rmatmul :
+    rmatmul
         Callable which implements the matrix-matrix product, i.e. :math:`A @ V`, where
         :math:`A` is the linear operator and :math:`V` is a matrix of shape `(N, K)`.
-    todense :
+    todense
         Callable which returns a dense matrix representation of the linear operator as a
         :class:`np.ndarray`. The output of this function must be equivalent to the
         output of :code:`A.matmat(np.eye(N, dtype=A.dtype))`.
-    rmatvec :
+    rmatvec
         Callable which implements the matrix-vector product with the adjoint of the
         operator, i.e. :math:`A^H v`, where :math:`A^H` is the conjugate transpose of
         the linear operator :math:`A` and :math:`v` is a vector of shape `(N,)`.
         This argument will be ignored if `adjoint` is given.
-    rmatmat :
+    rmatmat
         Returns :math:`A^H V`, where :math:`V` is a dense matrix with dimensions (M, K).
 
     See Also

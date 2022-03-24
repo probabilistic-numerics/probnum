@@ -1,4 +1,5 @@
 """Random Variables."""
+from __future__ import annotations
 
 import functools
 from functools import cached_property
@@ -250,7 +251,7 @@ class RandomVariable:
 
     @cached_property
     def mean(self) -> backend.ndarray:
-        r"""Mean :math:`\mathbb{E}(X)` of the random variable.
+        """Mean :math:`\\mathbb{E}(X)` of the random variable.
 
         To learn about the dtype of the mean, see :attr:`expectation_dtype`.
         """
@@ -274,8 +275,7 @@ class RandomVariable:
 
     @cached_property
     def cov(self) -> backend.ndarray:
-        r"""Covariance :math:`\operatorname{Cov}(X) = \mathbb{E}( (X - \mathbb{E}(X))
-        (X - \mathbb{E}(X))^\top )` of the random variable.
+        """Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the random variable.
 
         To learn about the dtype of the covariance, see :attr:`expectation_dtype`.
         """
@@ -299,7 +299,7 @@ class RandomVariable:
 
     @cached_property
     def var(self) -> backend.ndarray:
-        r"""Variance :math:`\operatorname{Var}(X) = \mathbb{E}( (X - \mathbb{E}(X))^2 )`
+        """Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)`
         of the random variable.
 
         To learn about the dtype of the variance, see :attr:`expectation_dtype`.
@@ -476,18 +476,18 @@ class RandomVariable:
         return logcdf
 
     def quantile(self, p: backend.ndarray) -> backend.ndarray:
-        r"""Quantile function.
+        """Quantile function.
 
-        The quantile function :math:`Q \colon [0, 1] \to \mathbb{R}` of a random
-        variable :math:`X` is defined as :math:`Q(p) = \inf \{ x \in \mathbb{R} \colon p
-        \le F_X(x) \}`, where :math:`F_X \colon \mathbb{R} \to [0, 1]` is the
-        :meth:`cdf` of the random variable. From the definition it follows that the
-        quantile function always returns values of the same dtype as the random
-        variable. For instance, for a discrete distribution over the integers, the
-        returned quantiles will also be integers. This means that, in general,
-        :math:`Q(0.5)` is not equal to the :attr:`median` as it is defined in this
-        class. See https://en.wikipedia.org/wiki/Quantile_function for more details and
-        examples.
+        The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
+        variable :math:`X` is defined as
+        :math:`Q(p) = \\inf\\{ x \\in \\mathbb{R} \\colon p \\le F_X(x) \\}`, where
+        :math:`F_X \\colon \\mathbb{R} \\to [0, 1]` is the :meth:`cdf` of the random
+        variable. From the definition it follows that the quantile function always
+        returns values of the same dtype as the random variable. For instance, for a
+        discrete distribution over the integers, the returned quantiles will also be
+        integers. This means that, in general, :math:`Q(0.5)` is not equal to the
+        :attr:`median` as it is defined in this class. See
+        https://en.wikipedia.org/wiki/Quantile_function for more details and examples.
         """
         if self.__shape != ():
             raise NotImplementedError(

@@ -82,12 +82,12 @@ class NegatedLinearOperator(ScaledLinearOperator):
 
 
 class SumLinearOperator(LinearOperator):
-    """Sum of two linear operators."""
+    """Sum of linear operators."""
 
     def __init__(self, *summands: LinearOperator):
 
         if not all(summand.shape == summands[0].shape for summand in summands):
-            raise ValueError("All summands must have the same shape")
+            raise ValueError("All summands must have the same shape.")
 
         self._summands = SumLinearOperator._expand_sum_ops(*summands)
 
@@ -167,7 +167,7 @@ def _mul_fallback(
 
 
 class ProductLinearOperator(LinearOperator):
-    """(Operator) Product of two linear operators."""
+    """(Operator) Product of linear operators."""
 
     def __init__(self, *factors: LinearOperator):
 

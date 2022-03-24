@@ -3,6 +3,9 @@
 Contains the discrete time and function outputs. Provides dense output by being
 callable. Can function values can also be accessed by indexing.
 """
+
+from __future__ import annotations
+
 import abc
 from typing import Iterable, Optional, Union
 

@@ -1,11 +1,14 @@
 """Gaussian processes."""
+
+from __future__ import annotations
+
 import numpy as np
 
 from probnum import backend, randvars
+from probnum.typing import ArrayLike
 
 from . import _random_process, kernels
 from .. import _function
-from ..typing import ArrayLike
 
 
 class GaussianProcess(_random_process.RandomProcess[ArrayLike, backend.ndarray]):
@@ -17,9 +20,9 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, backend.ndarray])
 
     Parameters
     ----------
-    mean :
+    mean
         Mean function.
-    cov :
+    cov
         Covariance function or kernel.
 
     See Also

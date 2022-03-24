@@ -1,4 +1,6 @@
-"""(Almost surely) constant random variables."""
+"""Random variables that are constant (with probability one)."""
+
+from __future__ import annotations
 
 from functools import cached_property
 from typing import Callable

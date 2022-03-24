@@ -6,6 +6,8 @@ be provided and is updated with information collected by the solvers to return a
 posterior distribution.
 """
 
+from __future__ import annotations
+
 from typing import Callable, Dict, Optional, Tuple, Union
 import warnings
 
@@ -44,7 +46,7 @@ def problinsolve(
     atol: float = 10**-6,
     rtol: float = 10**-6,
     callback: Optional[Callable] = None,
-    **kwargs
+    **kwargs,
 ) -> Tuple[
     "randvars.RandomVariable[np.ndarray]",
     "randvars.RandomVariable[linops.LinearOperator]",
@@ -67,23 +69,23 @@ def problinsolve(
 
     Parameters
     ----------
-    A :
+    A
         *shape=(n, n)* -- A square linear operator (or matrix). Only matrix-vector
         products :math:`v \mapsto Av` are used internally.
-    b :
+    b
         *shape=(n, ) or (n, nrhs)* -- Right-hand side vector, matrix or random
         variable in :math:`A x = b`.
-    A0 :
+    A0
         *shape=(n, n)* -- A square matrix, linear operator or random variable
         representing the prior belief about the linear operator :math:`A`.
-    Ainv0 :
+    Ainv0
         *shape=(n, n)* -- A square matrix, linear operator or random variable
         representing the prior belief about the inverse :math:`H=A^{-1}`. This can be
         viewed as a preconditioner.
-    x0 :
+    x0
         *shape=(n, ) or (n, nrhs)* -- Prior belief for the solution of the linear
         system. Will be ignored if ``Ainv0`` is given.
-    assume_A :
+    assume_A
         Assumptions on the linear operator which can influence solver choice and
         behavior. The available options are (combinations of)
 
@@ -94,19 +96,19 @@ def problinsolve(
          (additive) noise     ``noise``
         ====================  =========
 
-    maxiter :
+    maxiter
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the
         dimension of :math:`A`.
-    atol :
+    atol
         Absolute convergence tolerance.
-    rtol :
+    rtol
         Relative convergence tolerance.
-    callback :
+    callback
         User-supplied function called after each iteration of the linear solver. It is
         called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)`` and can
         be used to return quantities from the iteration. Note that depending on the
         function supplied, this can slow down the solver considerably.
-    kwargs : optional
+    kwargs
         Optional keyword arguments passed onto the solver iteration.
 
     Returns

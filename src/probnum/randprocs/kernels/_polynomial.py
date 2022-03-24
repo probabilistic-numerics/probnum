@@ -18,7 +18,7 @@ class Polynomial(Kernel):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
     constant
         Constant offset :math:`c`.

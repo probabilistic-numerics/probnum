@@ -1,5 +1,7 @@
 """Random Processes."""
 
+from __future__ import annotations
+
 import abc
 from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
@@ -9,11 +11,11 @@ from probnum import _function, backend, randvars
 from probnum.randprocs import kernels
 from probnum.typing import DTypeLike, SeedLike, ShapeLike, ShapeType
 
-_InputType = TypeVar("InputType")
-_OutputType = TypeVar("OutputType")
+InputType = TypeVar("InputType")
+OutputType = TypeVar("OutputType")
 
 
-class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
+class RandomProcess(Generic[InputType, OutputType], abc.ABC):
     """Random processes represent uncertainty about a function.
 
     Random processes generalize functions by encoding uncertainty over function
@@ -23,23 +25,23 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Input shape of the random process.
-    output_shape :
+    output_shape
         Output shape of the random process.
-    dtype :
+    dtype
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
-    mean :
+    mean
         Mean function of the random process.
-    cov :
+    cov
         Covariance function of the random process.
 
     See Also
     --------
-    RandomVariable : Random variables.
-    GaussianProcess : Gaussian processes.
-    MarkovProcess : Random processes with the Markov property.
+    ~probnum.randvars.RandomVariable : Random variables.
+    ~probnum.randprocs.GaussianProcess : Gaussian processes.
+    ~probnum.randprocs.markov.MarkovProcess : Random processes with the Markov property.
 
     Notes
     -----
@@ -145,7 +147,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         )
 
     @abc.abstractmethod
-    def __call__(self, args: _InputType) -> randvars.RandomVariable:
+    def __call__(self, args: InputType) -> randvars.RandomVariable:
         """Evaluate the random process at a set of input arguments.
 
         Parameters
@@ -162,7 +164,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             at the input(s).
         """
 
-    def marginal(self, args: _InputType) -> randvars._RandomVariableList:
+    def marginal(self, args: InputType) -> randvars._RandomVariableList:
         """Batch of random variables defining the marginal distributions at the inputs.
 
         Parameters
@@ -201,7 +203,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         return self._cov
 
-    def var(self, args: _InputType) -> _OutputType:
+    def var(self, args: InputType) -> OutputType:
         """Variance function.
 
         Returns the variance function which is the value of the covariance or kernel
@@ -215,7 +217,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Returns
         -------
-        _OutputType
+        OutputType
             *shape=* ``batch_shape +`` :attr:`output_shape` -- Variance of the process
             at ``args``.
         """
@@ -233,7 +235,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         return backend.diagonal(pointwise_covs, axis1=-2, axis2=-1)
 
-    def std(self, args: _InputType) -> _OutputType:
+    def std(self, args: InputType) -> OutputType:
         """Standard deviation function.
 
         Parameters
@@ -244,7 +246,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Returns
         -------
-        _OutputType
+        OutputType
             *shape=* ``batch_shape +`` :attr:`output_shape` -- Standard deviation of the
             process at ``args``.
         """
@@ -252,7 +254,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     def push_forward(
         self,
-        args: _InputType,
+        args: InputType,
         base_measure: Type[randvars.RandomVariable],
         sample: backend.ndarray,
     ) -> backend.ndarray:
@@ -277,9 +279,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def sample(
         self,
         seed: SeedLike,
-        args: _InputType = None,
+        args: Optional[InputType] = None,
         sample_shape: ShapeLike = (),
-    ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
+    ) -> Union[Callable[[InputType], OutputType], OutputType]:
         """Sample paths from the random process.
 
         If no inputs are provided this function returns sample paths which are
@@ -306,9 +308,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def _sample_at_input(
         self,
         seed: SeedLike,
-        args: _InputType,
+        args: InputType,
         sample_shape: ShapeLike = (),
-    ) -> _OutputType:
+    ) -> OutputType:
         """Evaluate a set of sample paths at the given inputs.
 
         This function should be implemented by subclasses of :class:`RandomProcess`.

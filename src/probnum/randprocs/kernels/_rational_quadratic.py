@@ -29,12 +29,12 @@ class RatQuad(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    lengthscale :
+    lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
-    alpha :
+    alpha
         Scale mixture :math:`\alpha`. Positive constant determining the weighting
         between different lengthscales.
 

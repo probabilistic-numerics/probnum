@@ -1,7 +1,10 @@
 """State of a probabilistic linear solver."""
 
+from __future__ import annotations
+
+from collections import defaultdict
 import dataclasses
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, DefaultDict, List, Optional, Tuple
 
 import numpy as np
 
@@ -13,7 +16,10 @@ from probnum import problems
 class LinearSolverState:
     """State of a probabilistic linear solver.
 
-    The solver state separates the state of a probabilistic linear solver from the algorithm itself, making the solver stateless. The state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities computed during an iteration of a probabilistic linear solver. The solver state is passed between the different components of the solver and may be used internally to cache quantities which are used more than once.
+    The solver state separates the state of a probabilistic linear solver from the algorithm itself, making the solver stateless.
+    The state contains the problem to be solved, the current belief over the quantities of interest and any miscellaneous quantities
+    computed during an iteration of a probabilistic linear solver. The solver state is passed between the different components of the
+    solver and may be used internally to cache quantities which are used more than once.
 
     Parameters
     ----------
@@ -21,36 +27,42 @@ class LinearSolverState:
         Linear system to be solved.
     prior
         Prior belief over the quantities of interest of the linear system.
-    rng
-        Random number generator.
     """
 
     def __init__(
         self,
         problem: problems.LinearSystem,
         prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        rng: Optional[np.random.Generator] = None,
     ):
-        self.rng: Optional[np.random.Generator] = rng
-        self.problem: problems.LinearSystem = problem
+        self._problem: problems.LinearSystem = problem
 
         # Belief
-        self.prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
+        self._prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
         self._belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief" = prior
 
         # Caches
         self._actions: List[np.ndarray] = [None]
         self._observations: List[Any] = [None]
         self._residuals: List[np.ndarray] = [
-            self.problem.A @ self.belief.x.mean - self.problem.b,
+            self.problem.b - self.problem.A @ self.belief.x.mean,
         ]
-        self.cache: Dict[str, Any] = {}
+        self.cache: DefaultDict[str, Any] = defaultdict(list)
 
         # Solver info
         self._step: int = 0
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(step={self.step})"
+
+    @property
+    def problem(self) -> problems.LinearSystem:
+        """Linear system to be solved."""
+        return self._problem
+
+    @property
+    def prior(self) -> "probnum.linalg.solvers.beliefs.LinearSystemBelief":
+        """Prior belief over the quantities of interest of the linear system."""
+        return self._prior
 
     @property
     def step(self) -> int:
@@ -107,16 +119,16 @@ class LinearSolverState:
 
     @property
     def residual(self) -> np.ndarray:
-        r"""Cached residual :math:`Ax_i-b` for the current solution estimate :math:`x_i`."""
+        r"""Residual :math:`r_{i} = b - Ax_{i}`."""
         if self._residuals[self.step] is None:
             self._residuals[self.step] = (
-                self.problem.A @ self.belief.x.mean - self.problem.b
+                self.problem.b - self.problem.A @ self.belief.x.mean
             )
         return self._residuals[self.step]
 
     @property
     def residuals(self) -> Tuple[np.ndarray, ...]:
-        r"""Residuals :math:`\{Ax_i - b\}_i`."""
+        r"""Residuals :math:`\{b - Ax_i\}_i`."""
         return tuple(self._residuals)
 
     def next_step(self) -> None:

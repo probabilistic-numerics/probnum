@@ -18,15 +18,19 @@ class WhiteNoise(Kernel):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    sigma :
-        Noise level :math:`\sigma`.
+    sigma_sq
+        Noise level :math:`\sigma^2 \geq 0`.
     """
 
-    def __init__(self, input_shape: ShapeLike, sigma: ScalarLike = 1.0):
-        self.sigma = backend.as_scalar(sigma)
-        self._sigma_sq = self.sigma**2
+    def __init__(self, input_shape: ShapeLike, sigma_sq: ScalarLike = 1.0):
+
+        if sigma_sq < 0:
+            raise ValueError(f"Noise level sigma_sq={sigma_sq} must be non-negative.")
+
+        self.sigma_sq = backend.as_scalar(sigma_sq)
+
         super().__init__(input_shape=input_shape)
 
     def _evaluate(
@@ -35,11 +39,11 @@ class WhiteNoise(Kernel):
         if x1 is None:
             return backend.full_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                self._sigma_sq,
+                self.sigma_sq,
                 shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
         if self.input_shape == ():
-            return self._sigma_sq * (x0 == x1)
+            return self.sigma_sq * (x0 == x1)
 
-        return self._sigma_sq * backend.all(x0 == x1, axis=-1)
+        return self.sigma_sq * backend.all(x0 == x1, axis=-1)

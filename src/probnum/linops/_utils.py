@@ -1,17 +1,12 @@
 """Utility functions for linear operators."""
-from typing import Union
+from __future__ import annotations
 
 import numpy as np
 import scipy.sparse
 
-from . import _linear_operator
+from probnum.typing import LinearOperatorLike
 
-LinearOperatorLike = Union[
-    _linear_operator.LinearOperator,
-    np.ndarray,
-    scipy.sparse.spmatrix,
-    scipy.sparse.linalg.LinearOperator,
-]
+from . import _linear_operator
 
 
 def aslinop(A: LinearOperatorLike) -> _linear_operator.LinearOperator:

@@ -1,4 +1,5 @@
 """Generate random linear systems as test problems."""
+from __future__ import annotations
 
 from typing import Any, Callable, Optional, Union
 

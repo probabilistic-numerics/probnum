@@ -9,16 +9,16 @@ observe the right hand side :math:`y = b^\top s = (Ax)^\top s` with the action :
 
 from ._linear_solver_information_op import LinearSolverInformationOp
 from ._matvec import MatVecInformationOp
-from ._projected_rhs import ProjectedRHSInformationOp
+from ._projected_residual import ProjectedResidualInformationOp
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "LinearSolverInformationOp",
     "MatVecInformationOp",
-    "ProjectedRHSInformationOp",
+    "ProjectedResidualInformationOp",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearSolverInformationOp.__module__ = "probnum.linalg.solvers.information_ops"
 MatVecInformationOp.__module__ = "probnum.linalg.solvers.information_ops"
-ProjectedRHSInformationOp.__module__ = "probnum.linalg.solvers.information_ops"
+ProjectedResidualInformationOp.__module__ = "probnum.linalg.solvers.information_ops"

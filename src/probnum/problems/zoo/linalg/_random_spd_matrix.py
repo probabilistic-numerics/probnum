@@ -1,4 +1,5 @@
 """Random symmetric positive definite matrices."""
+from __future__ import annotations
 
 from typing import Sequence
 

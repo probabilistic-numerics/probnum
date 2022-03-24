@@ -1,10 +1,14 @@
 """Kernel / covariance function."""
 
+from __future__ import annotations
+
 import abc
-from typing import Optional
+from typing import Optional, Union
 
 from probnum import backend
-from probnum.typing import ArrayLike, ShapeLike, ShapeType
+from probnum.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
+
+BinaryOperandType = Union["Kernel", ScalarLike]
 
 
 class Kernel(abc.ABC):
@@ -52,9 +56,9 @@ class Kernel(abc.ABC):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the :class:`Kernel`'s input.
-    output_shape :
+    output_shape
         Shape of the :class:`Kernel`'s output.
 
         If ``output_shape`` is set to ``()``, the :class:`Kernel` instance represents a
@@ -65,8 +69,9 @@ class Kernel(abc.ABC):
     Examples
     --------
 
+    >>> from probnum.randprocs.kernels import Linear
     >>> D = 3
-    >>> k = pn.randprocs.kernels.Linear(input_shape=D)
+    >>> k = Linear(input_shape=D)
     >>> k.input_shape
     (3,)
     >>> k.output_shape
@@ -113,6 +118,17 @@ class Kernel(abc.ABC):
 
     >>> k(xs[:-1, :], xs[1:, :])
     array([0.11570248, 0.7107438 , 1.75206612])
+
+    Kernels support basic arithmetic operations. For example we can add noise to the
+    kernel in the following fashion.
+
+    >>> from probnum.randprocs.kernels import WhiteNoise
+    >>> k_noise = k + 0.1 * WhiteNoise(input_shape=D)
+    >>> k_noise.matrix(xs)
+    array([[0.14132231, 0.11570248, 0.19008264, 0.26446281],
+           [0.11570248, 0.51322314, 0.7107438 , 1.00826446],
+           [0.19008264, 0.7107438 , 1.33140496, 1.75206612],
+           [0.26446281, 1.00826446, 1.75206612, 2.59586777]])
     """
 
     def __init__(
@@ -341,6 +357,7 @@ class Kernel(abc.ABC):
         k_x0_x1 :
             See "Returns" section in the docstring of :meth:`__call__`.
         """
+        raise NotImplementedError
 
     def _check_shapes(
         self,
@@ -417,6 +434,36 @@ class Kernel(abc.ABC):
         assert self.input_ndim == 1
 
         return backend.sum(prods, axis=-1)
+
+    ####################################################################################
+    # Binary Arithmetic
+    ####################################################################################
+
+    __array_ufunc__ = None
+    """
+    This prevents numpy from calling elementwise arithmetic operations instead of
+    the arithmetic operations defined by `Kernel`.
+    """
+
+    def __add__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+
+        return add(self, other)
+
+    def __radd__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+
+        return add(other, self)
+
+    def __mul__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+
+        return mul(self, other)
+
+    def __rmul__(self, other: BinaryOperandType) -> Kernel:
+        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+
+        return mul(other, self)
 
 
 class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
