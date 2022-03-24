@@ -554,7 +554,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         eigvals = eigvals * (eigvals >= eigvals_clip)
 
-        self._cov_eigh = (eigvals, Q)
+        self.__cov_eigh = (eigvals, Q)
 
     @property
     def _cov_eigh_is_precomputed(self) -> bool:
