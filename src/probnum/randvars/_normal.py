@@ -212,10 +212,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         return self._cov_cholesky
 
-    def compute_cov_cholesky(
-        self,
-        damping_factor: Optional[FloatLike] = None,
-    ) -> None:
+    def compute_cov_cholesky(self) -> None:
         """Compute Cholesky factor (careful: in-place operation!)."""
 
         if self.cov_cholesky_is_precomputed:
@@ -224,10 +221,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if self.ndim == 0:
             self._cov_cholesky = backend.sqrt(self.cov)
         elif isinstance(self.cov, backend.ndarray):
-            self._cov_cholesky = backend.linalg.cholesky(
-                self.cov + damping_factor * backend.eye(*self.shape, dtype=self.dtype),
-                lower=True,
-            )
+            self._cov_cholesky = backend.linalg.cholesky(self.cov, lower=True)
         else:
             assert isinstance(self.cov, linops.LinearOperator)
 
