@@ -198,7 +198,9 @@ class SuiteSparseMatrix(linops.Matrix):
             import requests  # pylint: disable=import-outside-toplevel
         except ImportError as err:
             raise ImportError(
-                "Cannot query SuiteSparse Matrix collection without optional dependency `requests`. Install ProbNum with optional dependencies for the problem zoo via `pip install probnum[zoo]` or install requests directly: `pip install requests`."
+               """Cannot query SuiteSparse Matrix collection without optional dependency `requests`.
+                  Install ProbNum with optional dependencies for the problem zoo via `pip install probnum[zoo]` 
+                  or install requests directly: `pip install requests`."""
             ) from err
 
         url = SUITESPARSE_ROOT_URL + f"/MM/{self.group}/{self.name}.tar.gz"
