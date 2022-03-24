@@ -139,9 +139,9 @@ nbsphinx_execute_arguments = [
 
 # Thumbnails for .rst notebooks
 nbsphinx_thumbnails = {
-    'development/creating_an_example_notebook': '_images/jupyter.png',
-    'development/adding_to_the_api_documentation': '_images/sphinx_logo.png',
-    'development/unit_testing': '_images/test-results.png',
+    "development/creating_an_example_notebook": "_images/jupyter.png",
+    "development/adding_to_the_api_documentation": "_images/sphinx_logo.png",
+    "development/unit_testing": "_images/test-results.png",
 }
 
 # -- Intersphinx configuration ----------------------------------------------
