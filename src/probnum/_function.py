@@ -7,7 +7,7 @@ from typing import Callable
 
 from probnum import backend
 
-from .typing import ArrayLike, ShapeLike, ShapeType
+from .typing import ArrayLike, ArrayType, ShapeLike, ShapeType
 
 
 class Function(abc.ABC):
@@ -64,7 +64,7 @@ class Function(abc.ABC):
         """Syntactic sugar for ``len(output_shape)``."""
         return self._output_ndim
 
-    def __call__(self, x: ArrayLike) -> backend.ndarray:
+    def __call__(self, x: ArrayLike) -> ArrayType:
         """Evaluate the function at a given input.
 
         The function is vectorized over the batch shape of the input.
@@ -108,7 +108,7 @@ class Function(abc.ABC):
         return fx
 
     @abc.abstractmethod
-    def _evaluate(self, x: backend.ndarray) -> backend.ndarray:
+    def _evaluate(self, x: ArrayType) -> ArrayType:
         pass
 
 
@@ -143,7 +143,7 @@ class LambdaFunction(Function):
 
     def __init__(
         self,
-        fn: Callable[[backend.ndarray], backend.ndarray],
+        fn: Callable[[ArrayType], ArrayType],
         input_shape: ShapeLike,
         output_shape: ShapeLike = (),
     ) -> None:
@@ -151,5 +151,5 @@ class LambdaFunction(Function):
 
         super().__init__(input_shape, output_shape)
 
-    def _evaluate(self, x: backend.ndarray) -> backend.ndarray:
+    def _evaluate(self, x: ArrayType) -> ArrayType:
         return self._fn(x)

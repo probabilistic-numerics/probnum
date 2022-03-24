@@ -81,7 +81,7 @@ def test_as_shape_wrong_ndim(shape_arg, ndim):
 def test_as_scalar_returns_scalar_array(scalar):
     """All sorts of scalars are transformed into a np.generic."""
     as_scalar = backend.as_scalar(scalar)
-    assert isinstance(as_scalar, backend.ndarray) and as_scalar.shape == ()
+    assert backend.isarray(as_scalar) and as_scalar.shape == ()
     compat.testing.assert_allclose(as_scalar, scalar, atol=0.0, rtol=1e-12)
 
 

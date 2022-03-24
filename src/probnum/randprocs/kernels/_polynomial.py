@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import IntLike, ScalarLike, ShapeLike
+from probnum.typing import ArrayType, IntLike, ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 
@@ -51,7 +51,5 @@ class Polynomial(Kernel):
         super().__init__(input_shape=input_shape)
 
     @backend.jit_method
-    def _evaluate(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray] = None
-    ) -> backend.ndarray:
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
         return (self._euclidean_inner_products(x0, x1) + self.constant) ** self.exponent

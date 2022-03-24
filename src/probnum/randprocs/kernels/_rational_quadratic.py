@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ScalarLike, ShapeLike
+from probnum.typing import ArrayType, ScalarLike, ShapeLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -66,9 +66,7 @@ class RatQuad(Kernel, IsotropicMixin):
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray] = None
-    ) -> backend.ndarray:
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
         if x1 is None:
             return backend.ones_like(  # pylint: disable=unexpected-keyword-arg
                 x0,

@@ -1,11 +1,9 @@
 """Product Matern kernel."""
 
-from typing import Optional, Union
+from typing import Optional
 
-import numpy as np
-
-from probnum import utils as _utils
-from probnum.typing import ScalarLike, ShapeLike
+from probnum import backend
+from probnum.typing import ArrayType, ShapeLike, ArrayLike
 
 from ._kernel import Kernel
 from ._matern import Matern
@@ -58,11 +56,14 @@ class ProductMatern(Kernel):
     def __init__(
         self,
         input_shape: ShapeLike,
-        lengthscales: Union[np.ndarray, ScalarLike],
-        nus: Union[np.ndarray, ScalarLike],
+        lengthscales: ArrayLike,
+        nus: ArrayLike,
     ):
-        input_shape = _utils.as_shape(input_shape)
-        if input_shape == () and not (np.isscalar(lengthscales) and np.isscalar(nus)):
+        input_shape = backend.as_shape(input_shape)
+
+        if input_shape == () and not (
+            backend.ndim(lengthscales) == 0 and backend.ndim(nus) == 0
+        ):
             raise ValueError(
                 f"'lengthscales' and 'nus' must be scalar if 'input_shape' is "
                 f"{input_shape}."
@@ -72,20 +73,21 @@ class ProductMatern(Kernel):
 
         # If only single scalar lengthcsale or nu is given, use this in every dimension
         def expand_array(x, ndim):
-            return np.full((ndim,), _utils.as_numpy_scalar(x))
+            return backend.full((ndim,), backend.as_scalar(x))
 
-        if isinstance(lengthscales, np.ndarray):
-            if lengthscales.shape == ():
-                lengthscales = expand_array(lengthscales, input_dim)
-        if isinstance(nus, np.ndarray):
-            if nus.shape == ():
-                nus = expand_array(nus, input_dim)
+        lengthscales = backend.asarray(lengthscales)
 
-        # also expand if scalars are given
-        if np.isscalar(lengthscales):
+        if lengthscales.shape == ():
             lengthscales = expand_array(lengthscales, input_dim)
-        if np.isscalar(nus):
+
+        self.lengthscales = lengthscales
+
+        nus = backend.asarray(nus)
+
+        if nus.shape == ():
             nus = expand_array(nus, input_dim)
+
+        self.nus = nus
 
         univariate_materns = []
         for dim in range(input_dim):
@@ -93,12 +95,10 @@ class ProductMatern(Kernel):
                 Matern(input_shape=(), lengthscale=lengthscales[dim], nu=nus[dim])
             )
         self.univariate_materns = univariate_materns
-        self.nus = nus
-        self.lengthscales = lengthscales
 
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
 
         # scalar case is same as a scalar Matern
         if self.input_shape == ():

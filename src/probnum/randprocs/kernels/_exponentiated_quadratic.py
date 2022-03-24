@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import IntLike, ScalarLike, ShapeLike
+from probnum.typing import ScalarLike, ShapeLike, ArrayType
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -49,9 +49,7 @@ class ExpQuad(Kernel, IsotropicMixin):
         super().__init__(input_shape=input_shape)
 
     @backend.jit_method
-    def _evaluate(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
-    ) -> backend.ndarray:
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         if x1 is None:
             return backend.ones_like(  # pylint: disable=unexpected-keyword-arg
                 x0,

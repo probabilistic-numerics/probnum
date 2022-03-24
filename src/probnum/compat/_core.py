@@ -1,9 +1,9 @@
 from typing import Tuple, Union
 
 import numpy as np
-import scipy.sparse
 
 from probnum import backend, linops, randvars
+from probnum.typing import ArrayType
 
 __all__ = [
     "to_numpy",
@@ -11,11 +11,11 @@ __all__ = [
 ]
 
 
-def to_numpy(*xs: Union[backend.ndarray, linops.LinearOperator]) -> Tuple[np.ndarray]:
+def to_numpy(*xs: Union[ArrayType, linops.LinearOperator]) -> Tuple[np.ndarray]:
     res = []
 
     for x in xs:
-        if isinstance(x, backend.ndarray):
+        if isinstance(x, ArrayType):
             x = backend.to_numpy(x)
         elif isinstance(x, linops.LinearOperator):
             x = backend.to_numpy(x.todense())
@@ -39,19 +39,19 @@ def cast(a, dtype=None, casting="unsafe", copy=None):
 
 def atleast_1d(
     *objs: Union[
-        backend.ndarray,
+        ArrayType,
         linops.LinearOperator,
         randvars.RandomVariable,
     ]
 ) -> Union[
     Union[
-        backend.ndarray,
+        ArrayType,
         linops.LinearOperator,
         randvars.RandomVariable,
     ],
     Tuple[
         Union[
-            backend.ndarray,
+            ArrayType,
             linops.LinearOperator,
             randvars.RandomVariable,
         ],
@@ -80,7 +80,7 @@ def atleast_1d(
     for obj in objs:
         if isinstance(obj, np.ndarray):
             obj = np.atleast_1d(obj)
-        elif isinstance(obj, backend.ndarray):
+        elif isinstance(obj, ArrayType):
             obj = backend.atleast_1d(obj)
         elif isinstance(obj, randvars.RandomVariable):
             if obj.ndim == 0:

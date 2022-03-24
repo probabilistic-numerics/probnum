@@ -9,6 +9,7 @@ from probnum import backend, linops
 from probnum.typing import (
     ArrayIndicesLike,
     ArrayLike,
+    ArrayType,
     FloatLike,
     MatrixType,
     ScalarType,
@@ -158,7 +159,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
             )
 
     @property
-    def dense_mean(self) -> backend.ndarray:
+    def dense_mean(self) -> ArrayType:
         """Dense representation of the mean."""
         if isinstance(self.mean, linops.LinearOperator):
             return self.mean.todense()
@@ -166,7 +167,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         return self.mean
 
     @property
-    def dense_cov(self) -> backend.ndarray:
+    def dense_cov(self) -> ArrayType:
         """Dense representation of the covariance."""
         if isinstance(self.cov, linops.LinearOperator):
             return self.cov.todense()
@@ -174,7 +175,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         return self.cov
 
     @functools.cached_property
-    def cov_matrix(self) -> backend.ndarray:
+    def cov_matrix(self) -> ArrayType:
         if isinstance(self.cov, linops.LinearOperator):
             return self.cov.todense()
 
@@ -200,7 +201,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         return self._cov_cholesky
 
     @functools.cached_property
-    def _cov_matrix_cholesky(self) -> backend.ndarray:
+    def _cov_matrix_cholesky(self) -> ArrayType:
         if isinstance(self._cov_cholesky, linops.LinearOperator):
             return self._cov_cholesky.todense()
 
@@ -208,7 +209,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     @functools.cached_property
     def _cov_op_cholesky(self) -> linops.LinearOperator:
-        if isinstance(self._cov_cholesky, backend.ndarray):
+        if isinstance(self._cov_cholesky, ArrayType):
             return linops.aslinop(self._cov_cholesky)
 
         return self._cov_cholesky
@@ -221,7 +222,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         if self.ndim == 0:
             self._cov_cholesky = backend.sqrt(self.cov)
-        elif isinstance(self.cov, backend.ndarray):
+        elif isinstance(self.cov, ArrayType):
             self._cov_cholesky = backend.linalg.cholesky(self.cov, lower=True)
         else:
             assert isinstance(self.cov, linops.LinearOperator)
@@ -251,7 +252,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if self.ndim == 0:
             eigvals = self.cov
             Q = backend.ones_like(self.cov)
-        elif isinstance(self.cov, backend.ndarray):
+        elif isinstance(self.cov, ArrayType):
             eigvals, Q = backend.linalg.eigh(self.cov)
         elif isinstance(self.cov, linops.Kronecker):
             A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
@@ -316,7 +317,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         return Q * backend.sqrt(eigvals)[None, :]
 
-    def _cov_sqrtm_solve(self, x: backend.ndarray) -> backend.ndarray:
+    def _cov_sqrtm_solve(self, x: ArrayType) -> ArrayType:
         if not self.cov_eigh_is_precomputed:
             # Attempt Cholesky factorization
             try:
@@ -337,7 +338,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         return (x @ Q) / backend.sqrt(eigvals)
 
     @functools.cached_property
-    def _cov_logdet(self) -> backend.ndarray:
+    def _cov_logdet(self) -> ArrayType:
         if not self.cov_eigh_is_precomputed:
             # Attempt Cholesky factorization
             try:
@@ -476,7 +477,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         self,
         seed: SeedType,
         sample_shape: ShapeType = (),
-    ) -> backend.ndarray:
+    ) -> ArrayType:
         sample = backend.random.standard_normal(
             seed,
             shape=sample_shape,
@@ -487,31 +488,31 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     @staticmethod
     @backend.jit
-    def _scalar_in_support(x: backend.ndarray) -> backend.ndarray:
+    def _scalar_in_support(x: ArrayType) -> ArrayType:
         return backend.isfinite(x)
 
     @backend.jit_method
-    def _scalar_pdf(self, x: backend.ndarray) -> backend.ndarray:
+    def _scalar_pdf(self, x: ArrayType) -> ArrayType:
         return backend.exp(-((x - self.mean) ** 2) / (2.0 * self.var)) / backend.sqrt(
             2 * backend.pi * self.var
         )
 
     @backend.jit_method
-    def _scalar_logpdf(self, x: backend.ndarray) -> backend.ndarray:
+    def _scalar_logpdf(self, x: ArrayType) -> ArrayType:
         return -((x - self.mean) ** 2) / (2.0 * self.var) - 0.5 * backend.log(
             2.0 * backend.pi * self.var
         )
 
     @backend.jit_method
-    def _scalar_cdf(self, x: backend.ndarray) -> backend.ndarray:
+    def _scalar_cdf(self, x: ArrayType) -> ArrayType:
         return backend.special.ndtr((x - self.mean) / self.std)
 
     @backend.jit_method
-    def _scalar_logcdf(self, x: backend.ndarray) -> backend.ndarray:
+    def _scalar_logcdf(self, x: ArrayType) -> ArrayType:
         return backend.log(self._scalar_cdf(x))
 
     @backend.jit_method
-    def _scalar_quantile(self, p: FloatLike) -> backend.ndarray:
+    def _scalar_quantile(self, p: FloatLike) -> ArrayType:
         return self.mean + self.std * backend.special.ndtri(p)
 
     @backend.jit_method
@@ -522,7 +523,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     # TODO (#xyz): jit this function once `LinearOperator`s support the backend
     # @functools.partial(backend.jit_method, static_argnums=(1,))
-    def _sample(self, seed: SeedLike, sample_shape: ShapeType = ()) -> backend.ndarray:
+    def _sample(self, seed: SeedLike, sample_shape: ShapeType = ()) -> ArrayType:
         samples = backend.random.standard_normal(
             seed,
             shape=sample_shape + (self.size,),
@@ -535,19 +536,17 @@ class Normal(_random_variable.ContinuousRandomVariable):
         return samples.reshape(sample_shape + self.shape)
 
     @staticmethod
-    def _arg_todense(
-        x: Union[backend.ndarray, linops.LinearOperator]
-    ) -> backend.ndarray:
+    def _arg_todense(x: Union[ArrayType, linops.LinearOperator]) -> ArrayType:
         if isinstance(x, linops.LinearOperator):
             return x.todense()
 
-        if isinstance(x, backend.ndarray):
+        if isinstance(x, ArrayType):
             return x
 
         raise ValueError(f"Unsupported argument type {type(x)}")
 
     @backend.jit_method
-    def _in_support(self, x: backend.ndarray) -> backend.ndarray:
+    def _in_support(self, x: ArrayType) -> ArrayType:
         return backend.all(
             backend.isfinite(Normal._arg_todense(x)),
             axis=tuple(range(-self.ndim, 0)),
@@ -555,11 +554,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
         )
 
     @backend.jit_method
-    def _pdf(self, x: backend.ndarray) -> backend.ndarray:
+    def _pdf(self, x: ArrayType) -> ArrayType:
         return backend.exp(self._logpdf(x))
 
     @backend.jit_method
-    def _logpdf(self, x: backend.ndarray) -> backend.ndarray:
+    def _logpdf(self, x: ArrayType) -> ArrayType:
         x_centered = Normal._arg_todense(x - self.dense_mean).reshape(
             x.shape[: -self.ndim] + (-1,)
         )
@@ -580,7 +579,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
     _cdf = backend.Dispatcher()
 
     @_cdf.numpy
-    def _cdf_numpy(self, x: backend.ndarray) -> backend.ndarray:
+    def _cdf_numpy(self, x: ArrayType) -> ArrayType:
         import scipy.stats  # pylint: disable=import-outside-toplevel
 
         scipy_cdf = scipy.stats.multivariate_normal.cdf(
@@ -599,11 +598,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         return scipy_cdf
 
-    def _logcdf(self, x: backend.ndarray) -> backend.ndarray:
+    def _logcdf(self, x: ArrayType) -> ArrayType:
         return backend.log(self.cdf(x))
 
     @backend.jit_method
-    def _var(self) -> backend.ndarray:
+    def _var(self) -> ArrayType:
         return backend.diag(self.dense_cov).reshape(self.shape)
 
     @backend.jit_method

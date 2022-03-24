@@ -43,7 +43,7 @@ def asrandvar(obj: Any) -> _random_variable.RandomVariable:
         return _constant.Constant(support=obj)
 
     # NumPy array or sparse matrix
-    if isinstance(obj, (backend.ndarray, scipy.sparse.spmatrix)):
+    if backend.isarray(obj) or isinstance(obj, scipy.sparse.spmatrix):
         return _constant.Constant(support=obj)
 
     # Linear Operators

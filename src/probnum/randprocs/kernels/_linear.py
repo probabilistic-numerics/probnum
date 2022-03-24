@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ScalarLike, ShapeLike
+from probnum.typing import ArrayType, ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 
@@ -45,7 +45,5 @@ class Linear(Kernel):
         super().__init__(input_shape=input_shape)
 
     @backend.jit_method
-    def _evaluate(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
-    ) -> backend.ndarray:
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         return self._euclidean_inner_products(x0, x1) + self.constant

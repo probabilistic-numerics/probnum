@@ -5,13 +5,13 @@ from __future__ import annotations
 import numpy as np
 
 from probnum import backend, randvars
-from probnum.typing import ArrayLike
+from probnum.typing import ArrayLike, ArrayType
 
 from . import _random_process, kernels
 from .. import _function
 
 
-class GaussianProcess(_random_process.RandomProcess[ArrayLike, backend.ndarray]):
+class GaussianProcess(_random_process.RandomProcess[ArrayLike, ArrayType]):
     """Gaussian processes.
 
     A Gaussian process is a continuous stochastic process which if evaluated at a

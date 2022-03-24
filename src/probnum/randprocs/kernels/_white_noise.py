@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ScalarLike, ShapeLike
+from probnum.typing import ArrayType, ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 
@@ -33,9 +33,7 @@ class WhiteNoise(Kernel):
 
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
-    ) -> backend.ndarray:
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         if x1 is None:
             return backend.full_like(  # pylint: disable=unexpected-keyword-arg
                 x0,

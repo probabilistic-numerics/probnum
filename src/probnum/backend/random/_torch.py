@@ -132,4 +132,4 @@ def _make_rng(seed: np.random.SeedSequence) -> torch.Generator:
     return rng.manual_seed(int(seed.generate_state(1, dtype=np.int64)[0]))
 
 
-_SeedType = np.random.SeedSequence
+SeedType = np.random.SeedSequence

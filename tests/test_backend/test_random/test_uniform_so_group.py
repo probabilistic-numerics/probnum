@@ -2,7 +2,7 @@ import numpy as np
 import pytest_cases
 
 from probnum import backend, compat
-from probnum.typing import SeedLike, ShapeType
+from probnum.typing import ArrayType, SeedLike, ShapeType
 
 
 @pytest_cases.fixture(scope="module")
@@ -12,7 +12,7 @@ from probnum.typing import SeedLike, ShapeType
 @pytest_cases.parametrize("dtype", (backend.single, backend.double))
 def so_group_sample(
     seed: SeedLike, n: int, shape: ShapeType, dtype: backend.dtype
-) -> backend.ndarray:
+) -> ArrayType:
     return backend.random.uniform_so_group(
         seed=backend.random.seed(abs(seed + n + hash(shape) + hash(dtype))),
         n=n,
@@ -21,7 +21,7 @@ def so_group_sample(
     )
 
 
-def test_orthogonal(so_group_sample: backend.ndarray):
+def test_orthogonal(so_group_sample: ArrayType):
     n = so_group_sample.shape[-2]
 
     compat.testing.assert_allclose(
@@ -31,7 +31,7 @@ def test_orthogonal(so_group_sample: backend.ndarray):
     )
 
 
-def test_determinant_1(so_group_sample: backend.ndarray):
+def test_determinant_1(so_group_sample: ArrayType):
     compat.testing.assert_allclose(
         np.linalg.det(compat.to_numpy(so_group_sample)),
         1.0,

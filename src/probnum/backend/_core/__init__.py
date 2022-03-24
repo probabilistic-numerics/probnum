@@ -251,6 +251,7 @@ __all__ = [
     "tile",
     "kron",
     # Misc
+    "isarray",
     "to_numpy",
     # Just-in-Time Compilation
     "jit",

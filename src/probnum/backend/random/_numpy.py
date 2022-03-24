@@ -111,4 +111,4 @@ def _make_rng(seed: np.random.SeedSequence) -> np.random.Generator:
     return np.random.default_rng(seed)
 
 
-_SeedType = np.random.SeedSequence
+SeedType = np.random.SeedSequence

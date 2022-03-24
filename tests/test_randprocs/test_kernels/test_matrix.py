@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import probnum as pn
-from probnum.typing import ShapeType
+from probnum.typing import ArrayType, ShapeType
 
 
 @pytest.fixture(name="kernmat", scope="module")
@@ -41,10 +41,10 @@ def fixture_kernmat_naive(
     return kernel_call_naive(x0, x1)
 
 
-def test_type(kernmat: pn.backend.ndarray):
+def test_type(kernmat: ArrayType):
     """Check whether a kernel evaluates to a numpy scalar or array."""
 
-    assert isinstance(kernmat, pn.backend.ndarray)
+    assert pn.backend.isarray(kernmat)
 
 
 def test_shape(

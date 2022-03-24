@@ -11,6 +11,7 @@ import numpy as np
 from probnum import backend
 from probnum.typing import (
     ArrayIndicesLike,
+    ArrayType,
     DTypeLike,
     ScalarType,
     SeedType,
@@ -98,17 +99,17 @@ class RandomVariable:
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[SeedType, ShapeType], backend.ndarray]] = None,
-        in_support: Optional[Callable[[backend.ndarray], bool]] = None,
-        cdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        logcdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        quantile: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        mode: Optional[Callable[[], backend.ndarray]] = None,
-        median: Optional[Callable[[], backend.ndarray]] = None,
-        mean: Optional[Callable[[], backend.ndarray]] = None,
-        cov: Optional[Callable[[], backend.ndarray]] = None,
-        var: Optional[Callable[[], backend.ndarray]] = None,
-        std: Optional[Callable[[], backend.ndarray]] = None,
+        sample: Optional[Callable[[SeedType, ShapeType], ArrayType]] = None,
+        in_support: Optional[Callable[[ArrayType], bool]] = None,
+        cdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logcdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        quantile: Optional[Callable[[ArrayType], ArrayType]] = None,
+        mode: Optional[Callable[[], ArrayType]] = None,
+        median: Optional[Callable[[], ArrayType]] = None,
+        mean: Optional[Callable[[], ArrayType]] = None,
+        cov: Optional[Callable[[], ArrayType]] = None,
+        var: Optional[Callable[[], ArrayType]] = None,
+        std: Optional[Callable[[], ArrayType]] = None,
         entropy: Optional[Callable[[], ScalarType]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
@@ -201,7 +202,7 @@ class RandomVariable:
         return self.__parameters.copy()
 
     @cached_property
-    def mode(self) -> backend.ndarray:
+    def mode(self) -> ArrayType:
         """Mode of the random variable."""
         if self.__mode is None:
             raise NotImplementedError
@@ -222,7 +223,7 @@ class RandomVariable:
         return mode
 
     @cached_property
-    def median(self) -> backend.ndarray:
+    def median(self) -> ArrayType:
         """Median of the random variable.
 
         To learn about the dtype of the median, see
@@ -250,7 +251,7 @@ class RandomVariable:
         return median
 
     @cached_property
-    def mean(self) -> backend.ndarray:
+    def mean(self) -> ArrayType:
         """Mean :math:`\\mathbb{E}(X)` of the random variable.
 
         To learn about the dtype of the mean, see :attr:`expectation_dtype`.
@@ -274,7 +275,7 @@ class RandomVariable:
         return mean
 
     @cached_property
-    def cov(self) -> backend.ndarray:
+    def cov(self) -> ArrayType:
         """Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the random variable.
 
         To learn about the dtype of the covariance, see :attr:`expectation_dtype`.
@@ -298,7 +299,7 @@ class RandomVariable:
         return cov
 
     @cached_property
-    def var(self) -> backend.ndarray:
+    def var(self) -> ArrayType:
         """Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)`
         of the random variable.
 
@@ -329,7 +330,7 @@ class RandomVariable:
         return var
 
     @cached_property
-    def std(self) -> backend.ndarray:
+    def std(self) -> ArrayType:
         """Standard deviation of the random variable.
 
         To learn about the dtype of the standard deviation, see
@@ -370,7 +371,7 @@ class RandomVariable:
 
         return entropy
 
-    def in_support(self, x: backend.ndarray) -> backend.ndarray:
+    def in_support(self, x: ArrayType) -> ArrayType:
         """Check whether the random variable takes value ``x`` with non-zero
         probability, i.e. if ``x`` is in the support of its distribution.
 
@@ -394,7 +395,7 @@ class RandomVariable:
 
         return in_support
 
-    def sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> backend.ndarray:
+    def sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> ArrayType:
         """Draw realizations from a random variable.
 
         Parameters
@@ -413,7 +414,7 @@ class RandomVariable:
 
         return samples
 
-    def cdf(self, x: backend.ndarray) -> backend.ndarray:
+    def cdf(self, x: ArrayType) -> ArrayType:
         """Cumulative distribution function.
 
         Parameters
@@ -444,7 +445,7 @@ class RandomVariable:
 
         return cdf
 
-    def logcdf(self, x: backend.ndarray) -> backend.ndarray:
+    def logcdf(self, x: ArrayType) -> ArrayType:
         """Log-cumulative distribution function.
 
         Parameters
@@ -475,7 +476,7 @@ class RandomVariable:
 
         return logcdf
 
-    def quantile(self, p: backend.ndarray) -> backend.ndarray:
+    def quantile(self, p: ArrayType) -> ArrayType:
         """Quantile function.
 
         The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
@@ -742,7 +743,7 @@ class RandomVariable:
     @staticmethod
     def _check_property_value(
         name: str,
-        value: backend.ndarray,
+        value: ArrayType,
         shape: Optional[ShapeType] = None,
         dtype: Optional[backend.dtype] = None,
     ):
@@ -763,8 +764,8 @@ class RandomVariable:
     def _check_return_value(
         self,
         method_name: str,
-        input_value: backend.ndarray,
-        return_value: backend.ndarray,
+        input_value: ArrayType,
+        return_value: ArrayType,
         expected_shape: Optional[ShapeType] = None,
         expected_dtype: Optional[backend.dtype] = None,
     ):
@@ -890,19 +891,19 @@ class DiscreteRandomVariable(RandomVariable):
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[SeedType, ShapeType], backend.ndarray]] = None,
-        in_support: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        pmf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        logpmf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        cdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        logcdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        quantile: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        mode: Optional[Callable[[], backend.ndarray]] = None,
-        median: Optional[Callable[[], backend.ndarray]] = None,
-        mean: Optional[Callable[[], backend.ndarray]] = None,
-        cov: Optional[Callable[[], backend.ndarray]] = None,
-        var: Optional[Callable[[], backend.ndarray]] = None,
-        std: Optional[Callable[[], backend.ndarray]] = None,
+        sample: Optional[Callable[[SeedType, ShapeType], ArrayType]] = None,
+        in_support: Optional[Callable[[ArrayType], ArrayType]] = None,
+        pmf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logpmf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        cdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logcdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        quantile: Optional[Callable[[ArrayType], ArrayType]] = None,
+        mode: Optional[Callable[[], ArrayType]] = None,
+        median: Optional[Callable[[], ArrayType]] = None,
+        mean: Optional[Callable[[], ArrayType]] = None,
+        cov: Optional[Callable[[], ArrayType]] = None,
+        var: Optional[Callable[[], ArrayType]] = None,
+        std: Optional[Callable[[], ArrayType]] = None,
         entropy: Optional[Callable[[], ScalarType]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
@@ -929,7 +930,7 @@ class DiscreteRandomVariable(RandomVariable):
             entropy=entropy,
         )
 
-    def pmf(self, x: backend.ndarray) -> backend.ndarray:
+    def pmf(self, x: ArrayType) -> ArrayType:
         """Probability mass function.
 
         Computes the probability of the random variable being equal to the given
@@ -969,7 +970,7 @@ class DiscreteRandomVariable(RandomVariable):
 
         return pmf
 
-    def logpmf(self, x: backend.ndarray) -> backend.ndarray:
+    def logpmf(self, x: ArrayType) -> ArrayType:
         """Natural logarithm of the probability mass function.
 
         Parameters
@@ -1099,20 +1100,20 @@ class ContinuousRandomVariable(RandomVariable):
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[SeedType, ShapeType], backend.ndarray]] = None,
-        in_support: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        pdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        logpdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        cdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        logcdf: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        quantile: Optional[Callable[[backend.ndarray], backend.ndarray]] = None,
-        mode: Optional[Callable[[], backend.ndarray]] = None,
-        median: Optional[Callable[[], backend.ndarray]] = None,
-        mean: Optional[Callable[[], backend.ndarray]] = None,
-        cov: Optional[Callable[[], backend.ndarray]] = None,
-        var: Optional[Callable[[], backend.ndarray]] = None,
-        std: Optional[Callable[[], backend.ndarray]] = None,
-        entropy: Optional[Callable[[], backend.ndarray]] = None,
+        sample: Optional[Callable[[SeedType, ShapeType], ArrayType]] = None,
+        in_support: Optional[Callable[[ArrayType], ArrayType]] = None,
+        pdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logpdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        cdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        logcdf: Optional[Callable[[ArrayType], ArrayType]] = None,
+        quantile: Optional[Callable[[ArrayType], ArrayType]] = None,
+        mode: Optional[Callable[[], ArrayType]] = None,
+        median: Optional[Callable[[], ArrayType]] = None,
+        mean: Optional[Callable[[], ArrayType]] = None,
+        cov: Optional[Callable[[], ArrayType]] = None,
+        var: Optional[Callable[[], ArrayType]] = None,
+        std: Optional[Callable[[], ArrayType]] = None,
+        entropy: Optional[Callable[[], ArrayType]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
 
@@ -1138,7 +1139,7 @@ class ContinuousRandomVariable(RandomVariable):
             entropy=entropy,
         )
 
-    def pdf(self, x: backend.ndarray) -> backend.ndarray:
+    def pdf(self, x: ArrayType) -> ArrayType:
         """Probability density function.
 
         The area under the curve defined by the probability density function
@@ -1178,7 +1179,7 @@ class ContinuousRandomVariable(RandomVariable):
 
         return pdf
 
-    def logpdf(self, x: backend.ndarray) -> backend.ndarray:
+    def logpdf(self, x: ArrayType) -> ArrayType:
         """Natural logarithm of the probability density function.
 
         Parameters

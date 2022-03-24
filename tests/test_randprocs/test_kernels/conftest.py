@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 import probnum as pn
-from probnum.typing import ShapeType
+from probnum.typing import ArrayType, ShapeType
+from tests import testing
 
 
 # Kernel objects
@@ -15,9 +16,9 @@ from probnum.typing import ShapeType
         pytest.param(input_shape, id=f"inshape{input_shape}")
         for input_shape in [(), (1,), (10,), (100,)]
     ],
-    name="input_shape",
+    scope="package",
 )
-def fixture_input_shape(request) -> ShapeType:
+def input_shape(request) -> ShapeType:
     """Input shape of the covariance function."""
     return request.param
 
@@ -39,18 +40,17 @@ def fixture_input_shape(request) -> ShapeType:
             (pn.randprocs.kernels.ProductMatern, {"lengthscales": 0.5, "nus": 0.5}),
         ]
     ],
-    name="kernel",
     scope="package",
 )
-def fixture_kernel(request, input_shape: ShapeType) -> pn.randprocs.kernels.Kernel:
+def kernel(request, input_shape: ShapeType) -> pn.randprocs.kernels.Kernel:
     """Kernel / covariance function."""
     return request.param[0](input_shape=input_shape, **request.param[1])
 
 
-@pytest.fixture(name="kernel_call_naive", scope="package")
-def fixture_kernel_call_naive(
+@pytest.fixture(scope="package")
+def kernel_call_naive(
     kernel: pn.randprocs.kernels.Kernel,
-) -> Callable[[pn.backend.ndarray, Optional[pn.backend.ndarray]], pn.backend.ndarray]:
+) -> Callable[[ArrayType, Optional[ArrayType]], ArrayType]:
     """Naive implementation of kernel broadcasting which applies the kernel function to
     scalar arguments while looping over the first dimensions of the inputs explicitly.
 
@@ -81,10 +81,9 @@ def fixture_kernel_call_naive(
             (100,),
         ]
     ],
-    name="x0_batch_shape",
     scope="package",
 )
-def fixture_x0_batch_shape(request) -> ShapeType:
+def x0_batch_shape(request) -> ShapeType:
     """Batch shape of the first argument of ``Kernel.matrix``."""
     return request.param
 
@@ -100,29 +99,32 @@ def fixture_x0_batch_shape(request) -> ShapeType:
             (10,),
         ]
     ],
-    name="x1_batch_shape",
     scope="package",
 )
-def fixture_x1_batch_shape(request) -> Optional[ShapeType]:
+def x1_batch_shape(request) -> Optional[ShapeType]:
     """Batch shape of the second argument of ``Kernel.matrix`` or ``None`` if the second
     argument is ``None``."""
     return request.param
 
 
-@pytest.fixture(name="x0", scope="package")
-def fixture_x0(x0_batch_shape: ShapeType) -> pn.backend.ndarray:
+@pytest.fixture(scope="package")
+def x0(input_shape: ShapeType, x0_batch_shape: ShapeType) -> ArrayType:
     """Random data from a standard normal distribution."""
-    seed = pn.backend.random.split(pn.backend.random.seed(abs(hash(x0_batch_shape))))[0]
+    shape = x0_batch_shape + input_shape
 
-    return pn.backend.random.standard_normal(seed, shape=x0_batch_shape)
+    seed = testing.seed_from_sampling_args(base_seed=34897, shape=shape)
+
+    return pn.backend.random.standard_normal(seed, shape=shape)
 
 
-@pytest.fixture(name="x1", scope="package")
-def fixture_x1(x1_batch_shape: Optional[ShapeType]) -> Optional[pn.backend.ndarray]:
+@pytest.fixture(scope="package")
+def x1(input_shape: ShapeType, x1_batch_shape: ShapeType) -> Optional[ArrayType]:
     """Random data from a standard normal distribution."""
     if x1_batch_shape is None:
         return None
 
-    seed = pn.backend.random.split(pn.backend.random.seed(abs(hash(x1_shape))))[1]
+    shape = x1_batch_shape + input_shape
 
-    return pn.backend.random.standard_normal(seed, shape=x1_batch_shape + input_shape)
+    seed = testing.seed_from_sampling_args(base_seed=533, shape=shape)
+
+    return pn.backend.random.standard_normal(seed, shape=shape)

@@ -98,4 +98,4 @@ def _uniform_so_group_pushforward_fn(omega: jnp.ndarray) -> jnp.ndarray:
     return D[:, None] * H
 
 
-_SeedType = jax.random.PRNGKey
+SeedType = jax.random.PRNGKey

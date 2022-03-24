@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import FloatLike, ScalarLike, ShapeLike
+from probnum.typing import ArrayType, FloatLike, ScalarLike, ShapeLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -74,9 +74,7 @@ class Matern(Kernel, IsotropicMixin):
         super().__init__(input_shape=input_shape)
 
     @backend.jit_method
-    def _evaluate(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray] = None
-    ) -> backend.ndarray:
+    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
         distances = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability

@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 from probnum.randprocs import kernels
-import probnum.utils as _utils
 
 
 @pytest.mark.parametrize("nu", [0.5, 1.5, 2.5, 3.0])
@@ -22,7 +21,7 @@ def test_kernel_matrix(input_dim, nu):
     kernel_matrix1 = product_matern.matrix(xs)
     kernel_matrix2 = np.ones(shape=(num_xs, num_xs))
     for dim in range(input_dim):
-        kernel_matrix2 *= matern.matrix(_utils.as_colvec(xs[:, dim]))
+        kernel_matrix2 *= matern.matrix(xs[:, [dim]])
     np.testing.assert_allclose(
         kernel_matrix1,
         kernel_matrix2,

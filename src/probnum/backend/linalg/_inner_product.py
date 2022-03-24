@@ -2,17 +2,15 @@
 
 from typing import Optional
 
-import numpy as np
-
 from probnum import backend
-from probnum.typing import MatrixType
+from probnum.typing import ArrayType, MatrixType
 
 
 def inner_product(
-    v: backend.ndarray,
-    w: backend.ndarray,
+    v: ArrayType,
+    w: ArrayType,
     A: Optional[MatrixType] = None,
-) -> backend.ndarray:
+) -> ArrayType:
     r"""Inner product :math:`\langle v, w \rangle_A := v^T A w`.
 
     For n-d arrays the function computes the inner product over the last axis of the
@@ -48,10 +46,10 @@ def inner_product(
 
 
 def induced_norm(
-    v: backend.ndarray,
+    v: ArrayType,
     A: Optional[MatrixType] = None,
     axis: int = -1,
-) -> backend.ndarray:
+) -> ArrayType:
     r"""Induced norm :math:`\lVert v \rVert_A := \sqrt{v^T A v}`.
 
     Computes the induced norm over the given axis of the array.

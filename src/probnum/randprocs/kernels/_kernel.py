@@ -6,7 +6,7 @@ import abc
 from typing import Optional, Union
 
 from probnum import backend
-from probnum.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
+from probnum.typing import ArrayLike, ArrayType, ScalarLike, ShapeLike, ShapeType
 
 BinaryOperandType = Union["Kernel", ScalarLike]
 
@@ -185,7 +185,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> backend.ndarray:
+    ) -> ArrayType:
         """Evaluate the (cross-)covariance function(s).
 
         The evaluation of the (cross-covariance) function(s) is vectorized over the
@@ -265,7 +265,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
-    ) -> backend.ndarray:
+    ) -> ArrayType:
         """A convenience function for computing a kernel matrix for two sets of inputs.
 
         This is syntactic sugar for ``k(x0[:, None], x1[None, :])``. Hence, it
@@ -335,7 +335,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> backend.ndarray:
+    ) -> ArrayType:
         """Implementation of the kernel evaluation which is called after input checking.
 
         When implementing a particular kernel, the subclass should implement the kernel
@@ -422,8 +422,8 @@ class Kernel(abc.ABC):
 
     @backend.jit_method
     def _euclidean_inner_products(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
-    ) -> backend.ndarray:
+        self, x0: ArrayType, x1: Optional[ArrayType]
+    ) -> ArrayType:
         """Implementation of the Euclidean inner product, which supports scalar inputs
         and an optional second argument."""
         prods = x0**2 if x1 is None else x0 * x1
@@ -481,8 +481,8 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
 
     @backend.jit_method
     def _squared_euclidean_distances(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
-    ) -> backend.ndarray:
+        self, x0: ArrayType, x1: Optional[ArrayType]
+    ) -> ArrayType:
         """Implementation of the squared Euclidean distance, which supports scalar
         inputs and an optional second argument."""
         if x1 is None:
@@ -501,9 +501,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         return backend.sum(sqdiffs, axis=-1)
 
     @backend.jit_method
-    def _euclidean_distances(
-        self, x0: backend.ndarray, x1: Optional[backend.ndarray]
-    ) -> backend.ndarray:
+    def _euclidean_distances(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
         """Implementation of the Euclidean distance, which supports scalar inputs and an
         optional second argument."""
         if x1 is None:
