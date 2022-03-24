@@ -137,6 +137,13 @@ nbsphinx_execute_arguments = [
     "--InlineBackend.rc={'figure.dpi': 150}",
 ]
 
+# Thumbnails for .rst notebooks
+nbsphinx_thumbnails = {
+    'development/creating_an_example_notebook': '_images/jupyter.png',
+    'development/adding_to_the_api_documentation': '_images/sphinx_logo.png',
+    'development/unit_testing': '_images/test-results.png',
+}
+
 # -- Intersphinx configuration ----------------------------------------------
 
 # Whenever Sphinx encounters a cross-reference that has no matching target in the
