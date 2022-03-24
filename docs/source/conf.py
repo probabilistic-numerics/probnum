@@ -228,11 +228,3 @@ sphinx_gallery_conf = {
 # MyST configuration
 myst_update_mathjax = False  # needed for mathjax compatibility with nbsphinx
 myst_enable_extensions = ["dollarmath", "amsmath"]
-
-# Sphinx Bibtex configuration
-bibtex_bibfiles = []
-for f in Path("research/bibliography").glob("*.bib"):
-    bibtex_bibfiles.append(str(f))
-bibtex_default_style = "unsrtalpha"
-bibtex_reference_style = "label"
-bibtex_encoding = "utf-8-sig"
