@@ -127,7 +127,7 @@ def seed_from_sampling_args(
         else:
             raise TypeError(
                 "Values passed by `kwargs` must be either numbers, `np.ndarray`s, or "
-                f"`backend.ndarray`s, not {type(value)}"
+                f"`backend.ndarray`s, not {type(value)}."
             )
 
     # Convert hash to positive integer
