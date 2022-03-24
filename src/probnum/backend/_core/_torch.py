@@ -94,6 +94,9 @@ def all(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
 
 
 def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
+    if axis is None:
+        return torch.any(a)
+
     if isinstance(axis, int):
         return torch.any(
             a,
