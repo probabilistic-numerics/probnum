@@ -62,7 +62,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
            [ 1.2504512 ,  1.44056472]])
     """
 
-    # TODO (#xyz): `cov_cholesky` should be passed to the `cov` `LinearOperator`
+    # TODO (#678): `cov_cholesky` should be passed to the `cov` `LinearOperator`
     def __init__(
         self,
         mean: Union[ArrayLike, linops.LinearOperator],
@@ -188,7 +188,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         return linops.aslinop(self.cov)
 
-    # TODO (#xyz): Use `LinearOperator.cholesky` once the backend is supported
+    # TODO (#678): Use `LinearOperator.cholesky` once the backend is supported
 
     @property
     def cov_cholesky(self) -> MatrixType:
@@ -239,7 +239,8 @@ class Normal(_random_variable.ContinuousRandomVariable):
         """
         return self._cov_cholesky is not None
 
-    # TODO (#xyz): Use `LinearOperator.eig` once the backend is supported
+    # TODO (#569,#678): Use `LinearOperator.eig` it is implemented and once the backend
+    # is supported
 
     @property
     def _cov_eigh(self):
@@ -299,6 +300,10 @@ class Normal(_random_variable.ContinuousRandomVariable):
     @property
     def cov_eigh_is_precomputed(self) -> bool:
         return self.__cov_eigh is not None
+
+    # TODO (#569,#678): Replace `_cov_{sqrtm,sqrtm_solve,logdet}` with
+    # `self._cov_op.{sqrtm,inv,logdet}` once they are supported and once linops support
+    # the backend
 
     @functools.cached_property
     def _cov_sqrtm(self) -> MatrixType:
@@ -521,7 +526,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     # Multi- and matrixvariate Gaussians
 
-    # TODO (#xyz): jit this function once `LinearOperator`s support the backend
+    # TODO (#569,#678): jit this function once `LinearOperator`s support the backend
     # @functools.partial(backend.jit_method, static_argnums=(1,))
     def _sample(self, seed: SeedLike, sample_shape: ShapeType = ()) -> ArrayType:
         samples = backend.random.standard_normal(
@@ -564,7 +569,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         )
 
         return -0.5 * (
-            # TODO (#xyz): backend.sum(
+            # TODO (#569,#678): backend.sum(
             #     x_centered * self._cov_op.inv()(x_centered, axis=-1),
             #     axis=-1
             # )
@@ -572,7 +577,6 @@ class Normal(_random_variable.ContinuousRandomVariable):
             # ||L^{-1}(x - \mu)||_2^2 = (x - \mu)^T \Sigma^{-1} (x - \mu)
             backend.sum(self._cov_sqrtm_solve(x_centered) ** 2, axis=-1)
             + self.size * backend.log(backend.array(2.0 * backend.pi))
-            # TODO (#xyz): Replace this with `self._cov_op.logdet()`
             + self._cov_logdet
         )
 
@@ -608,7 +612,6 @@ class Normal(_random_variable.ContinuousRandomVariable):
     @backend.jit_method
     def _entropy(self) -> ScalarType:
         entropy = 0.5 * self.size * (backend.log(2.0 * backend.pi) + 1.0)
-        # TODO (#xyz): Replace this with `0.5 * self._cov_op.logdet()`
         entropy += 0.5 * self._cov_logdet
 
         return entropy
