@@ -92,7 +92,8 @@ def random_linear_system(
     else:
         if A.shape[1] != solution_rv.shape[0]:
             raise ValueError(
-                f"Shape of the system matrix: {A.shape} must match shape of the solution: {solution_rv.shape}."
+                f"Shape of the system matrix: {A.shape} must match shape of the solution:
+                {solution_rv.shape}."
             )
         x = solution_rv.sample(size=(), rng=rng)
 
