@@ -17,6 +17,8 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     complex64 as csingle,
     concatenate,
     diag,
+    tril,
+    triu,
     diagonal,
     double,
     dtype,

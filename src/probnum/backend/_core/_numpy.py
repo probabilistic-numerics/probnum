@@ -18,6 +18,8 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     concatenate,
     csingle,
     diag,
+    tril,
+    triu,
     diagonal,
     double,
     dtype,

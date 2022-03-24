@@ -73,6 +73,8 @@ zeros_like = _core.zeros_like
 linspace = _core.linspace
 arange = _core.arange
 meshgrid = _core.meshgrid
+tril = _core.tril
+triu = _core.triu
 
 # Constants
 inf = _core.inf
@@ -217,6 +219,8 @@ __all__ = [
     "arange",
     "linspace",
     "meshgrid",
+    "tril",
+    "triu",
     # Constants
     "inf",
     "pi",
