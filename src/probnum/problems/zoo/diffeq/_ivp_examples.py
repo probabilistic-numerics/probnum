@@ -47,7 +47,8 @@ def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     t0
         Initial time.
     tmax
-        Final time. Default is ``17.0652165601579625588917206249`` which is the period of the solution.
+        Final time. Default is ``17.0652165601579625588917206249``
+        which is the period of the solution.
     y0
         *(shape=(4, ))* -- Initial value. Default is 
         ``[0.994, 0, 0, -2.00158510637908252240537862224]``.
