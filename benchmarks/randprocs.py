@@ -41,9 +41,8 @@ class MarkovProcessSampling:
 
     def time_sample(self, matrix_free, len_trajectory, num_derivatives, dimension):
         with config(matrix_free=matrix_free):
-            self.markov_process \
-                .transition \
-                .jointly_transform_base_measure_realization_list_forward(
+            process = self.markov_process
+            process.transition.jointly_transform_base_measure_realization_list_forward(
                 base_measure_realizations=self.base_measure_realization,
                 t=self.time_grid,
                 initrv=self.markov_process.initrv,
