@@ -1,8 +1,9 @@
 import numpy as np
+import pytest
 from scipy.optimize._numdiff import approx_derivative
 
 import probnum as pn
-from probnum import backend
+from probnum import backend, compat
 
 
 def assert_gradient_approx_finite_differences(
@@ -20,8 +21,8 @@ def assert_gradient_approx_finite_differences(
 
         epsilon = np.sqrt(backend.finfo(out.dtype).eps)
 
-    np.testing.assert_allclose(
-        np.array(grad(x0)),
+    compat.testing.assert_allclose(
+        grad(x0),
         approx_derivative(
             lambda x: np.array(func(x), copy=False),
             x0,
@@ -36,22 +37,23 @@ def g(l):
     l = l[0]
 
     gp = pn.randprocs.GaussianProcess(
-        mean=lambda x: backend.zeros_like(x, shape=x.shape[:-1]),
-        cov=pn.kernels.ExpQuad(input_dim=1, lengthscale=l),
+        mean=pn.randprocs.mean_fns.Zero(input_shape=()),
+        cov=pn.randprocs.kernels.ExpQuad(input_shape=(), lengthscale=l),
     )
 
     xs = backend.linspace(-1.0, 1.0, 10)
     ys = backend.linspace(-1.0, 1.0, 10)
 
-    fX = gp(xs[:, None])
+    fX = gp(xs)
 
     e = pn.randvars.Normal(mean=backend.zeros(10), cov=backend.eye(10))
 
     return -(fX + e).logpdf(ys)
 
 
+@pytest.mark.skipif_backend(backend.Backend.NUMPY)
 def test_compare_grad():
-    l = backend.ones((1,)) * 3.0
+    l = backend.asarray([3.0])
     dg = backend.autodiff.grad(g)
 
     assert_gradient_approx_finite_differences(
