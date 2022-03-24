@@ -209,7 +209,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     @functools.cached_property
     def _cov_op_cholesky(self) -> linops.LinearOperator:
-        if isinstance(self._cov_cholesky, ArrayType):
+        if backend.isarray(self._cov_cholesky):
             return linops.aslinop(self._cov_cholesky)
 
         return self._cov_cholesky
@@ -222,7 +222,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         if self.ndim == 0:
             self._cov_cholesky = backend.sqrt(self.cov)
-        elif isinstance(self.cov, ArrayType):
+        elif backend.isarray(self.cov):
             self._cov_cholesky = backend.linalg.cholesky(self.cov, lower=True)
         else:
             assert isinstance(self.cov, linops.LinearOperator)
@@ -252,7 +252,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if self.ndim == 0:
             eigvals = self.cov
             Q = backend.ones_like(self.cov)
-        elif isinstance(self.cov, ArrayType):
+        elif backend.isarray(self.cov):
             eigvals, Q = backend.linalg.eigh(self.cov)
         elif isinstance(self.cov, linops.Kronecker):
             A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
@@ -540,7 +540,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if isinstance(x, linops.LinearOperator):
             return x.todense()
 
-        if isinstance(x, ArrayType):
+        if backend.isarray(x):
             return x
 
         raise ValueError(f"Unsupported argument type {type(x)}")
