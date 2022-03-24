@@ -18,7 +18,8 @@ __all__ = [
 def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     r"""Initial value problem (IVP) based on a three-body problem.
 
-    For the initial conditions :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`, this function implements the second-order three-body problem as a system of
+    For the initial conditions :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`, 
+    this function implements the second-order three-body problem as a system of
     first-order ODEs, which is defined as follows: [1]_
 
     .. math::
@@ -48,12 +49,14 @@ def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     tmax
         Final time. Default is ``17.0652165601579625588917206249`` which is the period of the solution.
     y0
-        *(shape=(4, ))* -- Initial value. Default is ``[0.994, 0, 0, -2.00158510637908252240537862224]``.
+        *(shape=(4, ))* -- Initial value. Default is 
+        ``[0.994, 0, 0, -2.00158510637908252240537862224]``.
 
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing a three-body problem IVP with the prescribed configuration.
+        InitialValueProblem object describing a three-body problem IVP with the 
+        prescribed configuration.
 
     References
     ----------
@@ -286,7 +289,8 @@ def fitzhughnagumo(t0=0.0, tmax=20.0, y0=None, params=(0.2, 0.2, 3.0, 1.0)):
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing the FitzHugh-Nagumo model with the prescribed configuration.
+        InitialValueProblem object describing the FitzHugh-Nagumo model 
+        with the prescribed configuration.
     """
     if y0 is None:
         y0 = np.array([1.0, -1.0])
@@ -335,7 +339,8 @@ def lotkavolterra(t0=0.0, tmax=20.0, y0=None, params=(0.5, 0.05, 0.5, 0.05)):
     Returns
     -------
     InitialValueProblem
-        InitialValueProblem object describing the Lotka-Volterra system with the prescribed configuration.
+        InitialValueProblem object describing the Lotka-Volterra system with 
+        the prescribed configuration.
     """
     if y0 is None:
         y0 = np.array([20.0, 20.0])
@@ -499,7 +504,8 @@ def lorenz96(t0=0.0, tmax=30.0, y0=None, num_variables=5, params=(8.0,)):
     tmax
         Final time.
     y0
-        *(shape=(N, ))* -- Initial value. Default is ``[1/F, ..., 1/F]``. `N` is the number of variables in the model.
+        *(shape=(N, ))* -- Initial value. Default is ``[1/F, ..., 1/F]``. 
+        `N` is the number of variables in the model.
     num_variables
         Number of variables in the model. If `y0` is specified, this argument is ignored
         (and the number of variables is inferred from the dimension of the initial value).
@@ -522,7 +528,8 @@ def lorenz96(t0=0.0, tmax=30.0, y0=None, num_variables=5, params=(8.0,)):
     else:
         if len(y0) < 4:
             raise ValueError(
-                "The number of variables (i.e. the length of the initial vector) must be at least 4."
+                """The number of variables (i.e. the length of the initial vector)
+                   must be at least 4."""
             )
 
     def lorenz96_f_vec(t, y, c=constant_forcing):
