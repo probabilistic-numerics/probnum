@@ -38,6 +38,7 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     int32,
     int64,
     isfinite,
+    isnan,
     kron,
     linspace,
     log,
