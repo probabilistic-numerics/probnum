@@ -120,7 +120,7 @@ def tril(x: _Array, /, *, k: int = 0) -> _Array:
         ``k`` must be zeroed. The returned array should be allocated on the same device
         as ``x``.
     """
-    return _core.tril(array, k=k)
+    return _core.tril(x, k=k)
 
 
 def triu(x: _Array, /, *, k: int = 0) -> _Array:
@@ -155,7 +155,7 @@ def triu(x: _Array, /, *, k: int = 0) -> _Array:
         ``k`` must be zeroed. The returned array should be allocated on the same device
         as ``x``.
     """
-    return _core.triu(array, k=k)
+    return _core.triu(x, k=k)
 
 
 def isnan(x: _Array, /) -> _Array:
