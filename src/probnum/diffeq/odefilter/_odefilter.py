@@ -199,7 +199,7 @@ class ODEFilter(_odesolver.ODESolver):
         noisy_component = randvars.Normal(
             mean=np.zeros(state.rv.shape),
             cov=state.rv.cov.copy(),
-            cov_cholesky=state.rv.cov_cholesky.copy(),
+            cov_cholesky=state.rv._cov_cholesky.copy(),
         )
 
         # Compute the measurements for the error-free component
@@ -218,10 +218,10 @@ class ODEFilter(_odesolver.ODESolver):
         # Since the means of noise-free and noisy measurements coincide,
         # we manually update only the covariance.
         # The first two are only matrix square-roots and will be turned into proper Cholesky factors below.
-        pred_sqrtm = Phi @ noisy_component.cov_cholesky
+        pred_sqrtm = Phi @ noisy_component._cov_cholesky
         meas_sqrtm = H @ pred_sqrtm
         full_meas_cov_cholesky = backend.linalg.cholesky_update(
-            meas_rv_error_free.cov_cholesky, meas_sqrtm
+            meas_rv_error_free._cov_cholesky, meas_sqrtm
         )
         full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
         meas_rv = randvars.Normal(
@@ -258,7 +258,7 @@ class ODEFilter(_odesolver.ODESolver):
             new_rv = randvars.Normal(
                 mean=state.rv.mean.copy(),
                 cov=state.rv.cov.copy(),
-                cov_cholesky=state.rv.cov_cholesky.copy(),
+                cov_cholesky=state.rv._cov_cholesky.copy(),
             )
             state = _odesolver_state.ODESolverState(
                 ivp=state.ivp,
@@ -279,7 +279,7 @@ class ODEFilter(_odesolver.ODESolver):
             # predicted RV and measured RV.
             # The resulting predicted and measured RV are overwritten herein.
             full_pred_cov_cholesky = backend.linalg.cholesky_update(
-                np.sqrt(local_diffusion) * pred_rv_error_free.cov_cholesky, pred_sqrtm
+                np.sqrt(local_diffusion) * pred_rv_error_free._cov_cholesky, pred_sqrtm
             )
             full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T
             pred_rv = randvars.Normal(
@@ -289,7 +289,7 @@ class ODEFilter(_odesolver.ODESolver):
             )
 
             full_meas_cov_cholesky = backend.linalg.cholesky_update(
-                np.sqrt(local_diffusion) * meas_rv_error_free.cov_cholesky, meas_sqrtm
+                np.sqrt(local_diffusion) * meas_rv_error_free._cov_cholesky, meas_sqrtm
             )
             full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
             meas_rv = randvars.Normal(
@@ -304,7 +304,7 @@ class ODEFilter(_odesolver.ODESolver):
             # but is needed for the update below.
             # (The measurement has been updated already.)
             full_pred_cov_cholesky = backend.linalg.cholesky_update(
-                pred_rv_error_free.cov_cholesky, pred_sqrtm
+                pred_rv_error_free._cov_cholesky, pred_sqrtm
             )
             full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T
             pred_rv = randvars.Normal(
@@ -315,7 +315,7 @@ class ODEFilter(_odesolver.ODESolver):
 
         # Gain needs manual catching up, too. Use it to compute the update
         crosscov = full_pred_cov @ H.T
-        gain = scipy.linalg.cho_solve((meas_rv.cov_cholesky, True), crosscov.T).T
+        gain = scipy.linalg.cho_solve((meas_rv._cov_cholesky, True), crosscov.T).T
         zero_data = np.zeros(meas_rv.mean.shape)
         filt_rv, _ = self.measurement_model.backward_realization(
             zero_data, pred_rv, rv_forwarded=meas_rv, gain=gain
@@ -366,7 +366,7 @@ class ODEFilter(_odesolver.ODESolver):
                 state=randvars.Normal(
                     mean=rv.mean,
                     cov=s * rv.cov,
-                    cov_cholesky=np.sqrt(s) * rv.cov_cholesky,
+                    cov_cholesky=np.sqrt(s) * rv._cov_cholesky,
                 ),
             )
 

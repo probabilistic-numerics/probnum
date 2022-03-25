@@ -46,7 +46,7 @@ class SymmetricMatrixNormal(_normal.Normal):
         )
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
-        samples_scaled = linops.Symmetrize(n) @ (self.cov_cholesky @ stdnormal_samples)
+        samples_scaled = linops.Symmetrize(n) @ (self._cov_cholesky @ stdnormal_samples)
 
         # TODO: can we avoid todense here and just return operator samples?
         return self.dense_mean[None, :, :] + samples_scaled.reshape(-1, n, n)

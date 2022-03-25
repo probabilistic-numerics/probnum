@@ -103,7 +103,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
         )
 
     @cached_property
-    def cov_cholesky(self):
+    def _cov_cholesky(self):
         # Pure utility attribute (it is zero anyway).
         # Make Constant behave more like Normal with zero covariance.
         return self.cov

@@ -216,7 +216,9 @@ _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal  # pylint: disable=protected-
 
 
 def _add_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
-    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
+    cov_cholesky = (
+        norm_rv._cov_cholesky if norm_rv._cov_cholesky_is_precomputed else None
+    )
     return _Normal(
         mean=norm_rv.mean + constant_rv.support,
         cov=norm_rv.cov,
@@ -229,7 +231,9 @@ _add_fns[(_Constant, _Normal)] = _swap_operands(_add_normal_constant)
 
 
 def _sub_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
-    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
+    cov_cholesky = (
+        norm_rv._cov_cholesky if norm_rv._cov_cholesky_is_precomputed else None
+    )
     return _Normal(
         mean=norm_rv.mean - constant_rv.support,
         cov=norm_rv.cov,
@@ -241,7 +245,9 @@ _sub_fns[(_Normal, _Constant)] = _sub_normal_constant
 
 
 def _sub_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
-    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
+    cov_cholesky = (
+        norm_rv._cov_cholesky if norm_rv._cov_cholesky_is_precomputed else None
+    )
     return _Normal(
         mean=constant_rv.support - norm_rv.mean,
         cov=norm_rv.cov,
@@ -261,8 +267,8 @@ def _mul_normal_constant(
                 support=backend.zeros_like(norm_rv.mean),
             )
 
-        if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = constant_rv.support * norm_rv.cov_cholesky
+        if norm_rv._cov_cholesky_is_precomputed:
+            cov_cholesky = constant_rv.support * norm_rv._cov_cholesky
         else:
             cov_cholesky = None
         return _Normal(
@@ -285,9 +291,9 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
     a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
-        if norm_rv.cov_cholesky_is_precomputed:
+        if norm_rv._cov_cholesky_is_precomputed:
             cov_cholesky = _backend.linalg.cholesky_update(
-                constant_rv.support.T @ norm_rv.cov_cholesky
+                constant_rv.support.T @ norm_rv._cov_cholesky
             )
         else:
             cov_cholesky = None
@@ -338,9 +344,9 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
     a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
-        if norm_rv.cov_cholesky_is_precomputed:
+        if norm_rv._cov_cholesky_is_precomputed:
             cov_cholesky = _backend.linalg.cholesky_update(
-                constant_rv.support @ norm_rv.cov_cholesky
+                constant_rv.support @ norm_rv._cov_cholesky
             )
         else:
             cov_cholesky = None
@@ -390,8 +396,8 @@ def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Norma
         if constant_rv.support == 0:
             raise ZeroDivisionError
 
-        if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = norm_rv.cov_cholesky / constant_rv.support
+        if norm_rv._cov_cholesky_is_precomputed:
+            cov_cholesky = norm_rv._cov_cholesky / constant_rv.support
         else:
             cov_cholesky = None
 

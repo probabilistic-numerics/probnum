@@ -43,11 +43,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
     cov_cholesky :
         (Lower triangular) Cholesky factor of the covariance matrix. If ``None``, then
         the Cholesky factor of the covariance matrix is computed when
-        :attr:`Normal.cov_cholesky` is called and then cached. If specified, the value
-        is returned by :attr:`Normal.cov_cholesky`. In this case, its type and data type
-        are compared to the type and data type of the covariance. If the types do not
-        match, an exception is thrown. If the data types do not match, the data type of
-        the Cholesky factor is promoted to the data type of the covariance matrix.
+        :attr:`Normal._cov_cholesky` is called and then cached. If specified, the value
+        is returned by :attr:`Normal._cov_cholesky`. In this case, its type and data
+        type are compared to the type and data type of the covariance. If the types do
+        not match, an exception is thrown. If the data types do not match, the data type
+        of the Cholesky factor is promoted to the data type of the covariance matrix.
 
     See Also
     --------
@@ -448,9 +448,9 @@ class Normal(_random_variable.ContinuousRandomVariable):
     # TODO (#678): Use `LinearOperator.cholesky` once the backend is supported
 
     @property
-    def cov_cholesky(self) -> MatrixType:
-        if not self.cov_cholesky_is_precomputed:
-            self.compute_cov_cholesky()
+    def _cov_cholesky(self) -> MatrixType:
+        if not self._cov_cholesky_is_precomputed:
+            self._compute_cov_cholesky()
 
         return self.__cov_cholesky
 
@@ -468,10 +468,10 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         return self.__cov_cholesky
 
-    def compute_cov_cholesky(self) -> None:
+    def _compute_cov_cholesky(self) -> None:
         """Compute Cholesky factor (careful: in-place operation!)."""
 
-        if self.cov_cholesky_is_precomputed:
+        if self._cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
 
         if self.ndim == 0:
@@ -484,12 +484,12 @@ class Normal(_random_variable.ContinuousRandomVariable):
             self.__cov_cholesky = self.cov.cholesky(lower=True)
 
     @property
-    def cov_cholesky_is_precomputed(self) -> bool:
+    def _cov_cholesky_is_precomputed(self):
         """Return truth-value of whether the Cholesky factor of the covariance is
         readily available.
 
         This happens if (i) the Cholesky factor is specified during initialization or if
-        (ii) the property `self.cov_cholesky` has been called before.
+        (ii) the property `self._cov_cholesky` has been called before.
         """
         return self.__cov_cholesky is not None
 
@@ -569,7 +569,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if not self._cov_eigh_is_precomputed:
             # Attempt Cholesky factorization
             try:
-                return self.cov_cholesky
+                return self._cov_cholesky
             except backend.linalg.LinAlgError:
                 pass
 

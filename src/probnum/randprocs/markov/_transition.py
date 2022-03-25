@@ -330,7 +330,7 @@ class Transition(abc.ABC):
         """
         curr_rv = rv_list[-1]
 
-        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
+        curr_sample = curr_rv.mean + curr_rv._cov_cholesky @ base_measure_realizations[
             -1
         ].reshape((-1,))
         out_samples = [curr_sample]
@@ -354,7 +354,7 @@ class Transition(abc.ABC):
             )
             curr_sample = (
                 curr_rv.mean
-                + curr_rv.cov_cholesky
+                + curr_rv._cov_cholesky
                 @ base_measure_realizations[idx - 1].reshape(
                     -1,
                 )
@@ -397,7 +397,7 @@ class Transition(abc.ABC):
         """
         curr_rv = initrv
 
-        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
+        curr_sample = curr_rv.mean + curr_rv._cov_cholesky @ base_measure_realizations[
             0
         ].reshape((-1,))
         out_samples = [curr_sample]
@@ -419,7 +419,7 @@ class Transition(abc.ABC):
             )
             curr_sample = (
                 curr_rv.mean
-                + curr_rv.cov_cholesky
+                + curr_rv._cov_cholesky
                 @ base_measure_realizations[idx - 1].reshape((-1,))
             )
             out_samples.append(curr_sample)

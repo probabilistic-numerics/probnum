@@ -397,7 +397,7 @@ class LinearSDE(_sde.SDE):
             y_new = np.hstack((new_mean, new_cov_cholesky_flat))
             return y_new
 
-        initcov_cholesky_flat = initrv.cov_cholesky.flatten()
+        initcov_cholesky_flat = initrv._cov_cholesky.flatten()
         y0 = np.hstack((initrv.mean, initcov_cholesky_flat))
 
         return f, y0

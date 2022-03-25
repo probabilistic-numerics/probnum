@@ -28,7 +28,7 @@ def multivariate_normal(
         cov=random_spd_matrix(seed_cov, dim=shape[0]),
     )
     if precompute_cov_cholesky:
-        rv.compute_cov_cholesky()
+        rv._compute_cov_cholesky()
     return rv
 
 
@@ -47,7 +47,7 @@ def matrixvariate_normal(
         ),
     )
     if precompute_cov_cholesky:
-        rv.compute_cov_cholesky()
+        rv._compute_cov_cholesky()
     return rv
 
 
@@ -63,5 +63,5 @@ def symmetric_matrixvariate_normal(
         cov=linops.SymmetricKronecker(A=random_spd_matrix(seed_cov, dim=shape[0])),
     )
     if precompute_cov_cholesky:
-        rv.compute_cov_cholesky()
+        rv._compute_cov_cholesky()
     return rv

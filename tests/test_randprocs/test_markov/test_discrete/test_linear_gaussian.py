@@ -306,7 +306,7 @@ class TestLinearGaussianLinOps:
             out, _ = self.transition.forward_rv(linop_cov_rv, 0.0)
             assert isinstance(out, randvars.Normal)
             assert isinstance(out.cov, linops.LinearOperator)
-            assert isinstance(out.cov_cholesky, linops.LinearOperator)
+            assert isinstance(out._cov_cholesky, linops.LinearOperator)
 
             with pytest.raises(NotImplementedError):
                 self.sqrt_transition.forward_rv(array_cov_rv, 0.0)
@@ -333,7 +333,7 @@ class TestLinearGaussianLinOps:
             out, _ = self.transition.backward_rv(linop_cov_rv1, linop_cov_rv2)
             assert isinstance(out, randvars.Normal)
             assert isinstance(out.cov, linops.LinearOperator)
-            assert isinstance(out.cov_cholesky, linops.LinearOperator)
+            assert isinstance(out._cov_cholesky, linops.LinearOperator)
 
             with pytest.raises(NotImplementedError):
                 self.sqrt_transition.backward_rv(array_cov_rv1, array_cov_rv2)

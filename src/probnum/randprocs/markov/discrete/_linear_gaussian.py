@@ -193,11 +193,11 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
 
         H = self.transition_matrix_fun(t)
         noise = self.noise_fun(t)
-        shift, SR = noise.mean, noise.cov_cholesky
+        shift, SR = noise.mean, noise._cov_cholesky
 
         new_mean = H @ rv.mean + shift
         new_cov_cholesky = cholesky_update(
-            H @ rv.cov_cholesky, np.sqrt(_diffusion) * SR
+            H @ rv._cov_cholesky, np.sqrt(_diffusion) * SR
         )
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
         crosscov = rv.cov @ H.T
@@ -247,10 +247,10 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         state_trans = self.transition_matrix_fun(t)
         noise = self.noise_fun(t)
         shift = noise.mean
-        proc_noise_chol = np.sqrt(_diffusion) * noise.cov_cholesky
+        proc_noise_chol = np.sqrt(_diffusion) * noise._cov_cholesky
 
-        chol_past = rv.cov_cholesky
-        chol_obtained = rv_obtained.cov_cholesky
+        chol_past = rv._cov_cholesky
+        chol_obtained = rv_obtained._cov_cholesky
 
         output_dim = self.output_dim
         input_dim = self.input_dim

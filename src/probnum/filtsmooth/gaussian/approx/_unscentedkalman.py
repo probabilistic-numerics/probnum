@@ -94,7 +94,7 @@ def _linearize_via_cubature(*, t, model, rv, unit_params, forw_impl, backw_impl)
     """Linearize a nonlinear model statistically with spherical cubature integration."""
 
     sigma_points_unit, weights = unit_params
-    sigma_points = sigma_points_unit @ rv.cov_cholesky.T + rv.mean[None, :]
+    sigma_points = sigma_points_unit @ rv._cov_cholesky.T + rv.mean[None, :]
 
     sigma_points_transitioned = np.stack(
         [model.transition_fun(t, p) for p in sigma_points], axis=0

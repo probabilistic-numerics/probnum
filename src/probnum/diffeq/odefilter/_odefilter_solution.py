@@ -146,5 +146,5 @@ def _project_rv(projmat, rv):
 
     new_mean = projmat @ rv.mean
     new_cov = projmat @ rv.cov @ projmat.T
-    new_cov_cholesky = backend.linalg.cholesky_update(projmat @ rv.cov_cholesky)
+    new_cov_cholesky = backend.linalg.cholesky_update(projmat @ rv._cov_cholesky)
     return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)

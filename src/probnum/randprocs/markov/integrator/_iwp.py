@@ -292,7 +292,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         # always exists, even for non-square root implementations.
         proc_noise_cov_cholesky = (
             self.precon(dt)
-            @ self.equivalent_discretisation_preconditioned.noise.cov_cholesky
+            @ self.equivalent_discretisation_preconditioned.noise._cov_cholesky
         )
 
         return discrete.LTIGaussian(
