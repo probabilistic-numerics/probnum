@@ -12,14 +12,14 @@ from ._core import *
 
 from . import (
     _core,
+    _constants,
+    _creation_functions,
+    _elementwise_functions,
+    _manipulation_functions,
     autodiff,
     linalg,
     random,
     special,
-    _elementwise_functions,
-    _manipulation_functions,
-    _creation_functions,
-    _constants,
 )
 
 # isort: on

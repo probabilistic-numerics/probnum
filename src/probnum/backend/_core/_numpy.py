@@ -61,8 +61,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     sum,
     swapaxes,
     tile,
-    tril,
-    triu,
     vstack,
     zeros,
     zeros_like,
