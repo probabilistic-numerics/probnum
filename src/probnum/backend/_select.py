@@ -36,7 +36,7 @@ def select_backend() -> Backend:
             # TODO
             raise e from e
 
-    return _select_via_import()
+    return Backend.NUMPY
 
 
 def _select_via_import() -> Backend:
