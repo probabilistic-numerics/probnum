@@ -4,7 +4,15 @@ from typing import Callable
 import numpy as np
 from numpy.linalg import eigh, norm, qr, svd
 import scipy.linalg
-from scipy.linalg import cholesky
+
+
+def cholesky(x: np.ndarray, /, *, upper: bool = False) -> np.ndarray:
+    try:
+        L = np.linalg.cholesky(x)
+
+        return np.conj(L.swapaxes(-2, -1)) if upper else L
+    except np.linalg.LinAlgError:
+        return (np.triu if upper else np.tril)(np.full_like(x, np.nan))
 
 
 def solve_triangular(

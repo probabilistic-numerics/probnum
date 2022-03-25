@@ -13,14 +13,11 @@ def norm(
     return torch.linalg.norm(x, ord=ord, dim=axis, keepdim=keepdims)
 
 
-def cholesky(
-    a: torch.Tensor,
-    *,
-    lower: bool = False,
-    overwrite_a: bool = False,
-    check_finite: bool = True,
-):
-    return torch.linalg.cholesky(a, upper=not lower)
+def cholesky(x: torch.Tensor, /, *, upper: bool = False) -> torch.Tensor:
+    try:
+        return torch.linalg.cholesky(x, upper=upper)
+    except RuntimeError:
+        return (torch.triu if upper else torch.tril)(torch.full_like(x, float("nan")))
 
 
 def solve_triangular(

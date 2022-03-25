@@ -34,10 +34,10 @@ def spdmat2(spdmats):
 
 
 def test_cholesky_update(spdmat1, spdmat2):
-    expected = backend.linalg.cholesky(spdmat1 + spdmat2, lower=True)
+    expected = backend.linalg.cholesky(spdmat1 + spdmat2, upper=False)
 
-    S1 = backend.linalg.cholesky(spdmat1, lower=True)
-    S2 = backend.linalg.cholesky(spdmat2, lower=True)
+    S1 = backend.linalg.cholesky(spdmat1, upper=False)
+    S2 = backend.linalg.cholesky(spdmat2, upper=False)
     received = backend.linalg.cholesky_update(S1, S2)
     compat.testing.assert_allclose(expected, received)
 
@@ -53,8 +53,8 @@ def test_cholesky_optional(spdmat1, even_ndim):
         ),
         shape=H_shape,
     )
-    expected = backend.linalg.cholesky(H @ spdmat1 @ H.T, lower=True)
-    S1 = backend.linalg.cholesky(spdmat1, lower=True)
+    expected = backend.linalg.cholesky(H @ spdmat1 @ H.T, upper=False)
+    S1 = backend.linalg.cholesky(spdmat1, upper=False)
     received = backend.linalg.cholesky_update(H @ S1)
     compat.testing.assert_allclose(expected, received)
 

@@ -477,7 +477,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if self.ndim == 0:
             self.__cov_cholesky = backend.sqrt(self.cov)
         elif backend.isarray(self.cov):
-            self.__cov_cholesky = backend.linalg.cholesky(self.cov, lower=True)
+            self.__cov_cholesky = backend.linalg.cholesky(self.cov, upper=False)
         else:
             assert isinstance(self.cov, linops.LinearOperator)
 

@@ -1,8 +1,14 @@
 import functools
 
 import jax
+from jax import numpy as jnp
 from jax.numpy.linalg import eigh, norm, qr, svd
-from jax.scipy.linalg import cholesky
+
+
+def cholesky(x: jnp.ndarray, /, *, upper: bool = False) -> jnp.ndarray:
+    L = jax.numpy.linalg.cholesky(x)
+
+    return jnp.conj(L.swapaxes(-2, -1)) if upper else L
 
 
 @functools.partial(jax.jit, static_argnames=("transpose", "lower", "unit_diagonal"))
