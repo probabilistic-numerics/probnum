@@ -17,8 +17,6 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     diag,
     diagonal,
     double,
-    triu,
-    tril,
     dtype,
     einsum,
     exp,
@@ -53,6 +51,14 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
 )
 
 torch.set_default_dtype(torch.double)
+
+
+def tril(x: torch.Tensor, /, k: int = 0) -> torch.Tensor:
+    return torch.tril(x, diagonal=k)
+
+
+def triu(x: torch.Tensor, /, k: int = 0) -> torch.Tensor:
+    return torch.triu(x, diagonal=k)
 
 
 def arange(start, stop=None, step=None, dtype=None):
