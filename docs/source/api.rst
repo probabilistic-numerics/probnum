@@ -7,6 +7,8 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | **Subpackage**                                  | **Description**                                              |
     +-------------------------------------------------+--------------------------------------------------------------+
+    | :mod:`~probnum.backend`                         | Generic computation backend.                                 |
+    +-------------------------------------------------+--------------------------------------------------------------+
     | :class:`config <probnum._config.Configuration>` | Global configuration options.                                |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.diffeq`                          | Probabilistic solvers for ordinary differential equations.   |
@@ -34,6 +36,7 @@ API Reference
     :hidden:
 
     api/probnum
+    api/backend
     api/config
     api/diffeq
     api/filtsmooth
