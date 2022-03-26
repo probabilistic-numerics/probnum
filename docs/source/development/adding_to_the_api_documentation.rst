@@ -17,174 +17,11 @@ detail its functionality. This package uses the `NumPy docstring
 format <https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring-guide%3E>`__.
 As a rule, all functions which are exposed to the user *must* have
 appropriate docstrings. Below is an example of a docstring for a
-probabilistic numerical method.
+probabilistic numerical method 
+named ``problinsolve`` defined in ``_problinsolve.py`` under ``linalg`` module.
 
-.. code:: ipython3
-
-    # %load -r 1-163 ../../../src/probnum/linalg/_problinsolve.py
-    """Probabilistic numerical methods for solving linear systems.
-    
-    This module provides routines to solve linear systems of equations in a
-    Bayesian framework. This means that a prior distribution over elements
-    of the linear system can be provided and is updated with information
-    collected by the solvers to return a posterior distribution.
-    """
-    
-    import warnings
-    from typing import Callable, Dict, Optional, Tuple, Union
-    
-    import numpy as np
-    import scipy.sparse
-    
-    import probnum  # pylint: disable=unused-import
-    from probnum import linops, randvars, utils
-    from probnum.linalg.solvers.matrixbased import SymmetricMatrixBasedSolver
-    from probnum.typing import LinearOperatorLike
-    
-    # pylint: disable=too-many-branches
-    
-    
-    def problinsolve(
-        A: Union[
-            LinearOperatorLike,
-            "randvars.RandomVariable[LinearOperatorLike]",
-        ],
-        b: Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"],
-        A0: Optional[
-            Union[
-                LinearOperatorLike,
-                "randvars.RandomVariable[LinearOperatorLike]",
-            ]
-        ] = None,
-        Ainv0: Optional[
-            Union[
-                LinearOperatorLike,
-                "randvars.RandomVariable[LinearOperatorLike]",
-            ]
-        ] = None,
-        x0: Optional[Union[np.ndarray, "randvars.RandomVariable[np.ndarray]"]] = None,
-        assume_A: str = "sympos",
-        maxiter: Optional[int] = None,
-        atol: float = 10 ** -6,
-        rtol: float = 10 ** -6,
-        callback: Optional[Callable] = None,
-        **kwargs
-    ) -> Tuple[
-        "randvars.RandomVariable[np.ndarray]",
-        "randvars.RandomVariable[linops.LinearOperator]",
-        "randvars.RandomVariable[linops.LinearOperator]",
-        Dict,
-    ]:
-        r"""Solve the linear system :math:`A x = b` in a Bayesian framework.
-    
-        Probabilistic linear solvers infer solutions to problems of the form
-    
-        .. math:: Ax=b,
-    
-        where :math:`A \in \mathbb{R}^{n \times n}` and :math:`b \in \mathbb{R}^{n}`.
-        They return a probability measure which quantifies uncertainty in the output arising
-        from finite computational resources or stochastic input. This solver can take prior
-        information either on the linear operator :math:`A` or its inverse :math:`H=A^{
-        -1}` in the form of a random variable ``A0`` or ``Ainv0`` and outputs a posterior
-        belief about :math:`A` or :math:`H`. This code implements the method described in
-        Wenger et al. [1]_ based on the work in Hennig et al. [2]_.
-    
-        Parameters
-        ----------
-        A
-            *shape=(n, n)* -- A square linear operator (or matrix). Only matrix-vector
-            products :math:`v \mapsto Av` are used internally.
-        b
-            *shape=(n, ) or (n, nrhs)* -- Right-hand side vector, matrix or random
-            variable in :math:`A x = b`.
-        A0
-            *shape=(n, n)* -- A square matrix, linear operator or random variable
-            representing the prior belief about the linear operator :math:`A`.
-        Ainv0
-            *shape=(n, n)* -- A square matrix, linear operator or random variable
-            representing the prior belief about the inverse :math:`H=A^{-1}`. This can be
-            viewed as a preconditioner.
-        x0
-            *shape=(n, ) or (n, nrhs)* -- Prior belief for the solution of the linear
-            system. Will be ignored if ``Ainv0`` is given.
-        assume_A
-            Assumptions on the linear operator which can influence solver choice and
-            behavior. The available options are (combinations of)
-    
-            ====================  =========
-             generic matrix       ``gen``
-             symmetric            ``sym``
-             positive definite    ``pos``
-             (additive) noise     ``noise``
-            ====================  =========
-    
-        maxiter
-            Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the
-            dimension of :math:`A`.
-        atol
-            Absolute convergence tolerance.
-        rtol
-            Relative convergence tolerance.
-        callback
-            User-supplied function called after each iteration of the linear solver. It is
-            called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)`` and can
-            be used to return quantities from the iteration. Note that depending on the
-            function supplied, this can slow down the solver considerably.
-        kwargs
-            Optional keyword arguments passed onto the solver iteration.
-    
-        Returns
-        -------
-        x :
-            Approximate solution :math:`x` to the linear system. Shape of the return matches
-            the shape of ``b``.
-        A :
-            Posterior belief over the linear operator.
-        Ainv :
-            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
-        info :
-            Information on convergence of the solver.
-    
-        Raises
-        ------
-        ValueError
-            If size mismatches detected or input matrices are not square.
-        LinAlgError
-            If the matrix ``A`` is singular.
-        LinAlgWarning
-            If an ill-conditioned input ``A`` is detected.
-    
-        Notes
-        -----
-        For a specific class of priors the posterior mean of :math:`x_k=Hb` coincides with
-        the iterates of the conjugate gradient method. The matrix-based view taken here
-        recovers the solution-based inference of :func:`bayescg` [3]_.
-    
-        References
-        ----------
-        .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
-           *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
-        .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
-           Optimization*, 2015, 25, 234-260
-        .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View,
-           *Statistics and Computing*, 2019
-    
-        See Also
-        --------
-        bayescg : Solve linear systems with prior information on the solution.
-    
-        Examples
-        --------
-        >>> import numpy as np
-        >>> np.random.seed(1)
-        >>> n = 20
-        >>> A = np.random.rand(n, n)
-        >>> A = 0.5 * (A + A.T) + 5 * np.eye(n)
-        >>> b = np.random.rand(n)
-        >>> x, A, Ainv, info = problinsolve(A=A, b=b)
-        >>> print(info["iter"])
-        9
-        """
+.. literalinclude:: ../../../src/probnum/linalg/_problinsolve.py
+   :lines: 1-163
 
 **General Rules**
 
@@ -247,27 +84,8 @@ determined by an ``__all__`` statement in the corresponding
 reflected in the documentation. For example, ``linalg`` has the
 following ``__init__.py``:
 
-.. code:: ipython3
+.. literalinclude:: ../../../src/probnum/linalg/__init__.py
 
-    # %load ../../../src/probnum/linalg/__init__.py
-    """Linear Algebra.
-    
-    This package implements probabilistic numerical methods for the solution of problems
-    arising in linear algebra, such as the solution of linear systems :math:`Ax=b`.
-    """
-    from probnum.linalg._bayescg import bayescg
-    from probnum.linalg._problinsolve import problinsolve
-    
-    # Public classes and functions. Order is reflected in documentation.
-    __all__ = [
-        "problinsolve",
-        "bayescg",
-    ]
-    
-    # Set correct module paths. Corrects links and module paths in documentation.
-    problinsolve.__module__ = "probnum.linalg"
-    bayescg.__module__ = "probnum.linalg"
-    
 
 If you are documenting a subclass, which has a different path in the
 file structure than the import path due to ``__all__`` statements, you
