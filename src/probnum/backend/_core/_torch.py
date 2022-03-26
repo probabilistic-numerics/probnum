@@ -28,7 +28,6 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     int64,
     is_floating_point as is_floating,
     isfinite,
-    isnan,
     kron,
     linspace,
     log,

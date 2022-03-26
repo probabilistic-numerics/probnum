@@ -88,25 +88,6 @@ sin = _core.sin
 sqrt = _core.sqrt
 
 
-def isnan(x: _Array, /) -> _Array:
-    """Tests each element ``x_i`` of the input array ``x`` to determine whether the
-    element is ``NaN``.
-
-    Parameters
-    ----------
-    x
-        Input array. Should have a numeric data type.
-
-    Returns
-    -------
-    out
-        An array containing test results. An element ``out_i`` is ``True`` if ``x_i`` is
-        ``NaN`` and ``False`` otherwise. The returned array should have a data type of
-        ``bool``.
-    """
-    return _core.isnan(x)
-
-
 # Element-wise Binary Operations
 maximum = _core.maximum
 
@@ -237,8 +218,6 @@ __all__ = [
     "arange",
     "linspace",
     "meshgrid",
-    "tril",
-    "triu",
     # Constants
     "inf",
     "pi",
@@ -247,7 +226,6 @@ __all__ = [
     "abs",
     "exp",
     "isfinite",
-    "isnan",
     "log",
     "sin",
     "sqrt",

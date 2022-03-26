@@ -1,6 +1,7 @@
 """Array creation functions."""
 
 import probnum.backend as _backend
+from probnum.backend import Array
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core
@@ -12,7 +13,7 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 __all__ = ["tril", "triu"]
 
 
-def tril(x: _Array, /, *, k: int = 0) -> _Array:
+def tril(x: Array, /, *, k: int = 0) -> Array:
     """Returns the lower triangular part of a matrix (or a stack of matrices) ``x``.
 
     .. note::
@@ -46,7 +47,7 @@ def tril(x: _Array, /, *, k: int = 0) -> _Array:
     return _core.tril(x, k=k)
 
 
-def triu(x: _Array, /, *, k: int = 0) -> _Array:
+def triu(x: Array, /, *, k: int = 0) -> Array:
     """Returns the upper triangular part of a matrix (or a stack of matrices) ``x``.
 
     .. note::
