@@ -18,7 +18,7 @@ format <https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring
 As a rule, all functions which are exposed to the user *must* have
 appropriate docstrings. Below is an example of a docstring for a
 probabilistic numerical method 
-named ``problinsolve`` defined in ``_problinsolve.py`` under ``linalg`` module.
+named ``problinsolve`` defined in ``_problinsolve.py`` in the ``linalg`` subpackage.
 
 .. literalinclude:: ../../../src/probnum/linalg/_problinsolve.py
    :lines: 1-163
