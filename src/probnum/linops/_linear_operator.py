@@ -32,8 +32,8 @@ class LinearOperator:
     :class:`LinearOperator`, that defers linear operations to the original operators and
     combines the results.
 
-    To construct a concrete :class:`LinearOperator`, either pass appropriate callables to
-    the constructor of this class, or subclass it.
+    To construct a concrete :class:`LinearOperator`, either pass appropriate callables
+    to the constructor of this class, or subclass it.
 
     A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and
     the attributes/properties ``shape`` (pair of integers) and ``dtype`` (may be
@@ -254,7 +254,8 @@ class LinearOperator:
         casting:
             Controls what kind of data casting may occur.
         subok:
-            If True, then sub-classes will be passed-through (default). False is currently not supported for linear operators.
+            If True, then sub-classes will be passed-through (default). 
+            False is currently not supported for linear operators.
         copy:
             Whether to return a new linear operator, even if ``dtype`` is the same.
         """
@@ -828,8 +829,9 @@ class LinearOperator:
         Returns
         -------
         y :
-            A `np.matrix` or `np.ndarray` or `RandomVariable` with shape `(M,)` or `(M, 1)`,
-            depending on the type and shape of the x argument.
+            A `np.matrix` or `np.ndarray` or `RandomVariable` with 
+            shape `(M,)` or `(M, 1)`,depending on the type and 
+            shape of the x argument.
         Notes
         -----
         This matvec wraps the user-specified matvec routine or overridden
