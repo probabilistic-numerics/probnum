@@ -2,7 +2,7 @@ import functools
 from typing import Callable
 
 import numpy as np
-from numpy.linalg import eigh, norm, qr, svd
+from numpy.linalg import eigh, norm, qr, solve, svd
 import scipy.linalg
 
 

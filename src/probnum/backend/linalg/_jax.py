@@ -2,7 +2,7 @@ import functools
 
 import jax
 from jax import numpy as jnp
-from jax.numpy.linalg import eigh, norm, qr, svd
+from jax.numpy.linalg import eigh, norm, qr, solve, svd
 
 
 def cholesky(x: jnp.ndarray, /, *, upper: bool = False) -> jnp.ndarray:

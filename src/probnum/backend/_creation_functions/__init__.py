@@ -1,13 +1,13 @@
 """Array creation functions."""
 
-import probnum.backend as _backend
-from probnum.backend import Array
 
-if _backend.BACKEND is _backend.Backend.NUMPY:
+from .. import BACKEND, Array, Backend
+
+if BACKEND is Backend.NUMPY:
     from . import _numpy as _core
-elif _backend.BACKEND is _backend.Backend.JAX:
+elif BACKEND is Backend.JAX:
     from . import _jax as _core
-elif _backend.BACKEND is _backend.Backend.TORCH:
+elif BACKEND is Backend.TORCH:
     from . import _torch as _core
 
 __all__ = ["tril", "triu"]
