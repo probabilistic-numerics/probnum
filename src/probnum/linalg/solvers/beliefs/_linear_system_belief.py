@@ -100,23 +100,6 @@ class LinearSystemBelief:
                     f"Belief over right-hand-side may have either one or two dimensions but has {b.ndim}."
                 )
 
-        if x is not None and not isinstance(x, randvars.RandomVariable):
-            raise TypeError(
-                f"The belief about the solution 'x' must be a RandomVariable, but is {type(x)}."
-            )
-        if A is not None and not isinstance(A, randvars.RandomVariable):
-            raise TypeError(
-                f"The belief about the matrix 'A' must be a RandomVariable, but is {type(A)}."
-            )
-        if Ainv is not None and not isinstance(Ainv, randvars.RandomVariable):
-            raise TypeError(
-                f"The belief about the inverse matrix 'Ainv' must be a RandomVariable, but is {type(Ainv)}."
-            )
-        if b is not None and not isinstance(b, randvars.RandomVariable):
-            raise TypeError(
-                f"The belief about the right-hand-side 'b' must be a RandomVariable, but is {type(b)}."
-            )
-
         self._x = x
         self._A = A
         self._Ainv = Ainv
