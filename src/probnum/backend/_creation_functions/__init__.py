@@ -59,7 +59,7 @@ def triu(x: Array, /, *, k: int = 0) -> Array:
     ----------
     x
         Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
-         ``MxN`` matrices.
+        ``MxN`` matrices.
     k
         Diagonal below which to zero elements. If ``k = 0``, the diagonal is the main
         diagonal. If ``k < 0``, the diagonal is below the main diagonal. If ``k > 0``,

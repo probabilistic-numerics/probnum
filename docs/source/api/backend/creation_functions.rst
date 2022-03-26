@@ -1,5 +1,5 @@
 Array Creation Functions
 ------------------------
-.. automodapi:: probnum.backend._creation_functions
-    :no-heading:
-    :headings: "*"
+
+.. automodule:: probnum.backend._creation_functions
+   :members:
