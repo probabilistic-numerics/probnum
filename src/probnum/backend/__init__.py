@@ -24,6 +24,7 @@ from . import (
     _creation_functions,
     _elementwise_functions,
     _manipulation_functions,
+    _sorting_functions,
     autodiff,
     linalg,
     random,
@@ -41,6 +42,7 @@ __all__imported_modules = sum(
             _creation_functions,
             _elementwise_functions,
             _manipulation_functions,
+            _sorting_functions,
         ]
     ]
 )
