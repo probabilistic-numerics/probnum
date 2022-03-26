@@ -45,7 +45,7 @@ named ``problinsolve`` defined in ``_problinsolve.py`` under ``linalg`` module.
    """
    Parameters
    ----------
-   arr :
+   arr
        *(shape=(m, ) or (m, n))* -- Parameter array of an example function.
    """
 
