@@ -112,7 +112,7 @@ documentation. You can configure Sphinx itself or its extensions in the
 
 
 ProbNum makes use of a number of Sphinx plugins to improve the API
-documentation, for example to parse this Jupyter notebook. The full list
+documentation, for example to parse Jupyter notebooks. The full list
 of used packages can be found in ``./docs/sphinx-requirements.txt`` and
 ``./docs/notebook-requirements.txt``.
 
