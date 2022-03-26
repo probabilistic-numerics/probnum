@@ -12,7 +12,8 @@ from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike
 
 
 class Diffusion(abc.ABC):
-    r"""Interface for diffusion models :math:`\sigma: \mathbb{R} \rightarrow \mathbb{R}^d` and their calibration."""
+    r"""Interface for diffusion models
+    :math:`\sigma: \mathbb{R} \rightarrow \mathbb{R}^d` and their calibration."""
 
     def __repr__(self):
         raise NotImplementedError
@@ -58,14 +59,16 @@ class ConstantDiffusion(Diffusion):
     def __call__(self, t: ArrayLike) -> Union[ArrayLike, np.ndarray]:
         if self.diffusion is None:
             raise NotImplementedError(
-                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
+                "No diffusions seen yet. "
+                "Call estimate_locally_and_update_in_place first."
             )
         return self.diffusion * np.ones_like(t)
 
     def __getitem__(self, idx: ArrayIndicesLike) -> Union[ArrayLike, np.ndarray]:
         if self.diffusion is None:
             raise NotImplementedError(
-                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
+                "No diffusions seen yet. "
+                "Call estimate_locally_and_update_in_place first."
             )
 
         return self.diffusion * np.ones_like(idx)
@@ -93,8 +96,8 @@ class ConstantDiffusion(Diffusion):
 class PiecewiseConstantDiffusion(Diffusion):
     r"""Piecewise constant diffusion.
 
-    It is defined by a set of diffusions :math:`(\sigma_1, ..., \sigma_N)` and a set of locations :math:`(t_0, ...,  t_N)`
-    through
+    It is defined by a set of diffusions :math:`(\sigma_1, ..., \sigma_N)` and a set of
+    locations :math:`(t_0, ...,  t_N)` through
 
     .. math::
         \sigma(t) = \left\{
@@ -105,14 +108,16 @@ class PiecewiseConstantDiffusion(Diffusion):
         \end{array}
         \right.
 
-    In other words, a tuple :math:`(t, \sigma)` always defines the diffusion *right* of :math:`t` as :math:`\sigma` (including the point :math:`t`),
-    except for the very first tuple :math:`(t_0, \sigma_0)` which *also* defines the diffusion *left* of :math:`t`.
-    This choice of piecewise constant function is continuous from the right.
+    In other words, a tuple :math:`(t, \sigma)` always defines the diffusion *right* of
+    :math:`t` as :math:`\sigma` (including the point :math:`t`), except for the very
+    first tuple :math:`(t_0, \sigma_0)` which *also* defines the diffusion *left* of
+    :math:`t`. This choice of piecewise constant function is continuous from the right.
 
     Parameters
     ----------
     t0
-        Initial time point. This is the leftmost time-point of the interval on which the diffusion is calibrated.
+        Initial time point. This is the leftmost time-point of the interval on which
+        the diffusion is calibrated.
     """
 
     def __init__(self, t0):
@@ -125,7 +130,8 @@ class PiecewiseConstantDiffusion(Diffusion):
     def __call__(self, t: ArrayLike) -> Union[ArrayLike, np.ndarray]:
         if len(self._locations) <= 1:
             raise NotImplementedError(
-                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
+                "No diffusions seen yet. "
+                "Call estimate_locally_and_update_in_place first."
             )
         if np.isscalar(t):
             t = np.atleast_1d(t)
@@ -133,7 +139,8 @@ class PiecewiseConstantDiffusion(Diffusion):
         else:
             t_has_been_promoted = False
 
-        # The "-1" in here makes up for the fact that the locations contains one more element than the diffusions.
+        # The "-1" in here makes up for the fact that the locations contains one more
+        # element than the diffusions.
         indices = np.searchsorted(self.locations, t) - 1
         indices[t < self.t0] = 0
         indices[t > self.tmax] = -1
@@ -146,7 +153,8 @@ class PiecewiseConstantDiffusion(Diffusion):
     def __getitem__(self, idx: ArrayIndicesLike) -> Union[ArrayLike, np.ndarray]:
         if len(self._locations) <= 1:
             raise NotImplementedError(
-                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
+                "No diffusions seen yet. "
+                "Call estimate_locally_and_update_in_place first."
             )
         return self.diffusions[idx]
 

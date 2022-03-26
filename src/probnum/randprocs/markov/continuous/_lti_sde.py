@@ -142,7 +142,7 @@ class LTISDE(_linear_sde.LinearSDE):
         That is, matrices A(h) and Q(h) and vector s(h) such
         that the transition is
 
-        .. math:: x | x_\\text{old} \\sim \\mathcal{N}(A(h) x_\\text{old} + s(h), Q(h)) ,
+        .. math:: x | x_\\text{old} \\sim \\mathcal{N}(A(h) x_\\text{old} + s(h), Q(h)),
 
         which is the transition of the mild solution to the LTI SDE.
         """

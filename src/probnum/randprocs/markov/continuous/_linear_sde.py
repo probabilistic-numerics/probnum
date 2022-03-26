@@ -34,12 +34,16 @@ class LinearSDE(_sde.SDE):
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
     mde_atol
-        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Absolute tolerance passed to the solver of the moment differential equations
+        (MDEs). Optional. Default is 1e-6.
     mde_rtol
-        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+        Relative tolerance passed to the solver of the moment differential equations
+        (MDEs). Optional. Default is 1e-6.
     mde_solver
-        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
-        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is
+        compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``.
+        Optional. Default is LSODA.
     forward_implementation
         Implementation style for forward transitions.
     """
@@ -230,7 +234,8 @@ class LinearSDE(_sde.SDE):
         )
         y_end = sol.y[:, -1]
         new_mean = y_end[:dim]
-        # If forward_sqrt is used, new_cov_or_cov_cholesky is a Cholesky factor of the covariance
+        # If forward_sqrt is used, new_cov_or_cov_cholesky is a Cholesky factor of
+        # the covariance
         # If forward_classic is used, new_cov_or_cov_cholesky is the covariance
         new_cov_or_cov_cholesky = y_end[dim:].reshape((dim, dim))
 
@@ -316,7 +321,8 @@ class LinearSDE(_sde.SDE):
         .. math::
             \dot P(t) = G(t)P(t) + P(t)G^\top(t) + L(t)L^\top(t).
 
-        Let :math:`S(t)` be a square-root of :math:`P(t)`, :math:`P(t)` positive definite, then
+        Let :math:`S(t)` be a square-root of :math:`P(t)`, :math:`P(t)`
+        positive definite, then
 
         .. math::
             P(t) = S(t)S^\top(t)
