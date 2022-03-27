@@ -100,7 +100,13 @@ write_to_template = """
 version = \"{version}\"
 """
 
-# PyTest configuration
+################################################################################
+# Testing Configuration                                                         #
+################################################################################
+
+# see https://docs.pytest.org/en/stable/reference/customize.html
+# see https://docs.pytest.org/en/stable/reference/reference.html#ini-options-ref
+
 [tool.pytest.ini_options]
 addopts = [
     "--verbose",
