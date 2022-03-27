@@ -59,7 +59,6 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     sum,
     swapaxes,
     tile,
-    vectorize,
     vstack,
     zeros,
     zeros_like,
@@ -92,6 +91,14 @@ def to_numpy(*arrays: jax.numpy.ndarray) -> Union[np.ndarray, Tuple[np.ndarray, 
         return np.array(arrays[0])
 
     return tuple(np.array(arr) for arr in arrays)
+
+
+def vectorize(pyfunc, /, *, excluded, signature):
+    return jax.numpy.vectorize(
+        pyfunc,
+        excluded=excluded if excluded is not None else set(),
+        signature=signature,
+    )
 
 
 def jit(f, *args, **kwargs):
