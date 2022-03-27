@@ -131,27 +131,6 @@ filterwarnings = [
 ]
 
 ################################################################################
-# Formatting Configuration                                                     #
-################################################################################
-
-# see https://black.readthedocs.io/en/stable/usage_and_configuration/index.html
-
-[tool.black]
-include = '\.pyi?$'
-# If `exclude` is not set, `black` excludes all files listed in `.gitignore`.
-# The following option extends this list of ignored files.
-# see https://black.readthedocs.io/en/stable/usage_and_configuration/file_collection_and_discovery.html#gitignore
-extend-exclude = '''
-# A regex preceded with ^/ will apply only to files and directories in the root
-# of the project.
-/(
-    \.git
-    | \.hg
-)/
-'''
-
-
-################################################################################
 # Linting Configuration                                                        #
 ################################################################################
 
@@ -193,7 +172,29 @@ max-locals = 20
 [tool.pylint.similarities]
 ignore-imports = "yes"
 
-# isort configuration
+################################################################################
+# Formatting Configuration                                                     #
+################################################################################
+
+# see https://black.readthedocs.io/en/stable/usage_and_configuration/index.html
+
+[tool.black]
+include = '\.pyi?$'
+# If `exclude` is not set, `black` excludes all files listed in `.gitignore`.
+# The following option extends this list of ignored files.
+# see https://black.readthedocs.io/en/stable/usage_and_configuration/file_collection_and_discovery.html#gitignore
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories in the root
+# of the project.
+/(
+    \.git
+    | \.hg
+)/
+'''
+
+# see https://pycqa.github.io/isort/docs/configuration/config_files.html
+# see https://pycqa.github.io/isort/docs/configuration/options.html
+
 [tool.isort]
 # see https://pycqa.github.io/isort/docs/configuration/profiles.html#black
 profile = "black"
