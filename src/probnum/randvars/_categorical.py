@@ -57,14 +57,14 @@ class Categorical(DiscreteRandomVariable):
 
         def _pmf_categorical(x):
             """PMF of a categorical distribution.
-
-            This implementation is defense against cryptic warnings such as:
-            # https://stackoverflow.com/questions/45020217/numpy-where-function-throws-a-futurewarning-returns-scalar-instead-of-list
             """
+
+            # This implementation is defense against cryptic warnings such as:
+            # https://stackoverflow.com/questions/45020217/numpy-where-function-throws-a-futurewarning-returns-scalar-instead-of-list
             x = np.asarray(x)
             if x.dtype != self.dtype:
                 raise ValueError(
-                    "The data type of x does not match with the data type of the support."
+                    "The data type of x does not match with data type of the support."
                 )
 
             mask = (x == self.support).nonzero()[0]
@@ -109,7 +109,8 @@ class Categorical(DiscreteRandomVariable):
         Returns
         -------
         Categorical
-            Categorical random variable with resampled support (according to self.probabilities).
+            Categorical random variable with resampled support
+            (according to self.probabilities).
         """
         num_events = len(self.support)
         new_support = self.sample(rng=rng, size=num_events)

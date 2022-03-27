@@ -439,17 +439,16 @@ class RandomVariable(Generic[ValueType]):
             return RandomVariable._ensure_numpy_float(
                 "cdf", self.__cdf(self._as_value_type(x))
             )
-        elif self.__logcdf is not None:
+
+        if self.__logcdf is not None:
             cdf = np.exp(self.logcdf(self._as_value_type(x)))
-
             assert isinstance(cdf, np.float_)
-
             return cdf
-        else:
-            raise NotImplementedError(
-                f"Neither the `cdf` nor the `logcdf` of the random variable object "
-                f"with type `{type(self).__name__}` is implemented."
-            )
+
+        raise NotImplementedError(
+            f"Neither the `cdf` nor the `logcdf` of the random variable object "
+            f"with type `{type(self).__name__}` is implemented."
+        )
 
     def logcdf(self, x: ValueType) -> np.float_:
         """Log-cumulative distribution function.
@@ -466,17 +465,16 @@ class RandomVariable(Generic[ValueType]):
             return RandomVariable._ensure_numpy_float(
                 "logcdf", self.__logcdf(self._as_value_type(x))
             )
-        elif self.__cdf is not None:
+
+        if self.__cdf is not None:
             logcdf = np.log(self.__cdf(x))
-
             assert isinstance(logcdf, np.float_)
-
             return logcdf
-        else:
-            raise NotImplementedError(
-                f"Neither the `logcdf` nor the `cdf` of the random variable object "
-                f"with type `{type(self).__name__}` is implemented."
-            )
+
+        raise NotImplementedError(
+            f"Neither the `logcdf` nor the `cdf` of the random variable object "
+            f"with type `{type(self).__name__}` is implemented."
+        )
 
     def quantile(self, p: FloatLike) -> ValueType:
         """Quantile function.
@@ -1023,17 +1021,16 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
         """
         if self.__pmf is not None:
             return DiscreteRandomVariable._ensure_numpy_float("pmf", self.__pmf(x))
-        elif self.__logpmf is not None:
+
+        if self.__logpmf is not None:
             pmf = np.exp(self.__logpmf(x))
-
             assert isinstance(pmf, np.float_)
-
             return pmf
-        else:
-            raise NotImplementedError(
-                f"Neither the `pmf` nor the `logpmf` of the discrete random variable "
-                f"object with type `{type(self).__name__}` is implemented."
-            )
+
+        raise NotImplementedError(
+            f"Neither the `pmf` nor the `logpmf` of the discrete random variable "
+            f"object with type `{type(self).__name__}` is implemented."
+        )
 
     def logpmf(self, x: ValueType) -> np.float_:
         """Natural logarithm of the probability mass function.
@@ -1050,17 +1047,16 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
             return DiscreteRandomVariable._ensure_numpy_float(
                 "logpmf", self.__logpmf(self._as_value_type(x))
             )
-        elif self.__pmf is not None:
+
+        if self.__pmf is not None:
             logpmf = np.log(self.__pmf(self._as_value_type(x)))
-
             assert isinstance(logpmf, np.float_)
-
             return logpmf
-        else:
-            raise NotImplementedError(
-                f"Neither the `logpmf` nor the `pmf` of the discrete random variable "
-                f"object with type `{type(self).__name__}` is implemented."
-            )
+
+        raise NotImplementedError(
+            f"Neither the `logpmf` nor the `pmf` of the discrete random variable "
+            f"object with type `{type(self).__name__}` is implemented."
+        )
 
 
 class ContinuousRandomVariable(RandomVariable[ValueType]):
@@ -1267,15 +1263,13 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
             return ContinuousRandomVariable._ensure_numpy_float(
                 "logpdf", self.__logpdf(self._as_value_type(x))
             )
-        elif self.__pdf is not None:
 
+        if self.__pdf is not None:
             logpdf = np.log(self.__pdf(self._as_value_type(x)))
-
             assert isinstance(logpdf, np.float_)
-
             return logpdf
-        else:
-            raise NotImplementedError(
-                f"Neither the `logpdf` nor the `pdf` of the continuous random variable "
-                f"object with type `{type(self).__name__}` is implemented."
-            )
+
+        raise NotImplementedError(
+            f"Neither the `logpdf` nor the `pdf` of the continuous random variable "
+            f"object with type `{type(self).__name__}` is implemented."
+        )
