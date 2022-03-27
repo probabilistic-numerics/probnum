@@ -95,7 +95,9 @@ build-backend = "setuptools.build_meta"
 # see https://setuptools.pypa.io/en/stable/userguide/pyproject_config.html#setuptools-specific-configuration
 
 [tool.setuptools]
-platforms = "any"
+platforms = [
+    "any",
+]
 zip-safe = false
 packages = ["probnum"]
 include-package-data = true
