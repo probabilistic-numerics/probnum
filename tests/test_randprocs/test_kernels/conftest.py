@@ -2,10 +2,10 @@
 
 from typing import Callable, Optional
 
-import numpy as np
 import pytest
 
-import probnum as pn
+from probnum import backend
+from probnum.randprocs import kernels
 from probnum.typing import ArrayType, ShapeType
 from tests import testing
 
@@ -27,29 +27,30 @@ def input_shape(request) -> ShapeType:
     params=[
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
-            (pn.randprocs.kernels.Linear, {"constant": 1.0}),
-            (pn.randprocs.kernels.WhiteNoise, {"sigma_sq": 1.0}),
-            (pn.randprocs.kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
-            (pn.randprocs.kernels.ExpQuad, {"lengthscale": 1.5}),
-            (pn.randprocs.kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
-            (pn.randprocs.kernels.Matern, {"lengthscale": 0.5, "nu": 0.5}),
-            (pn.randprocs.kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
-            (pn.randprocs.kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
-            (pn.randprocs.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
-            (pn.randprocs.kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
-            (pn.randprocs.kernels.ProductMatern, {"lengthscales": 0.5, "nus": 0.5}),
+            (kernels.Linear, {"constant": 1.0}),
+            (kernels.WhiteNoise, {"sigma_sq": 1.0}),
+            (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
+            (kernels.ExpQuad, {"lengthscale": 1.5}),
+            (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
+            (kernels.Matern, {"lengthscale": 0.5, "nu": 0.5}),
+            (kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
+            (kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
+            (kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
+            (kernels.Matern, {"lengthscale": 3.0, "nu": backend.inf}),
+            (kernels.ProductMatern, {"lengthscales": 0.5, "nus": 0.5}),
         ]
     ],
     scope="package",
 )
-def kernel(request, input_shape: ShapeType) -> pn.randprocs.kernels.Kernel:
+def kernel(request, input_shape: ShapeType) -> kernels.Kernel:
     """Kernel / covariance function."""
     return request.param[0](input_shape=input_shape, **request.param[1])
 
 
+@pytest.mark.skipif_backend(backend.Backend.TORCH)
 @pytest.fixture(scope="package")
 def kernel_call_naive(
-    kernel: pn.randprocs.kernels.Kernel,
+    kernel: kernels.Kernel,
 ) -> Callable[[ArrayType, Optional[ArrayType]], ArrayType]:
     """Naive implementation of kernel broadcasting which applies the kernel function to
     scalar arguments while looping over the first dimensions of the inputs explicitly.
@@ -58,11 +59,11 @@ def kernel_call_naive(
     """
 
     if kernel.input_ndim == 0:
-        kernel_vectorized = np.vectorize(kernel, signature="(),()->()")
+        kernel_vectorized = backend.vectorize(kernel, signature="(),()->()")
     else:
         assert kernel.input_ndim == 1
 
-        kernel_vectorized = np.vectorize(kernel, signature="(d),(d)->()")
+        kernel_vectorized = backend.vectorize(kernel, signature="(d),(d)->()")
 
     return lambda x0, x1: (
         kernel_vectorized(x0, x0) if x1 is None else kernel_vectorized(x0, x1)
@@ -114,7 +115,7 @@ def x0(input_shape: ShapeType, x0_batch_shape: ShapeType) -> ArrayType:
 
     seed = testing.seed_from_sampling_args(base_seed=34897, shape=shape)
 
-    return pn.backend.random.standard_normal(seed, shape=shape)
+    return backend.random.standard_normal(seed, shape=shape)
 
 
 @pytest.fixture(scope="package")
@@ -127,4 +128,4 @@ def x1(input_shape: ShapeType, x1_batch_shape: ShapeType) -> Optional[ArrayType]
 
     seed = testing.seed_from_sampling_args(base_seed=533, shape=shape)
 
-    return pn.backend.random.standard_normal(seed, shape=shape)
+    return backend.random.standard_normal(seed, shape=shape)
