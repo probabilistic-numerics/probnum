@@ -262,6 +262,7 @@ __all__ = [
     # Misc
     "isarray",
     "to_numpy",
+    "vectorize",
     # Just-in-Time Compilation
     "jit",
     "jit_method",
