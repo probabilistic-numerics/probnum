@@ -1,13 +1,93 @@
-# For more information about this pyproject.toml file, see
-# PEP 518: https://www.python.org/dev/peps/pep-0518/
+################################################################################
+# PEP 621 Project Metadata                                                     #
+################################################################################
+
+# see https://peps.python.org/pep-0621/
+
+[project]
+name = "probnum"
+description = "Probabilistic Numerics in Python."
+readme = "README.md"
+requires-python = ">=3.8,<3.11"
+license = {file = "LICENSE.txt"}
+authors = [
+    {name = "", email = ""},
+]
+maintainers = [
+    {name = "", email = ""},
+]
+keywords = [
+    "probabilistic-numerics",
+    "machine-learning",
+    "numerical-methods",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "numpy>=1.20",
+    "numpy>=1.21.3; python_version>='3.10'",
+    "scipy>=1.4",
+    "scipy>=1.8.0; python_version>='3.10'",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+# Automatic Differentiation
+jax = [
+    "jax[cpu]<0.3.5; platform_system!='Windows'",
+]
+# Problem zoo
+zoo = [
+    "%(jax)s",
+    "tqdm>=4.0",
+    "requests>=2.0",
+]
+# Calibration in the probabilistic linear solver
+pls_calib = [
+    "GPy",
+    # GPy can't be imported without matplotlib.
+    # This is and should not be a ProbNum dependency.
+    "matplotlib",
+]
+# Full installation
+full = [
+    "%(jax)s",
+    "%(zoo)s",
+    "%(pls_calib)s",
+]
+
+[project.urls]
+github = "https://github.com/probabilistic-numerics/probnum"
+documentation = "https://probnum.readthedocs.io/en/stable/"
+benchmarks = "https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/"
+
+################################################################################
+# PEP 518 Build System Configuration                                           #
+################################################################################
+
+# see https://peps.python.org/pep-0518/
 
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61",
     "wheel",
     "setuptools_scm[toml]>=6.0",
 ]
 build-backend = "setuptools.build_meta"
+
+# see https://setuptools.pypa.io/en/stable/userguide/pyproject_config.html#setuptools-specific-configuration
+
+[tool.setuptools]
+platforms = "any"
+zip-safe = false
+packages = ["probnum"]
+include-package-data = true
 
 [tool.setuptools_scm]
 local_scheme = "dirty-tag"
