@@ -34,18 +34,13 @@ from . import (
 
 # isort: on
 
-__all__imported_modules = sum(
-    [
-        module.__all__
-        for module in [
-            _array_object,
-            _constants,
-            _creation_functions,
-            _elementwise_functions,
-            _manipulation_functions,
-            _sorting_functions,
-        ]
-    ]
+__all__imported_modules = (
+    _array_object.__all__
+    + _constants.__all__
+    + _creation_functions.__all__
+    + _elementwise_functions.__all__
+    + _manipulation_functions.__all__
+    + _sorting_functions.__all__
 )
 __all__ = (
     [
