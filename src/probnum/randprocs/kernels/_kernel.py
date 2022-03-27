@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import abc
+import functools
+import operator
 from typing import Optional, Union
 
 from probnum import backend
@@ -156,6 +158,11 @@ class Kernel(abc.ABC):
     def input_ndim(self) -> int:
         """Syntactic sugar for ``len(input_shape)``."""
         return self._input_ndim
+
+    @functools.cached_property
+    def input_size(self) -> int:
+        """Product over the entries of :attr:`input_shape`."""
+        return functools.reduce(operator.add, self._input_shape, 1)
 
     @property
     def output_shape(self) -> ShapeType:
