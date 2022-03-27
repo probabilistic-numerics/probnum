@@ -19,6 +19,11 @@ probnum.backend
 .. toctree::
     :hidden:
 
+    backend/sorting_functions
+
+.. toctree::
+    :hidden:
+
     backend/autodiff
 
 .. toctree::

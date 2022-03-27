@@ -16,6 +16,7 @@ from ._constants import *
 from ._creation_functions import *
 from ._elementwise_functions import *
 from ._manipulation_functions import *
+from ._sorting_functions import *
 
 from . import (
     _core,
