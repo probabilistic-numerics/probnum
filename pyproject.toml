@@ -136,18 +136,15 @@ filterwarnings = [
 # https://github.com/psf/black#pyprojecttoml
 [tool.black]
 include = '\.pyi?$'
-exclude = '''
+# If `exclude` is not set, `black` excludes all files listed in `.gitignore`.
+# The following option extends this list of ignored files.
+# see https://black.readthedocs.io/en/stable/usage_and_configuration/file_collection_and_discovery.html#gitignore
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories in the root
+# of the project.
 /(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
+    \.git
+    | \.hg
 )/
 '''
 
