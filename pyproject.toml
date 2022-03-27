@@ -11,10 +11,21 @@ readme = "README.md"
 requires-python = ">=3.8,<3.11"
 license = {file = "LICENSE.txt"}
 authors = [
-    {name = "", email = ""},
+    {name = "Jonathan Wenger",   email = "jonathan.wenger@uni-tuebingen.de"},
+    {name = "Nicholas Kraemer",  email = "nicholas.kraemer@uni-tuebingen.de "},
+    {name = "Marvin Pfoertner",  email = "marvin.pfoertner@uni-tuebingen.de"},
+    {name = "Jonathan Schmidt",  email = "jonathan.schmidt@uni-tuebingen.de"},
+    {name = "Nathanael Bosch",   email = "nathanael.bosch@uni-tuebingen.de"},
+    {name = "Alexandra Gessner", email = "alexandra.gessner@uni-tuebingen.de"},
+    {name = "Toni Karvonen",     email = "toni.karvonen@helsinki.fi"},
+    {name = "Maren Mahsereci",   email = "maren.mahsereci@uni-tuebingen.de "},
 ]
 maintainers = [
-    {name = "", email = ""},
+    {name = "Jonathan Wenger",   email = "jonathan.wenger@uni-tuebingen.de"},
+    {name = "Nicholas Kraemer",  email = "nicholas.kraemer@uni-tuebingen.de "},
+    {name = "Marvin Pfoertner",  email = "marvin.pfoertner@uni-tuebingen.de"},
+    {name = "Maren Mahsereci",   email = "maren.mahsereci@uni-tuebingen.de "},
+    {name = "Jonathan Schmidt",  email = "jonathan.schmidt@uni-tuebingen.de"},
 ]
 keywords = [
     "probabilistic-numerics",
