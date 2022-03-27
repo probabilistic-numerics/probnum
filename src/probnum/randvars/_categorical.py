@@ -56,8 +56,7 @@ class Categorical(DiscreteRandomVariable):
             return self.support[indices]
 
         def _pmf_categorical(x):
-            """PMF of a categorical distribution.
-            """
+            """PMF of a categorical distribution."""
 
             # This implementation is defense against cryptic warnings such as:
             # https://stackoverflow.com/questions/45020217/numpy-where-function-throws-a-futurewarning-returns-scalar-instead-of-list
