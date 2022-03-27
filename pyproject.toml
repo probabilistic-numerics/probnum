@@ -134,6 +134,18 @@ filterwarnings = [
 # Linting Configuration                                                        #
 ################################################################################
 
+[tool.pylint.master]
+extension-pkg-whitelist = [
+    "numpy",
+]
+load-plugins = [
+    "pylint.extensions.check_elif",
+    "pylint.extensions.docparams",
+    "pylint.extensions.docstyle",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.mccabe",
+]
+
 [tool.pylint.messages_control]
 disable = [
     # Exceptions suggested by Black:
@@ -151,18 +163,6 @@ disable = [
 
 [tool.pylint.format]
 max-line-length = "88"
-
-[tool.pylint.master]
-extension-pkg-whitelist = [
-    "numpy",
-]
-load-plugins = [
-    "pylint.extensions.check_elif",
-    "pylint.extensions.docparams",
-    "pylint.extensions.docstyle",
-    "pylint.extensions.overlapping_exceptions",
-    "pylint.extensions.mccabe",
-]
 
 [tool.pylint.design]
 max-args = 10
