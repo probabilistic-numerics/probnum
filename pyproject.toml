@@ -87,6 +87,9 @@ packages = ["probnum"]
 package-dir = { "" = "src" }
 include-package-data = true
 
+[tool.setuptools.dynamic]
+version = { attr = "probnum._version.version" }
+
 [tool.setuptools_scm]
 local_scheme = "dirty-tag"
 write_to = "src/probnum/_version.py"
