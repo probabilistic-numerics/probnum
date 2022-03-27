@@ -4,6 +4,7 @@ import pytest
 
 from probnum import backend, randprocs, randvars
 from probnum.randprocs import kernels, mean_fns
+import tests.utils
 
 
 def test_mean_not_function_raises_error():
@@ -55,7 +56,12 @@ def test_mean_wrong_input_shape_raises_error():
 def test_finite_evaluation_is_normal(gaussian_process: randprocs.GaussianProcess):
     """A Gaussian process evaluated at a finite set of inputs is a Gaussian random
     variable."""
+    x_shape = (5,) + gaussian_process.input_shape
     x = backend.random.standard_normal(
-        seed=backend.random.seed(1), shape=(5,) + gaussian_process.input_shape
+        seed=tests.utils.random.seed_from_sampling_args(
+            base_seed=98998123,
+            shape=x_shape,
+        ),
+        shape=x_shape,
     )
     assert isinstance(gaussian_process(x), randvars.Normal)

@@ -1,111 +1,135 @@
 """Fixtures for random process tests."""
 
-import functools
-from typing import Callable
+from typing import Any, Callable, Dict, Tuple, Type
 
-import numpy as np
 import pytest
+import pytest_cases
 
-from probnum import LambdaFunction, randprocs
+from probnum import Function, LambdaFunction, backend, randprocs
 from probnum.randprocs import kernels, mean_fns
+from probnum.typing import ArrayType, ShapeType
+import tests.utils
 
 
-@pytest.fixture(
-    params=[pytest.param(seed, id=f"seed{seed}") for seed in range(3)],
-    name="rng",
+@pytest_cases.fixture(scope="package")
+@pytest_cases.parametrize(
+    "shape", [(), (1,), (10,), (100,)], idgen="input_shape{shape}"
 )
-def fixture_rng(request) -> np.random.Generator:
-    """Random state(s) used for test parameterization."""
-    return np.random.default_rng(seed=request.param)
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(input_dim, id=f"indim{input_dim}") for input_dim in [1, 10, 100]
-    ],
-    name="input_dim",
-)
-def fixture_input_dim(request) -> int:
+def input_shape(shape: ShapeType) -> ShapeType:
     """Input dimension of the random process."""
-    return request.param
+    return shape
 
 
-@pytest.fixture(
-    params=[
-        pytest.param(output_dim, id=f"outdim{output_dim}") for output_dim in [1, 2, 10]
-    ]
-)
-def output_dim(request) -> int:
+@pytest_cases.fixture(scope="package")
+@pytest_cases.parametrize("shape", [()], idgen="output_shape{shape}")
+def output_shape(shape: ShapeType) -> ShapeType:
     """Output dimension of the random process."""
-    return request.param
+    return shape
 
 
-@pytest.fixture(
-    params=[
-        pytest.param(mu, id=mu[0])
-        for mu in [
-            ("zero", mean_fns.Zero),
-            (
-                "lin",
-                functools.partial(LambdaFunction, lambda x: 2 * x.sum(axis=1) + 1.0),
-            ),
-        ]
-    ],
-    name="mean",
-)
-def fixture_mean(request, input_dim: int) -> Callable:
-    """Mean function of a random process."""
-    return request.param[1](input_shape=(input_dim,), output_shape=())
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(kerndef, id=kerndef[0].__name__)
-        for kerndef in [
-            (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
-            (kernels.ExpQuad, {"lengthscale": 1.5}),
-            (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
-            (kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
-        ]
-    ],
-    name="cov",
-)
-def fixture_cov(request, input_dim: int) -> kernels.Kernel:
-    """Covariance function."""
-    return request.param[0](**request.param[1], input_shape=(input_dim,))
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(randprocdef, id=randprocdef[0])
-        for randprocdef in [
-            (
-                "gp",
-                randprocs.GaussianProcess(
-                    mean=mean_fns.Zero(input_shape=(1,)),
-                    cov=kernels.Matern(input_shape=(1,)),
+@pytest_cases.fixture(scope="package")
+@pytest_cases.parametrize(
+    "meanfndef",
+    [
+        ("Zero", mean_fns.Zero),
+        (
+            "Lambda",
+            lambda input_shape, output_shape: LambdaFunction(
+                lambda x: (
+                    backend.full_like(x, 2.0, shape=output_shape)
+                    * backend.sum(x, axis=tuple(range(-len(input_shape), 0)))
+                    + 1.0
                 ),
+                input_shape=input_shape,
+                output_shape=output_shape,
             ),
-        ]
+        ),
     ],
-    name="random_process",
+    idgen="{meanfndef[0]}",
 )
-def fixture_random_process(request) -> randprocs.RandomProcess:
+def mean(
+    meanfndef: Tuple[str, Callable[[ShapeType, ShapeType], Function]],
+    input_shape: ShapeType,
+    output_shape: ShapeType,
+) -> Function:
+    """Mean function of a random process."""
+    return meanfndef[1](input_shape=input_shape, output_shape=output_shape)
+
+
+@pytest_cases.fixture(scope="package")
+@pytest_cases.parametrize(
+    "kerndef",
+    [
+        (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
+        (kernels.ExpQuad, {"lengthscale": 1.5}),
+        (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
+        (kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
+    ],
+    idgen="{kerndef[0].__name__}",
+)
+def cov(
+    kerndef: Tuple[Type[kernels.Kernel], Dict[str, Any]],
+    input_shape: ShapeType,
+    output_shape: ShapeType,
+) -> kernels.Kernel:
+    """Covariance function."""
+
+    if output_shape != ():
+        pytest.skip()
+
+    kernel_type, kwargs = kerndef
+
+    return kernel_type(input_shape=input_shape, **kwargs)
+
+
+@pytest_cases.fixture(scope="package")
+@pytest_cases.parametrize(
+    "randprocdef",
+    [
+        (
+            "GP-Zero-Matern",
+            lambda input_shape, output_shape: randprocs.GaussianProcess(
+                mean=mean_fns.Zero(input_shape=input_shape),
+                cov=kernels.Matern(input_shape=input_shape),
+            ),
+        ),
+    ],
+    idgen="{randprocdef[0]}",
+)
+def random_process(
+    randprocdef: Tuple[str, Callable[[ShapeType, ShapeType], randprocs.RandomProcess]],
+    input_shape: ShapeType,
+    output_shape: ShapeType,
+) -> randprocs.RandomProcess:
     """Random process."""
-    return request.param[1]
+    return randprocdef[1](input_shape, output_shape)
 
 
-@pytest.fixture(name="gaussian_process")
-def fixture_gaussian_process(mean, cov) -> randprocs.GaussianProcess:
+@pytest_cases.fixture(scope="package")
+def gaussian_process(mean: Function, cov: kernels.Kernel) -> randprocs.GaussianProcess:
     """Gaussian process."""
     return randprocs.GaussianProcess(mean=mean, cov=cov)
 
 
-@pytest.fixture(params=[pytest.param(n, id=f"n{n}") for n in [1, 10]], name="args0")
-def fixture_args0(
-    request,
+@pytest_cases.fixture(scope="session")
+@pytest_cases.parametrize("shape", [(), (1,), (10,)], idgen="batch_shape{shape}")
+def args0_batch_shape(shape: ShapeType) -> ShapeType:
+    return shape
+
+
+@pytest_cases.fixture(scope="package")
+@pytest_cases.parametrize("seed", [0, 1, 2], idgen="seed{seed}")
+def args0(
     random_process: randprocs.RandomProcess,
-    rng: np.random.Generator,
-) -> np.ndarray:
+    seed: int,
+    args0_batch_shape: ShapeType,
+) -> ArrayType:
     """Input(s) to a random process."""
-    return rng.normal(size=(request.param,) + random_process.input_shape)
+    args0_shape = args0_batch_shape + random_process.input_shape
+
+    return backend.random.standard_normal(
+        seed=tests.utils.random.seed_from_sampling_args(
+            base_seed=seed, shape=args0_shape
+        ),
+        shape=args0_shape,
+    )
