@@ -5,7 +5,7 @@ The interface provided by this module follows the Python array API standard
 common API for array and tensor Python libraries.
 """
 
-from typing import Any, Optional, Union
+from typing import AbstractSet, Any, Optional, Union
 
 from probnum import backend as _backend
 from probnum.typing import (
@@ -170,6 +170,16 @@ def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ScalarType:
         raise ValueError("The given input is not a scalar.")
 
     return asarray(x, dtype=dtype)[()]
+
+
+def vectorize(
+    pyfunc,
+    /,
+    *,
+    excluded: Optional[AbstractSet[Union[int, str]]] = None,
+    signature: Optional[str] = None,
+):
+    return _core.vectorize(pyfunc, excluded=excluded, signature=signature)
 
 
 _ArrayType = Union[_Scalar, _Array]

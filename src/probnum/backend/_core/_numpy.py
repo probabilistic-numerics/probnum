@@ -64,6 +64,7 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     vstack,
     zeros,
     zeros_like,
+    vectorize,
 )
 
 

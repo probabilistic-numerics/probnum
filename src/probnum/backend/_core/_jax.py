@@ -59,6 +59,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     sum,
     swapaxes,
     tile,
+    vectorize,
     vstack,
     zeros,
     zeros_like,

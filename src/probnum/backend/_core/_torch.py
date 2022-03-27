@@ -237,4 +237,8 @@ def jit_method(f, *args, **kwargs):
     return f
 
 
+def vectorize(pyfunc, /, *, excluded=None, signature=None):
+    raise NotImplementedError()
+
+
 inf = float("inf")
