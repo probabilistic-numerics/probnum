@@ -130,10 +130,12 @@ filterwarnings = [
     "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning:flatbuffers.*"
 ]
 
+################################################################################
+# Formatting Configuration                                                     #
+################################################################################
 
-# Configuration of the black code style checker
-# For more information about Black's usage of this file, see
-# https://github.com/psf/black#pyprojecttoml
+# see https://black.readthedocs.io/en/stable/usage_and_configuration/index.html
+
 [tool.black]
 include = '\.pyi?$'
 # If `exclude` is not set, `black` excludes all files listed in `.gitignore`.
@@ -148,7 +150,11 @@ extend-exclude = '''
 )/
 '''
 
-# Pylint configuration
+
+################################################################################
+# Linting Configuration                                                        #
+################################################################################
+
 [tool.pylint.messages_control]
 disable = [
     # Exceptions suggested by Black:
