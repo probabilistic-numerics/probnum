@@ -41,10 +41,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 dependencies = [
-    "numpy>=1.20",
-    "numpy>=1.21.3; python_version>='3.10'",
-    "scipy>=1.4",
-    "scipy>=1.8.0; python_version>='3.10'",
+    "numpy>=1.20", "numpy>=1.21.3; python_version>='3.10'",
+    "scipy>=1.4", "scipy>=1.8.0; python_version>='3.10'",
 ]
 dynamic = ["version"]
 
@@ -52,6 +50,7 @@ dynamic = ["version"]
 # don't seem to be supported yet. Migrate the optional dependencies in `setup.py`
 # here, once this is supported.
 # [project.optional-dependencies]
+# ...
 # full = [
 #     "%(jax)s",
 #     "%(zoo)s",
