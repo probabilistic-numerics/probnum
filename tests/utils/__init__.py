@@ -1,1 +1,1 @@
-from . import random
+from . import random, statistics

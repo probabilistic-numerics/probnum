@@ -3,7 +3,9 @@
 
 import numpy as np
 
-__all__ = ["chi_squared_statistic"]
+__all__ = [
+    "chi_squared_statistic",
+]
 
 
 def chi_squared_statistic(realisations, means, covs):
