@@ -8,7 +8,7 @@ import pytest
 from probnum import backend, compat
 from probnum.randprocs import kernels
 from probnum.typing import ArrayLike
-from tests import testing
+import tests.utils
 
 
 @pytest.mark.parametrize("lengthscale", [1.25])
@@ -24,7 +24,7 @@ def test_kernel_matrix(input_dim: int, lengthscale: float, nu: float):
     num_xs = 15
     xs_shape = (num_xs, input_dim)
     xs = backend.random.uniform(
-        seed=testing.seed_from_sampling_args(base_seed=42, shape=xs_shape),
+        seed=tests.utils.random.seed_from_sampling_args(base_seed=42, shape=xs_shape),
         shape=xs_shape,
     )
 

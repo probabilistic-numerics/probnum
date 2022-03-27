@@ -4,12 +4,14 @@ import pytest
 from probnum import backend, linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 from probnum.typing import ShapeLike
-from tests.testing import seed_from_sampling_args
+import tests.utils
 
 
 @pytest.fixture
 def constant(shape_const: ShapeLike) -> randvars.Constant:
-    seed = seed_from_sampling_args(base_seed=19836, shape=shape_const)
+    seed = tests.utils.random.seed_from_sampling_args(
+        base_seed=19836, shape=shape_const
+    )
 
     return randvars.Constant(
         support=backend.random.standard_normal(seed, shape=shape_const)
@@ -20,7 +22,7 @@ def constant(shape_const: ShapeLike) -> randvars.Constant:
 def multivariate_normal(
     shape: ShapeLike, precompute_cov_cholesky: bool
 ) -> randvars.Normal:
-    seed = seed_from_sampling_args(base_seed=1908, shape=shape)
+    seed = tests.utils.random.seed_from_sampling_args(base_seed=1908, shape=shape)
     seed_mean, seed_cov = backend.random.split(seed)
 
     rv = randvars.Normal(
@@ -36,7 +38,7 @@ def multivariate_normal(
 def matrixvariate_normal(
     shape: ShapeLike, precompute_cov_cholesky: bool
 ) -> randvars.Normal:
-    seed = seed_from_sampling_args(base_seed=354, shape=shape)
+    seed = tests.utils.random.seed_from_sampling_args(base_seed=354, shape=shape)
     seed_mean, seed_cov_A, seed_cov_B = backend.random.split(seed, num=3)
 
     rv = randvars.Normal(
@@ -55,7 +57,7 @@ def matrixvariate_normal(
 def symmetric_matrixvariate_normal(
     shape: ShapeLike, precompute_cov_cholesky: bool
 ) -> randvars.Normal:
-    seed = seed_from_sampling_args(base_seed=246, shape=shape)
+    seed = tests.utils.random.seed_from_sampling_args(base_seed=246, shape=shape)
     seed_mean, seed_cov = backend.random.split(seed)
 
     rv = randvars.Normal(

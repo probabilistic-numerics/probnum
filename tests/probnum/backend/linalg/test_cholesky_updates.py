@@ -2,7 +2,7 @@ import pytest
 
 from probnum import backend, compat
 from probnum.problems.zoo.linalg import random_spd_matrix
-from tests import testing
+import tests.utils
 
 
 @pytest.fixture
@@ -14,7 +14,7 @@ def even_ndim():
 
 @pytest.fixture
 def spdmats(even_ndim):
-    seed = testing.seed_from_sampling_args(base_seed=3897, shape=even_ndim)
+    seed = tests.utils.random.seed_from_sampling_args(base_seed=3897, shape=even_ndim)
     seed1, seed2 = backend.random.split(seed, num=2)
 
     spdmat1 = random_spd_matrix(seed1, dim=even_ndim)
@@ -47,7 +47,7 @@ def test_cholesky_optional(spdmat1, even_ndim):
     correct Cholesky factor."""
     H_shape = (even_ndim // 2, even_ndim)
     H = backend.random.uniform(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=2908,
             shape=H_shape,
         ),

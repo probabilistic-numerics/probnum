@@ -7,7 +7,7 @@ import pytest
 from probnum import backend
 from probnum.randprocs import kernels
 from probnum.typing import ArrayType, ShapeType
-from tests import testing
+import tests.utils
 
 
 # Kernel objects
@@ -113,7 +113,7 @@ def x0(input_shape: ShapeType, x0_batch_shape: ShapeType) -> ArrayType:
     """Random data from a standard normal distribution."""
     shape = x0_batch_shape + input_shape
 
-    seed = testing.seed_from_sampling_args(base_seed=34897, shape=shape)
+    seed = tests.utils.random.seed_from_sampling_args(base_seed=34897, shape=shape)
 
     return backend.random.standard_normal(seed, shape=shape)
 
@@ -126,6 +126,6 @@ def x1(input_shape: ShapeType, x1_batch_shape: ShapeType) -> Optional[ArrayType]
 
     shape = x1_batch_shape + input_shape
 
-    seed = testing.seed_from_sampling_args(base_seed=533, shape=shape)
+    seed = tests.utils.random.seed_from_sampling_args(base_seed=533, shape=shape)
 
     return backend.random.standard_normal(seed, shape=shape)

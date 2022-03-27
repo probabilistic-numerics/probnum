@@ -7,6 +7,10 @@ import numpy as np
 from probnum import backend
 from probnum.typing import ArrayType, DTypeLike, IntLike, SeedType, ShapeLike
 
+__all__ = [
+    "seed_from_sampling_args",
+]
+
 
 def seed_from_sampling_args(
     *,

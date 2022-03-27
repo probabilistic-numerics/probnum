@@ -1,14 +1,12 @@
 """Tests for general inner products."""
 
-from cgi import test
-
 import pytest
 
 from probnum import backend
 from probnum.backend.linalg import induced_norm, inner_product
 from probnum.problems.zoo.linalg import random_spd_matrix
 from probnum.typing import ArrayType
-from tests import testing
+import tests.utils
 
 
 @pytest.fixture(scope="module", params=[1, 10, 50])
@@ -33,7 +31,7 @@ def p(request) -> int:
 def vector0(n: int) -> ArrayType:
     shape = (n,)
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=86,
             shape=shape,
         ),
@@ -45,7 +43,7 @@ def vector0(n: int) -> ArrayType:
 def vector1(n: int) -> ArrayType:
     shape = (n,)
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=567,
             shape=shape,
         ),
@@ -57,7 +55,7 @@ def vector1(n: int) -> ArrayType:
 def array0(p: int, m: int, n: int) -> ArrayType:
     shape = (p, m, n)
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=86,
             shape=shape,
         ),
@@ -69,7 +67,7 @@ def array0(p: int, m: int, n: int) -> ArrayType:
 def array1(m: int, n: int) -> ArrayType:
     shape = (m, n)
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=567,
             shape=shape,
         ),

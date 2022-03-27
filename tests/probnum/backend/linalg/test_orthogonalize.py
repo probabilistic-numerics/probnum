@@ -13,7 +13,7 @@ from probnum.backend.linalg import (
 )
 from probnum.problems.zoo.linalg import random_spd_matrix
 from probnum.typing import ArrayType
-from tests import testing
+import tests.utils
 
 n = 100
 
@@ -28,7 +28,7 @@ def basis_size(request) -> int:
 def vector() -> ArrayType:
     shape = (n,)
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=526367,
             shape=shape,
         ),
@@ -40,7 +40,7 @@ def vector() -> ArrayType:
 def vectors() -> ArrayType:
     shape = (2, 10, n)
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=234,
             shape=shape,
         ),
@@ -85,7 +85,7 @@ def test_is_orthogonal(
     # Compute orthogonal basis
     basis_shape = (vector.shape[0], basis_size)
     basis = backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=32,
             shape=basis_shape,
         ),
@@ -114,7 +114,7 @@ def test_is_normalized(
     # Compute orthogonal basis
     basis_shape = (vector.shape[0], basis_size)
     basis = backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=9467,
             shape=basis_shape,
         ),
@@ -173,7 +173,7 @@ def test_broadcasting(
     # Compute orthogonal basis
     basis_shape = (vectors.shape[-1], basis_size)
     basis = backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=32,
             shape=basis_shape,
         ),

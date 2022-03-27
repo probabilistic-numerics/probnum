@@ -3,7 +3,7 @@ import pytest_cases
 
 from probnum import backend, compat
 from probnum.typing import ArrayType, SeedLike, ShapeType
-from tests import testing
+import tests.utils
 
 
 @pytest_cases.fixture(scope="module")
@@ -15,7 +15,7 @@ def so_group_sample(
     seed: SeedLike, n: int, shape: ShapeType, dtype: backend.dtype
 ) -> ArrayType:
     return backend.random.uniform_so_group(
-        seed=testing.seed_from_sampling_args(
+        seed=tests.utils.random.seed_from_sampling_args(
             base_seed=seed, shape=shape, dtype=dtype, n=n
         ),
         n=n,

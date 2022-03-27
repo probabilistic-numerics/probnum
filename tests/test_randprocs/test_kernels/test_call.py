@@ -7,7 +7,7 @@ import pytest
 from probnum import backend, compat
 from probnum.randprocs import kernels
 from probnum.typing import ArrayType, ShapeType
-from tests import testing
+import tests.utils
 
 
 @pytest.fixture(
@@ -65,7 +65,9 @@ def fixture_x0(input_shapes: Tuple[ShapeType, Optional[ShapeType]]) -> ArrayType
     x0_shape, _ = input_shapes
 
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(base_seed=899803, shape=x0_shape),
+        seed=tests.utils.random.seed_from_sampling_args(
+            base_seed=899803, shape=x0_shape
+        ),
         shape=x0_shape,
     )
 
@@ -83,7 +85,7 @@ def fixture_x1(
         return None
 
     return backend.random.standard_normal(
-        seed=testing.seed_from_sampling_args(base_seed=4569, shape=x1_shape),
+        seed=tests.utils.random.seed_from_sampling_args(base_seed=4569, shape=x1_shape),
         shape=x1_shape,
     )
 
