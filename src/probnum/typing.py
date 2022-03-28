@@ -15,7 +15,7 @@ internal representation of those same objects. As an example, a user might pass 
 object which can be converted to a finite dimensional linear operator. This argument
 could be an class:`~probnum.backend.Array`, a sparse matrix
 :class:`~scipy.sparse.spmatrix` or a :class:`~probnum.linops.LinearOperator`. The type
-alias :attr:`LinearOperatorLike`combines all these in a single type. Internally, the
+alias :attr:`LinearOperatorLike` combines all these in a single type. Internally, the
 passed argument is then converted to a :class:`~probnum.linops.LinearOperator`.
 """
 

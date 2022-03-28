@@ -2,10 +2,6 @@
 probnum.backend
 ***************
 
-.. automodapi:: probnum.backend
-    :no-heading:
-    :headings: "*"
-
 .. toctree::
     :hidden:
 
@@ -15,6 +11,11 @@ probnum.backend
     :hidden:
 
     backend/elementwise_functions
+
+.. toctree::
+    :hidden:
+
+    backend/manipulation_functions
 
 .. toctree::
     :hidden:

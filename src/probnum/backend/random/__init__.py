@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from probnum import backend as _backend
 
 if _backend.BACKEND is _backend.Backend.NUMPY:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import secrets
 from typing import Optional, Sequence
