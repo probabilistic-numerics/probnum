@@ -1,4 +1,21 @@
-"""Type aliases for the backend."""
+"""Custom type aliases.
+
+This module defines commonly used types in the library. These are separated into two
+different kinds, API types and argument types.
+
+**API types** (``*Type``) are aliases which define custom types used throughout the
+library. Objects of this type may be supplied as arguments or returned by a method.
+
+**Argument types** (``*Like``) are aliases which define commonly used method
+arguments that are internally converted to a standardized representation. These should
+only ever be used in the signature of a method and then be converted internally, e.g. in
+a class instantiation or an interface. They enable the user to conveniently supply a
+variety of objects of different types for the same argument, while ensuring a unified
+internal representation of those same objects. As an example, take the different ways a
+user might specify a shape: ``2``, ``(2,)``, ``[2, 2]``. These may all be acceptable
+arguments to a function taking a shape, but internally should always be converted to a
+:attr:`ShapeType`, i.e. a tuple of ``int``\\ s.
+"""
 
 from __future__ import annotations
 
