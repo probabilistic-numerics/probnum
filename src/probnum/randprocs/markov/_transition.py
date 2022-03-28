@@ -5,7 +5,7 @@ import abc
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatLike, IntLike
+from probnum.backend.typing import FloatLike, IntLike
 
 
 class Transition(abc.ABC):

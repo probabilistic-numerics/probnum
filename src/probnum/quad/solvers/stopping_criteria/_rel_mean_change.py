@@ -3,9 +3,9 @@ estimators."""
 
 import numpy as np
 
+from probnum.backend.typing import FloatLike
 from probnum.quad.solvers.bq_state import BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
-from probnum.typing import FloatLike
 
 # pylint: disable=too-few-public-methods
 

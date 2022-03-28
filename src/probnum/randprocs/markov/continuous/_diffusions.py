@@ -8,7 +8,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import randvars
-from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike
+from probnum.backend.typing import ArrayIndicesLike, ArrayLike, FloatLike
 
 
 class Diffusion(abc.ABC):

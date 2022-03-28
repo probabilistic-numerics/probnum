@@ -5,14 +5,14 @@ from typing import Callable, Optional
 import pytest
 
 from probnum import backend, compat
+from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
-from probnum.typing import ArrayType, ShapeType
 
 
 @pytest.fixture(name="kernmat", scope="module")
 def fixture_kernmat(
-    kernel: kernels.Kernel, x0: ArrayType, x1: Optional[ArrayType]
-) -> ArrayType:
+    kernel: kernels.Kernel, x0: backend.Array, x1: Optional[backend.Array]
+) -> backend.Array:
     """Kernel evaluated at the data."""
     if x1 is None and x0.size // kernel.input_size >= 100:
         pytest.skip("Runs too long")
@@ -23,10 +23,12 @@ def fixture_kernmat(
 @pytest.fixture(name="kernmat_naive", scope="module")
 def fixture_kernmat_naive(
     kernel: kernels.Kernel,
-    kernel_call_naive: Callable[[ArrayType, Optional[ArrayType]], ArrayType],
-    x0: ArrayType,
-    x1: Optional[ArrayType],
-) -> ArrayType:
+    kernel_call_naive: Callable[
+        [backend.Array, Optional[backend.Array]], backend.Array
+    ],
+    x0: backend.Array,
+    x1: Optional[backend.Array],
+) -> backend.Array:
     """Kernel evaluated at the data."""
 
     if x1 is None:
@@ -41,7 +43,7 @@ def fixture_kernmat_naive(
     return kernel_call_naive(x0, x1)
 
 
-def test_type(kernmat: ArrayType):
+def test_type(kernmat: backend.Array):
     """Check whether a kernel evaluates to a numpy scalar or array."""
 
     assert backend.isarray(kernmat)
@@ -49,10 +51,10 @@ def test_type(kernmat: ArrayType):
 
 def test_shape(
     kernel: kernels.Kernel,
-    x0: ArrayType,
-    x1: Optional[ArrayType],
-    kernmat: ArrayType,
-    kernmat_naive: ArrayType,
+    x0: backend.Array,
+    x1: Optional[backend.Array],
+    kernmat: backend.Array,
+    kernmat_naive: backend.Array,
 ):
     """Test the shape of a kernel evaluated at sets of inputs."""
 
@@ -64,8 +66,8 @@ def test_shape(
 
 
 def test_kernel_matrix_against_naive(
-    kernmat: ArrayType,
-    kernmat_naive: ArrayType,
+    kernmat: backend.Array,
+    kernmat_naive: backend.Array,
 ):
     """Test the computation of the kernel matrix against a naive computation."""
 
@@ -86,8 +88,8 @@ def test_kernel_matrix_against_naive(
 )
 def test_invalid_shape(
     kernel: kernels.Kernel,
-    x0_shape: ArrayType,
-    x1_shape: ArrayType,
+    x0_shape: backend.Array,
+    x1_shape: backend.Array,
 ):
     """Test whether an error is raised if the inputs can not be broadcast to a common
     shape."""

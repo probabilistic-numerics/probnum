@@ -6,8 +6,8 @@ import abc
 from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 from probnum import _function, backend, randvars
+from probnum.backend.typing import DTypeLike, SeedLike, ShapeLike, ShapeType
 from probnum.randprocs import kernels
-from probnum.typing import ArrayType, DTypeLike, SeedLike, ShapeLike, ShapeType
 
 InputType = TypeVar("InputType")
 OutputType = TypeVar("OutputType")
@@ -254,8 +254,8 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         self,
         args: InputType,
         base_measure: Type[randvars.RandomVariable],
-        sample: ArrayType,
-    ) -> ArrayType:
+        sample: backend.Array,
+    ) -> backend.Array:
         """Transform samples from a base measure into samples from the random process.
 
         This function can be used to control sampling from the random process by

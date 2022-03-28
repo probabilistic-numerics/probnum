@@ -25,37 +25,14 @@ from typing import Union
 
 import scipy.sparse
 
-from probnum.backend.typing import (
-    ArrayIndicesLike,
-    ArrayLike,
-    DTypeLike,
-    FloatLike,
-    IntLike,
-    NotImplementedType,
-    ScalarLike,
-    SeedLike,
-    SeedType,
-    ShapeLike,
-    ShapeType,
-)
+from probnum import backend
+from probnum.backend.typing import ArrayLike
 
 __all__ = [
     # API Types
-    "ArrayType",
     "MatrixType",
-    "ShapeType",
-    "SeedType",
     # Argument Types
-    "IntLike",
-    "FloatLike",
-    "ShapeLike",
-    "DTypeLike",
-    "ArrayIndicesLike",
-    "ScalarLike",
-    "ArrayLike",
     "LinearOperatorLike",
-    "SeedLike",
-    "NotImplementedType",
 ]
 
 ########################################################################################
@@ -63,14 +40,11 @@ __all__ = [
 ########################################################################################
 
 # Scalars, Arrays and Matrices
-ArrayType = "probnum.backend.Array"
-"""Type defining a (possibly multi-dimensional) array."""
-
-MatrixType = Union[ArrayType, "probnum.linops.LinearOperator"]
+MatrixType = Union[backend.Array, "probnum.linops.LinearOperator"]
 """Type defining a matrix, i.e. a linear map between finite-dimensional vector spaces.
 
-An object :code:`matrix` of :attr:`MatrixType`, which behaves like an object of
-:class:`ArrayType` with :code:`matrix.ndim == 2`.
+An object :code:`matrix`, which behaves like an :class:`~probnum.backend.Array` and
+satisfies :code:`matrix.ndim == 2`.
 """
 
 ########################################################################################

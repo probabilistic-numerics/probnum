@@ -5,7 +5,7 @@ from numpy.typing import DTypeLike
 import pytest
 
 from probnum import randvars
-from probnum.typing import ShapeLike
+from probnum.backend.typing import ShapeLike
 
 
 @pytest.mark.parametrize("shape,dtype", [((5,), np.single), ((2, 3), np.double)])

@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ArrayLike, ArrayType, ShapeLike
+from probnum.backend.typing import ArrayLike, ShapeLike
 
 from ._kernel import Kernel
 from ._matern import Matern
@@ -98,7 +98,9 @@ class ProductMatern(Kernel):
 
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType] = None) -> ArrayType:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array] = None
+    ) -> backend.Array:
 
         # scalar case is same as a scalar Matern
         if self.input_shape == ():

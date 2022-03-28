@@ -5,8 +5,8 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.problems.zoo import diffeq as diffeq_zoo
-from probnum.typing import FloatLike, IntLike
 
 __all__ = [
     "benes_daum",

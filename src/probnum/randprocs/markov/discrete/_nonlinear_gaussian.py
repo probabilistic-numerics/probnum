@@ -5,9 +5,9 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum import randvars
+from probnum.backend.typing import ArrayLike, FloatLike, IntLike
 from probnum.randprocs.markov import _transition
 from probnum.randprocs.markov.discrete import _condition_state
-from probnum.typing import ArrayLike, FloatLike, IntLike
 
 
 class NonlinearGaussian(_transition.Transition):

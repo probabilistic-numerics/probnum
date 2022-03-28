@@ -1,8 +1,8 @@
 """Stopping criterion based on a maximum number of integrand evaluations."""
 
+from probnum.backend.typing import IntLike
 from probnum.quad.solvers.bq_state import BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
-from probnum.typing import IntLike
 
 # pylint: disable=too-few-public-methods
 

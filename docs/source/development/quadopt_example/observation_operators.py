@@ -5,7 +5,7 @@ from typing import Callable
 import numpy as np
 
 from probnum import backend
-from probnum.typing import FloatLike
+from probnum.backend.typing import FloatLike
 
 
 def function_evaluation(

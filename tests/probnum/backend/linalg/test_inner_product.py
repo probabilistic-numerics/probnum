@@ -5,7 +5,6 @@ import pytest
 from probnum import backend
 from probnum.backend.linalg import induced_norm, inner_product
 from probnum.problems.zoo.linalg import random_spd_matrix
-from probnum.typing import ArrayType
 import tests.utils
 
 
@@ -28,7 +27,7 @@ def p(request) -> int:
 
 
 @pytest.fixture(scope="module")
-def vector0(n: int) -> ArrayType:
+def vector0(n: int) -> backend.Array:
     shape = (n,)
     return backend.random.standard_normal(
         seed=tests.utils.random.seed_from_sampling_args(
@@ -40,7 +39,7 @@ def vector0(n: int) -> ArrayType:
 
 
 @pytest.fixture(scope="module")
-def vector1(n: int) -> ArrayType:
+def vector1(n: int) -> backend.Array:
     shape = (n,)
     return backend.random.standard_normal(
         seed=tests.utils.random.seed_from_sampling_args(
@@ -52,7 +51,7 @@ def vector1(n: int) -> ArrayType:
 
 
 @pytest.fixture(scope="module")
-def array0(p: int, m: int, n: int) -> ArrayType:
+def array0(p: int, m: int, n: int) -> backend.Array:
     shape = (p, m, n)
     return backend.random.standard_normal(
         seed=tests.utils.random.seed_from_sampling_args(
@@ -64,7 +63,7 @@ def array0(p: int, m: int, n: int) -> ArrayType:
 
 
 @pytest.fixture(scope="module")
-def array1(m: int, n: int) -> ArrayType:
+def array1(m: int, n: int) -> backend.Array:
     shape = (m, n)
     return backend.random.standard_normal(
         seed=tests.utils.random.seed_from_sampling_args(
@@ -75,33 +74,33 @@ def array1(m: int, n: int) -> ArrayType:
     )
 
 
-def test_inner_product_vectors(vector0: ArrayType, vector1: ArrayType):
+def test_inner_product_vectors(vector0: backend.Array, vector1: backend.Array):
     assert inner_product(v=vector0, w=vector1) == pytest.approx(
         backend.sum(vector0 * vector1)
     )
 
 
-def test_inner_product_arrays(array0: ArrayType, array1: ArrayType):
+def test_inner_product_arrays(array0: backend.Array, array1: backend.Array):
     assert inner_product(v=array0, w=array1) == pytest.approx(
         backend.einsum("...i,...i", array0, array1)
     )
 
 
-def test_euclidean_norm_vector(vector0: ArrayType):
+def test_euclidean_norm_vector(vector0: backend.Array):
     assert backend.sqrt(backend.sum(vector0**2)) == pytest.approx(
         induced_norm(v=vector0)
     )
 
 
 @pytest.mark.parametrize("axis", [0, 1])
-def test_euclidean_norm_array(array0: ArrayType, axis: int):
+def test_euclidean_norm_array(array0: backend.Array, axis: int):
     assert backend.sqrt(backend.sum(array0**2, axis=axis)) == pytest.approx(
         induced_norm(v=array0, axis=axis)
     )
 
 
 @pytest.mark.parametrize("axis", [0, 1])
-def test_induced_norm_array(array0: ArrayType, axis: int):
+def test_induced_norm_array(array0: backend.Array, axis: int):
     inprod_mat = random_spd_matrix(
         seed=backend.random.seed(254),
         dim=array0.shape[axis],

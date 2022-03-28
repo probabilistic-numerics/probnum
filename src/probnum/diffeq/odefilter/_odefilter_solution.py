@@ -5,8 +5,8 @@ from typing import Optional
 import numpy as np
 
 from probnum import backend, filtsmooth, randvars
+from probnum.backend.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 from probnum.diffeq import _odesolution
-from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 
 class ODEFilterSolution(_odesolution.ODESolution):

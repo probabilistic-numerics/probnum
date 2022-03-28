@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats
 
 from probnum import backend
-from probnum.typing import IntLike, SeedType
+from probnum.backend.typing import IntLike, SeedType
 
 
 def random_spd_matrix(

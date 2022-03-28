@@ -5,7 +5,7 @@ from typing import Optional, Union
 import numpy as np
 
 from probnum import backend
-from probnum.typing import ArrayType, DTypeLike, IntLike, SeedType, ShapeLike
+from probnum.backend.typing import DTypeLike, IntLike, SeedType, ShapeLike
 
 __all__ = [
     "seed_from_sampling_args",
@@ -17,7 +17,7 @@ def seed_from_sampling_args(
     base_seed: IntLike,
     shape: ShapeLike,
     dtype: Optional[DTypeLike] = None,
-    **kwargs: Union[numbers.Number, np.ndarray, ArrayType],
+    **kwargs: Union[numbers.Number, np.ndarray, backend.Array],
 ) -> SeedType:
     """Diversify random seeds for deterministic testing.
 
@@ -25,7 +25,7 @@ def seed_from_sampling_args(
     seeds, a common pattern is to parametrize over seed and shape like so:
 
     >>> import pytest
-    >>> from probnum.typing import ShapeType
+    >>> from probnum.backend.typing import ShapeType
     >>> @pytest.fixture(params=[42, 43])
     ... def seed(request) -> int:
     ...     return request.param
@@ -53,7 +53,7 @@ def seed_from_sampling_args(
     of test execution!), `seed_from_sampling_args` provides a deterministic way to
     modify the base seed through other arguments passed to the sampling routine:
 
-    >>> def test_data(seed: int, shape: ShapeType) -> ArrayType:
+    >>> def test_data(seed: int, shape: ShapeType) -> backend.Array:
     ...     return backend.random.uniform(
     ...         seed_from_sampling_args(base_seed=seed, shape=shape),
     ...         shape=shape,
@@ -133,7 +133,7 @@ def seed_from_sampling_args(
         else:
             raise TypeError(
                 "Values passed by `kwargs` must be either numbers, `np.ndarray`s, or "
-                f"`ArrayType`s, not {type(value)}."
+                f"`backend.Array`s, not {type(value)}."
             )
 
     # Convert hash to positive integer

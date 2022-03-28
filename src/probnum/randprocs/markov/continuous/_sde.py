@@ -4,8 +4,8 @@ from typing import Callable, Optional
 
 import numpy as np
 
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.randprocs.markov import _transition
-from probnum.typing import FloatLike, IntLike
 
 
 class SDE(_transition.Transition):

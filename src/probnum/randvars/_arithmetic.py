@@ -5,8 +5,8 @@ import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
 from probnum import backend
+from probnum.backend.typing import NotImplementedType
 import probnum.linops as _linear_operators
-from probnum.typing import NotImplementedType
 
 from ._constant import Constant as _Constant
 from ._normal import Normal as _Normal

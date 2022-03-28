@@ -5,7 +5,7 @@ import torch
 from torch.distributions.utils import broadcast_all
 
 from probnum import backend
-from probnum.typing import DTypeLike, FloatLike, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, ShapeLike
 
 _RNG_STATE_SIZE = torch.Generator().get_state().shape[0]
 

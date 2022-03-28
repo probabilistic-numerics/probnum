@@ -6,8 +6,8 @@ import pytest
 import pytest_cases
 
 from probnum import Function, LambdaFunction, backend, randprocs
+from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels, mean_fns
-from probnum.typing import ArrayType, ShapeType
 import tests.utils
 
 
@@ -123,7 +123,7 @@ def args0(
     random_process: randprocs.RandomProcess,
     seed: int,
     args0_batch_shape: ShapeType,
-) -> ArrayType:
+) -> backend.Array:
     """Input(s) to a random process."""
     args0_shape = args0_batch_shape + random_process.input_shape
 

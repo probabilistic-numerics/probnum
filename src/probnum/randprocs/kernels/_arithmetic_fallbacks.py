@@ -7,7 +7,7 @@ import operator
 from typing import Optional, Tuple, Union
 
 from probnum import backend
-from probnum.typing import ArrayType, NotImplementedType, ScalarLike
+from probnum.backend.typing import NotImplementedType, ScalarLike
 
 from ._kernel import BinaryOperandType, Kernel
 
@@ -88,7 +88,9 @@ class SumKernel(Kernel):
             input_shape=summands[0].input_shape, output_shape=summands[0].output_shape
         )
 
-    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         return functools.reduce(
             operator.add, (summand(x0, x1) for summand in self._summands)
         )
@@ -145,7 +147,9 @@ class ProductKernel(Kernel):
             input_shape=factors[0].input_shape, output_shape=factors[0].output_shape
         )
 
-    def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         return functools.reduce(
             operator.mul, (factor(x0, x1) for factor in self._factors)
         )

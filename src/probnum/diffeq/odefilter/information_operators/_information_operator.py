@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import problems, randprocs, randvars
-from probnum.typing import FloatLike, IntLike
+from probnum.backend.typing import FloatLike, IntLike
 
 __all__ = ["InformationOperator", "ODEInformationOperator"]
 

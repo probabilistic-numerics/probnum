@@ -4,7 +4,7 @@ from typing import Optional, Union
 import numpy as np
 import scipy
 
-from probnum.typing import FloatLike, IntLike, ShapeLike
+from probnum.backend.typing import FloatLike, IntLike, ShapeLike
 
 
 def perturb_uniform(

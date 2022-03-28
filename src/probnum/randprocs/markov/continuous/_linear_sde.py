@@ -8,8 +8,8 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.backend.linalg import tril_to_positive_tril
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.randprocs.markov.continuous import _sde
-from probnum.typing import FloatLike, IntLike
 
 
 class LinearSDE(_sde.SDE):

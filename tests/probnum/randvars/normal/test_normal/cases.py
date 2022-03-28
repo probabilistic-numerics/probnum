@@ -3,8 +3,8 @@
 from pytest_cases import case, parametrize
 
 from probnum import backend, randvars
+from probnum.backend.typing import ScalarLike
 from probnum.problems.zoo.linalg import random_spd_matrix
-from probnum.typing import ScalarLike
 
 
 @case(tags=["univariate"])

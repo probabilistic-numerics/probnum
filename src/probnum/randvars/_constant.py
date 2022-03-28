@@ -6,7 +6,7 @@ from functools import cached_property
 from typing import Callable
 
 from probnum import backend, config, linops
-from probnum.typing import ArrayIndicesLike, ArrayType, SeedType, ShapeLike, ShapeType
+from probnum.backend.typing import ArrayIndicesLike, SeedType, ShapeLike, ShapeType
 
 from . import _random_variable
 
@@ -53,7 +53,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
 
     def __init__(
         self,
-        support: ArrayType,
+        support: backend.Array,
     ):
         self._support = backend.asarray(support)
 
@@ -109,7 +109,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
         return self.cov
 
     @property
-    def support(self) -> ArrayType:
+    def support(self) -> backend.Array:
         """Constant value taken by the random variable."""
         return self._support
 
@@ -138,7 +138,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> ArrayType:
+    def _sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> backend.Array:
         # pylint: disable=unused-argument
 
         if sample_shape == ():
@@ -167,7 +167,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
 
     @staticmethod
     def _binary_operator_factory(
-        operator: Callable[[ArrayType, ArrayType], ArrayType]
+        operator: Callable[[backend.Array, backend.Array], backend.Array]
     ) -> Callable[["Constant", "Constant"], "Constant"]:
         def _constant_rv_binary_operator(
             constant_rv1: Constant, constant_rv2: Constant

@@ -2,9 +2,9 @@
 
 import pytest
 
-from probnum import compat
+from probnum import backend, compat
+from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
-from probnum.typing import ArrayType, ShapeType
 
 
 @pytest.mark.parametrize("nu", [-1, -1.0, 0.0, 0])
@@ -15,7 +15,7 @@ def test_nonpositive_nu_raises_exception(nu):
 
 
 def test_nu_large_recovers_rbf_kernel(
-    x0: ArrayType, x1: ArrayType, input_shape: ShapeType
+    x0: backend.Array, x1: backend.Array, input_shape: ShapeType
 ):
     """Test whether a Matern kernel with nu large is close to an RBF kernel."""
     lengthscale = 1.25

@@ -7,8 +7,8 @@ from typing import Optional, Tuple, Union
 import numpy as np
 import scipy.stats
 
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
 
 
 class IntegrationMeasure(abc.ABC):

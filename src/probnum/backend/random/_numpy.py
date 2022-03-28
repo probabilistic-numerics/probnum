@@ -4,7 +4,7 @@ from typing import Optional, Sequence
 import numpy as np
 
 from probnum import backend
-from probnum.typing import DTypeLike, FloatLike, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, ShapeLike
 
 
 def seed(seed: Optional[int]) -> np.random.SeedSequence:

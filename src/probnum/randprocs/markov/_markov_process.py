@@ -3,12 +3,12 @@
 from typing import Optional
 
 from probnum import _function, backend, randvars
+from probnum.backend.typing import ArrayLike, SeedLike, ShapeLike
 from probnum.randprocs import _random_process, kernels
 from probnum.randprocs.markov import _transition
-from probnum.typing import ArrayLike, ArrayType, SeedLike, ShapeLike
 
 
-class MarkovProcess(_random_process.RandomProcess[ArrayLike, ArrayType]):
+class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
     r"""Random processes with the Markov property.
 
     A Markov process is a random process with the additional property that
@@ -34,7 +34,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, ArrayType]):
 
     def __init__(
         self,
-        initarg: ArrayType,
+        initarg: backend.Array,
         initrv: randvars.RandomVariable,
         transition: _transition.Transition,
     ):
@@ -69,7 +69,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, ArrayType]):
         seed: SeedLike,
         args: ArrayLike,
         sample_shape: ShapeLike = (),
-    ) -> ArrayType:
+    ) -> backend.Array:
 
         sample_shape = backend.as_shape(sample_shape)
         args = backend.atleast_1d(args)
@@ -114,7 +114,9 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, ArrayType]):
                 output_shape=output_shape,
             )
 
-        def _evaluate(self, x0: ArrayType, x1: Optional[ArrayType]) -> ArrayType:
+        def _evaluate(
+            self, x0: backend.Array, x1: Optional[backend.Array]
+        ) -> backend.Array:
             if x1 is None:
                 return self._markov_proc_call(args=x0).cov
 

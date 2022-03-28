@@ -7,7 +7,8 @@ import numpy as np
 import scipy.sparse
 
 from probnum import backend, linops, problems, randvars
-from probnum.typing import LinearOperatorLike, SeedLike
+from probnum.backend.typing import SeedLike
+from probnum.typing import LinearOperatorLike
 
 
 def random_linear_system(

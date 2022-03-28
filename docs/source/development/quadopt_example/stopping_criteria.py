@@ -5,7 +5,7 @@ from typing import Callable, Tuple, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatLike, IntLike
+from probnum.backend.typing import FloatLike, IntLike
 
 
 def parameter_uncertainty(

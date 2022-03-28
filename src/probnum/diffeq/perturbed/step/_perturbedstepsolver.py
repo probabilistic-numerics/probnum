@@ -5,13 +5,13 @@ from typing import Callable
 import numpy as np
 
 from probnum import randvars
+from probnum.backend.typing import FloatLike
 from probnum.diffeq import _odesolver, _odesolver_state
 from probnum.diffeq.perturbed import scipy_wrapper
 from probnum.diffeq.perturbed.step import (
     _perturbation_functions,
     _perturbedstepsolution,
 )
-from probnum.typing import FloatLike
 
 
 class PerturbedStepSolver(_odesolver.ODESolver):

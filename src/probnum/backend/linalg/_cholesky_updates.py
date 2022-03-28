@@ -4,12 +4,13 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ArrayType
 
 __all__ = ["cholesky_update", "tril_to_positive_tril"]
 
 
-def cholesky_update(S1: ArrayType, S2: Optional[ArrayType] = None) -> ArrayType:
+def cholesky_update(
+    S1: backend.Array, S2: Optional[backend.Array] = None
+) -> backend.Array:
     r"""Compute Cholesky update/factorization :math:`L` such that :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` holds.
 
     This can be used in various ways.
@@ -73,7 +74,7 @@ def cholesky_update(S1: ArrayType, S2: Optional[ArrayType] = None) -> ArrayType:
     return tril_to_positive_tril(lower_sqrtm)
 
 
-def tril_to_positive_tril(tril_mat: ArrayType) -> ArrayType:
+def tril_to_positive_tril(tril_mat: backend.Array) -> backend.Array:
     r"""Orthogonally transform a lower-triangular matrix into a lower-triangular matrix with positive diagonal.
 
     In other words, make it a valid lower Cholesky factor.

@@ -13,9 +13,9 @@ import numpy as np
 from scipy import stats
 
 from probnum import backend, randprocs, randvars
+from probnum.backend.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 from probnum.filtsmooth import _timeseriesposterior
 from probnum.filtsmooth.gaussian import approx
-from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 GaussMarkovPriorTransitionArgType = Union[
     randprocs.markov.discrete.LinearGaussian,

@@ -6,8 +6,8 @@ import numpy as np
 from scipy.integrate._ivp import rk
 
 from probnum import randvars
+from probnum.backend.typing import FloatLike
 from probnum.diffeq import _odesolution
-from probnum.typing import FloatLike
 
 
 class PerturbedStepSolution(_odesolution.ODESolution):

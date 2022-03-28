@@ -12,7 +12,6 @@ from probnum.backend.linalg import (
     modified_gram_schmidt,
 )
 from probnum.problems.zoo.linalg import random_spd_matrix
-from probnum.typing import ArrayType
 import tests.utils
 
 n = 100
@@ -25,7 +24,7 @@ def basis_size(request) -> int:
 
 
 @pytest.fixture(scope="module")
-def vector() -> ArrayType:
+def vector() -> backend.Array:
     shape = (n,)
     return backend.random.standard_normal(
         seed=tests.utils.random.seed_from_sampling_args(
@@ -37,7 +36,7 @@ def vector() -> ArrayType:
 
 
 @pytest.fixture(scope="module")
-def vectors() -> ArrayType:
+def vectors() -> backend.Array:
     shape = (2, 10, n)
     return backend.random.standard_normal(
         seed=tests.utils.random.seed_from_sampling_args(
@@ -73,14 +72,14 @@ def orthogonalization_fn(request) -> int:
 
 
 def test_is_orthogonal(
-    vector: ArrayType,
+    vector: backend.Array,
     basis_size: int,
     inprod: Union[
-        ArrayType,
+        backend.Array,
         linops.LinearOperator,
-        Callable[[ArrayType, ArrayType], ArrayType],
+        Callable[[backend.Array, backend.Array], backend.Array],
     ],
-    orthogonalization_fn: Callable[[ArrayType, ArrayType], ArrayType],
+    orthogonalization_fn: Callable[[backend.Array, backend.Array], backend.Array],
 ):
     # Compute orthogonal basis
     basis_shape = (vector.shape[0], basis_size)
@@ -107,9 +106,9 @@ def test_is_orthogonal(
 
 
 def test_is_normalized(
-    vector: ArrayType,
+    vector: backend.Array,
     basis_size: int,
-    orthogonalization_fn: Callable[[ArrayType, ArrayType], ArrayType],
+    orthogonalization_fn: Callable[[backend.Array, backend.Array], backend.Array],
 ):
     # Compute orthogonal basis
     basis_shape = (vector.shape[0], basis_size)
@@ -140,10 +139,10 @@ def test_is_normalized(
     ],
 )
 def test_noneuclidean_innerprod(
-    vector: ArrayType,
+    vector: backend.Array,
     basis_size: int,
-    inner_product_matrix: ArrayType,
-    orthogonalization_fn: Callable[[ArrayType, ArrayType], ArrayType],
+    inner_product_matrix: backend.Array,
+    orthogonalization_fn: Callable[[backend.Array, backend.Array], backend.Array],
 ):
     evals, evecs = backend.linalg.eigh(inner_product_matrix)
     orthogonal_basis = evecs * 1 / backend.sqrt(evals)
@@ -166,9 +165,9 @@ def test_noneuclidean_innerprod(
 
 
 def test_broadcasting(
-    vectors: ArrayType,
+    vectors: backend.Array,
     basis_size: int,
-    orthogonalization_fn: Callable[[ArrayType, ArrayType], ArrayType],
+    orthogonalization_fn: Callable[[backend.Array, backend.Array], backend.Array],
 ):
     # Compute orthogonal basis
     basis_shape = (vectors.shape[-1], basis_size)

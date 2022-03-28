@@ -83,9 +83,9 @@ further internal processing."""
 ArrayLike = Union[Array, _NumPyArrayLike]
 """Object that can be converted to an array.
 
-Arguments of type :attr:`ArrayLike` should always be converted into objects of
-:attr:`ArrayType`\\ s using the function :func:`backend.asarray` before further internal
-processing."""
+Arguments of type :attr:`ArrayLike` should always be converted into
+:class:`~probnum.backend.Array`\\ s
+using the function :func:`backend.asarray` before further internal processing."""
 
 # Array Utilities
 ShapeLike = Union[IntLike, Iterable[IntLike]]

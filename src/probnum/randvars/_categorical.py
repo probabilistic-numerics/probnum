@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import backend
-from probnum.typing import SeedType, ShapeType
+from probnum.backend.typing import SeedType, ShapeType
 
 from ._random_variable import DiscreteRandomVariable
 
@@ -53,12 +53,11 @@ class Categorical(DiscreteRandomVariable):
         ):
             """Sample from a categorical distribution.
 
-            While on first sight, one might think that this
-            implementation can be replaced by
-            `np.random.choice(self.support, size, self.probabilities)`,
-            this is not true, because `np.random.choice` cannot handle
-            arrays with `ndim > 1`, but `self.support` can be just that.
-            This detour via the `mask` avoids this problem.
+            While on first sight, one might think that this implementation can be
+            replaced by `np.random.choice(self.support, size, self.probabilities)`, this
+            is not true, because `np.random.choice` cannot handle arrays with `ndim >
+            1`, but `self.support` can be just that. This detour via the `mask` avoids
+            this problem.
             """
             rng = np.random.default_rng(seed)
             indices = rng.choice(

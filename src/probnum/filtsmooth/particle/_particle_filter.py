@@ -5,12 +5,12 @@ from typing import Iterable, Union
 import numpy as np
 
 from probnum import problems, randprocs, randvars
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.filtsmooth import _bayesfiltsmooth
 from probnum.filtsmooth.particle import (
     _importance_distributions,
     _particle_filter_posterior,
 )
-from probnum.typing import FloatLike, IntLike
 
 # Terribly long variable names, but internal only, so no worries.
 ParticleFilterMeasurementModelArgType = Union[

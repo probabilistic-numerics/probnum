@@ -3,7 +3,6 @@ from typing import Tuple, Union
 import numpy as np
 
 from probnum import backend, linops, randvars
-from probnum.typing import ArrayType
 
 __all__ = [
     "to_numpy",
@@ -11,7 +10,7 @@ __all__ = [
 ]
 
 
-def to_numpy(*xs: Union[ArrayType, linops.LinearOperator]) -> Tuple[np.ndarray]:
+def to_numpy(*xs: Union[backend.Array, linops.LinearOperator]) -> Tuple[np.ndarray]:
     res = []
 
     for x in xs:
@@ -39,19 +38,19 @@ def cast(a, dtype=None, casting="unsafe", copy=None):
 
 def atleast_1d(
     *objs: Union[
-        ArrayType,
+        backend.Array,
         linops.LinearOperator,
         randvars.RandomVariable,
     ]
 ) -> Union[
     Union[
-        ArrayType,
+        backend.Array,
         linops.LinearOperator,
         randvars.RandomVariable,
     ],
     Tuple[
         Union[
-            ArrayType,
+            backend.Array,
             linops.LinearOperator,
             randvars.RandomVariable,
         ],
@@ -80,7 +79,7 @@ def atleast_1d(
     for obj in objs:
         if isinstance(obj, np.ndarray):
             obj = np.atleast_1d(obj)
-        elif isinstance(obj, ArrayType):
+        elif isinstance(obj, backend.Array):
             obj = backend.atleast_1d(obj)
         elif isinstance(obj, randvars.RandomVariable):
             if obj.ndim == 0:

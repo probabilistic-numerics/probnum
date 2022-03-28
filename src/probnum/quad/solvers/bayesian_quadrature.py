@@ -4,6 +4,7 @@ from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.quad.solvers.policies import Policy, RandomPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
@@ -13,7 +14,6 @@ from probnum.quad.solvers.stopping_criteria import (
 )
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding

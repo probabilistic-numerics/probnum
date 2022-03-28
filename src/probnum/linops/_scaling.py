@@ -6,7 +6,7 @@ from typing import Optional, Union
 import numpy as np
 
 from probnum import backend
-from probnum.typing import DTypeLike, ScalarLike, ShapeLike
+from probnum.backend.typing import DTypeLike, ScalarLike, ShapeLike
 
 from . import _linear_operator
 

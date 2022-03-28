@@ -3,7 +3,7 @@
 import numpy as np
 
 import probnum
-from probnum.typing import ScalarLike
+from probnum.backend.typing import ScalarLike
 
 from ._linear_solver_stopping_criterion import LinearSolverStoppingCriterion
 

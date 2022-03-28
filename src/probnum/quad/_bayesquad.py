@@ -13,10 +13,10 @@ import warnings
 
 import numpy as np
 
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.quad.solvers.bq_state import BQInfo
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 from .solvers import BayesianQuadrature

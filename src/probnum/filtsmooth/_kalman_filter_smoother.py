@@ -5,8 +5,8 @@ from __future__ import annotations
 import numpy as np
 
 from probnum import problems, randprocs, randvars
+from probnum.backend.typing import ArrayLike
 from probnum.filtsmooth import gaussian
-from probnum.typing import ArrayLike
 
 __all__ = ["filter_kalman", "smooth_rts"]
 

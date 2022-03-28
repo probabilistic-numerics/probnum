@@ -8,8 +8,8 @@ import numpy as np
 import scipy.integrate
 
 from probnum import problems
+from probnum.backend.typing import ArrayLike, FloatLike
 from probnum.diffeq import perturbed, stepsize
-from probnum.typing import ArrayLike, FloatLike
 
 __all__ = ["perturbsolve_ivp"]
 

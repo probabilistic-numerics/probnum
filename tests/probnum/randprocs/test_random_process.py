@@ -3,7 +3,7 @@
 import pytest
 
 from probnum import backend, compat, randprocs, randvars
-from probnum.typing import ArrayType, ShapeType
+from probnum.backend.typing import ShapeType
 import tests.utils
 
 # pylint: disable=invalid-name
@@ -11,7 +11,7 @@ import tests.utils
 
 def test_output_shape(
     random_process: randprocs.RandomProcess,
-    args0: ArrayType,
+    args0: backend.Array,
     args0_batch_shape: ShapeType,
 ):
     """Test whether evaluations of the random process have the correct shape."""
@@ -21,7 +21,7 @@ def test_output_shape(
 
 def test_mean_shape(
     random_process: randprocs.RandomProcess,
-    args0: ArrayType,
+    args0: backend.Array,
     args0_batch_shape: ShapeType,
 ):
     """Test whether the mean of the random process has the correct shape."""
@@ -31,7 +31,7 @@ def test_mean_shape(
 
 def test_var_shape(
     random_process: randprocs.RandomProcess,
-    args0: ArrayType,
+    args0: backend.Array,
     args0_batch_shape: ShapeType,
 ):
     """Test whether the variance of the random process has the correct shape."""
@@ -41,7 +41,7 @@ def test_var_shape(
 
 def test_std_shape(
     random_process: randprocs.RandomProcess,
-    args0: ArrayType,
+    args0: backend.Array,
     args0_batch_shape: ShapeType,
 ):
     """Test whether the standard deviation of the random process has the correct
@@ -52,7 +52,7 @@ def test_std_shape(
 
 def test_cov_shape(
     random_process: randprocs.RandomProcess,
-    args0: ArrayType,
+    args0: backend.Array,
     args0_batch_shape: ShapeType,
 ):
     """Test whether the covariance of the random process has the correct shape."""
@@ -88,7 +88,7 @@ def test_samples_are_callables(random_process: randprocs.RandomProcess):
 
 @pytest.mark.xfail(reason="Not yet implemented for random processes.")
 def test_sample_paths_are_deterministic_functions(
-    random_process: randprocs.RandomProcess, args0: ArrayType
+    random_process: randprocs.RandomProcess, args0: backend.Array
 ):
     """When sampling paths from a random process, repeated evaluation of the sample path
     at the same inputs should return the same values."""

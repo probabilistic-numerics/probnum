@@ -5,7 +5,7 @@ from typing import Optional, Sequence
 import jax
 from jax import numpy as jnp
 
-from probnum.typing import DTypeLike, FloatLike, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, ShapeLike
 
 
 def seed(seed: Optional[int]) -> jnp.ndarray:

@@ -11,7 +11,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import filtsmooth, randvars
-from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
+from probnum.backend.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):

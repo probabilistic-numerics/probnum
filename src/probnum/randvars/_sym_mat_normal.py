@@ -1,7 +1,8 @@
 import numpy as np
 
 from probnum import backend, linops
-from probnum.typing import SeedType, ShapeType
+from probnum.backend.typing import SeedType, ShapeType
+from probnum.typing import LinearOperatorLike
 
 from . import _normal
 
@@ -9,7 +10,7 @@ from . import _normal
 class SymmetricMatrixNormal(_normal.Normal):
     def __init__(
         self,
-        mean: linops.LinearOperatorLike,
+        mean: LinearOperatorLike,
         cov: linops.SymmetricKronecker,
     ) -> None:
         if not isinstance(cov, linops.SymmetricKronecker):

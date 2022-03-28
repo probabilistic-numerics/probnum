@@ -8,7 +8,7 @@ import numpy as np
 import scipy.integrate as sci
 
 from probnum import filtsmooth, problems, randprocs, randvars
-from probnum.typing import FloatLike
+from probnum.backend.typing import FloatLike
 
 from ._interface import InitializationRoutine
 

@@ -5,7 +5,7 @@ from pytest_cases import parametrize, parametrize_with_cases
 import scipy.stats
 
 from probnum import backend, compat, randvars
-from probnum.typing import SeedLike, ShapeType
+from probnum.backend.typing import SeedLike, ShapeType
 
 
 @parametrize_with_cases("rv", cases=".cases", has_tag=["univariate"])

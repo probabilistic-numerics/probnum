@@ -10,12 +10,11 @@ from probnum.randprocs.kernels._arithmetic_fallbacks import (
     ScaledKernel,
     SumKernel,
 )
-from probnum.typing import ArrayType
 
 
 @parametrize("scalar", [1.0, 3, 1000.0])
 def test_scaled_kernel_evaluation(
-    kernel: kernels.Kernel, scalar: backend.Scalar, x0: ArrayType
+    kernel: kernels.Kernel, scalar: backend.Scalar, x0: backend.Array
 ):
     k_scaled = ScaledKernel(kernel=kernel, scalar=scalar)
     compat.testing.assert_allclose(k_scaled.matrix(x0), scalar * kernel.matrix(x0))
@@ -31,7 +30,7 @@ def test_non_kernel_raises_error():
         ScaledKernel(kernel=backend.eye(5), scalar=1.0)
 
 
-def test_sum_kernel_evaluation(kernel: kernels.Kernel, x0: ArrayType):
+def test_sum_kernel_evaluation(kernel: kernels.Kernel, x0: backend.Array):
     k_whitenoise = kernels.WhiteNoise(input_shape=kernel.input_shape)
     k_sum = SumKernel(kernel, k_whitenoise)
     compat.testing.assert_allclose(
@@ -53,7 +52,7 @@ def test_sum_kernel_contracts():
     assert all(not isinstance(summand, SumKernel) for summand in k_sum._summands)
 
 
-def test_product_kernel_evaluation(kernel: kernels.Kernel, x0: ArrayType):
+def test_product_kernel_evaluation(kernel: kernels.Kernel, x0: backend.Array):
     k_poly = kernels.Polynomial(input_shape=kernel.input_shape)
     k_sum = ProductKernel(kernel, k_poly)
     compat.testing.assert_allclose(

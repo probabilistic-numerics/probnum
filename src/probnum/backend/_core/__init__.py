@@ -8,7 +8,7 @@ common API for array and tensor Python libraries.
 from typing import AbstractSet, Optional, Union
 
 from probnum import backend as _backend
-from probnum.typing import IntLike, ShapeLike, ShapeType
+from probnum.backend.typing import IntLike, ShapeLike, ShapeType
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core

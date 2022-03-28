@@ -5,8 +5,8 @@ from typing import Callable, Optional
 import pytest
 
 from probnum import backend
+from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
-from probnum.typing import ArrayType, ShapeType
 import tests.utils
 
 
@@ -51,7 +51,7 @@ def kernel(request, input_shape: ShapeType) -> kernels.Kernel:
 @pytest.fixture(scope="package")
 def kernel_call_naive(
     kernel: kernels.Kernel,
-) -> Callable[[ArrayType, Optional[ArrayType]], ArrayType]:
+) -> Callable[[backend.Array, Optional[backend.Array]], backend.Array]:
     """Naive implementation of kernel broadcasting which applies the kernel function to
     scalar arguments while looping over the first dimensions of the inputs explicitly.
 
@@ -109,7 +109,7 @@ def x1_batch_shape(request) -> Optional[ShapeType]:
 
 
 @pytest.fixture(scope="package")
-def x0(input_shape: ShapeType, x0_batch_shape: ShapeType) -> ArrayType:
+def x0(input_shape: ShapeType, x0_batch_shape: ShapeType) -> backend.Array:
     """Random data from a standard normal distribution."""
     shape = x0_batch_shape + input_shape
 
@@ -119,7 +119,7 @@ def x0(input_shape: ShapeType, x0_batch_shape: ShapeType) -> ArrayType:
 
 
 @pytest.fixture(scope="package")
-def x1(input_shape: ShapeType, x1_batch_shape: ShapeType) -> Optional[ArrayType]:
+def x1(input_shape: ShapeType, x1_batch_shape: ShapeType) -> Optional[backend.Array]:
     """Random data from a standard normal distribution."""
     if x1_batch_shape is None:
         return None

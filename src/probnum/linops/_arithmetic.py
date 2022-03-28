@@ -5,7 +5,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum import backend, config
-from probnum.typing import NotImplementedType, ScalarLike, ShapeLike
+from probnum.backend.typing import NotImplementedType, ScalarLike, ShapeLike
 
 from ._arithmetic_fallbacks import (
     NegatedLinearOperator,

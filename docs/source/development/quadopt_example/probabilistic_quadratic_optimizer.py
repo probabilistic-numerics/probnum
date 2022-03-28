@@ -4,7 +4,7 @@ from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatLike, IntLike
+from probnum.backend.typing import FloatLike, IntLike
 
 # Type aliases for quadratic optimization
 QuadOptPolicyType = Callable[

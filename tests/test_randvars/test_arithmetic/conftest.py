@@ -2,8 +2,8 @@
 import pytest
 
 from probnum import backend, linops, randvars
+from probnum.backend.typing import ShapeLike
 from probnum.problems.zoo.linalg import random_spd_matrix
-from probnum.typing import ShapeLike
 import tests.utils
 
 

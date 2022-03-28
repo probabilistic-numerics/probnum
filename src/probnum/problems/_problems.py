@@ -9,7 +9,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum import linops, randvars
-from probnum.typing import FloatLike
+from probnum.backend.typing import FloatLike
 
 
 @dataclasses.dataclass

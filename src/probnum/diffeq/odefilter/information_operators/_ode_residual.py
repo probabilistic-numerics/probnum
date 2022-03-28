@@ -5,8 +5,8 @@ from typing import Callable, Tuple
 import numpy as np
 
 from probnum import problems, randprocs
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.diffeq.odefilter.information_operators import _information_operator
-from probnum.typing import FloatLike, IntLike
 
 __all__ = ["ODEResidual"]
 

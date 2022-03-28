@@ -6,8 +6,8 @@ import operator
 import pytest
 
 from probnum import backend, compat
+from probnum.backend.typing import ArrayLike, ShapeType
 from probnum.randprocs import kernels
-from probnum.typing import ArrayLike, ShapeType
 import tests.utils
 
 

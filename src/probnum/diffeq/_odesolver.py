@@ -10,8 +10,8 @@ from typing import Iterable, Iterator, Optional, Union
 import numpy as np
 
 from probnum import problems
+from probnum.backend.typing import FloatLike
 from probnum.diffeq import callbacks as callback_module  # see below
-from probnum.typing import FloatLike
 
 # From above:
 # One of the argument to solve() is called 'callback',
