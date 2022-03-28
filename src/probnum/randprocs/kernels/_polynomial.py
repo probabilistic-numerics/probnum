@@ -46,8 +46,8 @@ class Polynomial(Kernel):
         constant: ScalarLike = 0.0,
         exponent: IntLike = 1.0,
     ):
-        self.constant = backend.as_scalar(constant)
-        self.exponent = backend.as_scalar(exponent)
+        self.constant = backend.asscalar(constant)
+        self.exponent = backend.asscalar(exponent)
         super().__init__(input_shape=input_shape)
 
     @backend.jit_method

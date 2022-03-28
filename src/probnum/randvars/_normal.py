@@ -12,7 +12,6 @@ from probnum.typing import (
     ArrayType,
     FloatLike,
     MatrixType,
-    ScalarType,
     SeedLike,
     SeedType,
     ShapeLike,
@@ -350,7 +349,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         return self.mean + self.std * backend.special.ndtri(p)
 
     @backend.jit_method
-    def _scalar_entropy(self) -> ScalarType:
+    def _scalar_entropy(self) -> backend.Scalar:
         return 0.5 * backend.log(2.0 * backend.pi * self.var) + 0.5
 
     # Multi- and matrixvariate Gaussians
@@ -439,7 +438,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         return backend.diag(self.dense_cov).reshape(self.shape)
 
     @backend.jit_method
-    def _entropy(self) -> ScalarType:
+    def _entropy(self) -> backend.Scalar:
         entropy = 0.5 * self.size * (backend.log(2.0 * backend.pi) + 1.0)
         entropy += 0.5 * self._cov_logdet
 

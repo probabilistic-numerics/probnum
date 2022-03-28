@@ -22,7 +22,7 @@ def function_evaluation(
     """
     observation = fun(action)
     try:
-        return backend.as_scalar(observation, dtype=np.floating)
+        return backend.asscalar(observation, dtype=np.floating)
     except TypeError as exc:
         raise TypeError(
             "The given argument `p` can not be cast to a `np.floating` object."

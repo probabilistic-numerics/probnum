@@ -29,7 +29,7 @@ class WhiteNoise(Kernel):
         if sigma_sq < 0:
             raise ValueError(f"Noise level sigma_sq={sigma_sq} must be non-negative.")
 
-        self.sigma_sq = backend.as_scalar(sigma_sq)
+        self.sigma_sq = backend.asscalar(sigma_sq)
 
         super().__init__(input_shape=input_shape)
 

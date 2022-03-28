@@ -41,7 +41,7 @@ class Linear(Kernel):
     """
 
     def __init__(self, input_shape: ShapeLike, constant: ScalarLike = 0.0):
-        self.constant = backend.as_scalar(constant)
+        self.constant = backend.asscalar(constant)
         super().__init__(input_shape=input_shape)
 
     @backend.jit_method

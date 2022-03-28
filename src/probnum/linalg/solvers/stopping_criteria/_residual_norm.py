@@ -28,8 +28,8 @@ class ResidualNormStoppingCriterion(LinearSolverStoppingCriterion):
         atol: ScalarLike = 10**-5,
         rtol: ScalarLike = 10**-5,
     ):
-        self.atol = probnum.backend.as_scalar(atol)
-        self.rtol = probnum.backend.as_scalar(rtol)
+        self.atol = probnum.backend.asscalar(atol)
+        self.rtol = probnum.backend.asscalar(rtol)
 
     def __call__(
         self, solver_state: "probnum.linalg.solvers.LinearSolverState"

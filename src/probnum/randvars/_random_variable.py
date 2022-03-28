@@ -13,7 +13,6 @@ from probnum.typing import (
     ArrayIndicesLike,
     ArrayType,
     DTypeLike,
-    ScalarType,
     SeedType,
     ShapeLike,
     ShapeType,
@@ -110,7 +109,7 @@ class RandomVariable:
         cov: Optional[Callable[[], ArrayType]] = None,
         var: Optional[Callable[[], ArrayType]] = None,
         std: Optional[Callable[[], ArrayType]] = None,
-        entropy: Optional[Callable[[], ScalarType]] = None,
+        entropy: Optional[Callable[[], backend.Scalar]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
         """Create a new random variable."""
@@ -355,7 +354,7 @@ class RandomVariable:
         return std
 
     @cached_property
-    def entropy(self) -> ScalarType:
+    def entropy(self) -> backend.Scalar:
         r"""Information-theoretic entropy :math:`H(X)` of the random variable."""
         if self.__entropy is None:
             raise NotImplementedError
@@ -904,7 +903,7 @@ class DiscreteRandomVariable(RandomVariable):
         cov: Optional[Callable[[], ArrayType]] = None,
         var: Optional[Callable[[], ArrayType]] = None,
         std: Optional[Callable[[], ArrayType]] = None,
-        entropy: Optional[Callable[[], ScalarType]] = None,
+        entropy: Optional[Callable[[], backend.Scalar]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
 

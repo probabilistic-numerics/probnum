@@ -1,7 +1,11 @@
 """Array creation functions."""
 
+from __future__ import annotations
 
-from .. import BACKEND, Array, Backend
+from typing import Optional, Union
+
+from .. import BACKEND, Array, Backend, Scalar, ndim
+from ..typing import DTypeLike, ScalarLike
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _core
@@ -10,7 +14,86 @@ elif BACKEND is Backend.JAX:
 elif BACKEND is Backend.TORCH:
     from . import _torch as _core
 
-__all__ = ["tril", "triu"]
+__all__ = ["asscalar", "asarray", "tril", "triu"]
+
+
+def asarray(
+    obj: Union[Array, bool, int, float, "NestedSequence", "SupportsBufferProtocol"],
+    /,
+    *,
+    dtype: Optional["probnum.backend.dtype"] = None,
+    device: Optional["probnum.backend.device"] = None,
+    copy: Optional[bool] = None,
+) -> Array:
+    """Convert the input to an array.
+
+    Parameters
+    ----------
+    obj
+        object to be converted to an array. May be a Python scalar, a (possibly nested)
+        sequence of Python scalars, or an object supporting the Python buffer protocol.
+
+        .. admonition:: Tip
+           :class: important
+
+           An object supporting the buffer protocol can be turned into a memoryview
+           through ``memoryview(obj)``.
+
+    dtype
+        output array data type. If ``dtype`` is ``None``, the output array data type
+        must be inferred from the data type(s) in ``obj``. If all input values are
+        Python scalars, then
+
+        -   if all values are of type ``bool``, the output data type must be ``bool``.
+        -   if the values are a mixture of ``bool``\s and ``int``, the output data
+            type must be the default integer data type.
+        -   if one or more values are ``float``\s, the output data type must be the
+            default floating-point data type.
+
+        Default: ``None``.
+
+        .. admonition:: Note
+           :class: note
+
+           If ``dtype`` is not ``None``, then array conversions should obey
+           :ref:`type-promotion` rules. Conversions not specified according to
+           :ref:`type-promotion` rules may or may not be permitted by a conforming array
+           library. To perform an explicit cast, use
+           :func:`astype`.
+
+    device
+        device on which to place the created array. If ``device`` is ``None`` and ``x``
+        is an array, the output array device must be inferred from ``x``. Default:
+        ``None``.
+    copy
+        boolean indicating whether or not to copy the input. If ``True``, the function
+        must always copy. If ``False``, the function must never copy for input which
+        supports the buffer protocol and must raise a ``ValueError`` in case a copy
+        would be necessary. If ``None``, the function must reuse existing memory buffer
+        if possible and copy otherwise. Default: ``None``.
+
+    Returns
+    -------
+    out
+        an array containing the data from ``obj``.
+    """
+    return _core.asarray(obj, dtype=dtype, device=device, copy=copy)
+
+
+def asscalar(x: ScalarLike, dtype: DTypeLike = None) -> Scalar:
+    """Convert a scalar into a NumPy scalar.
+
+    Parameters
+    ----------
+    x
+        Scalar value.
+    dtype
+        Data type of the scalar.
+    """
+    if ndim(x) != 0:
+        raise ValueError("The given input is not a scalar.")
+
+    return asarray(x, dtype=dtype)[()]
 
 
 def tril(x: Array, /, *, k: int = 0) -> Array:

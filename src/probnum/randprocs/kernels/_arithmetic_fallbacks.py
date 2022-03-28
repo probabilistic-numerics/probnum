@@ -43,7 +43,7 @@ class ScaledKernel(Kernel):
             raise TypeError("`scalar` must be a scalar.")
 
         self._kernel = kernel
-        self._scalar = backend.as_scalar(scalar)
+        self._scalar = backend.asscalar(scalar)
 
         super().__init__(
             input_shape=kernel.input_shape, output_shape=kernel.output_shape

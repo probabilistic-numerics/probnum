@@ -30,7 +30,7 @@ class ScaledLinearOperator(LinearOperator):
         dtype = np.result_type(linop.dtype, scalar)
 
         self._linop = linop
-        self._scalar = backend.as_scalar(scalar, dtype)
+        self._scalar = backend.asscalar(scalar, dtype)
 
         super().__init__(
             self._linop.shape,
@@ -72,7 +72,7 @@ class ScaledLinearOperator(LinearOperator):
 
 class NegatedLinearOperator(ScaledLinearOperator):
     def __init__(self, linop: LinearOperator):
-        super().__init__(linop, scalar=backend.as_scalar(-1, linop.dtype))
+        super().__init__(linop, scalar=backend.asscalar(-1, linop.dtype))
 
     def __neg__(self) -> "LinearOperator":
         return self._linop

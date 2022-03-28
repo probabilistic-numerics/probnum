@@ -10,12 +10,12 @@ from probnum.randprocs.kernels._arithmetic_fallbacks import (
     ScaledKernel,
     SumKernel,
 )
-from probnum.typing import ArrayType, ScalarType
+from probnum.typing import ArrayType
 
 
 @parametrize("scalar", [1.0, 3, 1000.0])
 def test_scaled_kernel_evaluation(
-    kernel: kernels.Kernel, scalar: ScalarType, x0: ArrayType
+    kernel: kernels.Kernel, scalar: backend.Scalar, x0: ArrayType
 ):
     k_scaled = ScaledKernel(kernel=kernel, scalar=scalar)
     compat.testing.assert_allclose(k_scaled.matrix(x0), scalar * kernel.matrix(x0))

@@ -77,8 +77,8 @@ ScalarLike = Union[Scalar, int, float, complex, numbers.Number, np.number]
 """Object that can be converted to a scalar value.
 
 Arguments of type :attr:`ScalarLike` should always be converted into objects of
-:attr:ScalarType` using the function :func:`backend.as_scalar` before further internal
-processing."""
+:class:`~probnum.backend.Scalar` using the function :func:`backend.asscalar` before
+further internal processing."""
 
 ArrayLike = Union[Array, _NumPyArrayLike]
 """Object that can be converted to an array.
@@ -91,14 +91,14 @@ processing."""
 ShapeLike = Union[IntLike, Iterable[IntLike]]
 """Object that can be converted to a shape.
 
-Arguments of type :attr:`ShapeLike` should always be converted into :class:`ShapeType` using the
-function :func:`backend.as_shape` before further internal processing."""
+Arguments of type :attr:`ShapeLike` should always be converted into :class:`ShapeType`
+using the function :func:`backend.as_shape` before further internal processing."""
 
 DTypeLike = Union["probnum.backend.dtype", _NumPyDTypeLike]
 """Object that can be converted to an array dtype.
 
-Arguments of type :attr:`DTypeLike` should always be converted into :class:`backend.dtype`\\ s before further
-internal processing."""
+Arguments of type :attr:`DTypeLike` should always be converted into
+:class:`backend.dtype`\\ s before further internal processing."""
 
 _ArrayIndexLike = Union[
     int,

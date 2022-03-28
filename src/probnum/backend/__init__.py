@@ -19,8 +19,8 @@ from ._manipulation_functions import *
 from ._sorting_functions import *
 
 from . import (
-    _core,
     _array_object,
+    _core,
     _constants,
     _creation_functions,
     _elementwise_functions,

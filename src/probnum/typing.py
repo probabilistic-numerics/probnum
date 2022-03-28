@@ -41,7 +41,6 @@ from probnum.backend.typing import (
 
 __all__ = [
     # API Types
-    "ScalarType",
     "ArrayType",
     "MatrixType",
     "ShapeType",
@@ -64,9 +63,6 @@ __all__ = [
 ########################################################################################
 
 # Scalars, Arrays and Matrices
-ScalarType = "probnum.backend.Scalar"
-"""Type defining a scalar."""
-
 ArrayType = "probnum.backend.Array"
 """Type defining a (possibly multi-dimensional) array."""
 

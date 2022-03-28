@@ -28,8 +28,8 @@ def uniform(
     maxval: FloatLike = 1.0,
 ):
     rng = _make_rng(seed)
-    minval = backend.as_scalar(minval, dtype=dtype)
-    maxval = backend.as_scalar(maxval, dtype=dtype)
+    minval = backend.asscalar(minval, dtype=dtype)
+    maxval = backend.asscalar(maxval, dtype=dtype)
     return (maxval - minval) * torch.rand(shape, generator=rng, dtype=dtype) + minval
 
 

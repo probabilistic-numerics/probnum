@@ -64,7 +64,7 @@ class Matern(Kernel, IsotropicMixin):
         lengthscale: ScalarLike = 1.0,
         nu: FloatLike = 1.5,
     ):
-        self.lengthscale = backend.as_scalar(lengthscale)
+        self.lengthscale = backend.asscalar(lengthscale)
         if not self.lengthscale > 0:
             raise ValueError(f"Lengthscale l={self.lengthscale} must be positive.")
         self.nu = float(nu)

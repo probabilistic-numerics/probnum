@@ -60,8 +60,8 @@ class RatQuad(Kernel, IsotropicMixin):
         lengthscale: ScalarLike = 1.0,
         alpha: ScalarLike = 1.0,
     ):
-        self.lengthscale = backend.as_scalar(lengthscale)
-        self.alpha = backend.as_scalar(alpha)
+        self.lengthscale = backend.asscalar(lengthscale)
+        self.alpha = backend.asscalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
         super().__init__(input_shape=input_shape)

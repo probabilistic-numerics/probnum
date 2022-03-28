@@ -397,13 +397,13 @@ def _apply(
 ) -> Union[LinearOperator, NotImplementedType]:
     if np.ndim(op1) == 0:
         key1 = np.number
-        op1 = backend.as_scalar(op1)
+        op1 = backend.asscalar(op1)
     else:
         key1 = type(op1)
 
     if np.ndim(op2) == 0:
         key2 = np.number
-        op2 = backend.as_scalar(op2)
+        op2 = backend.asscalar(op2)
     else:
         key2 = type(op2)
 

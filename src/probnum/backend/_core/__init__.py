@@ -5,17 +5,10 @@ The interface provided by this module follows the Python array API standard
 common API for array and tensor Python libraries.
 """
 
-from typing import AbstractSet, Any, Optional, Union
+from typing import AbstractSet, Optional, Union
 
 from probnum import backend as _backend
-from probnum.typing import (
-    DTypeLike,
-    IntLike,
-    ScalarLike,
-    ScalarType,
-    ShapeLike,
-    ShapeType,
-)
+from probnum.typing import IntLike, ShapeLike, ShapeType
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core
@@ -27,7 +20,6 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 # Assignments for common docstrings across backends
 
 # DType
-dtype = _core.dtype
 asdtype = _core.asdtype
 bool = _core.bool
 int32 = _core.int32
@@ -57,7 +49,6 @@ swapaxes = _core.swapaxes
 
 # Constructors
 array = _core.array
-asarray = _core.asarray
 diag = _core.diag
 eye = _core.eye
 full = _core.full
@@ -147,23 +138,6 @@ def as_shape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
     return shape
 
 
-def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ScalarType:
-    """Convert a scalar into a NumPy scalar.
-
-    Parameters
-    ----------
-    x
-        Scalar value.
-    dtype
-        Data type of the scalar.
-    """
-
-    if ndim(x) != 0:
-        raise ValueError("The given input is not a scalar.")
-
-    return asarray(x, dtype=dtype)[()]
-
-
 def vectorize(
     pyfunc,
     /,
@@ -176,7 +150,6 @@ def vectorize(
 
 __all__ = [
     # DTypes
-    "dtype",
     "asdtype",
     "bool",
     "int32",
@@ -205,8 +178,6 @@ __all__ = [
     "swapaxes",
     # Constructors
     "array",
-    "asarray",
-    "as_scalar",
     "diag",
     "eye",
     "full",

@@ -27,8 +27,8 @@ def uniform(
     minval: FloatLike = 0.0,
     maxval: FloatLike = 1.0,
 ) -> np.ndarray:
-    minval = backend.as_scalar(minval, dtype=dtype)
-    maxval = backend.as_scalar(maxval, dtype=dtype)
+    minval = backend.asscalar(minval, dtype=dtype)
+    maxval = backend.asscalar(maxval, dtype=dtype)
     return np.asarray(
         (maxval - minval)
         * _make_rng(seed).random(

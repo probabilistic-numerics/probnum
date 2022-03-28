@@ -3,7 +3,7 @@
 from typing import Optional
 
 from probnum import backend
-from probnum.typing import ArrayType, ShapeLike, ArrayLike
+from probnum.typing import ArrayLike, ArrayType, ShapeLike
 
 from ._kernel import Kernel
 from ._matern import Matern
@@ -73,7 +73,7 @@ class ProductMatern(Kernel):
 
         # If only single scalar lengthcsale or nu is given, use this in every dimension
         def expand_array(x, ndim):
-            return backend.full((ndim,), backend.as_scalar(x))
+            return backend.full((ndim,), backend.asscalar(x))
 
         lengthscales = backend.asarray(lengthscales)
 
