@@ -16,7 +16,7 @@ from . import _linear_operator
 class Scaling(_linear_operator.LinearOperator):
     r"""Scaling linear operator.
 
-    Creates a diagonal linear operator which (non-uniformly) 
+    Creates a diagonal linear operator which (non-uniformly)
     scales elements of vectors, defined by
 
     .. math::
