@@ -30,7 +30,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     flip,
     full,
     full_like,
-    generic as Scalar,
     hstack,
     inf,
     int32,
@@ -44,7 +43,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     maximum,
     meshgrid,
     moveaxis,
-    ndarray as Array,
     ndim,
     ones,
     ones_like,
@@ -61,10 +59,10 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     sum,
     swapaxes,
     tile,
+    vectorize,
     vstack,
     zeros,
     zeros_like,
-    vectorize,
 )
 
 

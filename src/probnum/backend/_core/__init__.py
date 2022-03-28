@@ -26,10 +26,6 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 
 # Assignments for common docstrings across backends
 
-# Arrays and scalars
-_Array = _core.Array
-_Scalar = _core.Scalar
-
 # DType
 dtype = _core.dtype
 asdtype = _core.asdtype
@@ -151,10 +147,6 @@ def as_shape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
     return shape
 
 
-def isarray(x: Any) -> bool:
-    return isinstance(x, (_Array, _Scalar))
-
-
 def as_scalar(x: ScalarLike, dtype: DTypeLike = None) -> ScalarType:
     """Convert a scalar into a NumPy scalar.
 
@@ -181,8 +173,6 @@ def vectorize(
 ):
     return _core.vectorize(pyfunc, excluded=excluded, signature=signature)
 
-
-_ArrayType = Union[_Scalar, _Array]
 
 __all__ = [
     # DTypes
@@ -260,7 +250,6 @@ __all__ = [
     "tile",
     "kron",
     # Misc
-    "isarray",
     "to_numpy",
     "vectorize",
     # Just-in-Time Compilation

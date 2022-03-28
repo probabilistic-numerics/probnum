@@ -41,8 +41,6 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     maximum,
     meshgrid,
     moveaxis,
-    ndarray as Array,
-    ndarray as Scalar,
     ndim,
     ones,
     ones_like,

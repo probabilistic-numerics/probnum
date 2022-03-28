@@ -40,3 +40,8 @@ probnum.backend
     :hidden:
 
     backend/special
+
+.. toctree::
+    :hidden:
+
+    backend/typing
