@@ -254,7 +254,7 @@ class LinearOperator:
         casting:
             Controls what kind of data casting may occur.
         subok:
-            If True, then sub-classes will be passed-through (default). 
+            If True, then sub-classes will be passed-through (default).
             False is currently not supported for linear operators.
         copy:
             Whether to return a new linear operator, even if ``dtype`` is the same.
@@ -829,8 +829,8 @@ class LinearOperator:
         Returns
         -------
         y :
-            A `np.matrix` or `np.ndarray` or `RandomVariable` with 
-            shape `(M,)` or `(M, 1)`,depending on the type and 
+            A `np.matrix` or `np.ndarray` or `RandomVariable` with
+            shape `(M,)` or `(M, 1)`,depending on the type and
             shape of the x argument.
         Notes
         -----
