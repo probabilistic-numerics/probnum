@@ -23,7 +23,7 @@ class ExpQuad(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
     lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
@@ -52,7 +52,10 @@ class ExpQuad(Kernel, IsotropicMixin):
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:
-            return np.ones_like(x0[..., 0])
+            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=x0.shape[: x0.ndim - self.input_ndim],
+            )
 
         return np.exp(
             -self._squared_euclidean_distances(x0, x1) / (2.0 * self.lengthscale**2)

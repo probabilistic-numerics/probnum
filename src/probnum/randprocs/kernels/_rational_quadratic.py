@@ -31,12 +31,12 @@ class RatQuad(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    lengthscale :
+    lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
-    alpha :
+    alpha
         Scale mixture :math:`\alpha`. Positive constant determining the weighting
         between different lengthscales.
 
@@ -70,7 +70,10 @@ class RatQuad(Kernel, IsotropicMixin):
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:
-            return np.ones_like(x0[..., 0])
+            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
+                x0,
+                shape=x0.shape[: x0.ndim - self.input_ndim],
+            )
 
         return (
             1.0

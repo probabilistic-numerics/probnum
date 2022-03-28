@@ -6,6 +6,7 @@ points of the integrand to estimate the value of the integral. Bayesian quadratu
 methods return a random variable, specifying the belief about the true value of the
 integral.
 """
+from __future__ import annotations
 
 from typing import Callable, Optional, Tuple, Union
 import warnings

@@ -12,7 +12,7 @@ cases_states = "cases.states"
 def test_residual(state: LinearSolverState):
     """Test whether the state computes the residual correctly."""
     linsys = state.problem
-    residual = linsys.A @ state.belief.x.mean - linsys.b
+    residual = linsys.b - linsys.A @ state.belief.x.mean
     np.testing.assert_allclose(residual, state.residual)
 
 
