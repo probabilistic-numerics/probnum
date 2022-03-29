@@ -118,6 +118,35 @@ filterwarnings = [
     "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning:flatbuffers.*"
 ]
 
+# see https://coverage.readthedocs.io/en/stable/config.html
+
+[tool.coverage.run]
+branch = true
+source = [
+    "probnum",
+]
+
+[tool.coverage.paths]
+source = [
+    "src/",
+    "*/site-packages/",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    'pragma: no cover',
+    # Don't complain about missing debug-only code:
+    'def __repr__(self):',
+    'if self\.debug',
+    # Don't complain if tests don't hit defensive assertion code:
+    'raise AssertionError',
+    'raise NotImplementedError',
+    # Don't complain if non-runnable code isn't run:
+    'if 0:',
+    'if __name__ == .__main__.:',
+]
+
 ################################################################################
 # Linting Configuration                                                        #
 ################################################################################
