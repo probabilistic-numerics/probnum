@@ -1,11 +1,13 @@
-from pathlib import Path
+import tomli
 
-TOXINI_FILE = Path("tox.ini")
+with open("pyproject.toml", mode="rb") as f:
+    TOX_INI = tomli.load(f)["tool"]["tox"]["legacy_tox_ini"]
+
 GLOBAL_DISABLES = {}
 
 
-# Parse ./tox.ini
-tox_lines = TOXINI_FILE.read_text().splitlines()
+# Parse "tox.ini"
+tox_lines = TOX_INI.splitlines()
 tox_pylint_lines = [
     l for l in tox_lines if l.strip().startswith("pylint src") and "--disable" in l
 ]
