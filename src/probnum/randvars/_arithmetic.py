@@ -1,3 +1,4 @@
+
 """This module implements binary arithmetic operators between pairs of random
 variables."""
 
@@ -16,38 +17,123 @@ from ._utils import asrandvar as _asrandvar
 
 
 def add(rv1: Any, rv2: Any) -> _RandomVariable:
+    """sum two random variables
+
+    Parameters
+    ----------
+    rv1,rv2 : Array-like, variables.
+
+    Returns
+    -------
+    RandomVariable.
+    """
     return _apply(_add_fns, rv1, rv2)
 
 
 def sub(rv1: Any, rv2: Any) -> _RandomVariable:
+    """subtract two random variables.
+
+    Parameters
+    ---------
+    rv1,rv2 : Array-like variables.
+
+    Return
+    ------
+    RandomVariable.
+    """
     return _apply(_sub_fns, rv1, rv2)
 
 
 def mul(rv1: Any, rv2: Any) -> _RandomVariable:
+    """Multiply two random variables
+
+    Parameters
+    ---------
+    rv1,rv2 : Array-like variables.
+
+    Return
+    ------
+    RandomVariable
+    """
     return _apply(_mul_fns, rv1, rv2)
 
 
 def matmul(rv1: Any, rv2: Any) -> _RandomVariable:
+    """Computes the matrix product of two random variables.
+
+    Parameters
+    ---------
+    rv1,rv2 : Array-like variables."""
     return _apply(_matmul_fns, rv1, rv2)
 
 
 def truediv(rv1: Any, rv2: Any) -> _RandomVariable:
+    """Computes the true division of two random variables.
+
+    Parameter
+    --------
+    rv1,rv2 : Array-like variables.
+
+    Return
+    -----
+    RandomVariable.
+    """
     return _apply(_truediv_fns, rv1, rv2)
 
 
 def floordiv(rv1: Any, rv2: Any) -> _RandomVariable:
+    """Computes the largest integer random variables that is less than or equal to the quotient
+
+    Parameter
+    --------
+    rv1,rv2 : Array-like variables.
+
+    Return
+    -----
+    RandomVariable.
+    """
     return _apply(_floordiv_fns, rv1, rv2)
 
 
 def mod(rv1: Any, rv2: Any) -> _RandomVariable:
+    """Computes the modulus of two random variables
+
+    Parameter
+    --------
+    rv1,rv2 : Array-like variables.
+
+    Return
+    -----
+    RandomVariable.
+    """
     return _apply(_mod_fns, rv1, rv2)
 
 
 def divmod_(rv1: Any, rv2: Any) -> _RandomVariable:
+    """Computes the remainder and quotient of two random variables.
+
+    Parameters
+    ---------
+    rv1,rv2 : Array-like variables.
+
+    Return
+    -----
+    RandomVariable.
+    """
     return _apply(_divmod_fns, rv1, rv2)
 
 
 def pow_(rv1: Any, rv2: Any) -> _RandomVariable:
+    """Computes the power of two random variables.
+
+    Parameter
+    --------
+    rv1,rv2 : Array-like variables.
+
+    Return
+    ------
+    RandomVariable.
+    """
     return _apply(_pow_fns, rv1, rv2)
 
 
@@ -81,7 +167,7 @@ def _apply(
     rv1 = _asrandvar(rv1)
     rv2 = _asrandvar(rv2)
 
-    # Search specific operatir
+    # Search specific operator
     key = (type(rv1), type(rv2))
 
     if key in op_registry:
@@ -100,8 +186,8 @@ def _apply(
 ####################
 
 
-def _swap_operands(fn: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
-    return lambda op1, op2: fn(op2, op1)
+def _swap_operands(func: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
+    return lambda op1, op2: func(op2, op1)
 
 
 ########################################################################################
@@ -236,7 +322,7 @@ _sub_fns[(_Normal, _Constant)] = _sub_normal_constant
 
 
 def _sub_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
-    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
+    cov_cholesky = norm_rv.cov_cholesky if           norm_rv.cov_cholesky_is_precomputed else None
     return _Normal(
         mean=constant_rv.support - norm_rv.mean,
         cov=norm_rv.cov,
@@ -255,12 +341,11 @@ def _mul_normal_constant(
             return _Constant(
                 support=np.zeros_like(norm_rv.mean),
             )
+        if norm_rv.cov_cholesky_is_precomputed:
+            cov_cholesky = constant_rv.support * norm_rv.cov_cholesky
         else:
-            if norm_rv.cov_cholesky_is_precomputed:
-                cov_cholesky = constant_rv.support * norm_rv.cov_cholesky
-            else:
-                cov_cholesky = None
-            return _Normal(
+            cov_cholesky = None
+        return _Normal(
                 mean=constant_rv.support * norm_rv.mean,
                 cov=(constant_rv.support**2) * norm_rv.cov,
                 cov_cholesky=cov_cholesky,
@@ -274,9 +359,14 @@ _mul_fns[(_Constant, _Normal)] = _swap_operands(_mul_normal_constant)
 
 
 def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
-    """Normal random variable multiplied with a vector or matrix.
+    """Computes the distribution of the random variable and a constant.
 
-    Computes the distribution of the random variable :math:`Y = XA`, where :math:`X` is a matrix- or multi-variate normal random variable and :math:`A` a constant.
+    parameters:
+    ----------
+
+    norn_rv: matrix
+            multi-variate normal random variable.
+    constant_rv: constant
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
@@ -285,7 +375,6 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             )
         else:
             cov_cholesky = None
-
         mean = norm_rv.mean @ constant_rv.support
         cov = constant_rv.support.T @ (norm_rv.cov @ constant_rv.support)
 
@@ -293,15 +382,10 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             cov = cov.reshape((1, 1))
 
         return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
+    if constant_rv.support.ndim == 1:
+        constant_rv_support = constant_rv.support[:, None]
     else:
-        # This part does not do the Cholesky update,
-        # because of performance configurations: currently, there is no way of switching
-        # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
-        # of matrix-variate Normal RVs. See Issue #335.
-        if constant_rv.support.ndim == 1:
-            constant_rv_support = constant_rv.support[:, None]
-        else:
-            constant_rv_support = constant_rv.support
+        constant_rv_support = constant_rv.support
 
         cov_update = _linear_operators.Kronecker(
             _linear_operators.Identity(norm_rv.shape[0]), constant_rv_support.T
@@ -318,9 +402,14 @@ _matmul_fns[(_Normal, _Constant)] = _matmul_normal_constant
 
 
 def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
-    """Matrix-multiplication with a normal random variable.
+    """Computes the distribution of the random variable and a constant.
 
-    Computes the distribution of the random variable :math:`Y = AX`, where :math:`X` is a matrix- or multi-variate normal random variable and :math:`A` a constant.
+    paraters:
+    --------
+    norm_rv: matrix
+             A multi-variate normal random variable.
+    constant_rv
+                 A constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
         if norm_rv.cov_cholesky_is_precomputed:
@@ -334,16 +423,10 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
             cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
             cov_cholesky=cov_cholesky,
         )
+    if constant_rv.support.ndim == 1:
+        constant_rv_support = constant_rv.support[None, :]
     else:
-        # This part does not do the Cholesky update,
-        # because of performance configurations: currently, there is no way of switching
-        # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
-        # of matrix-variate Normal RVs. See Issue #335.
-        if constant_rv.support.ndim == 1:
-            constant_rv_support = constant_rv.support[None, :]
-        else:
-            constant_rv_support = constant_rv.support
-
+        constant_rv_support = constant_rv.support
         cov_update = _linear_operators.Kronecker(
             constant_rv_support,
             _linear_operators.Identity(norm_rv.shape[1]),

@@ -15,6 +15,7 @@ def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType
 
     Parameters
     ----------
+    ndim
     x
         Shape representation.
     """

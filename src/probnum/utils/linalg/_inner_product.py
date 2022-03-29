@@ -14,28 +14,26 @@ def inner_product(
     w: np.ndarray,
     A: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
 ) -> np.ndarray:
-    r"""Inner product :math:`\langle v, w \rangle_A := v^T A w`.
-
-    For n-d arrays the function computes the inner product over the last axis of the
+    r"""
+    Computes the inner product over the last axis of the
     two arrays ``v`` and ``w``.
 
     Parameters
     ----------
     v
-        First array.
+        First array, n-d array.
     w
-        Second array.
+        Second array, n-array.
     A
         Symmetric positive (semi-)definite matrix defining the geometry.
 
     Returns
     -------
-    inprod :
-        Inner product(s) of ``v`` and ``w``.
+    int or float depending on the dtype of v,w and A.
 
     Notes
     -----
-    Note that the broadcasting behavior of :func:`inner_product` differs from :func:`numpy.inner`. Rather it follows the broadcasting rules of :func:`numpy.matmul` in that n-d arrays are treated as stacks of vectors.
+    Note that the broadcasting behavior here follows that of :func:`numpy.matmul.
     """
     v_T = v[..., None, :]
     w = w[..., :, None]
@@ -53,14 +51,13 @@ def induced_norm(
     A: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
     axis: int = -1,
 ) -> np.ndarray:
-    r"""Induced norm :math:`\lVert v \rVert_A := \sqrt{v^T A v}`.
-
+    r"""
     Computes the induced norm over the given axis of the array.
 
     Parameters
     ----------
     v
-        Array.
+     n-d array.
     A
         Symmetric positive (semi-)definite linear operator defining the geometry.
     axis
@@ -72,10 +69,11 @@ def induced_norm(
         Vector norm of ``v`` along the given ``axis``.
     """
 
-    if A is None:
+    if A is not None:
+        v = np.moveaxis(v, axis, -1)
+        w = np.squeeze(A @ v[..., :, None], axis=-1)
+        return np.sqrt(np.sum(v * w, axis=-1))
+    else:
         return np.linalg.norm(v, ord=2, axis=axis, keepdims=False)
 
-    v = np.moveaxis(v, axis, -1)
-    w = np.squeeze(A @ v[..., :, None], axis=-1)
 
-    return np.sqrt(np.sum(v * w, axis=-1))

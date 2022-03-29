@@ -33,17 +33,17 @@ class Configuration:
         "accessed."
     )
 
-    @dataclasses.dataclass
-    class Option:
-        name: str
-        default_value: Any
-        description: str
-        value: Any
+    # @dataclasses.dataclass
+    # class Option:
+    #     name: str
+    #     default_value: Any
+    #     description: str
+    #     value: Any
 
-        def __repr__(self) -> str:
-            _r = "<Configuration.Option "
-            _r += f"name={self.name}, value={self.value}>"
-            return _r
+        # def __repr__(self) -> str:
+        #     _r = "<Configuration.Option "
+        #     _r += f"name={self.name}, value={self.value}>"
+        #     return _r
 
     def __init__(self) -> None:
         # This is the equivalent of `self._options_registry = dict()`.
