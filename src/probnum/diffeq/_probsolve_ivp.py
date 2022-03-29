@@ -8,6 +8,8 @@ References
 .. [4] https://arxiv.org/pdf/2004.00623.pdf
 """
 
+from __future__ import annotations
+
 from typing import Callable, Optional
 
 import numpy as np

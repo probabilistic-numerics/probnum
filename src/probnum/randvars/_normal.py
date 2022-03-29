@@ -1,4 +1,5 @@
 """Normally distributed / Gaussian random variables."""
+from __future__ import annotations
 
 from functools import cached_property
 from typing import Callable, Optional, Union
@@ -12,13 +13,13 @@ from probnum.typing import ArrayIndicesLike, FloatLike, ShapeLike, ShapeType
 
 from . import _random_variable
 
-_ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
+ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
 
 # pylint: disable="too-complex"
 
 
-class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
+class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
     """Random variable with a normal distribution.
 
     Gaussian random variables are ubiquitous in probability theory, since the
@@ -106,7 +107,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         univariate = mean.ndim == 0
         dense = isinstance(mean, np.ndarray) and isinstance(cov, np.ndarray)
         cov_operator = isinstance(cov, linops.LinearOperator)
-        compute_cov_cholesky: Callable[[], _ValueType] = None
+        compute_cov_cholesky: Callable[[], ValueType] = None
 
         if univariate:
             # Univariate Gaussian
@@ -232,7 +233,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self._cov_cholesky = cov_cholesky
 
     @property
-    def cov_cholesky(self) -> _ValueType:
+    def cov_cholesky(self) -> ValueType:
         """Cholesky factor :math:`L` of the covariance
         :math:`\\operatorname{Cov}(X) =LL^\\top`."""
 
@@ -256,9 +257,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         """Return truth-value of whether the Cholesky factor of the covariance is
         readily available.
 
-        This happens if (i) the Cholesky factor is specified during
-        initialization or if (ii) the property `self.cov_cholesky` has
-        been called before.
+        This happens if (i) the Cholesky factor is specified during initialization or if
+        (ii) the property `self.cov_cholesky` has been called before.
         """
         if self._cov_cholesky is None:
             return False
@@ -425,25 +425,25 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return sample
 
     @staticmethod
-    def _univariate_in_support(x: _ValueType) -> bool:
+    def _univariate_in_support(x: ValueType) -> bool:
         return np.isfinite(x)
 
-    def _univariate_pdf(self, x: _ValueType) -> np.float_:
+    def _univariate_pdf(self, x: ValueType) -> np.float_:
         return scipy.stats.norm.pdf(x, loc=self.mean, scale=self.std)
 
-    def _univariate_logpdf(self, x: _ValueType) -> np.float_:
+    def _univariate_logpdf(self, x: ValueType) -> np.float_:
         return scipy.stats.norm.logpdf(x, loc=self.mean, scale=self.std)
 
-    def _univariate_cdf(self, x: _ValueType) -> np.float_:
+    def _univariate_cdf(self, x: ValueType) -> np.float_:
         return scipy.stats.norm.cdf(x, loc=self.mean, scale=self.std)
 
-    def _univariate_logcdf(self, x: _ValueType) -> np.float_:
+    def _univariate_logcdf(self, x: ValueType) -> np.float_:
         return scipy.stats.norm.logcdf(x, loc=self.mean, scale=self.std)
 
     def _univariate_quantile(self, p: FloatLike) -> np.floating:
         return scipy.stats.norm.ppf(p, loc=self.mean, scale=self.std)
 
-    def _univariate_entropy(self: _ValueType) -> np.float_:
+    def _univariate_entropy(self: ValueType) -> np.float_:
         return _utils.as_numpy_scalar(
             scipy.stats.norm.entropy(loc=self.mean, scale=self.std),
             dtype=np.float_,
@@ -492,31 +492,31 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             raise ValueError(f"Unsupported argument type {type(x)}")
 
     @staticmethod
-    def _dense_in_support(x: _ValueType) -> bool:
+    def _dense_in_support(x: ValueType) -> bool:
         return np.all(np.isfinite(Normal._arg_todense(x)))
 
-    def _dense_pdf(self, x: _ValueType) -> np.float_:
+    def _dense_pdf(self, x: ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.pdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _dense_logpdf(self, x: _ValueType) -> np.float_:
+    def _dense_logpdf(self, x: ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.logpdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _dense_cdf(self, x: _ValueType) -> np.float_:
+    def _dense_cdf(self, x: ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
         )
 
-    def _dense_logcdf(self, x: _ValueType) -> np.float_:
+    def _dense_logcdf(self, x: ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.logcdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
             mean=self.dense_mean.ravel(),

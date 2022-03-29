@@ -20,9 +20,9 @@ class WhiteNoise(Kernel):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    sigma_sq :
+    sigma_sq
         Noise level :math:`\sigma^2 \geq 0`.
     """
 

@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum.typing import DTypeLike, NotImplementedType
+from probnum.typing import DTypeLike, LinearOperatorLike, NotImplementedType
 
 from . import _linear_operator, _utils
 
@@ -13,7 +13,10 @@ from . import _linear_operator, _utils
 class Symmetrize(_linear_operator.LinearOperator):
     r"""Symmetrizes a vector in its matrix representation.
 
-    Given a vector :math:`x=\operatorname{vec}(X)` representing a square matrix :math:`X`, this linear operator computes :math:`y=\operatorname{vec}(\frac{1}{2}(X + X^\top))`.
+    Given a vector :math:`x=\operatorname{vec}(X)`
+    representing a square matrix :math:`X`,
+    this linear operator computes :math:
+    `y=\operatorname{vec}(\frac{1}{2}(X + X^\top))`.
 
     Parameters
     ----------
@@ -102,7 +105,7 @@ class Kronecker(_linear_operator.LinearOperator):
     """
 
     # todo: extend this to list of operators
-    def __init__(self, A: _utils.LinearOperatorLike, B: _utils.LinearOperatorLike):
+    def __init__(self, A: LinearOperatorLike, B: LinearOperatorLike):
         self.A = _utils.aslinop(A)
         self.B = _utils.aslinop(B)
 
@@ -317,8 +320,8 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
     def __init__(
         self,
-        A: _utils.LinearOperatorLike,
-        B: Optional[_utils.LinearOperatorLike] = None,
+        A: LinearOperatorLike,
+        B: Optional[LinearOperatorLike] = None,
     ):
         self.A = _utils.aslinop(A)
 
@@ -496,7 +499,17 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
 
 class IdentityKronecker(_linear_operator.LinearOperator):
-    def __init__(self, num_blocks: int, B: _utils.LinearOperatorLike):
+    """Block-diagonal linear operator.
+
+    Parameters
+    ----------
+    num_blocks :
+        Number of blocks.
+    B :
+        Block.
+    """
+
+    def __init__(self, num_blocks: int, B: LinearOperatorLike):
         self._num_blocks = num_blocks
         self.A = _linear_operator.Identity(num_blocks)
         self.B = _utils.aslinop(B)

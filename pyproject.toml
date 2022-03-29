@@ -1,13 +1,81 @@
-# For more information about this pyproject.toml file, see
-# PEP 518: https://www.python.org/dev/peps/pep-0518/
+################################################################################
+# PEP 621 Project Metadata                                                     #
+################################################################################
+
+# see https://peps.python.org/pep-0621/
+
+[project]
+name = "probnum"
+description = "Probabilistic Numerics in Python."
+readme = "README.md"
+requires-python = ">=3.8,<3.11"
+license = {file = "LICENSE.txt"}
+keywords = [
+    "probabilistic-numerics",
+    "machine-learning",
+    "numerical-methods",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "numpy>=1.20", "numpy>=1.21.3; python_version>='3.10'",
+    "scipy>=1.4", "scipy>=1.8.0; python_version>='3.10'",
+]
+dynamic = [
+    "version",
+    "optional-dependencies",
+]
+
+# TODO (pypa/setuptools#3221): Optional dependencies that reference one another
+# don't seem to be supported yet. Migrate the optional dependencies in `setup.py`
+# here, once this is supported.
+# [project.optional-dependencies]
+# ...
+# full = [
+#     "%(jax)s",
+#     "%(zoo)s",
+#     "%(pls_calib)s",
+# ]
+
+[project.urls]
+homepage = "https://probnum.readthedocs.io/en/stable/"
+github = "https://github.com/probabilistic-numerics/probnum"
+documentation = "https://probnum.readthedocs.io/en/stable/"
+benchmarks = "https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/"
+
+################################################################################
+# PEP 518 Build System Configuration                                           #
+################################################################################
+
+# see https://peps.python.org/pep-0518/
 
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61",
     "wheel",
     "setuptools_scm[toml]>=6.0",
 ]
 build-backend = "setuptools.build_meta"
+
+# see https://setuptools.pypa.io/en/stable/userguide/pyproject_config.html#setuptools-specific-configuration
+
+[tool.setuptools]
+platforms = [
+    "any",
+]
+zip-safe = false
+packages = ["probnum"]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "probnum._version.version" }
 
 [tool.setuptools_scm]
 local_scheme = "dirty-tag"
@@ -20,7 +88,13 @@ write_to_template = """
 version = \"{version}\"
 """
 
-# PyTest configuration
+################################################################################
+# Testing Configuration                                                         #
+################################################################################
+
+# see https://docs.pytest.org/en/stable/reference/customize.html
+# see https://docs.pytest.org/en/stable/reference/reference.html#ini-options-ref
+
 [tool.pytest.ini_options]
 addopts = [
     "--verbose",
@@ -44,28 +118,22 @@ filterwarnings = [
     "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning:flatbuffers.*"
 ]
 
+################################################################################
+# Linting Configuration                                                        #
+################################################################################
 
-# Configuration of the black code style checker
-# For more information about Black's usage of this file, see
-# https://github.com/psf/black#pyprojecttoml
-[tool.black]
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[tool.pylint.master]
+extension-pkg-whitelist = [
+    "numpy",
+]
+load-plugins = [
+    "pylint.extensions.check_elif",
+    "pylint.extensions.docparams",
+    "pylint.extensions.docstyle",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.mccabe",
+]
 
-# Pylint configuration
 [tool.pylint.messages_control]
 disable = [
     # Exceptions suggested by Black:
@@ -84,18 +152,6 @@ disable = [
 [tool.pylint.format]
 max-line-length = "88"
 
-[tool.pylint.master]
-extension-pkg-whitelist = [
-    "numpy",
-]
-load-plugins = [
-    "pylint.extensions.check_elif",
-    "pylint.extensions.docparams",
-    "pylint.extensions.docstyle",
-    "pylint.extensions.overlapping_exceptions",
-    "pylint.extensions.mccabe",
-]
-
 [tool.pylint.design]
 max-args = 10
 max-complexity = 14
@@ -104,12 +160,31 @@ max-locals = 20
 [tool.pylint.similarities]
 ignore-imports = "yes"
 
-# isort configuration
+################################################################################
+# Formatting Configuration                                                     #
+################################################################################
+
+# see https://black.readthedocs.io/en/stable/usage_and_configuration/index.html
+
+[tool.black]
+include = '\.pyi?$'
+# If `exclude` is not set, `black` excludes all files listed in `.gitignore`.
+# The following option extends this list of ignored files.
+# see https://black.readthedocs.io/en/stable/usage_and_configuration/file_collection_and_discovery.html#gitignore
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories in the root
+# of the project.
+/(
+    \.git
+    | \.hg
+)/
+'''
+
+# see https://pycqa.github.io/isort/docs/configuration/config_files.html
+# see https://pycqa.github.io/isort/docs/configuration/options.html
+
 [tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 88
+# see https://pycqa.github.io/isort/docs/configuration/profiles.html#black
+profile = "black"
 combine_as_imports = true
 force_sort_within_sections = true
