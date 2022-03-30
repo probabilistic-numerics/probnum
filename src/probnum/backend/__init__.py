@@ -13,6 +13,7 @@ from ._dispatcher import Dispatcher
 from ._core import *
 from ._array_object import *
 from ._constants import *
+from ._control_flow import *
 from ._creation_functions import *
 from ._elementwise_functions import *
 from ._manipulation_functions import *
@@ -22,6 +23,7 @@ from . import (
     _array_object,
     _core,
     _constants,
+    _control_flow,
     _creation_functions,
     _elementwise_functions,
     _manipulation_functions,
@@ -37,6 +39,7 @@ from . import (
 __all__imported_modules = (
     _array_object.__all__
     + _constants.__all__
+    + _control_flow.__all__
     + _creation_functions.__all__
     + _elementwise_functions.__all__
     + _manipulation_functions.__all__
