@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="266fd36d-4006-4f98-b170-44c76acb25da" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../randvars/_arithmetic.py" beforeDir="false" afterPath="$PROJECT_DIR$/../randvars/_arithmetic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/argutils.py" beforeDir="false" afterPath="$PROJECT_DIR$/argutils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/linalg/_cholesky_updates.py" beforeDir="false" afterPath="$PROJECT_DIR$/linalg/_cholesky_updates.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/linalg/_inner_product.py" beforeDir="false" afterPath="$PROJECT_DIR$/linalg/_inner_product.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
+  <component name="ProjectId" id="270q1cj54jNYqLpyupp8DjOWkhr" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="266fd36d-4006-4f98-b170-44c76acb25da" name="Changes" comment="" />
+      <created>1648467136777</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1648467136777</updated>
+    </task>
+    <servers />
+  </component>
+</project>
