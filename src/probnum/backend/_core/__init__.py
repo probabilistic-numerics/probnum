@@ -61,10 +61,6 @@ linspace = _core.linspace
 arange = _core.arange
 meshgrid = _core.meshgrid
 
-# Constants
-inf = _core.inf
-pi = _core.pi
-
 # Element-wise Unary Operations
 sign = _core.sign
 abs = _core.abs
@@ -189,9 +185,6 @@ __all__ = [
     "arange",
     "linspace",
     "meshgrid",
-    # Constants
-    "inf",
-    "pi",
     # Element-wise Unary Operations
     "sign",
     "abs",
