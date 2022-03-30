@@ -7,51 +7,45 @@ from . import BACKEND, Backend
 class Dispatcher:
     def __init__(
         self,
+        generic_impl: Optional[Callable] = None,
+        /,
+        *,
         numpy_impl: Optional[Callable] = None,
         jax_impl: Optional[Callable] = None,
         torch_impl: Optional[Callable] = None,
     ):
-        self._impl = {}
+        if generic_impl is None:
+            generic_impl = Dispatcher._raise_not_implemented_error
 
-        if numpy_impl is not None:
-            self._impl[Backend.NUMPY] = numpy_impl
-
-        if jax_impl is not None:
-            self._impl[Backend.JAX] = jax_impl
-
-        if torch_impl is not None:
-            self._impl[Backend.TORCH] = torch_impl
+        self._impl = {
+            Backend.NUMPY: generic_impl if numpy_impl is None else numpy_impl,
+            Backend.JAX: generic_impl if jax_impl is None else jax_impl,
+            Backend.TORCH: generic_impl if torch_impl is None else torch_impl,
+        }
 
     def numpy(self, impl: Callable) -> Callable:
-        if Backend.NUMPY in self._impl:
-            raise Exception()  # TODO
-
         self._impl[Backend.NUMPY] = impl
 
         return impl
 
     def jax(self, impl: Callable) -> Callable:
-        if Backend.JAX in self._impl:
-            raise Exception()  # TODO
-
         self._impl[Backend.JAX] = impl
 
         return impl
 
     def torch(self, impl: Callable) -> Callable:
-        if Backend.TORCH in self._impl:
-            raise Exception()  # TODO
-
         self._impl[Backend.TORCH] = impl
 
         return impl
 
     def __call__(self, *args, **kwargs):
-        if BACKEND not in self._impl:
-            raise NotImplementedError(
-                f"This function is not implemented for the backend `{BACKEND.name}`"
-            )
         return self._impl[BACKEND](*args, **kwargs)
+
+    @staticmethod
+    def _raise_not_implemented_error() -> None:
+        raise NotImplementedError(
+            f"This function is not implemented for the backend `{BACKEND.name}`"
+        )
 
     def __get__(self, obj, objtype=None):
         """This is necessary in order to use the :class:`Dispatcher` as a class
