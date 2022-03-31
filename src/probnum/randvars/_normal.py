@@ -409,7 +409,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     _cdf = backend.Dispatcher()
 
-    @_cdf.numpy
+    @_cdf.numpy_impl
     def _cdf_numpy(self, x: backend.Array) -> backend.Array:
         import scipy.stats  # pylint: disable=import-outside-toplevel
 

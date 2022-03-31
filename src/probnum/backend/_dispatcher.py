@@ -23,17 +23,17 @@ class Dispatcher:
             Backend.TORCH: generic_impl if torch_impl is None else torch_impl,
         }
 
-    def numpy(self, impl: Callable) -> Callable:
+    def numpy_impl(self, impl: Callable) -> Callable:
         self._impl[Backend.NUMPY] = impl
 
         return impl
 
-    def jax(self, impl: Callable) -> Callable:
+    def jax_impl(self, impl: Callable) -> Callable:
         self._impl[Backend.JAX] = impl
 
         return impl
 
-    def torch(self, impl: Callable) -> Callable:
+    def torch_impl(self, impl: Callable) -> Callable:
         self._impl[Backend.TORCH] = impl
 
         return impl
