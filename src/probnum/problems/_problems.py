@@ -14,10 +14,7 @@ from probnum.typing import FloatLike
 
 @dataclasses.dataclass
 class TimeSeriesRegressionProblem:
-    r"""Time series regression problem.
-
-    Fit a stochastic process to data, given a likelihood (realised by a :obj:`NonlinearGaussian` transition).
-    Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
+    r"""Fit a stochastic process to data, given a likelihood.
 
     Parameters
     ----------
@@ -28,7 +25,7 @@ class TimeSeriesRegressionProblem:
     measurement_models
         Measurement models.
     solution
-        Array containing solution to the problem at ``locations``. Used for testing and benchmarking.
+        Array containing solution to the problem at ``locations``. 
 
     Examples
     --------
