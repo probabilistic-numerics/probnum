@@ -17,6 +17,38 @@ from probnum.diffeq.odefilter import (
 
 class ODEFilter(_odesolver.ODESolver):
     """
+    Probabilistic ODE solver based on Gaussian filtering and smoothing. This is based
+    on continuous-discrete Gaussian filtering.
+
+    Note: this is specific for IVPs and does not apply without
+    further considerations to, e.g., BVPs.
+
+    Parameters
+    ----------
+    prior_process
+        Prior Gauss-Markov process.
+    steprule
+        Step-size-selection rule.
+    information_operator
+        Information operator.
+    approx_strategy
+        Approximation strategy to turn an intractable information operator into a
+        tractable one.
+    with_smoothing
+        To smooth after the solve or not to smooth after the solve.
+    init_routine
+        Initialization algorithm.
+        Either via fitting the prior to a few steps of a Runge-Kutta method
+        (:class:`RungeKuttaInitialization`) or via Taylor-mode automatic differentiation
+        (:class:``TaylorModeInitialization``) [1]_.
+    diffusion_model :
+        Diffusion model. This determines which kind of calibration is used. We refer to
+        Bosch et al. (2020) [2]_ for a survey.
+    _reference_coordinates :
+        Use this state as a reference state to compute the normalized error estimate.
+        Optional. Default is 0 (which amounts to the usual reference state for ODE
+        solvers). Another reasonable choice could be 1, but use this at your own risk!
+
     References
     ----------
     .. [1] Krämer, N., and Hennig, P..
