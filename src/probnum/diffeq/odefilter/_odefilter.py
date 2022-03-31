@@ -173,7 +173,7 @@ class ODEFilter(_odesolver.ODESolver):
 
         .. math::
         z(t + \Delta t) \sim \mathcal{N}(\mathbb{E}[\hat{z}(t + \Delta t)],
-        \mathbb{C}[\hat{z}(t+\Delta t)]+H\Phi(\Delta t)P(t)\Phi(\Delta t)^\topH^\top),
+        \mathbb{C}[\hat{z}(t+\Delta t)]+H\Phi(\Delta t)P(t)\Phi(\Delta t)^\top H^\top),
 
         which acknowledges the covariance :math:`P(t)` of the previous state.
         :math:`\mathbb{E}` is the mean, and :math:`\mathbb{C}` is the covariance.
