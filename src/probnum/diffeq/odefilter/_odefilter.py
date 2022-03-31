@@ -196,7 +196,7 @@ class ODEFilter(_odesolver.ODESolver):
         5. With the results of either 4.1. or 4.2. (which both return a predicted RV and
         a measured RV), we finally compute the Kalman update and return the result.
         Recall that the error estimate has been computed in the third step.
-        
+
         """
 
         # Read off system matrices; required for calibration / error estimation
