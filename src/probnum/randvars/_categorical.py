@@ -63,7 +63,8 @@ class Categorical(DiscreteRandomVariable):
             x = np.asarray(x)
             if x.dtype != self.dtype:
                 raise ValueError(
-                    "The data type of x does not match with data type of the support."
+                    "The data type of x does not match with the data type of the "
+                    "support."
                 )
 
             mask = (x == self.support).nonzero()[0]
