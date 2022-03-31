@@ -16,7 +16,8 @@ from probnum.diffeq.odefilter import (
 
 
 class ODEFilter(_odesolver.ODESolver):
-    """Probabilistic ODE solver based on Gaussian filtering and smoothing. This is based
+    """
+    Probabilistic ODE solver based on Gaussian filtering and smoothing. This is based
     on continuous-discrete Gaussian filtering.
 
     Note: this is specific for IVPs and does not apply without
