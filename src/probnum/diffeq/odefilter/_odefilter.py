@@ -162,7 +162,7 @@ class ODEFilter(_odesolver.ODESolver):
         measurement model
 
         .. math::
-            \hat{z}(t + \Delta t) \sim \mathcal{N}(H \Phi(\Delta t) m(t), H Q(\Delta t) H^\top)
+            \hat{z}(t+\Delta t)\sim\mathcal{N}(H\Phi(\Delta t)m(t),H Q(\Delta t) H^\top)
 
         which is a random variable that estimates the expected local defect
         :math:`\dot y - f(y)`.
