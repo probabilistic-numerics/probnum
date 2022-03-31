@@ -162,7 +162,7 @@ class ODEFilter(_odesolver.ODESolver):
         measurement model
 
         .. math::
-        \hat{z}(t+\Delta t)\sim\mathcal{N}(H \Phi(\Delta t) m(t), H Q(\Delta t) H^\top)
+            \hat{z}(t + \Delta t) \sim \mathcal{N}(H \Phi(\Delta t) m(t), H Q(\Delta t) H^\top)
 
         which is a random variable that estimates the expected local defect
         :math:`\dot y - f(y)`.
@@ -172,8 +172,8 @@ class ODEFilter(_odesolver.ODESolver):
         interpretation of an error-free previous state) is computed as,
 
         .. math::
-        z(t + \Delta t) \sim \mathcal{N}(\mathbb{E}[\hat{z}(t + \Delta t)],
-        \mathbb{C}[\hat{z}(t+\Delta t)]+H\Phi(\Delta t)P(t)\Phi(\Delta t)^\top H^\top),
+            z(t + \Delta t) \sim \mathcal{N}(\mathbb{E}[\hat{z}(t + \Delta t)],
+            \mathbb{C}[\hat{z}(t + \Delta t)] + H \Phi(\Delta t) P(t) \Phi(\Delta t)^\top H^\top ),
 
         which acknowledges the covariance :math:`P(t)` of the previous state.
         :math:`\mathbb{E}` is the mean, and :math:`\mathbb{C}` is the covariance.
