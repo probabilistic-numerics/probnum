@@ -60,5 +60,5 @@ member_dict = dict(inspect.getmembers(sys.modules[__name__]))
 for member_name in __all__imported_modules:
     try:
         member_dict[member_name].__module__ = "probnum.backend"
-    except TypeError:
+    except (AttributeError, TypeError):
         pass
