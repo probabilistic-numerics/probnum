@@ -341,8 +341,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     # Multi- and matrixvariate Gaussians
 
-    # TODO (#569,#678): jit this function once `LinearOperator`s support the backend
-    # @functools.partial(backend.jit_method, static_argnums=(1,))
+    @functools.partial(backend.jit_method, static_argnums=(1,))
     def _sample(self, seed: SeedLike, sample_shape: ShapeType = ()) -> backend.Array:
         samples = backend.random.standard_normal(
             seed,
@@ -350,10 +349,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
             dtype=self.dtype,
         )
 
-        samples = backend.asarray((self._cov_sqrtm @ samples[..., None])[..., 0])
+        samples = self._cov_sqrtm @ samples[..., None]
+        samples = samples.reshape(sample_shape + self.shape)
         samples += self.dense_mean
 
-        return samples.reshape(sample_shape + self.shape)
+        return samples
 
     @staticmethod
     def _arg_todense(x: Union[backend.Array, linops.LinearOperator]) -> backend.Array:
@@ -401,9 +401,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
     def _cdf_numpy(self, x: backend.Array) -> backend.Array:
         import scipy.stats  # pylint: disable=import-outside-toplevel
 
+        x_batch_shape = x.shape[: x.ndim - self.ndim]
+
         scipy_cdf = scipy.stats.multivariate_normal.cdf(
-            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self.dense_mean.ravel(),
+            Normal._arg_todense(x).reshape(x_batch_shape + (-1,)),
+            mean=self.dense_mean.reshape(-1),
             cov=self.cov_matrix,
         )
 
@@ -529,6 +531,28 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
             return Q * backend.sqrt(eigvals)[None, :]
 
+        if isinstance(cov_cholesky, (linops.Kronecker, linops.SymmetricKronecker)):
+            return backend.cond(
+                backend.any(backend.isnan(cov_cholesky.A.todense()))
+                & backend.any(backend.isnan(cov_cholesky.B.todense())),
+                _fallback_eigh,
+                lambda: cov_cholesky,
+            )
+
+        if isinstance(cov_cholesky, linops.Scaling):
+            return backend.cond(
+                backend.any(backend.isnan(cov_cholesky.factors)),
+                _fallback_eigh,
+                lambda: cov_cholesky,
+            )
+
+        if isinstance(cov_cholesky, linops.LinearOperator):
+            return backend.cond(
+                backend.any(backend.isnan(cov_cholesky.todense())),
+                _fallback_eigh,
+                lambda: cov_cholesky,
+            )
+
         return backend.cond(
             backend.any(backend.isnan(cov_cholesky)),
             _fallback_eigh,
@@ -543,7 +567,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
             return (x @ Q) / backend.sqrt(eigvals)
 
         return backend.cond(
-            backend.any(backend.isnan(self._cov_cholesky)),
+            backend.any(backend.isnan(self._cov_matrix_cholesky)),
             _eigh_fallback,
             lambda x: backend.linalg.solve_triangular(
                 self._cov_matrix_cholesky,
@@ -557,7 +581,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
     @backend.jit_method
     def _cov_logdet(self) -> backend.Array:
         return backend.cond(
-            backend.any(backend.isnan(self._cov_cholesky)),
+            backend.any(backend.isnan(self._cov_matrix_cholesky)),
             lambda: backend.sum(backend.log(self._cov_eigh[0])),
             lambda: (
                 2.0 * backend.sum(backend.log(backend.diag(self._cov_matrix_cholesky)))
