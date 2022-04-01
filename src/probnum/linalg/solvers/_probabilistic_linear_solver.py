@@ -143,7 +143,8 @@ class ProbabilisticLinearSolver(
         Parameters
         ----------
         prior
-            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
+            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of
+            the linear system.
         problem
             Linear system to be solved.
         rng
@@ -187,7 +188,8 @@ class ProbabilisticLinearSolver(
         Parameters
         ----------
         prior
-            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
+            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of
+            the linear system.
         problem
             Linear system to be solved.
         rng
@@ -197,7 +199,8 @@ class ProbabilisticLinearSolver(
         -------
         belief
             Posterior belief :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
-            over the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse :math:`H=A^\dagger` and the right hand side :math:`b`.
+            over the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
+            :math:`H=A^\dagger` and the right hand side :math:`b`.
         solver_state
             Final state of the solver.
         """
@@ -231,7 +234,8 @@ class BayesCG(ProbabilisticLinearSolver):
 
     def __init__(
         self,
-        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
+        stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
@@ -257,14 +261,17 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
     References
     ----------
     .. [1] Kaczmarz, Stefan, Angenäherte Auflösung von Systemen linearer Gleichungen,
-        *Bulletin International de l'Académie Polonaise des Sciences et des Lettres. Classe des Sciences Mathématiques et Naturelles. Série A, Sciences Mathématiques*, 1937
+        *Bulletin International de l'Académie Polonaise des Sciences et des Lettres. Classe
+        des Sciences Mathématiques et Naturelles. Série A, Sciences Mathématiques*, 1937
     .. [2] Strohmer, Thomas; Vershynin, Roman, A randomized Kaczmarz algorithm for
-        linear systems with exponential convergence, *Journal of Fourier Analysis and Applications*, 2009
+        linear systems with exponential convergence, *Journal of Fourier Analysis and
+        Applications*, 2009
     """
 
     def __init__(
         self,
-        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
+        stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
@@ -278,8 +285,9 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
 class MatrixBasedPLS(ProbabilisticLinearSolver):
     r"""Matrix-based probabilistic linear solver.
 
-    Probabilistic linear solver updating beliefs over the system matrix and its
-    inverse. The solver makes use of prior information and iteratively infers the matrix and its inverse by matrix-vector multiplication.
+    Probabilistic linear solver updating beliefs over the system matrix and its inverse.
+    The solver makes use of prior information and iteratively infers the matrix and
+    its inverse by matrix-vector multiplication.
 
     This code implements the method described in Wenger et al. [1]_.
 
@@ -299,7 +307,8 @@ class MatrixBasedPLS(ProbabilisticLinearSolver):
     def __init__(
         self,
         policy: policies.LinearSolverPolicy = policies.ConjugateGradientPolicy(),
-        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
+        stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
@@ -313,7 +322,9 @@ class MatrixBasedPLS(ProbabilisticLinearSolver):
 class SymMatrixBasedPLS(ProbabilisticLinearSolver):
     r"""Symmetric matrix-based probabilistic linear solver.
 
-    Probabilistic linear solver updating beliefs over the symmetric system matrix and its inverse. The solver makes use of prior information and iteratively infers the matrix and its inverse by matrix-vector multiplication.
+    Probabilistic linear solver updating beliefs over the symmetric system matrix and
+    its inverse. The solver makes use of prior information and iteratively infers the
+    matrix and its inverse by matrix-vector multiplication.
 
     This code implements the method described in Wenger et al. [1]_.
 
@@ -333,7 +344,8 @@ class SymMatrixBasedPLS(ProbabilisticLinearSolver):
     def __init__(
         self,
         policy: policies.LinearSolverPolicy = policies.ConjugateGradientPolicy(),
-        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion = stopping_criteria.MaxIterationsStoppingCriterion()
+        stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
+        stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
