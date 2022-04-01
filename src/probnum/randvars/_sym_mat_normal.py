@@ -17,6 +17,8 @@ class SymmetricMatrixNormal(_normal.Normal):
             raise ValueError(
                 "The covariance operator must have type `SymmetricKronecker`."
             )
+        if not cov.identical_factors:
+            raise ValueError("The covariance operator must have identical factors.")
 
         m, n = mean.shape
 
