@@ -5,6 +5,18 @@ from . import BACKEND, Backend
 
 
 class Dispatcher:
+    """
+    Example
+    -------
+    >>> @backend.Dispatcher
+    ... def f(x):
+    ...     raise NotImplementedError()
+    ...
+    ... @f.jax_impl
+    ... def _(x: jnp.ndarray) -> jnp.ndarray:
+    ...     pass
+    """
+
     def __init__(
         self,
         generic_impl: Optional[Callable] = None,
@@ -55,10 +67,12 @@ class Dispatcher:
         .. code::
 
             class Foo:
-                baz = Dispatcher()
+                @Dispatcher
+                def baz(self, x):
+                    raise NotImplementedError()
 
-                @bax.jax
-                def _baz_jax(self, x):
+                @baz.jax
+                def _(self, x):
                     return x
 
             bar = Foo()
