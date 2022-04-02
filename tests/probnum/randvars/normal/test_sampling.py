@@ -23,11 +23,13 @@ def rv(rv_: randvars.Normal) -> randvars.Normal:
 
 
 @fixture(scope="module")
-def samples(rv: randvars.Normal, sample_shape_arg: ShapeLike) -> backend.Array:
+def samples(
+    rv: randvars.Normal, sample_shape_arg: ShapeLike, sample_shape: ShapeType
+) -> backend.Array:
     return rv.sample(
         seed=tests.utils.random.seed_from_sampling_args(
             base_seed=9879,
-            shape=backend.as_shape(sample_shape_arg) + rv.shape,
+            shape=sample_shape + rv.shape,
         ),
         sample_shape=sample_shape_arg,
     )
