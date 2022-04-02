@@ -7,17 +7,17 @@ from typing import Any
 from .. import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:
-    from . import _numpy as _core
+    from . import _numpy as _impl
 elif BACKEND is Backend.JAX:
-    from . import _jax as _core
+    from . import _jax as _impl
 elif BACKEND is Backend.TORCH:
-    from . import _torch as _core
+    from . import _torch as _impl
 
 __all__ = ["Scalar", "Array", "dtype", "isarray"]
 
-Scalar = _core.Scalar
-Array = _core.Array
-dtype = _core.dtype
+Scalar = _impl.Scalar
+Array = _impl.Array
+dtype = _impl.dtype
 
 
 def isarray(x: Any) -> bool:

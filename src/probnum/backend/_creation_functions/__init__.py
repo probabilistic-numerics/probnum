@@ -8,11 +8,11 @@ from .. import BACKEND, Array, Backend, Scalar, ndim
 from ..typing import DTypeLike, ScalarLike
 
 if BACKEND is Backend.NUMPY:
-    from . import _numpy as _core
+    from . import _numpy as _impl
 elif BACKEND is Backend.JAX:
-    from . import _jax as _core
+    from . import _jax as _impl
 elif BACKEND is Backend.TORCH:
-    from . import _torch as _core
+    from . import _torch as _impl
 
 __all__ = ["asscalar", "asarray", "tril", "triu"]
 
@@ -77,7 +77,7 @@ def asarray(
     out
         an array containing the data from ``obj``.
     """
-    return _core.asarray(obj, dtype=dtype, device=device, copy=copy)
+    return _impl.asarray(obj, dtype=dtype, device=device, copy=copy)
 
 
 def asscalar(x: ScalarLike, dtype: DTypeLike = None) -> Scalar:
@@ -127,7 +127,7 @@ def tril(x: Array, /, *, k: int = 0) -> Array:
         ``k`` must be zeroed. The returned array should be allocated on the same device
         as ``x``.
     """
-    return _core.tril(x, k=k)
+    return _impl.tril(x, k=k)
 
 
 def triu(x: Array, /, *, k: int = 0) -> Array:
@@ -161,4 +161,4 @@ def triu(x: Array, /, *, k: int = 0) -> Array:
         ``k`` must be zeroed. The returned array should be allocated on the same device
         as ``x``.
     """
-    return _core.triu(x, k=k)
+    return _impl.triu(x, k=k)

@@ -22,11 +22,11 @@ __all__ = [
 ]
 
 if BACKEND is Backend.NUMPY:
-    from . import _numpy as _core
+    from . import _numpy as _impl
 elif BACKEND is Backend.JAX:
-    from . import _jax as _core
+    from . import _jax as _impl
 elif BACKEND is Backend.TORCH:
-    from . import _torch as _core
+    from . import _torch as _impl
 
 from numpy.linalg import LinAlgError
 
@@ -34,13 +34,13 @@ from ._cholesky_updates import cholesky_update, tril_to_positive_tril
 from ._inner_product import induced_norm, inner_product
 from ._orthogonalize import double_gram_schmidt, gram_schmidt, modified_gram_schmidt
 
-norm = _core.norm
-cholesky = _core.cholesky
-solve_triangular = _core.solve_triangular
-solve_cholesky = _core.solve_cholesky
-qr = _core.qr
-svd = _core.svd
-eigh = _core.eigh
+norm = _impl.norm
+cholesky = _impl.cholesky
+solve_triangular = _impl.solve_triangular
+solve_cholesky = _impl.solve_cholesky
+qr = _impl.qr
+svd = _impl.svd
+eigh = _impl.eigh
 
 
 def solve(x1: Array, x2: Array, /) -> Array:
@@ -75,4 +75,4 @@ def solve(x1: Array, x2: Array, /) -> Array:
         corresponding to ``B``) and must have a floating-point data type determined by
         :ref:`type-promotion`.
     """
-    return _core.solve(x1, x2)
+    return _impl.solve(x1, x2)

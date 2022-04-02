@@ -3,11 +3,11 @@
 from .. import BACKEND, Array, Backend
 
 if BACKEND is Backend.NUMPY:
-    from . import _numpy as _core
+    from . import _numpy as _impl
 elif BACKEND is Backend.JAX:
-    from . import _jax as _core
+    from . import _jax as _impl
 elif BACKEND is Backend.TORCH:
-    from . import _torch as _core
+    from . import _torch as _impl
 
 __all__ = ["isnan"]
 
@@ -28,4 +28,4 @@ def isnan(x: Array, /) -> Array:
         ``NaN`` and ``False`` otherwise. The returned array should have a data type of
         ``bool``.
     """
-    return _core.isnan(x)
+    return _impl.isnan(x)

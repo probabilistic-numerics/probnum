@@ -3,11 +3,11 @@
 from .. import BACKEND, Array, Backend
 
 if BACKEND is Backend.NUMPY:
-    from . import _numpy as _core
+    from . import _numpy as _impl
 elif BACKEND is Backend.JAX:
-    from . import _jax as _core
+    from . import _jax as _impl
 elif BACKEND is Backend.TORCH:
-    from . import _torch as _core
+    from . import _torch as _impl
 
 __all__ = ["argsort", "sort"]
 
@@ -41,7 +41,7 @@ def argsort(
         an array of indices. The returned array must have the same shape as ``x``. The
         returned array must have the default array index data type.
     """
-    return _core.argsort(x, axis=axis, descending=descending, stable=stable)
+    return _impl.argsort(x, axis=axis, descending=descending, stable=stable)
 
 
 def sort(
@@ -72,4 +72,4 @@ def sort(
         a sorted array. The returned array must have the same data type and shape as
         ``x``.
     """
-    return _core.sort(x, axis=axis, descending=descending, stable=stable)
+    return _impl.sort(x, axis=axis, descending=descending, stable=stable)
