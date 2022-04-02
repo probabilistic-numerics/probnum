@@ -37,8 +37,6 @@ class SymmetricMatrixNormal(_normal.Normal):
             and self.cov.identical_factors
         )
 
-        # TODO (#xyz): Implement correct sampling routine
-
         n = self.mean.shape[1]
 
         # Draw standard normal samples
@@ -52,4 +50,4 @@ class SymmetricMatrixNormal(_normal.Normal):
         samples_scaled = linops.Symmetrize(n) @ (self._cov_cholesky @ stdnormal_samples)
 
         # TODO: can we avoid todense here and just return operator samples?
-        return self.dense_mean[None, :, :] + samples_scaled.reshape(-1, n, n)
+        return self.dense_mean + samples_scaled.reshape(*sample_shape, n, n)
