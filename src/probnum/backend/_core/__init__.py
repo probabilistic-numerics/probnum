@@ -172,7 +172,6 @@ __all__ = [
     "expand_dims",
     "swapaxes",
     # Constructors
-    "array",
     "diag",
     "eye",
     "full",

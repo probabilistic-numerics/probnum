@@ -64,7 +64,8 @@ def solve(x1: Array, x2: Array, /) -> Array:
         ``x2`` is equivalent to an array having shape ``(..., M, 1)``. If ``x2`` has
         shape ``(..., M, K)``, each column ``k`` defines a set of ordinate values for
         which to compute a solution, and ``shape(x2)[:-1]`` must be compatible with
-        ``shape(x1)[:-1]`` (see :ref:`broadcasting`). Should have a floating-point data
+        ``shape(x1)[:-1]`` (see `broadcasting <https://data-apis.org/array-api/latest\
+        /API_specification/broadcasting.html>`_). Should have a floating-point data
         type.
 
     Returns
@@ -73,6 +74,7 @@ def solve(x1: Array, x2: Array, /) -> Array:
         an array containing the solution to the system ``AX = B`` for each square
         matrix. The returned array must have the same shape as ``x2`` (i.e., the array
         corresponding to ``B``) and must have a floating-point data type determined by
-        :ref:`type-promotion`.
+        `type-promotion <https://data-apis.org/array-api/latest/API_specification\
+        /type_promotion.html>`_.
     """
     return _impl.solve(x1, x2)

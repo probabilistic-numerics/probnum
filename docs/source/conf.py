@@ -14,7 +14,6 @@
 # serve to show the default.
 from datetime import datetime
 import os
-from pathlib import Path
 import sys
 
 from pkg_resources import DistributionNotFound, get_distribution
@@ -52,6 +51,9 @@ extensions = [
 templates_path = ["_templates"]
 
 # Settings for autodoc
+autodoc_default_options = {
+    "member-order": "alphabetical",
+}
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
@@ -65,11 +67,6 @@ autodoc_type_aliases.update(
 
 # Settings for napoleon
 napoleon_use_param = True
-
-# Remove possible duplicate methods when using 'automodapi'
-# autodoc_default_flags = ['no-members']
-numpydoc_show_class_members = True
-
 
 # Settings for automodapi
 automodapi_toctreedirnm = "api/automod"

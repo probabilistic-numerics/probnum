@@ -5,26 +5,6 @@ probnum.backend
 .. toctree::
     :hidden:
 
-    backend/creation_functions
-
-.. toctree::
-    :hidden:
-
-    backend/elementwise_functions
-
-.. toctree::
-    :hidden:
-
-    backend/manipulation_functions
-
-.. toctree::
-    :hidden:
-
-    backend/sorting_functions
-
-.. toctree::
-    :hidden:
-
     backend/autodiff
 
 .. toctree::
@@ -46,3 +26,6 @@ probnum.backend
     :hidden:
 
     backend/typing
+
+.. automodapi:: probnum.backend
+    :no-heading:
