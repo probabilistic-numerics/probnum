@@ -466,9 +466,23 @@ class Normal(_random_variable.ContinuousRandomVariable):
         if backend.isarray(self.cov):
             return backend.linalg.cholesky(self.cov, upper=False)
 
+        if isinstance(self.cov, linops.Kronecker):
+            return linops.Kronecker(
+                backend.linalg.cholesky(self.cov.A.todense(), upper=False),
+                backend.linalg.cholesky(self.cov.B.todense(), upper=False),
+            )
+
+        if (
+            isinstance(self.cov, linops.SymmetricKronecker)
+            and self.cov.identical_factors
+        ):
+            return linops.SymmetricKronecker(
+                backend.linalg.cholesky(self.cov.A.todense(), upper=False)
+            )
+
         assert isinstance(self.cov, linops.LinearOperator)
 
-        return self.cov.cholesky(lower=True)
+        return linops.aslinop(backend.linalg.cholesky(self.cov.todense(), upper=False))
 
     @property
     def _cov_matrix_cholesky(self) -> backend.Array:
