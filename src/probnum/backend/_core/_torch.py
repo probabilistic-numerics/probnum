@@ -30,7 +30,6 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     max,
     maximum,
     moveaxis,
-    pi,
     promote_types,
     reshape,
     result_type,
@@ -109,13 +108,6 @@ def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
         res = torch.any(res, dim=axis, keepdims=keepdims)
 
     return res
-
-
-def array(object, dtype=None, *, copy=True):
-    if copy:
-        return torch.tensor(object, dtype=dtype)
-
-    return asarray(object, dtype=dtype)
 
 
 def full(
@@ -235,6 +227,3 @@ def jit_method(f, *args, **kwargs):
 
 def vectorize(pyfunc, /, *, excluded=None, signature=None):
     raise NotImplementedError()
-
-
-inf = float("inf")
