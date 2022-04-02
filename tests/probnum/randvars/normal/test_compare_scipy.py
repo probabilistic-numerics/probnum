@@ -1,15 +1,20 @@
 """Test properties of normal random variables."""
 
-import pytest
-from pytest_cases import filters, parametrize, parametrize_with_cases
 import scipy.stats
 
 from probnum import backend, compat, randvars
 from probnum.backend.typing import ShapeType
+
+import pytest
+from pytest_cases import filters, parametrize, parametrize_with_cases
 import tests.utils
 
 
-@parametrize_with_cases("rv", cases=".cases", has_tag=["scalar"])
+@parametrize_with_cases(
+    "rv",
+    cases=".cases",
+    filter=filters.has_tag("scalar") & ~filters.has_tag("degenerate"),
+)
 def test_entropy(rv: randvars.Normal):
     scipy_entropy = scipy.stats.norm.entropy(
         loc=backend.to_numpy(rv.mean),
@@ -19,7 +24,11 @@ def test_entropy(rv: randvars.Normal):
     compat.testing.assert_allclose(rv.entropy, scipy_entropy)
 
 
-@parametrize_with_cases("rv", cases=".cases", has_tag=["scalar"])
+@parametrize_with_cases(
+    "rv",
+    cases=".cases",
+    filter=filters.has_tag("scalar") & ~filters.has_tag("degenerate"),
+)
 @parametrize("shape", ([(), (1,), (5,), (2, 3), (3, 1, 2)]))
 def test_pdf_scalar(rv: randvars.Normal, shape: ShapeType):
     x = backend.random.standard_normal(
@@ -38,7 +47,12 @@ def test_pdf_scalar(rv: randvars.Normal, shape: ShapeType):
 
 
 @parametrize_with_cases(
-    "rv", cases=".cases", filter=filters.has_tag("vector") | filters.has_tag("matrix")
+    "rv",
+    cases=".cases",
+    filter=(
+        (filters.has_tag("vector") | filters.has_tag("matrix"))
+        & ~filters.has_tag("degenerate")
+    ),
 )
 @parametrize("shape", ((), (1,), (5,), (2, 3), (3, 1, 2)))
 def test_pdf_multivariate(rv: randvars.Normal, shape: ShapeType):
@@ -70,7 +84,10 @@ def test_pdf_multivariate(rv: randvars.Normal, shape: ShapeType):
 @parametrize_with_cases(
     "rv",
     cases=".cases",
-    filter=filters.has_tag("vector") | filters.has_tag("matrix"),
+    filter=(
+        (filters.has_tag("vector") | filters.has_tag("matrix"))
+        & ~filters.has_tag("degenerate")
+    ),
 )
 @parametrize("shape", ((), (1,), (5,), (2, 3), (3, 1, 2)))
 def test_cdf_multivariate(rv: randvars.Normal, shape: ShapeType):
