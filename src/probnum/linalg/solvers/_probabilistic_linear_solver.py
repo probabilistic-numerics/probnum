@@ -63,7 +63,8 @@ class ProbabilisticLinearSolver(
     See Also
     --------
     ~probnum.linalg.problinsolve : Solve linear systems in a Bayesian framework.
-    ~probnum.linalg.bayescg : Solve linear systems with prior information on the solution.
+    ~probnum.linalg.bayescg : Solve linear systems with prior information on the
+    solution.
 
     Examples
     --------
@@ -199,8 +200,9 @@ class ProbabilisticLinearSolver(
         -------
         belief
             Posterior belief :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
-            over the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
-            :math:`H=A^\dagger` and the right hand side :math:`b`.
+            over the solution :math:`x`, the system matrix :math:`A`, its
+            (pseudo-)inverse :math:`H=A^\dagger` and the right hand side
+            :math:`b`.
         solver_state
             Final state of the solver.
         """
@@ -251,7 +253,8 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
 
     Probabilistic analogue of the (randomized) Kaczmarz method [1]_ [2]_, taking prior
     information about the solution and randomly choosing rows of the matrix :math:`A_i`
-    and entries :math:`b_i` of the right-hand-side to obtain information about the solution.
+    and entries :math:`b_i` of the right-hand-side to obtain information about
+    the solution.
 
     Parameters
     ----------
@@ -261,8 +264,9 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
     References
     ----------
     .. [1] Kaczmarz, Stefan, Angenäherte Auflösung von Systemen linearer Gleichungen,
-        *Bulletin International de l'Académie Polonaise des Sciences et des Lettres. Classe
-        des Sciences Mathématiques et Naturelles. Série A, Sciences Mathématiques*, 1937
+        *Bulletin International de l'Académie Polonaise des Sciences et des
+        Lettres. Classe des Sciences Mathématiques et Naturelles. Série A,
+        Sciences Mathématiques*, 1937
     .. [2] Strohmer, Thomas; Vershynin, Roman, A randomized Kaczmarz algorithm for
         linear systems with exponential convergence, *Journal of Fourier Analysis and
         Applications*, 2009
@@ -351,6 +355,7 @@ class SymMatrixBasedPLS(ProbabilisticLinearSolver):
         super().__init__(
             policy=policy,
             information_op=information_ops.MatVecInformationOp(),
-            belief_update=belief_updates.matrix_based.SymmetricMatrixBasedLinearBeliefUpdate(),
+            belief_update=(
+            belief_updates.matrix_based.SymmetricMatrixBasedLinearBeliefUpdate()),
             stopping_criterion=stopping_criterion,
         )

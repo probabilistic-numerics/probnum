@@ -21,7 +21,8 @@ class SymmetricMatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
 
     .. math ::
         \begin{align}
-            M_{i+1} &= M_i + (y - M_i s) u^\top + u (y - M_i s)^\top - u s^\top(y - M_i s)u^\top,\\
+            M_{i+1} &= M_i + (y - M_i s) u^\top + u (y - M_i s)^\top
+            - u s^\top(y - M_i s)u^\top,\\
             W_{i+1} &= W_i - W_i s (s^\top W_i s)^\dagger s^\top W_i.
         \end{align}
 

@@ -7,8 +7,9 @@ from probnum import StoppingCriterion
 class LinearSolverStoppingCriterion(StoppingCriterion):
     r"""Stopping criterion of a probabilistic linear solver.
 
-    Checks whether quantities tracked by the :class:`~probnum.linalg.solvers.LinearSolverState`
-    meet a desired terminal condition.
+    Checks whether quantities tracked by the
+    :class:`~probnum.linalg.solvers.LinearSolverState` meet a desired
+    terminal condition.
 
     See Also
     --------
