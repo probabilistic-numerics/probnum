@@ -6,7 +6,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     all,
     any,
     arange,
-    array,
     atleast_1d,
     atleast_2d,
     bool_ as bool,

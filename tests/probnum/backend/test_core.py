@@ -77,7 +77,7 @@ def test_as_shape_wrong_ndim(shape_arg, ndim):
         backend.as_shape(shape_arg, ndim=ndim)
 
 
-@pytest.mark.parametrize("scalar", [1, 1.0, 1.0 + 2.0j, backend.array(1.0)])
+@pytest.mark.parametrize("scalar", [1, 1.0, 1.0 + 2.0j, backend.asarray(1.0)])
 def test_asscalar_returns_scalar_array(scalar):
     """All sorts of scalars are transformed into a np.generic."""
     asscalar = backend.asscalar(scalar)
@@ -85,7 +85,7 @@ def test_asscalar_returns_scalar_array(scalar):
     compat.testing.assert_allclose(asscalar, scalar, atol=0.0, rtol=1e-12)
 
 
-@pytest.mark.parametrize("sequence", [[1.0], (1,), backend.array([1.0])])
+@pytest.mark.parametrize("sequence", [[1.0], (1,), backend.asarray([1.0])])
 def test_asscalar_sequence_error(sequence):
     """Sequence types give rise to ValueErrors in `asscalar`."""
     with pytest.raises(ValueError):

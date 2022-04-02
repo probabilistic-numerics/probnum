@@ -391,7 +391,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
             # Here, we use:
             # ||L^{-1}(x - \mu)||_2^2 = (x - \mu)^T \Sigma^{-1} (x - \mu)
             backend.sum(self._cov_sqrtm_solve(x_centered) ** 2, axis=-1)
-            + self.size * backend.log(backend.array(2.0 * backend.pi))
+            + self.size * backend.log(backend.asarray(2.0 * backend.pi))
             + self._cov_logdet
         )
 

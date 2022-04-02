@@ -82,7 +82,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
         )
 
         if sample_shape == ():
-            return backend.array(
+            return backend.asarray(
                 self.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_measure_realizations,
                     t=args,

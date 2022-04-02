@@ -48,7 +48,6 @@ expand_dims = _core.expand_dims
 swapaxes = _core.swapaxes
 
 # Constructors
-array = _core.array
 diag = _core.diag
 eye = _core.eye
 full = _core.full

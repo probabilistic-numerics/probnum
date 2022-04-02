@@ -4,7 +4,6 @@ import numpy as np
 import torch
 from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
     abs,
-    asarray,
     atleast_1d,
     atleast_2d,
     bool,
