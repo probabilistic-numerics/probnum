@@ -56,10 +56,11 @@ def asarray(
            :class: note
 
            If ``dtype`` is not ``None``, then array conversions should obey
-           :ref:`type-promotion` rules. Conversions not specified according to
-           :ref:`type-promotion` rules may or may not be permitted by a conforming array
-           library. To perform an explicit cast, use
-           :func:`astype`.
+           `type-promotion <https://data-apis.org/array-api/latest/API_specification\
+           /type_promotion.html>`_ rules. Conversions not specified according to
+           `type-promotion <https://data-apis.org/array-api/latest/API_specification\
+           /type_promotion.html>`_ rules may or may not be permitted by a conforming
+           array library. To perform an explicit cast, use :func:`astype`.
 
     device
         device on which to place the created array. If ``device`` is ``None`` and ``x``
