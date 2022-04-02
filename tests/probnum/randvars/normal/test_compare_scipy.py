@@ -5,7 +5,7 @@ from pytest_cases import filters, parametrize, parametrize_with_cases
 import scipy.stats
 
 from probnum import backend, compat, randvars
-from probnum.backend.typing import SeedLike, ShapeType
+from probnum.backend.typing import ShapeType
 import tests.utils
 
 
