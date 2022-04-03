@@ -37,23 +37,26 @@ def asrandvar(obj: Any) -> _random_variable.RandomVariable:
     """
 
     # pylint: disable=protected-access
-
     # RandomVariable
     if isinstance(obj, _random_variable.RandomVariable):
         return obj
+
     # Scalar
-    elif np.isscalar(obj):
+    if np.isscalar(obj):
         return _constant.Constant(support=obj)
+
     # Numpy array or sparse matrix
-    elif isinstance(obj, (np.ndarray, scipy.sparse.spmatrix)):
+    if isinstance(obj, (np.ndarray, scipy.sparse.spmatrix)):
         return _constant.Constant(support=obj)
+
     # Linear Operators
-    elif isinstance(
+    if isinstance(
         obj, (probnum.linops.LinearOperator, scipy.sparse.linalg.LinearOperator)
     ):
         return _constant.Constant(support=probnum.linops.aslinop(obj))
+
     # Scipy random variable
-    elif isinstance(
+    if isinstance(
         obj,
         (
             scipy.stats._distn_infrastructure.rv_frozen,
@@ -61,7 +64,7 @@ def asrandvar(obj: Any) -> _random_variable.RandomVariable:
         ),
     ):
         return _scipy_stats.wrap_scipy_rv(obj)
-    else:
-        raise ValueError(
-            f"Argument of type {type(obj)} cannot be converted to a random variable."
-        )
+
+    raise ValueError(
+        f"Argument of type {type(obj)} cannot be converted to a random variable."
+    )

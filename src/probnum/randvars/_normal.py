@@ -38,11 +38,14 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
     cov :
         (Co-)variance of the random variable.
     cov_cholesky :
-        (Lower triangular) Cholesky factor of the covariance matrix. If None, then the Cholesky factor of the covariance matrix
-        is computed when :attr:`Normal.cov_cholesky` is called and then cached. If specified, the value is returned by :attr:`Normal.cov_cholesky`.
-        In this case, its type and data type are compared to the type and data type of the covariance.
-        If the types do not match, an exception is thrown. If the data types do not match,
-        the data type of the Cholesky factor is promoted to the data type of the covariance matrix.
+        (Lower triangular) Cholesky factor of the covariance matrix. If None, then the
+        Cholesky factor of the covariance matrix is computed when
+        :attr:`Normal.cov_cholesky` is called and then cached. If specified, the value
+        is returned by :attr:`Normal.cov_cholesky`. In this case, its type and data type
+        are compared to the type and data type of the covariance. If the types do not
+        match, an exception is thrown. If the data types do not match,
+        the data type of the Cholesky factor is promoted to the data type of the
+        covariance matrix.
 
     See Also
     --------
@@ -142,7 +145,8 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
             compute_cov_cholesky = self.dense_cov_cholesky
 
             # Ensure that the Cholesky factor has the same type as the covariance,
-            # and, if necessary, promote data types. Check for (in this order): type, shape, dtype.
+            # and, if necessary, promote data types. Check for (in this order): type,
+            # shape, dtype.
             if cov_cholesky is not None:
 
                 if not isinstance(cov_cholesky, type(cov)):
@@ -171,8 +175,8 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
                     if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
                         raise ValueError(
                             "Normal distributions with symmetric Kronecker structured "
-                            "kernels must have square mean and square kernels factors with "
-                            "matching dimensions."
+                            "kernels must have square mean and square kernels factors "
+                            "with matching dimensions."
                         )
 
                     if cov.identical_factors:
@@ -193,8 +197,8 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
                             or n != cov.B.shape[1]
                         ):
                             raise ValueError(
-                                "Kronecker structured kernels must have factors with the same "
-                                "shape as the mean."
+                                "Kronecker structured kernels must have factors with "
+                                "the same shape as the mean."
                             )
 
                 else:
@@ -269,16 +273,16 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
         """Dense representation of the mean."""
         if isinstance(self.mean, linops.LinearOperator):
             return self.mean.todense()
-        else:
-            return self.mean
+
+        return self.mean
 
     @cached_property
     def dense_cov(self) -> Union[np.floating, np.ndarray]:
         """Dense representation of the covariance."""
         if isinstance(self.cov, linops.LinearOperator):
             return self.cov.todense()
-        else:
-            return self.cov
+
+        return self.cov
 
     def __getitem__(self, key: ArrayIndicesLike) -> "Normal":
         """Marginalization in multi- and matrixvariate normal random variables,
@@ -486,10 +490,11 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
     def _arg_todense(x: Union[np.ndarray, linops.LinearOperator]) -> np.ndarray:
         if isinstance(x, linops.LinearOperator):
             return x.todense()
-        elif isinstance(x, np.ndarray):
+
+        if isinstance(x, np.ndarray):
             return x
-        else:
-            raise ValueError(f"Unsupported argument type {type(x)}")
+
+        raise ValueError(f"Unsupported argument type {type(x)}")
 
     @staticmethod
     def _dense_in_support(x: ValueType) -> bool:

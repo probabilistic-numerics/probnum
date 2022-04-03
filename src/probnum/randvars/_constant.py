@@ -146,8 +146,8 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
 
         if size == ():
             return self._support.copy()
-        else:
-            return np.tile(self._support, reps=size + (1,) * self.ndim)
+
+        return np.tile(self._support, reps=size + (1,) * self.ndim)
 
     # Unary arithmetic operations
 
