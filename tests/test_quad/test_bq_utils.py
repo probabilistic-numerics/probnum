@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum.quad import IntegrationMeasure
+from probnum.quad._utils import as_domain
 
 
 # fmt: off
@@ -20,7 +20,7 @@ from probnum.quad import IntegrationMeasure
 )
 def test_as_domain_wrong_input(dom, in_dim):
     with pytest.raises(ValueError):
-        IntegrationMeasure.as_domain(dom, in_dim)
+        as_domain(dom, in_dim)
 
 
 @pytest.mark.parametrize(
@@ -32,10 +32,10 @@ def test_as_domain_wrong_input(dom, in_dim):
     ]
 )
 def test_as_domain_returns_correct_shape(dom, in_dim):
-    as_domain, as_input_dim = IntegrationMeasure.as_domain(dom, in_dim)
-    assert len(as_domain) == 2
-    assert as_domain[0].ndim == 1 and as_domain[0].ndim == 1
-    assert as_domain[0].shape[0] == in_dim and as_domain[1].shape[0] == in_dim
+    domain, _ = as_domain(dom, in_dim)
+    assert len(domain) == 2
+    assert domain[0].ndim == 1 and domain[0].ndim == 1
+    assert domain[0].shape[0] == in_dim and domain[1].shape[0] == in_dim
 
 
 @pytest.mark.parametrize(
@@ -49,25 +49,17 @@ def test_as_domain_returns_correct_shape(dom, in_dim):
     ]
 )
 def test_as_domain_returns_correct_type(dom, in_dim):
-    as_domain, as_input_dim = IntegrationMeasure.as_domain(dom, in_dim)
-    assert isinstance(as_input_dim, int) and isinstance(as_domain, tuple)
-    assert isinstance(as_domain[0], np.ndarray) and isinstance(as_domain[1], np.ndarray)
-
-
-def test_as_domain_returns_correct_none():
-    as_domain, as_input_dim = IntegrationMeasure.as_domain(None, None)
-    assert as_domain is None and as_input_dim is None
-
-    as_domain, as_input_dim = IntegrationMeasure.as_domain(None, float(1.0))
-    assert as_domain is None and isinstance(as_input_dim, int)
+    domain, input_dim = as_domain(dom, in_dim)
+    assert isinstance(input_dim, int) and isinstance(domain, tuple)
+    assert isinstance(domain[0], np.ndarray) and isinstance(domain[1], np.ndarray)
 
 
 def test_as_domain_correct_values():
     in_dim, lb, ub = 3, 0.0, 1.5
-    as_domain, as_input_dim = IntegrationMeasure.as_domain((lb, ub), in_dim)
+    domain, input_dim = as_domain((lb, ub), in_dim)
 
     lb_expanded = lb * np.ones(in_dim)
     ub_expanded = ub * np.ones(in_dim)
-    np.testing.assert_allclose(as_domain[0], lb_expanded, atol=0.0, rtol=1e-12)
-    np.testing.assert_allclose(as_domain[1], ub_expanded, atol=0.0, rtol=1e-12)
+    np.testing.assert_allclose(domain[0], lb_expanded, atol=0.0, rtol=1e-12)
+    np.testing.assert_allclose(domain[1], ub_expanded, atol=0.0, rtol=1e-12)
 # fmt: on

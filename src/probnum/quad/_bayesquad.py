@@ -18,7 +18,7 @@ from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import IntegrationMeasure, LebesgueMeasure
-from ._quad_typing import DomainLike, _DomainType
+from ._quad_typing import DomainLike, DomainType
 from .solvers import BayesianQuadrature
 
 
@@ -248,7 +248,7 @@ def _check_domain_measure_compatibility(
     input_dim: IntLike,
     domain: Optional[DomainLike],
     measure: Optional[IntegrationMeasure],
-) -> Tuple[int, Optional[_DomainType], IntegrationMeasure]:
+) -> Tuple[int, Optional[DomainType], IntegrationMeasure]:
 
     domain, input_dim = IntegrationMeasure.as_domain(domain=domain, input_dim=input_dim)
 
