@@ -356,6 +356,7 @@ stopping_criteria.MaxIterationsStoppingCriterion()
             policy=policy,
             information_op=information_ops.MatVecInformationOp(),
             belief_update=(
-            belief_updates.matrix_based.SymmetricMatrixBasedLinearBeliefUpdate()),
+                belief_updates.matrix_based.SymmetricMatrixBasedLinearBeliefUpdate()
+            ),
             stopping_criterion=stopping_criterion,
         )
