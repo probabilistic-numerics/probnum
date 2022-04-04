@@ -46,8 +46,8 @@ def bayesquad(
     .. math:: F = \int_\Omega f(x) d \mu(x),
 
     of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated on the domain
-    :math:`\Omega \subset \mathbb{R}^D` against a measure :math:`\mu: \mathbb{R}^D
-    \mapsto \mathbb{R}`.
+    :math:`\Omega \subset \mathbb{R}^D` against `a measure
+    :math:\mu on :math:`\mathbb{R}^D.
 
     Bayesian quadrature methods return a probability distribution over the solution
     :math:`F` with uncertainty arising from finite computation (here a finite number
@@ -59,32 +59,32 @@ def bayesquad(
 
     Parameters
     ----------
-    fun :
+    fun
         Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
         ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-    input_dim :
+    input_dim
         Input dimension of the integration problem.
-    kernel :
+    kernel
         The kernel used for the GP model
-    domain :
+    domain
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
         ``int`` or ``np.ndarray``.
-    measure:
+    measure
         Integration measure. Defaults to the Lebesgue measure.
-    policy :
+    policy
         Type of acquisition strategy to use. Options are
 
         ==========================  =======
          Bayesian Monte Carlo [2]_  ``bmc``
         ==========================  =======
 
-    max_evals :
+    max_evals
         Maximum number of function evaluations.
-    var_tol :
+    var_tol
         Tolerance on the variance of the integral.
-    rel_tol :
+    rel_tol
         Tolerance on consecutive updates of the integral mean.
-    batch_size :
+    batch_size
         Number of new observations at each update.
     rng :
         Random number generator. Used by Bayesian Monte Carlo other random sampling
@@ -173,17 +173,17 @@ def bayesquad_from_data(
 
     Parameters
     ----------
-    nodes :
+    nodes
         *shape=(n_eval, input_dim)* -- Locations at which the function evaluations are
         available as ``fun_evals``.
-    fun_evals :
+    fun_evals
         *shape=(n_eval,)* -- Function evaluations at ``nodes``.
-    kernel :
+    kernel
         The kernel used for the GP model.
-    domain :
+    domain
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
         int or ndarray.
-    measure:
+    measure
         Integration measure. Defaults to the Lebesgue measure.
 
     Returns
