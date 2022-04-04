@@ -86,7 +86,7 @@ def bayesquad(
         Tolerance on consecutive updates of the integral mean.
     batch_size
         Number of new observations at each update.
-    rng :
+    rng
         Random number generator. Used by Bayesian Monte Carlo other random sampling
         policies. Optional. Default is `np.random.default_rng()`.
 
