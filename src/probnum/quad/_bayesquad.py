@@ -47,7 +47,7 @@ def bayesquad(
 
     of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated on the domain
     :math:`\Omega \subset \mathbb{R}^D` against a measure
-    :math:`\mu on :math:`\mathbb{R}^D`.
+    :math:`\mu` on :math:`\mathbb{R}^D`.
 
     Bayesian quadrature methods return a probability distribution over the solution
     :math:`F` with uncertainty arising from finite computation (here a finite number
