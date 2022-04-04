@@ -20,7 +20,6 @@ from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ._quad_typing import DomainLike, DomainType
-from ._utils import as_domain
 from .solvers import BayesianQuadrature
 
 
