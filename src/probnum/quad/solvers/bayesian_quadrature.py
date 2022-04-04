@@ -30,15 +30,15 @@ class BayesianQuadrature:
 
     Parameters
     ----------
-    kernel :
+    kernel
         The kernel used for the GP model.
-    measure :
+    measure
         The integration measure.
-    policy :
+    policy
         The policy choosing nodes at which to evaluate the integrand.
-    belief_update :
+    belief_update
         The inference method.
-    stopping_criterion :
+    stopping_criterion
         The criterion that determines convergence.
     """
     # pylint: disable=too-many-arguments
@@ -78,25 +78,25 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        input_dim :
+        input_dim
             Input dimension.
-        kernel :
+        kernel
             The kernel used for the GP model.
-        measure :
+        measure
             The integration measure.
-        domain :
+        domain
             The integration bounds.
-        policy :
+        policy
             The policy choosing nodes at which to evaluate the integrand.
-        max_evals :
+        max_evals
             Maximum number of evaluations as stopping criterion.
-        var_tol :
+        var_tol
             Variance tolerance as stopping criterion.
-        rel_tol :
+        rel_tol
             Relative tolerance as stopping criterion.
-        batch_size :
+        batch_size
             Batch size used in node acquisition.
-        rng :
+        rng
             The random number generator.
 
         Returns
@@ -180,10 +180,10 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        bq_state :
+        bq_state
             State of the Bayesian quadrature methods. Contains all necessary
             information about the problem and the computation.
-        info:
+        info
             Info on the BQ loop iteration.
 
         Returns
@@ -324,13 +324,13 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        fun :
+        fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-        nodes :
+        nodes
             *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
             are available as ``fun_evals`` from start.
-        fun_evals :
+        fun_evals
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
 

@@ -15,6 +15,7 @@ from probnum.randvars import Normal
 
 class BQState:
     """Container for the quantities defining the BQ problem and the BQ belief.
+
     Parameters
     ----------
     measure
@@ -27,6 +28,7 @@ class BQState:
         All locations at which function evaluations are available.
     fun_evals
         Function evaluations at nodes.
+
     See Also
     --------
     BQIterInfo : Container for quantities concerning the BQ loop iteration.
@@ -71,6 +73,7 @@ class BQState:
         kernel_means: np.ndarray,
     ) -> "BQState":
         r"""Initialize state from updated data
+
         Parameters
         ----------
         nodes
@@ -85,6 +88,7 @@ class BQState:
             The Gram matrix of the given nodes.
         kernel_means
             The kernel means at the given nodes.
+
         Returns
         -------
         bq_state :
@@ -115,6 +119,7 @@ class BQIterInfo:
         Number of evaluations collected.
     has_converged
         True if the BQ loop fulfils a stopping criterion, otherwise False.
+
     See Also
     --------
     BQState : Container for the quantities defining the BQ problem and the BQ belief.
@@ -132,6 +137,7 @@ class BQIterInfo:
         ----------
         bq_state
             The initial BQ state.
+
         Returns
         -------
         BQIterInfo
@@ -149,6 +155,7 @@ class BQIterInfo:
             BQIterInfo from previous iteration.
         dnevals
             Number of points added.
+
         Returns
         -------
         BQIterInfo
@@ -172,6 +179,7 @@ class BQIterInfo:
             BQIterInfo from previous iteration.
         has_converged
             Whether the BQ method has converged
+
         Returns
         -------
         BQIterInfo
