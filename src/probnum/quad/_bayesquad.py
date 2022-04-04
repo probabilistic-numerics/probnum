@@ -6,6 +6,7 @@ points of the integrand to estimate the value of the integral. Bayesian quadratu
 methods return a random variable, specifying the belief about the true value of the
 integral.
 """
+from __future__ import annotations
 
 from typing import Callable, Optional, Tuple
 import warnings
@@ -19,6 +20,7 @@ from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ._quad_typing import DomainLike, DomainType
+from ._utils import as_domain
 from .solvers import BayesianQuadrature
 
 
@@ -250,8 +252,6 @@ def _check_domain_measure_compatibility(
     measure: Optional[IntegrationMeasure],
 ) -> Tuple[int, Optional[DomainType], IntegrationMeasure]:
 
-    domain, input_dim = IntegrationMeasure.as_domain(domain=domain, input_dim=input_dim)
-
     # Check input argument compatibility
     if domain is None and measure is None:
         raise ValueError(
@@ -269,5 +269,6 @@ def _check_domain_measure_compatibility(
     # Set measure if only domain is given
     if measure is None:
         measure = LebesgueMeasure(domain=domain, input_dim=input_dim)
+        domain = measure.domain  # domain has been converted to correct type
 
     return input_dim, domain, measure

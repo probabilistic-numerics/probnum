@@ -9,7 +9,7 @@ from probnum import utils as _utils
 
 from . import _normal, _random_variable
 
-_ValueType = Union[np.generic, np.ndarray]
+ValueType = Union[np.generic, np.ndarray]
 
 # pylint: disable=protected-access
 
@@ -24,7 +24,7 @@ class _SciPyRandomVariableMixin:
 
 
 class WrappedSciPyRandomVariable(
-    _SciPyRandomVariableMixin, _random_variable.RandomVariable[_ValueType]
+    _SciPyRandomVariableMixin, _random_variable.RandomVariable[ValueType]
 ):
     """Wrapper for SciPy random variable objects.
 
@@ -47,7 +47,7 @@ class WrappedSciPyRandomVariable(
 
 
 class WrappedSciPyDiscreteRandomVariable(
-    _SciPyRandomVariableMixin, _random_variable.DiscreteRandomVariable[_ValueType]
+    _SciPyRandomVariableMixin, _random_variable.DiscreteRandomVariable[ValueType]
 ):
     """Wrapper for discrete SciPy random variable objects.
 
@@ -86,7 +86,7 @@ class WrappedSciPyDiscreteRandomVariable(
 
 
 class WrappedSciPyContinuousRandomVariable(
-    _SciPyRandomVariableMixin, _random_variable.ContinuousRandomVariable[_ValueType]
+    _SciPyRandomVariableMixin, _random_variable.ContinuousRandomVariable[ValueType]
 ):
     """Wrapper for continuous SciPy random variable objects.
 
@@ -162,26 +162,25 @@ def wrap_scipy_rv(
     if isinstance(scipy_rv, scipy.stats._distn_infrastructure.rv_frozen):
         if isinstance(scipy_rv.dist, scipy.stats.rv_discrete):
             return WrappedSciPyDiscreteRandomVariable(scipy_rv)
-        elif isinstance(scipy_rv.dist, scipy.stats.rv_continuous):
+        if isinstance(scipy_rv.dist, scipy.stats.rv_continuous):
             return WrappedSciPyContinuousRandomVariable(scipy_rv)
-        else:
-            assert isinstance(scipy_rv.dist, scipy.stats.rv_generic)
 
-            return WrappedSciPyRandomVariable(scipy_rv)
-    elif isinstance(scipy_rv, scipy.stats._multivariate.multi_rv_frozen):
+        assert isinstance(scipy_rv.dist, scipy.stats.rv_generic)
+        return WrappedSciPyRandomVariable(scipy_rv)
+
+    if isinstance(scipy_rv, scipy.stats._multivariate.multi_rv_frozen):
         has_pmf = hasattr(scipy_rv, "pmf") or hasattr(scipy_rv, "logpmf")
         has_pdf = hasattr(scipy_rv, "pdf") or hasattr(scipy_rv, "logpdf")
 
         if has_pdf and has_pmf:
             return WrappedSciPyRandomVariable(scipy_rv)
-        elif has_pmf:
+        if has_pmf:
             return WrappedSciPyDiscreteRandomVariable(scipy_rv)
-        elif has_pdf:
+        if has_pdf:
             return WrappedSciPyContinuousRandomVariable(scipy_rv)
-        else:
-            assert not has_pmf and not has_pdf
 
-            return WrappedSciPyRandomVariable(scipy_rv)
+        assert not has_pmf and not has_pdf
+        return WrappedSciPyRandomVariable(scipy_rv)
 
     raise ValueError(f"Unsupported argument type {type(scipy_rv)}")
 

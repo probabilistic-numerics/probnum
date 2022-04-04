@@ -1,3 +1,5 @@
+"""Types specific to the quad package."""
+
 from typing import Tuple, Union
 
 import numpy as np

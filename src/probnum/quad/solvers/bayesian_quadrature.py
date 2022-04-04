@@ -19,6 +19,7 @@ from probnum.typing import FloatLike, IntLike
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from .._quad_typing import DomainLike
+from .._utils import as_domain
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQIterInfo, BQState
@@ -123,7 +124,6 @@ class BayesianQuadrature:
         NotImplementedError
             If an unknown ``policy`` is given.
         """
-        domain, input_dim = IntegrationMeasure.as_domain(domain, input_dim)
 
         # Set up integration measure
         if domain is None and measure is None:
