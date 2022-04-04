@@ -1,15 +1,13 @@
 # Sphinx builds the documentation
-sphinx>=3.0,<4.4.1
+sphinx>=3.0,<4.6
 
 # Sphinx dependencies
 Pygments>=2.6.1
 
 # Sphinx extensions
-pydata-sphinx-theme>=0.6.0
+pydata-sphinx-theme>=0.6.0,<0.8.1
 sphinx-automodapi
-sphinx-autodoc-typehints
 sphinx-gallery
-sphinxcontrib-bibtex
 
 # Markdown conversion
 myst-parser<0.17.0

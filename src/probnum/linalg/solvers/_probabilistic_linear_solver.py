@@ -3,6 +3,8 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
+from __future__ import annotations
+
 from typing import Generator, Optional, Tuple
 
 import numpy as np

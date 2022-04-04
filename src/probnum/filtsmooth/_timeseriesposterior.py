@@ -1,5 +1,7 @@
 """Abstract Base Class for posteriors over states after applying filtering/smoothing."""
 
+from __future__ import annotations
+
 import abc
 from typing import Iterable, Optional, Union
 

@@ -37,12 +37,12 @@ class Matern(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    lengthscale :
+    lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
-    nu :
+    nu
         Hyperparameter :math:`\nu` controlling differentiability.
 
     See Also

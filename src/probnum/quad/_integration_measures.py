@@ -1,4 +1,5 @@
 """Contains integration measures."""
+from __future__ import annotations
 
 import abc
 from typing import Optional, Tuple, Union
