@@ -17,7 +17,7 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
     given matrix-variate Gaussian beliefs with Kronecker covariance structure and
     linear observations :math:`y=As`.
     The belief update computes :math:`p(M \mid y) = \mathcal{N}(M; M_{i+1},
-     V \otimes W_{i+1})`, [1]_ [2]_ such that
+    V \otimes W_{i+1})`, [1]_ [2]_ such that
 
     .. math ::
         \begin{align}
@@ -65,7 +65,7 @@ class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
         """Matrix-based inference update for linear information."""
         if not isinstance(matrix.cov, linops.Kronecker):
             raise ValueError(
-                f"""Covariance must have Kronecker structure, but is 
+                f"""Covariance must have Kronecker structure, but is
                 '{type(matrix.cov).__name__}'.
                 """
             )

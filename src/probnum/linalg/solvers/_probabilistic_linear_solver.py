@@ -237,7 +237,7 @@ class BayesCG(ProbabilisticLinearSolver):
     def __init__(
         self,
         stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
-        stopping_criteria.MaxIterationsStoppingCriterion()
+stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
@@ -275,7 +275,7 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
     def __init__(
         self,
         stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
-        stopping_criteria.MaxIterationsStoppingCriterion()
+stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
@@ -312,7 +312,7 @@ class MatrixBasedPLS(ProbabilisticLinearSolver):
         self,
         policy: policies.LinearSolverPolicy = policies.ConjugateGradientPolicy(),
         stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
-        stopping_criteria.MaxIterationsStoppingCriterion()
+stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
@@ -349,7 +349,7 @@ class SymMatrixBasedPLS(ProbabilisticLinearSolver):
         self,
         policy: policies.LinearSolverPolicy = policies.ConjugateGradientPolicy(),
         stopping_criterion: stopping_criteria.LinearSolverStoppingCriterion =
-        stopping_criteria.MaxIterationsStoppingCriterion()
+stopping_criteria.MaxIterationsStoppingCriterion()
         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5),
     ):
         super().__init__(
