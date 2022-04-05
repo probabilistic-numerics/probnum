@@ -16,9 +16,8 @@ from probnum.diffeq.odefilter import (
 
 
 class ODEFilter(_odesolver.ODESolver):
-    """Probabilistic ODE solver based on Gaussian filtering and smoothing.
-
-    This is based on continuous-discrete Gaussian filtering.
+    """Probabilistic ODE solver based on Gaussian filtering and smoothing. This is based
+    on continuous-discrete Gaussian filtering.
 
     Note: this is specific for IVPs and does not apply without
     further considerations to, e.g., BVPs.
@@ -32,19 +31,22 @@ class ODEFilter(_odesolver.ODESolver):
     information_operator
         Information operator.
     approx_strategy
-        Approximation strategy to turn an intractable information operator into a tractable one.
+        Approximation strategy to turn an intractable information operator into a
+        tractable one.
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
     init_routine
         Initialization algorithm.
-        Either via fitting the prior to a few steps of a Runge-Kutta method (:class:`RungeKuttaInitialization`)
-        or via Taylor-mode automatic differentiation (:class:``TaylorModeInitialization``) [1]_.
+        Either via fitting the prior to a few steps of a Runge-Kutta method
+        (:class:`RungeKuttaInitialization`) or via Taylor-mode automatic differentiation
+        (:class:``TaylorModeInitialization``) [1]_.
     diffusion_model :
-        Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [2]_ for a survey.
+        Diffusion model. This determines which kind of calibration is used. We refer to
+        Bosch et al. (2020) [2]_ for a survey.
     _reference_coordinates :
         Use this state as a reference state to compute the normalized error estimate.
-        Optional. Default is 0 (which amounts to the usual reference state for ODE solvers).
-        Another reasonable choice could be 1, but use this at your own risk!
+        Optional. Default is 0 (which amounts to the usual reference state for ODE
+        solvers). Another reasonable choice could be 1, but use this at your own risk!
 
     References
     ----------
@@ -54,6 +56,7 @@ class ODEFilter(_odesolver.ODESolver):
     .. [2] Bosch, N., and Hennig, P., and Tronarp, F..
         Calibrated adaptive probabilistic ODE solvers.
         2021.
+
     """
 
     def __init__(
@@ -145,50 +148,61 @@ class ODEFilter(_odesolver.ODESolver):
 
         It goes as follows:
 
-        1. The current state :math:`x(t) \sim \mathcal{N}(m(t), P(t))` is split into a deterministic component
-        and a noisy component,
+        1. The current state :math:`x(t) \sim \mathcal{N}(m(t), P(t))` is split into a
+        deterministic component and a noisy component,
 
         .. math::
             x(t) = m(t) + p(t), \quad p(t) \sim \mathcal{N}(0, P(t))
 
-        which is required for accurate calibration and error estimation: in order to only work with the local error,
-        ODE solvers often assume that the error at the previous step is zero.
+        which is required for accurate calibration and error estimation: in order to
+        only work with the local error, ODE solvers often assume that the error at the
+        previous step is zero.
 
-        2. The deterministic component is propagated through dynamics model and measurement model
+        2. The deterministic component is propagated through dynamics model and
+        measurement model
 
         .. math::
-            \hat{z}(t + \Delta t) \sim \mathcal{N}(H \Phi(\Delta t) m(t), H Q(\Delta t) H^\top)
+            \hat{z}(t+\Delta t)\sim\mathcal{N}(H\Phi(\Delta t)m(t),H Q(\Delta t) H^\top)
 
-        which is a random variable that estimates the expected local defect :math:`\dot y - f(y)`.
+        which is a random variable that estimates the expected local defect
+        :math:`\dot y - f(y)`.
 
-        3. The counterpart of :math:`\hat{z}` in the (much more likely) interpretation of an erronous previous state
-        (recall that :math:`\hat z` was based on the interpretation of an error-free previous state) is computed as,
+        3. The counterpart of :math:`\hat{z}` in the (much more likely) interpretation
+        of an erronous previous state (recall that :math:`\hat z` was based on the
+        interpretation of an error-free previous state) is computed as,
 
         .. math::
             z(t + \Delta t) \sim \mathcal{N}(\mathbb{E}[\hat{z}(t + \Delta t)],
-            \mathbb{C}[\hat{z}(t + \Delta t)] + H \Phi(\Delta t) P(t) \Phi(\Delta t)^\top H^\top ),
+            \mathbb{C}[\hat{z}(t+\Delta t)]+H\Phi(\Delta t)P(t)\Phi(\Delta t)^\top
+            H^\top),
 
         which acknowledges the covariance :math:`P(t)` of the previous state.
         :math:`\mathbb{E}` is the mean, and :math:`\mathbb{C}` is the covariance.
-        Both :math:`z(t + \Delta t)` and :math:`\hat z(t + \Delta t)` give rise to a reasonable diffusion_model estimate.
-        Which one to use is handled by the ``Diffusion`` attribute of the solver.
-        At this point already we can compute a local error estimate of the current step.
+        Both :math:`z(t + \Delta t)` and :math:`\hat z(t + \Delta t)` give rise to a
+        reasonable diffusion_model estimate. Which one to use is handled by the
+        ``Diffusion`` attribute of the solver. At this point already we can compute a
+        local error estimate of the current step.
 
         4. Depending on the diffusion model, there are two options now:
 
-            4.1. For a piecewise constant diffusion, the covariances are calibrated locally -- that is, at each step.
-            In this case we update the predicted covariance and measured covariance with the most recent diffusion estimate.
+            4.1. For a piecewise constant diffusion, the covariances are calibrated
+            locally -- that is, at each step. In this case we update the predicted
+            covariance and measured covariance with the most recent diffusion estimate.
 
-            4.2. For a constant diffusion, the calibration happens post hoc, and the only step that is carried out here is an assembly
-            of the full predicted random variable (up to now, only its parts were available).
+            4.2. For a constant diffusion, the calibration happens post hoc, and the
+            only step that is carried out here is an assembly of the full predicted
+            random variable (up to now, only its parts were available).
 
-        5. With the results of either 4.1. or 4.2. (which both return a predicted RV and a measured RV),
-        we finally compute the Kalman update and return the result. Recall that the error estimate has been computed in the third step.
+        5. With the results of either 4.1. or 4.2. (which both return a predicted RV and
+        a measured RV), we finally compute the Kalman update and return the result.
+        Recall that the error estimate has been computed in the third step.
+
         """
 
         # Read off system matrices; required for calibration / error estimation
         # Use only where a full call to forward_*() would be too costly.
-        # We use the mathematical symbol `Phi` (and later, `H`), because this makes it easier to read for us.
+        # We use the mathematical symbol `Phi` (and later, `H`), because this makes
+        # it easier to read for us.
         discrete_dynamics = self.prior_process.transition.discretise(dt)
 
         Phi = discrete_dynamics.transition_matrix
@@ -217,7 +231,8 @@ class ODEFilter(_odesolver.ODESolver):
         # Compute the measurements for the full components.
         # Since the means of noise-free and noisy measurements coincide,
         # we manually update only the covariance.
-        # The first two are only matrix square-roots and will be turned into proper Cholesky factors below.
+        # The first two are only matrix square-roots and will be turned into proper
+        # Cholesky factors below.
         pred_sqrtm = Phi @ noisy_component.cov_cholesky
         meas_sqrtm = H @ pred_sqrtm
         full_meas_cov_cholesky = utils.linalg.cholesky_update(
@@ -247,7 +262,8 @@ class ODEFilter(_odesolver.ODESolver):
 
         # Overwrite the acceptance/rejection step here, because we need control over
         # Appending or not appending the diffusion (and because the computations below
-        # are sufficiently costly such that skipping them here will have a positive impact).
+        # are sufficiently costly such that skipping them here will have a positive
+        # impact).
         internal_norm = self.steprule.errorest_to_norm(
             errorest=local_errors,
             reference_state=reference_values,

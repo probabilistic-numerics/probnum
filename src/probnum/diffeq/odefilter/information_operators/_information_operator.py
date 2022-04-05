@@ -14,9 +14,9 @@ __all__ = ["InformationOperator", "ODEInformationOperator"]
 class InformationOperator(abc.ABC):
     r"""Information operators used in probabilistic ODE solvers.
 
-    ODE solver-related information operators gather information about whether a state or function solves an ODE.
-    More specifically, an information operator maps a sample from the prior distribution
-    **that is also an ODE solution** to the zero function.
+    ODE solver-related information operators gather information about whether a state or
+    function solves an ODE. More specifically, an information operator maps a sample
+    from the prior distribution **that is also an ODE solution** to the zero function.
 
     Consider the following example. For an ODE
 
@@ -30,10 +30,11 @@ class InformationOperator(abc.ABC):
     (Recall that :math:`Y_j` models the `j` th derivative of `Y_0` for given prior.)
     If :math:`Y_0` solves the ODE, :math:`\mathcal{Z}(Y)(t)` is zero for all :math:`t`.
 
-    Information operators are used to condition prior distributions on solving a numerical problem.
-    This happens by conditioning the prior distribution :math:`Y` on :math:`\mathcal{Z}(Y)(t_n)=0`
-    on time-points :math:`t_1, ..., t_n, ..., t_N` (:math:`N` is usually large).
-    Therefore, they are one important component in a probabilistic ODE solver.
+    Information operators are used to condition prior distributions on solving a
+    numerical problem. This happens by conditioning the prior distribution :math:`Y` on
+    :math:`\mathcal{Z}(Y)(t_n)=0` on time-points :math:`t_1, ..., t_n, ..., t_N`
+    (:math:`N` is usually large). Therefore, they are one important component in a
+    probabilistic ODE solver.
     """
 
     def __init__(self, input_dim: IntLike, output_dim: IntLike):
@@ -70,8 +71,9 @@ class InformationOperator(abc.ABC):
 class ODEInformationOperator(InformationOperator):
     """Information operators that depend on an ODE function.
 
-    Other than :class:`InformationOperator`s, :class:`ODEInformationOperators` depend explicitly on an
-    :class:`InitialValueProblem`. Not all information operators that are used in ODE solvers do.
+    Other than :class:`InformationOperator`s, :class:`ODEInformationOperators` depend
+    explicitly on an :class:`InitialValueProblem`. Not all information operators that
+    are used in ODE solvers do.
     """
 
     def __init__(self, input_dim: IntLike, output_dim: IntLike):
@@ -84,8 +86,8 @@ class ODEInformationOperator(InformationOperator):
         """Incorporate the ODE into the operator."""
         if self.ode_has_been_incorporated:
             raise ValueError("An ODE has been incorporated already.")
-        else:
-            self.ode = ode
+
+        self.ode = ode
 
     @property
     def ode_has_been_incorporated(self) -> bool:
