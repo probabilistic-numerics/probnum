@@ -12,7 +12,8 @@ from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 class ODEFilterSolution(_odesolution.ODESolution):
     """Probabilistic ODE solution corresponding to the :class:`ODEFilter`.
 
-    Recall that in ProbNum, Gaussian filtering and smoothing is generally named "Kalman".
+    Recall that in ProbNum, Gaussian filtering and smoothing is generally named
+    "Kalman".
 
     Parameters
     ----------
@@ -118,8 +119,10 @@ class ODEFilterSolution(_odesolution.ODESolution):
         t: ArrayLike = None,
     ) -> np.ndarray:
         errormsg = (
-            "The ODEFilterSolution does not implement transformation of realizations of a base measure."
-            "Try `ODEFilterSolution.kalman_posterior.transform_base_measure_realizations` instead."
+            "The ODEFilterSolution does not implement transformation of realizations of"
+            " a base measure. Try "
+            "`ODEFilterSolution.kalman_posterior.transform_base_measure_realizations` "
+            "instead."
         )
 
         raise NotImplementedError(errormsg)
@@ -130,16 +133,17 @@ class ODEFilterSolution(_odesolution.ODESolution):
         if isinstance(self.kalman_posterior, filtsmooth.gaussian.FilteringPosterior):
             return self
 
-        # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.
+        # else: self.kalman_posterior is a SmoothingPosterior object, which has the
+        # field filter_posterior.
         return ODEFilterSolution(
             kalman_posterior=self.kalman_posterior.filtering_posterior
         )
 
 
 def _project_rv(projmat, rv):
-    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
-    # Therefore, since we need to update the Cholesky factor for square-root filtering,
-    # we also update the Cholesky factor for non-square-root algorithms here,
+    # There is no way of checking whether `rv` has its Cholesky factor computed already
+    # or not. Therefore, since we need to update the Cholesky factor for square-root
+    # filtering, we also update the Cholesky factor for non-square-root algorithms here,
     # which implies additional cost.
     # See Issues #319 and #329.
     # When they are resolved, this function here will hopefully be superfluous.
