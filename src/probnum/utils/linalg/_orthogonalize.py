@@ -34,8 +34,9 @@ def gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or a :class:`Callable`
-        defining the inner product. Defaults to the euclidean inner product.
+        Inner product defining orthogonality. Can be either a :class`numpy.ndarray` or
+        a :class:`Callable` defining the inner product. Defaults to the euclidean inner
+        product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
 
@@ -82,7 +83,8 @@ def modified_gram_schmidt(
     r"""Stabilized Gram-Schmidt process.
 
     Computes a vector :math:`v'` such that :math:`\langle v', b_i \rangle = 0` for
-    all basis vectors :math:`b_i \in B` in the orthogonal basis in a numerically stable fashion.
+    all basis vectors :math:`b_i \in B` in the orthogonal basis in a numerically stable
+    fashion.
 
     Parameters
     ----------
@@ -91,8 +93,9 @@ def modified_gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or a :class:`Callable`
-        defining the inner product. Defaults to the euclidean inner product.
+        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or
+        a :class:`Callable` defining the inner product. Defaults to the euclidean inner
+        product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
 
@@ -151,12 +154,14 @@ def double_gram_schmidt(
     orthogonal_basis
         Orthogonal basis.
     inner_product
-        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or a :class:`Callable`
-        defining the inner product. Defaults to the euclidean inner product.
+        Inner product defining orthogonality. Can be either a :class:`numpy.ndarray` or
+        a :class:`Callable` defining the inner product. Defaults to the euclidean inner
+        product.
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
     gram_schmidt_fn
-        Gram-Schmidt process to use. One of :meth:`gram_schmidt` or :meth:`modified_gram_schmidt`.
+        Gram-Schmidt process to use. One of :meth:`gram_schmidt` or
+        :meth:`modified_gram_schmidt`.
 
     Returns
     -------
@@ -166,7 +171,8 @@ def double_gram_schmidt(
     References
     ----------
     .. [1] L. Giraud, J. Langou, M. Rozloznik, and J. van den Eshof, Rounding error
-           analysis of the classical Gram-Schmidt orthogonalization process, Numer. Math., 101 (2005), pp. 87–100
+           analysis of the classical Gram-Schmidt orthogonalization process,
+           Numer. Math., 101 (2005), pp. 87–100
     .. [2] L. Giraud, J. Langou, and M. Rozloznik, The loss of orthogonality in the
            Gram-Schmidt orthogonalization process, Comput. Math. Appl., 50 (2005)
     """
