@@ -11,7 +11,8 @@ from probnum.randprocs.markov.integrator import _integrator, _preconditioner
 class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     r"""Integrated Ornstein-Uhlenbeck process.
 
-    Convenience access to :math:`\nu` times integrated (:math:`d` dimensional) Ornstein-Uhlenbeck processes.
+    Convenience access to :math:`\nu` times integrated (:math:`d` dimensional)
+    Ornstein-Uhlenbeck processes.
 
     Parameters
     ----------
@@ -20,7 +21,8 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     initarg
         Initial time point.
     num_derivatives
-        Number of modelled derivatives of the integrated process (''order'', ''number of integrations'').
+        Number of modelled derivatives of the integrated process (''order'',
+        ''number of integrations'').
         Optional. Default is :math:`\nu=1`.
     wiener_process_dimension
         Dimension of the underlying Wiener process.
@@ -28,21 +30,25 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
         The dimension of the integrated Wiener process itself is :math:`d(\nu + 1)`.
     initrv
         Law of the integrated Wiener process at the initial time point.
-        Optional. Default is a :math:`d(\nu + 1)` dimensional standard-normal distribution.
+        Optional. Default is a :math:`d(\nu + 1)` dimensional standard-normal
+        distribution.
     diffuse
-        Whether to instantiate a diffuse prior. A diffuse prior has large initial variances.
+        Whether to instantiate a diffuse prior. A diffuse prior has large initial
+        variances.
         Optional. Default is `False`.
-        If `True`, and if an initial random variable is not passed, an initial random variable is created,
-        where the initial covariance is of the form :math:`\kappa I_{d(\nu + 1)}`
-        with :math:`\kappa=10^6`.
+        If `True`, and if an initial random variable is not passed, an initial random
+        variable is created, where the initial covariance is of the form
+        :math:`\kappa I_{d(\nu + 1)}` with :math:`\kappa=10^6`.
         Diffuse priors are used when initial distributions are not known.
         They are common for filtering-based probabilistic ODE solvers.
     forward_implementation
         Implementation of the forward-propagation in the underlying transitions.
-        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally
+        expensive, but also more stable.
     backward_implementation
         Implementation of the backward-conditioning in the underlying transitions.
-        Optional. Default is `classic`. `sqrt` implementation is more computationally expensive, but also more stable.
+        Optional. Default is `classic`. `sqrt` implementation is more computationally
+        expensive, but also more stable.
 
     Raises
     ------
@@ -66,7 +72,10 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
     >>> ioup4 = IntegratedOrnsteinUhlenbeckProcess(driftspeed=1.,initarg=0., num_derivatives=4, wiener_process_dimension=1)
     >>> print(ioup4)
     <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(5,), dtype=float64>
-    """
+    """  # pylint: disable=line-too-long
+    # Doctest/Example blocks in the docstring above cannot be made to comply with line
+    # length rule because adding newlines in them will cause rendered page to have
+    # unwanted newlines.
 
     def __init__(
         self,
@@ -88,7 +97,8 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov_process.MarkovProcess):
         )
         if initrv is not None and diffuse:
             warnings.warn(
-                "Parameter `diffuse` has no effect, because an `initrv` has been provided."
+                "Parameter `diffuse` has no effect, "
+                "because an `initrv` has been provided."
             )
         if initrv is None:
             if diffuse:
