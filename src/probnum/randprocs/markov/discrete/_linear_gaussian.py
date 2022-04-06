@@ -233,8 +233,8 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
 
         # Smoothing updates need the gain, but
         # filtering updates "compute their own".
-        # Thus, if we are doing smoothing (|cov_obtained|>0) an the gain is not provided,
-        # make an extra prediction to compute the gain.
+        # Thus, if we are doing smoothing (|cov_obtained|>0) an the gain is not
+        # provided, make an extra prediction to compute the gain.
         if gain is None:
             if np.linalg.norm(rv_obtained.cov) > 0:
                 rv_forwarded, info_forwarded = self.forward_rv(
@@ -271,8 +271,8 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         ]
 
         # If no initial gain was provided, compute it from the QR-results
-        # This is required in the Kalman update, where, other than in the smoothing update,
-        # no initial gain was provided.
+        # This is required in the Kalman update, where, other than in the smoothing
+        # update, no initial gain was provided.
         # Recall that above, gain was set to zero in this setting.
         if np.linalg.norm(gain) == 0.0:
             R1 = big_triu[:output_dim, :output_dim]

@@ -11,30 +11,34 @@ __all__ = ["cholesky_update", "tril_to_positive_tril"]
 def cholesky_update(
     S1: np.ndarray, S2: typing.Optional[np.ndarray] = None
 ) -> np.ndarray:
-    r"""Compute Cholesky update/factorization :math:`L` such that :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` holds.
+    r"""Compute Cholesky update/factorization :math:`L` such that
+    :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` holds.
 
     This can be used in various ways.
-    For example, :math:`S_1` and :math:`S_2` do not need to be Cholesky factors; any matrix square-root is sufficient.
-    As long as :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` is well-defined (and admits a Cholesky-decomposition),
-    :math:`S_1` and :math:`S_2` do not even have to be square.
-
+    For example, :math:`S_1` and :math:`S_2` do not need to be Cholesky factors; any
+    matrix square-root is sufficient. As long as
+    :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` is well-defined (and admits a
+    Cholesky-decomposition), :math:`S_1` and :math:`S_2` do not even have to be square.
 
     Parameters
     ----------
     S1 :
-        First matrix square-root. Not necessarily a Cholesky factor, any (possibly even non-square) matrix :math:`S` such that :math:`C = S S^\top` holds, is sufficient.
+        First matrix square-root. Not necessarily a Cholesky factor, any (possibly even
+        non-square) matrix :math:`S` such that :math:`C = S S^\top` holds,
+        is sufficient.
     S2 :
-        Second matrix square-root. Not necessarily a Cholesky factor, any (possibly even non-square) matrix :math:`S` such that :math:`C = S S^\top` holds, is sufficient.
-        Optional. Default is None.
+        Second matrix square-root. Not necessarily a Cholesky factor, any (possibly even
+        non-square) matrix :math:`S` such that :math:`C = S S^\top` holds, is
+        sufficient. Optional. Default is None.
 
     Returns
     -------
-    Lower Cholesky factor :math:`L` of :math:`L L^\top =S1 S1^\top + S2 S2^\top`, if ``S2`` was not None. Otherwise, lower Cholesky factor of :math:`L L^\top =S1 S1^\top`.
-
+    Lower Cholesky factor :math:`L` of :math:`L L^\top =S1 S1^\top + S2 S2^\top`, if
+    ``S2`` was not None. Otherwise, lower Cholesky factor of
+    :math:`L L^\top =S1 S1^\top`.
 
     Examples
     --------
-
     >>> from probnum.utils.linalg import cholesky_update
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> import numpy as np
@@ -75,7 +79,8 @@ def cholesky_update(
 
 
 def tril_to_positive_tril(tril_mat: np.ndarray) -> np.ndarray:
-    r"""Orthogonally transform a lower-triangular matrix into a lower-triangular matrix with positive diagonal.
+    r"""Orthogonally transform a lower-triangular matrix into a lower-triangular matrix
+    with positive diagonal.
 
     In other words, make it a valid lower Cholesky factor.
 

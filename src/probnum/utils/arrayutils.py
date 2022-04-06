@@ -38,8 +38,8 @@ def atleast_1d(*rvs):
         res.append(result)
     if len(res) == 1:
         return res[0]
-    else:
-        return res
+
+    return res
 
 
 def as_colvec(
@@ -57,7 +57,6 @@ def as_colvec(
     if isinstance(vec, probnum.randvars.RandomVariable):
         if vec.shape != (vec.shape[0], 1):
             vec.reshape(newshape=(vec.shape[0], 1))
-    else:
-        if vec.ndim == 1:
-            return vec[:, None]
+    elif vec.ndim == 1:
+        return vec[:, None]
     return vec

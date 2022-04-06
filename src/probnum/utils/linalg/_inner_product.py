@@ -35,7 +35,9 @@ def inner_product(
 
     Notes
     -----
-    Note that the broadcasting behavior of :func:`inner_product` differs from :func:`numpy.inner`. Rather it follows the broadcasting rules of :func:`numpy.matmul` in that n-d arrays are treated as stacks of vectors.
+    Note that the broadcasting behavior of :func:`inner_product` differs from
+    :func:`numpy.inner`. Rather it follows the broadcasting rules of
+    :func:`numpy.matmul` in that n-d arrays are treated as stacks of vectors.
     """
     v_T = v[..., None, :]
     w = w[..., :, None]
