@@ -101,8 +101,6 @@ def bayesquad(
     ------
     ValueError
         If neither a domain nor a measure are given.
-    ValueError
-        If a domain and measure are both given but not compatible.
 
     Warns
     -----
@@ -198,8 +196,6 @@ def bayesquad_from_data(
     ------
     ValueError
         If neither a domain nor a measure are given.
-    ValueError
-        If a domain is given with a Gaussian measure.
 
     Warns
     -----
@@ -251,7 +247,7 @@ def _check_domain_measure_compatibility(
     measure: Optional[IntegrationMeasure],
 ) -> Tuple[int, Optional[DomainType], IntegrationMeasure]:
 
-    # Check input argument compatibility
+    # Neither domain nor measure given
     if domain is None and measure is None:
         raise ValueError(
             "You need to either specify an integration domain or an integration "
