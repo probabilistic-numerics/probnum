@@ -3,7 +3,8 @@
 import numpy as np
 import pytest
 
-from probnum.linops._arithmetic_fallbacks import (  # NegatedLinearOperator,; ProductLinearOperator,; SumLinearOperator,
+from probnum.linops._arithmetic_fallbacks import (
+    # NegatedLinearOperator,; ProductLinearOperator,; SumLinearOperator,
     ScaledLinearOperator,
 )
 from probnum.linops._linear_operator import Matrix

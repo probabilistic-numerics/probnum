@@ -93,7 +93,8 @@ def test_against_naive_implementation(
     np.testing.assert_allclose(
         updated_belief.A.cov.todense(),
         A_naive.cov.todense(),
-        err_msg="Covariance of system matrix estimate does not match naive implementation.",
+        err_msg="""Covariance of system matrix estimate does not
+        match naive implementation.""",
     )
 
     # Inverse
@@ -105,5 +106,6 @@ def test_against_naive_implementation(
     np.testing.assert_allclose(
         updated_belief.Ainv.cov.todense(),
         Ainv_naive.cov.todense(),
-        err_msg="Covariance of matrix inverse estimate does not match naive implementation.",
+        err_msg="""Covariance of matrix inverse estimate does not
+        match naive implementation.""",
     )
