@@ -27,7 +27,8 @@ class WrappedScipyRungeKutta(_odesolver.ODESolver):
         # Dopri853 as implemented in SciPy computes the dense output differently.
         if issubclass(solver_type, rk.DOP853):
             raise TypeError(
-                "Dense output interpolation of DOP853 is currently not supported. Choose a different RK-method."
+                "Dense output interpolation of DOP853 is currently not supported. "
+                "Choose a different RK-method."
             )
 
         super().__init__(steprule=steprule, order=solver_type.order)
