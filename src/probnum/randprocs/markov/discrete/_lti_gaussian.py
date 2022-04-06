@@ -72,7 +72,8 @@ class LTIGaussian(_linear_gaussian.LinearGaussian):
         """Turn a linear operator (or numpy array) into a noise-free transition."""
 
         # Currently, this is only a numpy array.
-        # In the future, once linops are more widely adopted here, this will become a linop.
+        # In the future, once linops are more widely adopted here, this will become
+        # a linop.
         if transition_matrix.ndim != 2:
             raise ValueError
         return cls(
