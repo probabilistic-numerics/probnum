@@ -16,11 +16,11 @@ class RandomPolicy(Policy):
 
     Parameters
     ----------
-    sample_func :
+    sample_func
         The sample function. Needs to have the following interface:
         `sample_func(batch_size: int, rng: np.random.Generator)` and return an array of
         shape (batch_size, n_dim).
-    batch_size :
+    batch_size
         Size of batch of nodes when calling the policy once.
     """
 

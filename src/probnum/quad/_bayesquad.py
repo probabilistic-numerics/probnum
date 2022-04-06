@@ -8,17 +8,18 @@ integral.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 import warnings
 
 import numpy as np
 
-from probnum.quad.solvers.bq_state import BQInfo
+from probnum.quad.solvers.bq_state import BQIterInfo
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
+from ._quad_typing import DomainLike
 from .solvers import BayesianQuadrature
 
 
@@ -26,9 +27,7 @@ def bayesquad(
     fun: Callable,
     input_dim: int,
     kernel: Optional[Kernel] = None,
-    domain: Optional[
-        Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
-    ] = None,
+    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
     max_evals: Optional[IntLike] = None,
@@ -36,7 +35,7 @@ def bayesquad(
     rel_tol: Optional[FloatLike] = None,
     batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
-) -> Tuple[Normal, BQInfo]:
+) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
     :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
@@ -46,8 +45,8 @@ def bayesquad(
     .. math:: F = \int_\Omega f(x) d \mu(x),
 
     of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated on the domain
-    :math:`\Omega \subset \mathbb{R}^D` against a measure :math:`\mu: \mathbb{R}^D
-    \mapsto \mathbb{R}`.
+    :math:`\Omega \subset \mathbb{R}^D` against a measure
+    :math:`\mu` on :math:`\mathbb{R}^D`.
 
     Bayesian quadrature methods return a probability distribution over the solution
     :math:`F` with uncertainty arising from finite computation (here a finite number
@@ -59,34 +58,34 @@ def bayesquad(
 
     Parameters
     ----------
-    fun :
+    fun
         Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
         ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-    input_dim :
+    input_dim
         Input dimension of the integration problem.
-    kernel :
+    kernel
         The kernel used for the GP model
-    domain :
+    domain
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
         ``int`` or ``np.ndarray``.
-    measure:
+    measure
         Integration measure. Defaults to the Lebesgue measure.
-    policy :
+    policy
         Type of acquisition strategy to use. Options are
 
         ==========================  =======
          Bayesian Monte Carlo [2]_  ``bmc``
         ==========================  =======
 
-    max_evals :
+    max_evals
         Maximum number of function evaluations.
-    var_tol :
+    var_tol
         Tolerance on the variance of the integral.
-    rel_tol :
+    rel_tol
         Tolerance on consecutive updates of the integral mean.
-    batch_size :
+    batch_size
         Number of new observations at each update.
-    rng :
+    rng
         Random number generator. Used by Bayesian Monte Carlo other random sampling
         policies. Optional. Default is `np.random.default_rng()`.
 
@@ -154,36 +153,34 @@ def bayesquad(
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(fun=fun)
+    integral_belief, _, info = bq_method.integrate(fun=fun)
 
-    return integral_belief, bq_state.info
+    return integral_belief, info
 
 
 def bayesquad_from_data(
     nodes: np.ndarray,
     fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
-    domain: Optional[
-        Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]]
-    ] = None,
+    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
-) -> Tuple[Normal, BQInfo]:
+) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
 
     Parameters
     ----------
-    nodes :
+    nodes
         *shape=(n_eval, input_dim)* -- Locations at which the function evaluations are
         available as ``fun_evals``.
-    fun_evals :
+    fun_evals
         *shape=(n_eval,)* -- Function evaluations at ``nodes``.
-    kernel :
+    kernel
         The kernel used for the GP model.
-    domain :
+    domain
         *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
         int or ndarray.
-    measure:
+    measure
         Integration measure. Defaults to the Lebesgue measure.
 
     Returns
@@ -244,6 +241,6 @@ def bayesquad_from_data(
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(nodes=nodes, fun_evals=fun_evals)
+    integral_belief, _, info = bq_method.integrate(nodes=nodes, fun_evals=fun_evals)
 
-    return integral_belief, bq_state.info
+    return integral_belief, info
