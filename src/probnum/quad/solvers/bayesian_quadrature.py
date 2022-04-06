@@ -1,6 +1,6 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -16,6 +16,7 @@ from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
+from .._quad_typing import DomainLike
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQIterInfo, BQState
@@ -63,9 +64,7 @@ class BayesianQuadrature:
         input_dim: int,
         kernel: Optional[Kernel] = None,
         measure: Optional[IntegrationMeasure] = None,
-        domain: Optional[
-            Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
-        ] = None,
+        domain: Optional[DomainLike] = None,
         policy: str = "bmc",
         max_evals: Optional[IntLike] = None,
         var_tol: Optional[FloatLike] = None,

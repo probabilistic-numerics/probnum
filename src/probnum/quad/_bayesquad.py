@@ -8,7 +8,7 @@ integral.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 import warnings
 
 import numpy as np
@@ -19,6 +19,7 @@ from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
+from ._quad_typing import DomainLike
 from .solvers import BayesianQuadrature
 
 
@@ -26,9 +27,7 @@ def bayesquad(
     fun: Callable,
     input_dim: int,
     kernel: Optional[Kernel] = None,
-    domain: Optional[
-        Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
-    ] = None,
+    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
     max_evals: Optional[IntLike] = None,
@@ -163,9 +162,7 @@ def bayesquad_from_data(
     nodes: np.ndarray,
     fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
-    domain: Optional[
-        Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]]
-    ] = None,
+    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function

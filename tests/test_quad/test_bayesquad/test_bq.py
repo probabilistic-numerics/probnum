@@ -5,7 +5,7 @@ import pytest
 from scipy.integrate import quad
 
 from probnum.quad import bayesquad, bayesquad_from_data
-from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
+from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
 from ..util import gauss_hermite_tensor, gauss_legendre_tensor
@@ -38,7 +38,10 @@ def test_integral_values_1d(f1d, kernel, measure, input_dim):
     bq_integral, _ = bayesquad(
         fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_evals=250
     )
-    num_integral, _ = quad(integrand, measure.domain[0], measure.domain[1])
+    domain = measure.domain
+    if domain is None:
+        domain = (-np.infty, np.infty)
+    num_integral, _ = quad(integrand, domain[0], domain[1])
     np.testing.assert_almost_equal(bq_integral.mean, num_integral, decimal=2)
 
 
@@ -56,7 +59,6 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim):
         n_points=n_gh, input_dim=input_dim, mean=measure.mean, cov=measure.cov
     )
     fun_evals = fun(nodes)
-    print(nodes.shape)
     bq_integral, _ = bayesquad_from_data(
         nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
     )
@@ -132,7 +134,7 @@ def test_domain_and_gaussian_measure_raises_error(measure, input_dim):
 def test_no_domain_or_measure_raises_error(input_dim):
     """Test that errors are correctly raised when both domain and a Gaussian measure is
     given."""
-    fun = lambda x: x
+    fun = lambda x: np.ones(x.shape[0])
     nodes = np.linspace(0, 1, 3)
     fun_evals = fun(nodes)
 
@@ -147,7 +149,7 @@ def test_no_domain_or_measure_raises_error(input_dim):
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
 def test_domain_ignored_if_lebesgue(input_dim, measure):
     domain = (0, 1)
-    fun = lambda x: x
+    fun = lambda x: np.reshape(x, (x.shape[0],))
 
     # standard BQ
     bq_integral, _ = bayesquad(
