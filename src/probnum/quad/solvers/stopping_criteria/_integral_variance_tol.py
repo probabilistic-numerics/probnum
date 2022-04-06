@@ -1,6 +1,6 @@
 """Stopping criterion based on the absolute value of the integral variance"""
 
-from probnum.quad.solvers.bq_state import BQState
+from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
 from probnum.typing import FloatLike
 
@@ -12,12 +12,12 @@ class IntegralVarianceTolerance(BQStoppingCriterion):
 
     Parameters
     ----------
-    var_tol:
+    var_tol
         Tolerance value of the variance.
     """
 
     def __init__(self, var_tol: FloatLike):
         self.var_tol = var_tol
 
-    def __call__(self, bq_state: BQState) -> bool:
+    def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         return bq_state.integral_belief.var <= self.var_tol

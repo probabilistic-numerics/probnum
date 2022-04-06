@@ -1,6 +1,6 @@
 """Stopping criterion that stops immediately."""
 
-from probnum.quad.solvers.bq_state import BQState
+from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
 
 # pylint: disable=too-few-public-methods
@@ -11,5 +11,5 @@ class ImmediateStop(BQStoppingCriterion):
     when no policy or acquisition loop is required or given.
     """
 
-    def __call__(self, bq_state: BQState) -> bool:
+    def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         return True
