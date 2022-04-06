@@ -12,7 +12,7 @@ class MaxNevals(BQStoppingCriterion):
 
     Parameters
     ----------
-    max_nevals:
+    max_nevals
         Maximum number of integrand evaluations.
     """
 

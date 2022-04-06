@@ -22,7 +22,7 @@ class RelativeMeanChange(BQStoppingCriterion):
 
     Parameters
     ----------
-    rel_tol:
+    rel_tol
         Relative error tolerance on consecutive integral mean values.
     """
 

@@ -12,7 +12,7 @@ class IntegralVarianceTolerance(BQStoppingCriterion):
 
     Parameters
     ----------
-    var_tol:
+    var_tol
         Tolerance value of the variance.
     """
 

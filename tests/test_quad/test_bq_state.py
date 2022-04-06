@@ -3,13 +3,8 @@
 import numpy as np
 import pytest
 
-from probnum.quad import (
-    BQIterInfo,
-    BQState,
-    IntegrationMeasure,
-    KernelEmbedding,
-    LebesgueMeasure,
-)
+from probnum.quad import IntegrationMeasure, KernelEmbedding, LebesgueMeasure
+from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 
@@ -68,7 +63,7 @@ def test_info_from_iteration(info):
 
 def test_info_from_bq_state(bq_state, bq_state_no_data, nevals):
 
-    # no data given
+    # no evaluations/ data given
     new_info = BQIterInfo.from_bq_state(bq_state_no_data)
     assert new_info.iteration == 0
     assert new_info.nevals == 0
@@ -83,11 +78,13 @@ def test_info_from_bq_state(bq_state, bq_state_no_data, nevals):
 
 def test_info_from_stopping_decision(info):
 
+    # solver converged
     new_info = BQIterInfo.from_stopping_decision(info, has_converged=False)
     assert new_info.iteration == info.iteration
     assert new_info.nevals == info.iteration
     assert not new_info.has_converged
 
+    # solver did not converge converged
     new_info = BQIterInfo.from_stopping_decision(info, has_converged=True)
     assert new_info.iteration == info.iteration
     assert new_info.nevals == info.iteration
@@ -126,15 +123,15 @@ def test_state_defaults_shapes(state, request):
     assert s.kernel_means.shape == (0,)
 
 
-def test_state_defaults_shapes2(bq_state, bq_state_no_data, nevals):
+def test_state_defaults_node_shapes(bq_state, bq_state_no_data, nevals):
 
-    # no data given
+    # no evaluations/ data given
     s = bq_state_no_data
 
     assert s.nodes.shape == (0, s.input_dim)
     assert s.fun_evals.shape == (0,)
 
-    # data given
+    # evaluations/ data given
     s = bq_state
 
     assert s.nodes.shape == (nevals, s.input_dim)

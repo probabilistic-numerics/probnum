@@ -14,7 +14,7 @@ class Policy(abc.ABC):
 
     Parameters
     ----------
-    batch_size :
+    batch_size
         Size of batch of nodes when calling the policy once.
     """
 
@@ -27,7 +27,7 @@ class Policy(abc.ABC):
 
         Parameters
         ----------
-        bq_state :
+        bq_state
             State of the BQ belief.
         Returns
         -------
