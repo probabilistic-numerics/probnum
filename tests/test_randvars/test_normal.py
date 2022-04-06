@@ -138,8 +138,10 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (np.array([[-1, 0], [2, 1]]), np.eye(3)),
         ]:
             with self.subTest():
-                err_msg = """Mean and kernels mismatch in normal distribution
-                did not raise a ValueError."""
+                err_msg = (
+                    "Mean and kernels mismatch in normal distribution "
+                    "did not raise a ValueError."
+                )
                 with self.assertRaises(ValueError, msg=err_msg):
                     assert randvars.Normal(mean=mean, cov=cov)
 
@@ -205,8 +207,10 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 B.T,
                 atol=1e-5,
                 rtol=1e-5,
-                msg=f"""Sample {i} from symmetric Kronecker
-                distribution is not symmetric.""",
+                msg=(
+                    f"Sample {i} from symmetric Kronecker "
+                    "distribution is not symmetric."
+                ),
             )
 
     def test_indexing(self):
