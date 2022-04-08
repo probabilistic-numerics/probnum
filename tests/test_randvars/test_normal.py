@@ -74,14 +74,6 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             ),
         ]
 
-    def test_correct_instantiation(self):
-        """Test whether different variants of the normal distribution are instances of
-        Normal."""
-        for mean, cov in self.normal_params:
-            with self.subTest():
-                dist = randvars.Normal(mean=mean, cov=cov)
-                self.assertIsInstance(dist, randvars.Normal)
-
     def test_scalarmult(self):
         """Multiply a rv with a normal distribution with a scalar."""
         for (mean, cov), const in list(
@@ -117,98 +109,6 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 else:
                     with self.assertRaises(ValueError):
                         normrv_added = normrv0 + normrv1
-
-    def test_rv_linop_kroneckercov(self):
-        """Create a rv with a normal distribution with linear operator mean and
-        Kronecker product kernels."""
-
-        @linops.LinearOperator.broadcast_matvec
-        def _matmul(v):
-            return np.array([2 * v[0], 3 * v[1]])
-
-        A = linops.LinearOperator(shape=(2, 2), dtype=np.double, matmul=_matmul)
-        V = linops.Kronecker(A, A)
-        randvars.Normal(mean=A, cov=V)
-
-    def test_normal_dimension_mismatch(self):
-        """Instantiating a normal distribution with mismatched mean and kernels should
-        result in a ValueError."""
-        for mean, cov in [
-            (0, np.array([1, 2])),
-            (np.array([1, 2]), np.array([1, 0])),
-            (np.array([[-1, 0], [2, 1]]), np.eye(3)),
-        ]:
-            with self.subTest():
-                err_msg = "Mean and kernels mismatch in normal distribution did not raise a ValueError."
-                with self.assertRaises(ValueError, msg=err_msg):
-                    assert randvars.Normal(mean=mean, cov=cov)
-
-    def test_normal_instantiation(self):
-        """Instantiation of a normal distribution with mixed mean and cov type."""
-        for mean, cov in self.normal_params:
-            with self.subTest():
-                randvars.Normal(mean=mean, cov=cov)
-
-    def test_normal_pdf(self):
-        """Evaluate pdf at random input."""
-        for mean, cov in self.normal_params:
-            with self.subTest():
-                dist = randvars.Normal(mean=mean, cov=cov)
-                pass
-
-    def test_normal_cdf(self):
-        """Evaluate cdf at random input."""
-        pass
-
-    def test_sample(self):
-        """Draw samples and check all sample dimensions."""
-        for mean, cov in self.normal_params:
-            with self.subTest():
-                # TODO: check dimension of each realization in rv_sample
-                rv = randvars.Normal(mean=mean, cov=cov)
-                rv_sample = rv.sample(rng=self.rng, size=5)
-                if np.ndim(rv.mean) != 0:
-                    self.assertEqual(
-                        rv_sample.shape[-rv.ndim :],
-                        mean.shape,
-                        msg="Realization shape does not match mean shape.",
-                    )
-
-    def test_sample_zero_cov(self):
-        """Draw sample from distribution with zero kernels and check whether it equals
-        the mean."""
-        for mean, cov in self.normal_params:
-            with self.subTest():
-                rv = randvars.Normal(mean=mean, cov=0 * cov)
-                rv_sample = rv.sample(rng=self.rng, size=1)
-                assert_str = "Draw with kernels zero does not match mean."
-                if isinstance(rv.mean, linops.LinearOperator):
-                    self.assertAllClose(rv_sample, rv.mean.todense(), msg=assert_str)
-                else:
-                    self.assertAllClose(rv_sample, rv.mean, msg=assert_str)
-
-    def test_symmetric_samples(self):
-        """Samples from a normal distribution with symmetric Kronecker kernels of two
-        symmetric matrices are symmetric."""
-
-        n = 3
-        A = self.rng.uniform(size=(n, n))
-        A = 0.5 * (A + A.T) + n * np.eye(n)
-        rv = randvars.Normal(
-            mean=np.eye(A.shape[0]),
-            cov=linops.SymmetricKronecker(A=A),
-        )
-        rv = rv.sample(rng=self.rng, size=10)
-        for i, B in enumerate(rv):
-            self.assertAllClose(
-                B,
-                B.T,
-                atol=1e-5,
-                rtol=1e-5,
-                msg="Sample {} from symmetric Kronecker distribution is not symmetric.".format(
-                    i
-                ),
-            )
 
     def test_indexing(self):
         """Indexing with Python integers yields a univariate normal distribution."""
@@ -450,23 +350,6 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         with self.subTest("Cholesky is precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
-
-    def test_damping_factor_config(self):
-        mean, cov = self.params
-        rv = randvars.Normal(mean, cov)
-
-        chol_standard_damping = rv.dense_cov_cholesky(damping_factor=None)
-        self.assertAllClose(
-            chol_standard_damping,
-            np.sqrt(rv.cov + 1e-12),
-        )
-
-        with config(covariance_inversion_damping=1e-3):
-            chol_altered_damping = rv.dense_cov_cholesky(damping_factor=None)
-            self.assertAllClose(
-                chol_altered_damping,
-                np.sqrt(rv.cov + 1e-3),
-            )
 
     def test_cov_cholesky_cov_cholesky_passed(self):
         """A value for cov_cholesky is passed in init.
