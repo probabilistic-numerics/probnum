@@ -54,6 +54,9 @@ __all__ = (
     + _core.__all__
     + __all__imported_modules
 )
+# Sort entries in documentation. Necessary since autodoc config option `member_order`
+# seems to have no effect.
+__all__.sort()
 
 # Set correct module paths. Corrects links and module paths in documentation.
 member_dict = dict(inspect.getmembers(sys.modules[__name__]))

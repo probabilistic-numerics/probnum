@@ -51,9 +51,6 @@ extensions = [
 templates_path = ["_templates"]
 
 # Settings for autodoc
-autodoc_default_options = {
-    "member-order": "alphabetical",
-}
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
