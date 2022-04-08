@@ -208,7 +208,7 @@ class LinearSDE(_sde.SDE):
         )
 
         return randvars.Normal(
-            mean=new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky
+            mean=new_mean, cov=new_cov, cache={"cov_cholesky": new_cov_cholesky}
         ), {
             "sol": sol,
             "sol_mean": sol_mean,

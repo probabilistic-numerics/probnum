@@ -54,7 +54,7 @@ class _AutoDiffBase(InitializationRoutine):
         return randvars.Normal(
             mean=np.asarray(mean),
             cov=np.asarray(zeros),
-            cov_cholesky=np.asarray(zeros),
+            cache={"cov_cholesky": np.asarray(zeros)},
         )
 
     def _compute_ode_derivatives(self, *, f, y0, num_derivatives):

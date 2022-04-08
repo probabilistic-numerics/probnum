@@ -4,10 +4,11 @@ Mostly some random variables of matching dimensions.
 """
 
 import numpy as np
-import pytest
 
 from probnum import randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
+
+import pytest
 
 
 @pytest.fixture
@@ -53,7 +54,7 @@ def some_normal_rv1(test_ndim, spdmat1, rng):
     return randvars.Normal(
         mean=rng.uniform(size=test_ndim),
         cov=spdmat1,
-        cov_cholesky=np.linalg.cholesky(spdmat1),
+        cache={"cov_cholesky": np.linalg.cholesky(spdmat1)},
     )
 
 
@@ -62,7 +63,7 @@ def some_normal_rv2(test_ndim, spdmat2, rng):
     return randvars.Normal(
         mean=rng.uniform(size=test_ndim),
         cov=spdmat2,
-        cov_cholesky=np.linalg.cholesky(spdmat2),
+        cache={"cov_cholesky": np.linalg.cholesky(spdmat2)},
     )
 
 
@@ -71,7 +72,7 @@ def some_normal_rv3(test_ndim, spdmat3, rng):
     return randvars.Normal(
         mean=rng.uniform(size=test_ndim),
         cov=spdmat3,
-        cov_cholesky=np.linalg.cholesky(spdmat3),
+        cache={"cov_cholesky": np.linalg.cholesky(spdmat3)},
     )
 
 
@@ -80,7 +81,7 @@ def some_normal_rv4(test_ndim, spdmat4, rng):
     return randvars.Normal(
         mean=rng.uniform(size=test_ndim),
         cov=spdmat4,
-        cov_cholesky=np.linalg.cholesky(spdmat4),
+        cache={"cov_cholesky": np.linalg.cholesky(spdmat4)},
     )
 
 

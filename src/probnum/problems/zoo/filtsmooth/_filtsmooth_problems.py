@@ -119,7 +119,7 @@ def car_tracking(
         initrv = randvars.Normal(
             np.zeros(model_dim),
             measurement_variance * np.eye(model_dim),
-            cov_cholesky=np.sqrt(measurement_variance) * np.eye(model_dim),
+            cache={"cov_cholesky": np.sqrt(measurement_variance) * np.eye(model_dim)},
         )
 
     # Set up regression problem

@@ -99,7 +99,7 @@ class MaternProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(matern_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(matern_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cache={"cov_cholesky": cov_cholesky}
             )
 
         super().__init__(transition=matern_transition, initrv=initrv, initarg=initarg)

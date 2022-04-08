@@ -208,7 +208,9 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
                 (new_cov_cholesky, True), crosscov.T
             ).T
         return (
-            randvars.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky),
+            randvars.Normal(
+                new_mean, cov=new_cov, cache={"cov_cholesky": new_cov_cholesky}
+            ),
             info,
         )
 
@@ -285,7 +287,12 @@ class LinearGaussian(_nonlinear_gaussian.NonlinearGaussian):
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
         info = {"rv_forwarded": rv_forwarded}
-        return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), info
+        return (
+            randvars.Normal(
+                new_mean, new_cov, cache={"cov_cholesky": new_cov_cholesky}
+            ),
+            info,
+        )
 
     def _backward_rv_joseph(
         self,

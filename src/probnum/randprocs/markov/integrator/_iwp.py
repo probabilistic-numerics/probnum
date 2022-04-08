@@ -97,7 +97,7 @@ class IntegratedWienerProcess(_markov_process.MarkovProcess):
             zeros = np.zeros(iwp_transition.state_dimension)
             cov_cholesky = scale_cholesky * np.eye(iwp_transition.state_dimension)
             initrv = randvars.Normal(
-                mean=zeros, cov=cov_cholesky**2, cov_cholesky=cov_cholesky
+                mean=zeros, cov=cov_cholesky**2, cache={"cov_cholesky": cov_cholesky}
             )
 
         super().__init__(transition=iwp_transition, initrv=initrv, initarg=initarg)
@@ -198,7 +198,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
         return discrete.LTIGaussian(
             transition_matrix=state_transition,
             noise=randvars.Normal(
-                mean=empty_shift, cov=noise, cov_cholesky=noise_cholesky
+                mean=empty_shift, cov=noise, cache={"cov_cholesky": noise_cholesky}
             ),
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
@@ -300,7 +300,7 @@ class IntegratedWienerTransition(_integrator.IntegratorTransition, continuous.LT
             noise=randvars.Normal(
                 mean=zero_shift,
                 cov=proc_noise_cov_mat,
-                cov_cholesky=proc_noise_cov_cholesky,
+                cache={"cov_cholesky": proc_noise_cov_cholesky},
             ),
             forward_implementation=self.forward_implementation,
             backward_implementation=self.forward_implementation,

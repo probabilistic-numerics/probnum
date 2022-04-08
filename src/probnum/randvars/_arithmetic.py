@@ -216,13 +216,15 @@ _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal  # pylint: disable=protected-
 
 
 def _add_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
-    cov_cholesky = (
-        norm_rv._cov_cholesky if norm_rv._cov_cholesky_is_precomputed else None
-    )
+    if "cov_cholesky" in norm_rv._cache:
+        cache = norm_rv._cache["cov_cholesky"]
+    else:
+        cache = None
+
     return _Normal(
         mean=norm_rv.mean + constant_rv.support,
         cov=norm_rv.cov,
-        cov_cholesky=cov_cholesky,
+        cache=cache,
     )
 
 
@@ -231,13 +233,15 @@ _add_fns[(_Constant, _Normal)] = _swap_operands(_add_normal_constant)
 
 
 def _sub_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
-    cov_cholesky = (
-        norm_rv._cov_cholesky if norm_rv._cov_cholesky_is_precomputed else None
-    )
+    if "cov_cholesky" in norm_rv._cache:
+        cache = {"cov_cholesky": norm_rv._cache["cov_cholesky"]}
+    else:
+        cache = None
+
     return _Normal(
         mean=norm_rv.mean - constant_rv.support,
         cov=norm_rv.cov,
-        cov_cholesky=cov_cholesky,
+        cache=cache,
     )
 
 
@@ -245,13 +249,15 @@ _sub_fns[(_Normal, _Constant)] = _sub_normal_constant
 
 
 def _sub_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
-    cov_cholesky = (
-        norm_rv._cov_cholesky if norm_rv._cov_cholesky_is_precomputed else None
-    )
+    if "cov_cholesky" in norm_rv._cache:
+        cache = {"cov_cholesky": norm_rv._cache["cov_cholesky"]}
+    else:
+        cache = None
+
     return _Normal(
         mean=constant_rv.support - norm_rv.mean,
         cov=norm_rv.cov,
-        cov_cholesky=cov_cholesky,
+        cache=cache,
     )
 
 
@@ -267,14 +273,17 @@ def _mul_normal_constant(
                 support=backend.zeros_like(norm_rv.mean),
             )
 
-        if norm_rv._cov_cholesky_is_precomputed:
-            cov_cholesky = constant_rv.support * norm_rv._cov_cholesky
+        if "cov_cholesky" in norm_rv._cache:
+            cache = {
+                "cov_cholesky": constant_rv.support * norm_rv._cache["cov_cholesky"]
+            }
         else:
-            cov_cholesky = None
+            cache = None
+
         return _Normal(
             mean=constant_rv.support * norm_rv.mean,
             cov=(constant_rv.support**2) * norm_rv.cov,
-            cov_cholesky=cov_cholesky,
+            cache=cache,
         )
 
     return NotImplemented
@@ -291,9 +300,10 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
     a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
-        if norm_rv._cov_cholesky_is_precomputed:
-            cov_cholesky = _backend.linalg.cholesky_update(
-                constant_rv.support.T @ norm_rv._cov_cholesky
+
+        if "cov_cholesky" in norm_rv._cache:
+            cov_cholesky = backend.linalg.cholesky_update(
+                constant_rv.support.T @ norm_rv._cache["cov_cholesky"]
             )
         else:
             cov_cholesky = None
@@ -312,7 +322,10 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             if cov_cholesky is not None:
                 cov_cholesky = cov_cholesky.reshape((1, 1))
 
-        return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
+        if cov_cholesky is not None:
+            return _Normal(mean=mean, cov=cov, cache={"cov_cholesky": cov_cholesky})
+
+        return _Normal(mean=mean, cov=cov)
 
     # This part does not do the Cholesky update,
     # because of performance configurations: currently, there is no way of switching
@@ -344,9 +357,10 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
     a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
-        if norm_rv._cov_cholesky_is_precomputed:
-            cov_cholesky = _backend.linalg.cholesky_update(
-                constant_rv.support @ norm_rv._cov_cholesky
+
+        if "cov_cholesky" in norm_rv._cache:
+            cov_cholesky = backend.linalg.cholesky_update(
+                constant_rv.support @ norm_rv._cache["cov_cholesky"]
             )
         else:
             cov_cholesky = None
@@ -365,7 +379,10 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
             if cov_cholesky is not None:
                 cov_cholesky = cov_cholesky.reshape((1, 1))
 
-        return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
+        if cov_cholesky is not None:
+            return _Normal(mean=mean, cov=cov, cache={"cov_cholesky": cov_cholesky})
+
+        return _Normal(mean=mean, cov=cov)
 
     # This part does not do the Cholesky update,
     # because of performance configurations: currently, there is no way of switching
@@ -396,15 +413,17 @@ def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Norma
         if constant_rv.support == 0:
             raise ZeroDivisionError
 
-        if norm_rv._cov_cholesky_is_precomputed:
-            cov_cholesky = norm_rv._cov_cholesky / constant_rv.support
+        if "cov_cholesky" in norm_rv._cache:
+            cache = {
+                "cov_cholesky": norm_rv._cache["cov_cholesky"] / constant_rv.support
+            }
         else:
-            cov_cholesky = None
+            cache = None
 
         return _Normal(
             mean=norm_rv.mean / constant_rv.support,
             cov=norm_rv.cov / (constant_rv.support**2),
-            cov_cholesky=cov_cholesky,
+            cache=cache,
         )
 
     return NotImplemented

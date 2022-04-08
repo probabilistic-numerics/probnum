@@ -9,6 +9,7 @@ import scipy.stats
 
 from probnum import config, linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
+
 from tests.testing import NumpyAssertions
 
 
@@ -479,7 +480,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand()
 
-        rv = randvars.Normal(mean, cov, cov_cholesky=cov_cholesky)
+        rv = randvars.Normal(mean, cov, cache={"cov_cholesky": cov_cholesky})
 
         with self.subTest("Cholesky precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
@@ -617,7 +618,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand(*cov.shape)
 
-        rv = randvars.Normal(mean, cov, cov_cholesky=cov_cholesky)
+        rv = randvars.Normal(mean, cov, cache={"cov_cholesky": cov_cholesky})
 
         with self.subTest("Cholesky precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
@@ -637,12 +638,16 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         cov_cholesky_wrong_type = cov_cholesky.tolist()
         with self.subTest("Different type raises ValueError"):
             with self.assertRaises(TypeError):
-                randvars.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_type)
+                randvars.Normal(
+                    mean, cov, cache={"cov_cholesky": cov_cholesky_wrong_type}
+                )
 
         cov_cholesky_wrong_shape = cov_cholesky[1:]
         with self.subTest("Different shape raises ValueError"):
             with self.assertRaises(ValueError):
-                randvars.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_shape)
+                randvars.Normal(
+                    mean, cov, cache={"cov_cholesky": cov_cholesky_wrong_shape}
+                )
 
         cov_cholesky_wrong_dtype = cov_cholesky.astype(int)
         with self.subTest("Different data type is promoted"):
@@ -652,7 +657,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
             # Assert data type of cov_cholesky is changed during __init__
             normal_new_dtype = randvars.Normal(
-                mean, cov, cov_cholesky=cov_cholesky_wrong_dtype
+                mean, cov, cache={"cov_cholesky": cov_cholesky_wrong_dtype}
             )
             self.assertEqual(
                 normal_new_dtype.cov.dtype, normal_new_dtype.cov_cholesky.dtype
@@ -761,7 +766,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         rv = randvars.Normal(
             mean=np.random.uniform(size=(2, 2)),
             cov=random_spd_matrix(rng=self.rng, dim=4),
-            cov_cholesky=cov_cholesky,
+            cache={"cov_cholesky": cov_cholesky},
         )
 
         with self.subTest("Cholesky precomputed"):

@@ -199,7 +199,7 @@ class ODEFilter(_odesolver.ODESolver):
         noisy_component = randvars.Normal(
             mean=np.zeros(state.rv.shape),
             cov=state.rv.cov.copy(),
-            cov_cholesky=state.rv._cov_cholesky.copy(),
+            cache={"cov_cholesky": state.rv._cov_cholesky.copy()},
         )
 
         # Compute the measurements for the error-free component
@@ -227,7 +227,7 @@ class ODEFilter(_odesolver.ODESolver):
         meas_rv = randvars.Normal(
             mean=meas_rv_error_free.mean,
             cov=full_meas_cov,
-            cov_cholesky=full_meas_cov_cholesky,
+            cache={"cov_cholesky": full_meas_cov_cholesky},
         )
 
         # Estimate local diffusion_model and error
@@ -258,7 +258,7 @@ class ODEFilter(_odesolver.ODESolver):
             new_rv = randvars.Normal(
                 mean=state.rv.mean.copy(),
                 cov=state.rv.cov.copy(),
-                cov_cholesky=state.rv._cov_cholesky.copy(),
+                cache={"cov_cholesky": state.rv._cov_cholesky.copy()},
             )
             state = _odesolver_state.ODESolverState(
                 ivp=state.ivp,
@@ -285,7 +285,7 @@ class ODEFilter(_odesolver.ODESolver):
             pred_rv = randvars.Normal(
                 mean=pred_rv_error_free.mean,
                 cov=full_pred_cov,
-                cov_cholesky=full_pred_cov_cholesky,
+                cache={"cov_cholesky": full_pred_cov_cholesky},
             )
 
             full_meas_cov_cholesky = backend.linalg.cholesky_update(
@@ -295,7 +295,7 @@ class ODEFilter(_odesolver.ODESolver):
             meas_rv = randvars.Normal(
                 mean=meas_rv_error_free.mean,
                 cov=full_meas_cov,
-                cov_cholesky=full_meas_cov_cholesky,
+                cache={"cov_cholesky": full_meas_cov_cholesky},
             )
 
         else:
@@ -310,7 +310,7 @@ class ODEFilter(_odesolver.ODESolver):
             pred_rv = randvars.Normal(
                 mean=pred_rv_error_free.mean,
                 cov=full_pred_cov,
-                cov_cholesky=full_pred_cov_cholesky,
+                cache={"cov_cholesky": full_pred_cov_cholesky},
             )
 
         # Gain needs manual catching up, too. Use it to compute the update
@@ -366,7 +366,7 @@ class ODEFilter(_odesolver.ODESolver):
                 state=randvars.Normal(
                     mean=rv.mean,
                     cov=s * rv.cov,
-                    cov_cholesky=np.sqrt(s) * rv._cov_cholesky,
+                    cache={"cov_cholesky": np.sqrt(s) * rv._cov_cholesky},
                 ),
             )
 

@@ -25,7 +25,7 @@ def apply_precon(precon, rv):
     new_cov_cholesky = precon @ rv._cov_cholesky  # precon is diagonal, so this is valid
     new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
-    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
+    return randvars.Normal(new_mean, new_cov, cache={"cov_cholesky": new_cov_cholesky})
 
 
 class Preconditioner(abc.ABC):
