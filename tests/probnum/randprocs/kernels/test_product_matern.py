@@ -26,7 +26,7 @@ def test_kernel_matrix(input_shape: ShapeType, lengthscale: float, nu: float):
 
     xs_shape = (15,) + input_shape
     xs = backend.random.uniform(
-        seed=tests.utils.random.rng_state_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=42, shape=xs_shape
         ),
         shape=xs_shape,

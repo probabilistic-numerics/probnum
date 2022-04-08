@@ -14,13 +14,13 @@ def even_ndim():
 
 @pytest.fixture
 def spdmats(even_ndim):
-    seed = tests.utils.random.rng_state_from_sampling_args(
+    rng_state = tests.utils.random.rng_state_from_sampling_args(
         base_seed=3897, shape=even_ndim
     )
-    seed1, seed2 = backend.random.split(seed, num=2)
+    rng_state1, rng_state2 = backend.random.split(rng_state, num=2)
 
-    spdmat1 = random_spd_matrix(seed1, dim=even_ndim)
-    spdmat2 = random_spd_matrix(seed2, dim=even_ndim)
+    spdmat1 = random_spd_matrix(rng_state1, dim=even_ndim)
+    spdmat2 = random_spd_matrix(rng_state2, dim=even_ndim)
 
     return spdmat1, spdmat2
 
@@ -49,7 +49,7 @@ def test_cholesky_optional(spdmat1, even_ndim):
     correct Cholesky factor."""
     H_shape = (even_ndim // 2, even_ndim)
     H = backend.random.uniform(
-        seed=tests.utils.random.rng_state_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=2908,
             shape=H_shape,
         ),
@@ -65,7 +65,7 @@ def test_tril_to_positive_tril():
 
     # Make a random tril matrix
     mat = backend.tril(
-        backend.random.uniform(seed=backend.random.rng_state(4897), shape=(4, 4))
+        backend.random.uniform(rng_state=backend.random.rng_state(4897), shape=(4, 4))
     )
     scale = backend.asarray([1.0, 1.0, 1e-5, 1e-5])
     signs = backend.asarray([1.0, -1.0, -1.0, -1.0])
