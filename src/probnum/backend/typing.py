@@ -87,14 +87,16 @@ ArrayLike = Union[Array, _NumPyArrayLike]
 
 Arguments of type :attr:`ArrayLike` should always be converted into
 :class:`~probnum.backend.Array`\\ s
-using the function :func:`backend.asarray` before further internal processing."""
+using the function :func:`~probnum.backend.asarray` before further internal
+processing."""
 
 # Array Utilities
 ShapeLike = Union[IntLike, Iterable[IntLike]]
 """Object that can be converted to a shape.
 
 Arguments of type :attr:`ShapeLike` should always be converted into :class:`ShapeType`
-using the function :func:`backend.asshape` before further internal processing."""
+using the function :func:`~probnum.backend.asshape` before further internal
+processing."""
 
 DTypeLike = Union["probnum.backend.Dtype", _NumPyDTypeLike]
 """Object that can be converted to an array dtype.

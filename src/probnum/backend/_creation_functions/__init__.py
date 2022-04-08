@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
-from .. import BACKEND, Array, Backend, Scalar, ndim
+from .. import BACKEND, Array, Backend, Dtype, Scalar, ndim
 from ..typing import DTypeLike, ScalarLike
 
 if BACKEND is Backend.NUMPY:
@@ -21,7 +21,7 @@ def asarray(
     obj: Union[Array, bool, int, float, "NestedSequence", "SupportsBufferProtocol"],
     /,
     *,
-    dtype: Optional["probnum.backend.Dtype"] = None,
+    dtype: Optional[Dtype] = None,
     device: Optional["probnum.backend.Device"] = None,
     copy: Optional[bool] = None,
 ) -> Array:

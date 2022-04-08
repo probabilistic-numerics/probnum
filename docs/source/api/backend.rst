@@ -29,3 +29,4 @@ probnum.backend
 
 .. automodapi:: probnum.backend
     :no-heading:
+    :include-all-objects:
