@@ -22,7 +22,7 @@ def asarray(
     /,
     *,
     dtype: Optional["probnum.backend.Dtype"] = None,
-    device: Optional["probnum.backend.device"] = None,
+    device: Optional["probnum.backend.Device"] = None,
     copy: Optional[bool] = None,
 ) -> Array:
     """Convert the input to an array.
