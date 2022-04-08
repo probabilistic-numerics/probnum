@@ -59,7 +59,7 @@ class ProductMatern(Kernel):
         lengthscales: ArrayLike,
         nus: ArrayLike,
     ):
-        input_shape = backend.as_shape(input_shape)
+        input_shape = backend.asshape(input_shape)
 
         if input_shape == () and not (
             backend.ndim(lengthscales) == 0 and backend.ndim(nus) == 0

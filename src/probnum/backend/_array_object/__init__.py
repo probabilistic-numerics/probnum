@@ -13,11 +13,11 @@ elif BACKEND is Backend.JAX:
 elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
-__all__ = ["Scalar", "Array", "dtype", "isarray"]
+__all__ = ["Scalar", "Array", "Dtype", "isarray"]
 
 Scalar = _impl.Scalar
 Array = _impl.Array
-dtype = _impl.dtype
+Dtype = _impl.Dtype
 
 
 def isarray(x: Any) -> bool:

@@ -102,7 +102,7 @@ def rng_state_from_sampling_args(
     h.update(hex(base_seed).encode())
 
     # `shape`
-    shape = backend.as_shape(shape)
+    shape = backend.asshape(shape)
 
     h.update(b"(")
 

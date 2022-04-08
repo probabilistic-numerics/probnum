@@ -8,7 +8,7 @@ from typing import Sequence
 import jax
 from jax import numpy as jnp
 
-from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike, ShapeType
 
 RNGState = jax.random.PRNGKey
 
@@ -27,23 +27,33 @@ def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
     return jax.random.split(key=rng_state, num=num)
 
 
-def uniform(rng_state: RNGState, shape=(), dtype=jnp.double, minval=0.0, maxval=1.0):
+def uniform(
+    rng_state: RNGState,
+    shape: ShapeType = (),
+    dtype: jnp.dtype = jnp.double,
+    minval: jnp.ndarray = jnp.array(0.0),
+    maxval: jnp.ndarray = jnp.array(1.0),
+) -> jnp.ndarray:
     return jax.random.uniform(
         key=rng_state, shape=shape, dtype=dtype, minval=minval, maxval=maxval
     )
 
 
-def standard_normal(rng_state: RNGState, shape=(), dtype=jnp.double):
+def standard_normal(
+    rng_state: RNGState,
+    shape: ShapeType = (),
+    dtype: jnp.dtype = jnp.double,
+) -> jnp.ndarray:
     return jax.random.normal(key=rng_state, shape=shape, dtype=dtype)
 
 
 def gamma(
     rng_state: RNGState,
-    shape_param: FloatLike,
-    scale_param: FloatLike = 1.0,
-    shape: ShapeLike = (),
-    dtype: DTypeLike = jnp.double,
-):
+    shape_param: jnp.ndarray,
+    scale_param: jnp.ndarray = jnp.array(1.0),
+    shape: ShapeType = (),
+    dtype: jnp.dtype = jnp.double,
+) -> jnp.ndarray:
     return (
         jax.random.gamma(key=rng_state, a=shape_param, shape=shape, dtype=dtype)
         * scale_param
@@ -54,8 +64,8 @@ def gamma(
 def uniform_so_group(
     rng_state: RNGState,
     n: int,
-    shape: ShapeLike = (),
-    dtype: DTypeLike = jnp.double,
+    shape: ShapeType = (),
+    dtype: jnp.dtype = jnp.double,
 ) -> jnp.ndarray:
     if n == 1:
         return jnp.ones(shape + (1, 1), dtype=dtype)

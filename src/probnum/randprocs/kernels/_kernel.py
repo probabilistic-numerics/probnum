@@ -138,7 +138,7 @@ class Kernel(abc.ABC):
         input_shape: ShapeLike,
         output_shape: ShapeLike = (),
     ):
-        self._input_shape = backend.as_shape(input_shape)
+        self._input_shape = backend.asshape(input_shape)
         self._input_ndim = len(self._input_shape)
 
         if self._input_ndim > 1:
@@ -146,7 +146,7 @@ class Kernel(abc.ABC):
                 "Currently, we only support kernels with at most 1 input dimension."
             )
 
-        self._output_shape = backend.as_shape(output_shape)
+        self._output_shape = backend.asshape(output_shape)
         self._output_ndim = len(self._output_shape)
 
     @property

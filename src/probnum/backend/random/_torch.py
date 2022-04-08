@@ -8,7 +8,7 @@ import torch
 from torch.distributions.utils import broadcast_all
 
 from probnum import backend
-from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike
+from probnum.backend.typing import DTypeLike, Seed, ShapeLike, ShapeType
 
 RNGState = np.random.SeedSequence
 
@@ -35,18 +35,20 @@ def _rng_from_rng_state(rng_state: RNGState) -> torch.Generator:
 
 def uniform(
     rng_state: RNGState,
-    shape=(),
-    dtype: DTypeLike = torch.double,
-    minval: FloatLike = 0.0,
-    maxval: FloatLike = 1.0,
-):
+    shape: ShapeType = (),
+    dtype: torch.dtype = torch.double,
+    minval: torch.Tensor = torch.as_tensor(0.0),
+    maxval: torch.Tensor = torch.as_tensor(1.0),
+) -> torch.Tensor:
     rng = _rng_from_rng_state(rng_state)
-    minval = backend.asscalar(minval, dtype=dtype)
-    maxval = backend.asscalar(maxval, dtype=dtype)
     return (maxval - minval) * torch.rand(shape, generator=rng, dtype=dtype) + minval
 
 
-def standard_normal(rng_state: RNGState, shape=(), dtype=torch.double):
+def standard_normal(
+    rng_state: RNGState,
+    shape: ShapeType = (),
+    dtype: torch.dtype = torch.double,
+) -> torch.Tensor:
     rng = _rng_from_rng_state(rng_state)
 
     return torch.randn(shape, generator=rng, dtype=dtype)
@@ -55,10 +57,10 @@ def standard_normal(rng_state: RNGState, shape=(), dtype=torch.double):
 def gamma(
     rng_state: RNGState,
     shape_param: torch.Tensor,
-    scale_param=1.0,
-    shape=(),
+    scale_param: torch.Tensor = torch.as_tensor(1.0),
+    shape: ShapeType = (),
     dtype=torch.double,
-):
+) -> torch.Tensor:
     rng = _rng_from_rng_state(rng_state)
 
     shape_param = torch.as_tensor(shape_param, dtype=dtype)
@@ -78,8 +80,8 @@ def gamma(
 def uniform_so_group(
     rng_state: RNGState,
     n: int,
-    shape: ShapeLike = (),
-    dtype: DTypeLike = torch.double,
+    shape: ShapeType = (),
+    dtype: torch.dtype = torch.double,
 ) -> torch.Tensor:
     if n == 1:
         return torch.ones(shape + (1, 1), dtype=dtype)

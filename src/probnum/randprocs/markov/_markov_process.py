@@ -72,7 +72,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
         sample_shape: ShapeLike = (),
     ) -> backend.Array:
 
-        sample_shape = backend.as_shape(sample_shape)
+        sample_shape = backend.asshape(sample_shape)
         args = backend.atleast_1d(args)
         if args.ndim > 1:
             raise ValueError(f"Invalid args shape {args.shape}")

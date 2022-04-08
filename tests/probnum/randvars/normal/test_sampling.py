@@ -13,7 +13,7 @@ def sample_shape_arg(shape: ShapeLike) -> ShapeLike:
 
 @fixture(scope="module")
 def sample_shape(sample_shape_arg: ShapeLike) -> ShapeType:
-    return backend.as_shape(sample_shape_arg)
+    return backend.asshape(sample_shape_arg)
 
 
 @fixture(scope="module")

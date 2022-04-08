@@ -103,7 +103,7 @@ jit = _core.jit
 jit_method = _core.jit_method
 
 
-def as_shape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
+def asshape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
     """Convert a shape representation into a shape defined as a tuple of ints.
 
     Parameters
@@ -160,7 +160,7 @@ __all__ = [
     "is_floating_dtype",
     "finfo",
     # Array Shape
-    "as_shape",
+    "asshape",
     "reshape",
     "atleast_1d",
     "atleast_2d",

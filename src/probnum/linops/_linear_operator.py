@@ -120,7 +120,7 @@ class LinearOperator:
         logabsdet: Optional[Callable[[], np.flexible]] = None,
         trace: Optional[Callable[[], np.number]] = None,
     ):
-        self.__shape = backend.as_shape(shape, ndim=2)
+        self.__shape = backend.asshape(shape, ndim=2)
 
         # DType
         self.__dtype = np.dtype(dtype)
@@ -1292,7 +1292,7 @@ class Identity(LinearOperator):
         shape: ShapeLike,
         dtype: DTypeLike = np.double,
     ):
-        shape = backend.as_shape(shape)
+        shape = backend.asshape(shape)
 
         if len(shape) == 1:
             shape = 2 * shape
@@ -1364,7 +1364,7 @@ class Selection(LinearOperator):
                 "output-dimension (shape[0]) is larger than the input-dimension "
                 "(shape[1]), consider using `Embedding`."
             )
-        self._indices = backend.as_shape(indices)
+        self._indices = backend.asshape(indices)
         assert len(self._indices) == shape[0]
 
         super().__init__(
@@ -1416,8 +1416,8 @@ class Embedding(LinearOperator):
                 "(shape[1]), consider using `Selection`."
             )
 
-        self._take_indices = backend.as_shape(take_indices)
-        self._put_indices = backend.as_shape(put_indices)
+        self._take_indices = backend.asshape(take_indices)
+        self._put_indices = backend.asshape(put_indices)
         self._fill_value = fill_value
 
         super().__init__(

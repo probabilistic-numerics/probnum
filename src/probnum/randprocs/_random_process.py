@@ -58,10 +58,10 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         mean: Optional[_function.Function] = None,
         cov: Optional[kernels.Kernel] = None,
     ):
-        self._input_shape = backend.as_shape(input_shape)
+        self._input_shape = backend.asshape(input_shape)
         self._input_ndim = len(self._input_shape)
 
-        self._output_shape = backend.as_shape(output_shape)
+        self._output_shape = backend.asshape(output_shape)
         self._output_ndim = len(self._output_shape)
 
         if self._output_ndim > 1:

@@ -70,7 +70,7 @@ class KalmanPosterior(_timeseriesposterior.TimeSeriesPosterior, abc.ABC):
         size: Optional[ShapeLike] = (),
     ) -> np.ndarray:
 
-        size = backend.as_shape(size)
+        size = backend.asshape(size)
         single_rv_shape = self.states[0].shape
         single_rv_ndim = self.states[0].ndim
 

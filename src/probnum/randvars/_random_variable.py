@@ -107,7 +107,7 @@ class RandomVariable:
     ):
         # pylint: disable=too-many-arguments,too-many-locals
         """Create a new random variable."""
-        self.__shape = backend.as_shape(shape)
+        self.__shape = backend.asshape(shape)
 
         # Data Types
         self.__dtype = backend.asdtype(dtype)
@@ -403,7 +403,7 @@ class RandomVariable:
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        samples = self.__sample(rng_state, backend.as_shape(sample_shape))
+        samples = self.__sample(rng_state, backend.asshape(sample_shape))
 
         # TODO: Check shape and dtype
 
@@ -530,7 +530,7 @@ class RandomVariable:
             New shape for the random variable. It must be compatible with the original
             shape.
         """
-        newshape = backend.as_shape(newshape)
+        newshape = backend.asshape(newshape)
 
         return RandomVariable(
             shape=newshape,

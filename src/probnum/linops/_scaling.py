@@ -57,7 +57,7 @@ class Scaling(_linear_operator.LinearOperator):
                     "specified."
                 )
 
-            shape = backend.as_shape(shape)
+            shape = backend.asshape(shape)
 
             if len(shape) == 1:
                 shape = 2 * shape

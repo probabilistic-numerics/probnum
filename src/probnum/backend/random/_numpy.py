@@ -7,7 +7,7 @@ from typing import Sequence
 import numpy as np
 
 from probnum import backend
-from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeType
 
 RNGState = np.random.SeedSequence
 
@@ -32,13 +32,11 @@ def _rng_from_rng_state(rng_state: RNGState) -> np.random.Generator:
 
 def uniform(
     rng_state: RNGState,
-    shape: ShapeLike = (),
-    dtype: DTypeLike = np.double,
-    minval: FloatLike = 0.0,
-    maxval: FloatLike = 1.0,
+    shape: ShapeType = (),
+    dtype: backend.Dtype = np.double,
+    minval: np.ndarray = np.array(0.0),
+    maxval: np.ndarray = np.array(1.0),
 ) -> np.ndarray:
-    minval = backend.asscalar(minval, dtype=dtype)
-    maxval = backend.asscalar(maxval, dtype=dtype)
     return np.asarray(
         (maxval - minval)
         * _rng_from_rng_state(rng_state).random(
@@ -51,8 +49,8 @@ def uniform(
 
 def standard_normal(
     rng_state: RNGState,
-    shape: ShapeLike = (),
-    dtype: DTypeLike = np.double,
+    shape: ShapeType = (),
+    dtype: np.dtype = np.double,
 ) -> np.ndarray:
     return np.asarray(
         _rng_from_rng_state(rng_state).standard_normal(size=shape, dtype=dtype)
@@ -61,10 +59,10 @@ def standard_normal(
 
 def gamma(
     rng_state: RNGState,
-    shape_param: FloatLike,
-    scale_param: FloatLike = 1.0,
-    shape: ShapeLike = (),
-    dtype: DTypeLike = np.double,
+    shape_param: np.ndarray,
+    scale_param: np.ndarray = np.array(1.0),
+    shape: ShapeType = (),
+    dtype: np.dtype = np.double,
 ) -> np.ndarray:
     return np.asarray(
         _rng_from_rng_state(rng_state).standard_gamma(
@@ -77,8 +75,8 @@ def gamma(
 def uniform_so_group(
     rng_state: RNGState,
     n: int,
-    shape: ShapeLike = (),
-    dtype: DTypeLike = np.double,
+    shape: ShapeType = (),
+    dtype: np.dtype = np.double,
 ) -> np.ndarray:
     if n == 1:
         return np.ones(shape + (1, 1), dtype=dtype)
