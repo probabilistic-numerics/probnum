@@ -3,7 +3,7 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
 
 from __future__ import annotations
 
