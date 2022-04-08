@@ -8,7 +8,7 @@ from typing import Sequence
 import jax
 from jax import numpy as jnp
 
-from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike, ShapeType
+from probnum.backend.typing import Seed, ShapeType
 
 RNGState = jax.random.PRNGKey
 

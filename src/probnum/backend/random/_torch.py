@@ -7,8 +7,7 @@ import numpy as np
 import torch
 from torch.distributions.utils import broadcast_all
 
-from probnum import backend
-from probnum.backend.typing import DTypeLike, Seed, ShapeLike, ShapeType
+from probnum.backend.typing import Seed, ShapeType
 
 RNGState = np.random.SeedSequence
 

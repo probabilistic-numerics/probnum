@@ -7,7 +7,7 @@ from typing import Sequence
 import numpy as np
 
 from probnum import backend
-from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeType
+from probnum.backend.typing import Seed, ShapeType
 
 RNGState = np.random.SeedSequence
 
