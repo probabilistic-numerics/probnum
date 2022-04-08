@@ -12,7 +12,7 @@ def asarray(
     ],
     /,
     *,
-    dtype: Optional["probnum.backend.dtype"] = None,
+    dtype: Optional["probnum.backend.Dtype"] = None,
     device: Optional["probnum.backend.device"] = None,
     copy: Optional[bool] = None,
 ) -> jnp.ndarray:

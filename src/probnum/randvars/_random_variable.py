@@ -154,12 +154,12 @@ class RandomVariable:
         return functools.reduce(operator.mul, self.__shape, 1)
 
     @property
-    def dtype(self) -> backend.dtype:
+    def dtype(self) -> backend.Dtype:
         """Data type of (elements of) a realization of this random variable."""
         return self.__dtype
 
     @cached_property
-    def median_dtype(self) -> backend.dtype:
+    def median_dtype(self) -> backend.Dtype:
         r"""The dtype of the :attr:`median`.
 
         It will be set to the dtype arising from the multiplication of values with
@@ -172,7 +172,7 @@ class RandomVariable:
         return backend.promote_types(self.dtype, backend.double)
 
     @cached_property
-    def expectation_dtype(self) -> backend.dtype:
+    def expectation_dtype(self) -> backend.Dtype:
         r"""The dtype of an expectation of (a function of) the random variable.
 
         For instance, the :attr:`mean`, :attr:`cov`, :attr:`var`, :attr:`std`, and
@@ -740,7 +740,7 @@ class RandomVariable:
         name: str,
         value: backend.Array,
         shape: Optional[ShapeType] = None,
-        dtype: Optional[backend.dtype] = None,
+        dtype: Optional[backend.Dtype] = None,
     ):
         if shape is not None:
             if value.shape != shape:
@@ -762,7 +762,7 @@ class RandomVariable:
         input_value: backend.Array,
         return_value: backend.Array,
         expected_shape: Optional[ShapeType] = None,
-        expected_dtype: Optional[backend.dtype] = None,
+        expected_dtype: Optional[backend.Dtype] = None,
     ):
         # pylint: disable=too-many-arguments
 

@@ -96,11 +96,11 @@ ShapeLike = Union[IntLike, Iterable[IntLike]]
 Arguments of type :attr:`ShapeLike` should always be converted into :class:`ShapeType`
 using the function :func:`backend.asshape` before further internal processing."""
 
-DTypeLike = Union["probnum.backend.dtype", _NumPyDTypeLike]
+DTypeLike = Union["probnum.backend.Dtype", _NumPyDTypeLike]
 """Object that can be converted to an array dtype.
 
 Arguments of type :attr:`DTypeLike` should always be converted into
-:class:`backend.dtype`\\ s before further internal processing."""
+:class:`~probnum.backend.Dtype`\\ s before further internal processing."""
 
 _ArrayIndexLike = Union[
     int,

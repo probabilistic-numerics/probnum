@@ -21,7 +21,7 @@ def asarray(
     obj: Union[Array, bool, int, float, "NestedSequence", "SupportsBufferProtocol"],
     /,
     *,
-    dtype: Optional["probnum.backend.dtype"] = None,
+    dtype: Optional["probnum.backend.Dtype"] = None,
     device: Optional["probnum.backend.device"] = None,
     copy: Optional[bool] = None,
 ) -> Array:

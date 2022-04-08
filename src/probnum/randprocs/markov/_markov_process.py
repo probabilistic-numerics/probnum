@@ -49,7 +49,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
-            dtype=backend.dtype(backend.double),
+            dtype=backend.double,
             mean=_function.LambdaFunction(
                 lambda x: self.__call__(args=x).mean,
                 input_shape=input_shape,
