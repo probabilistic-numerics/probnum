@@ -1,54 +1,65 @@
+"""Functionality for random number generation implemented in the PyTorch backend."""
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy as np
 import torch
 from torch.distributions.utils import broadcast_all
 
 from probnum import backend
-from probnum.backend.typing import DTypeLike, FloatLike, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike
 
-_RNG_STATE_SIZE = torch.Generator().get_state().shape[0]
+RNGState = np.random.SeedSequence
 
 
-def seed(seed: Optional[int]) -> np.random.SeedSequence:
+def rng_state(seed: Seed) -> RNGState:
     return np.random.SeedSequence(seed)
 
 
-def split(
-    seed: np.random.SeedSequence, num: int = 2
-) -> Sequence[np.random.SeedSequence]:
-    return seed.spawn(num)
+def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
+    return rng_state.spawn(num)
+
+
+def _rng_from_rng_state(rng_state: RNGState) -> torch.Generator:
+    """Create a random generator instance initialized with the given state."""
+
+    if not isinstance(rng_state, RNGState):
+        raise TypeError(
+            "`rng_state`s should always have type :class:`~backend.random.RNGState`."
+        )
+
+    rng = torch.Generator()
+    return rng.manual_seed(int(rng_state.generate_state(1, dtype=np.uint64)[0]))
 
 
 def uniform(
-    seed: np.random.SeedSequence,
+    rng_state: RNGState,
     shape=(),
     dtype: DTypeLike = torch.double,
     minval: FloatLike = 0.0,
     maxval: FloatLike = 1.0,
 ):
-    rng = _make_rng(seed)
+    rng = _rng_from_rng_state(rng_state)
     minval = backend.asscalar(minval, dtype=dtype)
     maxval = backend.asscalar(maxval, dtype=dtype)
     return (maxval - minval) * torch.rand(shape, generator=rng, dtype=dtype) + minval
 
 
-def standard_normal(seed: np.random.SeedSequence, shape=(), dtype=torch.double):
-    rng = _make_rng(seed)
+def standard_normal(rng_state: RNGState, shape=(), dtype=torch.double):
+    rng = _rng_from_rng_state(rng_state)
 
     return torch.randn(shape, generator=rng, dtype=dtype)
 
 
 def gamma(
-    seed: np.random.SeedSequence,
+    rng_state: RNGState,
     shape_param: torch.Tensor,
     scale_param=1.0,
     shape=(),
     dtype=torch.double,
 ):
-    rng = _make_rng(seed)
+    rng = _rng_from_rng_state(rng_state)
 
     shape_param = torch.as_tensor(shape_param, dtype=dtype)
     scale_param = torch.as_tensor(scale_param, dtype=dtype)
@@ -65,7 +76,7 @@ def gamma(
 
 
 def uniform_so_group(
-    seed: np.random.SeedSequence,
+    rng_state: RNGState,
     n: int,
     shape: ShapeLike = (),
     dtype: DTypeLike = torch.double,
@@ -73,7 +84,7 @@ def uniform_so_group(
     if n == 1:
         return torch.ones(shape + (1, 1), dtype=dtype)
 
-    omega = standard_normal(seed, shape=shape + (n - 1, n), dtype=dtype)
+    omega = standard_normal(rng_state, shape=shape + (n - 1, n), dtype=dtype)
 
     sample = _uniform_so_group_pushforward_fn(omega.reshape((-1, n - 1, n)))
 
@@ -123,15 +134,3 @@ def _uniform_so_group_pushforward_fn(omega: torch.Tensor) -> torch.Tensor:
         samples.append(D[:, None] * H)
 
     return torch.stack(samples, dim=0)
-
-
-def _make_rng(seed: np.random.SeedSequence) -> torch.Generator:
-    rng = torch.Generator()
-
-    # state = seed.generate_state(_RNG_STATE_SIZE // 4, dtype=np.uint32)
-    # rng.set_state(torch.ByteTensor(state.view(np.uint8)))
-
-    return rng.manual_seed(int(seed.generate_state(1, dtype=np.uint64)[0]))
-
-
-SeedType = np.random.SeedSequence

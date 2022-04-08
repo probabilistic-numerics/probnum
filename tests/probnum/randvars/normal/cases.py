@@ -25,8 +25,8 @@ def case_scalar_constant(mean: ScalarLike) -> randvars.Normal:
 @case(tags=["vector"])
 @parametrize(shape=[(1,), (2,), (5,), (10,)])
 def case_vector(shape: ShapeType) -> randvars.Normal:
-    seed_mean, seed_cov = backend.random.split(
-        tests.utils.random.seed_from_sampling_args(
+    rng_state_mean, rng_state_cov = backend.random.split(
+        tests.utils.random.rng_state_from_sampling_args(
             base_seed=654,
             shape=shape,
         ),
@@ -34,8 +34,8 @@ def case_vector(shape: ShapeType) -> randvars.Normal:
     )
 
     return randvars.Normal(
-        mean=5.0 * backend.random.standard_normal(seed_mean, shape=shape),
-        cov=random_spd_matrix(seed_cov, shape[0]),
+        mean=5.0 * backend.random.standard_normal(rng_state_mean, shape=shape),
+        cov=random_spd_matrix(rng_state_cov, shape[0]),
     )
 
 
@@ -45,14 +45,14 @@ def case_vector(shape: ShapeType) -> randvars.Normal:
     ids=["backend.eye", "linops.Scaling"],
 )
 def case_vector_diag_cov(cov: MatrixType) -> randvars.Normal:
-    seed = tests.utils.random.seed_from_sampling_args(
+    rng_state = tests.utils.random.rng_state_from_sampling_args(
         base_seed=12390,
         shape=cov.shape,
         dtype=cov.dtype,
     )
 
     return randvars.Normal(
-        mean=3.1 * backend.random.standard_normal(seed, shape=cov.shape[0]),
+        mean=3.1 * backend.random.standard_normal(rng_state, shape=cov.shape[0]),
         cov=cov,
     )
 
@@ -63,19 +63,19 @@ def case_vector_diag_cov(cov: MatrixType) -> randvars.Normal:
 )
 @parametrize(shape=[(3,)])
 def case_vector_zero_cov(cov: MatrixType, shape: ShapeType) -> randvars.Normal:
-    seed_mean = tests.utils.random.seed_from_sampling_args(
+    rng_state_mean = tests.utils.random.rng_state_from_sampling_args(
         base_seed=624,
         shape=shape,
     )
-    mean = backend.random.standard_normal(shape=shape, seed=seed_mean)
+    mean = backend.random.standard_normal(shape=shape, rng_state=rng_state_mean)
     return randvars.Normal(mean=mean, cov=cov(shape=2 * shape))
 
 
 @case(tags=["matrix"])
 @parametrize(shape=[(1, 1), (5, 1), (1, 4), (2, 2), (3, 4)])
 def case_matrix(shape: ShapeType) -> randvars.Normal:
-    seed_mean, seed_cov = backend.random.split(
-        tests.utils.random.seed_from_sampling_args(
+    rng_state_mean, rng_state_cov = backend.random.split(
+        tests.utils.random.rng_state_from_sampling_args(
             base_seed=453987,
             shape=shape,
         ),
@@ -83,16 +83,16 @@ def case_matrix(shape: ShapeType) -> randvars.Normal:
     )
 
     return randvars.Normal(
-        mean=4.0 * backend.random.standard_normal(seed_mean, shape=shape),
-        cov=random_spd_matrix(seed_cov, shape[0] * shape[1]),
+        mean=4.0 * backend.random.standard_normal(rng_state_mean, shape=shape),
+        cov=random_spd_matrix(rng_state_cov, shape[0] * shape[1]),
     )
 
 
 @case(tags=["matrix", "mean-op", "cov-op"])
 @parametrize(shape=[(1, 1), (2, 1), (1, 3), (2, 2)])
 def case_matrix_mean_op_kronecker_cov(shape: ShapeType) -> randvars.Normal:
-    seed_mean, seed_cov_A, seed_cov_B = backend.random.split(
-        tests.utils.random.seed_from_sampling_args(
+    rng_state_mean, rng_state_cov_A, rng_state_cov_B = backend.random.split(
+        tests.utils.random.rng_state_from_sampling_args(
             base_seed=421376,
             shape=shape,
         ),
@@ -100,15 +100,17 @@ def case_matrix_mean_op_kronecker_cov(shape: ShapeType) -> randvars.Normal:
     )
 
     cov = linops.Kronecker(
-        A=random_spd_matrix(seed_cov_A, shape[0]),
-        B=random_spd_matrix(seed_cov_B, shape[1]),
+        A=random_spd_matrix(rng_state_cov_A, shape[0]),
+        B=random_spd_matrix(rng_state_cov_B, shape[1]),
     )
     cov.is_symmetric = True
     cov.A.is_symmetric = True
     cov.B.is_symmetric = True
 
     return randvars.Normal(
-        mean=linops.aslinop(backend.random.standard_normal(seed_mean, shape=shape)),
+        mean=linops.aslinop(
+            backend.random.standard_normal(rng_state_mean, shape=shape)
+        ),
         cov=cov,
     )
 
@@ -116,11 +118,11 @@ def case_matrix_mean_op_kronecker_cov(shape: ShapeType) -> randvars.Normal:
 @case(tags=["degenerate", "constant", "matrix", "cov-op"])
 @parametrize(shape=[(2, 3)])
 def case_matrix_zero_cov(shape: ShapeType) -> randvars.Normal:
-    seed_mean = tests.utils.random.seed_from_sampling_args(
+    rng_state_mean = tests.utils.random.rng_state_from_sampling_args(
         base_seed=624,
         shape=shape,
     )
-    mean = backend.random.standard_normal(shape=shape, seed=seed_mean)
+    mean = backend.random.standard_normal(shape=shape, rng_state=rng_state_mean)
     cov = linops.Kronecker(
         linops.Zero(shape=(shape[0], shape[0])), linops.Zero(shape=(shape[1], shape[1]))
     )

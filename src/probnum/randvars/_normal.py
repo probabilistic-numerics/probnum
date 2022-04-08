@@ -6,12 +6,11 @@ import operator
 from typing import Any, Dict, Optional, Union
 
 from probnum import backend, linops
+from probnum.backend.random import RNGState
 from probnum.backend.typing import (
     ArrayIndicesLike,
     ArrayLike,
     FloatLike,
-    SeedLike,
-    SeedType,
     ShapeLike,
     ShapeType,
 )
@@ -295,11 +294,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
     @functools.partial(backend.jit_method, static_argnums=(1,))
     def _scalar_sample(
         self,
-        seed: SeedType,
+        rng_state: RNGState,
         sample_shape: ShapeType = (),
     ) -> backend.Array:
         sample = backend.random.standard_normal(
-            seed,
+            rng_state,
             shape=sample_shape,
             dtype=self.dtype,
         )
@@ -342,9 +341,11 @@ class Normal(_random_variable.ContinuousRandomVariable):
     # Multi- and matrixvariate Gaussians
 
     @functools.partial(backend.jit_method, static_argnums=(1,))
-    def _sample(self, seed: SeedLike, sample_shape: ShapeType = ()) -> backend.Array:
+    def _sample(
+        self, rng_state: RNGState, sample_shape: ShapeType = ()
+    ) -> backend.Array:
         samples = backend.random.standard_normal(
-            seed,
+            rng_state,
             shape=sample_shape + (self.size,),
             dtype=self.dtype,
         )

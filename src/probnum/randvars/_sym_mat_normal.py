@@ -1,7 +1,8 @@
 import numpy as np
 
 from probnum import backend, linops
-from probnum.backend.typing import SeedType, ShapeType
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ShapeType
 from probnum.typing import LinearOperatorLike
 
 from . import _normal
@@ -31,7 +32,7 @@ class SymmetricMatrixNormal(_normal.Normal):
 
         super().__init__(mean=linops.aslinop(mean), cov=cov)
 
-    def _sample(self, seed: SeedType, sample_shape: ShapeType = ()) -> np.ndarray:
+    def _sample(self, rng_state: RNGState, sample_shape: ShapeType = ()) -> np.ndarray:
         assert (
             isinstance(self.cov, linops.SymmetricKronecker)
             and self.cov.identical_factors
@@ -41,7 +42,7 @@ class SymmetricMatrixNormal(_normal.Normal):
 
         # Draw standard normal samples
         stdnormal_samples = backend.random.standard_normal(
-            seed,
+            rng_state,
             shape=sample_shape + (n * n, 1),
             dtype=self.dtype,
         )

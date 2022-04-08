@@ -6,7 +6,8 @@ from functools import cached_property
 from typing import Callable
 
 from probnum import backend, config, linops
-from probnum.backend.typing import ArrayIndicesLike, SeedType, ShapeLike, ShapeType
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ArrayIndicesLike, ShapeLike, ShapeType
 
 from . import _random_variable
 
@@ -138,7 +139,9 @@ class Constant(_random_variable.DiscreteRandomVariable):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> backend.Array:
+    def _sample(
+        self, rng_state: RNGState, sample_shape: ShapeLike = ()
+    ) -> backend.Array:
         # pylint: disable=unused-argument
 
         if sample_shape == ():

@@ -27,7 +27,7 @@ def samples(
     rv: randvars.Normal, sample_shape_arg: ShapeLike, sample_shape: ShapeType
 ) -> backend.Array:
     return rv.sample(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=9879,
             shape=sample_shape + rv.shape,
         ),
@@ -44,7 +44,7 @@ def test_sample_shape(
 @parametrize_with_cases("rv_constant", cases=".cases", has_tag=["constant"])
 def test_sample_constant(rv_constant: randvars.Normal):
     sample = rv_constant.sample(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=2346,
             shape=rv_constant.shape,
         )

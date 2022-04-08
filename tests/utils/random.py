@@ -5,21 +5,22 @@ from typing import Optional, Union
 import numpy as np
 
 from probnum import backend
-from probnum.backend.typing import DTypeLike, IntLike, SeedType, ShapeLike
+from probnum.backend.random import RNGState
+from probnum.backend.typing import DTypeLike, IntLike, ShapeLike
 
 __all__ = [
-    "seed_from_sampling_args",
+    "rng_state_from_sampling_args",
 ]
 
 
-def seed_from_sampling_args(
+def rng_state_from_sampling_args(
     *,
     base_seed: IntLike,
     shape: ShapeLike,
     dtype: Optional[DTypeLike] = None,
     **kwargs: Union[numbers.Number, np.ndarray, backend.Array],
-) -> SeedType:
-    """Diversify random seeds for deterministic testing.
+) -> RNGState:
+    """Diversify random states for deterministic testing.
 
     When writing a test relying on "random" input data generated from a fixed random
     seeds, a common pattern is to parametrize over seed and shape like so:
@@ -36,13 +37,13 @@ def seed_from_sampling_args(
 
     >>> def test_function(seed: int, shape: ShapeType):
     ...     x = backend.random.uniform(
-    ...         backend.random.seed(seed),
+    ...         backend.random.rng_state(seed),
     ...         shape=shape,
     ...     )
     ...     ...  # Test something
 
-    Unfortunately, when sampling from the same seed but with different shapes in NumPy
-    and Jax, some sampling routines produce partially identical arrays.
+    Unfortunately, when sampling with the same RNG state but with different shapes in
+    NumPy and JAX, some sampling routines produce partially identical arrays.
 
     >>> np.random.default_rng(42).uniform(size=(2,))
     array([0.77395605, 0.43887844])
@@ -50,12 +51,12 @@ def seed_from_sampling_args(
     array([0.77395605, 0.43887844, 0.85859792, 0.69736803])
 
     To diversify test data, while retaining test determinism (especially under the order
-    of test execution!), `seed_from_sampling_args` provides a deterministic way to
+    of test execution!), `rng_state_from_sampling_args` provides a deterministic way to
     modify the base seed through other arguments passed to the sampling routine:
 
     >>> def test_data(seed: int, shape: ShapeType) -> backend.Array:
     ...     return backend.random.uniform(
-    ...         seed_from_sampling_args(base_seed=seed, shape=shape),
+    ...         rng_state_from_sampling_args(base_seed=seed, shape=shape),
     ...         shape=shape,
     ...     )
 
@@ -75,9 +76,9 @@ def seed_from_sampling_args(
 
     Returns
     -------
-    seed
-        A seed object that is deterministically generated from the function's arguments
-        using a cryptographic hash function.
+    rng_state
+        An RNG state object that is deterministically generated from the function's
+        arguments using a cryptographic hash function.
 
     Raises
     ------
@@ -139,4 +140,4 @@ def seed_from_sampling_args(
     # Convert hash to positive integer
     seed_int = abs(int(h.hexdigest(), base=16))
 
-    return backend.random.seed(seed_int)
+    return backend.random.rng_state(seed_int)

@@ -1,16 +1,19 @@
+"""Functionality for random number generation implemented in the JAX backend."""
 from __future__ import annotations
 
 import functools
 import secrets
-from typing import Optional, Sequence
+from typing import Sequence
 
 import jax
 from jax import numpy as jnp
 
-from probnum.backend.typing import DTypeLike, FloatLike, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike
+
+RNGState = jax.random.PRNGKey
 
 
-def seed(seed: Optional[int]) -> jnp.ndarray:
+def rng_state(seed: Seed) -> RNGState:
     if seed is None:
         seed = secrets.randbits(128)
 
@@ -20,36 +23,36 @@ def seed(seed: Optional[int]) -> jnp.ndarray:
     return jax.random.PRNGKey(seed)
 
 
-def split(seed: jnp.ndarray, num: int = 2) -> Sequence[jnp.ndarray]:
-    return jax.random.split(key=seed, num=num)
+def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
+    return jax.random.split(key=rng_state, num=num)
 
 
-def uniform(seed: jnp.ndarray, shape=(), dtype=jnp.double, minval=0.0, maxval=1.0):
+def uniform(rng_state: RNGState, shape=(), dtype=jnp.double, minval=0.0, maxval=1.0):
     return jax.random.uniform(
-        key=seed, shape=shape, dtype=dtype, minval=minval, maxval=maxval
+        key=rng_state, shape=shape, dtype=dtype, minval=minval, maxval=maxval
     )
 
 
-def standard_normal(seed: jnp.ndarray, shape=(), dtype=jnp.double):
-    return jax.random.normal(key=seed, shape=shape, dtype=dtype)
+def standard_normal(rng_state: RNGState, shape=(), dtype=jnp.double):
+    return jax.random.normal(key=rng_state, shape=shape, dtype=dtype)
 
 
 def gamma(
-    seed: jnp.ndarray,
+    rng_state: RNGState,
     shape_param: FloatLike,
     scale_param: FloatLike = 1.0,
     shape: ShapeLike = (),
     dtype: DTypeLike = jnp.double,
 ):
     return (
-        jax.random.gamma(key=seed, a=shape_param, shape=shape, dtype=dtype)
+        jax.random.gamma(key=rng_state, a=shape_param, shape=shape, dtype=dtype)
         * scale_param
     )
 
 
 @functools.partial(jax.jit, static_argnames=("n", "shape", "dtype"))
 def uniform_so_group(
-    seed: jnp.ndarray,
+    rng_state: RNGState,
     n: int,
     shape: ShapeLike = (),
     dtype: DTypeLike = jnp.double,
@@ -58,7 +61,7 @@ def uniform_so_group(
         return jnp.ones(shape + (1, 1), dtype=dtype)
 
     return _uniform_so_group_pushforward_fn(
-        standard_normal(seed, shape=shape + (n - 1, n), dtype=dtype)
+        standard_normal(rng_state, shape=shape + (n - 1, n), dtype=dtype)
     )
 
 
@@ -98,6 +101,3 @@ def _uniform_so_group_pushforward_fn(omega: jnp.ndarray) -> jnp.ndarray:
     )
 
     return D[:, None] * H
-
-
-SeedType = jax.random.PRNGKey

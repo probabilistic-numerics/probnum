@@ -1,10 +1,10 @@
 """Tests for general inner products."""
 
-import pytest
-
 from probnum import backend
 from probnum.backend.linalg import induced_norm, inner_product
 from probnum.problems.zoo.linalg import random_spd_matrix
+
+import pytest
 import tests.utils
 
 
@@ -30,7 +30,7 @@ def p(request) -> int:
 def vector0(n: int) -> backend.Array:
     shape = (n,)
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=86,
             shape=shape,
         ),
@@ -42,7 +42,7 @@ def vector0(n: int) -> backend.Array:
 def vector1(n: int) -> backend.Array:
     shape = (n,)
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=567,
             shape=shape,
         ),
@@ -54,7 +54,7 @@ def vector1(n: int) -> backend.Array:
 def array0(p: int, m: int, n: int) -> backend.Array:
     shape = (p, m, n)
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=86,
             shape=shape,
         ),
@@ -66,7 +66,7 @@ def array0(p: int, m: int, n: int) -> backend.Array:
 def array1(m: int, n: int) -> backend.Array:
     shape = (m, n)
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=567,
             shape=shape,
         ),
@@ -102,7 +102,7 @@ def test_euclidean_norm_array(array0: backend.Array, axis: int):
 @pytest.mark.parametrize("axis", [0, 1])
 def test_induced_norm_array(array0: backend.Array, axis: int):
     inprod_mat = random_spd_matrix(
-        seed=backend.random.seed(254),
+        rng_state=backend.random.rng_state(254),
         dim=array0.shape[axis],
     )
     array0_moved_axis = backend.moveaxis(array0, axis, -1)

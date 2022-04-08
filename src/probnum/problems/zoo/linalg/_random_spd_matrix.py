@@ -3,18 +3,17 @@ from __future__ import annotations
 
 from typing import Sequence
 
-import numpy as np
 import scipy.stats
 
 from probnum import backend
-from probnum.backend.typing import IntLike, SeedType
+from probnum.backend.random import RNGState
 
 
 def random_spd_matrix(
-    seed: SeedType,
-    dim: IntLike,
+    rng_state: RNGState,
+    dim: int,
     spectrum: Sequence = None,
-) -> np.ndarray:
+) -> backend.Array:
     r"""Random symmetric positive definite matrix.
 
     Constructs a random symmetric positive definite matrix from a given spectrum. An
@@ -26,8 +25,8 @@ def random_spd_matrix(
 
     Parameters
     ----------
-    rng
-        Random number generator.
+    rng_state
+        State of the random number generator.
     dim
         Matrix dimension.
     spectrum
@@ -39,10 +38,10 @@ def random_spd_matrix(
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
-    >>> rng = np.random.default_rng(1)
-    >>> mat = random_spd_matrix(rng, dim=5)
+    >>> rng_state = backend.random.rng_state(1)
+    >>> mat = random_spd_matrix(rng_state, dim=5)
     >>> mat
     array([[10.24394619,  0.05484236,  0.39575826, -0.70032495, -0.75482692],
            [ 0.05484236, 11.31516868,  0.6968935 , -0.13877394,  0.52783063],
@@ -52,18 +51,18 @@ def random_spd_matrix(
 
     Check for symmetry and positive definiteness.
 
-    >>> np.all(mat == mat.T)
+    >>> backend.all(mat == mat.T)
     True
-    >>> np.linalg.eigvals(mat)
+    >>> backend.linalg.eigvals(mat)
     array([ 8.09147328, 12.7635956 , 10.84504988, 10.73086331, 10.78143272])
     """
 
-    gamma_seed, so_seed = backend.random.split(seed, num=2)
+    gamma_rng_state, so_rng_state = backend.random.split(rng_state, num=2)
 
     # Initialization
     if spectrum is None:
         spectrum = backend.random.gamma(
-            gamma_seed,
+            gamma_rng_state,
             shape_param=10.0,
             scale_param=1.0,
             shape=(dim,),
@@ -75,7 +74,7 @@ def random_spd_matrix(
             raise ValueError(f"Eigenvalues must be positive, but are {spectrum}.")
 
     # Draw orthogonal matrix with respect to the Haar measure
-    orth_mat = backend.random.uniform_so_group(so_seed, n=dim)
+    orth_mat = backend.random.uniform_so_group(so_rng_state, n=dim)
     spd_mat = (orth_mat * spectrum[None, :]) @ orth_mat.T
 
     print(spectrum.shape, orth_mat.shape, spd_mat.shape)
@@ -86,8 +85,8 @@ def random_spd_matrix(
 
 
 def random_sparse_spd_matrix(
-    rng: np.random.Generator,
-    dim: IntLike,
+    rng_state: RNGState,
+    dim: int,
     density: float,
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
@@ -103,8 +102,8 @@ def random_sparse_spd_matrix(
 
     Parameters
     ----------
-    rng
-        Random number generator.
+    rng_state
+        State of the random number generator.
     dim
         Matrix dimension.
     density
@@ -123,10 +122,10 @@ def random_sparse_spd_matrix(
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
-    >>> rng = np.random.default_rng(42)
-    >>> sparsemat = random_sparse_spd_matrix(rng, dim=5, density=0.1)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> sparsemat = random_sparse_spd_matrix(rng_state, dim=5, density=0.1)
     >>> sparsemat
     <5x5 sparse matrix of type '<class 'numpy.float64'>'
         with 9 stored elements in Compressed Sparse Row format>
@@ -151,7 +150,7 @@ def random_sparse_spd_matrix(
             n=dim,
             format="csr",
             density=density,
-            random_state=rng,
+            random_state=rng_state,
         )
 
         # Rescale entries

@@ -1,9 +1,9 @@
 """Tests for random processes."""
 
-import pytest
-
 from probnum import backend, compat, randprocs, randvars
 from probnum.backend.typing import ShapeType
+
+import pytest
 import tests.utils
 
 # pylint: disable=invalid-name
@@ -66,7 +66,7 @@ def test_evaluated_random_process_is_random_variable(
     """Test whether evaluating a random process returns a random variable."""
     args0_shape = (10,) + random_process.input_shape
     args0 = backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=98332,
             shape=args0_shape,
         ),
@@ -83,7 +83,7 @@ def test_evaluated_random_process_is_random_variable(
 def test_samples_are_callables(random_process: randprocs.RandomProcess):
     """When not specifying inputs to the sample method it should return ``size`` number
     of callables."""
-    assert callable(random_process.sample(seed=backend.random.seed(42)))
+    assert callable(random_process.sample(rng_state=backend.random.rng_state(42)))
 
 
 @pytest.mark.xfail(reason="Not yet implemented for random processes.")
@@ -92,7 +92,7 @@ def test_sample_paths_are_deterministic_functions(
 ):
     """When sampling paths from a random process, repeated evaluation of the sample path
     at the same inputs should return the same values."""
-    sample_path = random_process.sample(seed=backend.random.seed(43))
+    sample_path = random_process.sample(rng_state=backend.random.rng_state(43))
     compat.testing.assert_array_equal(sample_path(args0), sample_path(args0))
 
 
@@ -104,7 +104,7 @@ def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
     variable."""
     x_shape = (10,) + random_process.input_shape
     x = backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=98332,
             shape=x_shape,
         ),

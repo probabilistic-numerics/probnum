@@ -3,7 +3,8 @@
 from typing import Optional
 
 from probnum import _function, backend, randvars
-from probnum.backend.typing import ArrayLike, SeedLike, ShapeLike
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ArrayLike, ShapeLike
 from probnum.randprocs import _random_process, kernels
 from probnum.randprocs.markov import _transition
 
@@ -66,7 +67,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
 
     def _sample_at_input(
         self,
-        seed: SeedLike,
+        rng_state: RNGState,
         args: ArrayLike,
         sample_shape: ShapeLike = (),
     ) -> backend.Array:
@@ -77,7 +78,7 @@ class MarkovProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
             raise ValueError(f"Invalid args shape {args.shape}")
 
         base_measure_realizations = backend.random.standard_normal(
-            seed=backend.random.seed(seed),
+            rng_state=rng_state,
             shape=(sample_shape + args.shape + self.initrv.shape),
         )
 

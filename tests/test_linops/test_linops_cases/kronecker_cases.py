@@ -2,17 +2,18 @@ import itertools
 from typing import Tuple, Union
 
 import numpy as np
-import pytest
-import pytest_cases
 
 import probnum as pn
 from probnum import backend
 from probnum.problems.zoo.linalg import random_spd_matrix
 
+import pytest
+import pytest_cases
+
 spd_matrices = (
     pn.linops.Identity(shape=(1, 1)),
     np.array([[1.0, -2.0], [-2.0, 5.0]]),
-    random_spd_matrix(seed=backend.random.seed(597), dim=9),
+    random_spd_matrix(rng_state=backend.random.rng_state(597), dim=9),
 )
 
 
@@ -109,8 +110,8 @@ def case_symmetric_kronecker(
     "A,B",
     [
         (
-            random_spd_matrix(seed=backend.random.seed(234789 + n), dim=n),
-            random_spd_matrix(seed=backend.random.seed(347892 + n), dim=n),
+            random_spd_matrix(rng_state=backend.random.rng_state(234789 + n), dim=n),
+            random_spd_matrix(rng_state=backend.random.rng_state(347892 + n), dim=n),
         )
         for n in [1, 2, 3, 6]
     ],

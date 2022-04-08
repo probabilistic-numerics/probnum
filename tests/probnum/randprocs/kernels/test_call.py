@@ -2,11 +2,11 @@
 
 from typing import Callable, Optional, Tuple
 
-import pytest
-
 from probnum import backend, compat
 from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
+
+import pytest
 import tests.utils
 
 
@@ -65,7 +65,7 @@ def fixture_x0(input_shapes: Tuple[ShapeType, Optional[ShapeType]]) -> backend.A
     x0_shape, _ = input_shapes
 
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=899803, shape=x0_shape
         ),
         shape=x0_shape,
@@ -85,7 +85,9 @@ def fixture_x1(
         return None
 
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(base_seed=4569, shape=x1_shape),
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
+            base_seed=4569, shape=x1_shape
+        ),
         shape=x1_shape,
     )
 

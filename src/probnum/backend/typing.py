@@ -30,7 +30,7 @@ from ._array_object import Array, Scalar
 __all__ = [
     # API Types
     "ShapeType",
-    "SeedType",
+    "Seed",
     # Argument Types
     "IntLike",
     "FloatLike",
@@ -39,7 +39,6 @@ __all__ = [
     "ArrayIndicesLike",
     "ScalarLike",
     "ArrayLike",
-    "SeedLike",
     "NotImplementedType",
 ]
 
@@ -52,8 +51,11 @@ ShapeType = Tuple[int, ...]
 """Type defining a shape of an object."""
 
 # Random Number Generation
-SeedType = "probnum.backend.random._SeedType"
-"""Type defining the seed of a random number generator."""
+Seed = Optional[int]
+"""Type defining a seed of a random number generator.
+
+An object of type :attr:`Seed` is used to initialize the state of a random number
+generator by passing ``seed`` to :func:`backend.random.rng_state`."""
 
 ########################################################################################
 # Argument Types
@@ -114,14 +116,6 @@ ArrayIndicesLike = Union[_ArrayIndexLike, Tuple[_ArrayIndexLike, ...]]
 Type of the argument to the :meth:`__getitem__` method of an :class:`Array` or similar
 object.
 """
-
-# Random Number Generation
-SeedLike = Optional[int]
-"""Type of a public API argument for supplying the seed of a random number generator.
-
-Values of this type should always be converted to :class:`SeedType` using the function
-:func:`backend.random.seed` before further internal processing."""
-
 
 ########################################################################################
 # Other Types

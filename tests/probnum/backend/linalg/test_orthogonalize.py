@@ -3,8 +3,6 @@
 from functools import partial
 from typing import Callable, Union
 
-import pytest
-
 from probnum import backend, compat, linops
 from probnum.backend.linalg import (
     double_gram_schmidt,
@@ -12,6 +10,8 @@ from probnum.backend.linalg import (
     modified_gram_schmidt,
 )
 from probnum.problems.zoo.linalg import random_spd_matrix
+
+import pytest
 import tests.utils
 
 n = 100
@@ -27,7 +27,7 @@ def basis_size(request) -> int:
 def vector() -> backend.Array:
     shape = (n,)
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=526367,
             shape=shape,
         ),
@@ -39,7 +39,7 @@ def vector() -> backend.Array:
 def vectors() -> backend.Array:
     shape = (2, 10, n)
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=234,
             shape=shape,
         ),
@@ -84,7 +84,7 @@ def test_is_orthogonal(
     # Compute orthogonal basis
     basis_shape = (vector.shape[0], basis_size)
     basis = backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=32,
             shape=basis_shape,
         ),
@@ -113,7 +113,7 @@ def test_is_normalized(
     # Compute orthogonal basis
     basis_shape = (vector.shape[0], basis_size)
     basis = backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=9467,
             shape=basis_shape,
         ),
@@ -133,9 +133,11 @@ def test_is_normalized(
 @pytest.mark.parametrize(
     "inner_product_matrix",
     [
-        backend.diag(backend.random.gamma(backend.random.seed(123), 1.0, shape=(n,))),
+        backend.diag(
+            backend.random.gamma(backend.random.rng_state(123), 1.0, shape=(n,))
+        ),
         5 * backend.eye(n),
-        random_spd_matrix(seed=backend.random.seed(46), dim=n),
+        random_spd_matrix(rng_state=backend.random.rng_state(46), dim=n),
     ],
 )
 def test_noneuclidean_innerprod(
@@ -172,7 +174,7 @@ def test_broadcasting(
     # Compute orthogonal basis
     basis_shape = (vectors.shape[-1], basis_size)
     basis = backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=32,
             shape=basis_shape,
         ),

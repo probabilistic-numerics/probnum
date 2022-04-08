@@ -1,8 +1,9 @@
 import numpy as np
-import pytest_cases
 
 from probnum import backend, compat
-from probnum.backend.typing import SeedLike, ShapeType
+from probnum.backend.typing import Seed, ShapeType
+
+import pytest_cases
 import tests.utils
 
 
@@ -12,10 +13,10 @@ import tests.utils
 @pytest_cases.parametrize("shape", ((), (1,), (2,), (3, 2)))
 @pytest_cases.parametrize("dtype", (backend.single, backend.double))
 def so_group_sample(
-    seed: SeedLike, n: int, shape: ShapeType, dtype: backend.dtype
+    seed: Seed, n: int, shape: ShapeType, dtype: backend.dtype
 ) -> backend.Array:
     return backend.random.uniform_so_group(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=seed, shape=shape, dtype=dtype, n=n
         ),
         n=n,

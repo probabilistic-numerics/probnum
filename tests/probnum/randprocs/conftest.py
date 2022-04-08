@@ -2,12 +2,12 @@
 
 from typing import Any, Callable, Dict, Tuple, Type
 
-import pytest
-import pytest_cases
-
 from probnum import Function, LambdaFunction, backend, randprocs
 from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels, mean_fns
+
+import pytest
+import pytest_cases
 import tests.utils
 
 
@@ -128,7 +128,7 @@ def args0(
     args0_shape = args0_batch_shape + random_process.input_shape
 
     return backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=seed, shape=args0_shape
         ),
         shape=args0_shape,

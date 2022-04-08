@@ -1,7 +1,6 @@
 from typing import Tuple
 
 import numpy as np
-import pytest_cases
 
 import probnum as pn
 from probnum import backend
@@ -12,18 +11,24 @@ from probnum.linops._arithmetic_fallbacks import (
 )
 from probnum.problems.zoo.linalg import random_spd_matrix
 
+import pytest_cases
+
 square_matrix_pairs = [
     (
-        backend.random.standard_normal(seed=backend.random.seed(n + 478), shape=(n, n)),
-        backend.random.standard_normal(seed=backend.random.seed(n + 267), shape=(n, n)),
+        backend.random.standard_normal(
+            rng_state=backend.random.rng_state(n + 478), shape=(n, n)
+        ),
+        backend.random.standard_normal(
+            rng_state=backend.random.rng_state(n + 267), shape=(n, n)
+        ),
     )
     for n in [1, 2, 3, 5, 8]
 ]
 
 spd_matrix_pairs = [
     (
-        random_spd_matrix(backend.random.seed(n + 9872), dim=n),
-        random_spd_matrix(backend.random.seed(n + 1231), dim=n),
+        random_spd_matrix(backend.random.rng_state(n + 9872), dim=n),
+        random_spd_matrix(backend.random.rng_state(n + 1231), dim=n),
     )
     for n in [1, 2, 3, 5, 8]
 ]

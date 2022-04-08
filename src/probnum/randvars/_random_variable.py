@@ -9,13 +9,8 @@ from typing import Any, Callable, Dict, Optional
 import numpy as np
 
 from probnum import backend
-from probnum.backend.typing import (
-    ArrayIndicesLike,
-    DTypeLike,
-    SeedType,
-    ShapeLike,
-    ShapeType,
-)
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ArrayIndicesLike, DTypeLike, ShapeLike, ShapeType
 
 # pylint: disable="too-many-lines"
 
@@ -97,7 +92,7 @@ class RandomVariable:
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[SeedType, ShapeType], backend.Array]] = None,
+        sample: Optional[Callable[[RNGState, ShapeType], backend.Array]] = None,
         in_support: Optional[Callable[[backend.Array], bool]] = None,
         cdf: Optional[Callable[[backend.Array], backend.Array]] = None,
         logcdf: Optional[Callable[[backend.Array], backend.Array]] = None,
@@ -393,20 +388,22 @@ class RandomVariable:
 
         return in_support
 
-    def sample(self, seed: SeedType, sample_shape: ShapeLike = ()) -> backend.Array:
+    def sample(
+        self, rng_state: RNGState, sample_shape: ShapeLike = ()
+    ) -> backend.Array:
         """Draw realizations from a random variable.
 
         Parameters
         ----------
-        seed
-            Seed used for sampling from a random number generator.
+        rng_state
+            Random number generator state used for sampling.
         sample_shape
             Size of the drawn sample of realizations.
         """
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        samples = self.__sample(seed, backend.as_shape(sample_shape))
+        samples = self.__sample(rng_state, backend.as_shape(sample_shape))
 
         # TODO: Check shape and dtype
 
@@ -583,7 +580,7 @@ class RandomVariable:
             shape=self.shape,
             dtype=self.dtype,
             sample=lambda seed, sample_shape: -self.sample(
-                seed=seed, sample_shape=sample_shape
+                rng_state=seed, sample_shape=sample_shape
             ),
             in_support=lambda x: self.in_support(-x),
             mode=lambda: -self.mode,
@@ -599,7 +596,7 @@ class RandomVariable:
             shape=self.shape,
             dtype=self.dtype,
             sample=lambda seed, sample_shape: +self.sample(
-                seed=seed, sample_shape=sample_shape
+                rng_state=seed, sample_shape=sample_shape
             ),
             in_support=lambda x: self.in_support(+x),
             mode=lambda: +self.mode,
@@ -615,7 +612,7 @@ class RandomVariable:
             shape=self.shape,
             dtype=self.dtype,
             sample=lambda seed, sample_shape: abs(
-                self.sample(seed=seed, sample_shape=sample_shape)
+                self.sample(rng_state=seed, sample_shape=sample_shape)
             ),
         )
 
@@ -889,7 +886,7 @@ class DiscreteRandomVariable(RandomVariable):
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[SeedType, ShapeType], backend.Array]] = None,
+        sample: Optional[Callable[[RNGState, ShapeType], backend.Array]] = None,
         in_support: Optional[Callable[[backend.Array], backend.Array]] = None,
         pmf: Optional[Callable[[backend.Array], backend.Array]] = None,
         logpmf: Optional[Callable[[backend.Array], backend.Array]] = None,
@@ -1052,7 +1049,7 @@ class ContinuousRandomVariable(RandomVariable):
     Examples
     --------
     >>> # Create a custom uniformly distributed random variable
-    >>> import numpy as np
+    >>> from probnum import backend
     >>>
     >>> # Distribution parameters
     >>> a = 0.0
@@ -1060,8 +1057,8 @@ class ContinuousRandomVariable(RandomVariable):
     >>> parameters_uniform = {"bounds" : [a, b]}
     >>>
     >>> # Sampling function
-    >>> def sample_uniform(rng, size=()):
-    ...     return rng.uniform(size=size)
+    >>> def sample_uniform(rng_state, size=()):
+    ...     return backend.random.uniform(rng_state=rng_state, size=size)
     >>>
     >>> # Probability density function
     >>> def pdf_uniform(x):
@@ -1084,8 +1081,8 @@ class ContinuousRandomVariable(RandomVariable):
     ...       )
     >>>
     >>> # Sample from new random variable
-    >>> rng = np.random.default_rng(42)
-    >>> u.sample(rng=rng, size=3)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> u.sample(rng_state, size=3)
     array([0.77395605, 0.43887844, 0.85859792])
     >>> u.pdf(0.5)
     array(1.)
@@ -1098,7 +1095,7 @@ class ContinuousRandomVariable(RandomVariable):
         shape: ShapeLike,
         dtype: DTypeLike,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[SeedType, ShapeType], backend.Array]] = None,
+        sample: Optional[Callable[[RNGState, ShapeType], backend.Array]] = None,
         in_support: Optional[Callable[[backend.Array], backend.Array]] = None,
         pdf: Optional[Callable[[backend.Array], backend.Array]] = None,
         logpdf: Optional[Callable[[backend.Array], backend.Array]] = None,

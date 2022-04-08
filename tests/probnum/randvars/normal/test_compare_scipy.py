@@ -32,7 +32,7 @@ def test_entropy(rv: randvars.Normal):
 @parametrize("shape", ([(), (1,), (5,), (2, 3), (3, 1, 2)]))
 def test_pdf_scalar(rv: randvars.Normal, shape: ShapeType):
     x = backend.random.standard_normal(
-        tests.utils.random.seed_from_sampling_args(base_seed=245, shape=shape),
+        tests.utils.random.rng_state_from_sampling_args(base_seed=245, shape=shape),
         shape=shape,
         dtype=rv.dtype,
     )
@@ -57,7 +57,7 @@ def test_pdf_scalar(rv: randvars.Normal, shape: ShapeType):
 @parametrize("shape", ((), (1,), (5,), (2, 3), (3, 1, 2)))
 def test_pdf_multivariate(rv: randvars.Normal, shape: ShapeType):
     x = rv.sample(
-        tests.utils.random.seed_from_sampling_args(base_seed=65465, shape=shape),
+        tests.utils.random.rng_state_from_sampling_args(base_seed=65465, shape=shape),
         sample_shape=shape,
     )
 
@@ -97,7 +97,7 @@ def test_cdf_multivariate(rv: randvars.Normal, shape: ShapeType):
     )
 
     x = rv.sample(
-        tests.utils.random.seed_from_sampling_args(base_seed=978134, shape=shape),
+        tests.utils.random.rng_state_from_sampling_args(base_seed=978134, shape=shape),
         sample_shape=shape,
     )
 

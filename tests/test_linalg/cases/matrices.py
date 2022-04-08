@@ -3,12 +3,13 @@
 import os
 
 import numpy as np
-from pytest_cases import case, parametrize
 import scipy
 
 from probnum import linops
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 from probnum.randprocs import kernels
+
+from pytest_cases import case, parametrize
 
 m_rows = [1, 2, 10, 100]
 n_cols = [1, 2, 10, 100]
@@ -22,7 +23,7 @@ def case_random_spd_matrix(n: int, rng: np.random.Generator) -> np.ndarray:
 
 @case(tags=["symmetric", "positive_definite"])
 def case_random_sparse_spd_matrix(rng: np.random.Generator) -> scipy.sparse.spmatrix:
-    return random_sparse_spd_matrix(dim=1000, density=0.01, rng=rng)
+    return random_sparse_spd_matrix(dim=1000, density=0.01, rng_state=rng)
 
 
 @case(tags=["symmetric", "positive_definite"])

@@ -9,8 +9,8 @@ import tests.utils
 @case(tags=["symmetric-matrix"])
 @parametrize("shape", [(1, 1), (2, 2), (3, 3), (5, 5)])
 def case_symmetric_matrix(shape: ShapeType) -> randvars.SymmetricMatrixNormal:
-    seed_mean, seed_cov = backend.random.split(
-        tests.utils.random.seed_from_sampling_args(
+    rng_state_mean, rng_state_cov = backend.random.split(
+        tests.utils.random.rng_state_from_sampling_args(
             base_seed=453987,
             shape=shape,
         ),
@@ -20,8 +20,8 @@ def case_symmetric_matrix(shape: ShapeType) -> randvars.SymmetricMatrixNormal:
     assert shape[0] == shape[1]
 
     return randvars.SymmetricMatrixNormal(
-        mean=random_spd_matrix(seed_mean, shape[0]),
-        cov=linops.SymmetricKronecker(random_spd_matrix(seed_cov, shape[0])),
+        mean=random_spd_matrix(rng_state_mean, shape[0]),
+        cov=linops.SymmetricKronecker(random_spd_matrix(rng_state_cov, shape[0])),
     )
 
 
@@ -47,7 +47,7 @@ def samples(
     rv: randvars.Normal, sample_shape_arg: ShapeLike, sample_shape: ShapeType
 ) -> backend.Array:
     return rv.sample(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=355231,
             shape=sample_shape + rv.shape,
         ),

@@ -2,11 +2,11 @@
 
 from typing import Callable, Optional
 
-import pytest
-
 from probnum import backend
 from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
+
+import pytest
 import tests.utils
 
 
@@ -113,9 +113,11 @@ def x0(input_shape: ShapeType, x0_batch_shape: ShapeType) -> backend.Array:
     """Random data from a standard normal distribution."""
     shape = x0_batch_shape + input_shape
 
-    seed = tests.utils.random.seed_from_sampling_args(base_seed=34897, shape=shape)
+    rng_state = tests.utils.random.rng_state_from_sampling_args(
+        base_seed=34897, shape=shape
+    )
 
-    return backend.random.standard_normal(seed, shape=shape)
+    return backend.random.standard_normal(rng_state, shape=shape)
 
 
 @pytest.fixture(scope="package")
@@ -126,6 +128,8 @@ def x1(input_shape: ShapeType, x1_batch_shape: ShapeType) -> Optional[backend.Ar
 
     shape = x1_batch_shape + input_shape
 
-    seed = tests.utils.random.seed_from_sampling_args(base_seed=533, shape=shape)
+    rng_state = tests.utils.random.rng_state_from_sampling_args(
+        base_seed=533, shape=shape
+    )
 
-    return backend.random.standard_normal(seed, shape=shape)
+    return backend.random.standard_normal(rng_state, shape=shape)

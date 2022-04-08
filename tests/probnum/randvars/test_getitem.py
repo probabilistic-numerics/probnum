@@ -25,16 +25,16 @@ def case_normal(
     shape, getitem_arg = shape_and_getitem_arg
 
     # Generate `Normal` random variable with random parameters
-    mean_seed, cov_seed = backend.random.split(
-        seed=tests.utils.random.seed_from_sampling_args(
+    mean_rng_state, cov_rng_state = backend.random.split(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=98723,
             shape=shape,
         ),
         num=2,
     )
 
-    mean = backend.random.standard_normal(seed=mean_seed, shape=shape)
-    cov = random_spd_matrix(seed=cov_seed, dim=mean.size)
+    mean = backend.random.standard_normal(rng_state=mean_rng_state, shape=shape)
+    cov = random_spd_matrix(rng_state=cov_rng_state, dim=mean.size)
 
     rv = randvars.Normal(mean, cov)
 
@@ -84,7 +84,7 @@ def test_sample_shape(
     expected_shape = backend.zeros(rv.shape)[getitem_arg].shape
 
     sample = getitem_rv.sample(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=123897, shape=expected_shape
         )
     )

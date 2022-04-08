@@ -19,7 +19,7 @@ def get_linear_system(name: str, dim: int):
         A = random_spd_matrix(rng=rng, dim=dim)
     elif name == "sparse":
         A = random_sparse_spd_matrix(
-            rng=rng, dim=dim, density=np.minimum(1.0, 1000 / dim**2)
+            rng_state=rng, dim=dim, density=np.minimum(1.0, 1000 / dim**2)
         )
     elif name == "linop":
         if dim > 100:

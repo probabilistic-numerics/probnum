@@ -1,9 +1,9 @@
 """Tests for Gaussian processes."""
 
-import pytest
-
 from probnum import backend, randprocs, randvars
 from probnum.randprocs import kernels, mean_fns
+
+import pytest
 import tests.utils
 
 
@@ -58,7 +58,7 @@ def test_finite_evaluation_is_normal(gaussian_process: randprocs.GaussianProcess
     variable."""
     x_shape = (5,) + gaussian_process.input_shape
     x = backend.random.standard_normal(
-        seed=tests.utils.random.seed_from_sampling_args(
+        rng_state=tests.utils.random.rng_state_from_sampling_args(
             base_seed=98998123,
             shape=x_shape,
         ),

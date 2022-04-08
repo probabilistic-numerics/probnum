@@ -6,7 +6,8 @@ import abc
 from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 from probnum import _function, backend, randvars
-from probnum.backend.typing import DTypeLike, SeedLike, ShapeLike, ShapeType
+from probnum.backend.random import RNGState
+from probnum.backend.typing import DTypeLike, ShapeLike, ShapeType
 from probnum.randprocs import kernels
 
 InputType = TypeVar("InputType")
@@ -276,7 +277,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
     def sample(
         self,
-        seed: SeedLike,
+        rng_state: RNGState,
         args: Optional[InputType] = None,
         sample_shape: ShapeLike = (),
     ) -> Union[Callable[[InputType], OutputType], OutputType]:
@@ -288,8 +289,8 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         Parameters
         ----------
-        rng
-            Random number generator.
+        rng_state
+            Random number generator state.
         args
             *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
             which the sample paths will be evaluated. Currently, we require
@@ -301,11 +302,13 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         if args is None:
             raise NotImplementedError
 
-        return self._sample_at_input(seed=seed, args=args, sample_shape=sample_shape)
+        return self._sample_at_input(
+            rng_state=rng_state, args=args, sample_shape=sample_shape
+        )
 
     def _sample_at_input(
         self,
-        seed: SeedLike,
+        rng_state: RNGState,
         args: InputType,
         sample_shape: ShapeLike = (),
     ) -> OutputType:
@@ -317,8 +320,8 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         Parameters
         ----------
-        rng
-            Random number generator.
+        rng_state
+            Random number generator state.
         args
             *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
             which the sample paths will be evaluated. Currently, we require
@@ -326,4 +329,4 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         sample_shape
             Shape of the sample.
         """
-        return self(args).sample(seed=seed, sample_shape=sample_shape)
+        return self(args).sample(rng_state=rng_state, sample_shape=sample_shape)

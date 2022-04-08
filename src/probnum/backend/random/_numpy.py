@@ -1,29 +1,37 @@
+"""Functionality for random number generation implemented in the NumPy backend."""
 from __future__ import annotations
 
 import functools
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy as np
 
 from probnum import backend
-from probnum.backend.typing import DTypeLike, FloatLike, ShapeLike
+from probnum.backend.typing import DTypeLike, FloatLike, Seed, ShapeLike
+
+RNGState = np.random.SeedSequence
 
 
-def seed(seed: Optional[int]) -> np.random.SeedSequence:
-    if isinstance(seed, np.random.SeedSequence):
-        return seed
-
+def rng_state(seed: Seed) -> RNGState:
     return np.random.SeedSequence(seed)
 
 
-def split(
-    seed: np.random.SeedSequence, num: int = 2
-) -> Sequence[np.random.SeedSequence]:
-    return seed.spawn(num)
+def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
+    return rng_state.spawn(num)
+
+
+def _rng_from_rng_state(rng_state: RNGState) -> np.random.Generator:
+    """Create a random generator instance initialized with the given state."""
+    if not isinstance(rng_state, RNGState):
+        raise TypeError(
+            "`rng_state`s should always have type :class:`~backend.random.RNGState`."
+        )
+
+    return np.random.default_rng(rng_state)
 
 
 def uniform(
-    seed: np.random.SeedSequence,
+    rng_state: RNGState,
     shape: ShapeLike = (),
     dtype: DTypeLike = np.double,
     minval: FloatLike = 0.0,
@@ -33,7 +41,7 @@ def uniform(
     maxval = backend.asscalar(maxval, dtype=dtype)
     return np.asarray(
         (maxval - minval)
-        * _make_rng(seed).random(
+        * _rng_from_rng_state(rng_state).random(
             size=shape,
             dtype=dtype,
         )
@@ -42,28 +50,32 @@ def uniform(
 
 
 def standard_normal(
-    seed: np.random.SeedSequence,
+    rng_state: RNGState,
     shape: ShapeLike = (),
     dtype: DTypeLike = np.double,
 ) -> np.ndarray:
-    return np.asarray(_make_rng(seed).standard_normal(size=shape, dtype=dtype))
+    return np.asarray(
+        _rng_from_rng_state(rng_state).standard_normal(size=shape, dtype=dtype)
+    )
 
 
 def gamma(
-    seed: np.random.SeedSequence,
+    rng_state: RNGState,
     shape_param: FloatLike,
     scale_param: FloatLike = 1.0,
     shape: ShapeLike = (),
     dtype: DTypeLike = np.double,
 ) -> np.ndarray:
     return np.asarray(
-        _make_rng(seed).standard_gamma(shape=shape_param, size=shape, dtype=dtype)
+        _rng_from_rng_state(rng_state).standard_gamma(
+            shape=shape_param, size=shape, dtype=dtype
+        )
         * scale_param
     )
 
 
 def uniform_so_group(
-    seed: np.random.SeedSequence,
+    rng_state: RNGState,
     n: int,
     shape: ShapeLike = (),
     dtype: DTypeLike = np.double,
@@ -73,7 +85,7 @@ def uniform_so_group(
 
     return np.asarray(
         _uniform_so_group_pushforward_fn(
-            standard_normal(seed, shape=shape + (n - 1, n), dtype=dtype)
+            standard_normal(rng_state, shape=shape + (n - 1, n), dtype=dtype)
         )
     )
 
@@ -102,15 +114,3 @@ def _uniform_so_group_pushforward_fn(omega: np.ndarray) -> np.ndarray:
     # Equivalent to np.dot(np.diag(D), H) but faster, apparently
     H = (D * H.T).T
     return H
-
-
-def _make_rng(seed: np.random.SeedSequence) -> np.random.Generator:
-    if not isinstance(seed, np.random.SeedSequence):
-        raise TypeError(
-            "`seed`s should always have type :class:`~numpy.random.SeedSequence`."
-        )
-
-    return np.random.default_rng(seed)
-
-
-SeedType = np.random.SeedSequence

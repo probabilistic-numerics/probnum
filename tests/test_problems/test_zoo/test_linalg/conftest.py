@@ -1,8 +1,6 @@
 """Test fixtures for the linear algebra test problem zoo."""
 
 import numpy as np
-import pytest
-import pytest_cases
 import scipy.sparse
 
 from probnum.problems.zoo.linalg import (
@@ -11,6 +9,9 @@ from probnum.problems.zoo.linalg import (
     random_spd_matrix,
     suitesparse_matrix,
 )
+
+import pytest
+import pytest_cases
 
 
 @pytest_cases.fixture()
@@ -48,7 +49,7 @@ def rnd_sparse_spd_mat(
     n_cols: int, density: float, rng: np.random.Generator
 ) -> scipy.sparse.spmatrix:
     """Random sparse spd matrix generated from :meth:`random_sparse_spd_matrix`."""
-    return random_sparse_spd_matrix(rng=rng, dim=n_cols, density=density)
+    return random_sparse_spd_matrix(rng_state=rng, dim=n_cols, density=density)
 
 
 rnd_spd_mat = pytest_cases.fixture_union(

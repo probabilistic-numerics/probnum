@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import backend
-from probnum.backend.typing import SeedType, ShapeType
+from probnum.backend.typing import Seed, ShapeType
 
 from ._random_variable import DiscreteRandomVariable
 
@@ -48,9 +48,7 @@ class Categorical(DiscreteRandomVariable):
             "num_categories": num_categories,
         }
 
-        def _sample_categorical(
-            seed: np.random.SeedSequence, sample_shape: ShapeType = ()
-        ):
+        def _sample_categorical(seed: Seed, sample_shape: ShapeType = ()):
             """Sample from a categorical distribution.
 
             While on first sight, one might think that this implementation can be
@@ -106,7 +104,7 @@ class Categorical(DiscreteRandomVariable):
         """Support of the categorical distribution."""
         return self._support
 
-    def resample(self, seed: SeedType) -> "Categorical":
+    def resample(self, seed: Seed) -> "Categorical":
         """Resample the support of the categorical random variable.
 
         Return a new categorical random variable (RV), where the support

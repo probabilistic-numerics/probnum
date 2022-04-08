@@ -1,13 +1,14 @@
 from typing import Tuple
 
 import numpy as np
-import pytest
-import pytest_cases
 import scipy.sparse
 
 import probnum as pn
 from probnum import backend
 from probnum.problems.zoo.linalg import random_spd_matrix
+
+import pytest
+import pytest_cases
 
 matrices = [
     np.array([[-1.5, 3], [0, -230]]),
@@ -17,7 +18,7 @@ matrices = [
 spd_matrices = [
     np.array([[1.0]]),
     np.array([[1.0, -2.0], [-2.0, 5.0]]),
-    random_spd_matrix(seed=backend.random.seed(597), dim=10),
+    random_spd_matrix(rng_state=backend.random.rng_state(597), dim=10),
 ]
 
 
