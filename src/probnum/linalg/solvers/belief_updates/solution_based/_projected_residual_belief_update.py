@@ -13,12 +13,18 @@ from .._linear_solver_belief_update import LinearSolverBeliefUpdate
 class ProjectedResidualBeliefUpdate(LinearSolverBeliefUpdate):
     r"""Gaussian belief update given projected residual information.
 
-    Updates the belief over the quantities of interest of a linear system :math:`Ax=b` given a Gaussian belief over the solution :math:`x` and information of the form :math:`s\^top r_i = s^\top (b - Ax_i) = s^\top A (x - x_i)`. The belief update computes the posterior belief about the solution, given by :math:`p(x \mid y) = \mathcal{N}(x; x_{i+1}, \Sigma_{i+1})`, such that
+    Updates the belief over the quantities of interest of a linear system :math:`Ax=b`
+    given a Gaussian belief over the solution :math:`x` and information of the form
+    :math:`s\^top r_i = s^\top (b - Ax_i) = s^\top A (x - x_i)`.
+    The belief update computes the posterior belief about the solution, given by
+    :math:`p(x \mid y) = \mathcal{N}(x; x_{i+1}, \Sigma_{i+1})`, such that
 
     .. math ::
         \begin{align}
-            x_{i+1} &= x_i + \Sigma_i A^\top s (s^\top A \Sigma_i A^\top s + \lambda)^\dagger s^\top r_i,\\
-            \Sigma_{i+1} &= \Sigma_i - \Sigma_i A^\top s (s^\top A \Sigma_i A s + \lambda)^\dagger s^\top A \Sigma_i,
+            x_{i+1} &= x_i + \Sigma_i A^\top s (s^\top A \Sigma_i A^\top s +
+            \lambda)^\dagger s^\top r_i,\\
+            \Sigma_{i+1} &= \Sigma_i - \Sigma_i A^\top s (s^\top A \Sigma_i A s +
+            \lambda)^\dagger s^\top A \Sigma_i,
         \end{align}
 
     where :math:`\lambda` is the noise variance.
