@@ -66,7 +66,7 @@ class ProbabilisticLinearSolver(
     --------
     ~probnum.linalg.problinsolve : Solve linear systems in a Bayesian framework.
     ~probnum.linalg.bayescg : Solve linear systems with prior information on the
-    solution.
+        solution.
 
     Examples
     --------

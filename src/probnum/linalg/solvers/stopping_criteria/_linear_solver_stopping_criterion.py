@@ -15,7 +15,7 @@ class LinearSolverStoppingCriterion(StoppingCriterion):
     --------
     ResidualNormStoppingCriterion : Stop based on the norm of the residual.
     PosteriorContractionStoppingCriterion : Stop based on the uncertainty about
-    the quantity of interest.
+        the quantity of interest.
     MaxIterationsStoppingCriterion : Stop after a maximum number of iterations.
     """
 
