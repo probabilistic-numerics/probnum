@@ -70,7 +70,7 @@ def induced_norm(
     """
 
     if A is None:
-        return backend.linalg.norm(v, ord=2, axis=axis, keepdims=False)
+        return backend.linalg.vector_norm(v, ord=2, axis=axis, keepdims=False)
 
     v = backend.moveaxis(v, axis, -1)
     w = backend.squeeze(A @ v[..., :, None], axis=-1)

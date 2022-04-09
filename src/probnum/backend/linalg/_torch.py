@@ -1,7 +1,26 @@
-from typing import Optional, Tuple, Union
+"""Implementation of linear algebra functionality in PyTorch."""
+
+from typing import Literal, Optional, Tuple, Union
 
 import torch
 from torch.linalg import eigh, qr, solve, svd
+
+
+def vector_norm(
+    x: torch.Tensor,
+    /,
+    *,
+    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+    keepdims: bool = False,
+    ord: Union[int, float, Literal["inf", "-inf"]] = 2,
+) -> torch.Tensor:
+    return torch.linalg.vector_norm(x, ord=ord, dim=axis, keepdim=keepdims)
+
+
+def matrix_norm(
+    x: torch.Tensor, /, *, keepdims: bool = False, ord="fro"
+) -> torch.Tensor:
+    return torch.linalg.matrix_norm(x, ord=ord, dim=(-2, -1), keepdim=keepdims)
 
 
 def norm(

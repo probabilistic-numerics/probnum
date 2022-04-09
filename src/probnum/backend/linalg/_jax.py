@@ -1,8 +1,26 @@
+"""Implementation of linear algebra functionality in JAX."""
+
 import functools
+from typing import Literal, Optional, Tuple, Union
 
 import jax
 from jax import numpy as jnp
-from jax.numpy.linalg import eigh, norm, qr, solve, svd
+from jax.numpy.linalg import eigh, qr, solve, svd
+
+
+def vector_norm(
+    x: jnp.ndarray,
+    /,
+    *,
+    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+    keepdims: bool = False,
+    ord: Union[int, float, Literal["inf", "-inf"]] = 2,
+) -> jnp.ndarray:
+    return jnp.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=axis)
+
+
+def matrix_norm(x: jnp.ndarray, /, *, keepdims: bool = False, ord="fro") -> jnp.ndarray:
+    return jnp.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=(-2, -1))
 
 
 def cholesky(x: jnp.ndarray, /, *, upper: bool = False) -> jnp.ndarray:

@@ -1,9 +1,26 @@
+"""Implementation of linear algebra functionality in NumPy."""
+
 import functools
-from typing import Callable
+from typing import Callable, Literal, Optional, Tuple, Union
 
 import numpy as np
-from numpy.linalg import eigh, norm, qr, solve, svd
+from numpy.linalg import eigh, qr, solve, svd
 import scipy.linalg
+
+
+def vector_norm(
+    x: np.ndarray,
+    /,
+    *,
+    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+    keepdims: bool = False,
+    ord: Union[int, float, Literal["inf", "-inf"]] = 2,
+) -> np.ndarray:
+    return np.asarray(np.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=axis))
+
+
+def matrix_norm(x: np.ndarray, /, *, keepdims: bool = False, ord="fro") -> np.ndarray:
+    return np.asarray(np.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=(-2, -1)))
 
 
 def cholesky(x: np.ndarray, /, *, upper: bool = False) -> np.ndarray:
