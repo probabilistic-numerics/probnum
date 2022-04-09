@@ -30,11 +30,12 @@ def grad(fun: Callable, argnums: Union[int, Sequence[int]] = 0) -> Callable:
 
     Returns
     -------
-    A function with the same arguments as ``fun``, that evaluates the gradient
-    of ``fun``. If ``argnums`` is an integer then the gradient has the same
-    shape and type as the positional argument indicated by that integer. If
-    argnums is a tuple of integers, the gradient is a tuple of values with the
-    same shapes and types as the corresponding arguments.
+    grad_fun
+        A function with the same arguments as ``fun``, that evaluates the gradient
+        of ``fun``. If ``argnums`` is an integer then the gradient has the same
+        shape and type as the positional argument indicated by that integer. If
+        argnums is a tuple of integers, the gradient is a tuple of values with the
+        same shapes and types as the corresponding arguments.
 
     Examples
     --------
