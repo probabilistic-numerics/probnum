@@ -16,6 +16,8 @@ def asarray(
     device: Optional["probnum.backend.Device"] = None,
     copy: Optional[bool] = None,
 ) -> jnp.ndarray:
+    if copy is None:
+        copy = True
     x = jnp.array(obj, dtype=dtype, copy=copy)
     if device is not None:
         return jax.device_put(x, device=device)
