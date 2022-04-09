@@ -329,7 +329,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     atol=1e-6,
                     msg=(
                         "Solution for matrixvariate prior does not match true solution."
-                    )
+                    ),
                 )
 
     def test_searchdir_conjugacy(self):
