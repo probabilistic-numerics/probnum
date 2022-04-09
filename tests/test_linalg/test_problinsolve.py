@@ -108,7 +108,10 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertIsInstance(
                         rv,
                         randvars.RandomVariable,
-                        msg="Output of probabilistic linear solver is not a random variable.",
+                        msg=(
+                            "Output of probabilistic linear solver "
+                            "is not a random variable."
+                        ),
                     )
 
     def test_symmetric_posterior_params(self):
@@ -209,11 +212,15 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAlmostEqual(
                     info["resid_l2norm"],
                     np.linalg.norm(A @ x_est.mean - b),
-                    msg="Residual in output info does not match l2-error of solution estimate.",
+                    msg=(
+                        "Residual in output info does not match "
+                        "l2-error of solution estimate."
+                    ),
                 )
 
     # def test_solution_equivalence(self):
-    #     """The iteratively computed solution should match the induced solution estimate: x_k = E[A^-1] b"""
+    #     """The iteratively computed solution should match the induced
+    #           solution estimate: x_k = E[A^-1] b"""
     #     A, f = self.poisson_linear_system
     #
     #     for matblinsolve in self.matblinsolvers:
@@ -222,9 +229,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     #             u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
     #
     #             # E[x] = E[A^-1] b
-    #             self.assertAllClose(u_solver.mean, (Ainvhat @ f[:, None]).mean.ravel(), rtol=1e-5,
-    #                                 msg="Solution from matrix-based probabilistic linear solver does not match the " +
-    #                                     "estimated inverse, i.e. x =/= Ainv @ b ")
+    #            self.assertAllClose(u_solver.mean,
+    #            (Ainvhat @ f[:, None]).mean.ravel(),
+    #            rtol=1e-5,
+    #           msg=(
+    #                   "Solution from matrix-based probabilistic linear solver "
+    #                    does not match the estimated inverse, i.e. x =/= Ainv @ b "
+    #               ))
 
     def test_posterior_uncertainty_zero_in_explored_space(self):
         """Test whether the posterior uncertainty over the matrices A and Ainv is zero
@@ -316,11 +327,14 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     x_true,
                     rtol=1e-6,
                     atol=1e-6,
-                    msg="Solution for matrixvariate prior does not match true solution.",
+                    msg=(
+                        "Solution for matrixvariate prior does not match true solution."
+                    ),
                 )
 
     def test_searchdir_conjugacy(self):
-        """Search directions should remain A-conjugate up to machine precision, i.e. s_i^T A s_j = 0 for i != j."""
+        """Search directions should remain A-conjugate up to machine precision,
+        i.e. s_i^T A s_j = 0 for i != j."""
         searchdirs = []
 
         # Define callback function to obtain search directions
@@ -424,7 +438,10 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAlmostEqual(
                     info["trace_sol_cov"],
                     x_est.cov.trace(),
-                    msg="Iteratively computed trace not equal to trace of solution covariance.",
+                    msg=(
+                        "Iteratively computed trace not equal to "
+                        "trace of solution covariance."
+                    ),
                 )
 
     def test_uncertainty_calibration_error(self):
