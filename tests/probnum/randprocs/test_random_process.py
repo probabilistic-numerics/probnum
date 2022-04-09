@@ -136,7 +136,7 @@ def test_invalid_mean_type_raises():
         DummyRandomProcess(
             input_shape=(),
             output_shape=(),
-            dtype=backend.double,
+            dtype=backend.float64,
             mean=backend.zeros_like,
         )
 
@@ -146,7 +146,7 @@ def test_invalid_cov_type_raises():
         DummyRandomProcess(
             input_shape=(),
             output_shape=(3,),
-            dtype=backend.double,
+            dtype=backend.float64,
             cov=lambda x: backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x,
                 shape=x.shape + (3, 3),
@@ -159,7 +159,7 @@ def test_inconsistent_mean_shape_errors():
         DummyRandomProcess(
             input_shape=(42,),
             output_shape=(),
-            dtype=backend.double,
+            dtype=backend.float64,
             mean=randprocs.mean_fns.Zero(
                 input_shape=(3,),
                 output_shape=(3,),
@@ -170,7 +170,7 @@ def test_inconsistent_mean_shape_errors():
         DummyRandomProcess(
             input_shape=(),
             output_shape=(1,),
-            dtype=backend.double,
+            dtype=backend.float64,
             mean=randprocs.mean_fns.Zero(
                 input_shape=(),
                 output_shape=(3,),
@@ -183,7 +183,7 @@ def test_inconsistent_cov_shape_errors():
         DummyRandomProcess(
             input_shape=(42,),
             output_shape=(),
-            dtype=backend.double,
+            dtype=backend.float64,
             cov=randprocs.kernels.ExpQuad(
                 input_shape=(3,),
             ),
@@ -193,7 +193,7 @@ def test_inconsistent_cov_shape_errors():
         DummyRandomProcess(
             input_shape=(),
             output_shape=(1,),
-            dtype=backend.double,
+            dtype=backend.float64,
             cov=randprocs.kernels.ExpQuad(
                 input_shape=(),
             ),

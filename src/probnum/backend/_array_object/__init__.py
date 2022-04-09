@@ -13,7 +13,7 @@ elif BACKEND is Backend.JAX:
 elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
-__all__ = ["Scalar", "Array", "Dtype", "isarray"]
+__all__ = ["Scalar", "Array", "isarray"]
 
 Scalar = _impl.Scalar
 """Object representing a scalar."""
@@ -21,9 +21,6 @@ Scalar = _impl.Scalar
 Array = _impl.Array
 """Object representing a multi-dimensional array containing elements of the same
 ``:class:`~probnum.backend.Dtype``."""
-
-Dtype = _impl.Dtype
-"""Data type of an array."""
 
 
 def isarray(x: Any) -> bool:

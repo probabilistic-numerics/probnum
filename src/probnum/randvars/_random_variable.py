@@ -163,13 +163,13 @@ class RandomVariable:
         r"""The dtype of the :attr:`median`.
 
         It will be set to the dtype arising from the multiplication of values with
-        dtypes :attr:`dtype` and :class:`~probnum.backend.double`. This is motivated by
+        dtypes :attr:`dtype` and :class:`~probnum.backend.float64`. This is motivated by
         the fact that, even for discrete random variables, e.g. integer-valued random
         variables, the :attr:`median` might lie in between two values in which case
         these values are averaged. For example, a uniform random variable on :math:`\{
         1, 2, 3, 4 \}` will have a median of :math:`2.5`.
         """
-        return backend.promote_types(self.dtype, backend.double)
+        return backend.promote_types(self.dtype, backend.float64)
 
     @cached_property
     def expectation_dtype(self) -> backend.Dtype:
@@ -178,12 +178,12 @@ class RandomVariable:
         For instance, the :attr:`mean`, :attr:`cov`, :attr:`var`, :attr:`std`, and
         :attr:`entropy` of the random variable will have this dtype. It will be set
         to the dtype arising from the multiplication of values with dtypes :attr:`dtype`
-        and :class:`~probnum.backend.double`. This is motivated by the mathematical
+        and :class:`~probnum.backend.float64`. This is motivated by the mathematical
         definition of an expectation as a sum or an integral over products of
         probabilities and values of the random variable, which are represented as using
-        the dtypes :class:`~probnum.backend.double` and :attr:`dtype`, respectively.
+        the dtypes :class:`~probnum.backend.float64` and :attr:`dtype`, respectively.
         """
-        return backend.promote_types(self.dtype, backend.double)
+        return backend.promote_types(self.dtype, backend.float64)
 
     @property
     def parameters(self) -> Dict[str, Any]:
@@ -435,7 +435,7 @@ class RandomVariable:
             input_value=x,
             return_value=cdf,
             expected_shape=x.shape[: -self.ndim],
-            expected_dtype=backend.double,
+            expected_dtype=backend.float64,
         )
 
         return cdf
@@ -466,7 +466,7 @@ class RandomVariable:
             input_value=x,
             return_value=logcdf,
             expected_shape=x.shape[: -self.ndim],
-            expected_dtype=backend.double,
+            expected_dtype=backend.float64,
         )
 
         return logcdf
@@ -960,7 +960,7 @@ class DiscreteRandomVariable(RandomVariable):
             input_value=x,
             return_value=pmf,
             expected_shape=x.shape[: -self.ndim],
-            expected_dtype=backend.double,
+            expected_dtype=backend.float64,
         )
 
         return pmf
@@ -991,7 +991,7 @@ class DiscreteRandomVariable(RandomVariable):
             input_value=x,
             return_value=logpmf,
             expected_shape=x.shape[: -self.ndim],
-            expected_dtype=backend.double,
+            expected_dtype=backend.float64,
         )
 
         return logpmf
@@ -1169,7 +1169,7 @@ class ContinuousRandomVariable(RandomVariable):
             input_value=x,
             return_value=pdf,
             expected_shape=x.shape[: x.ndim - self.ndim],
-            expected_dtype=backend.double,
+            expected_dtype=backend.float64,
         )
 
         return pdf
@@ -1200,7 +1200,7 @@ class ContinuousRandomVariable(RandomVariable):
             input_value=x,
             return_value=logpdf,
             expected_shape=x.shape[: -self.ndim],
-            expected_dtype=backend.double,
+            expected_dtype=backend.float64,
         )
 
         return logpdf

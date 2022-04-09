@@ -79,7 +79,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         dtype = backend.promote_types(mean.dtype, cov.dtype)
 
         if not backend.is_floating_dtype(dtype):
-            dtype = backend.double
+            dtype = backend.float64
 
         # Circular dependency -> defer import
         from probnum import compat  # pylint: disable=import-outside-toplevel
@@ -607,9 +607,9 @@ class Normal(_random_variable.ContinuousRandomVariable):
 def _clip_eigvals(eigvals: backend.Array) -> backend.Array:
     # Clip eigenvalues as in
     # https://github.com/scipy/scipy/blob/b5d8bab88af61d61de09641243848df63380a67f/scipy/stats/_multivariate.py#L60-L166
-    if eigvals.dtype == backend.double:
+    if eigvals.dtype == backend.float64:
         eigvals_clip = 1e6
-    elif eigvals.dtype == backend.single:
+    elif eigvals.dtype == backend.float32:
         eigvals_clip = 1e3
     else:
         raise TypeError("Unsupported dtype")

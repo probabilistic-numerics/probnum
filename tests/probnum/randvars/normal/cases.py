@@ -41,7 +41,7 @@ def case_vector(shape: ShapeType) -> randvars.Normal:
 
 @case(tags=["vector", "diag-cov"])
 @parametrize(
-    cov=[backend.eye(7, dtype=backend.single), linops.Scaling(2.7, shape=(20, 20))],
+    cov=[backend.eye(7, dtype=backend.float32), linops.Scaling(2.7, shape=(20, 20))],
     ids=["backend.eye", "linops.Scaling"],
 )
 def case_vector_diag_cov(cov: MatrixType) -> randvars.Normal:

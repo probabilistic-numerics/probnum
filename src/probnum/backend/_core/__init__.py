@@ -21,13 +21,6 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 
 # DType
 asdtype = _core.asdtype
-bool = _core.bool
-int32 = _core.int32
-int64 = _core.int64
-single = _core.single
-double = _core.double
-csingle = _core.csingle
-cdouble = _core.cdouble
 cast = _core.cast
 promote_types = _core.promote_types
 result_type = _core.result_type
@@ -146,13 +139,6 @@ def vectorize(
 __all__ = [
     # DTypes
     "asdtype",
-    "bool",
-    "int32",
-    "int64",
-    "single",
-    "double",
-    "csingle",
-    "cdouble",
     "cast",
     "promote_types",
     "result_type",

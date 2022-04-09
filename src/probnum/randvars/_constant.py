@@ -59,7 +59,7 @@ class Constant(_random_variable.DiscreteRandomVariable):
         self._support = backend.asarray(support)
 
         support_floating = self._support.astype(
-            backend.promote_types(self._support.dtype, backend.double)
+            backend.promote_types(self._support.dtype, backend.float64)
         )
 
         if config.matrix_free:
@@ -89,10 +89,10 @@ class Constant(_random_variable.DiscreteRandomVariable):
             parameters={"support": self._support},
             sample=self._sample,
             in_support=lambda x: backend.all(x == self._support),
-            pmf=lambda x: backend.double(
+            pmf=lambda x: backend.float64(
                 1.0 if backend.all(x == self._support) else 0.0
             ),
-            cdf=lambda x: backend.double(
+            cdf=lambda x: backend.float64(
                 1.0 if backend.all(x >= self._support) else 0.0
             ),
             mode=lambda: self._support,
