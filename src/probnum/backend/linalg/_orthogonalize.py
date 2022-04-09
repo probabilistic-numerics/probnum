@@ -66,7 +66,7 @@ def gram_schmidt(
     return v_orth
 
 
-def modified_gram_schmidt(
+def gram_schmidt_modified(
     v: np.ndarray,
     orthogonal_basis: Iterable[np.ndarray],
     inner_product: Optional[
@@ -123,7 +123,7 @@ def modified_gram_schmidt(
     return v_orth
 
 
-def double_gram_schmidt(
+def gram_schmidt_double(
     v: np.ndarray,
     orthogonal_basis: Iterable[np.ndarray],
     inner_product: Optional[
@@ -134,7 +134,7 @@ def double_gram_schmidt(
         ]
     ] = None,
     normalize: bool = False,
-    gram_schmidt_fn: Callable = modified_gram_schmidt,
+    gram_schmidt_fn: Callable = gram_schmidt_modified,
 ) -> np.ndarray:
     r"""Perform the (modified) Gram-Schmidt process twice.
 
@@ -155,7 +155,7 @@ def double_gram_schmidt(
     normalize
         Normalize the output vector, s.t. :math:`\langle v', v' \rangle = 1`.
     gram_schmidt_fn
-        Gram-Schmidt process to use. One of :meth:`gram_schmidt` or :meth:`modified_gram_schmidt`.
+        Gram-Schmidt process to use. One of :meth:`gram_schmidt` or :meth:`gram_schmidt_modified`.
 
     Returns
     -------

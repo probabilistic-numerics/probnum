@@ -5,22 +5,22 @@ from typing import Literal, Optional, Tuple, Union
 from .. import BACKEND, Array, Backend
 
 __all__ = [
-    "vector_norm",
-    "matrix_norm",
+    "cholesky",
+    "cholesky_update",
+    "eigh",
+    "gram_schmidt",
+    "gram_schmidt_double",
+    "gram_schmidt_modified",
     "induced_norm",
     "inner_product",
-    "gram_schmidt",
-    "modified_gram_schmidt",
-    "double_gram_schmidt",
-    "cholesky",
-    "solve",
-    "solve_triangular",
-    "solve_cholesky",
-    "cholesky_update",
-    "tril_to_positive_tril",
+    "matrix_norm",
     "qr",
+    "solve",
+    "solve_cholesky",
+    "solve_triangular",
     "svd",
-    "eigh",
+    "tril_to_positive_tril",
+    "vector_norm",
 ]
 
 if BACKEND is Backend.NUMPY:
@@ -32,7 +32,7 @@ elif BACKEND is Backend.TORCH:
 
 from ._cholesky_updates import cholesky_update, tril_to_positive_tril
 from ._inner_product import induced_norm, inner_product
-from ._orthogonalize import double_gram_schmidt, gram_schmidt, modified_gram_schmidt
+from ._orthogonalize import gram_schmidt, gram_schmidt_double, gram_schmidt_modified
 
 cholesky = _impl.cholesky
 solve_triangular = _impl.solve_triangular

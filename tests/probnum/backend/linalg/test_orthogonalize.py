@@ -5,9 +5,9 @@ from typing import Callable, Union
 
 from probnum import backend, compat, linops
 from probnum.backend.linalg import (
-    double_gram_schmidt,
     gram_schmidt,
-    modified_gram_schmidt,
+    gram_schmidt_double,
+    gram_schmidt_modified,
 )
 from probnum.problems.zoo.linalg import random_spd_matrix
 
@@ -63,8 +63,8 @@ def inprod(request) -> int:
 @pytest.fixture(
     scope="module",
     params=[
-        partial(double_gram_schmidt, gram_schmidt_fn=gram_schmidt),
-        partial(double_gram_schmidt, gram_schmidt_fn=modified_gram_schmidt),
+        partial(gram_schmidt_double, gram_schmidt_fn=gram_schmidt),
+        partial(gram_schmidt_double, gram_schmidt_fn=gram_schmidt_modified),
     ],
 )
 def orthogonalization_fn(request) -> int:
