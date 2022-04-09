@@ -16,11 +16,7 @@ elif BACKEND is Backend.TORCH:
 __all__ = ["Scalar", "Array", "isarray"]
 
 Scalar = _impl.Scalar
-"""Object representing a scalar."""
-
 Array = _impl.Array
-"""Object representing a multi-dimensional array containing elements of the same
-``:class:`~probnum.backend.Dtype``."""
 
 
 def isarray(x: Any) -> bool:

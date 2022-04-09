@@ -2,6 +2,18 @@
 probnum.backend
 ***************
 
+Generic computation backend.
+
+.. toctree::
+    :hidden:
+
+    backend/array_object
+
+.. toctree::
+    :hidden:
+
+    backend/data_types
+
 .. toctree::
     :hidden:
 
@@ -26,6 +38,3 @@ probnum.backend
     :hidden:
 
     backend/typing
-
-.. automodapi:: probnum.backend
-    :no-heading:

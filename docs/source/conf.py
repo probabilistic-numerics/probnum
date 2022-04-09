@@ -69,6 +69,7 @@ napoleon_use_param = True
 automodapi_toctreedirnm = "api/automod"
 automodapi_writereprocessed = False
 automodsumm_inherited_members = True
+numpydoc_show_class_members = False
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:
@@ -153,6 +154,8 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
+    "torch": ("https://pytorch.org/docs/stable/", None),
+    "jax": ("https://jax.readthedocs.io/en/latest/", None),
 }
 
 # -- Options for HTML output ----------------------------------------------

@@ -93,6 +93,19 @@ distribution. A probabilistic numerical method takes random variables as inputs 
    tutorials/prob/random_variables_quickstart
 
 
+Generic Computation Backend
+---------------------------
+
+.. nbgallery::
+   :caption: Computation Backend
+
+   tutorials/backend/using_the_backend
+
+
+Automatic Differentiation
+-------------------------
+
+
 .. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?style=flat-square&logo=Jupyter&logoColor=white
     :target: https://mybinder.org/v2/gh/probabilistic-numerics/probnum/main?filepath=docs%2Fsource%2Ftutorials
     :alt: ProbNum's Tutorials

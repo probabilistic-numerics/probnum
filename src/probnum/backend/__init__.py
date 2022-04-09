@@ -1,4 +1,7 @@
 """Generic computation backend."""
+
+from __future__ import annotations
+
 import inspect
 import sys
 
@@ -58,7 +61,7 @@ __all__ = (
     + __all__imported_modules
 )
 # Sort entries in documentation. Necessary since autodoc config option `member_order`
-# seems to have no effect.
+# seems to not work for our doc build setup.
 __all__.sort()
 
 # Set correct module paths. Corrects links and module paths in documentation.
