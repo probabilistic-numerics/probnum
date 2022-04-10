@@ -111,7 +111,7 @@ def vector_norm(
         has a floating-point data type determined by `type-promotion <https://data-apis\
         .org/array-api/latest/API_specification/type_promotion.html>`_..
     """
-    return _impl.vector_norm(x=x, axis=axis, keepdims=keepdims, ord=ord)
+    return _impl.vector_norm(x, axis=axis, keepdims=keepdims, ord=ord)
 
 
 def matrix_norm(
@@ -179,7 +179,7 @@ def matrix_norm(
         determined by `type-promotion <https://data-apis.org/array-api/latest/\
         API_specification/type_promotion.html>`_.
     """
-    return _impl.matrix_norm(x=x, keepdims=keepdims, ord=ord)
+    return _impl.matrix_norm(x, keepdims=keepdims, ord=ord)
 
 
 def solve(x1: Array, x2: Array, /) -> Array:
