@@ -7,12 +7,12 @@ import numpy as np
 import torch
 from torch.distributions.utils import broadcast_all
 
-from probnum.backend.typing import Seed, ShapeType
+from probnum.backend.typing import SeedType, ShapeType
 
 RNGState = np.random.SeedSequence
 
 
-def rng_state(seed: Seed) -> RNGState:
+def rng_state(seed: SeedType) -> RNGState:
     return np.random.SeedSequence(seed)
 
 

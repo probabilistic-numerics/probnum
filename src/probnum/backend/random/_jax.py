@@ -8,12 +8,12 @@ from typing import Sequence
 import jax
 from jax import numpy as jnp
 
-from probnum.backend.typing import Seed, ShapeType
+from probnum.backend.typing import SeedType, ShapeType
 
 RNGState = jax.random.PRNGKey
 
 
-def rng_state(seed: Seed) -> RNGState:
+def rng_state(seed: SeedType) -> RNGState:
     if seed is None:
         seed = secrets.randbits(128)
 

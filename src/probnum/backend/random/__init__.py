@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Sequence
 
 from probnum import backend
-from probnum.backend.typing import FloatLike, Seed, ShapeLike
+from probnum.backend.typing import FloatLike, SeedType, ShapeLike
 
 if backend.BACKEND is backend.Backend.NUMPY:
     from . import _numpy as _impl
@@ -28,7 +28,7 @@ RNGState = _impl.RNGState
 """State of the random number generator."""
 
 
-def rng_state(seed: Seed) -> RNGState:
+def rng_state(seed: SeedType) -> RNGState:
     """Create a state of a random number generator from a seed.
 
     Parameters

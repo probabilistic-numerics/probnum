@@ -30,7 +30,7 @@ from ._array_object import Array, Scalar
 __all__ = [
     # API Types
     "ShapeType",
-    "Seed",
+    "SeedType",
     # Argument Types
     "IntLike",
     "FloatLike",
@@ -51,10 +51,10 @@ ShapeType = Tuple[int, ...]
 """Type defining a shape of an object."""
 
 # Random Number Generation
-Seed = Optional[int]
+SeedType = Optional[int]
 """Type defining a seed of a random number generator.
 
-An object of type :attr:`Seed` is used to initialize the state of a random number
+An object of type :attr:`SeedType` is used to initialize the state of a random number
 generator by passing ``seed`` to :func:`backend.random.rng_state`."""
 
 ########################################################################################
