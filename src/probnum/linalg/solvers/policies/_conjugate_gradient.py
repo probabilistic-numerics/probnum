@@ -67,7 +67,9 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
                 prev_residual = solver_state.residuals[solver_state.step - 1]
 
             # A-conjugacy correction (in exact arithmetic)
-            beta = (np.linalg.norm(residual) / np.linalg.norm(prev_residual)) ** 2
+            beta = (
+                np.linalg.norm(residual, ord=2) / np.linalg.norm(prev_residual, ord=2)
+            ) ** 2
             action = residual + beta * solver_state.actions[solver_state.step - 1]
 
             # Reorthogonalization of the resulting action
