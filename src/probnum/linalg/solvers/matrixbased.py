@@ -149,8 +149,7 @@ class MatrixBasedSolver(abc.ABC):
                 "Iteration terminated. Solver reached the maximum number of iterations."
             )
             return True, "maxiter"
-        else:
-            return False, ""
+        return False, ""
 
     def solve(self, callback=None, **kwargs):
         """Solve the linear system :math:`Ax=b`.
@@ -315,7 +314,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 A0_covfactor = self.A
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
             # Construct matrix priors from initial guess x0
-            elif isinstance(x0, np.ndarray):
+            if isinstance(x0, np.ndarray):
                 A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(
                     A=self.A, x0=x0, b=b
                 )
@@ -323,7 +322,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 # Symmetric posterior correspondence
                 A0_covfactor = self.A
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
-            elif isinstance(x0, randvars.RandomVariable):
+            if isinstance(x0, randvars.RandomVariable):
                 raise NotImplementedError
 
         # Prior on Ainv specified
@@ -360,7 +359,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
 
         # Prior on A specified
-        elif A0 is not None and not isinstance(Ainv0, randvars.RandomVariable):
+        if A0 is not None and not isinstance(Ainv0, randvars.RandomVariable):
             if isinstance(A0, randvars.RandomVariable):
                 A0_mean = A0.mean
                 A0_covfactor = A0.cov.A
@@ -392,7 +391,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Ainv0_covfactor = Ainv0_mean
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
         # Both matrix priors on A and H specified via random variables
-        elif isinstance(A0, randvars.RandomVariable) and isinstance(
+        if isinstance(A0, randvars.RandomVariable) and isinstance(
             Ainv0, randvars.RandomVariable
         ):
             A0_mean = A0.mean
@@ -400,8 +399,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Ainv0_mean = Ainv0.mean
             Ainv0_covfactor = Ainv0.cov.A
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def _compute_trace_Ainv_covfactor0(self, Y, unc_scale):
         """Computes the trace of the prior covariance factor for the inverse view.
@@ -512,15 +510,14 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         b_norm = np.linalg.norm(self.b)
         if resid_norm <= atol:
             return True, "resid_atol"
-        elif resid_norm <= rtol * b_norm:
+        if resid_norm <= rtol * b_norm:
             return True, "resid_rtol"
         # uncertainty-based
         if np.sqrt(self.trace_sol_cov) <= atol:
             return True, "tracecov_atol"
-        elif np.sqrt(self.trace_sol_cov) <= rtol * b_norm:
+        if np.sqrt(self.trace_sol_cov) <= rtol * b_norm:
             return True, "tracecov_rtol"
-        else:
-            return False, ""
+        return False, ""
 
     def _calibrate_uncertainty(self, S, sy, method):
         """Calibrate uncertainty based on the Rayleigh coefficients.

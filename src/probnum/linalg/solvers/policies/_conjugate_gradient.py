@@ -61,26 +61,25 @@ class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
                 )
 
             return residual
+        # Reorthogonalization of the residual
+        if self._reorthogonalization_fn_residual is not None:
+            residual, prev_residual = self._reorthogonalized_residual(
+                solver_state=solver_state
+            )
         else:
-            # Reorthogonalization of the residual
-            if self._reorthogonalization_fn_residual is not None:
-                residual, prev_residual = self._reorthogonalized_residual(
-                    solver_state=solver_state
-                )
-            else:
-                prev_residual = solver_state.residuals[solver_state.step - 1]
+            prev_residual = solver_state.residuals[solver_state.step - 1]
 
-            # A-conjugacy correction (in exact arithmetic)
-            beta = (np.linalg.norm(residual) / np.linalg.norm(prev_residual)) ** 2
-            action = residual + beta * solver_state.actions[solver_state.step - 1]
+        # A-conjugacy correction (in exact arithmetic)
+        beta = (np.linalg.norm(residual) / np.linalg.norm(prev_residual)) ** 2
+        action = residual + beta * solver_state.actions[solver_state.step - 1]
 
-            # Reorthogonalization of the resulting action
-            if self._reorthogonalization_fn_action is not None:
-                action = self._reorthogonalized_action(
-                    action=action, solver_state=solver_state
-                )
+        # Reorthogonalization of the resulting action
+        if self._reorthogonalization_fn_action is not None:
+            action = self._reorthogonalized_action(
+                action=action, solver_state=solver_state
+            )
 
-            return action
+        return action
 
     def _reorthogonalized_residual(
         self,

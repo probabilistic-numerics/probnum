@@ -157,8 +157,7 @@ class LinearSystemBelief:
         """Belief about the solution."""
         if self._x is None:
             return self._induced_x()
-        else:
-            return self._x
+        return self._x
 
     @property
     def A(self) -> randvars.RandomVariable:
