@@ -1,8 +1,9 @@
 Data Types
-----------
+==========
 
 Fundamental (array) data types.
 
+.. currentmodule:: probnum.backend
 
 Classes
 -------
