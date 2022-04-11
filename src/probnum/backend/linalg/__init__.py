@@ -1,5 +1,5 @@
 """Linear algebra."""
-
+import collections
 from typing import Literal, Optional, Tuple, Union
 
 from .. import BACKEND, Array, Backend
@@ -39,7 +39,6 @@ solve_triangular = _impl.solve_triangular
 solve_cholesky = _impl.solve_cholesky
 qr = _impl.qr
 svd = _impl.svd
-eigh = _impl.eigh
 
 
 def vector_norm(
@@ -217,3 +216,155 @@ def solve(x1: Array, x2: Array, /) -> Array:
         /type_promotion.html>`_.
     """
     return _impl.solve(x1, x2)
+
+
+Eigh = collections.namedtuple("Eigh", ["eigenvalues", "eigenvectors"])
+
+
+def eigh(x: Array, /) -> Tuple[Array]:
+    """
+    Returns an eigendecomposition ``x = QLQᵀ`` of a symmetric matrix (or a stack of
+    symmetric matrices) ``x``, where ``Q`` is an orthogonal matrix (or a stack of
+    matrices) and ``L`` is a vector (or a stack of vectors).
+
+    .. note::
+
+       Whether an array library explicitly checks whether an input array is a symmetric
+       matrix (or a stack of symmetric matrices) is implementation-defined.
+
+    Parameters
+    ----------
+    x
+        input array having shape ``(..., M, M)`` and whose innermost two dimensions form
+        square matrices. Must have a floating-point data type.
+
+    Returns
+    -------
+    out
+        a namedtuple (``eigenvalues``, ``eigenvectors``) whose
+
+        -   first element is an array consisting of computed eigenvalues and has shape
+            ``(..., M)``.
+        -   second element is an array where the columns of the inner most
+            matrices contain the computed eigenvectors. These matrices are
+            orthogonal. The array containing the eigenvectors has shape
+            ``(..., M, M)``.
+
+        Each returned array has the same floating-point data type as ``x``.
+
+    .. note::
+
+       Eigenvalue sort order is left unspecified and is thus implementation-dependent.
+    """
+    eigenvalues, eigenvectors = _impl.eigh(x)
+    return Eigh(eigenvalues, eigenvectors)
+
+
+SVD = collections.namedtuple("SVD", ["U", "S", "Vh"])
+
+
+def svd(x: Array, /, *, full_matrices: bool = True) -> Union[Array, Tuple[Array, ...]]:
+    """
+    Returns a singular value decomposition ``A = USVh`` of a matrix (or a stack of
+    matrices) ``x``, where ``U`` is a matrix (or a stack of matrices) with orthonormal
+    columns, ``S`` is a vector of non-negative numbers (or stack of vectors), and ``Vh``
+    is a matrix (or a stack of matrices) with orthonormal rows.
+
+    Parameters
+    ----------
+    x
+        input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        matrices on which to perform singular value decomposition. Must have a
+        floating-point data type.
+    full_matrices
+        If ``True``, compute full-sized ``U`` and ``Vh``, such that ``U`` has shape
+        ``(..., M, M)`` and ``Vh`` has shape ``(..., N, N)``. If ``False``, compute on
+        the leading ``K`` singular vectors, such that ``U`` has shape ``(..., M, K)``
+        and ``Vh`` has shape ``(..., K, N)`` and where ``K = min(M, N)``.
+
+    Returns
+    -------
+    out
+        a namedtuple ``(U, S, Vh)`` whose
+
+        -   first element is an array whose shape depends on the value of
+            ``full_matrices`` and contains matrices with orthonormal columns (i.e., the
+            columns are left singular vectors). If
+            ``full_matrices`` is ``True``, the array has shape ``(..., M, M)``. If
+            ``full_matrices`` is ``False``, the array has shape ``(..., M, K)``,
+            where ``K = min(M, N)``. The first ``x.ndim-2`` dimensions have the
+            same shape as those of the input ``x``.
+        -   second element is an array with shape ``(..., K)`` that contains the
+            vector(s) of singular values of length ``K``, where ``K = min(M, N)``. For
+            each vector, the singular values must be sorted in descending order by
+            magnitude, such that ``s[..., 0]`` is the
+            largest value, ``s[..., 1]`` is the second largest value, et cetera. The
+            first ``x.ndim-2`` dimensions have the same shape as those of the input
+            ``x``.
+        -   third element is an array whose shape depends on the value of
+            ``full_matrices`` and contain orthonormal rows (i.e., the rows are the right
+            singular vectors and the array is the adjoint). If ``full_matrices`` is
+            ``True``, the array has shape ``(..., N, N)``. If ``full_matrices`` is
+            ``False``, the array has shape ``(..., K, N)`` where ``K = min(M, N)``.
+            The first ``x.ndim-2`` dimensions have the same shape as those of the input
+            ``x``.
+
+        Each returned array has the same floating-point data type as ``x``.
+    """
+    U, S, Vh = _impl.svd(x, full_matrices=full_matrices)
+    return SVD(U, S, Vh)
+
+
+QR = collections.namedtuple("QR", ["Q", "R"])
+
+
+def qr(
+    x: Array, /, *, mode: Literal["reduced", "complete"] = "reduced"
+) -> Tuple[Array, Array]:
+    """
+    Returns the QR decomposition ``x = QR`` of a full column rank matrix (or a stack of
+    matrices), where ``Q`` is an orthonormal matrix (or a stack of matrices) and ``R``
+    is an upper-triangular matrix (or a stack of matrices).
+
+    .. note::
+
+       Whether an array library explicitly checks whether an input array is a full
+       column rank matrix (or a stack of full column rank matrices) is
+       implementation-defined.
+
+    Parameters
+    ----------
+    x
+        input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        ``MxN`` matrices of rank ``N``. Should have a floating-point data type.
+    mode
+        decomposition mode. Should be one of the following modes:
+
+        -   ``'reduced'``: compute only the leading ``K`` columns of ``q``, such that
+            ``q`` and ``r`` have dimensions ``(..., M, K)`` and ``(..., K, N)``,
+            respectively, and where ``K = min(M, N)``.
+        -   ``'complete'``: compute ``q`` and ``r`` with dimensions ``(..., M, M)`` and
+            ``(..., M, N)``, respectively.
+
+    Returns
+    -------
+    out
+        a namedtuple ``(Q, R)`` whose
+
+        -   first element is an array whose shape depends on the value of ``mode`` and
+            contains matrices with orthonormal columns. If ``mode`` is ``'complete'``,
+            the array has shape ``(..., M, M)``. If ``mode`` is ``'reduced'``, the array
+            has shape ``(..., M, K)``, where ``K = min(M, N)``. The first ``x.ndim-2``
+            dimensions have the same size as those of the input array ``x``.
+        -   second element is an array whose shape depends on the value of ``mode`` and
+            contains upper-triangular matrices. If ``mode`` is ``'complete'``, the array
+            has shape ``(..., M, N)``. If ``mode`` is ``'reduced'``, the array has shape
+            ``(..., K, N)``, where ``K = min(M, N)``. The first ``x.ndim-2`` dimensions
+            have the same size as those of the input ``x``.
+
+        Each returned array has a floating-point data type determined by
+        `type-promotion <https://data-apis.org/array-api/latest/API_specification/\
+        type_promotion.html>`_.
+    """
+    Q, R = _impl.qr(x, mode=mode)
+    return QR(Q, R)
