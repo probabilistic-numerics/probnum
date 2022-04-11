@@ -37,8 +37,6 @@ from ._orthogonalize import gram_schmidt, gram_schmidt_double, gram_schmidt_modi
 cholesky = _impl.cholesky
 solve_triangular = _impl.solve_triangular
 solve_cholesky = _impl.solve_cholesky
-qr = _impl.qr
-svd = _impl.svd
 
 
 def vector_norm(
