@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import functools
 import secrets
-from typing import Sequence
+from typing import Sequence, Union
 
 import jax
 from jax import numpy as jnp
@@ -111,3 +111,15 @@ def _uniform_so_group_pushforward_fn(omega: jnp.ndarray) -> jnp.ndarray:
     )
 
     return D[:, None] * H
+
+
+def permutation(
+    rng_state: RNGState,
+    x: Union[int, jnp.ndarray],
+    *,
+    axis: int = 0,
+    independent: bool = False,
+):
+    return jax.random.permutation(
+        key=rng_state, x=x, axis=axis, independent=independent
+    )

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Sequence
+from typing import Sequence, Union
 
 import numpy as np
 
@@ -112,3 +112,17 @@ def _uniform_so_group_pushforward_fn(omega: np.ndarray) -> np.ndarray:
     # Equivalent to np.dot(np.diag(D), H) but faster, apparently
     H = (D * H.T).T
     return H
+
+
+def permutation(
+    rng_state: RNGState,
+    x: Union[int, np.ndarray],
+    *,
+    axis: int = 0,
+    independent: bool = False,
+):
+    rng = _rng_from_rng_state(rng_state)
+    if independent:
+        return rng.permuted(x=x, axis=axis, out=None)
+    else:
+        rng.permutation(x=x, axis=axis)

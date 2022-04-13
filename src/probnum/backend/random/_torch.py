@@ -1,7 +1,7 @@
 """Functionality for random number generation implemented in the PyTorch backend."""
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Sequence, Union
 
 import numpy as np
 import torch
@@ -135,3 +135,19 @@ def _uniform_so_group_pushforward_fn(omega: torch.Tensor) -> torch.Tensor:
         samples.append(D[:, None] * H)
 
     return torch.stack(samples, dim=0)
+
+
+def permutation(
+    rng_state: RNGState,
+    x: Union[int, torch.Tensor],
+    *,
+    axis: int = 0,
+    independent: bool = False,
+):
+    rng = _rng_from_rng_state(rng_state)
+    if independent:
+        idx = torch.argsort(torch.rand(*x.shape, generator=rng), dim=axis)
+        return torch.gather(x, dim=axis, index=idx)
+    else:
+        idx = torch.randperm(x.shape[axis], generator=rng)
+        return torch.index_select(x, axis, idx)

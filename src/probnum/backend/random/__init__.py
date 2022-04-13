@@ -1,7 +1,7 @@
 """Functionality for random number generation."""
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Sequence, Union
 
 from probnum import backend
 from probnum.backend.typing import FloatLike, SeedType, ShapeLike
@@ -18,6 +18,7 @@ __all__ = [
     "rng_state",
     "split",
     "gamma",
+    "permutation",
     "standard_normal",
     "uniform",
     "uniform_so_group",
@@ -62,9 +63,113 @@ def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
     return _impl.split(rng_state=rng_state, num=num)
 
 
+def gamma(
+    rng_state: RNGState,
+    shape_param: FloatLike,
+    scale_param: FloatLike = 1.0,
+    shape: ShapeLike = (),
+    *,
+    dtype: backend.Dtype = backend.float64,
+) -> backend.Array:
+    """Draw samples from a Gamma distribution.
+
+    Samples are drawn from a Gamma distribution with specified parameters, shape
+    (sometimes designated “k”) and scale (sometimes designated “theta”), where both
+    parameters are > 0.
+
+    Parameters
+    ----------
+    rng_state
+        Random number generator state.
+    shape_param
+        Shape parameter of the Gamma distribution.
+    scale_param
+        Scale parameter of the Gamma distribution.
+    shape
+        Sample shape.
+    dtype
+        Sample data type.
+
+    Returns
+    -------
+    samples
+        Samples from the Gamma distribution.
+    """
+    return _impl.gamma(
+        rng_state=rng_state,
+        shape_param=backend.asscalar(shape_param),
+        scale_param=backend.asscalar(scale_param),
+        shape=backend.asshape(shape),
+        dtype=dtype,
+    )
+
+
+def permutation(
+    rng_state: RNGState,
+    x: Union[int, backend.Array],
+    *,
+    axis: int = 0,
+    independent: bool = False,
+):
+    """Returns a randomly permuted array or range.
+
+    Parameters
+    ----------
+    rng_state
+        Random number generator state.
+    x
+        If ``x`` is an integer, randomly permute ``~probnum.backend.arange(x)``.
+        If ``x`` is an array, make a copy and shuffle the elements
+        randomly.
+    axis
+        The axis which ``x`` is shuffled along. Default is 0.
+    independent
+        If set to ``True``, each individual vector along the given axis is shuffled
+        independently. Default is ``False``.
+
+    Returns
+    -------
+    out
+        Permuted array or array range.
+    """
+    return _impl.permutation(
+        rng_state=rng_state, x=x, axis=axis, independent=independent
+    )
+
+
+def standard_normal(
+    rng_state: RNGState,
+    shape: ShapeLike = (),
+    *,
+    dtype: backend.Dtype = backend.float64,
+) -> backend.Array:
+    """Draw samples from a standard Normal distribution (mean=0, stdev=1).
+
+    Parameters
+    ----------
+    rng_state
+        Random number generator state.
+    shape
+        Sample shape.
+    dtype
+        Sample data type.
+
+    Returns
+    -------
+    samples
+        Samples from the standard normal distribution.
+    """
+    return _impl.standard_normal(
+        rng_state=rng_state,
+        shape=backend.asshape(shape),
+        dtype=dtype,
+    )
+
+
 def uniform(
     rng_state: RNGState,
     shape: ShapeLike = (),
+    *,
     dtype: backend.Dtype = backend.float64,
     minval: FloatLike = 0.0,
     maxval: FloatLike = 1.0,
@@ -104,78 +209,11 @@ def uniform(
     )
 
 
-def standard_normal(
-    rng_state: RNGState,
-    shape: ShapeLike = (),
-    dtype: backend.Dtype = backend.float64,
-) -> backend.Array:
-    """Draw samples from a standard Normal distribution (mean=0, stdev=1).
-
-    Parameters
-    ----------
-    rng_state
-        Random number generator state.
-    shape
-        Sample shape.
-    dtype
-        Sample data type.
-
-    Returns
-    -------
-    samples
-        Samples from the standard normal distribution.
-    """
-    return _impl.standard_normal(
-        rng_state=rng_state,
-        shape=backend.asshape(shape),
-        dtype=dtype,
-    )
-
-
-def gamma(
-    rng_state: RNGState,
-    shape_param: FloatLike,
-    scale_param: FloatLike = 1.0,
-    shape: ShapeLike = (),
-    dtype: backend.Dtype = backend.float64,
-) -> backend.Array:
-    """Draw samples from a Gamma distribution.
-
-    Samples are drawn from a Gamma distribution with specified parameters, shape
-    (sometimes designated “k”) and scale (sometimes designated “theta”), where both
-    parameters are > 0.
-
-    Parameters
-    ----------
-    rng_state
-        Random number generator state.
-    shape_param
-        Shape parameter of the Gamma distribution.
-    scale_param
-        Scale parameter of the Gamma distribution.
-    shape
-        Sample shape.
-    dtype
-        Sample data type.
-
-    Returns
-    -------
-    samples
-        Samples from the Gamma distribution.
-    """
-    return _impl.gamma(
-        rng_state=rng_state,
-        shape_param=backend.asscalar(shape_param),
-        scale_param=backend.asscalar(scale_param),
-        shape=backend.asshape(shape),
-        dtype=dtype,
-    )
-
-
 def uniform_so_group(
     rng_state: RNGState,
     n: int,
     shape: ShapeLike = (),
+    *,
     dtype: backend.Dtype = backend.float64,
 ) -> backend.Array:
     """Draw samples from the Haar distribution, i.e. from the uniform distribution on
