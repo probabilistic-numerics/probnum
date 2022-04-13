@@ -22,6 +22,8 @@ from ._creation_functions import *
 from ._elementwise_functions import *
 from ._manipulation_functions import *
 from ._sorting_functions import *
+from ._statistical_functions import *
+
 
 from . import (
     _data_types,
@@ -33,6 +35,7 @@ from . import (
     _elementwise_functions,
     _manipulation_functions,
     _sorting_functions,
+    _statistical_functions,
     autodiff,
     linalg,
     random,
@@ -50,6 +53,7 @@ __all__imported_modules = (
     + _elementwise_functions.__all__
     + _manipulation_functions.__all__
     + _sorting_functions.__all__
+    + _statistical_functions.__all__
 )
 __all__ = (
     [

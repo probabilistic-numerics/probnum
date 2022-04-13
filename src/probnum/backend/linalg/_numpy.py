@@ -4,7 +4,7 @@ import functools
 from typing import Callable, Literal, Optional, Tuple, Union
 
 import numpy as np
-from numpy.linalg import eigh, qr, solve, svd
+from numpy.linalg import eigh, solve, svd
 import scipy.linalg
 
 
@@ -131,3 +131,10 @@ def _matmul_broadcasting(
         return res_batch_first[..., None]
 
     return np.swapaxes(res_batch_first, -2, -1)
+
+
+def qr(
+    x: np.ndarray, /, *, mode: Literal["reduced", "complete"] = "reduced"
+) -> Tuple[np.ndarray, np.ndarray]:
+    q, r, _ = np.linalg.qr(x, mode=mode)
+    return q, r

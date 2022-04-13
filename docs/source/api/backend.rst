@@ -17,6 +17,11 @@ Generic computation backend.
 .. toctree::
     :hidden:
 
+    backend/statistical_functions
+
+.. toctree::
+    :hidden:
+
     backend/autodiff
 
 .. toctree::

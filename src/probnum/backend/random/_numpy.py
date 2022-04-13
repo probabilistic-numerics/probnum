@@ -125,4 +125,4 @@ def permutation(
     if independent:
         return rng.permuted(x=x, axis=axis, out=None)
     else:
-        rng.permutation(x=x, axis=axis)
+        return rng.permutation(x=x, axis=axis)

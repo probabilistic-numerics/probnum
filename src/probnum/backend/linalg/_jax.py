@@ -5,7 +5,7 @@ from typing import Literal, Optional, Tuple, Union
 
 import jax
 from jax import numpy as jnp
-from jax.numpy.linalg import eigh, qr, solve, svd
+from jax.numpy.linalg import eigh, solve, svd
 
 
 def vector_norm(
@@ -91,3 +91,10 @@ def solve_cholesky(
         )[:, 0]
 
     return _cho_solve_vectorized(cholesky, b)
+
+
+def qr(
+    x: jnp.ndarray, /, *, mode: Literal["reduced", "complete"] = "reduced"
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    q, r, _ = jnp.linalg.qr(x, mode=mode)
+    return q, r
