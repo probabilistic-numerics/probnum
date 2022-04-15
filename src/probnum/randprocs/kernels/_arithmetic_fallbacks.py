@@ -12,7 +12,7 @@ from probnum.backend.typing import NotImplementedType, ScalarLike
 from ._kernel import BinaryOperandType, Kernel
 
 ########################################################################################
-# Generic Linear Operator Arithmetic (Fallbacks)
+# Generic Kernel Arithmetic (Fallbacks)
 ########################################################################################
 
 
