@@ -23,9 +23,7 @@ def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
 def _rng_from_rng_state(rng_state: RNGState) -> np.random.Generator:
     """Create a random generator instance initialized with the given state."""
     if not isinstance(rng_state, RNGState):
-        raise TypeError(
-            "`rng_state`s should always have type :class:`~backend.random.RNGState`."
-        )
+        raise TypeError(f"`rng_state`s should always have type {RNGState.__name__}.")
 
     return np.random.default_rng(rng_state)
 

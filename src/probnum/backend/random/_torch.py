@@ -24,9 +24,7 @@ def _rng_from_rng_state(rng_state: RNGState) -> torch.Generator:
     """Create a random generator instance initialized with the given state."""
 
     if not isinstance(rng_state, RNGState):
-        raise TypeError(
-            "`rng_state`s should always have type :class:`~backend.random.RNGState`."
-        )
+        raise TypeError(f"`rng_state`s should always have type {RNGState.__name__}.")
 
     rng = torch.Generator()
     return rng.manual_seed(int(rng_state.generate_state(1, dtype=np.uint64)[0]))
