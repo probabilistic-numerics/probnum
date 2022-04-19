@@ -519,7 +519,7 @@ def lorenz96(t0=0.0, tmax=30.0, y0=None, num_variables=5, params=(8.0,)):
         if num_variables < 4:
             raise ValueError("The number of variables must be at least 4.")
         y0 = np.ones(num_variables) * constant_forcing
-    elif (len(y0) < 4):
+    elif len(y0) < 4:
         raise ValueError(
             "The number of variables (i.e. the length of the initial vector) must be at least 4."
         )
