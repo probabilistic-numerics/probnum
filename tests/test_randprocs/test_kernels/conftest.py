@@ -36,7 +36,7 @@ def fixture_input_shape(request) -> ShapeType:
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
             (pn.randprocs.kernels.Linear, {"constant": 1.0}),
-            (pn.randprocs.kernels.WhiteNoise, {"sigma": -1.0}),
+            (pn.randprocs.kernels.WhiteNoise, {"sigma_sq": 1.0}),
             (pn.randprocs.kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
             (pn.randprocs.kernels.ExpQuad, {"lengthscale": 1.5}),
             (pn.randprocs.kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
@@ -45,6 +45,7 @@ def fixture_input_shape(request) -> ShapeType:
             (pn.randprocs.kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
             (pn.randprocs.kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
+            (pn.randprocs.kernels.ProductMatern, {"lengthscales": 0.5, "nus": 0.5}),
         ]
     ],
     name="kernel",
@@ -60,7 +61,9 @@ def fixture_kernel_call_naive(
 ) -> Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray]:
     """Naive implementation of kernel broadcasting which applies the kernel function to
     scalar arguments while looping over the first dimensions of the inputs explicitly.
-    Can be used as a reference implementation of `Kernel.__call__` vectorization."""
+
+    Can be used as a reference implementation of `Kernel.__call__` vectorization.
+    """
 
     if kernel.input_ndim == 0:
         kernel_vectorized = np.vectorize(kernel, signature="(),()->()")

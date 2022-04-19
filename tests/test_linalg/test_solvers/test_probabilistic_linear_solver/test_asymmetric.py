@@ -27,7 +27,7 @@ def test_small_residual(
         prior=prior, problem=problem, rng=np.random.default_rng(42)
     )
 
-    residual_norm = np.linalg.norm(problem.A @ belief.x.mean - problem.b, ord=2)
+    residual_norm = np.linalg.norm(problem.b - problem.A @ belief.x.mean, ord=2)
 
     assert residual_norm < 1e-5 or residual_norm < 1e-5 * np.linalg.norm(
         problem.b, ord=2

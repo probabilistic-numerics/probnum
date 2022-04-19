@@ -1,7 +1,7 @@
 """Base class for Bayesian quadrature stopping criteria."""
 
 from probnum import StoppingCriterion
-from probnum.quad.solvers.bq_state import BQState
+from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 
 # pylint: disable=too-few-public-methods, fixme
 # pylint: disable=arguments-differ
@@ -18,14 +18,20 @@ class BQStoppingCriterion(StoppingCriterion):
     IntegralVarianceTolerance : Stop based on the variance of the integral estimator.
     RelativeMeanChange : Stop based on the absolute value of the integral variance.
     MaxNevals : Stop based on a maximum number of iterations.
+    ImmediateStop : Dummy stopping criterion that always stops.
     """
 
-    def __call__(self, bq_state: BQState) -> bool:
+    def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         """Check whether tracked quantities meet a desired terminal condition.
 
         Parameters
         ----------
-        bq_state:
-            State of the BQ loop.
+        bq_state
+            State of the BQ belief.
+
+        Returns
+        -------
+        stopping_decision :
+            Whether the stopping condition is met.
         """
         raise NotImplementedError

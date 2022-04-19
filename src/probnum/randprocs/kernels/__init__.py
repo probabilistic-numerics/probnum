@@ -3,6 +3,9 @@
 Kernels describe the spatial or temporal variation of a random process.
 If evaluated at two sets of points a kernel is defined as the covariance
 of the values of the random process at these locations.
+
+Kernels support basic algebraic operations, including scaling, addition
+and multiplication.
 """
 
 from ._exponentiated_quadratic import ExpQuad
@@ -10,6 +13,7 @@ from ._kernel import IsotropicMixin, Kernel
 from ._linear import Linear
 from ._matern import Matern
 from ._polynomial import Polynomial
+from ._product_matern import ProductMatern
 from ._rational_quadratic import RatQuad
 from ._white_noise import WhiteNoise
 
@@ -23,6 +27,7 @@ __all__ = [
     "ExpQuad",
     "RatQuad",
     "Matern",
+    "ProductMatern",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -35,3 +40,4 @@ Polynomial.__module__ = "probnum.randprocs.kernels"
 ExpQuad.__module__ = "probnum.randprocs.kernels"
 RatQuad.__module__ = "probnum.randprocs.kernels"
 Matern.__module__ = "probnum.randprocs.kernels"
+ProductMatern.__module__ = "probnum.randprocs.kernels"

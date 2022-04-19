@@ -1,5 +1,7 @@
 """Convenience functions for filtering and smoothing."""
 
+from __future__ import annotations
+
 import numpy as np
 
 from probnum import problems, randprocs, randvars

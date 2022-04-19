@@ -1,6 +1,6 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -16,9 +16,10 @@ from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
+from .._quad_typing import DomainLike
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
-from .bq_state import BQState
+from .bq_state import BQIterInfo, BQState
 
 
 class BayesianQuadrature:
@@ -30,15 +31,15 @@ class BayesianQuadrature:
 
     Parameters
     ----------
-    kernel :
+    kernel
         The kernel used for the GP model.
-    measure :
+    measure
         The integration measure.
-    policy :
+    policy
         The policy choosing nodes at which to evaluate the integrand.
-    belief_update :
+    belief_update
         The inference method.
-    stopping_criterion :
+    stopping_criterion
         The criterion that determines convergence.
     """
     # pylint: disable=too-many-arguments
@@ -63,9 +64,7 @@ class BayesianQuadrature:
         input_dim: int,
         kernel: Optional[Kernel] = None,
         measure: Optional[IntegrationMeasure] = None,
-        domain: Optional[
-            Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
-        ] = None,
+        domain: Optional[DomainLike] = None,
         policy: str = "bmc",
         max_evals: Optional[IntLike] = None,
         var_tol: Optional[FloatLike] = None,
@@ -78,25 +77,25 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        input_dim :
+        input_dim
             Input dimension.
-        kernel :
+        kernel
             The kernel used for the GP model.
-        measure :
+        measure
             The integration measure.
-        domain :
+        domain
             The integration bounds.
-        policy :
+        policy
             The policy choosing nodes at which to evaluate the integrand.
-        max_evals :
+        max_evals
             Maximum number of evaluations as stopping criterion.
-        var_tol :
+        var_tol
             Variance tolerance as stopping criterion.
-        rel_tol :
+        rel_tol
             Relative tolerance as stopping criterion.
-        batch_size :
+        batch_size
             Batch size used in node acquisition.
-        rng :
+        rng
             The random number generator.
 
         Returns
@@ -175,14 +174,16 @@ class BayesianQuadrature:
             stopping_criterion=_stopping_criterion,
         )
 
-    def has_converged(self, bq_state: BQState) -> bool:
+    def has_converged(self, bq_state: BQState, info: BQIterInfo) -> bool:
         """Checks if the BQ method has converged.
 
         Parameters
         ----------
-        bq_state:
+        bq_state
             State of the Bayesian quadrature methods. Contains all necessary
             information about the problem and the computation.
+        info
+            Info on the BQ loop iteration.
 
         Returns
         -------
@@ -190,9 +191,9 @@ class BayesianQuadrature:
             Whether the solver has converged.
         """
 
-        _has_converged = self.stopping_criterion(bq_state)
+        _has_converged = self.stopping_criterion(bq_state, info)
         if _has_converged:
-            bq_state.info.has_converged = True
+            info.has_converged = True
             return True
         return False
 
@@ -203,7 +204,8 @@ class BayesianQuadrature:
         fun_evals: Optional[np.ndarray] = None,
         integral_belief: Optional[Normal] = None,
         bq_state: Optional[BQState] = None,
-    ) -> Tuple[Normal, np.ndarray, np.ndarray, BQState]:
+        info: Optional[BQIterInfo] = None,
+    ) -> Tuple[Normal, np.ndarray, np.ndarray, BQState, BQIterInfo]:
         """Generator that implements the iteration of the BQ method.
 
         This function exposes the state of the BQ method one step at a time while
@@ -211,20 +213,22 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        fun :
+        fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-        nodes :
+        nodes
             *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
             are available as ``fun_evals`` from start.
-        fun_evals :
+        fun_evals
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
-        integral_belief:
+        integral_belief
             Current belief about the integral.
-        bq_state:
+        bq_state
             State of the Bayesian quadrature methods. Contains all necessary information
             about the problem and the computation.
+        info
+            The state of the iteration.
 
         Yields
         ------
@@ -238,9 +242,11 @@ class BayesianQuadrature:
             ``new_nodes``.
         new_bq_state :
             Updated state of the Bayesian quadrature methods.
+        new_info :
+            Updated state of the iteration.
         """
 
-        # Setup
+        # Setup BQ state
         if bq_state is None:
             if integral_belief is None:
                 # The following is valid only when the prior is zero-mean.
@@ -252,10 +258,13 @@ class BayesianQuadrature:
                 measure=self.measure,
                 kernel=self.kernel,
                 integral_belief=integral_belief,
-                batch_size=self.policy.batch_size,
             )
 
         integral_belief = bq_state.integral_belief
+
+        # Setup iteration info
+        if info is None:
+            info = BQIterInfo.from_bq_state(bq_state)
 
         if nodes is not None:
             if fun_evals is None:
@@ -268,12 +277,12 @@ class BayesianQuadrature:
             )
 
             # make sure info get the number of initial nodes
-            bq_state.info.nevals = fun_evals.size
+            info.nevals = fun_evals.size
 
         # Evaluate stopping criteria for the initial belief
-        _has_converged = self.has_converged(bq_state=bq_state)
+        _has_converged = self.has_converged(bq_state=bq_state, info=info)
 
-        yield integral_belief, None, None, bq_state
+        yield integral_belief, None, None, bq_state, info
 
         while True:
             # Have we already converged?
@@ -292,19 +301,20 @@ class BayesianQuadrature:
                 new_fun_evals=new_fun_evals,
             )
 
-            bq_state.info.update_iteration(bq_state.batch_size)
+            # Update the state of the iteration
+            info = BQIterInfo.from_iteration(info=info, dnevals=self.policy.batch_size)
 
             # Evaluate stopping criteria
-            _has_converged = self.has_converged(bq_state=bq_state)
+            _has_converged = self.has_converged(bq_state=bq_state, info=info)
 
-            yield integral_belief, new_nodes, new_fun_evals, bq_state
+            yield integral_belief, new_nodes, new_fun_evals, bq_state, info
 
     def integrate(
         self,
         fun: Optional[Callable] = None,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
-    ) -> Tuple[Normal, BQState]:
+    ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Integrate the function ``fun``.
 
         ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at
@@ -313,13 +323,13 @@ class BayesianQuadrature:
 
         Parameters
         ----------
-        fun :
+        fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-        nodes :
+        nodes
             *shape=(n_eval, input_dim)* -- Optional nodes at which function evaluations
             are available as ``fun_evals`` from start.
-        fun_evals :
+        fun_evals
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
 
@@ -340,11 +350,12 @@ class BayesianQuadrature:
             raise ValueError("You need to provide a function to be integrated!")
 
         bq_state = None
+        info = None
         integral_belief = None
 
-        for (integral_belief, _, _, bq_state) in self.bq_iterator(
+        for (integral_belief, _, _, bq_state, info) in self.bq_iterator(
             fun, nodes, fun_evals
         ):
             pass
 
-        return integral_belief, bq_state
+        return integral_belief, bq_state, info
