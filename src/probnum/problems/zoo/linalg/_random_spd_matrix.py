@@ -34,7 +34,7 @@ def random_spd_matrix(
 
     See Also
     --------
-    random_sparse_spd_matrix : Generate a random 
+    random_sparse_spd_matrix : Generate a random
         sparse symmetric positive definite matrix.
 
     Examples

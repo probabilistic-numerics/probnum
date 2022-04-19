@@ -24,7 +24,7 @@ def random_linear_system(
 ) -> problems.LinearSystem:
     """Random linear system.
 
-    Generate a random linear system from a (random) matrix. 
+    Generate a random linear system from a (random) matrix.
     If ``matrix`` is a callable instead of a matrix or linear operator,
     the system matrix is sampled by passing the random generator
     instance ``rng``. The solution of the linear system is set

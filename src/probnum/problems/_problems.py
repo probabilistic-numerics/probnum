@@ -29,7 +29,7 @@ class TimeSeriesRegressionProblem:
     measurement_models
         Measurement models.
     solution
-        Array containing solution to the problem at ``locations``. 
+        Array containing solution to the problem at ``locations``.
         Used for testing and benchmarking.
 
     Examples
@@ -72,7 +72,7 @@ class TimeSeriesRegressionProblem:
     measurement_models: Union[Sequence, np.ndarray]
 
     # For testing and benchmarking
-    # The solution here is a Sequence or 
+    # The solution here is a Sequence or
     # array of the values of the truth at the location.
     solution: Optional[Union[Sequence, np.ndarray]] = None
 
@@ -84,8 +84,8 @@ class TimeSeriesRegressionProblem:
         2. Check that all inputs have the same length.
         """
 
-        # If a single measurement model has been provided, 
-        # transform it into a list of models to ensure that 
+        # If a single measurement model has been provided,
+        # transform it into a list of models to ensure that
         # there is a measurement model for every (t, y) combination.
         if not isinstance(self.measurement_models, abc.Iterable):
             self.measurement_models = [self.measurement_models] * len(self.locations)

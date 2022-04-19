@@ -33,7 +33,7 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
         d_1 &= ((y_1 + \mu)^2 + y_2^2)^{\frac{3}{2}} \\
         d_2 &= ((y_1 - (1 - \mu))^2 + y_2^2)^{\frac{3}{2}}
 
-    and a constant parameter  :math:`\mu = 0.012277471` 
+    and a constant parameter  :math:`\mu = 0.012277471`
     denoting the standardized moon mass.
 
     Parameters
