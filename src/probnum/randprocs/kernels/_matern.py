@@ -37,17 +37,18 @@ class Matern(Kernel, IsotropicMixin):
 
     Parameters
     ----------
-    input_shape :
+    input_shape
         Shape of the kernel's input.
-    lengthscale :
+    lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
-    nu :
+    nu
         Hyperparameter :math:`\nu` controlling differentiability.
 
     See Also
     --------
     ExpQuad : Exponentiated Quadratic / RBF kernel.
+    ProductMatern : Product Matern kernel.
 
     Examples
     --------
@@ -84,7 +85,7 @@ class Matern(Kernel, IsotropicMixin):
             return np.exp(-1.0 / self.lengthscale * distances)
 
         if self.nu == 1.5:
-            scaled_distances = -np.sqrt(3) / self.lengthscale * distances
+            scaled_distances = np.sqrt(3) / self.lengthscale * distances
             return (1.0 + scaled_distances) * np.exp(-scaled_distances)
 
         if self.nu == 2.5:
@@ -92,6 +93,14 @@ class Matern(Kernel, IsotropicMixin):
             return (1.0 + scaled_distances + scaled_distances**2 / 3.0) * np.exp(
                 -scaled_distances
             )
+        if self.nu == 3.5:
+            scaled_distances = np.sqrt(7) / self.lengthscale * distances
+            # Using Horner's method speeds up computations substantially
+            return (
+                1.0
+                + (1.0 + (2.0 / 5.0 + scaled_distances / 15.0) * scaled_distances)
+                * scaled_distances
+            ) * np.exp(-scaled_distances)
 
         if self.nu == np.inf:
             return np.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)

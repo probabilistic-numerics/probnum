@@ -92,8 +92,8 @@ def test_ivp_to_regression_problem(
 
     # If an approximation strategy is passed, the output should be an EKF component
     # which should suppoert forward_rv().
-    # If not, the output is a generic NonlinearGaussian (which has been tested for above.
-    # Recall that DiscreteEKFComponent implements NonlinearGaussian.)
+    # If not, the output is a generic NonlinearGaussian(which has been
+    # tested for above. Recall that DiscreteEKFComponent implements NonlinearGaussian.)
     if approx_strategy is not None:
         assert isinstance(
             regprob.measurement_models[1],

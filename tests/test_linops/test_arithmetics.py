@@ -238,7 +238,8 @@ def test_idkronecker_matmul():
     k1 = IdentityKronecker(4, np.random.rand(2, 3))  # (8, 12)
     k2 = IdentityKronecker(2, np.random.rand(6, 2))  # (12, 4)
 
-    # Even though the shapes fit, and IdentityKronecker @ IdentityKronecker = IdentityKronecker ....
+    # Even though the shapes fit, and
+    # IdentityKronecker @ IdentityKronecker = IdentityKronecker ....
     assert k1.shape[1] == k2.shape[0]
 
     # The result does not have a IdentityKronecker structure

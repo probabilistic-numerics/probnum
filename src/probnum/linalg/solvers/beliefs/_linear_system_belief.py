@@ -1,13 +1,13 @@
 """Linear system belief.
 
-Class defining a belief about the quantities of interest of a linear system such as its
-solution or the matrix inverse and any associated hyperparameters.
+Class defining a belief about the quantities of interest of a linear system such
+as its solution or the matrix inverse and any associated hyperparameters.
 """
 
 from functools import cached_property
 from typing import Mapping, Optional
 
-from probnum import linops, randvars
+from probnum import randvars
 
 # pylint: disable="invalid-name"
 
@@ -16,13 +16,13 @@ class LinearSystemBelief:
     r"""Belief about quantities of interest of a linear system.
 
     Random variables :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
-    modelling the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
-    :math:`H=A^{\dagger}` and the right hand side :math:`b` of a linear system :math:`Ax=b`,
-    as well as any associated hyperparameters.
+    modelling the solution :math:`x`, the system matrix :math:`A`, its
+    (pseudo-)inverse :math:`H=A^{\dagger}` and the right hand side :math:`b` of
+    a linear system :math:`Ax=b`, as well as any associated hyperparameters.
 
-    For instantiation either a belief about the solution or the inverse and right hand side
-    must be provided. Note that if both are specified, their consistency is not checked and
-    depending on the algorithm either may be used.
+    For instantiation either a belief about the solution or the inverse and right
+    hand side must be provided. Note that if both are specified, their consistency
+    is not checked and depending on the algorithm either may be used.
 
     Parameters
     ----------
@@ -56,20 +56,23 @@ class LinearSystemBelief:
         def dim_mismatch_error(**kwargs):
             argnames = list(kwargs.keys())
             return ValueError(
-                f"Dimension mismatch. The shapes of {argnames[0]} : {kwargs[argnames[0]].shape} "
+                f"Dimension mismatch. The shapes of {argnames[0]} :\
+                {kwargs[argnames[0]].shape} "
                 f"and {argnames[1]} : {kwargs[argnames[1]].shape} must match."
             )
 
         if x is not None:
             if x.ndim > 2 or x.ndim < 1:
                 raise ValueError(
-                    f"Belief over solution must have either one or two dimensions, but has {x.ndim}."
+                    f"""Belief over solution must have either one or two dimensions,
+                     but has {x.ndim}.
+                    """
                 )
             if A is not None:
                 if A.shape[1] != x.shape[0]:
                     raise dim_mismatch_error(A=A, x=x)
 
-            if x.ndim > 1:
+            if x.ndim > 1 and b is not None:
                 if x.shape[1] != b.shape[1]:
                     raise dim_mismatch_error(x=x, b=b)
             elif b is not None:
@@ -79,7 +82,9 @@ class LinearSystemBelief:
         if Ainv is not None:
             if Ainv.ndim != 2:
                 raise ValueError(
-                    f"Belief over the inverse system matrix may have at most two dimensions, but has {A.ndim}."
+                    f"""Belief over the inverse system matrix may have at most two
+                     dimensions, but has {Ainv.ndim}.
+                     """
                 )
             if A is not None:
                 if A.shape != Ainv.shape:
@@ -88,7 +93,9 @@ class LinearSystemBelief:
         if A is not None:
             if A.ndim != 2:
                 raise ValueError(
-                    f"Belief over the system matrix may have at most two dimensions, but has {A.ndim}."
+                    f"""Belief over the system matrix may have at most two dimensions
+                    , but has {A.ndim}.
+                    """
                 )
             if b is not None:
                 if A.shape[0] != b.shape[0]:
@@ -97,8 +104,35 @@ class LinearSystemBelief:
         if b is not None:
             if b.ndim > 2 or b.ndim < 1:
                 raise ValueError(
-                    f"Belief over right-hand-side may have either one or two dimensions but has {b.ndim}."
+                    f"""Belief over right-hand-side may have either one or two
+                    dimensions but has {b.ndim}.
+                     """
                 )
+
+        if x is not None and not isinstance(x, randvars.RandomVariable):
+            raise TypeError(
+                f"""The belief about the solution 'x' must be a RandomVariable, but
+                 is {type(x)}.
+                """
+            )
+        if A is not None and not isinstance(A, randvars.RandomVariable):
+            raise TypeError(
+                f"""The belief about the matrix 'A' must be a RandomVariable, but
+                 is {type(A)}.
+                """
+            )
+        if Ainv is not None and not isinstance(Ainv, randvars.RandomVariable):
+            raise TypeError(
+                f"""The belief about the inverse matrix 'Ainv' must be a RandomVariable,
+                 but is {type(Ainv)}.
+                """
+            )
+        if b is not None and not isinstance(b, randvars.RandomVariable):
+            raise TypeError(
+                f"""The belief about the right-hand-side 'b' must be a RandomVariable,
+                 but is {type(b)}.
+                """
+            )
 
         self._x = x
         self._A = A
@@ -134,8 +168,6 @@ class LinearSystemBelief:
     @property
     def Ainv(self) -> Optional[randvars.RandomVariable]:
         """Belief about the (pseudo-)inverse of the system matrix."""
-        if self._Ainv is None:
-            return self._induced_Ainv()
         return self._Ainv
 
     @property
@@ -150,13 +182,4 @@ class LinearSystemBelief:
         to) the random variable :math:`x=Hb`. This assumes independence between
         :math:`H` and :math:`b`.
         """
-        return self.Ainv @ self.b
-
-    def _induced_Ainv(self) -> randvars.RandomVariable:
-        r"""Induced belief about the inverse from a belief about the solution.
-
-        Computes a consistent belief about the inverse from a belief about the solution.
-        """
-        return randvars.Constant(
-            linops.Scaling(factors=0.0, shape=(self._x.shape[0], self._x.shape[0]))
-        )
+        return randvars.asrandvar(self.Ainv @ self.b)

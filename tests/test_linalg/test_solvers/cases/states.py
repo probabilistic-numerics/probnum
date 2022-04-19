@@ -26,11 +26,9 @@ prior = linalg.solvers.beliefs.LinearSystemBelief(
 
 
 @case(tags=["initial"])
-def case_initial_state(
-    rng: np.random.Generator,
-):
+def case_initial_state():
     """Initial state of a linear solver."""
-    return linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
+    return linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
 
 
 @case(tags=["has_action"])
@@ -38,7 +36,7 @@ def case_state(
     rng: np.random.Generator,
 ):
     """State of a linear solver."""
-    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
     state.action = rng.standard_normal(size=state.problem.A.shape[1])
 
     return state
@@ -61,7 +59,7 @@ def case_state_matrix_based(
         ),
         b=b,
     )
-    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
     state.action = rng.standard_normal(size=state.problem.A.shape[1])
     state.observation = rng.standard_normal(size=state.problem.A.shape[1])
 
@@ -85,7 +83,7 @@ def case_state_symmetric_matrix_based(
         ),
         b=b,
     )
-    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior, rng=rng)
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
     state.action = rng.standard_normal(size=state.problem.A.shape[1])
     state.observation = rng.standard_normal(size=state.problem.A.shape[1])
 
@@ -97,9 +95,7 @@ def case_state_solution_based(
     rng: np.random.Generator,
 ):
     """State of a solution-based linear solver."""
-    initial_state = linalg.solvers.LinearSolverState(
-        problem=linsys, prior=prior, rng=rng
-    )
+    initial_state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
     initial_state.action = rng.standard_normal(size=initial_state.problem.A.shape[1])
     initial_state.observation = rng.standard_normal()
 
@@ -116,5 +112,5 @@ def case_state_converged(
         x=randvars.Constant(linsys.solution),
         b=randvars.Constant(linsys.b),
     )
-    state = linalg.solvers.LinearSolverState(problem=linsys, prior=belief, rng=rng)
+    state = linalg.solvers.LinearSolverState(problem=linsys, prior=belief)
     return state

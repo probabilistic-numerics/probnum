@@ -1,4 +1,5 @@
 """Definitions of problems currently solved by probabilistic numerical methods."""
+from __future__ import annotations
 
 from collections import abc
 import dataclasses
