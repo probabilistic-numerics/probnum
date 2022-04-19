@@ -33,7 +33,8 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
         d_1 &= ((y_1 + \mu)^2 + y_2^2)^{\frac{3}{2}} \\
         d_2 &= ((y_1 - (1 - \mu))^2 + y_2^2)^{\frac{3}{2}}
 
-    and a constant parameter  :math:`\mu = 0.012277471` denoting the standardized moon mass.
+    and a constant parameter  :math:`\mu = 0.012277471` 
+    denoting the standardized moon mass.
 
     Parameters
     ----------
@@ -106,7 +107,8 @@ def _import_jax():
 
 
 def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
-    r"""Initial value problem (IVP) based on the Van der Pol Oscillator, implemented in `jax`.
+    r"""Initial value problem (IVP) based on the Van der Pol Oscillator,
+    implemented in `jax`.
 
     This function implements the second-order Van-der-Pol Oscillator as a system
     of first-order ODEs.
