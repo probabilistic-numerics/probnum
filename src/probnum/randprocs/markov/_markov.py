@@ -99,6 +99,8 @@ class _MarkovBase(_random_process.RandomProcess):
             if x1 is None:
                 return self._markov_proc_call(args=x0).cov
 
+            raise NotImplementedError
+
 
 class MarkovProcess(_MarkovBase):
     r"""Random processes with the Markov property.
