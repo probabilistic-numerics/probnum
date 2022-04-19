@@ -76,7 +76,7 @@ def random_linear_system(
     Linear system with random sparse matrix.
 
     >>> import scipy.sparse
-    >>> random_sparse_matrix = lambda rng,m,n: scipy.sparse.random(m=m, n=n,
+    >>> random_sparse_matrix = lambda rng,m,n: scipy.sparse.random(m=m, n=n,\
             random_state=rng)
     >>> linsys_sparse = random_linear_system(rng, random_sparse_matrix, m=4, n=2)
     >>> isinstance(linsys_sparse.A, scipy.sparse.spmatrix)
