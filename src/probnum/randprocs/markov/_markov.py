@@ -133,7 +133,7 @@ class MarkovProcess(_MarkovBase):
         initrv: randvars.RandomVariable,
         transition: continuous.SDE,
     ):
-        if not isinstance(transition, continuous.SDE):
+        if not isinstance(transition, continuous.SDE):  # pragma: no cover
             msg = "The transition is not continuous. Did you mean 'MarkovSequence'?"
             raise TypeError(msg)
 
@@ -155,7 +155,7 @@ class MarkovSequence(_MarkovBase):
         initrv: randvars.RandomVariable,
         transition: continuous.SDE,
     ):
-        if not isinstance(transition, discrete.NonlinearGaussian):
+        if not isinstance(transition, discrete.NonlinearGaussian):  # pragma: no cover
             msg = "The transition is not discrete. Did you mean 'MarkovProcess'?"
             raise TypeError(msg)
 
