@@ -200,7 +200,8 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
         # Select submatrix from covariance matrix
         cov = self.dense_cov.reshape(self.shape + self.shape)
-        cov = cov[key][(...,) + key]
+        cov = cov[key]
+        cov = cov[tuple(slice(cov.shape[i]) for i in range(cov.ndim - self.ndim)) + key]
 
         if mean.ndim > 0:
             cov = cov.reshape(mean.size, mean.size)

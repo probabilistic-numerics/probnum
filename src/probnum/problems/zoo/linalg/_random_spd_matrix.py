@@ -7,11 +7,12 @@ import scipy.stats
 
 from probnum import backend
 from probnum.backend.random import RNGState
+from probnum.backend.typing import ShapeLike
 
 
 def random_spd_matrix(
     rng_state: RNGState,
-    dim: int,
+    shape: ShapeLike,
     spectrum: Sequence = None,
 ) -> backend.Array:
     r"""Random symmetric positive definite matrix.
@@ -27,8 +28,8 @@ def random_spd_matrix(
     ----------
     rng_state
         State of the random number generator.
-    dim
-        Matrix dimension.
+    shape
+        Shape of the resulting matrix.
     spectrum
         Eigenvalues of the matrix.
 
@@ -41,7 +42,7 @@ def random_spd_matrix(
     >>> from probnum import backend
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> rng_state = backend.random.rng_state(1)
-    >>> mat = random_spd_matrix(rng_state, dim=5)
+    >>> mat = random_spd_matrix(rng_state, shape=(5, 5))
     >>> mat
     array([[10.24394619,  0.05484236,  0.39575826, -0.70032495, -0.75482692],
            [ 0.05484236, 11.31516868,  0.6968935 , -0.13877394,  0.52783063],
@@ -56,6 +57,10 @@ def random_spd_matrix(
     >>> backend.linalg.eigvals(mat)
     array([ 8.09147328, 12.7635956 , 10.84504988, 10.73086331, 10.78143272])
     """
+    shape = backend.asshape(shape)
+
+    if not shape == () and shape[0] != shape[1]:
+        raise ValueError(f"Shape must represent a square matrix, but is {shape}.")
 
     gamma_rng_state, so_rng_state = backend.random.split(rng_state, num=2)
 
@@ -65,19 +70,26 @@ def random_spd_matrix(
             gamma_rng_state,
             shape_param=10.0,
             scale_param=1.0,
-            shape=(dim,),
+            shape=shape[:1],
         )
     else:
         spectrum = backend.asarray(spectrum)
 
+        if len(spectrum) != shape[:1]:
+            raise ValueError(f"Size of the spectrum and shape are not compatible.")
+
         if not backend.all(spectrum > 0):
             raise ValueError(f"Eigenvalues must be positive, but are {spectrum}.")
 
-    # Draw orthogonal matrix with respect to the Haar measure
-    orth_mat = backend.random.uniform_so_group(so_rng_state, n=dim)
-    spd_mat = (orth_mat * spectrum[None, :]) @ orth_mat.T
+    if len(shape) == 0:
+        return spectrum
 
-    print(spectrum.shape, orth_mat.shape, spd_mat.shape)
+    if shape[0] == 1:
+        return spectrum.reshape((1, 1))
+
+    # Draw orthogonal matrix with respect to the Haar measure
+    orth_mat = backend.random.uniform_so_group(so_rng_state, n=shape[0])
+    spd_mat = (orth_mat * spectrum[None, :]) @ orth_mat.T
 
     # Symmetrize to avoid numerically not symmetric matrix
     # Since A commutes with itself (AA' = A'A = AA) the eigenvalues do not change.
