@@ -441,10 +441,11 @@ def benes_daum(
 
     Notes
     -----
-    In order to generate observations for the returned ``TimeSeriesRegressionProblem`` object,
-    the non-linear Beneš SDE has to be linearized.
-    Here, a ``ContinuousEKFComponent`` is used, which corresponds to a first-order
-    linearization as used in the extended Kalman filter.
+    In order to generate observations for the returned
+    ``TimeSeriesRegressionProblem`` object, the non-linear Beneš SDE
+    has to be linearized. Here, a ``ContinuousEKFComponent`` is used,
+    which corresponds to a first-order linearization as used
+    in the extended Kalman filter.
     """
 
     def f(t, x):
@@ -538,7 +539,8 @@ def logistic_ode(
     ek0_or_ek1
         See :py:class:`probnum.diffeq.ODEFilter`
     exclude_initial_condition
-        Whether the resulting regression problem should exclude (i.e. not contain) the initial condition of the ODE.
+        Whether the resulting regression problem should exclude
+        (i.e. not contain) the initial condition of the ODE.
         Optional. Default is True, which means that the initial condition is omitted.
     order
         Order of integration for the Integrated Brownian Motion prior of the solver.
