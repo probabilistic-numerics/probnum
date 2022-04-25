@@ -3,10 +3,11 @@ from typing import Tuple
 
 import numpy as np
 
-from probnum import backend, compat, randvars
+from probnum import backend, compat, linops, randvars
 from probnum.backend.typing import ArrayIndicesLike, ShapeType
 from probnum.problems.zoo.linalg import random_spd_matrix
 
+import pytest
 from pytest_cases import THIS_MODULE, case, fixture, parametrize, parametrize_with_cases
 import tests.utils
 
@@ -27,8 +28,10 @@ import tests.utils
         [(3,), slice(-1, -3, -2)],
         # Advanced Indexing
         ((3, 4), ([2, 0], [3, 0])),
-        ((3, 4), ([[2, 1]], [[3], [1], [2], [0]])),
+        ((3, 4), ([[2, 1]], [[3], [1], [2], [0]])),  # broadcasting to (4, 2)
         # Masking
+        ((1,), True),
+        ((2, 3), np.array([False, True])),
         (
             (2, 3),
             np.array(
@@ -40,8 +43,9 @@ import tests.utils
         ),
     ]
 )
+@parametrize(cov_linop=[False, True])
 def case_normal(
-    shape_and_getitem_arg: Tuple[ShapeType, ArrayIndicesLike]
+    shape_and_getitem_arg: Tuple[ShapeType, ArrayIndicesLike], cov_linop: bool
 ) -> Tuple[randvars.Normal, ArrayIndicesLike]:
     shape, getitem_arg = shape_and_getitem_arg
 
@@ -58,6 +62,12 @@ def case_normal(
     cov = random_spd_matrix(
         rng_state=cov_rng_state, shape=() if shape == () else 2 * (mean.size,)
     )
+
+    if cov_linop:
+        if shape == ():
+            pytest.skip("`LinearOperator`s don't support scalar shapes")
+
+        cov = linops.aslinop(cov)
 
     rv = randvars.Normal(mean, cov)
 
@@ -168,7 +178,11 @@ def test_cov(
     getitem_idx_to_original_idx = index_array[getitem_arg]
 
     # "Unravel" original covariance
-    cov_unraveled = rv.cov.reshape(rv.shape + rv.shape, order="C")
+    dense_cov = (
+        rv.cov.todense() if isinstance(rv.cov, linops.LinearOperator) else rv.cov
+    )
+
+    cov_unraveled = dense_cov.reshape(rv.shape + rv.shape, order="C")
 
     if isinstance(getitem_idx_to_original_idx, list):
         # __getitem__ returned a scalar random variable
