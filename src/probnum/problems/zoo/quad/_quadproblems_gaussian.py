@@ -18,11 +18,12 @@ __all__ = [
 def uniform_to_gaussian_quadprob(
     quadprob: QuadratureProblem, mean: FloatLike = 0.0, var: FloatLike = 1.0
 ) -> QuadratureProblem:
-    r"""Creates a new QuadratureProblem for integration against a Gaussian on R^d by
-    using an existing QuadratureProblem whose integrand is suitable for integration
-    against the Lebesgue measure on [0,1]^d.
+    r"""Creates a new QuadratureProblem for integration against a Gaussian on
+    :math:`\mathbb{R}^d` by using an existing QuadratureProblem whose integrand is
+    suitable for integration against the Lebesgue measure on :math:`[0,1]^d`.
 
-    The multivariate Gaussian is of the form N(mean*(1,...,1),var^2 I_d).
+    The multivariate Gaussian is of the form :math:`\mathcal{N}(mean \cdot (1, \dotsc,
+    1)^\top, var^2 \cdot I_d)`.
 
     Using the change of variable formula, we have that
 
@@ -110,11 +111,12 @@ def sum_polynomials(
     dim: int, a: np.ndarray = None, b: np.ndarray = None, var: FloatLike = 1.0
 ) -> QuadratureProblem:
     r"""Quadrature problem with an integrand taking the form of a sum of polynomials
-    over :math:'\mathbb{R}^d'.
+    over :math:`\mathbb{R}^d`.
 
     .. math::  f(x) = \sum_{j=0}^p \prod_{i=1}^dim a_{ji} x_i^{b_ji}
 
-    The integrand is integrated against a multivariate normal N(0,var * I_d). See [1]_.
+    The integrand is integrated against a multivariate normal :math:`\mathcal{N}(0,var *
+    I_d)`. See [1]_.
 
     Parameters
     ----------

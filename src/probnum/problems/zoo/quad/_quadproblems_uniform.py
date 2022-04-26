@@ -25,7 +25,7 @@ __all__ = [
 def genz_continuous(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    r"""Genz 'continuous' test function on [0,1]^d.
+    r"""Genz 'continuous' test function on :math:`[0,1]^d`.
 
     .. math:: f(x) = \exp(- \sum_{i=1}^d a_i |x_i - u_i|).
 
@@ -112,7 +112,7 @@ def genz_continuous(
 def genz_cornerpeak(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    r"""Genz 'corner peak' test function on [0,1]^d.
+    r"""Genz 'corner peak' test function on :math:`[0,1]^d`.
 
     .. math:: f(x) = (1+\sum_{i=1}^d a_i x_i)^{-d+1}
 
@@ -194,7 +194,7 @@ def genz_cornerpeak(
 def genz_discontinuous(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    r"""Genz 'discontinuous' test function on [0,1]^d.
+    r"""Genz 'discontinuous' test function on :math:`[0,1]^d`.
 
     .. math::
         f(x) =
@@ -277,7 +277,7 @@ def genz_discontinuous(
 def genz_gaussian(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    r"""Genz 'Gaussian' test function on [0,1]^d.
+    r"""Genz 'Gaussian' test function on :math:`[0,1]^d`.
 
     .. math::  f(x) = \exp(- \sum_{i=1}^d a_i^2 (x_i - u_i)^2).
 
@@ -355,7 +355,7 @@ def genz_gaussian(
 def genz_oscillatory(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    r"""Genz 'oscillatory' test function on [0,1]^d.
+    r"""Genz 'oscillatory' test function on :math:`[0,1]^d`.
 
     .. math::  f(x) = \cos( 2 \pi u_1 + \sum_{i=1}^d a_i x_i).
 
@@ -455,7 +455,7 @@ def genz_oscillatory(
 def genz_productpeak(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
 ) -> QuadratureProblem:
-    r"""Genz 'Product Peak' test function on [0,1]^d.
+    r"""Genz 'Product Peak' test function on :math:`[0,1]^d`.
 
     .. math::  f(x) = \prod_{i=1}^d ( a_i^{-2} + (x_i-u_i)^2)^{-1}.
 
@@ -530,7 +530,7 @@ def genz_productpeak(
 
 
 def bratley1992(dim: int) -> QuadratureProblem:
-    r"""'Bratley 1992' test function on [0,1]^d.
+    r"""'Bratley 1992' test function on :math:`[0,1]^d`.
 
     .. math::  f(x) = \sum_{i=1}^d (-1)^i \prod_{j=1}^i x_j.
 
@@ -581,7 +581,7 @@ def bratley1992(dim: int) -> QuadratureProblem:
 
 
 def roos_arnold(dim: int) -> QuadratureProblem:
-    r"""'Roos & Arnold 1963' test function on [0,1]^d.
+    r"""'Roos & Arnold 1963' test function on :math:`[0,1]^d`.
 
     .. math::  f(x) = \prod_{i=1}^d |4 x_i - 2 |.
 
@@ -628,7 +628,7 @@ def roos_arnold(dim: int) -> QuadratureProblem:
 
 
 def gfunction(dim: int) -> QuadratureProblem:
-    r"""'G-function' test function on [0,1]^d.
+    r"""'G-function' test function on :math:`[0,1]^d`.
 
     .. math::  f(x) = \prod_{i=1}^d \frac{|4 x_i - 2 |+a_i}{1+a_i}
 
@@ -677,7 +677,7 @@ def gfunction(dim: int) -> QuadratureProblem:
 
 
 def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
-    r"""'Morokoff & Caflisch 1995' test function number 1 on [0,1]^d.
+    r"""'Morokoff & Caflisch 1995' test function number 1 on :math:`[0,1]^d`.
 
     .. math::  f(x) = (1+1/d)^d \prod_{i=1}^d x_i^{1/d}
 
@@ -726,7 +726,7 @@ def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
 
 
 def morokoff_caflisch_2(dim: int) -> QuadratureProblem:
-    r"""'Morokoff & Caflisch 1995' test function number 2 on [0,1]^d.
+    r"""'Morokoff & Caflisch 1995' test function number 2 on :math:`[0,1]^d`.
 
     .. math::  f(x) = \frac{1}{(d-0.5)^d} \prod_{i=1}^d (d-x_i)
 
