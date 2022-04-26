@@ -32,8 +32,8 @@ class LinearOperator:
     :class:`LinearOperator`, that defers linear operations to the original operators and
     combines the results.
 
-    To construct a concrete :class:`LinearOperator`, either pass appropriate callables to
-    the constructor of this class, or subclass it.
+    To construct a concrete :class:`LinearOperator`, either pass appropriate callables
+    to the constructor of this class, or subclass it.
 
     A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and
     the attributes/properties ``shape`` (pair of integers) and ``dtype`` (may be
@@ -49,11 +49,11 @@ class LinearOperator:
 
     Parameters
     ----------
-    shape :
+    shape
         Matrix dimensions `(M, N)`.
-    dtype :
+    dtype
         Data type of the operator.
-    matmul :
+    matmul
         Callable which computes the matrix-matrix product :math:`y = A V`, where
         :math:`A` is the linear operator and :math:`V` is an :math:`N \times K` matrix.
         The callable must support broadcasted matrix products, i.e. the argument
@@ -61,19 +61,19 @@ class LinearOperator:
         of :func:`np.matmul` must apply.
         Note that the argument to this callable is guaranteed to have at least two
         dimensions.
-    rmatmul :
+    rmatmul
         Callable which implements the matrix-matrix product, i.e. :math:`A @ V`, where
         :math:`A` is the linear operator and :math:`V` is a matrix of shape `(N, K)`.
-    todense :
+    todense
         Callable which returns a dense matrix representation of the linear operator as a
         :class:`np.ndarray`. The output of this function must be equivalent to the
         output of :code:`A.matmat(np.eye(N, dtype=A.dtype))`.
-    rmatvec :
+    rmatvec
         Callable which implements the matrix-vector product with the adjoint of the
         operator, i.e. :math:`A^H v`, where :math:`A^H` is the conjugate transpose of
         the linear operator :math:`A` and :math:`v` is a vector of shape `(N,)`.
         This argument will be ignored if `adjoint` is given.
-    rmatmat :
+    rmatmat
         Returns :math:`A^H V`, where :math:`V` is a dense matrix with dimensions (M, K).
 
     See Also
@@ -176,8 +176,7 @@ class LinearOperator:
     def shape(self) -> Tuple[int, int]:
         """Shape of the linear operator.
 
-        Defined as a tuple of the output and input dimension of
-        operator.
+        Defined as a tuple of the output and input dimension of operator.
         """
         return self.__shape
 
@@ -255,7 +254,8 @@ class LinearOperator:
         casting:
             Controls what kind of data casting may occur.
         subok:
-            If True, then sub-classes will be passed-through (default). False is currently not supported for linear operators.
+            If True, then sub-classes will be passed-through (default).
+            False is currently not supported for linear operators.
         copy:
             Whether to return a new linear operator, even if ``dtype`` is the same.
         """
@@ -335,7 +335,8 @@ class LinearOperator:
         """Whether the ``LinearOperator`` represents a lower triangular matrix.
 
         If this is ``None``, it is unknown whether the matrix is lower triangular or
-        not."""
+        not.
+        """
         return self._is_lower_triangular
 
     @is_lower_triangular.setter
@@ -347,7 +348,8 @@ class LinearOperator:
         """Whether the ``LinearOperator`` represents an upper triangular matrix.
 
         If this is ``None``, it is unknown whether the matrix is upper triangular or
-        not."""
+        not.
+        """
         return self._is_upper_triangular
 
     @is_upper_triangular.setter
@@ -358,6 +360,7 @@ class LinearOperator:
     def is_positive_definite(self) -> Optional[bool]:
         """Whether the ``LinearOperator`` :math:`L \\in \\mathbb{R}^{n \\times n}` is
         (strictly) positive-definite, i.e. :math:`x^T L x > 0` for :math:`x \\in \
+
         \\mathbb{R}^n`.
 
         If this is ``None``, it is unknown whether the matrix is positive-definite or
@@ -826,8 +829,9 @@ class LinearOperator:
         Returns
         -------
         y :
-            A `np.matrix` or `np.ndarray` or `RandomVariable` with shape `(M,)` or `(M, 1)`,
-            depending on the type and shape of the x argument.
+            A `np.matrix` or `np.ndarray` or `RandomVariable` with
+            shape `(M,)` or `(M, 1)`,depending on the type and
+            shape of the x argument.
         Notes
         -----
         This matvec wraps the user-specified matvec routine or overridden
@@ -903,9 +907,9 @@ class LinearOperator:
     ) -> Callable[[np.ndarray], np.ndarray]:
         """Broadcasting for a (implicitly defined) matrix-vector product.
 
-        Convenience function / decorator to broadcast the definition of
-        a matrix-vector product. This can be used to easily construct a
-        new linear operator only from a matrix-vector product.
+        Convenience function / decorator to broadcast the definition of a matrix-vector
+        product. This can be used to easily construct a new linear operator only from a
+        matrix-vector product.
         """
 
         def _matmul(x: np.ndarray) -> np.ndarray:
@@ -922,10 +926,9 @@ class LinearOperator:
     ) -> Callable[[np.ndarray], np.ndarray]:
         """Broadcasting for a (implicitly defined) matrix-matrix product.
 
-        Convenience function / decorator to broadcast the definition of
-        a matrix-matrix product to vectors. This can be used to easily
-        construct a new linear operator only from a matrix-matrix
-        product.
+        Convenience function / decorator to broadcast the definition of a matrix-matrix
+        product to vectors. This can be used to easily construct a new linear operator
+        only from a matrix-matrix product.
         """
 
         def _matmul(x: np.ndarray) -> np.ndarray:
@@ -1103,6 +1106,7 @@ class _InverseLinearOperator(LinearOperator):
     @staticmethod
     def _lu_factor(a):
         """This is a modified version of the original implementation in SciPy:
+
         https://github.com/scipy/scipy/blob/v1.7.1/scipy/linalg/decomp_lu.py#L15-L84
         because for some reason, the SciPy implementation does not raise an exception
         if the matrix is singular.

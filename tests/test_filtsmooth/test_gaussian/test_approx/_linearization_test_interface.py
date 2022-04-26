@@ -84,7 +84,7 @@ class InterfaceDiscreteLinearizationTest:
         )
 
         initrv = prior_process.initrv
-        prior_process = randprocs.markov.MarkovProcess(
+        prior_process = randprocs.markov.MarkovSequence(
             transition=ekf_dyna, initrv=initrv, initarg=regression_problem.locations[0]
         )
         method = filtsmooth.gaussian.Kalman(prior_process)

@@ -69,7 +69,7 @@ def fixture_x1(
     rng: np.random.Generator,
     input_shapes: Tuple[ShapeType, Optional[ShapeType]],
 ) -> Optional[np.ndarray]:
-    """The first argument to the covariance function drawn from a standard normal
+    """The second argument to the covariance function drawn from a standard normal
     distribution."""
 
     _, x1_shape = input_shapes

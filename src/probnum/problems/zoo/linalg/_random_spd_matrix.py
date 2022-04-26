@@ -1,4 +1,5 @@
 """Random symmetric positive definite matrices."""
+from __future__ import annotations
 
 from typing import Sequence
 
@@ -33,7 +34,8 @@ def random_spd_matrix(
 
     See Also
     --------
-    random_sparse_spd_matrix : Generate a random sparse symmetric positive definite matrix.
+    random_sparse_spd_matrix : Generate a random
+        sparse symmetric positive definite matrix.
 
     Examples
     --------

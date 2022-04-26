@@ -3,6 +3,10 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
+# pylint: disable=line-too-long
+
+from __future__ import annotations
+
 from typing import Generator, Optional, Tuple
 
 import numpy as np
@@ -61,7 +65,8 @@ class ProbabilisticLinearSolver(
     See Also
     --------
     ~probnum.linalg.problinsolve : Solve linear systems in a Bayesian framework.
-    ~probnum.linalg.bayescg : Solve linear systems with prior information on the solution.
+    ~probnum.linalg.bayescg : Solve linear systems with prior information on the
+        solution.
 
     Examples
     --------
@@ -90,8 +95,8 @@ class ProbabilisticLinearSolver(
 
     >>> pls = ProbabilisticLinearSolver(
     ...     policy=policies.ConjugateGradientPolicy(),
-    ...     information_op=information_ops.ProjectedRHSInformationOp(),
-    ...     belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+    ...     information_op=information_ops.ProjectedResidualInformationOp(),
+    ...     belief_update=belief_updates.solution_based.ProjectedResidualBeliefUpdate(),
     ...     stopping_criterion=(
     ...         stopping_criteria.MaxIterationsStoppingCriterion(100)
     ...         | stopping_criteria.ResidualNormStoppingCriterion(atol=1e-5, rtol=1e-5)
@@ -141,7 +146,8 @@ class ProbabilisticLinearSolver(
         Parameters
         ----------
         prior
-            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
+            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of
+            the linear system.
         problem
             Linear system to be solved.
         rng
@@ -152,7 +158,7 @@ class ProbabilisticLinearSolver(
         solver_state
             State of the probabilistic linear solver.
         """
-        solver_state = LinearSolverState(problem=problem, prior=prior, rng=rng)
+        solver_state = LinearSolverState(problem=problem, prior=prior)
 
         while True:
 
@@ -163,7 +169,7 @@ class ProbabilisticLinearSolver(
                 break
 
             # Compute action via policy
-            solver_state.action = self.policy(solver_state=solver_state)
+            solver_state.action = self.policy(solver_state=solver_state, rng=rng)
 
             # Make observation via information operator
             solver_state.observation = self.information_op(solver_state=solver_state)
@@ -185,7 +191,8 @@ class ProbabilisticLinearSolver(
         Parameters
         ----------
         prior
-            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the linear system.
+            Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of
+            the linear system.
         problem
             Linear system to be solved.
         rng
@@ -195,7 +202,9 @@ class ProbabilisticLinearSolver(
         -------
         belief
             Posterior belief :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
-            over the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse :math:`H=A^\dagger` and the right hand side :math:`b`.
+            over the solution :math:`x`, the system matrix :math:`A`, its
+            (pseudo-)inverse :math:`H=A^\dagger` and the right hand side
+            :math:`b`.
         solver_state
             Final state of the solver.
         """
@@ -234,8 +243,8 @@ class BayesCG(ProbabilisticLinearSolver):
     ):
         super().__init__(
             policy=policies.ConjugateGradientPolicy(),
-            information_op=information_ops.ProjectedRHSInformationOp(),
-            belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+            information_op=information_ops.ProjectedResidualInformationOp(),
+            belief_update=belief_updates.solution_based.ProjectedResidualBeliefUpdate(),
             stopping_criterion=stopping_criterion,
         )
 
@@ -245,7 +254,8 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
 
     Probabilistic analogue of the (randomized) Kaczmarz method [1]_ [2]_, taking prior
     information about the solution and randomly choosing rows of the matrix :math:`A_i`
-    and entries :math:`b_i` of the right-hand-side to obtain information about the solution.
+    and entries :math:`b_i` of the right-hand-side to obtain information about
+    the solution.
 
     Parameters
     ----------
@@ -255,9 +265,12 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
     References
     ----------
     .. [1] Kaczmarz, Stefan, Angenäherte Auflösung von Systemen linearer Gleichungen,
-        *Bulletin International de l'Académie Polonaise des Sciences et des Lettres. Classe des Sciences Mathématiques et Naturelles. Série A, Sciences Mathématiques*, 1937
+        *Bulletin International de l'Académie Polonaise des Sciences et des
+        Lettres. Classe des Sciences Mathématiques et Naturelles. Série A,
+        Sciences Mathématiques*, 1937
     .. [2] Strohmer, Thomas; Vershynin, Roman, A randomized Kaczmarz algorithm for
-        linear systems with exponential convergence, *Journal of Fourier Analysis and Applications*, 2009
+        linear systems with exponential convergence, *Journal of Fourier Analysis and
+        Applications*, 2009
     """
 
     def __init__(
@@ -267,8 +280,8 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
     ):
         super().__init__(
             policy=policies.RandomUnitVectorPolicy(),
-            information_op=information_ops.ProjectedRHSInformationOp(),
-            belief_update=belief_updates.solution_based.SolutionBasedProjectedRHSBeliefUpdate(),
+            information_op=information_ops.ProjectedResidualInformationOp(),
+            belief_update=belief_updates.solution_based.ProjectedResidualBeliefUpdate(),
             stopping_criterion=stopping_criterion,
         )
 
@@ -276,8 +289,9 @@ class ProbabilisticKaczmarz(ProbabilisticLinearSolver):
 class MatrixBasedPLS(ProbabilisticLinearSolver):
     r"""Matrix-based probabilistic linear solver.
 
-    Probabilistic linear solver updating beliefs over the system matrix and its
-    inverse. The solver makes use of prior information and iteratively infers the matrix and its inverse by matrix-vector multiplication.
+    Probabilistic linear solver updating beliefs over the system matrix and its inverse.
+    The solver makes use of prior information and iteratively infers the matrix and
+    its inverse by matrix-vector multiplication.
 
     This code implements the method described in Wenger et al. [1]_.
 
@@ -311,7 +325,9 @@ class MatrixBasedPLS(ProbabilisticLinearSolver):
 class SymMatrixBasedPLS(ProbabilisticLinearSolver):
     r"""Symmetric matrix-based probabilistic linear solver.
 
-    Probabilistic linear solver updating beliefs over the symmetric system matrix and its inverse. The solver makes use of prior information and iteratively infers the matrix and its inverse by matrix-vector multiplication.
+    Probabilistic linear solver updating beliefs over the symmetric system matrix and
+    its inverse. The solver makes use of prior information and iteratively infers the
+    matrix and its inverse by matrix-vector multiplication.
 
     This code implements the method described in Wenger et al. [1]_.
 
@@ -337,6 +353,8 @@ class SymMatrixBasedPLS(ProbabilisticLinearSolver):
         super().__init__(
             policy=policy,
             information_op=information_ops.MatVecInformationOp(),
-            belief_update=belief_updates.matrix_based.SymmetricMatrixBasedLinearBeliefUpdate(),
+            belief_update=(
+                belief_updates.matrix_based.SymmetricMatrixBasedLinearBeliefUpdate()
+            ),
             stopping_criterion=stopping_criterion,
         )

@@ -1,5 +1,6 @@
 """Base class for policies of probabilistic linear solvers returning actions."""
 import abc
+from typing import Optional
 
 import numpy as np
 
@@ -22,7 +23,9 @@ class LinearSolverPolicy(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, solver_state: "probnum.linalg.solvers.LinearSolverState"
+        self,
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
+        rng: Optional[np.random.Generator] = None,
     ) -> np.ndarray:
         """Return an action for a given solver state.
 
@@ -30,6 +33,8 @@ class LinearSolverPolicy(abc.ABC):
         ----------
         solver_state
             Current state of the linear solver.
+        rng
+            Random number generator.
 
         Returns
         -------

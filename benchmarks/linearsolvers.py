@@ -24,7 +24,8 @@ def get_linear_system(name: str, dim: int):
     elif name == "linop":
         if dim > 100:
             raise NotImplementedError()
-            # TODO: Larger benchmarks currently fail. Remove once PLS refactor (https://github.com/probabilistic-numerics/probnum/issues/51) is resolved
+            # TODO: Larger benchmarks currently fail. Remove once PLS refactor
+            # (https://github.com/probabilistic-numerics/probnum/issues/51) is resolved
         A = linops.Scaling(factors=rng.normal(size=(dim,)))
     else:
         raise NotImplementedError()
@@ -71,7 +72,7 @@ class LinSolve:
         problinsolve(A=self.linsys.A, b=self.linsys.b)
 
     def track_residual_norm(self, linsys, dim):
-        return np.linalg.norm(self.linsys.A @ self.xhat.mean - self.linsys.b)
+        return np.linalg.norm(self.linsys.b - self.linsys.A @ self.xhat.mean)
 
     def track_error_2norm(self, linsys, dim):
         return np.linalg.norm(self.linsys.solution - self.xhat.mean)
@@ -90,7 +91,7 @@ class PosteriorBelief:
     def setup(self, linsys, dim, qoi):
 
         if dim > 1000:
-            # Operations on the posterior for large matrices can be very memory intensive.
+            # Operations on posterior for large matrices can be very memory-intensive
             raise NotImplementedError()
 
         self.linsys = get_linear_system(name=linsys, dim=dim)
