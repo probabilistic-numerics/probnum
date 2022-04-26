@@ -131,7 +131,7 @@ def test_genz_uniform(a, u, dim):
     np.testing.assert_allclose(
         np.sum(quadprob_genz_oscillatory.integrand(x_unif)) / n,
         quadprob_genz_oscillatory.solution,
-        rtol=3e-02,
+        rtol=9e-02,
     )
     np.testing.assert_allclose(
         np.sum(quadprob_genz_productpeak.integrand(x_unif)) / n,
