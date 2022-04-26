@@ -44,6 +44,7 @@ def test_genz_uniform_param_checks(genz_problem):
 @pytest.mark.parametrize(
     "quad_problem_constructor",
     [
+        bratley1992,
         genz_continuous,
         genz_cornerpeak,
         genz_discontinuous,
@@ -69,7 +70,7 @@ def test_integrand_eval_checks(quad_problem_constructor):
 @pytest.mark.parametrize(
     "a, u, dim",
     [
-        (None, None, 1),
+        (None, None, 3),
         (5, 0.5, 1),
         (5.0, 1.0, 1),
         (2.0, 0.8, 1),
