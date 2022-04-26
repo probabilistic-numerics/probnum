@@ -54,7 +54,8 @@ def test_genz_uniform(a, u, dim):
         low=0.0, high=1.0, size=(n, dim)
     )  # Monte Carlo samples x_1,...,x_n
 
-    # Test that all Monte Carlo estimators approximate the true value of the integral (integration against uniform)
+    # Test that all Monte Carlo estimators approximate the true value of the integral
+    # (integration against uniform)
     np.testing.assert_allclose(
         np.sum(quadprob_genz_continuous.integrand(x_unif)) / n,
         quadprob_genz_continuous.solution,
@@ -111,7 +112,8 @@ def test_integrands_uniform(dim):
     quadprob_morokoff_caflisch_1 = morokoff_caflisch_1(dim=dim)
     quadprob_morokoff_caflisch_2 = morokoff_caflisch_2(dim=dim)
 
-    # Test that all Monte Carlo estimators approximate the true value of the integral (integration against uniform)
+    # Test that all Monte Carlo estimators approximate the true value of the integral
+    # (integration against uniform)
     np.testing.assert_allclose(
         np.sum(quadprob_bratley1992.integrand(x_unif)) / n,
         quadprob_bratley1992.solution,
