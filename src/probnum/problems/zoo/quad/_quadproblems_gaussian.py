@@ -7,7 +7,7 @@ from scipy import special
 from scipy.stats import norm
 
 from probnum.problems import QuadratureProblem
-from probnum.typing import FloatArgType
+from probnum.typing import FloatLike
 
 __all__ = [
     "uniform_to_gaussian_quadprob",
@@ -16,7 +16,7 @@ __all__ = [
 
 
 def uniform_to_gaussian_quadprob(
-    quadprob: QuadratureProblem, mean: FloatArgType = 0.0, var: FloatArgType = 1.0
+    quadprob: QuadratureProblem, mean: FloatLike = 0.0, var: FloatLike = 1.0
 ) -> QuadratureProblem:
     r"""Creates a new QuadratureProblem for integration against a Gaussian on R^d by
     using an existing QuadratureProblem whose integrand is suitable for integration
@@ -80,8 +80,8 @@ def uniform_to_gaussian_quadprob(
     # Construct transformation of the integrand
     def uniform_to_gaussian_integrand(
         func: Callable[[np.ndarray], np.ndarray],
-        mean: FloatArgType = 0.0,
-        var: FloatArgType = 1.0,
+        mean: FloatLike = 0.0,
+        var: FloatLike = 1.0,
     ) -> Callable[[np.ndarray], np.ndarray]:
         # mean and var should be either one-dimensional, or an array of dimension d
         if isinstance(mean, float) is False:
@@ -107,7 +107,7 @@ def uniform_to_gaussian_quadprob(
 
 
 def sum_polynomials(
-    dim: int, a: np.ndarray = None, b: np.ndarray = None, var: FloatArgType = 1.0
+    dim: int, a: np.ndarray = None, b: np.ndarray = None, var: FloatLike = 1.0
 ) -> QuadratureProblem:
     r"""Quadrature problem with an integrand taking the form of a sum of polynomials
     over :math:'\mathbb{R}^d'.
