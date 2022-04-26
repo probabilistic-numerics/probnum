@@ -16,9 +16,15 @@ from probnum.problems.zoo.quad import (
 )
 
 
+def test_genz_continuous_param_checks():
+    with pytest.raises(ValueError):
+        genz_continuous(2, a=np.ones(shape=(1,)))
+
+
 @pytest.mark.parametrize(
     "a, u, dim",
     [
+        (None, None, 1),
         (5, 0.5, 1),
         (5.0, 1.0, 1),
         (2.0, 0.8, 1),
@@ -38,8 +44,8 @@ def test_genz_uniform(a, u, dim):
     n = 10000000
 
     # Define parameters a and u
-    a_vec = np.repeat(a, dim)
-    u_vec = np.repeat(u, dim)
+    a_vec = np.repeat(a, dim) if a is not None else None
+    u_vec = np.repeat(u, dim) if u is not None else None
 
     quadprob_genz_continuous = genz_continuous(dim=dim, a=a_vec, u=u_vec)
     quadprob_genz_cornerpeak = genz_cornerpeak(dim=dim, a=a_vec, u=u_vec)
