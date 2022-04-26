@@ -16,9 +16,54 @@ from probnum.problems.zoo.quad import (
 )
 
 
-def test_genz_continuous_param_checks():
+@pytest.mark.parametrize(
+    "genz_problem",
+    [
+        genz_continuous,
+        genz_cornerpeak,
+        genz_discontinuous,
+        genz_gaussian,
+        genz_oscillatory,
+        genz_productpeak,
+    ],
+)
+def test_genz_uniform_param_checks(genz_problem):
     with pytest.raises(ValueError):
-        genz_continuous(2, a=np.ones(shape=(1,)))
+        genz_problem(2, a=np.ones(shape=(1,)))
+
+    with pytest.raises(ValueError):
+        genz_problem(3, u=np.ones(shape=(2, 1)))
+
+    with pytest.raises(ValueError):
+        genz_problem(3, u=np.full((3,), 1.1))
+
+    with pytest.raises(ValueError):
+        genz_problem(3, u=np.full((3,), -0.1))
+
+
+@pytest.mark.parametrize(
+    "quad_problem_constructor",
+    [
+        genz_continuous,
+        genz_cornerpeak,
+        genz_discontinuous,
+        genz_gaussian,
+        genz_oscillatory,
+        genz_productpeak,
+        gfunction,
+        morokoff_caflisch_1,
+        morokoff_caflisch_2,
+        roos_arnold,
+    ],
+)
+def test_integrand_eval_checks(quad_problem_constructor):
+    quad_problem = quad_problem_constructor(2)
+
+    with pytest.raises(ValueError):
+        quad_problem.integrand(np.zeros((4, 3)))
+
+    with pytest.raises(ValueError):
+        quad_problem.integrand(np.full((4, 2), -0.1))
 
 
 @pytest.mark.parametrize(
