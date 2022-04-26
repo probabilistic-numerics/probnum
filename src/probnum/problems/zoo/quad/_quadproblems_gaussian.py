@@ -184,7 +184,7 @@ def sum_polynomials(
     # Return function values as a 2d array with one column.
     delta = (np.remainder(b, 2) - 1) ** 2
     doublefact = special.factorial2(b - 1)
-    solution = np.sum(np.prod(a * delta * (var ** b) * doublefact, axis=1))
+    solution = np.sum(np.prod(a * delta * (var**b) * doublefact, axis=1))
 
     return QuadratureProblem(
         integrand=integrand,
