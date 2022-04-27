@@ -67,7 +67,7 @@ def bayesquad(
     kernel
         The kernel used for the GP model. Defaults to the ``ExpQuad`` kernel.
     domain
-        The integration domain. Contains lower and upper bound as ``int`` or
+        The integration domain. Contains lower and upper bound as scalar or
         ``np.ndarray``. Obsolete if ``measure`` is given.
     measure
         The integration measure. Defaults to the Lebesgue measure on ``domain``.
@@ -180,8 +180,8 @@ def bayesquad_from_data(
     kernel
         The kernel used for the GP model. Defaults to the ``ExpQuad`` kernel.
     domain
-        The integration domain. Contains lower and upper bound as ``int`` or
-        ``np.ndarray``.
+        The integration domain. Contains lower and upper bound as scalar or
+        ``np.ndarray``. Obsolete if ``measure`` is given.
     measure
         The integration measure. Defaults to the Lebesgue measure.
 

@@ -110,17 +110,12 @@ def _get_kernel_embedding(
         If the kernel embedding of the kernel-measure pair is unknown.
     """
 
-    _e = (
-        "The combination of kernel ({0}) and measure ({1}) is not available as "
-        "kernel embedding."
-    )
     # Exponentiated quadratic kernel
     if isinstance(kernel, ExpQuad):
         if isinstance(measure, GaussianMeasure):
             return _kernel_mean_expquad_gauss, _kernel_variance_expquad_gauss
         if isinstance(measure, LebesgueMeasure):
             return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
-        raise NotImplementedError(_e.format(type(kernel), type(measure)))
 
     # Matern
     if isinstance(kernel, (Matern, ProductMatern)):
@@ -128,4 +123,7 @@ def _get_kernel_embedding(
             return _kernel_mean_matern_lebesgue, _kernel_variance_matern_lebesgue
 
     # other kernels
-    raise NotImplementedError(_e.format(type(kernel), type(measure)))
+    raise NotImplementedError(
+        "The combination of kernel ({0}) and measure ({1}) is not available as kernel "
+        "embedding.".format(type(kernel), type(measure))
+    )

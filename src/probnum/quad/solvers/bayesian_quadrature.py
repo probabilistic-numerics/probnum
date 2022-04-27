@@ -160,7 +160,7 @@ class BayesianQuadrature:
         belief_update = BQStandardBeliefUpdate()
 
         # Select stopping criterion: If multiple stopping criteria are given, BQ stops
-        # once the first criterion is fulfilled (logical `or`).
+        # once any criterion is fulfilled (logical `or`).
         def _stopcrit_or(sc1, sc2):
             if sc1 is None:
                 return sc2
