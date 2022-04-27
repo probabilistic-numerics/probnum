@@ -12,7 +12,8 @@ from probnum.linalg.solvers.beliefs import LinearSystemBelief
 class LinearSolverBeliefUpdate(abc.ABC):
     r"""Belief update for the quantities of interest of a linear system.
 
-    Given a solver state containing information about the linear system collected in the current step, update the belief about the quantities of interest.
+    Given a solver state containing information about the linear system collected
+    in the current step, update the belief about the quantities of interest.
     """
 
     @abc.abstractmethod
