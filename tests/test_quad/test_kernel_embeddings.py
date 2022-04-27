@@ -113,9 +113,9 @@ def test_kernel_var_lebesgue_measure(kernel_embedding):
 @pytest.mark.parametrize("input_dim", [1, 2, 3])
 @pytest.mark.parametrize("num_data", [1, 2, 5])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
-def test_kernel_mean_matern_lebesgue_measure(matern_kernel, measure, num_data):
+def test_kernel_mean_matern_lebesgue_measure(matern_kernel, measure, num_data, rng):
     kernel_embedding = KernelEmbedding(matern_kernel, measure)
-    points = kernel_embedding.measure.sample(num_data)
+    points = kernel_embedding.measure.sample(rng=rng, n_sample=num_data)
     # Numerical integration using scipy's quad
     num_kernel_means = np.zeros((num_data,))
     a, b = kernel_embedding.measure.domain
