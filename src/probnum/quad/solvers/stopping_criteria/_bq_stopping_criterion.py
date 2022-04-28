@@ -3,8 +3,7 @@
 from probnum import StoppingCriterion
 from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 
-# pylint: disable=too-few-public-methods, fixme
-# pylint: disable=arguments-differ
+# pylint: disable=too-few-public-methods,arguments-differ fixme
 
 
 class BQStoppingCriterion(StoppingCriterion):
@@ -28,6 +27,8 @@ class BQStoppingCriterion(StoppingCriterion):
         ----------
         bq_state
             State of the BQ belief.
+        info
+            State of the BQ iteration.
 
         Returns
         -------

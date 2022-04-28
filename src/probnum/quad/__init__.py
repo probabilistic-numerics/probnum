@@ -31,6 +31,7 @@ __all__ = [
     "bayesquad",
     "bayesquad_from_data",
     "BayesianQuadrature",
+    "ImmediateStop",
     "IntegrationMeasure",
     "ImmediateStop",
     "KernelEmbedding",
