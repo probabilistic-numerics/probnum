@@ -42,7 +42,7 @@ class Filtering:
             regression_problem.locations
         )
 
-        prior_process = randprocs.markov.MarkovProcess(
+        prior_process = randprocs.markov.MarkovSequence(
             transition=linearized_dynmod,
             initrv=prior_process.initrv,
             initarg=regression_problem.locations[0],
@@ -95,7 +95,7 @@ class Smoothing:
             regression_problem.locations
         )
 
-        prior_process = randprocs.markov.MarkovProcess(
+        prior_process = randprocs.markov.MarkovSequence(
             transition=linearized_dynmod,
             initrv=prior_process.initrv,
             initarg=regression_problem.locations[0],
@@ -164,7 +164,7 @@ class DenseGridOperations:
             regression_problem.locations
         )
 
-        prior_process = randprocs.markov.MarkovProcess(
+        prior_process = randprocs.markov.MarkovSequence(
             transition=linearized_dynmod,
             initrv=prior_process.initrv,
             initarg=regression_problem.locations[0],

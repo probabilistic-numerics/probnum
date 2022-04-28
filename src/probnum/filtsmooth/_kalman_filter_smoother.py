@@ -208,23 +208,24 @@ def smooth_rts(
 
 def _setup_prior_process(F, L, m0, C0, t0, prior_model):
     zero_shift_prior = np.zeros(F.shape[0])
+    initrv = randvars.Normal(m0, C0)
+    initarg = t0
     if prior_model == "discrete":
         prior = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=F,
             noise=randvars.Normal(mean=zero_shift_prior, cov=L),
         )
-    elif prior_model == "continuous":
+        return randprocs.markov.MarkovSequence(
+            transition=prior, initrv=initrv, initarg=initarg
+        )
+    if prior_model == "continuous":
         prior = randprocs.markov.continuous.LTISDE(
             drift_matrix=F, force_vector=zero_shift_prior, dispersion_matrix=L
         )
-    else:
-        raise ValueError
-    initrv = randvars.Normal(m0, C0)
-    initarg = t0
-    prior_process = randprocs.markov.MarkovProcess(
-        transition=prior, initrv=initrv, initarg=initarg
-    )
-    return prior_process
+        return randprocs.markov.MarkovProcess(
+            transition=prior, initrv=initrv, initarg=initarg
+        )
+    raise ValueError
 
 
 def _setup_regression_problem(H, R, observations, locations):
