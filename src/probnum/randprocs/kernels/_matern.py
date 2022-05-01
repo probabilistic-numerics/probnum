@@ -93,13 +93,13 @@ class Matern(Kernel, IsotropicMixin):
                 -scaled_distances
             )
         if self.nu == 3.5:
-            scaled_distances = np.sqrt(7) / self.lengthscale * distances
+            scaled_distances = backend.sqrt(7) / self.lengthscale * distances
             # Using Horner's method speeds up computations substantially
             return (
                 1.0
                 + (1.0 + (2.0 / 5.0 + scaled_distances / 15.0) * scaled_distances)
                 * scaled_distances
-            ) * np.exp(-scaled_distances)
+            ) * backend.exp(-scaled_distances)
 
         if self.nu == backend.inf:
             return backend.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)
