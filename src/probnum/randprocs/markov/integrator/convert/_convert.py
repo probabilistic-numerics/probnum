@@ -18,9 +18,11 @@ def convert_derivwise_to_coordwise(
     state:
         State to be converted. Assumed to be in coordinate-wise representation.
     num_derivatives:
-        Order of the integrator-state. Usually, this is the order of the highest derivative in the state.
+        Order of the integrator-state. Usually, this is the order of the highest
+        derivative in the state.
     wiener_process_dimension:
-        Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
+        Spatial dimension of the integrator. Usually, this is the number of states
+        associated with each derivative.
     """
     projmat = _integrator.IntegratorTransition(
         num_derivatives, wiener_process_dimension
@@ -40,9 +42,11 @@ def convert_coordwise_to_derivwise(
     state:
         State to be converted. Assumed to be in derivative-wise representation.
     num_derivatives:
-        Order of the integrator-state. Usually, this is the order of the highest derivative in the state.
+        Order of the integrator-state. Usually, this is the order of the highest
+        derivative in the state.
     wiener_process_dimension:
-        Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
+        Spatial dimension of the integrator. Usually, this is the number of states
+        associated with each derivative.
     """
     projmat = _integrator.IntegratorTransition(
         num_derivatives, wiener_process_dimension

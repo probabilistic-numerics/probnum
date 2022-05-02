@@ -21,7 +21,7 @@ from .kernel_embeddings import KernelEmbedding
 from .solvers import (
     BayesianQuadrature,
     BQBeliefUpdate,
-    BQInfo,
+    BQIterInfo,
     BQStandardBeliefUpdate,
     BQState,
 )
@@ -31,6 +31,7 @@ __all__ = [
     "bayesquad",
     "bayesquad_from_data",
     "BayesianQuadrature",
+    "ImmediateStop",
     "IntegrationMeasure",
     "ImmediateStop",
     "KernelEmbedding",

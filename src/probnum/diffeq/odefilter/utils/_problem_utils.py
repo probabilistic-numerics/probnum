@@ -11,9 +11,9 @@ from probnum.diffeq.odefilter import approx_strategies, information_operators
 __all__ = ["ivp_to_regression_problem"]
 
 # The ODE information operator is not optional, because in order to create it
-# one needs to know the order of the algorithm that is desired (i.e. num_prior_derivatives).
-# Since this is a weird input for the function, it seems safer to just require
-# the full operator.
+# one needs to know the order of the algorithm that is desired
+# (i.e. num_prior_derivatives). Since this is a weird input for the function, it seems
+# safer to just require the full operator.
 def ivp_to_regression_problem(
     ivp: problems.InitialValueProblem,
     locations: Union[Sequence, np.ndarray],

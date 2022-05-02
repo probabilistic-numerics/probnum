@@ -3,12 +3,12 @@
 import numpy as np
 
 from probnum import backend
-from probnum.randprocs.markov import _markov_process, _transition
+from probnum.randprocs.markov import _markov, _transition
 
 
 def generate_artificial_measurements(
     rng: np.random.Generator,
-    prior_process: _markov_process.MarkovProcess,
+    prior_process: _markov.MarkovProcess,
     measmod: _transition.Transition,
     times: np.ndarray,
 ):

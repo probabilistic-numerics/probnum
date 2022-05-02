@@ -15,7 +15,8 @@ class Transition(abc.ABC):
 
     .. math:: p(\mathcal{G}_t[x(t)] \,|\,  x(t))
 
-    for some operator :math:`\mathcal{G}: \mathbb{R}^d \rightarrow \mathbb{R}^m`, which are used to describe the evolution of Markov processes
+    for some operator :math:`\mathcal{G}: \mathbb{R}^d \rightarrow \mathbb{R}^m`,
+    which are used to describe the evolution of Markov processes
 
     .. math:: p(x(t+\Delta t) \,|\, x(t))
 
@@ -32,11 +33,13 @@ class Transition(abc.ABC):
 
     Sometimes, these can be equivalent. For example, linear, time-invariant SDEs
     have a mild solution that can be written as a discrete transition.
-    In ProbNum, we also use discrete-time transition objects to describe observation models,
+    In ProbNum, we also use discrete-time transition objects to describe
+    observation models,
 
     .. math:: z_k \,|\, x(t_k) \sim p(z_k \,|\, x(t_k))
 
-    for some :math:`k=0,...,K`. All three building blocks are used heavily in filtering and smoothing, as well as solving ODEs.
+    for some :math:`k=0,...,K`. All three building blocks are used heavily in filtering
+    and smoothing, as well as solving ODEs.
 
     See Also
     --------
@@ -51,13 +54,15 @@ class Transition(abc.ABC):
         self.output_dim = output_dim
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(input_dim={self.input_dim}, output_dim={self.output_dim})"
+        classname = self.__class__.__name__
+        return f"{classname}(input_dim={self.input_dim}, output_dim={self.output_dim})"
 
     @abc.abstractmethod
     def forward_rv(
         self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
-        r"""Forward-pass of a state, according to the transition. In other words, return a description of
+        r"""Forward-pass of a state, according to the transition. In other words,
+        return a description of
 
         .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t)),
 
@@ -65,7 +70,8 @@ class Transition(abc.ABC):
 
         .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t), z_{\leq t}),
 
-        for past observations :math:`z_{\leq t}`. (This perspective will be more interesting in light of :meth:`backward_rv`).
+        for past observations :math:`z_{\leq t}`. (This perspective will be more
+        interesting in light of :meth:`backward_rv`).
 
 
         Parameters
@@ -77,19 +83,26 @@ class Transition(abc.ABC):
         dt
             Increment :math:`\Delta t`. Ignored for discrete-time transitions.
         compute_gain
-            Flag that indicates whether the expected gain of the forward transition shall be computed. This is important if the forward-pass
-            is computed as part of a forward-backward pass, as it is for instance the case in a Kalman update.
+            Flag that indicates whether the expected gain of the forward transition
+            shall be computed. This is important if the forward-pass is computed as
+            part of a forward-backward pass, as it is for instance the case in a
+            Kalman update.
         _diffusion
-            Special diffusion of the driving stochastic process, which is used internally.
+            Special diffusion of the driving stochastic process, which is used
+            internally.
         _linearise_at
-            Specific point of linearisation for approximate forward passes (think: extended Kalman filtering). Used internally for iterated filtering and smoothing.
+            Specific point of linearisation for approximate forward passes
+            (think: extended Kalman filtering). Used internally for iterated filtering
+            and smoothing.
 
         Returns
         -------
         RandomVariable
             New state, after applying the forward-pass.
         Dict
-            Information about the forward pass. Can for instance contain a `gain` key, if `compute_gain` was set to `True` (and if the transition supports this functionality).
+            Information about the forward pass. Can for instance contain a `gain` key,
+            if `compute_gain` was set to `True` (and if the transition supports this
+            functionality).
         """
         raise NotImplementedError
 
@@ -103,7 +116,8 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        r"""Forward-pass of a realization of a state, according to the transition. In other words, return a description of
+        r"""Forward-pass of a realization of a state, according to the transition.
+        In other words, return a description of
 
         .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t)=\xi),
 
@@ -112,25 +126,33 @@ class Transition(abc.ABC):
         Parameters
         ----------
         realization
-            Realization :math:`\xi` of the random variable :math:`x(t)` that describes the current state.
+            Realization :math:`\xi` of the random variable :math:`x(t)` that describes
+            the current state.
         t
             Current time point.
         dt
             Increment :math:`\Delta t`. Ignored for discrete-time transitions.
         compute_gain
-            Flag that indicates whether the expected gain of the forward transition shall be computed. This is important if the forward-pass
-            is computed as part of a forward-backward pass, as it is for instance the case in a Kalman update.
+            Flag that indicates whether the expected gain of the forward transition
+            shall be computed. This is important if the forward-pass is computed as
+            part of a forward-backward pass, as it is for instance the case in a
+            Kalman update.
         _diffusion
-            Special diffusion of the driving stochastic process, which is used internally.
+            Special diffusion of the driving stochastic process, which is used
+            internally.
         _linearise_at
-            Specific point of linearisation for approximate forward passes (think: extended Kalman filtering). Used internally for iterated filtering and smoothing.
+            Specific point of linearisation for approximate forward passes (think:
+            extended Kalman filtering). Used internally for iterated filtering and
+            smoothing.
 
         Returns
         -------
         RandomVariable
             New state, after applying the forward-pass.
         Dict
-            Information about the forward pass. Can for instance contain a `gain` key, if `compute_gain` was set to `True` (and if the transition supports this functionality).
+            Information about the forward pass. Can for instance contain a `gain` key,
+            if `compute_gain` was set to `True` (and if the transition supports this
+            functionality).
         """
         raise NotImplementedError
 
@@ -146,7 +168,8 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        r"""Backward-pass of a state, according to the transition. In other words, return a description of
+        r"""Backward-pass of a state, according to the transition. In other words,
+        return a description of
 
         .. math::
             p(x(t) \,|\, z_{\mathcal{G}_t})
@@ -154,36 +177,49 @@ class Transition(abc.ABC):
             p(\mathcal{G}_t(x(t)) \,|\, z_{\mathcal{G}_t})) d \mathcal{G}_t(x(t)),
 
         for observations :math:`z_{\mathcal{G}_t}` of :math:`{\mathcal{G}_t}(x(t))`.
-        For example, this function is called in a Rauch-Tung-Striebel smoothing step, which computes a Gaussian distribution
+        For example, this function is called in a Rauch-Tung-Striebel smoothing step,
+        which computes a Gaussian distribution
 
         .. math::
             p(x(t) \,|\, z_{\leq t+\Delta t})
             = \int p(x(t) \,|\, z_{\leq t+\Delta t}, x(t+\Delta t))
             p(x(t+\Delta t) \,|\, z_{\leq t+\Delta t})) d x(t+\Delta t),
 
-        from filtering distribution :math:`p(x(t) \,|\, z_{\leq t})` and smoothing distribution :math:`p(x(t+\Delta t) \,|\, z_{\leq t+\Delta t})`,
-        where :math:`z_{\leq t + \Delta t}` contains both :math:`z_{\leq t}` and :math:`z_{t + \Delta t}`.
+        from filtering distribution :math:`p(x(t) \,|\, z_{\leq t})` and smoothing
+        distribution :math:`p(x(t+\Delta t) \,|\, z_{\leq t+\Delta t})`,
+        where :math:`z_{\leq t + \Delta t}` contains both :math:`z_{\leq t}`
+        and :math:`z_{t + \Delta t}`.
 
         Parameters
         ----------
         rv_obtained
-            "Incoming" distribution (think: :math:`p(x(t+\Delta t) \,|\, z_{\leq t+\Delta t})`) as a RandomVariable.
+            "Incoming" distribution (think:
+            :math:`p(x(t+\Delta t) \,|\, z_{\leq t+\Delta t})`) as a RandomVariable.
         rv
-            "Current" distribution (think: :math:`p(x(t) \,|\, z_{\leq t})`) as a RandomVariable.
+            "Current" distribution (think: :math:`p(x(t) \,|\, z_{\leq t})`) as a
+            RandomVariable.
         rv_forwarded
-            "Forwarded" distribution (think: :math:`p(x(t+\Delta t) \,|\, z_{\leq t})`) as a RandomVariable. Optional. If provided (in conjunction with `gain`), computation might be more efficient,
-            because most backward passes require the solution of a forward pass. If `rv_forwarded` is not provided, :meth:`forward_rv` might be called internally (depending on the object)
+            "Forwarded" distribution (think: :math:`p(x(t+\Delta t) \,|\, z_{\leq t})`)
+            as a RandomVariable. Optional. If provided (in conjunction with `gain`),
+            computation might be more efficient, because most backward passes require
+            the solution of a forward pass. If `rv_forwarded` is not provided,
+            :meth:`forward_rv` might be called internally (depending on the object)
             which is skipped if `rv_forwarded` has been provided
         gain
-            Expected gain from "observing states at time :math:`t+\Delta t` from time :math:`t`). Optional. If provided (in conjunction with `rv_forwarded`), some additional computations may be avoided (depending on the object).
+            Expected gain from "observing states at time :math:`t+\Delta t` from time
+            :math:`t`). Optional. If provided (in conjunction with `rv_forwarded`),
+            some additional computations may be avoided (depending on the object).
         t
             Current time point.
         dt
             Increment :math:`\Delta t`. Ignored for discrete-time transitions.
         _diffusion
-            Special diffusion of the driving stochastic process, which is used internally.
+            Special diffusion of the driving stochastic process, which is used
+            internally.
         _linearise_at
-            Specific point of linearisation for approximate forward passes (think: extended Kalman filtering). Used internally for iterated filtering and smoothing.
+            Specific point of linearisation for approximate forward passes (think:
+            extended Kalman filtering). Used internally for iterated filtering and
+            smoothing.
 
         Returns
         -------
@@ -206,7 +242,8 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        r"""Backward-pass of a realisation of a state, according to the transition. In other words, return a description of
+        r"""Backward-pass of a realisation of a state, according to the transition.
+        In other words, return a description of
 
         .. math::
             p(x(t) \,|\, {\mathcal{G}_t(x(t)) = \xi})
@@ -221,19 +258,26 @@ class Transition(abc.ABC):
         rv
             "Current" distribution :math:`p(x(t))` as a RandomVariable.
         rv_forwarded
-            "Forwarded" distribution (think: :math:`p(\mathcal{G}_t(x(t)) \,|\, x(t))`) as a RandomVariable. Optional. If provided (in conjunction with `gain`), computation might be more efficient,
-            because most backward passes require the solution of a forward pass. If `rv_forwarded` is not provided, :meth:`forward_rv` might be called internally (depending on the object)
+            "Forwarded" distribution (think: :math:`p(\mathcal{G}_t(x(t)) \,|\, x(t))`)
+            as a RandomVariable. Optional. If provided (in conjunction with `gain`),
+            computation might be more efficient, because most backward passes require
+            the solution of a forward pass. If `rv_forwarded` is not provided,
+            :meth:`forward_rv` might be called internally (depending on the object)
             which is skipped if `rv_forwarded` has been provided
         gain
-            Expected gain. Optional. If provided (in conjunction with `rv_forwarded`), some additional computations may be avoided (depending on the object).
+            Expected gain. Optional. If provided (in conjunction with `rv_forwarded`),
+            some additional computations may be avoided (depending on the object).
         t
             Current time point.
         dt
             Increment :math:`\Delta t`. Ignored for discrete-time transitions.
         _diffusion
-            Special diffusion of the driving stochastic process, which is used internally.
+            Special diffusion of the driving stochastic process, which is used
+            internally.
         _linearise_at
-            Specific point of linearisation for approximate forward passes (think: extended Kalman filtering). Used internally for iterated filtering and smoothing.
+            Specific point of linearisation for approximate forward passes
+            (think: extended Kalman filtering). Used internally for iterated filtering
+            and smoothing.
 
         Returns
         -------
@@ -257,13 +301,16 @@ class Transition(abc.ABC):
         rv_list : randvars._RandomVariableList
             List of random variables to be smoothed.
         locations :
-            Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
+            Locations :math:`t` of the random variables in the time-domain. Used for
+            continuous-time transitions.
         _diffusion_list :
             List of diffusions that correspond to the intervals in the locations.
-            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
+            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it
+            contains one element less.
         _previous_posterior :
-            Specify a previous posterior to improve linearisation in approximate backward passes.
-            Used in iterated smoothing based on posterior linearisation.
+            Specify a previous posterior to improve linearisation in approximate
+            backward passes. Used in iterated smoothing based on posterior
+            linearisation.
 
         Returns
         -------
@@ -311,15 +358,17 @@ class Transition(abc.ABC):
         Parameters
         ----------
         base_measure_realizations :
-            Base measure realizations (usually samples from a standard Normal distribution).
-            These are transformed into joint realizations of the random variable list.
+            Base measure realizations (usually samples from a standard Normal
+            distribution). These are transformed into joint realizations of the random
+            variable list.
         rv_list :
             List of random variables to be jointly sampled from.
         t :
             Locations of the random variables in the list. Assumed to be sorted.
         _diffusion_list :
             List of diffusions that correspond to the intervals in the locations.
-            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
+            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it
+            contains one element less.
         _previous_posterior :
             Previous posterior. Used for iterative posterior linearisation.
 
@@ -378,15 +427,17 @@ class Transition(abc.ABC):
         Parameters
         ----------
         base_measure_realizations :
-            Base measure realizations (usually samples from a standard Normal distribution).
-            These are transformed into joint realizations of the random variable list.
+            Base measure realizations (usually samples from a standard Normal
+            distribution). These are transformed into joint realizations of the random
+            variable list.
         initrv :
             Initial random variable.
         t :
             Locations of the random variables in the list. Assumed to be sorted.
         _diffusion_list :
             List of diffusions that correspond to the intervals in the locations.
-            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it contains one element less.
+            If `locations=(t0, ..., tN)`, then `_diffusion_list=(d1, ..., dN)`, i.e. it
+            contains one element less.
         _previous_posterior :
             Previous posterior. Used for iterative posterior linearisation.
 

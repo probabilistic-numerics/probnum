@@ -13,17 +13,21 @@ from . import _linear_solver_policy
 class ConjugateGradientPolicy(_linear_solver_policy.LinearSolverPolicy):
     r"""Policy returning :math:`A`-conjugate actions.
 
-    Selects the negative gradient / residual as an initial action :math:`s_0 = b - A x_0` and then successively
-    generates :math:`A`-conjugate actions, i.e. the actions satisfy :math:`s_i^\top A s_j = 0` iff :math:`i \neq j`.
+    Selects the negative gradient / residual as an initial action
+    :math:`s_0 = b - A x_0` and then successively generates :math:`A`-conjugate
+    actions, i.e. the actions satisfy :math:`s_i^\top A s_j = 0` iff
+    :math:`i \neq j`.
 
     Parameters
     ----------
     reorthogonalization_fn_residual
-        Reorthogonalization function, which takes a vector, an orthogonal basis and optionally an inner product and
-        returns a reorthogonalized vector. If not `None` the residuals are reorthogonalized before the action is computed.
+        Reorthogonalization function, which takes a vector, an orthogonal basis
+        and optionally an inner product and returns a reorthogonalized vector. If
+        not `None` the residuals are reorthogonalized before the action is computed.
     reorthogonalization_fn_action
-        Reorthogonalization function, which takes a vector, an orthogonal basis and optionally an inner product and
-        returns a reorthogonalized vector. If not `None` the computed action is reorthogonalized.
+        Reorthogonalization function, which takes a vector, an orthogonal basis
+        and optionally an inner product and returns a reorthogonalized vector.
+        If not `None` the computed action is reorthogonalized.
     """
 
     def __init__(

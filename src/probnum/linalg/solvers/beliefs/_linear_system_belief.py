@@ -1,7 +1,7 @@
 """Linear system belief.
 
-Class defining a belief about the quantities of interest of a linear system such as its
-solution or the matrix inverse and any associated hyperparameters.
+Class defining a belief about the quantities of interest of a linear system such
+as its solution or the matrix inverse and any associated hyperparameters.
 """
 
 from functools import cached_property
@@ -16,13 +16,13 @@ class LinearSystemBelief:
     r"""Belief about quantities of interest of a linear system.
 
     Random variables :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
-    modelling the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
-    :math:`H=A^{\dagger}` and the right hand side :math:`b` of a linear system :math:`Ax=b`,
-    as well as any associated hyperparameters.
+    modelling the solution :math:`x`, the system matrix :math:`A`, its
+    (pseudo-)inverse :math:`H=A^{\dagger}` and the right hand side :math:`b` of
+    a linear system :math:`Ax=b`, as well as any associated hyperparameters.
 
-    For instantiation either a belief about the solution or the inverse and right hand side
-    must be provided. Note that if both are specified, their consistency is not checked and
-    depending on the algorithm either may be used.
+    For instantiation either a belief about the solution or the inverse and right
+    hand side must be provided. Note that if both are specified, their consistency
+    is not checked and depending on the algorithm either may be used.
 
     Parameters
     ----------
@@ -56,14 +56,17 @@ class LinearSystemBelief:
         def dim_mismatch_error(**kwargs):
             argnames = list(kwargs.keys())
             return ValueError(
-                f"Dimension mismatch. The shapes of {argnames[0]} : {kwargs[argnames[0]].shape} "
+                f"Dimension mismatch. The shapes of {argnames[0]} :\
+                {kwargs[argnames[0]].shape} "
                 f"and {argnames[1]} : {kwargs[argnames[1]].shape} must match."
             )
 
         if x is not None:
             if x.ndim > 2 or x.ndim < 1:
                 raise ValueError(
-                    f"Belief over solution must have either one or two dimensions, but has {x.ndim}."
+                    f"""Belief over solution must have either one or two dimensions,
+                     but has {x.ndim}.
+                    """
                 )
             if A is not None:
                 if A.shape[1] != x.shape[0]:
@@ -79,7 +82,9 @@ class LinearSystemBelief:
         if Ainv is not None:
             if Ainv.ndim != 2:
                 raise ValueError(
-                    f"Belief over the inverse system matrix may have at most two dimensions, but has {Ainv.ndim}."
+                    f"""Belief over the inverse system matrix may have at most two
+                     dimensions, but has {Ainv.ndim}.
+                     """
                 )
             if A is not None:
                 if A.shape != Ainv.shape:
@@ -88,7 +93,9 @@ class LinearSystemBelief:
         if A is not None:
             if A.ndim != 2:
                 raise ValueError(
-                    f"Belief over the system matrix may have at most two dimensions, but has {A.ndim}."
+                    f"""Belief over the system matrix may have at most two dimensions
+                    , but has {A.ndim}.
+                    """
                 )
             if b is not None:
                 if A.shape[0] != b.shape[0]:
@@ -97,7 +104,9 @@ class LinearSystemBelief:
         if b is not None:
             if b.ndim > 2 or b.ndim < 1:
                 raise ValueError(
-                    f"Belief over right-hand-side may have either one or two dimensions but has {b.ndim}."
+                    f"""Belief over right-hand-side may have either one or two
+                    dimensions but has {b.ndim}.
+                     """
                 )
 
         self._x = x

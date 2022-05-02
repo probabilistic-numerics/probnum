@@ -16,18 +16,22 @@ def chi_squared_statistic(realisations, means, covs):
     with (assumed) means :math:`m_1, ..., m_N` and covariances
     :math:`C_1, ..., C_N`, compute the value
 
-    .. math:`\\chi^2 = \\frac{1}{Nd} \\sum_{n=1}^N (x_n - m_n)^\\top C_n^{-1}(x_n - m_n).`
+    .. math:`\\chi^2
+        = \\frac{1}{Nd} \\sum_{n=1}^N (x_n - m_n)^\\top C_n^{-1}(x_n - m_n).`
 
-    If it is roughly equal to 1, the samples are likely to correspond to given mean and covariance.
+    If it is roughly equal to 1, the samples are likely to correspond to given
+    mean and covariance.
 
     Parameters
     ----------
     realisations : array_like
         :math:`N` realisations of a :math:`d`-dimensional random variable. Shape (N, d).
     means : array_like
-        :math:`N`, :math:`d`-dimensional (assumed) means of a random variable. Shape (N, d).
+        :math:`N`, :math:`d`-dimensional (assumed) means of a random variable.
+        Shape (N, d).
     realisations : array_like
-        :math:`N`, :math:`d \\times d`-dimensional (assumed) covariances of a random variable. Shape (N, d, d).
+        :math:`N`, :math:`d \\times d`-dimensional (assumed) covariances of a random
+        variable. Shape (N, d, d).
     """
     if not realisations.shape == means.shape == covs.shape[:-1]:
         print(realisations.shape, means.shape, covs.shape)

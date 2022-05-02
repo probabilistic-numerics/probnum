@@ -45,7 +45,8 @@ class TestEK1(_approx_test_interface.ApproximationStrategyTest):
 
     def test_call(self, fitzhughnagumo):
 
-        # not-yet-registered ODE raises errors as soon as the approximate info operator is called.
+        # not-yet-registered ODE raises errors as soon as the approximate
+        # info operator is called.
         with pytest.raises(ValueError):
             approx_transition = self.approx_strategy(self.info_op).as_transition()
             approx_transition.forward_realization(

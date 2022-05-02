@@ -35,12 +35,12 @@ class PerturbedStepSolution(_odesolution.ODESolution):
             return self.states[0]
         if t == self.locations[-1]:
             return self.states[-1]
-        else:
-            interpolant = self.interpolants[previous_index]
-            relative_time = (t - self.locations[previous_index]) * self.scales[
-                previous_index
-            ]
-            previous_time = self.locations[previous_index]
-            evaluation = interpolant(previous_time + relative_time)
-            res_as_rv = randvars.Constant(evaluation)
+
+        interpolant = self.interpolants[previous_index]
+        relative_time = (t - self.locations[previous_index]) * self.scales[
+            previous_index
+        ]
+        previous_time = self.locations[previous_index]
+        evaluation = interpolant(previous_time + relative_time)
+        res_as_rv = randvars.Constant(evaluation)
         return res_as_rv

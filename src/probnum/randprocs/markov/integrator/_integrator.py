@@ -16,7 +16,8 @@ class IntegratorTransition:
     For instances, this includes integrated Wiener processes or Matern processes.
 
     In ProbNum, integrators are always driven by :math:`d` dimensional Wiener processes.
-    We compute the transitions usually in a preconditioned state (Nordsieck-like coordinates).
+    We compute the transitions usually in a preconditioned state (Nordsieck-like
+    coordinates).
     """
 
     def __init__(self, num_derivatives, wiener_process_dimension):
@@ -73,7 +74,8 @@ class IntegratorTransition:
 
     @property
     def _derivwise2coordwise_projmat(self) -> np.ndarray:
-        r"""Projection matrix to change the ordering of the state representation in an :class:`Integrator` from coordinate-wise to derivative-wise representation.
+        r"""Projection matrix to change the ordering of the state representation in an
+        :class:`Integrator` from coordinate-wise to derivative-wise representation.
 
         A coordinate-wise ordering is
 
@@ -81,9 +83,11 @@ class IntegratorTransition:
 
         and a derivative-wise ordering is
 
-        .. math:: (y_1, y_2, ..., y_d, \dot y_1, \dot y_2, ..., \dot y_d, \ddot y_1, ..., y_d^{(\nu)}).
+        .. math:: (y_1, y_2, ..., y_d, \dot y_1, \dot y_2, ...,
+        \dot y_d, \ddot y_1, ..., y_d^{(\nu)}).
 
-        Default representation in an :class:`Integrator` is coordinate-wise ordering, but sometimes, derivative-wise ordering is more convenient.
+        Default representation in an :class:`Integrator` is coordinate-wise ordering,
+        but sometimes, derivative-wise ordering is more convenient.
 
         See Also
         --------
@@ -107,7 +111,8 @@ class IntegratorTransition:
 
     @property
     def _coordwise2derivwise_projmat(self) -> np.ndarray:
-        r"""Projection matrix to change the ordering of the state representation in an :class:`Integrator` from derivative-wise to coordinate-wise representation.
+        r"""Projection matrix to change the ordering of the state representation in an
+        :class:`Integrator` from derivative-wise to coordinate-wise representation.
 
         A coordinate-wise ordering is
 
@@ -115,9 +120,11 @@ class IntegratorTransition:
 
         and a derivative-wise ordering is
 
-        .. math:: (y_1, y_2, ..., y_d, \dot y_1, \dot y_2, ..., \dot y_d, \ddot y_1, ..., y_d^{(\nu)}).
+        .. math:: (y_1, y_2, ..., y_d, \dot y_1, \dot y_2, ...,
+        \dot y_d, \ddot y_1, ..., y_d^{(\nu)}).
 
-        Default representation in an :class:`Integrator` is coordinate-wise ordering, but sometimes, derivative-wise ordering is more convenient.
+        Default representation in an :class:`Integrator` is coordinate-wise ordering,
+        but sometimes, derivative-wise ordering is more convenient.
 
         See Also
         --------

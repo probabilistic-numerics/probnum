@@ -24,7 +24,8 @@ def bayescg(
     Parameters
     ----------
     A
-        *shape=(n, n)* -- A symmetric positive definite matrix (or linear operator). Only matrix-vector products :math:`Av` are used internally.
+        *shape=(n, n)* -- A symmetric positive definite matrix (or linear operator).
+        Only matrix-vector products :math:`Av` are used internally.
     b
         *shape=(n, )* -- Right-hand side vector.
     x0

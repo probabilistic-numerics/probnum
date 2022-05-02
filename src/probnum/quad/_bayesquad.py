@@ -8,17 +8,18 @@ integral.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 import warnings
 
 import numpy as np
 
 from probnum.backend.typing import FloatLike, IntLike
-from probnum.quad.solvers.bq_state import BQInfo
+from probnum.quad.solvers.bq_state import BQIterInfo
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 
-from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
+from ._integration_measures import IntegrationMeasure, LebesgueMeasure
+from ._quad_typing import DomainLike, DomainType
 from .solvers import BayesianQuadrature
 
 
@@ -26,9 +27,7 @@ def bayesquad(
     fun: Callable,
     input_dim: int,
     kernel: Optional[Kernel] = None,
-    domain: Optional[
-        Union[Tuple[FloatLike, FloatLike], Tuple[np.ndarray, np.ndarray]]
-    ] = None,
+    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
     max_evals: Optional[IntLike] = None,
@@ -36,18 +35,19 @@ def bayesquad(
     rel_tol: Optional[FloatLike] = None,
     batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
-) -> Tuple[Normal, BQInfo]:
+) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
     :math:`\int_\Omega f(x) d \mu(x)`
-    on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
+    on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`
+    or :math:`\Omega = \mathbb{R}^D`.
 
     Bayesian quadrature (BQ) infers integrals of the form
 
     .. math:: F = \int_\Omega f(x) d \mu(x),
 
     of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated on the domain
-    :math:`\Omega \subset \mathbb{R}^D` against a measure :math:`\mu: \mathbb{R}^D
-    \mapsto \mathbb{R}`.
+    :math:`\Omega \subset \mathbb{R}^D` against a measure
+    :math:`\mu` on :math:`\mathbb{R}^D`.
 
     Bayesian quadrature methods return a probability distribution over the solution
     :math:`F` with uncertainty arising from finite computation (here a finite number
@@ -59,41 +59,41 @@ def bayesquad(
 
     Parameters
     ----------
-    fun :
+    fun
         Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
         ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
-    input_dim :
+    input_dim
         Input dimension of the integration problem.
-    kernel :
-        The kernel used for the GP model
-    domain :
-        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
-        ``int`` or ``np.ndarray``.
-    measure:
-        Integration measure. Defaults to the Lebesgue measure.
-    policy :
-        Type of acquisition strategy to use. Options are
+    kernel
+        The kernel used for the GP model. Defaults to the ``ExpQuad`` kernel.
+    domain
+        The integration domain. Contains lower and upper bound as scalar or
+        ``np.ndarray``. Obsolete if ``measure`` is given.
+    measure
+        The integration measure. Defaults to the Lebesgue measure on ``domain``.
+    policy
+        Type of acquisition strategy to use. Defaults to 'bmc'. Options are
 
         ==========================  =======
          Bayesian Monte Carlo [2]_  ``bmc``
         ==========================  =======
 
-    max_evals :
+    max_evals
         Maximum number of function evaluations.
-    var_tol :
+    var_tol
         Tolerance on the variance of the integral.
-    rel_tol :
+    rel_tol
         Tolerance on consecutive updates of the integral mean.
-    batch_size :
+    batch_size
         Number of new observations at each update.
-    rng :
+    rng
         Random number generator. Used by Bayesian Monte Carlo other random sampling
         policies. Optional. Default is `np.random.default_rng()`.
 
     Returns
     -------
     integral :
-        The integral of ``fun`` on the domain.
+        The integral belief of :math:`F` subject to the provided measure or domain.
     info :
         Information on the performance of the method.
 
@@ -101,8 +101,21 @@ def bayesquad(
     ------
     ValueError
         If neither a domain nor a measure are given.
-    ValueError
-        If a domain is given with a Gaussian measure.
+
+    Warns
+    -----
+    When ``domain`` is given but not used.
+
+    Notes
+    -----
+        If multiple stopping conditions are provided, the method stops once one of
+        them is satisfied. If no stopping condition is provided, the default values are
+        ``max_evals = 25 * input_dim`` and ``var_tol = 1e-6``.
+
+    See Also
+    --------
+    bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
+                          nodes and function evaluations.
 
     References
     ----------
@@ -118,27 +131,15 @@ def bayesquad(
     >>> input_dim = 1
     >>> domain = (0, 1)
     >>> def f(x):
-    ...     return x
+    ...     return x.reshape(-1, )
     >>> F, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
     >>> print(F.mean)
     0.5
     """
 
-    # Check input argument compatibility
-    if domain is None and measure is None:
-        raise ValueError(
-            "You need to either specify an integration domain or an integration "
-            "measure. The Lebesgue measure can only operate on a finite domain."
-        )
-
-    if domain is not None:
-        if isinstance(measure, GaussianMeasure):
-            raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        if isinstance(measure, LebesgueMeasure):
-            warnings.warn(
-                "Both domain and a LebesgueMeasure are specified. The domain "
-                "information will be ignored."
-            )
+    input_dim, domain, measure = _check_domain_measure_compatibility(
+        input_dim=input_dim, domain=domain, measure=measure
+    )
 
     bq_method = BayesianQuadrature.from_problem(
         input_dim=input_dim,
@@ -154,42 +155,40 @@ def bayesquad(
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(fun=fun)
+    integral_belief, _, info = bq_method.integrate(fun=fun, nodes=None, fun_evals=None)
 
-    return integral_belief, bq_state.info
+    return integral_belief, info
 
 
 def bayesquad_from_data(
     nodes: np.ndarray,
     fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
-    domain: Optional[
-        Tuple[Union[np.ndarray, FloatLike], Union[np.ndarray, FloatLike]]
-    ] = None,
+    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
-) -> Tuple[Normal, BQInfo]:
+) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
 
     Parameters
     ----------
-    nodes :
+    nodes
         *shape=(n_eval, input_dim)* -- Locations at which the function evaluations are
         available as ``fun_evals``.
-    fun_evals :
+    fun_evals
         *shape=(n_eval,)* -- Function evaluations at ``nodes``.
-    kernel :
-        The kernel used for the GP model.
-    domain :
-        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as
-        int or ndarray.
-    measure:
-        Integration measure. Defaults to the Lebesgue measure.
+    kernel
+        The kernel used for the GP model. Defaults to the ``ExpQuad`` kernel.
+    domain
+        The integration domain. Contains lower and upper bound as scalar or
+        ``np.ndarray``. Obsolete if ``measure`` is given.
+    measure
+        The integration measure. Defaults to the Lebesgue measure.
 
     Returns
     -------
     integral :
-        The integral of ``fun`` on the domain.
+        The integral belief subject to the provided measure or domain.
     info :
         Information on the performance of the method.
 
@@ -197,53 +196,74 @@ def bayesquad_from_data(
     ------
     ValueError
         If neither a domain nor a measure are given.
-    ValueError
-        If a domain is given with a Gaussian measure.
+
+    Warns
+    -----
+    When ``domain`` is given but not used.
+
+    See Also
+    --------
+    bayesquad : Computes the integral using an acquisition policy.
 
     Examples
     --------
     >>> import numpy as np
     >>> domain = (0, 1)
     >>> nodes = np.linspace(0, 1, 15)[:, None]
-    >>> fun_evals = 3*nodes**2
+    >>> fun_evals = nodes.reshape(-1, )
     >>> F, info = bayesquad_from_data(nodes=nodes, fun_evals=fun_evals, domain=domain)
     >>> print(F.mean)
-    1.0001
+    0.5
     """
-
-    # Check input argument compatibility
-    if domain is None and measure is None:
-        raise ValueError(
-            "You need to either specify an integration domain or an integration "
-            "measure. The Lebesgue measure can only operate on a finite domain."
-        )
-
-    if domain is not None:
-        if isinstance(measure, GaussianMeasure):
-            raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        if isinstance(measure, LebesgueMeasure):
-            warnings.warn(
-                "Both domain and a LebesgueMeasure are specified. The domain "
-                "information will be ignored."
-            )
 
     if nodes.ndim != 2:
         raise ValueError(
             "The nodes must be given a in an array with shape=(n_eval, input_dim)"
         )
-    n_eval, input_dim = nodes.shape
+
+    input_dim, domain, measure = _check_domain_measure_compatibility(
+        input_dim=nodes.shape[1], domain=domain, measure=measure
+    )
 
     bq_method = BayesianQuadrature.from_problem(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
         domain=domain,
-        max_evals=n_eval,
-        batch_size=n_eval,
-        policy="fixed",
+        policy=None,
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(nodes=nodes, fun_evals=fun_evals)
+    integral_belief, _, info = bq_method.integrate(
+        fun=None, nodes=nodes, fun_evals=fun_evals
+    )
 
-    return integral_belief, bq_state.info
+    return integral_belief, info
+
+
+def _check_domain_measure_compatibility(
+    input_dim: IntLike,
+    domain: Optional[DomainLike],
+    measure: Optional[IntegrationMeasure],
+) -> Tuple[int, Optional[DomainType], IntegrationMeasure]:
+
+    # Neither domain nor measure given
+    if domain is None and measure is None:
+        raise ValueError(
+            "You need to either specify an integration domain or an integration "
+            "measure. The Lebesgue measure can only operate on a finite domain."
+        )
+
+    # Ignore domain if measure is given
+    if domain is not None and measure is not None:
+        warnings.warn(
+            "Both 'domain' and a 'measure' are specified. 'domain' will be ignored."
+        )
+        domain = None
+
+    # Set measure if only domain is given
+    if measure is None:
+        measure = LebesgueMeasure(domain=domain, input_dim=input_dim)
+        domain = measure.domain  # domain has been converted to correct type
+
+    return input_dim, domain, measure

@@ -296,8 +296,8 @@ _mul_fns[(_Constant, _Normal)] = _swap_operands(_mul_normal_constant)
 def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
     """Normal random variable multiplied with a vector or matrix.
 
-    Computes the distribution of the random variable :math:`Y = XA`, where :math:`X` is
-    a matrix- or multi-variate normal random variable and :math:`A` a constant.
+    Computes the distribution of the random variable :math:`Y = XA`, where :math:`X`
+    is a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
 
@@ -391,7 +391,7 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
     if constant_rv.support.ndim == 1:
         constant_rv_support = constant_rv.support[None, :]
     else:
-        constant_rv_support = constant_rv.support
+        constant_rv_support = constant_rv.supportndarray
 
     cov_update = _linear_operators.Kronecker(
         constant_rv_support,

@@ -116,7 +116,6 @@ def _get_kernel_embedding(
             return _kernel_mean_expquad_gauss, _kernel_variance_expquad_gauss
         if isinstance(measure, LebesgueMeasure):
             return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
-        raise NotImplementedError
 
     # Matern
     if isinstance(kernel, (Matern, ProductMatern)):
@@ -124,4 +123,7 @@ def _get_kernel_embedding(
             return _kernel_mean_matern_lebesgue, _kernel_variance_matern_lebesgue
 
     # other kernels
-    raise NotImplementedError
+    raise NotImplementedError(
+        "The combination of kernel ({0}) and measure ({1}) is not available as kernel "
+        "embedding.".format(type(kernel), type(measure))
+    )

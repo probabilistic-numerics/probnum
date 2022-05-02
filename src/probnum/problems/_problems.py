@@ -16,7 +16,8 @@ from probnum.backend.typing import FloatLike
 class TimeSeriesRegressionProblem:
     r"""Time series regression problem.
 
-    Fit a stochastic process to data, given a likelihood (realised by a :obj:`NonlinearGaussian` transition).
+    Fit a stochastic process to data, given a likelihood
+    (realised by a :obj:`NonlinearGaussian` transition).
     Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
 
     Parameters
@@ -28,7 +29,8 @@ class TimeSeriesRegressionProblem:
     measurement_models
         Measurement models.
     solution
-        Array containing solution to the problem at ``locations``. Used for testing and benchmarking.
+        Array containing solution to the problem at ``locations``.
+        Used for testing and benchmarking.
 
     Examples
     --------
@@ -70,7 +72,8 @@ class TimeSeriesRegressionProblem:
     measurement_models: Union[Sequence, np.ndarray]
 
     # For testing and benchmarking
-    # The solution here is a Sequence or array of the values of the truth at the location.
+    # The solution here is a Sequence or
+    # array of the values of the truth at the location.
     solution: Optional[Union[Sequence, np.ndarray]] = None
 
     def __post_init__(self):
@@ -81,8 +84,9 @@ class TimeSeriesRegressionProblem:
         2. Check that all inputs have the same length.
         """
 
-        # If a single measurement model has been provided, transform it into a list of models
-        # to ensure that there is a measurement model for every (t, y) combination.
+        # If a single measurement model has been provided,
+        # transform it into a list of models to ensure that
+        # there is a measurement model for every (t, y) combination.
         if not isinstance(self.measurement_models, abc.Iterable):
             self.measurement_models = [self.measurement_models] * len(self.locations)
 
@@ -135,11 +139,14 @@ class InitialValueProblem:
     y0
         Initial value of the solution.
     df
-        Jacobian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
+        Jacobian of the ODE vector-field :math:`f=f(t,y)`
+        with respect to the :math:`y` variable.
     ddf
-        Hessian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
+        Hessian of the ODE vector-field :math:`f=f(t,y)`
+        with respect to the :math:`y` variable.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        Closed form, analytic solution to the problem.
+        Used for testing and benchmarking.
     dy0_all
         All initial derivatives up to some order.
 
@@ -236,7 +243,8 @@ class QuadratureProblem:
     output_dim
         Output dimension of the integrand.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        Closed form, analytic solution to the problem.
+        Used for testing and benchmarking.
 
     Examples
     --------

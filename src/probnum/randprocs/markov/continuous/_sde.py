@@ -13,7 +13,8 @@ class SDE(_transition.Transition):
 
     .. math:: d x(t) = g(t, x(t)) d t + l(t, x(t)) d w(t),
 
-    driven by a Wiener process :math:`w` with isotropic diffusion :math:`\Gamma(t) = \gamma(t) I_d`.
+    driven by a Wiener process :math:`w` with isotropic diffusion
+    :math:`\Gamma(t) = \gamma(t) I_d`.
     """
 
     def __init__(

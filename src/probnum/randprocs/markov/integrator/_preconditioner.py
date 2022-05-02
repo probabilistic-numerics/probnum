@@ -14,7 +14,8 @@ def apply_precon(precon, rv):
     # but not exposed to the 'randprocs' namespace
     # (i.e. not imported in any __init__.py).
 
-    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
+    # There is no way of checking whether `rv` has its Cholesky factor computed already
+    # or not.
     # Therefore, since we need to update the Cholesky factor for square-root filtering,
     # we also update the Cholesky factor for non-square-root algorithms here,
     # which implies additional cost.
@@ -49,8 +50,8 @@ class NordsieckLikeCoordinates(Preconditioner):
     """Nordsieck-like coordinates.
 
     Similar to Nordsieck coordinates (which store the Taylor coefficients instead of the
-    derivatives), but better for ODE filtering and smoothing. Used in integrator-transitions, e.g. in
-    :class:`IntegratedWienerTransition`.
+    derivatives), but better for ODE filtering and smoothing. Used in
+    integrator-transitions, e.g. in :class:`IntegratedWienerTransition`.
     """
 
     def __init__(self, powers, scales, dimension):

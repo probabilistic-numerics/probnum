@@ -37,14 +37,6 @@ class Normal(_random_variable.ContinuousRandomVariable):
         Mean of the random variable.
     cov :
         (Co-)variance of the random variable.
-    cov_cholesky :
-        (Lower triangular) Cholesky factor of the covariance matrix. If ``None``, then
-        the Cholesky factor of the covariance matrix is computed when
-        :attr:`Normal._cov_cholesky` is called and then cached. If specified, the value
-        is returned by :attr:`Normal._cov_cholesky`. In this case, its type and data
-        type are compared to the type and data type of the covariance. If the types do
-        not match, an exception is thrown. If the data types do not match, the data type
-        of the Cholesky factor is promoted to the data type of the covariance matrix.
 
     See Also
     --------
