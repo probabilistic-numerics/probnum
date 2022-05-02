@@ -67,7 +67,7 @@ def cholesky_update(
         stacked_up = backend.vstack((S1.T, S2.T))
     else:
         stacked_up = backend.vstack(S1.T)
-    upper_sqrtm = backend.linalg.qr(stacked_up, mode="r")
+    _, upper_sqrtm = backend.linalg.qr(stacked_up, mode="r")
     if S1.ndim == 1:
         lower_sqrtm = upper_sqrtm.T
     elif S1.shape[0] <= S1.shape[1]:

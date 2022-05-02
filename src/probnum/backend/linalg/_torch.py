@@ -77,3 +77,10 @@ def solve_cholesky(
         return torch.cholesky_solve(b[:, None], cholesky, upper=not lower)[:, 0]
 
     return torch.cholesky_solve(b, cholesky, upper=not lower)
+
+
+def qr(
+    x: torch.Tensor, /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    q, r = torch.linalg.qr(x, mode=mode)
+    return q, r

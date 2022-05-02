@@ -94,7 +94,12 @@ def solve_cholesky(
 
 
 def qr(
-    x: jnp.ndarray, /, *, mode: Literal["reduced", "complete"] = "reduced"
+    x: jnp.ndarray, /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
 ) -> Tuple[jnp.ndarray, jnp.ndarray]:
-    q, r, _ = jnp.linalg.qr(x, mode=mode)
+    if mode == "r":
+        r = jnp.linalg.qr(x, mode=mode)
+        q = None
+    else:
+        q, r = jnp.linalg.qr(x, mode=mode)
+
     return q, r

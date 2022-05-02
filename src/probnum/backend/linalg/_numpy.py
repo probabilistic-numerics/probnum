@@ -134,7 +134,12 @@ def _matmul_broadcasting(
 
 
 def qr(
-    x: np.ndarray, /, *, mode: Literal["reduced", "complete"] = "reduced"
+    x: np.ndarray, /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
 ) -> Tuple[np.ndarray, np.ndarray]:
-    q, r, _ = np.linalg.qr(x, mode=mode)
+    if mode == "r":
+        r = np.linalg.qr(x, mode=mode)
+        q = None
+    else:
+        q, r = np.linalg.qr(x, mode=mode)
+
     return q, r

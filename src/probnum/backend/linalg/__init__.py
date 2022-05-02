@@ -317,7 +317,7 @@ QR = collections.namedtuple("QR", ["Q", "R"])
 
 
 def qr(
-    x: Array, /, *, mode: Literal["reduced", "complete"] = "reduced"
+    x: Array, /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
 ) -> Tuple[Array, Array]:
     """
     Returns the QR decomposition ``x = QR`` of a full column rank matrix (or a stack of
