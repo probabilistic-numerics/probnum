@@ -1,14 +1,17 @@
 """Probabilistic linear solver state test cases."""
 
 import numpy as np
-from pytest_cases import case
 
 from probnum import backend, linalg, linops, randvars
 from probnum.problems.zoo.linalg import random_linear_system, random_spd_matrix
 
+from pytest_cases import case
+
 # Problem
 n = 10
-linsys = random_linear_system(42, matrix=random_spd_matrix, dim=n)
+linsys = random_linear_system(
+    backend.random.rng_state(42), matrix=random_spd_matrix, shape=(n, n)
+)
 
 # Prior
 Ainv = randvars.Normal(

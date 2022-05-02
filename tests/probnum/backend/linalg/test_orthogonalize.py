@@ -137,7 +137,7 @@ def test_is_normalized(
             backend.random.gamma(backend.random.rng_state(123), 1.0, shape=(n,))
         ),
         5 * backend.eye(n),
-        random_spd_matrix(rng_state=backend.random.rng_state(46), dim=n),
+        random_spd_matrix(rng_state=backend.random.rng_state(46), shape=(n, n)),
     ],
 )
 def test_noneuclidean_innerprod(

@@ -27,8 +27,8 @@ square_matrix_pairs = [
 
 spd_matrix_pairs = [
     (
-        random_spd_matrix(backend.random.rng_state(n + 9872), dim=n),
-        random_spd_matrix(backend.random.rng_state(n + 1231), dim=n),
+        random_spd_matrix(backend.random.rng_state(n + 9872), shape=(n, n)),
+        random_spd_matrix(backend.random.rng_state(n + 1231), shape=(n, n)),
     )
     for n in [1, 2, 3, 5, 8]
 ]

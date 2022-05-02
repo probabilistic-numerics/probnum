@@ -44,5 +44,5 @@ def generate_artificial_measurements(
     for idx, (state, t) in enumerate(zip(latent_states, times)):
         measured_rv, _ = measmod.forward_realization(state, t=t)
         sample_rng_state, rng_state = backend.random.split(rng_state, num=2)
-        obs[idx] = measured_rv.sample(seed=sample_rng_state)
+        obs[idx] = measured_rv.sample(rng_state=sample_rng_state)
     return latent_states, obs

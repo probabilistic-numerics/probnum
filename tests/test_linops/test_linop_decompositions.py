@@ -1,12 +1,13 @@
 import pathlib
 
 import numpy as np
-import pytest
-import pytest_cases
-from pytest_cases import filters
 import scipy.linalg
 
 import probnum as pn
+
+import pytest
+import pytest_cases
+from pytest_cases import filters
 
 case_modules = [
     ".test_linops_cases." + path.stem

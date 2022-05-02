@@ -18,7 +18,7 @@ matrices = [
 spd_matrices = [
     np.array([[1.0]]),
     np.array([[1.0, -2.0], [-2.0, 5.0]]),
-    random_spd_matrix(rng_state=backend.random.rng_state(597), dim=10),
+    random_spd_matrix(rng_state=backend.random.rng_state(597), shape=(10, 10)),
 ]
 
 

@@ -78,7 +78,7 @@ class ProbabilisticLinearSolver(
 
     >>> rng = np.random.default_rng(42)
     >>> n = 100
-    >>> A = random_spd_matrix(rng=rng, dim=n)
+    >>> A = random_spd_matrix(rng=rng, shape=(n,n))
     >>> b = rng.standard_normal(size=(n,))
     >>> linsys = LinearSystem(A=A, b=b)
 

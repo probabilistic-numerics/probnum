@@ -13,7 +13,7 @@ import pytest_cases
 spd_matrices = (
     pn.linops.Identity(shape=(1, 1)),
     np.array([[1.0, -2.0], [-2.0, 5.0]]),
-    random_spd_matrix(rng_state=backend.random.rng_state(597), dim=9),
+    random_spd_matrix(rng_state=backend.random.rng_state(597), shape=(9, 9)),
 )
 
 
@@ -110,8 +110,12 @@ def case_symmetric_kronecker(
     "A,B",
     [
         (
-            random_spd_matrix(rng_state=backend.random.rng_state(234789 + n), dim=n),
-            random_spd_matrix(rng_state=backend.random.rng_state(347892 + n), dim=n),
+            random_spd_matrix(
+                rng_state=backend.random.rng_state(234789 + n), shape=(n, n)
+            ),
+            random_spd_matrix(
+                rng_state=backend.random.rng_state(347892 + n), shape=(n, n)
+            ),
         )
         for n in [1, 2, 3, 6]
     ],

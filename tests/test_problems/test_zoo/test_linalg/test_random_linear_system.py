@@ -18,7 +18,9 @@ def test_custom_random_matrix(rng: np.random.Generator):
 def test_custom_solution_randvar(rng: np.random.Generator):
     n = 5
     x = randvars.Normal(mean=np.ones(n), cov=np.eye(n))
-    _ = random_linear_system(rng=rng, matrix=random_spd_matrix, solution_rv=x, dim=n)
+    _ = random_linear_system(
+        rng=rng, matrix=random_spd_matrix, solution_rv=x, shape=(n, n)
+    )
 
 
 def test_incompatible_matrix_and_solution(rng: np.random.Generator):

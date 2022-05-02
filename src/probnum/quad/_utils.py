@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.typing import IntLike
+from probnum.backend.typing import IntLike
 
 from ._quad_typing import DomainLike, DomainType
 
