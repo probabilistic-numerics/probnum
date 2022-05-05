@@ -23,7 +23,7 @@ def _kernel_mean_expquad_lebesgue(
         \begin{equation}
             k_P(x)
             =
-            \bigg( \frac{\pi}{2} \bigg)^{D/2} l^D \prod_{i=1}^D
+            \sigma^2 \bigg( \frac{\pi}{2} \bigg)^{D/2} l^D \prod_{i=1}^D
             \Bigg[ \mathrm{erf}\bigg( \frac{b_i-x_i}{l \sqrt{2}}\bigg)
             - \erf\bigg(\frac{a_i-x_i}{l\sqrt{2}}\bigg) \Bigg]
         \end{equation}
@@ -50,7 +50,7 @@ def _kernel_mean_expquad_lebesgue(
     (input_dim,) = kernel.input_shape
 
     ell = kernel.lengthscale
-    return (
+    return kernel.sigma_sq * (
         measure.normalization_constant
         * (np.pi * ell**2 / 2) ** (input_dim / 2)
         * (
@@ -73,7 +73,7 @@ def _kernel_variance_expquad_lebesgue(
         \begin{equation}
             k_{PP}
             =
-            ( 2 \pi )^{D/2} l^D \prod_{i=1}^D
+            \sigma^2 ( 2 \pi )^{D/2} l^D \prod_{i=1}^D
             \Bigg[ \frac{l\sqrt{2} }{\sqrt{\pi}}\bigg(
                 \exp\bigg(-\frac{(b_i - a_i)^2}{2l^2} \bigg) - 1 \bigg) + (b_i - a_i)
                 \mathrm{erf}\bigg( \frac{b_i - a_i}{l\sqrt{2}} \bigg) \Bigg]
@@ -98,7 +98,7 @@ def _kernel_variance_expquad_lebesgue(
 
     r = measure.domain[1] - measure.domain[0]
     ell = kernel.lengthscale
-    return (
+    return kernel.sigma_sq * (
         measure.normalization_constant**2
         * (2 * np.pi * ell**2) ** (input_dim / 2)
         * (

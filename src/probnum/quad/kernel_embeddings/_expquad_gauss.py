@@ -20,7 +20,7 @@ def _kernel_mean_expquad_gauss(
         \begin{equation}
             k_P(x)
             =
-            \det( I + \Sigma / l^2)^{-1/2}
+            \sigma^2 \det( I + \Sigma / l^2)^{-1/2}
             \exp\bigg(-\frac{1}{2}(x-\mu)^\maths{T} (l^2 I + \Sigma)^{-1}
                         (x-\mu) \bigg),
         \end{equation}
@@ -61,7 +61,7 @@ def _kernel_mean_expquad_gauss(
         exp_factor = np.exp(-0.5 * ((x - measure.mean) * chol_inv_x.T).sum(axis=1))
         det_factor = kernel.lengthscale**input_dim / np.diag(chol[0]).prod()
 
-    return det_factor * exp_factor
+    return kernel.sigma_sq * det_factor * exp_factor
 
 
 def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) -> float:
@@ -74,7 +74,7 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
         \begin{equation}
             k_{PP}
             =
-            l^D \sqrt{\frac{1}{\det(l^2 I + 2\b{\Sigma})}}
+            \sigma^2 l^D \sqrt{\frac{1}{\det(l^2 I + 2\b{\Sigma})}}
         \end{equation}
 
     where :math:`I` is the identity matrix.
@@ -101,4 +101,4 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
             kernel.lengthscale**2 * np.eye(input_dim) + 2.0 * measure.cov
         )
 
-    return kernel.lengthscale**input_dim / np.sqrt(denom)
+    return kernel.sigma_sq * kernel.lengthscale**input_dim / np.sqrt(denom)

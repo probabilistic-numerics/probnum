@@ -23,19 +23,19 @@ def _kernel_mean_matern_lebesgue(
         \begin{align}
             k_P^{\nu=1/2}(x)
             &=
-            l \bigg[ 2 - \exp\bigg(\frac{a-x}{l}\bigg)
+            \sigma^2 l \bigg[ 2 - \exp\bigg(\frac{a-x}{l}\bigg)
                         - \exp\bigg(\frac{x-b}{l}\bigg) \bigg]
             , \\
             k_P^{\nu=3/2}(x)
             &=
-            \bigg[ \frac{4 l}{\sqrt{3}} - \frac{1}{3}
+            \sigma^2 \bigg[ \frac{4 l}{\sqrt{3}} - \frac{1}{3}
             \exp\bigg( \frac{\sqrt{3}(x-b)}{l} \bigg) \big(3b+2\sqrt{3}\, l-3x\big)
                 -\frac{1}{3} \exp\bigg(\frac{\sqrt{3}(a-x)}{l}\bigg)\big(3x+2\sqrt{3}\,l
                 -3a\big) \bigg]
             , \\
             k_P^{\nu=5/2}(x)
             &=
-            \bigg[ \frac{16 l}{3\sqrt{5}} - \frac{1}{15 l}
+            \sigma^2 \bigg[ \frac{16 l}{3\sqrt{5}} - \frac{1}{15 l}
                 \exp\bigg( \frac{\sqrt{5}(x-b)}{l} \bigg) \big( 8\sqrt{5}\, l^2
                     + 25 l(b-x)+5\sqrt{5}(b-x)^2 \big)
                 -\frac{1}{15 l} \exp\bigg( \frac{\sqrt{5}(a-x)}{l} \bigg)
@@ -43,7 +43,7 @@ def _kernel_mean_matern_lebesgue(
             , \\
             k_P^{\nu=7/2}(x)
             &=
-            \frac{1}{105 l^2} \bigg[ 96\sqrt{7} l^3 -
+            \sigma^2 \frac{1}{105 l^2} \bigg[ 96\sqrt{7} l^3 -
                 \exp\bigg( \frac{\sqrt{7}(x-b)}{l} \bigg)
                 \big( 48\sqrt{7} l^3-231 l^2(x-b)
                 + 63\sqrt{7} l(x-b)^2 - 49(x-b)^3\big)
@@ -83,7 +83,7 @@ def _kernel_mean_matern_lebesgue(
             domain=(measure.domain[0][dim], measure.domain[1][dim]),
         )
 
-    return measure.normalization_constant * kernel_mean
+    return kernel.sigma_sq * measure.normalization_constant * kernel_mean
 
 
 def _kernel_variance_matern_lebesgue(
@@ -100,23 +100,24 @@ def _kernel_variance_matern_lebesgue(
         \begin{align}
             k_{PP}^{\nu=1/2}
             &=
-            2l \bigg[ r + l \bigg( \exp\bigg( -\frac{r}{l} \bigg) - 1 \bigg) \bigg]
+            2 \sigma^2 l \bigg[ r + l \bigg( \exp\bigg( -\frac{r}{l} \bigg) - 1 \bigg)
+            \bigg]
             , \\
             k_{PP}^{\nu=3/2}
             &=
-            \frac{2 l}{3} \bigg[ 2\sqrt{3}\,r - 3 l
+            \frac{2 \sigma^2 l}{3} \bigg[ 2\sqrt{3}\,r - 3 l
                 + \exp\bigg( -\frac{\sqrt{3}\,r}{l} \bigg)
                 \big( \sqrt{3}\, r + 3l \big) \bigg]
             , \\
             k_{PP}^{\nu=5/2}
             &=
-            \frac{1}{15} \bigg[ 2l \big( 8\sqrt{5}\, r - 15 l \big)
+            \frac{\sigma^2 }{15} \bigg[ 2l \big( 8\sqrt{5}\, r - 15 l \big)
                 + 2\exp\bigg( -\frac{\sqrt{5}\, r}{l} \bigg)
                 \big( 5a^2 -10ab +5b^2 +7\sqrt{5}\, r l + 15 l^2 \big) \bigg]
             , \\
             k_{PP}^{\nu=7/2}
             &=
-            \frac{1}{105 l} \bigg[ 2\exp\bigg( -\frac{\sqrt{7}\, r}{l} \bigg)
+            \frac{\sigma^2}{105 l} \bigg[ 2\exp\bigg( -\frac{\sqrt{7}\, r}{l} \bigg)
                 \Big( 7\sqrt{7}(b^3-a^3) + 84b^2 l + 57\sqrt{7}\, b l^2
                 + 105 l^3 + 21a^2 \big( \sqrt{7}\, b + 4 l \big)
                 - 3a\big( 7\sqrt{7}\, b^2 + 56b l + 19\sqrt{7}\, l^2 \big) \Big)
@@ -152,7 +153,7 @@ def _kernel_variance_matern_lebesgue(
             domain=(measure.domain[0][dim], measure.domain[1][dim]),
         )
 
-    return measure.normalization_constant**2 * kernel_variance
+    return kernel.sigma_sq * measure.normalization_constant**2 * kernel_variance
 
 
 def _convert_to_product_matern(kernel: Matern) -> ProductMatern:
@@ -166,6 +167,7 @@ def _convert_to_product_matern(kernel: Matern) -> ProductMatern:
             )
         kernel = ProductMatern(
             input_shape=kernel.input_shape,
+            sigma_sq=kernel.sigma_sq,
             lengthscales=kernel.lengthscale,
             nus=kernel.nu,
         )
@@ -177,7 +179,8 @@ def _kernel_mean_matern_1d_lebesgue(
 ) -> np.ndarray:
     """Kernel means for 1D Matern kernels.
 
-    Note that these are for unnormalized Lebesgue measure.
+    Note that these are for unnormalized Lebesgue measure. Multiplication by the
+    kernel scaling parameter `sigma_sq` is done in `_kernel_mean_matern_lebesgue`.
     """
     (a, b) = domain
     ell = kernel.lengthscale
@@ -243,7 +246,8 @@ def _kernel_mean_matern_1d_lebesgue(
 def _kernel_variance_matern_1d_lebesgue(kernel: Matern, domain: Tuple):
     """Kernel variances for 1D Matern kernels.
 
-    Note that these are for unnormalized Lebesgue measure.
+    Note that these are for unnormalized Lebesgue measure. Multiplication by the
+    kernel scaling parameter `sigma_sq` is done in `_kernel_variance_matern_lebesgue`.
     """
     (a, b) = domain
     r = b - a
