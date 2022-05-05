@@ -130,6 +130,7 @@ def test_kernel_mean_matern_lebesgue_measure(matern_kernel, measure, num_data, r
         num_kernel_means[indx] = (
             integral_current_dim * kernel_embedding.measure.normalization_constant
         )
+    num_kernel_means *= matern_kernel.sigma_sq
     # True kernel means
     true_kernel_means = kernel_embedding.kernel_mean(points)
     # Compare

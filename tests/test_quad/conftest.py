@@ -123,7 +123,9 @@ def fixture_measure(measure_params) -> measures.IntegrationMeasure:
     params=[
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
-            (kernels.ExpQuad, {"lengthscale": 1.25}),
+            (kernels.ExpQuad, {"lengthscale": 1.25, "sigma_sq": 0.2}),
+            (kernels.ExpQuad, {"lengthscale": 1.25, "sigma_sq": 1.0}),
+            (kernels.ExpQuad, {"lengthscale": 1.25, "sigma_sq": 1.8}),
         ]
     ],
     name="kernel",
@@ -162,13 +164,23 @@ def fixture_f1d(request):
 # Matern kernels
 @pytest.fixture(
     params=[
+        pytest.param(matern_sigma_sq, id=f"sigma_sq={matern_sigma_sq}")
+        for matern_sigma_sq in [0.2, 1.0, 1.8]
+    ],
+    name="matern_sigma_sq",
+)
+def fixture_matern_sigma_sq(request) -> int:
+    return request.param
+
+
+@pytest.fixture(
+    params=[
         pytest.param(matern_nu, id=f"nu={matern_nu}")
         for matern_nu in [0.5, 1.5, 2.5, 3.5]
     ],
     name="matern_nu",
 )
 def fixture_matern_nu(request) -> int:
-    """Input dimension of the covariance function."""
     return request.param
 
 
@@ -186,9 +198,16 @@ def fixture_matern_lengthscale(request) -> int:
 
 @pytest.fixture(name="matern_kernel")
 def fixture_matern_kernel(
-    request, input_dim: int, matern_nu: float, matern_lengthscale: float
+    request,
+    input_dim: int,
+    matern_sigma_sq: float,
+    matern_nu: float,
+    matern_lengthscale: float,
 ) -> kernels.Kernel:
     """Set up Matern kernel."""
     return kernels.ProductMatern(
-        input_shape=(input_dim,), nus=matern_nu, lengthscales=matern_lengthscale
+        input_shape=(input_dim,),
+        sigma_sq=matern_sigma_sq,
+        nus=matern_nu,
+        lengthscales=matern_lengthscale,
     )
