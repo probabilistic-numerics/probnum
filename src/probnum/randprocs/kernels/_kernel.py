@@ -153,14 +153,7 @@ class Kernel(abc.ABC):
 
         self._output_shape = _pn_utils.as_shape(output_shape)
         self._output_ndim = len(self._output_shape)
-
-        if sigma_sq <= 0:
-            raise ValueError(
-                f"The kernel scale parameter sigma_sq={sigma_sq} 'scale' must be "
-                f"positive."
-            )
-
-        self.sigma_sq = _pn_utils.as_numpy_scalar(sigma_sq)
+        self.sigma_sq = sigma_sq
 
     @property
     def input_shape(self) -> ShapeType:
@@ -187,6 +180,21 @@ class Kernel(abc.ABC):
     def output_ndim(self) -> int:
         """Syntactic sugar for ``len(output_shape)``."""
         return self._output_ndim
+
+    @property
+    def sigma_sq(self) -> ScalarLike:
+        """Squared scaling parameter of the kernel."""
+        return self._sigma_sq
+
+    @sigma_sq.setter
+    def sigma_sq(self, sigma_sq):
+        """Setter for the squared scaling parameter of the kernel. Makes sure that the
+        parameter is positive."""
+        if sigma_sq <= 0:
+            raise ValueError(
+                f"The kernel scale parameter sigma_sq = {sigma_sq} must be positive."
+            )
+        self._sigma_sq = _pn_utils.as_numpy_scalar(sigma_sq)
 
     def __repr__(self) -> str:
         return (
