@@ -113,6 +113,7 @@ class ProductMatern(Kernel):
 
         # scalar case is same as a scalar Matern
         if self.input_shape == ():
+            # pylint: disable=protected-access
             if x1 is None:
                 return self.sigma_sq * self.univariate_materns[0]._evaluate(x0, None)
             return self.sigma_sq * self.univariate_materns[0]._evaluate(x0, x1)
@@ -123,11 +124,13 @@ class ProductMatern(Kernel):
         kernel_eval = 1.0
         if x1 is None:
             for dim in range(input_dim):
+                # pylint: disable=protected-access
                 kernel_eval *= self.univariate_materns[dim]._evaluate(
                     x0[..., dim], None
                 )
         else:
             for dim in range(input_dim):
+                # pylint: disable=protected-access
                 kernel_eval *= self.univariate_materns[dim]._evaluate(
                     x0[..., dim], x1[..., dim]
                 )
