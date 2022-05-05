@@ -4,7 +4,6 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import utils as _utils
 from probnum.typing import ScalarLike, ShapeLike
 
 from ._kernel import Kernel
@@ -23,17 +22,12 @@ class WhiteNoise(Kernel):
     input_shape
         Shape of the kernel's input.
     sigma_sq
-        Noise level :math:`\sigma^2 \geq 0`.
+        Positive noise level :math:`\sigma^2 > 0`.
     """
 
     def __init__(self, input_shape: ShapeLike, sigma_sq: ScalarLike = 1.0):
 
-        if sigma_sq < 0:
-            raise ValueError(f"Noise level sigma_sq={sigma_sq} must be non-negative.")
-
-        self.sigma_sq = _utils.as_numpy_scalar(sigma_sq)
-
-        super().__init__(input_shape=input_shape)
+        super().__init__(input_shape=input_shape, sigma_sq=sigma_sq)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
         if x1 is None:

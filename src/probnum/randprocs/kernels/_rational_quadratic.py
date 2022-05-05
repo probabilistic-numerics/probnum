@@ -20,7 +20,7 @@ class RatQuad(Kernel, IsotropicMixin):
 
         \begin{equation}
             k(x_0, x_1)
-            = \left(
+            = \sigma^2 \left(
                 1 + \frac{\lVert x_0 - x_1 \rVert_2^2}{2 \alpha l^2}
             \right)^{-\alpha},
         \end{equation}
@@ -33,6 +33,8 @@ class RatQuad(Kernel, IsotropicMixin):
     ----------
     input_shape
         Shape of the kernel's input.
+    sigma_sq
+        Positive kernel output scaling parameter :math:`\sigma^2 > 0`.
     lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
@@ -59,6 +61,7 @@ class RatQuad(Kernel, IsotropicMixin):
     def __init__(
         self,
         input_shape: ShapeLike,
+        sigma_sq: ScalarLike = 1.0,
         lengthscale: ScalarLike = 1.0,
         alpha: ScalarLike = 1.0,
     ):
@@ -66,19 +69,24 @@ class RatQuad(Kernel, IsotropicMixin):
         self.alpha = _utils.as_numpy_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
-        super().__init__(input_shape=input_shape)
+        super().__init__(input_shape=input_shape, sigma_sq=sigma_sq)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:
-            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
+            return self.sigma_sq * np.ones_like(
+                # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
         return (
-            1.0
-            + (
-                self._squared_euclidean_distances(x0, x1)
-                / (2.0 * self.alpha * self.lengthscale**2)
+            self.sigma_sq
+            * (
+                1.0
+                + (
+                    self._squared_euclidean_distances(x0, x1)
+                    / (2.0 * self.alpha * self.lengthscale**2)
+                )
             )
-        ) ** -self.alpha
+            ** -self.alpha
+        )

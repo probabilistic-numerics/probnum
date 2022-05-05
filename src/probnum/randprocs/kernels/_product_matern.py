@@ -15,14 +15,19 @@ class ProductMatern(Kernel):
     r"""Product Matern kernel.
 
     Covariance function defined as a product of one-dimensional Matern
-    kernels: :math:`k(x_0, x_1) = \prod_{i=1}^d k_i(x_{0,i}, x_{1,i})`,
+    kernels:
+    .. math ::
+        k(x_0, x_1) = \sigma^2 \prod_{i=1}^d k_i(x_{0,i}, x_{1,i}),
+
     where :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \ldots,
-    x_{0,d})` and :math:`k_i` are one-dimensional Matern kernels.
+    x_{0,d})` and :math:`k_i` are one-dimensional Matern kernels with unit scaling.
 
     Parameters
     ----------
     input_shape
         Shape of the kernel's input.
+    sigma_sq
+        Positive kernel output scaling parameter :math:`\sigma^2 \geq 0`.
     lengthscales
         Lengthscales of the one-dimensional Matern kernels. Describes the input scale on
         which the process varies. If a scalar, the same lengthscale is used in each
@@ -58,8 +63,9 @@ class ProductMatern(Kernel):
     def __init__(
         self,
         input_shape: ShapeLike,
-        lengthscales: Union[np.ndarray, ScalarLike],
-        nus: Union[np.ndarray, ScalarLike],
+        sigma_sq: ScalarLike = 1.0,
+        lengthscales: Union[np.ndarray, ScalarLike] = 1.0,
+        nus: Union[np.ndarray, ScalarLike] = 1.5,
     ):
         input_shape = _utils.as_shape(input_shape)
         if input_shape == () and not (np.isscalar(lengthscales) and np.isscalar(nus)):
@@ -90,21 +96,26 @@ class ProductMatern(Kernel):
         univariate_materns = []
         for dim in range(input_dim):
             univariate_materns.append(
-                Matern(input_shape=(), lengthscale=lengthscales[dim], nu=nus[dim])
+                Matern(
+                    input_shape=(),
+                    sigma_sq=1.0,
+                    lengthscale=lengthscales[dim],
+                    nu=nus[dim],
+                )
             )
         self.univariate_materns = univariate_materns
         self.nus = nus
         self.lengthscales = lengthscales
 
-        super().__init__(input_shape=input_shape)
+        super().__init__(input_shape=input_shape, sigma_sq=sigma_sq)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
 
         # scalar case is same as a scalar Matern
         if self.input_shape == ():
             if x1 is None:
-                return self.univariate_materns[0](x0, None)
-            return self.univariate_materns[0](x0, x1)
+                return self.sigma_sq * self.univariate_materns[0]._evaluate(x0, None)
+            return self.sigma_sq * self.univariate_materns[0]._evaluate(x0, x1)
 
         # product case
         (input_dim,) = self.input_shape
@@ -112,9 +123,13 @@ class ProductMatern(Kernel):
         kernel_eval = 1.0
         if x1 is None:
             for dim in range(input_dim):
-                kernel_eval *= self.univariate_materns[dim](x0[..., dim], None)
+                kernel_eval *= self.univariate_materns[dim]._evaluate(
+                    x0[..., dim], None
+                )
         else:
             for dim in range(input_dim):
-                kernel_eval *= self.univariate_materns[dim](x0[..., dim], x1[..., dim])
+                kernel_eval *= self.univariate_materns[dim]._evaluate(
+                    x0[..., dim], x1[..., dim]
+                )
 
-        return kernel_eval
+        return self.sigma_sq * kernel_eval

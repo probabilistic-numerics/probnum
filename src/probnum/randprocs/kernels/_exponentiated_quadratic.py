@@ -16,7 +16,8 @@ class ExpQuad(Kernel, IsotropicMixin):
     Covariance function defined by
 
     .. math ::
-        k(x_0, x_1) = \exp \left( -\frac{\lVert x_0 - x_1 \rVert_2^2}{2 l^2} \right).
+        k(x_0, x_1) = \sigma^2 \exp \left( -\frac{\lVert x_0 - x_1 \rVert_2^2}{2 l^2}
+        \right).
 
     This kernel is also known as the squared
     exponential or radial basis function kernel.
@@ -25,6 +26,8 @@ class ExpQuad(Kernel, IsotropicMixin):
     ----------
     input_shape
         Shape of the kernel's input.
+    sigma_sq
+        Positive kernel output scaling parameter :math:`\sigma^2 > 0`.
     lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
@@ -46,17 +49,23 @@ class ExpQuad(Kernel, IsotropicMixin):
            [1.92874985e-22, 3.72665317e-06, 1.00000000e+00]])
     """
 
-    def __init__(self, input_shape: ShapeLike, lengthscale: ScalarLike = 1.0):
+    def __init__(
+        self,
+        input_shape: ShapeLike,
+        sigma_sq: ScalarLike = 1.0,
+        lengthscale: ScalarLike = 1.0,
+    ):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        super().__init__(input_shape=input_shape)
+        super().__init__(input_shape=input_shape, sigma_sq=sigma_sq)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         if x1 is None:
-            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
+            return self.sigma_sq * np.ones_like(
+                # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
-        return np.exp(
+        return self.sigma_sq * np.exp(
             -self._squared_euclidean_distances(x0, x1) / (2.0 * self.lengthscale**2)
         )

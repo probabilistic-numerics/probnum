@@ -62,6 +62,10 @@ class Kernel(abc.ABC):
         Shape of the :class:`Kernel`'s input.
     output_shape
         Shape of the :class:`Kernel`'s output.
+    sigma_sq
+        A scalar scaling parameter that determines the output scaling of the kernel.
+        Every evaluation of the kernel is multiplied by ``sigma_sq``.
+        Must be positive. Defaults to one.
 
         If ``output_shape`` is set to ``()``, the :class:`Kernel` instance represents a
         single (cross-)covariance function. Otherwise, i.e. if ``output_shape`` is a
@@ -137,6 +141,7 @@ class Kernel(abc.ABC):
         self,
         input_shape: ShapeLike,
         output_shape: ShapeLike = (),
+        sigma_sq: ScalarLike = 1.0,
     ):
         self._input_shape = _pn_utils.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
@@ -148,6 +153,14 @@ class Kernel(abc.ABC):
 
         self._output_shape = _pn_utils.as_shape(output_shape)
         self._output_ndim = len(self._output_shape)
+
+        if sigma_sq <= 0:
+            raise ValueError(
+                f"The kernel scale parameter sigma_sq={sigma_sq} 'scale' must be "
+                f"positive."
+            )
+
+        self.sigma_sq = _pn_utils.as_numpy_scalar(sigma_sq)
 
     @property
     def input_shape(self) -> ShapeType:

@@ -18,12 +18,14 @@ class Linear(Kernel):
     Linear covariance function defined by
 
     .. math ::
-        k(x_0, x_1) = x_0^\top x_1 + c.
+        k(x_0, x_1) = \sigma^2 ( x_0^\top x_1 + c ) .
 
     Parameters
     ----------
     input_shape
         Shape of the kernel's input.
+    sigma_sq
+        Positive kernel output scaling parameter :math:`\sigma^2 \geq 0`.
     constant
         Constant offset :math:`c`.
 
@@ -42,9 +44,14 @@ class Linear(Kernel):
            [ 8., 13.]])
     """
 
-    def __init__(self, input_shape: ShapeLike, constant: ScalarLike = 0.0):
+    def __init__(
+        self,
+        input_shape: ShapeLike,
+        sigma_sq: ScalarLike = 1.0,
+        constant: ScalarLike = 0.0,
+    ):
         self.constant = _utils.as_numpy_scalar(constant)
-        super().__init__(input_shape=input_shape)
+        super().__init__(input_shape=input_shape, sigma_sq=sigma_sq)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
-        return self._euclidean_inner_products(x0, x1) + self.constant
+        return self.sigma_sq * (self._euclidean_inner_products(x0, x1) + self.constant)

@@ -23,7 +23,7 @@ class Matern(Kernel, IsotropicMixin):
         \begin{equation}
             k(x_0, x_1)
             =
-            \frac{1}{\Gamma(\nu) 2^{\nu - 1}}
+            \frac{\sigma^2}{\Gamma(\nu) 2^{\nu - 1}}
             \left( \frac{\sqrt{2 \nu}}{l} \lVert x_0 - x_1 \rVert_2 \right)^\nu
             K_\nu \left( \frac{\sqrt{2 \nu}}{l} \lVert x_0 - x_1 \rVert_2 \right),
         \end{equation}
@@ -39,6 +39,8 @@ class Matern(Kernel, IsotropicMixin):
     ----------
     input_shape
         Shape of the kernel's input.
+    sigma_sq
+        Positive kernel output scaling parameter :math:`\sigma^2 \geq 0`.
     lengthscale
         Lengthscale :math:`l` of the kernel. Describes the input scale on which the
         process varies.
@@ -65,6 +67,7 @@ class Matern(Kernel, IsotropicMixin):
     def __init__(
         self,
         input_shape: ShapeLike,
+        sigma_sq: ScalarLike = 1.0,
         lengthscale: ScalarLike = 1.0,
         nu: ScalarLike = 1.5,
     ):
@@ -75,41 +78,49 @@ class Matern(Kernel, IsotropicMixin):
         if not self.nu > 0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
-        super().__init__(input_shape=input_shape)
+        super().__init__(input_shape=input_shape, sigma_sq=sigma_sq)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         distances = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
-            return np.exp(-1.0 / self.lengthscale * distances)
+            return self.sigma_sq * np.exp(-1.0 / self.lengthscale * distances)
 
         if self.nu == 1.5:
             scaled_distances = np.sqrt(3) / self.lengthscale * distances
-            return (1.0 + scaled_distances) * np.exp(-scaled_distances)
+            return self.sigma_sq * (1.0 + scaled_distances) * np.exp(-scaled_distances)
 
         if self.nu == 2.5:
             scaled_distances = np.sqrt(5) / self.lengthscale * distances
-            return (1.0 + scaled_distances + scaled_distances**2 / 3.0) * np.exp(
-                -scaled_distances
+            return (
+                self.sigma_sq
+                * (1.0 + scaled_distances + scaled_distances**2 / 3.0)
+                * np.exp(-scaled_distances)
             )
         if self.nu == 3.5:
             scaled_distances = np.sqrt(7) / self.lengthscale * distances
             # Using Horner's method speeds up computations substantially
             return (
-                1.0
-                + (1.0 + (2.0 / 5.0 + scaled_distances / 15.0) * scaled_distances)
-                * scaled_distances
-            ) * np.exp(-scaled_distances)
+                self.sigma_sq
+                * (
+                    1.0
+                    + (1.0 + (2.0 / 5.0 + scaled_distances / 15.0) * scaled_distances)
+                    * scaled_distances
+                )
+                * np.exp(-scaled_distances)
+            )
 
         if self.nu == np.inf:
-            return np.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)
+            return self.sigma_sq * np.exp(
+                -1.0 / (2.0 * self.lengthscale**2) * distances**2
+            )
 
         # The modified Bessel function K_nu is not defined for z=0
         distances = np.maximum(distances, np.finfo(distances.dtype).eps)
 
         scaled_distances = np.sqrt(2 * self.nu) / self.lengthscale * distances
-        return (
+        return self.sigma_sq * (
             2 ** (1.0 - self.nu)
             / scipy.special.gamma(self.nu)
             * scaled_distances**self.nu

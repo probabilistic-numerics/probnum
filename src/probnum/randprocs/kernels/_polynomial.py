@@ -16,12 +16,14 @@ class Polynomial(Kernel):
     Covariance function defined by
 
     .. math ::
-        k(x_0, x_1) = (x_0^\top x_1 + c)^q.
+        k(x_0, x_1) = \sigma^2 (x_0^\top x_1 + c)^q.
 
     Parameters
     ----------
     input_shape
         Shape of the kernel's input.
+    sigma_sq
+        Positive kernel output scaling parameter :math:`\sigma^2 \geq 0`.
     constant
         Constant offset :math:`c`.
     exponent
@@ -45,12 +47,16 @@ class Polynomial(Kernel):
     def __init__(
         self,
         input_shape: ShapeLike,
+        sigma_sq: ScalarLike = 1.0,
         constant: ScalarLike = 0.0,
         exponent: IntLike = 1.0,
     ):
         self.constant = _utils.as_numpy_scalar(constant)
         self.exponent = _utils.as_numpy_scalar(exponent)
-        super().__init__(input_shape=input_shape)
+        super().__init__(input_shape=input_shape, sigma_sq=sigma_sq)
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
-        return (self._euclidean_inner_products(x0, x1) + self.constant) ** self.exponent
+        return (
+            self.sigma_sq
+            * (self._euclidean_inner_products(x0, x1) + self.constant) ** self.exponent
+        )
