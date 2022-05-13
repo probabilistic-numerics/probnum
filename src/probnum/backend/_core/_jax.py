@@ -30,6 +30,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     max,
     maximum,
     meshgrid,
+    minimum,
     moveaxis,
     ndim,
     ones,

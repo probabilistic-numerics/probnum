@@ -65,6 +65,7 @@ sqrt = _core.sqrt
 
 # Element-wise Binary Operations
 maximum = _core.maximum
+minimum = _core.minimum
 
 # (Partial) Views
 diagonal = _core.diagonal
@@ -177,6 +178,7 @@ __all__ = [
     "sqrt",
     # Element-wise Binary Operations
     "maximum",
+    "minimum",
     # (Partial) Views
     "diagonal",
     "moveaxis",
