@@ -30,11 +30,13 @@ def bayesquad(
     domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
+    scale_estimator: Optional[str] = "mle",
     max_evals: Optional[IntLike] = None,
     var_tol: Optional[FloatLike] = None,
     rel_tol: Optional[FloatLike] = None,
     batch_size: Optional[IntLike] = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
+    jitter: Optional[FloatLike] = 1.0e-6,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
     :math:`\int_\Omega f(x) d \mu(x)`
@@ -147,11 +149,13 @@ def bayesquad(
         measure=measure,
         domain=domain,
         policy=policy,
+        scale_estimator=scale_estimator,
         max_evals=max_evals,
         var_tol=var_tol,
         rel_tol=rel_tol,
         batch_size=batch_size,
         rng=rng,
+        jitter=jitter,
     )
 
     # Integrate
@@ -166,6 +170,8 @@ def bayesquad_from_data(
     kernel: Optional[Kernel] = None,
     domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
+    scale_estimator: Optional[str] = "mle",
+    jitter: Optional[FloatLike] = 1.0e-6,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
@@ -231,6 +237,8 @@ def bayesquad_from_data(
         measure=measure,
         domain=domain,
         policy=None,
+        scale_estimator=scale_estimator,
+        jitter=jitter,
     )
 
     # Integrate

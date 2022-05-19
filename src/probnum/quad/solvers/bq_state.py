@@ -9,6 +9,7 @@ from probnum.quad._integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
+from probnum.typing import FloatLike
 
 # pylint: disable=too-few-public-methods,too-many-instance-attributes
 
@@ -38,6 +39,7 @@ class BQState:
         self,
         measure: IntegrationMeasure,
         kernel: Kernel,
+        scale_sq: Optional[FloatLike] = 1.0,
         integral_belief: Optional[Normal] = None,
         previous_integral_beliefs: Tuple[Normal] = (),
         nodes: Optional[np.ndarray] = None,
@@ -48,6 +50,7 @@ class BQState:
         self.measure = measure
         self.kernel = kernel
         self.kernel_embedding = KernelEmbedding(kernel, measure)
+        self.scale_sq = scale_sq
         self.integral_belief = integral_belief
         self.previous_integral_beliefs = previous_integral_beliefs
         self.input_dim = measure.input_dim
@@ -65,6 +68,8 @@ class BQState:
     @classmethod
     def from_new_data(
         cls,
+        kernel: Kernel,
+        scale_sq: FloatLike,
         nodes: np.ndarray,
         fun_evals: np.ndarray,
         integral_belief: Normal,
@@ -96,7 +101,8 @@ class BQState:
         """
         return cls(
             measure=prev_state.measure,
-            kernel=prev_state.kernel,
+            kernel=kernel,
+            scale_sq=scale_sq,
             integral_belief=integral_belief,
             previous_integral_beliefs=prev_state.previous_integral_beliefs
             + (prev_state.integral_belief,),

@@ -75,11 +75,13 @@ class BayesianQuadrature:
         measure: Optional[IntegrationMeasure] = None,
         domain: Optional[DomainLike] = None,
         policy: Optional[str] = "bmc",
+        scale_estimator: Optional[str] = "mle",
         max_evals: Optional[IntLike] = None,
         var_tol: Optional[FloatLike] = None,
         rel_tol: Optional[FloatLike] = None,
         batch_size: IntLike = 1,
         rng: np.random.Generator = None,
+        jitter: Optional[FloatLike] = 1.0e-6,
     ) -> "BayesianQuadrature":
 
         r"""Creates an instance of this class from a problem description.
@@ -157,7 +159,9 @@ class BayesianQuadrature:
             )
 
         # Select the belief updater
-        belief_update = BQStandardBeliefUpdate()
+        belief_update = BQStandardBeliefUpdate(
+            jitter=jitter, scale_estimator=scale_estimator
+        )
 
         # Select stopping criterion: If multiple stopping criteria are given, BQ stops
         # once any criterion is fulfilled (logical `or`).
