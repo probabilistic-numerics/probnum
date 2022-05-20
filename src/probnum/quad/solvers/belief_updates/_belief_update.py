@@ -112,29 +112,25 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         updated_kernel_embedding = KernelEmbedding(updated_kernel, bq_state.measure)
 
         # Update gram matrix and kernel mean vector. Recompute everything from
-        # scratch if the kernel was updated.
-        if kernel_was_updated:
+        # scratch if the kernel was updated or if these are the first nodes.
+        if kernel_was_updated or old_nodes.size == 0:
             gram = updated_kernel.matrix(nodes)
             kernel_means = updated_kernel_embedding.kernel_mean(nodes)
         else:
-            if old_nodes.size == 0:
-                gram = updated_kernel.matrix(new_nodes)
-                kernel_means = updated_kernel_embedding.kernel_mean(new_nodes)
-            else:
-                gram_new_new = updated_kernel.matrix(new_nodes)
-                gram_old_new = updated_kernel.matrix(new_nodes, old_nodes)
-                gram = np.hstack(
-                    (
-                        np.vstack((bq_state.gram, gram_old_new)),
-                        np.vstack((gram_old_new.T, gram_new_new)),
-                    )
+            gram_new_new = updated_kernel.matrix(new_nodes)
+            gram_old_new = updated_kernel.matrix(new_nodes, old_nodes)
+            gram = np.hstack(
+                (
+                    np.vstack((bq_state.gram, gram_old_new)),
+                    np.vstack((gram_old_new.T, gram_new_new)),
                 )
-                kernel_means = np.concatenate(
-                    (
-                        bq_state.kernel_means,
-                        updated_kernel_embedding.kernel_mean(new_nodes),
-                    )
+            )
+            kernel_means = np.concatenate(
+                (
+                    bq_state.kernel_means,
+                    updated_kernel_embedding.kernel_mean(new_nodes),
                 )
+            )
 
         chol_gram = self._gram_cholesky_decomposition(gram)
 
