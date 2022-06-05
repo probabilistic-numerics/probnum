@@ -7,8 +7,8 @@ from typing import Callable
 
 import numpy as np
 
-from . import utils
-from .typing import ArrayLike, ShapeLike, ShapeType
+from probnum import utils
+from probnum.typing import ArrayLike, ShapeLike, ShapeType
 
 
 class Function(abc.ABC):
@@ -111,6 +111,30 @@ class Function(abc.ABC):
     @abc.abstractmethod
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
         pass
+
+    def __neg__(self):
+        return -1.0 * self
+
+    def __rmul__(self, other):
+        if np.ndim(other) == 0:
+            from ._arithmetic import (  # pylint: disable=import-outside-toplevel
+                ScaledFunction,
+            )
+
+            return ScaledFunction(function=self, scalar=other)
+
+        # return super().__rmul__(other)
+        return NotImplemented
+
+    def __add__(self, other: "Function") -> "Function":
+        from ._arithmetic import SumFunction  # pylint: disable=import-outside-toplevel
+
+        return SumFunction(self, other)
+
+    def __sub__(self, other: "Function") -> "Function":
+        from ._arithmetic import SumFunction  # pylint: disable=import-outside-toplevel
+
+        return SumFunction(self, -other)
 
 
 class LambdaFunction(Function):
