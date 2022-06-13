@@ -1,7 +1,7 @@
 """Belief updates for Bayesian quadrature."""
 
 import abc
-from typing import Tuple
+from typing import Tuple, Optional
 
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
@@ -26,7 +26,7 @@ class BQBeliefUpdate(abc.ABC):
 
     def __init__(self, jitter: FloatLike) -> None:
         if jitter < 0:
-            raise ValueError(f"Jitter must be non-negative ({jitter}).")
+            raise ValueError(f"Jitter ({jitter}) must be non-negative.")
         self.jitter = jitter
 
     @abc.abstractmethod
@@ -88,7 +88,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         Estimation method to use to compute the scale parameter.
     """
 
-    def __init__(self, jitter: FloatLike, scale_estimation: str) -> None:
+    def __init__(self, jitter: FloatLike, scale_estimation: Optional[str]) -> None:
         super().__init__(jitter=jitter)
         self.scale_estimation = scale_estimation
 
@@ -107,18 +107,18 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         nodes = np.concatenate((bq_state.nodes, new_nodes), axis=0)
         fun_evals = np.append(bq_state.fun_evals, new_fun_evals)
 
-        # Update intrinsic kernel parameters
-        updated_kernel, kernel_was_updated = self._update_kernel_params(bq_state.kernel)
-        updated_kernel_embedding = KernelEmbedding(updated_kernel, bq_state.measure)
+        # Estimate intrinsic kernel parameters
+        new_kernel, kernel_was_updated = self._estimate_kernel(bq_state.kernel)
+        new_kernel_embedding = KernelEmbedding(new_kernel, bq_state.measure)
 
         # Update gram matrix and kernel mean vector. Recompute everything from
         # scratch if the kernel was updated or if these are the first nodes.
         if kernel_was_updated or old_nodes.size == 0:
-            gram = updated_kernel.matrix(nodes)
-            kernel_means = updated_kernel_embedding.kernel_mean(nodes)
+            gram = new_kernel.matrix(nodes)
+            kernel_means = new_kernel_embedding.kernel_mean(nodes)
         else:
-            gram_new_new = updated_kernel.matrix(new_nodes)
-            gram_old_new = updated_kernel.matrix(new_nodes, old_nodes)
+            gram_new_new = new_kernel.matrix(new_nodes)
+            gram_old_new = new_kernel.matrix(new_nodes, old_nodes)
             gram = np.hstack(
                 (
                     np.vstack((bq_state.gram, gram_old_new)),
@@ -128,28 +128,28 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
             kernel_means = np.concatenate(
                 (
                     bq_state.kernel_means,
-                    updated_kernel_embedding.kernel_mean(new_nodes),
+                    new_kernel_embedding.kernel_mean(new_nodes),
                 )
             )
 
         chol_gram = self._gram_cholesky_decomposition(gram)
 
-        # Update scaling parameter
-        updated_scale_sq = self._update_scale(fun_evals, chol_gram)
+        # Estimate scaling parameter
+        new_scale_sq = self._estimate_scale(fun_evals, chol_gram, bq_state)
 
-        initial_integral_variance = updated_kernel_embedding.kernel_variance()
+        initial_integral_variance = new_kernel_embedding.kernel_variance()
         weights = self._solve_gram(gram, kernel_means)
 
         # integral mean and variance
         integral_mean = weights @ fun_evals
-        integral_variance = updated_scale_sq * (
+        integral_variance = new_scale_sq * (
             initial_integral_variance - weights @ kernel_means
         )
 
         updated_belief = Normal(integral_mean, integral_variance)
         updated_state = BQState.from_new_data(
-            kernel=updated_kernel,
-            scale_sq=updated_scale_sq,
+            kernel=new_kernel,
+            scale_sq=new_scale_sq,
             nodes=nodes,
             fun_evals=fun_evals,
             integral_belief=updated_belief,
@@ -160,19 +160,21 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
         return updated_belief, updated_state
 
-    def _update_kernel_params(self, kernel: Kernel) -> Tuple[Kernel, bool]:
-        """Update the intrinsic kernel parameters. That is, all parameters except the
+    def _estimate_kernel(self, kernel: Kernel) -> Tuple[Kernel, bool]:
+        """Estimate the intrinsic kernel parameters. That is, all parameters except the
         scale."""
-        updated_kernel = kernel
+        new_kernel = kernel
         kernel_was_updated = False
-        return updated_kernel, kernel_was_updated
+        return new_kernel, kernel_was_updated
 
-    def _update_scale(self, fun_evals: np.ndarray, chol_gram: np.ndarray) -> FloatLike:
-        """Update the scale parameter."""
+    def _estimate_scale(
+        self, fun_evals: np.ndarray, chol_gram: np.ndarray, bq_state: BQState
+    ) -> FloatLike:
+        """Estimate the scale parameter."""
         if self.scale_estimation == "mle":
-            updated_scale_sq = (
+            new_scale_sq = (
                 fun_evals @ cho_solve(chol_gram, fun_evals) / fun_evals.shape[0]
             )
         else:
-            updated_scale_sq = 1.0
-        return updated_scale_sq
+            new_scale_sq = bq_state.scale_sq
+        return new_scale_sq

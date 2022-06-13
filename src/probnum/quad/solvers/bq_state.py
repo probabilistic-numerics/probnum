@@ -23,12 +23,20 @@ class BQState:
         The integration measure.
     kernel
         The kernel used for BQ.
+    scale_sq
+        Square of the kernel scaling parameter.
     integral_belief
         Normal distribution over the value of the integral.
+    previous_integral_beliefs
+        Integral beliefs on computed on previous iterations.
     nodes
         All locations at which function evaluations are available.
     fun_evals
         Function evaluations at nodes.
+    gram
+        The kernel Gram matrix.
+    kernel_means
+        All kernel mean evaluations at ``nodes``.
 
     See Also
     --------
@@ -39,7 +47,7 @@ class BQState:
         self,
         measure: IntegrationMeasure,
         kernel: Kernel,
-        scale_sq: Optional[FloatLike] = 1.0,
+        scale_sq: FloatLike = 1.0,
         integral_belief: Optional[Normal] = None,
         previous_integral_beliefs: Tuple[Normal] = (),
         nodes: Optional[np.ndarray] = None,
@@ -50,6 +58,9 @@ class BQState:
         self.measure = measure
         self.kernel = kernel
         self.kernel_embedding = KernelEmbedding(kernel, measure)
+        if scale_sq < 0:
+            raise ValueError(f"Squared scale parameter ({scale_sq}) must be "
+                             f"non-negative.")
         self.scale_sq = scale_sq
         self.integral_belief = integral_belief
         self.previous_integral_beliefs = previous_integral_beliefs
@@ -81,6 +92,10 @@ class BQState:
 
         Parameters
         ----------
+        kernel
+            The kernel used for BQ.
+        scale_sq
+            Square of the kernel scaling parameter.
         nodes
             All locations at which function evaluations are available.
         fun_evals
