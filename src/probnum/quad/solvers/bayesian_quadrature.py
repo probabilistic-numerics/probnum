@@ -75,13 +75,13 @@ class BayesianQuadrature:
         measure: Optional[IntegrationMeasure] = None,
         domain: Optional[DomainLike] = None,
         policy: Optional[str] = "bmc",
-        scale_estimator: Optional[str] = "mle",
+        scale_estimation: Optional[str] = "mle",
         max_evals: Optional[IntLike] = None,
         var_tol: Optional[FloatLike] = None,
         rel_tol: Optional[FloatLike] = None,
         batch_size: IntLike = 1,
         rng: np.random.Generator = None,
-        jitter: Optional[FloatLike] = 1.0e-6,
+        jitter: FloatLike = 1.0e-6,
     ) -> "BayesianQuadrature":
 
         r"""Creates an instance of this class from a problem description.
@@ -99,6 +99,8 @@ class BayesianQuadrature:
         policy
             The policy choosing nodes at which to evaluate the integrand.
             Choose ``None`` if you want to integrate from a fixed dataset.
+        scale_estimation
+            Estimation method to use to compute the scale parameter. Defaults to 'mle'.
         max_evals
             Maximum number of evaluations as stopping criterion.
         var_tol
@@ -106,9 +108,12 @@ class BayesianQuadrature:
         rel_tol
             Relative tolerance as stopping criterion.
         batch_size
-            Batch size used in node acquisition.
+            Batch size used in node acquisition. Defaults to 1.
         rng
             The random number generator.
+        jitter
+            Non-negative jitter to numerically stabilise kernel matrix inversion.
+            Defaults to 1e-6.
 
         Returns
         -------
@@ -160,7 +165,7 @@ class BayesianQuadrature:
 
         # Select the belief updater
         belief_update = BQStandardBeliefUpdate(
-            jitter=jitter, scale_estimator=scale_estimator
+            jitter=jitter, scale_estimation=scale_estimation
         )
 
         # Select stopping criterion: If multiple stopping criteria are given, BQ stops

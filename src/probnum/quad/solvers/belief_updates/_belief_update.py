@@ -84,13 +84,13 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
     ----------
     jitter
         Non-negative jitter to numerically stabilise kernel matrix inversion.
-    scale_estimator
-        Estimator to use to compute the scale parameter.
+    scale_estimation
+        Estimation method to use to compute the scale parameter.
     """
 
-    def __init__(self, jitter: FloatLike, scale_estimator: str) -> None:
+    def __init__(self, jitter: FloatLike, scale_estimation: str) -> None:
         super().__init__(jitter=jitter)
-        self.scale_estimator = scale_estimator
+        self.scale_estimation = scale_estimation
 
     def __call__(
         self,
@@ -169,7 +169,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
     def _update_scale(self, fun_evals: np.ndarray, chol_gram: np.ndarray) -> FloatLike:
         """Update the scale parameter."""
-        if self.scale_estimator == "mle":
+        if self.scale_estimation == "mle":
             updated_scale_sq = (
                 fun_evals @ cho_solve(chol_gram, fun_evals) / fun_evals.shape[0]
             )

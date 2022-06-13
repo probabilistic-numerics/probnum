@@ -30,13 +30,13 @@ def bayesquad(
     domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
     policy: Optional[str] = "bmc",
-    scale_estimator: Optional[str] = "mle",
+    scale_estimation: Optional[str] = "mle",
     max_evals: Optional[IntLike] = None,
     var_tol: Optional[FloatLike] = None,
     rel_tol: Optional[FloatLike] = None,
-    batch_size: Optional[IntLike] = 1,
+    batch_size: IntLike = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
-    jitter: Optional[FloatLike] = 1.0e-6,
+    jitter: FloatLike = 1.0e-6,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
     :math:`\int_\Omega f(x) d \mu(x)`
@@ -80,6 +80,14 @@ def bayesquad(
          Bayesian Monte Carlo [2]_  ``bmc``
         ==========================  =======
 
+    scale_estimation
+        Estimation method to use to compute the scale parameter. Defaults to 'mle'.
+        Options are
+
+        ==============================  =======
+         Maximum likelihood estimation  ``mle``
+        ==============================  =======
+
     max_evals
         Maximum number of function evaluations.
     var_tol
@@ -87,10 +95,13 @@ def bayesquad(
     rel_tol
         Tolerance on consecutive updates of the integral mean.
     batch_size
-        Number of new observations at each update.
+        Number of new observations at each update. Defaults to 1.
     rng
         Random number generator. Used by Bayesian Monte Carlo other random sampling
         policies. Optional. Default is `np.random.default_rng()`.
+    jitter
+        Non-negative jitter to numerically stabilise kernel matrix inversion.
+        Defaults to 1e-6.
 
     Returns
     -------
@@ -149,7 +160,7 @@ def bayesquad(
         measure=measure,
         domain=domain,
         policy=policy,
-        scale_estimator=scale_estimator,
+        scale_estimation=scale_estimation,
         max_evals=max_evals,
         var_tol=var_tol,
         rel_tol=rel_tol,
@@ -170,7 +181,7 @@ def bayesquad_from_data(
     kernel: Optional[Kernel] = None,
     domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
-    scale_estimator: Optional[str] = "mle",
+    scale_estimation: Optional[str] = "mle",
     jitter: Optional[FloatLike] = 1.0e-6,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
@@ -190,6 +201,11 @@ def bayesquad_from_data(
         ``np.ndarray``. Obsolete if ``measure`` is given.
     measure
         The integration measure. Defaults to the Lebesgue measure.
+    scale_estimation
+        Estimation method to use to compute the scale parameter. Defaults to 'mle'.
+    jitter
+        Non-negative jitter to numerically stabilise kernel matrix inversion.
+        Defaults to 1e-6.
 
     Returns
     -------
@@ -237,7 +253,7 @@ def bayesquad_from_data(
         measure=measure,
         domain=domain,
         policy=None,
-        scale_estimator=scale_estimator,
+        scale_estimation=scale_estimation,
         jitter=jitter,
     )
 
