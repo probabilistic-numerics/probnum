@@ -143,7 +143,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         new_scale_sq = self._estimate_scale(fun_evals, gram_cho_factor, bq_state)
 
         # Integral mean and variance
-        weights = cho_solve(gram, kernel_means)
+        weights = cho_solve(gram_cho_factor, kernel_means)
         integral_mean = weights @ fun_evals
         initial_integral_variance = new_kernel_embedding.kernel_variance()
         integral_variance = new_scale_sq * (
