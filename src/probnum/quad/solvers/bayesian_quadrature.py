@@ -23,6 +23,8 @@ from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQIterInfo, BQState
 
+# pylint: disable=too-many-arguments, too-many-locals
+
 
 class BayesianQuadrature:
     r"""The Bayesian quadrature method.

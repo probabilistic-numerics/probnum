@@ -59,8 +59,13 @@ class BQBeliefUpdate(abc.ABC):
         """
         raise NotImplementedError
 
-    def _gram_cholesky_decomposition(self, gram: np.ndarray) -> np.ndarray:
-        """Find the Cholesky decomposition of a positive-definite Gram matrix.
+    def _compute_gram_cho_factor(self, gram: np.ndarray) -> np.ndarray:
+        """Compute the Cholesky decomposition of a positive-definite Gram matrix for use
+        in scipy.linalg.cho_solve
+
+        .. warning::
+            Uses scipy.linalg.cho_factor. The returned matrix is only to be used in
+            scipy.linalg.cho_solve.
 
         Parameters
         ----------
@@ -69,11 +74,12 @@ class BQBeliefUpdate(abc.ABC):
 
         Returns
         -------
-        chol_gram :
-            The Cholesky decomposition of the Gram matrix.
+        gram_cho_factor :
+            The upper triangular Cholesky decomposition of the Gram matrix. Other
+            parts of the matrix contain random data.
         """
-        chol_gram = cho_factor(gram + self.jitter * np.eye(gram.shape[0]))
-        return chol_gram
+        gram_cho_factor = cho_factor(gram + self.jitter * np.eye(gram.shape[0]))
+        return gram_cho_factor
 
 
 class BQStandardBeliefUpdate(BQBeliefUpdate):
@@ -102,8 +108,6 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
     ) -> Tuple[Normal, BQState]:
 
         # Update nodes and function evaluations
-        old_nodes = bq_state.nodes
-
         nodes = np.concatenate((bq_state.nodes, new_nodes), axis=0)
         fun_evals = np.append(bq_state.fun_evals, new_fun_evals)
 
@@ -113,12 +117,12 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
         # Update gram matrix and kernel mean vector. Recompute everything from
         # scratch if the kernel was updated or if these are the first nodes.
-        if kernel_was_updated or old_nodes.size == 0:
+        if kernel_was_updated or bq_state.nodes.size == 0:
             gram = new_kernel.matrix(nodes)
             kernel_means = new_kernel_embedding.kernel_mean(nodes)
         else:
             gram_new_new = new_kernel.matrix(new_nodes)
-            gram_old_new = new_kernel.matrix(new_nodes, old_nodes)
+            gram_old_new = new_kernel.matrix(new_nodes, bq_state.nodes)
             gram = np.hstack(
                 (
                     np.vstack((bq_state.gram, gram_old_new)),
@@ -132,34 +136,35 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
                 )
             )
 
-        chol_gram = self._gram_cholesky_decomposition(gram)
+        # Cholesky factorisation of the Gram matrix
+        gram_cho_factor = self._compute_gram_cho_factor(gram)
 
         # Estimate scaling parameter
-        new_scale_sq = self._estimate_scale(fun_evals, chol_gram, bq_state)
+        new_scale_sq = self._estimate_scale(fun_evals, gram_cho_factor, bq_state)
 
-        initial_integral_variance = new_kernel_embedding.kernel_variance()
-        weights = self._solve_gram(gram, kernel_means)
-
-        # integral mean and variance
+        # Integral mean and variance
+        weights = cho_solve(gram, kernel_means)
         integral_mean = weights @ fun_evals
+        initial_integral_variance = new_kernel_embedding.kernel_variance()
         integral_variance = new_scale_sq * (
             initial_integral_variance - weights @ kernel_means
         )
 
-        updated_belief = Normal(integral_mean, integral_variance)
-        updated_state = BQState.from_new_data(
+        new_belief = Normal(integral_mean, integral_variance)
+        new_state = BQState.from_new_data(
             kernel=new_kernel,
             scale_sq=new_scale_sq,
             nodes=nodes,
             fun_evals=fun_evals,
-            integral_belief=updated_belief,
+            integral_belief=new_belief,
             prev_state=bq_state,
             gram=gram,
             kernel_means=kernel_means,
         )
 
-        return updated_belief, updated_state
+        return new_belief, new_state
 
+    # pylint: disable=no-self-use
     def _estimate_kernel(self, kernel: Kernel) -> Tuple[Kernel, bool]:
         """Estimate the intrinsic kernel parameters. That is, all parameters except the
         scale."""
@@ -168,12 +173,12 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         return new_kernel, kernel_was_updated
 
     def _estimate_scale(
-        self, fun_evals: np.ndarray, chol_gram: np.ndarray, bq_state: BQState
+        self, fun_evals: np.ndarray, gram_cho_factor: np.ndarray, bq_state: BQState
     ) -> FloatLike:
         """Estimate the scale parameter."""
         if self.scale_estimation == "mle":
             new_scale_sq = (
-                fun_evals @ cho_solve(chol_gram, fun_evals) / fun_evals.shape[0]
+                fun_evals @ cho_solve(gram_cho_factor, fun_evals) / fun_evals.shape[0]
             )
         else:
             new_scale_sq = bq_state.scale_sq
