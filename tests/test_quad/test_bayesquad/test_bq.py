@@ -26,8 +26,15 @@ def test_type_1d(f1d, kernel, measure, input_dim):
 
 
 @pytest.mark.parametrize("input_dim", [1])
-def test_integral_values_1d(f1d, kernel, measure, input_dim):
-    """Test numerically that BQ computes 1D integrals correctly."""
+@pytest.mark.parametrize("var_tol", [None, 1e-10])
+@pytest.mark.parametrize("rel_tol", [None, 1e-10])
+@pytest.mark.parametrize("scale_estimation", [None, "mle"])
+@pytest.mark.parametrize("jitter", [1e-6])
+def test_integral_values_1d(
+    f1d, kernel, measure, input_dim, scale_estimation, var_tol, rel_tol, jitter
+):
+    """Test numerically that BQ computes 1D integrals correctly for a number of
+    different parameters."""
 
     # numerical integral
     # pylint: disable=invalid-name
@@ -36,7 +43,15 @@ def test_integral_values_1d(f1d, kernel, measure, input_dim):
 
     # pylint: disable=invalid-name
     bq_integral, _ = bayesquad(
-        fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_evals=250
+        fun=f1d,
+        input_dim=input_dim,
+        kernel=kernel,
+        measure=measure,
+        scale_estimation=scale_estimation,
+        max_evals=250,
+        var_tol=var_tol,
+        rel_tol=rel_tol,
+        jitter=jitter,
     )
     domain = measure.domain
     if domain is None:
@@ -48,7 +63,8 @@ def test_integral_values_1d(f1d, kernel, measure, input_dim):
 @pytest.mark.parametrize("input_dim", [2, 3, 4])
 @pytest.mark.parametrize("measure_name", ["gauss"])
 @pytest.mark.parametrize("cov_diagonal", [True])
-def test_integral_values_x2_gaussian(kernel, measure, input_dim):
+@pytest.mark.parametrize("scale_estimation", [None, "mle"])
+def test_integral_values_x2_gaussian(kernel, measure, input_dim, scale_estimation):
     """Test numerical integration of x**2 in higher dimensions."""
     # pylint: disable=invalid-name
     c = np.linspace(0.1, 2.2, input_dim)
@@ -60,14 +76,22 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim):
     )
     fun_evals = fun(nodes)
     bq_integral, _ = bayesquad_from_data(
-        nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
+        nodes=nodes,
+        fun_evals=fun_evals,
+        kernel=kernel,
+        measure=measure,
+        scale_estimation=scale_estimation,
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
 
 
 @pytest.mark.parametrize("input_dim", [2, 3, 4])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
-def test_integral_values_sin_lebesgue(kernel, measure, input_dim):
+@pytest.mark.parametrize("scale_estimation", [None, "mle"])
+@pytest.mark.parametrize("jitter", [1e-6, 0.5e-5])
+def test_integral_values_sin_lebesgue(
+    kernel, measure, input_dim, scale_estimation, jitter
+):
     """Test numerical integration of products of sinusoids."""
     # pylint: disable=invalid-name
     c = np.linspace(0.1, 0.5, input_dim)
@@ -85,7 +109,12 @@ def test_integral_values_sin_lebesgue(kernel, measure, input_dim):
     )
     fun_evals = fun(nodes)
     bq_integral, _ = bayesquad_from_data(
-        nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
+        nodes=nodes,
+        fun_evals=fun_evals,
+        kernel=kernel,
+        measure=measure,
+        scale_estimation=scale_estimation,
+        jitter=jitter,
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
 
@@ -146,3 +175,32 @@ def test_domain_ignored_if_lebesgue(input_dim, measure):
         nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
     )
     assert isinstance(bq_integral, Normal)
+
+
+@pytest.mark.parametrize("jitter", [-1.0, -0.002])
+def test_negative_jitter_throws_error(jitter):
+    """Test that negative values for jitter raise ValueError."""
+    input_dim = 1
+    domain = (0, 1)
+    fun = lambda x: np.reshape(x, (x.shape[0],))
+    with pytest.raises(ValueError):
+        bayesquad(fun=fun, input_dim=input_dim, domain=domain, jitter=jitter)
+
+
+def test_zero_function_gives_zero_variance_with_mle():
+    """Test that BQ variance is zero for zero function when MLE is used to set the
+    scale parameter."""
+    input_dim = 1
+    domain = (0, 1)
+    fun = lambda x: np.zeros(x.shape[0])
+    nodes = np.linspace(0, 1, 3).reshape((3, 1))
+    fun_evals = fun(nodes)
+
+    bq_integral1, _ = bayesquad(
+        fun=fun, input_dim=input_dim, domain=domain, scale_estimation="mle"
+    )
+    bq_integral2, _ = bayesquad_from_data(
+        nodes=nodes, fun_evals=fun_evals, domain=domain, scale_estimation="mle"
+    )
+    assert bq_integral1.var == 0.0
+    assert bq_integral2.var == 0.0
