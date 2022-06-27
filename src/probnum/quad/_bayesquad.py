@@ -83,7 +83,7 @@ def bayesquad(
         ==========================  =======
 
         ==========================  =======
-         van Der Corput points     ``vdc``
+         van Der Corput points      ``vdc``
         ==========================  =======
 
     scale_estimation
