@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum.quad import bayesquad, VanDerCorputPolicy, GaussianMeasure, LebesgueMeasure
+from probnum.quad import GaussianMeasure, LebesgueMeasure, VanDerCorputPolicy, bayesquad
 
 
 def test_van_der_corput_multi_d_error(input_dim):
