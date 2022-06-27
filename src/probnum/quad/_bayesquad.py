@@ -82,6 +82,10 @@ def bayesquad(
          Bayesian Monte Carlo [2]_  ``bmc``
         ==========================  =======
 
+        ==========================  =======
+         van Der Corput points     ``vdc``
+        ==========================  =======
+
     scale_estimation
         Estimation method to use to compute the scale parameter. Defaults to 'mle'.
         Options are

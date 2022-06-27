@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from scipy.integrate import quad
 
+import probnum.quad
 from probnum.quad import bayesquad, bayesquad_from_data
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
@@ -26,16 +27,18 @@ def test_type_1d(f1d, kernel, measure, input_dim):
 
 
 @pytest.mark.parametrize("input_dim", [1])
-@pytest.mark.parametrize("var_tol", [None, 1e-10])
-@pytest.mark.parametrize("rel_tol", [None, 1e-10])
+@pytest.mark.parametrize("domain", [(0, 1,), (-0.5, 1), (-3.5, -2.9)])
+@pytest.mark.parametrize("var_tol", [None, 1e-7])
+@pytest.mark.parametrize("rel_tol", [None, 1e-7])
 @pytest.mark.parametrize("scale_estimation", [None, "mle"])
-@pytest.mark.parametrize("jitter", [1e-6])
+@pytest.mark.parametrize("jitter", [1e-6, 1e-7])
 def test_integral_values_1d(
-    f1d, kernel, measure, input_dim, scale_estimation, var_tol, rel_tol, jitter
+    f1d, kernel, domain, input_dim, scale_estimation, var_tol, rel_tol, jitter
 ):
     """Test numerically that BQ computes 1D integrals correctly for a number of
     different parameters."""
 
+    measure = probnum.quad.LebesgueMeasure(input_dim=input_dim, domain=domain)
     # numerical integral
     # pylint: disable=invalid-name
     def integrand(x):
@@ -46,7 +49,8 @@ def test_integral_values_1d(
         fun=f1d,
         input_dim=input_dim,
         kernel=kernel,
-        measure=measure,
+        domain=domain,
+        policy="vdc",
         scale_estimation=scale_estimation,
         max_evals=250,
         var_tol=var_tol,

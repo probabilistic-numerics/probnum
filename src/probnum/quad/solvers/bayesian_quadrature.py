@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 
-from probnum.quad.solvers.policies import Policy, RandomPolicy
+from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
     ImmediateStop,
@@ -23,7 +23,7 @@ from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQIterInfo, BQState
 
-# pylint: disable=too-many-arguments, too-many-locals
+# pylint: disable=too-many-arguments, too-many-locals, too-many-branches
 
 
 class BayesianQuadrature:
@@ -159,6 +159,18 @@ class BayesianQuadrature:
                 )
                 raise ValueError(errormsg)
             policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
+        elif policy == "vdc":
+            if input_dim > 1:
+                raise ValueError(
+                    "Policy 'vdc' works only when the input dimension is one."
+                )
+            if (measure.domain[0] or measure.domain[1]) in [np.Inf, -np.Inf]:
+                raise ValueError("Policy 'vdc' requires a finite integration domain.")
+            policy = VanDerCorputPolicy(
+                domain_a=measure.domain[0][0],
+                domain_b=measure.domain[1][0],
+                batch_size=batch_size,
+            )
 
         else:
             raise NotImplementedError(
