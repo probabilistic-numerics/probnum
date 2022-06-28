@@ -12,11 +12,14 @@ from ._policy import Policy
 
 
 class VanDerCorputPolicy(Policy):
-    r"""Pick nodes from the van der Corput sequence [1]_
+    r"""Pick nodes from the van der Corput sequence.
+
+     The van der Corput sequence [1]_ is
 
     .. math:: 0.5, 0.25, 0.75, 0.125, 0.625, \ldots
 
-    that is linearly mapped to a one-dimensional finite integration domain.
+    If the integration domain is not [0, 1], the van der Corput sequence is linearly
+    mapped to the domain. The domain must be finite.
 
     Parameters
     ----------
