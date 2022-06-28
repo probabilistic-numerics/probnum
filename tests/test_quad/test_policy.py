@@ -32,7 +32,8 @@ def test_van_der_corput_infinite_error(domain):
         with pytest.raises(ValueError):
             bayesquad(fun=fun, input_dim=1, measure=measure)
 
-@pytest.mark.parametrize("n",  [4, 8, 16, 32, 64, 128, 256])
+
+@pytest.mark.parametrize("n", [4, 8, 16, 32, 64, 128, 256])
 def test_van_der_corput(n):
     """Test that the van der Corput sequence is being computed correctly."""
     vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(1, n)

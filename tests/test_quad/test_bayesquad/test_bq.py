@@ -27,7 +27,17 @@ def test_type_1d(f1d, kernel, measure, input_dim):
 
 
 @pytest.mark.parametrize("input_dim", [1])
-@pytest.mark.parametrize("domain", [(0, 1,), (-0.5, 1), (-3.5, -2.9)])
+@pytest.mark.parametrize(
+    "domain",
+    [
+        (
+            0,
+            1,
+        ),
+        (-0.5, 1),
+        (-3.5, -2.9),
+    ],
+)
 @pytest.mark.parametrize("var_tol", [None, 1e-7])
 @pytest.mark.parametrize("rel_tol", [None, 1e-7])
 @pytest.mark.parametrize("scale_estimation", [None, "mle"])

@@ -13,6 +13,8 @@ from probnum.typing import FloatLike, IntLike
 from ._quad_typing import DomainLike
 from ._utils import as_domain
 
+# pylint: duplicate-code
+
 
 class IntegrationMeasure(abc.ABC):
     """An abstract class for a measure against which a target function is integrated.
