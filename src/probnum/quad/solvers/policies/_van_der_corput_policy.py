@@ -12,9 +12,9 @@ from ._policy import Policy
 
 
 class VanDerCorputPolicy(Policy):
-    """Pick nodes from the van der Corput sequence
+    """Pick nodes from the van der Corput sequence [1]_
 
-            0.5, 0.25, 0.75, 0.125, 0.625, ...
+    .. math:: 0.5, 0.25, 0.75, 0.125, 0.625, \ldots
 
     that is linearly mapped to a one-dimensional finite integration domain.
 
