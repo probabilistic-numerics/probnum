@@ -22,7 +22,7 @@ from ._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ._quad_typing import DomainLike, DomainType
 from .solvers import BayesianQuadrature
 
-# pylint: disable=too-many-arguments, too-many-locals, duplicate-code
+# pylint: disable=too-many-arguments, too-many-locals
 
 
 def bayesquad(
