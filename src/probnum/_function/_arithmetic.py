@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 import functools
 import operator
 
 import numpy as np
 
-from probnum.typing import FloatLike, ScalarLike, ScalarType
+from probnum.typing import ScalarLike, ScalarType
 
 from ._function import Function
 
@@ -35,7 +34,8 @@ class ScaledFunction(Function):
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
         return self._scalar * self._function(x)
 
-    def __rmul__(self, other) -> Function:
+    @functools.singledispatchmethod
+    def __rmul__(self, other):
         if np.ndim(other) == 0:
             return ScaledFunction(
                 function=self._function,
@@ -45,19 +45,9 @@ class ScaledFunction(Function):
         return super().__rmul__(other)
 
 
-def _function_rmul(self: Function, other: FloatLike):
-    if np.ndim(other) == 0:
-        return ScaledFunction(
-            function=self._function,
-            scalar=np.asarray(other) * self._scalar,
-        )
-
-    return NotImplemented
-
-
 class SumFunction(Function):
     def __init__(self, *summands: Function) -> None:
-        self._summands = SumFunction._expand_summands(summands)
+        self._summands = summands
 
         input_shape = summands[0].input_shape
         output_shape = summands[0].output_shape
@@ -76,18 +66,36 @@ class SumFunction(Function):
             operator.add, (summand(x) for summand in self._summands)
         )
 
-    @staticmethod
-    def _expand_summands(summands: Iterable[Function]) -> tuple[Function]:
-        expanded_summands = []
-
-        for summand in summands:
-            if isinstance(summand, SumFunction):
-                expanded_summands.extend(summand.summands)
-            else:
-                expanded_summands.append(summand)
-
-        return tuple(expanded_summands)
+    @functools.singledispatchmethod
+    def __add__(self, other):
+        return super().__add__(other)
 
 
-def _function_add(self: Function, other: Function):
+@Function.__add__.register  # pylint: disable=no-member
+def _(self, other: Function) -> SumFunction:
     return SumFunction(self, other)
+
+
+@Function.__add__.register  # pylint: disable=no-member
+def _(self, other: SumFunction) -> SumFunction:
+    return SumFunction(self, *other.summands)
+
+
+@Function.__sub__.register  # pylint: disable=no-member
+def _(self, other: Function) -> SumFunction:
+    return SumFunction(self, -other)
+
+
+@SumFunction.__add__.register  # pylint: disable=no-member
+def _(self, other: Function) -> SumFunction:
+    return SumFunction(*self.summands, other)
+
+
+@SumFunction.__add__.register  # pylint: disable=no-member
+def _(self, other: SumFunction) -> SumFunction:
+    return SumFunction(*self.summands, *other.summands)
+
+
+@SumFunction.__sub__.register  # pylint: disable=no-member
+def _(self, other: Function) -> SumFunction:
+    return SumFunction(*self.summands, -other)

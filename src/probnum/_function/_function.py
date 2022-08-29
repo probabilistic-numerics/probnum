@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+import functools
 from typing import Callable
 
 import numpy as np
@@ -115,6 +116,7 @@ class Function(abc.ABC):
     def __neg__(self):
         return -1.0 * self
 
+    @functools.singledispatchmethod
     def __rmul__(self, other):
         if np.ndim(other) == 0:
             from ._arithmetic import (  # pylint: disable=import-outside-toplevel
@@ -123,18 +125,15 @@ class Function(abc.ABC):
 
             return ScaledFunction(function=self, scalar=other)
 
-        # return super().__rmul__(other)
         return NotImplemented
 
-    def __add__(self, other: "Function") -> "Function":
-        from ._arithmetic import SumFunction  # pylint: disable=import-outside-toplevel
+    @functools.singledispatchmethod
+    def __add__(self, other):
+        return NotImplemented
 
-        return SumFunction(self, other)
-
-    def __sub__(self, other: "Function") -> "Function":
-        from ._arithmetic import SumFunction  # pylint: disable=import-outside-toplevel
-
-        return SumFunction(self, -other)
+    @functools.singledispatchmethod
+    def __sub__(self, other):
+        return NotImplemented
 
 
 class LambdaFunction(Function):
