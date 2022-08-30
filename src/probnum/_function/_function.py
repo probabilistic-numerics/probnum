@@ -18,6 +18,8 @@ class Function(abc.ABC):
     This class represents a, uni- or multivariate, scalar- or tensor-valued,
     mathematical function. Hence, the call method should not have any observable
     side-effects.
+    Instances of this class can be added and multiplied by a scalar, which means that
+    they are elements of a vector space.
 
     Parameters
     ----------
@@ -119,7 +121,7 @@ class Function(abc.ABC):
     @functools.singledispatchmethod
     def __rmul__(self, other):
         if np.ndim(other) == 0:
-            from ._arithmetic import (  # pylint: disable=import-outside-toplevel
+            from ._algebra_fallbacks import (  # pylint: disable=import-outside-toplevel
                 ScaledFunction,
             )
 

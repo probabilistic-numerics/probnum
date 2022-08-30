@@ -5,18 +5,36 @@ import operator
 
 import numpy as np
 
+from probnum import utils
 from probnum.typing import ScalarLike, ScalarType
 
 from ._function import Function
 
 
 class ScaledFunction(Function):
+    r"""Function multiplied pointwise with a scalar.
+
+    Given a function :math:`f \colon \mathbb{R}^n \to \mathbb{R}^m` and a scalar
+    :math:`\alpha \in \mathbb{R}`, this defines a new function
+
+    .. math::
+        \alpha f \colon \mathbb{R}^n \to \mathbb{R}^m,
+        x \masto (\alpha f)(x) = \alpha f(x).
+
+    Parameters
+    ----------
+    function
+        The function :math:`f`.
+    scalar
+        The scalar :math:`\alpha`.
+    """
+
     def __init__(self, function: Function, scalar: ScalarLike):
         if not isinstance(function, Function):
             raise TypeError()
 
         self._function = function
-        self._scalar = np.asarray(scalar, dtype=np.double)
+        self._scalar = utils.as_numpy_scalar(scalar)
 
         super().__init__(
             input_shape=self._function.input_shape,
@@ -70,32 +88,6 @@ class SumFunction(Function):
     def __add__(self, other):
         return super().__add__(other)
 
-
-@Function.__add__.register  # pylint: disable=no-member
-def _(self, other: Function) -> SumFunction:
-    return SumFunction(self, other)
-
-
-@Function.__add__.register  # pylint: disable=no-member
-def _(self, other: SumFunction) -> SumFunction:
-    return SumFunction(self, *other.summands)
-
-
-@Function.__sub__.register  # pylint: disable=no-member
-def _(self, other: Function) -> SumFunction:
-    return SumFunction(self, -other)
-
-
-@SumFunction.__add__.register  # pylint: disable=no-member
-def _(self, other: Function) -> SumFunction:
-    return SumFunction(*self.summands, other)
-
-
-@SumFunction.__add__.register  # pylint: disable=no-member
-def _(self, other: SumFunction) -> SumFunction:
-    return SumFunction(*self.summands, *other.summands)
-
-
-@SumFunction.__sub__.register  # pylint: disable=no-member
-def _(self, other: Function) -> SumFunction:
-    return SumFunction(*self.summands, -other)
+    @functools.singledispatchmethod
+    def __sub__(self, other):
+        return super().__sub__(other)
