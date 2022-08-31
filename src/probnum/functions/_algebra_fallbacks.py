@@ -14,7 +14,7 @@ from ._function import Function
 
 
 class SumFunction(Function):
-    r"""Pointwise sum of :class:`Function`s.
+    r"""Pointwise sum of :class:`Function`\ s.
 
     Given functions :math:`f_1, \dotsc, f_n \colon \mathbb{R}^n \to \mathbb{R}^m`, this
     defines a new function

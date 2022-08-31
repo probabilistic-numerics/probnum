@@ -41,8 +41,6 @@ from .randvars import asrandvar
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandvar",
-    "Function",
-    "LambdaFunction",
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
     "LambdaStoppingCriterion",

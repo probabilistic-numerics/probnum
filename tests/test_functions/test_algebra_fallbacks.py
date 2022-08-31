@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-import probnum as pn
 from probnum import functions
 
 

@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from pytest_cases import param_fixture, param_fixtures
 
-import probnum as pn
 from probnum import functions
 from probnum.typing import ScalarLike, ShapeType
 

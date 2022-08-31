@@ -156,7 +156,7 @@ class LambdaFunction(Function):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum import LambdaFunction
+    >>> from probnum.functions import LambdaFunction
     >>> fn = LambdaFunction(fn=lambda x: 2 * x + 1, input_shape=(2,), output_shape=(2,))
     >>> fn(np.array([[1, 2], [4, 5]]))
     array([[ 3,  5],
