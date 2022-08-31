@@ -31,7 +31,9 @@ class ScaledFunction(Function):
 
     def __init__(self, function: Function, scalar: ScalarLike):
         if not isinstance(function, Function):
-            raise TypeError()
+            raise TypeError(
+                "The function to be scaled must be an object of type `Function`"
+            )
 
         self._function = function
         self._scalar = utils.as_numpy_scalar(scalar)
@@ -65,15 +67,31 @@ class ScaledFunction(Function):
 
 class SumFunction(Function):
     def __init__(self, *summands: Function) -> None:
+        if not all(isinstance(summand, Function) for summand in summands):
+            raise TypeError(
+                "The functions to be added must be objects of type `Function`."
+            )
+
+        if not all(
+            summand.input_shape == summands[0].input_shape for summand in summands
+        ):
+            raise ValueError(
+                "The functions to be added must all have the same input shape."
+            )
+
+        if not all(
+            summand.output_shape == summands[0].output_shape for summand in summands
+        ):
+            raise ValueError(
+                "The functions to be added must all have the same output shape."
+            )
+
         self._summands = summands
 
-        input_shape = summands[0].input_shape
-        output_shape = summands[0].output_shape
-
-        assert all(summand.input_shape == input_shape for summand in summands)
-        assert all(summand.output_shape == output_shape for summand in summands)
-
-        super().__init__(input_shape=input_shape, output_shape=output_shape)
+        super().__init__(
+            input_shape=summands[0].input_shape,
+            output_shape=summands[0].output_shape,
+        )
 
     @property
     def summands(self) -> tuple[SumFunction, ...]:
