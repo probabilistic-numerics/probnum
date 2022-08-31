@@ -45,10 +45,12 @@ class ScaledFunction(Function):
 
     @property
     def function(self) -> Function:
+        r"""The function :math:`f`."""
         return self._function
 
     @property
     def scalar(self) -> ScalarType:
+        r"""The scalar :math:`\alpha`."""
         return self._scalar
 
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
@@ -66,6 +68,21 @@ class ScaledFunction(Function):
 
 
 class SumFunction(Function):
+    r"""Pointwise sum of :class:`Function`s.
+
+    Given functions :math:`f_1, \dotsc, f_n \colon \mathbb{R}^n \to \mathbb{R}^m`, this
+    defines a new function
+
+    .. math::
+        \sum_{i = 1}^n f_n \colon \mathbb{R}^n \to \mathbb{R}^m,
+        x \masto \sum_{i = 1}^n f_i(x).
+
+    Parameters
+    ----------
+    *summands
+        The functions :math:`f_1, \dotsc, f_n`.
+    """
+
     def __init__(self, *summands: Function) -> None:
         if not all(isinstance(summand, Function) for summand in summands):
             raise TypeError(
@@ -95,6 +112,7 @@ class SumFunction(Function):
 
     @property
     def summands(self) -> tuple[SumFunction, ...]:
+        r"""The functions :math:`f_1, \dotsc, f_n` to be added."""
         return self._summands
 
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
