@@ -119,7 +119,15 @@ class Function(abc.ABC):
         return -1.0 * self
 
     @functools.singledispatchmethod
-    def __rmul__(self, other):
+    def __add__(self, other):
+        return NotImplemented
+
+    @functools.singledispatchmethod
+    def __sub__(self, other):
+        return NotImplemented
+
+    @functools.singledispatchmethod
+    def __mul__(self, other):
         if np.ndim(other) == 0:
             from ._algebra_fallbacks import (  # pylint: disable=import-outside-toplevel
                 ScaledFunction,
@@ -130,11 +138,14 @@ class Function(abc.ABC):
         return NotImplemented
 
     @functools.singledispatchmethod
-    def __add__(self, other):
-        return NotImplemented
+    def __rmul__(self, other):
+        if np.ndim(other) == 0:
+            from ._algebra_fallbacks import (  # pylint: disable=import-outside-toplevel
+                ScaledFunction,
+            )
 
-    @functools.singledispatchmethod
-    def __sub__(self, other):
+            return ScaledFunction(function=self, scalar=other)
+
         return NotImplemented
 
 

@@ -121,6 +121,16 @@ class ScaledFunction(Function):
         return self._scalar * self._function(x)
 
     @functools.singledispatchmethod
+    def __mul__(self, other):
+        if np.ndim(other) == 0:
+            return ScaledFunction(
+                function=self._function,
+                scalar=self._scalar * np.asarray(other),
+            )
+
+        return super().__mul__(other)
+
+    @functools.singledispatchmethod
     def __rmul__(self, other):
         if np.ndim(other) == 0:
             return ScaledFunction(

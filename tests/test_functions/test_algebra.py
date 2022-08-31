@@ -83,6 +83,24 @@ def test_sub_evaluation(
 
 
 @pytest.mark.parametrize("scalar", [1.0, 3, 1000.0])
+def test_mul_scalar_evaluation(
+    op0: functions.Function,
+    scalar: ScalarLike,
+    batch_shape: ShapeType,
+    seed: int,
+):
+    fn_scaled = op0 * scalar
+
+    rng = np.random.default_rng(seed)
+    xs = rng.uniform(-1.0, 1.0, batch_shape + op0.input_shape)
+
+    np.testing.assert_array_equal(
+        fn_scaled(xs),
+        op0(xs) * scalar,
+    )
+
+
+@pytest.mark.parametrize("scalar", [1.0, 3, 1000.0])
 def test_rmul_scalar_evaluation(
     op0: functions.Function,
     scalar: ScalarLike,

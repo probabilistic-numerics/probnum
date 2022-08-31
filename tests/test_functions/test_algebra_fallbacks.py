@@ -73,8 +73,14 @@ def test_sum_function_output_shape_mismatch_raises_error(fn0: functions.Function
 
 
 def test_scaled_function_contracts(fn0: functions.Function):
-    scaled_fn = 2.0 * -fn0
+    scaled_fn_mul = -fn0 * 2.0
 
-    assert isinstance(scaled_fn, functions.ScaledFunction)
-    assert scaled_fn.function is fn0
-    assert scaled_fn.scalar == -2.0
+    assert isinstance(scaled_fn_mul, functions.ScaledFunction)
+    assert scaled_fn_mul.function is fn0
+    assert scaled_fn_mul.scalar == -2.0
+
+    scaled_fn_rmul = 2.0 * -fn0
+
+    assert isinstance(scaled_fn_rmul, functions.ScaledFunction)
+    assert scaled_fn_rmul.function is fn0
+    assert scaled_fn_rmul.scalar == -2.0
