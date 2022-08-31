@@ -33,10 +33,10 @@ def test_sum_lambda_raises_error(fn1: functions.Function):
 
 
 def test_sum_function_contracts(fn0: functions.Function, fn1: functions.Function):
-    sum_fn = (fn0 + (fn1 + fn0)) - fn1
+    sum_fn = (fn0 + (fn1 + fn0)) - fn1 + fn0 + (fn0 + fn1)
 
     assert isinstance(sum_fn, functions.SumFunction)
-    assert len(sum_fn.summands) == 4
+    assert len(sum_fn.summands) == 7
     assert sum_fn.summands[0] is fn0
     assert sum_fn.summands[1] is fn1
     assert sum_fn.summands[2] is fn0
@@ -45,6 +45,23 @@ def test_sum_function_contracts(fn0: functions.Function, fn1: functions.Function
         and sum_fn.summands[3].function is fn1
         and sum_fn.summands[3].scalar == -1
     )
+    assert sum_fn.summands[4] is fn0
+    assert sum_fn.summands[5] is fn0
+    assert sum_fn.summands[6] is fn1
+
+
+def test_sum_function_input_shape_mismatch_raises_error(fn0: functions.Function):
+    fn_err = functions.Zero(input_shape=(), output_shape=fn0.output_shape)
+
+    with pytest.raises(ValueError):
+        fn0 + fn_err
+
+
+def test_sum_function_output_shape_mismatch_raises_error(fn0: functions.Function):
+    fn_err = functions.Zero(input_shape=fn0.input_shape, output_shape=())
+
+    with pytest.raises(ValueError):
+        fn0 + fn_err
 
 
 def test_scaled_function_contracts(fn0: functions.Function):
