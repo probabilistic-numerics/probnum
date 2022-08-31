@@ -1,3 +1,5 @@
+"""Algebraic operations on functions."""
+
 from ._algebra_fallbacks import SumFunction
 from ._function import Function
 

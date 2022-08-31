@@ -1,3 +1,5 @@
+"""Fallback implementation for algebraic operations on :class:`Function`s."""
+
 from __future__ import annotations
 
 import functools
