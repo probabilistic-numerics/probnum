@@ -51,17 +51,25 @@ def test_sum_function_contracts(fn0: functions.Function, fn1: functions.Function
 
 
 def test_sum_function_input_shape_mismatch_raises_error(fn0: functions.Function):
-    fn_err = functions.Zero(input_shape=(), output_shape=fn0.output_shape)
+    fn_err = functions.LambdaFunction(
+        lambda x: np.zeros(fn0.output_shape),
+        input_shape=(),
+        output_shape=fn0.output_shape,
+    )
 
     with pytest.raises(ValueError):
-        fn0 + fn_err
+        fn0 + fn_err  # pylint: disable=pointless-statement
 
 
 def test_sum_function_output_shape_mismatch_raises_error(fn0: functions.Function):
-    fn_err = functions.Zero(input_shape=fn0.input_shape, output_shape=())
+    fn_err = functions.LambdaFunction(
+        lambda x: np.zeros(()),
+        input_shape=(),
+        output_shape=fn0.output_shape,
+    )
 
     with pytest.raises(ValueError):
-        fn0 + fn_err
+        fn0 + fn_err  # pylint: disable=pointless-statement
 
 
 def test_scaled_function_contracts(fn0: functions.Function):
