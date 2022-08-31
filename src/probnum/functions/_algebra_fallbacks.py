@@ -20,8 +20,8 @@ class SumFunction(Function):
     defines a new function
 
     .. math::
-        \sum_{i = 1}^n f_n \colon \mathbb{R}^n \to \mathbb{R}^m,
-        x \masto \sum_{i = 1}^n f_i(x).
+        \sum_{i = 1}^n f_i \colon \mathbb{R}^n \to \mathbb{R}^m,
+        x \mapsto \sum_{i = 1}^n f_i(x).
 
     Parameters
     ----------
@@ -83,7 +83,7 @@ class ScaledFunction(Function):
 
     .. math::
         \alpha f \colon \mathbb{R}^n \to \mathbb{R}^m,
-        x \masto (\alpha f)(x) = \alpha f(x).
+        x \mapsto (\alpha f)(x) = \alpha f(x).
 
     Parameters
     ----------
