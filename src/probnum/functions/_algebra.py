@@ -1,4 +1,4 @@
-"""Algebraic operations on :class:`Function`\ s."""
+r"""Algebraic operations on :class:`Function`\ s."""
 
 from ._algebra_fallbacks import SumFunction
 from ._function import Function
