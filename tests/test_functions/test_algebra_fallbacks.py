@@ -64,8 +64,8 @@ def test_sum_function_input_shape_mismatch_raises_error(fn0: functions.Function)
 def test_sum_function_output_shape_mismatch_raises_error(fn0: functions.Function):
     fn_err = functions.LambdaFunction(
         lambda x: np.zeros(()),
-        input_shape=(),
-        output_shape=fn0.output_shape,
+        input_shape=fn0.input_shape,
+        output_shape=(),
     )
 
     with pytest.raises(ValueError):
