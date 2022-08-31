@@ -1,4 +1,4 @@
-"""Fallback implementation for algebraic operations on :class:`Function`s."""
+"""Fallback implementation for algebraic operations on :class:`Function`\ s."""
 
 from __future__ import annotations
 
@@ -96,7 +96,7 @@ class ScaledFunction(Function):
     def __init__(self, function: Function, scalar: ScalarLike):
         if not isinstance(function, Function):
             raise TypeError(
-                "The function to be scaled must be an object of type `Function`"
+                "The function to be scaled must be an object of type `Function`."
             )
 
         self._function = function
