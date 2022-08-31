@@ -13,7 +13,7 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.filtsmooth`                      | Bayesian filtering and smoothing.                            |
     +-------------------------------------------------+--------------------------------------------------------------+
-    | :mod:`~probnum.functions`                       | Callables with in- and output shape information              |
+    | :mod:`~probnum.functions`                       | Callables with in- and output shape information.             |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.linalg`                          | Probabilistic numerical linear algebra.                      |
     +-------------------------------------------------+--------------------------------------------------------------+
