@@ -1,10 +1,8 @@
-"""Mean functions of random processes."""
+"""The zero function."""
 
 import numpy as np
 
-from .. import _function
-
-__all__ = ["Zero"]
+from . import _function
 
 
 class Zero(_function.Function):

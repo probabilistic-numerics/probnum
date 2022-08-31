@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs, randvars
+from probnum import functions, randprocs, randvars
 
 # pylint: disable=invalid-name
 
@@ -129,7 +129,7 @@ def test_inconsistent_mean_shape_errors():
             input_shape=(42,),
             output_shape=(),
             dtype=np.double,
-            mean=randprocs.mean_fns.Zero(
+            mean=functions.Zero(
                 input_shape=(3,),
                 output_shape=(3,),
             ),
@@ -140,7 +140,7 @@ def test_inconsistent_mean_shape_errors():
             input_shape=(),
             output_shape=(1,),
             dtype=np.double,
-            mean=randprocs.mean_fns.Zero(
+            mean=functions.Zero(
                 input_shape=(),
                 output_shape=(3,),
             ),

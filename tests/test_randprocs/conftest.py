@@ -6,8 +6,8 @@ from typing import Callable
 import numpy as np
 import pytest
 
-from probnum import LambdaFunction, randprocs
-from probnum.randprocs import kernels, mean_fns
+from probnum import functions, randprocs
+from probnum.randprocs import kernels
 
 
 @pytest.fixture(
@@ -44,10 +44,12 @@ def output_dim(request) -> int:
     params=[
         pytest.param(mu, id=mu[0])
         for mu in [
-            ("zero", mean_fns.Zero),
+            ("zero", functions.Zero),
             (
                 "lin",
-                functools.partial(LambdaFunction, lambda x: 2 * x.sum(axis=1) + 1.0),
+                functools.partial(
+                    functions.LambdaFunction, lambda x: 2 * x.sum(axis=1) + 1.0
+                ),
             ),
         ]
     ],
@@ -82,7 +84,7 @@ def fixture_cov(request, input_dim: int) -> kernels.Kernel:
             (
                 "gp",
                 randprocs.GaussianProcess(
-                    mean=mean_fns.Zero(input_shape=(1,)),
+                    mean=functions.Zero(input_shape=(1,)),
                     cov=kernels.Matern(input_shape=(1,)),
                 ),
             ),

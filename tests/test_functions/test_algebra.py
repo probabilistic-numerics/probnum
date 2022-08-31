@@ -3,13 +3,14 @@ import pytest
 from pytest_cases import param_fixture, param_fixtures
 
 import probnum as pn
+from probnum import functions
 from probnum.typing import ScalarLike, ShapeType
 
 op0, op1 = param_fixtures(
     "op0, op1",
     (
         pytest.param(
-            pn.LambdaFunction(
+            functions.LambdaFunction(
                 lambda xs: (
                     np.sin(
                         np.linspace(0.5, 2.0, 6).reshape((3, 2))
@@ -19,7 +20,7 @@ op0, op1 = param_fixtures(
                 input_shape=(2,),
                 output_shape=(3, 2),
             ),
-            pn.LambdaFunction(
+            functions.LambdaFunction(
                 lambda xs: (
                     np.linspace(0.5, 2.0, 6).reshape((3, 2))
                     * np.exp(-0.5 * np.sum(xs**2, axis=-1))[..., None, None]
@@ -36,7 +37,7 @@ batch_shape = param_fixture("batch_shape", ((), (3,), (2, 1, 2)))
 
 
 def test_add_evaluation(
-    op0: pn.Function, op1: pn.Function, batch_shape: ShapeType, seed: int
+    op0: functions.Function, op1: functions.Function, batch_shape: ShapeType, seed: int
 ):
     fn_add = op0 + op1
 
@@ -50,7 +51,7 @@ def test_add_evaluation(
 
 
 def test_sub_evaluation(
-    op0: pn.Function, op1: pn.Function, batch_shape: ShapeType, seed: int
+    op0: functions.Function, op1: functions.Function, batch_shape: ShapeType, seed: int
 ):
     fn_sub = op0 - op1
 
@@ -65,7 +66,7 @@ def test_sub_evaluation(
 
 @pytest.mark.parametrize("scalar", [1.0, 3, 1000.0])
 def test_rmul_scalar_evaluation(
-    op0: pn.Function,
+    op0: functions.Function,
     scalar: ScalarLike,
     batch_shape: ShapeType,
     seed: int,

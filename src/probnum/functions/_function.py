@@ -32,7 +32,7 @@ class Function(abc.ABC):
     See Also
     --------
     LambdaFunction : Define a :class:`Function` from an anonymous function.
-    ~probnum.randprocs.mean_fns.Zero : Zero mean function of a random process.
+    ~probnum.functions.Zero : Zero function.
     """
 
     def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike = ()) -> None:

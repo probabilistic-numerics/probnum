@@ -5,7 +5,7 @@ from typing import Optional, Union
 import numpy as np
 import scipy.stats
 
-from probnum import _function, randvars, utils
+from probnum import functions, randvars, utils
 from probnum.randprocs import _random_process, kernels
 from probnum.randprocs.markov import _transition, continuous, discrete
 from probnum.typing import ShapeLike
@@ -31,7 +31,7 @@ class _MarkovBase(_random_process.RandomProcess):
             input_shape=input_shape,
             output_shape=output_shape,
             dtype=np.dtype(np.float_),
-            mean=_function.LambdaFunction(
+            mean=functions.LambdaFunction(
                 lambda x: self.__call__(args=x).mean,
                 input_shape=input_shape,
                 output_shape=output_shape,
