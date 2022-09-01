@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import abc
+import functools
 from typing import Callable
 
 import numpy as np
 
-from . import utils
-from .typing import ArrayLike, ShapeLike, ShapeType
+from probnum import utils
+from probnum.typing import ArrayLike, ShapeLike, ShapeType
 
 
 class Function(abc.ABC):
@@ -17,6 +18,8 @@ class Function(abc.ABC):
     This class represents a, uni- or multivariate, scalar- or tensor-valued,
     mathematical function. Hence, the call method should not have any observable
     side-effects.
+    Instances of this class can be added and multiplied by a scalar, which means that
+    they are elements of a vector space.
 
     Parameters
     ----------
@@ -29,7 +32,7 @@ class Function(abc.ABC):
     See Also
     --------
     LambdaFunction : Define a :class:`Function` from an anonymous function.
-    ~probnum.randprocs.mean_fns.Zero : Zero mean function of a random process.
+    ~probnum.functions.Zero : Zero function.
     """
 
     def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike = ()) -> None:
@@ -112,6 +115,39 @@ class Function(abc.ABC):
     def _evaluate(self, x: np.ndarray) -> np.ndarray:
         pass
 
+    def __neg__(self):
+        return -1.0 * self
+
+    @functools.singledispatchmethod
+    def __add__(self, other):
+        return NotImplemented
+
+    @functools.singledispatchmethod
+    def __sub__(self, other):
+        return NotImplemented
+
+    @functools.singledispatchmethod
+    def __mul__(self, other):
+        if np.ndim(other) == 0:
+            from ._algebra_fallbacks import (  # pylint: disable=import-outside-toplevel
+                ScaledFunction,
+            )
+
+            return ScaledFunction(function=self, scalar=other)
+
+        return NotImplemented
+
+    @functools.singledispatchmethod
+    def __rmul__(self, other):
+        if np.ndim(other) == 0:
+            from ._algebra_fallbacks import (  # pylint: disable=import-outside-toplevel
+                ScaledFunction,
+            )
+
+            return ScaledFunction(function=self, scalar=other)
+
+        return NotImplemented
+
 
 class LambdaFunction(Function):
     """Define a :class:`Function` from a given :class:`callable`.
@@ -131,7 +167,7 @@ class LambdaFunction(Function):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum import LambdaFunction
+    >>> from probnum.functions import LambdaFunction
     >>> fn = LambdaFunction(fn=lambda x: 2 * x + 1, input_shape=(2,), output_shape=(2,))
     >>> fn(np.array([[1, 2], [4, 5]]))
     array([[ 3,  5],
