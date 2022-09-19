@@ -185,3 +185,4 @@ def test_state_from_new_data(state, request):
 
     # values
     assert s.input_dim == s.measure.input_dim
+    assert s.scale_sq == scale_sq
