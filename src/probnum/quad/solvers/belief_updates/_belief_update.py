@@ -4,7 +4,6 @@ import abc
 from typing import Optional, Tuple
 
 import numpy as np
-from scipy.linalg import cho_factor, cho_solve
 
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers.bq_state import BQState
@@ -78,8 +77,18 @@ class BQBeliefUpdate(abc.ABC):
             The upper triangular Cholesky decomposition of the Gram matrix. Other
             parts of the matrix contain random data.
         """
+        from scipy.linalg import cho_factor
         gram_cho_factor = cho_factor(gram + self.jitter * np.eye(gram.shape[0]))
         return gram_cho_factor
+
+    # pylint: disable=no-self-use
+    def _cho_solve(self, gram_cho_factor: np.ndarray, z: np.ndarray) -> np.ndarray:
+        """Compute the solution to the linear system involving the Gram matrix.
+        Requires the solution of scipy.linalg.cho_factor as input.
+
+        """
+        from scipy.linalg import cho_solve
+        return cho_solve(gram_cho_factor, z)
 
 
 class BQStandardBeliefUpdate(BQBeliefUpdate):
@@ -143,7 +152,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         new_scale_sq = self._estimate_scale(fun_evals, gram_cho_factor, bq_state)
 
         # Integral mean and variance
-        weights = cho_solve(gram_cho_factor, kernel_means)
+        weights = self._cho_solve(gram_cho_factor, kernel_means)
         integral_mean = weights @ fun_evals
         initial_integral_variance = new_kernel_embedding.kernel_variance()
         integral_variance = new_scale_sq * (
@@ -176,10 +185,12 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         self, fun_evals: np.ndarray, gram_cho_factor: np.ndarray, bq_state: BQState
     ) -> FloatLike:
         """Estimate the scale parameter."""
-        if self.scale_estimation == "mle":
+        if self.scale_estimation is None:
+            new_scale_sq = bq_state.scale_sq
+        elif self.scale_estimation == "mle":
             new_scale_sq = (
-                fun_evals @ cho_solve(gram_cho_factor, fun_evals) / fun_evals.shape[0]
+                fun_evals @ self._cho_solve(gram_cho_factor, fun_evals) / fun_evals.shape[0]
             )
         else:
-            new_scale_sq = bq_state.scale_sq
+            raise ValueError(f"Scale estimation ({self.scale_estimation}) is unknown.")
         return new_scale_sq

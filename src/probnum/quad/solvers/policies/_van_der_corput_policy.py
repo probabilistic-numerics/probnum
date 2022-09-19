@@ -12,7 +12,7 @@ from ._policy import Policy
 class VanDerCorputPolicy(Policy):
     r"""Pick nodes from the van der Corput sequence.
 
-     The van der Corput sequence [1]_ is
+    The van der Corput sequence [1]_ is
 
     .. math:: 0.5, 0.25, 0.75, 0.125, 0.625, \ldots
 
