@@ -188,7 +188,7 @@ def bayesquad_from_data(
     domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
     scale_estimation: Optional[str] = "mle",
-    jitter: Optional[FloatLike] = 1.0e-6,
+    jitter: FloatLike = 1.0e-6,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
