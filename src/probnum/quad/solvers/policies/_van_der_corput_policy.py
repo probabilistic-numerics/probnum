@@ -8,8 +8,6 @@ from probnum.quad.solvers.bq_state import BQState
 
 from ._policy import Policy
 
-# pylint: disable=invalid-name
-
 
 class VanDerCorputPolicy(Policy):
     r"""Pick nodes from the van der Corput sequence.
