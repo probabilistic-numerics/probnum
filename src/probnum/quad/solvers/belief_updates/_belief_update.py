@@ -4,6 +4,7 @@ import abc
 from typing import Optional, Tuple
 
 import numpy as np
+from scipy.linalg import cho_factor, cho_solve
 
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers.bq_state import BQState
@@ -77,17 +78,12 @@ class BQBeliefUpdate(abc.ABC):
             The upper triangular Cholesky decomposition of the Gram matrix. Other
             parts of the matrix contain random data.
         """
-        from scipy.linalg import cho_factor
-
-        gram_cho_factor = cho_factor(gram + self.jitter * np.eye(gram.shape[0]))
-        return gram_cho_factor
+        return cho_factor(gram + self.jitter * np.eye(gram.shape[0]))
 
     # pylint: disable=no-self-use
     def _gram_cho_solve(self, gram_cho_factor: np.ndarray, z: np.ndarray) -> np.ndarray:
         """Wrapper for scipy.linalg.cho_solve. Meant to be used for linear systems of
         the gram matrix. Requires the solution of scipy.linalg.cho_factor as input."""
-        from scipy.linalg import cho_solve
-
         return cho_solve(gram_cho_factor, z)
 
 
