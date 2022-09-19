@@ -7,7 +7,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import _function, randvars, utils as _utils
+from probnum import functions, randvars, utils as _utils
 from probnum.randprocs import kernels
 from probnum.typing import DTypeLike, ShapeLike, ShapeType
 
@@ -56,7 +56,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         input_shape: ShapeLike,
         output_shape: ShapeLike,
         dtype: DTypeLike,
-        mean: Optional[_function.Function] = None,
+        mean: Optional[functions.Function] = None,
         cov: Optional[kernels.Kernel] = None,
     ):
         self._input_shape = _utils.as_shape(input_shape)
@@ -75,7 +75,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         # Mean function
         if mean is not None:
-            if not isinstance(mean, _function.Function):
+            if not isinstance(mean, functions.Function):
                 raise TypeError("The mean function must have type `probnum.Function`.")
 
             if mean.input_shape != self._input_shape:
@@ -177,7 +177,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         raise NotImplementedError
 
     @property
-    def mean(self) -> _function.Function:
+    def mean(self) -> functions.Function:
         r"""Mean function :math:`m(x) := \mathbb{E}[f(x)]` of the random process."""
         if self._mean is None:
             raise NotImplementedError

@@ -10,5 +10,4 @@ probnum.randprocs
     :hidden:
 
     randprocs/markov
-    randprocs/mean_fns
     randprocs/kernels

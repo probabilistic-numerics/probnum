@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import LambdaFunction
+from probnum.functions import LambdaFunction
 
 
 def test_input_shape_mismatch_raises_error():
