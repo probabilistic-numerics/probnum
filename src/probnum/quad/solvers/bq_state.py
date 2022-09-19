@@ -60,7 +60,7 @@ class BQState:
         self.kernel_embedding = KernelEmbedding(kernel, measure)
         if scale_sq < 0:
             raise ValueError(
-                f"Squared scale parameter ({scale_sq}) must be " f"non-negative."
+                f"Squared scale parameter ({scale_sq}) must be non-negative."
             )
         self.scale_sq = scale_sq
         self.integral_belief = integral_belief
