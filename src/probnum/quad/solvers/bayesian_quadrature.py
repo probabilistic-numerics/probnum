@@ -173,9 +173,7 @@ class BayesianQuadrature:
             )
 
         else:
-            raise NotImplementedError(
-                "Policies other than random sampling are not available at the moment."
-            )
+            raise NotImplementedError(f"The given policy ({policy}) is unknown.")
 
         # Select the belief updater
         belief_update = BQStandardBeliefUpdate(

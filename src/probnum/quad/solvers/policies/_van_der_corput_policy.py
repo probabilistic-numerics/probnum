@@ -49,7 +49,9 @@ class VanDerCorputPolicy(Policy):
         return transformed_vdc_seq.reshape((self.batch_size, 1))
 
     @staticmethod
-    def van_der_corput_sequence(n_start: int, n_end: Optional[int] = None) -> np.ndarray:
+    def van_der_corput_sequence(
+        n_start: int, n_end: Optional[int] = None
+    ) -> np.ndarray:
         """Returns elements n_start, n_start + 1, ..., n_end - 1 in the van der
         Corput sequence.
 
