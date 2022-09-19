@@ -27,7 +27,7 @@ class BQBeliefUpdate(abc.ABC):
     def __init__(self, jitter: FloatLike) -> None:
         if jitter < 0:
             raise ValueError(f"Jitter ({jitter}) must be non-negative.")
-        self.jitter = jitter
+        self.jitter = float(jitter)
 
     @abc.abstractmethod
     def __call__(
