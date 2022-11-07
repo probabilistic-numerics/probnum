@@ -184,7 +184,7 @@ class LinearOperator(abc.ABC):
             Array resulting in the application of the linear operator
             to ``x`` along ``axis``.
         """
-        raise NotImplementedError("_apply is not implemented.")
+        raise NotImplementedError()
 
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
@@ -274,7 +274,7 @@ class LinearOperator(abc.ABC):
         matrix : np.ndarray
             Matrix representation of the linear operator.
         """
-        raise NotImplementedError("_todense is not implemented.")
+        raise NotImplementedError()
         
     def todense(self, cache: bool = True) -> np.ndarray:
         """Dense matrix representation of the linear operator.
@@ -409,9 +409,9 @@ class LinearOperator(abc.ABC):
     def rank(self) -> np.intp:
         """Rank of the linear operator."""
         if self.__rank_cache is None:
-            if self._is_implemented("_rank"):
+            try:
                 self.__rank_cache = self._rank()
-            else:
+            except NotImplementedError:
                 self.__rank_cache = np.linalg.matrix_rank(self.todense(cache=False))
 
         return self.__rank_cache
@@ -421,7 +421,7 @@ class LinearOperator(abc.ABC):
         
         You may implement this method in a subclass.
         """
-        raise NotImplementedError("_eigvals is not implemented.")
+        raise NotImplementedError()
 
     def eigvals(self) -> np.ndarray:
         """Eigenvalue spectrum of the linear operator."""
@@ -431,9 +431,9 @@ class LinearOperator(abc.ABC):
                     "Eigenvalues are only defined for square operators"
                 )
 
-            if self._is_implemented("_eigvals"):
+            try:
                 self.__eigvals_cache = self._eigvals()
-            else:
+            except NotImplementedError:
                 self.__eigvals_cache = np.linalg.eigvals(self.todense(cache=False))
 
             self.__eigvals_cache.setflags(write=False)
@@ -471,7 +471,7 @@ class LinearOperator(abc.ABC):
         cond :
             The condition number of the linear operator. May be infinite.
         """
-        raise NotImplementedError("_cond is not implemented.")
+        raise NotImplementedError()
 
     def cond(self, p=None) -> np.inexact:
         """Compute the condition number of the linear operator.
@@ -511,9 +511,9 @@ class LinearOperator(abc.ABC):
                     "The condition number is only defined for square operators"
                 )
 
-            if self._is_implemented("_cond"):
+            try:
                 self.__cond_cache[p] = self._cond(p)
-            else:
+            except NotImplementedError:
                 self.__cond_cache[p] = np.linalg.cond(self.todense(cache=False), p=p)
 
         return self.__cond_cache[p]
@@ -530,7 +530,7 @@ class LinearOperator(abc.ABC):
         det :
             The determinant of the linear operator.
         """
-        raise NotImplementedError("_det is not implemented.")
+        raise NotImplementedError()
 
     def det(self) -> np.inexact:
         """Determinant of the linear operator.
@@ -551,9 +551,9 @@ class LinearOperator(abc.ABC):
                     "The determinant is only defined for square operators"
                 )
 
-            if self._is_implemented("_det"):
+            try:
                 self.__det_cache = self._det()
-            else:
+            except NotImplementedError:
                 self.__det_cache = np.linalg.det(self.todense(cache=False))
 
         return self.__det_cache
@@ -570,7 +570,7 @@ class LinearOperator(abc.ABC):
         logabsdet :
             The log absolute determinant of the linear operator.
         """
-        raise NotImplementedError("_logabsdet is not implemented.")
+        raise NotImplementedError()
 
     def logabsdet(self) -> np.inexact:
         """Log absolute determinant of the linear operator.
@@ -591,9 +591,9 @@ class LinearOperator(abc.ABC):
                     "The determinant is only defined for square operators"
                 )
 
-            if self._is_implemented("_logabsdet"):
+            try:
                 self.__logabsdet_cache = self._logabsdet()
-            else:
+            except NotImplementedError:
                 self.__logabsdet_cache = self._logabsdet_fallback()
 
         return self.__logabsdet_cache
@@ -619,7 +619,7 @@ class LinearOperator(abc.ABC):
         trace : float
             Trace of the linear operator.
         """
-        raise NotImplementedError("_trace is not implemented.")
+        raise NotImplementedError()
 
     def trace(self) -> np.number:
         r"""Trace of the linear operator.
@@ -643,9 +643,9 @@ class LinearOperator(abc.ABC):
                     "The trace is only defined for square operators."
                 )
 
-            if self._is_implemented("_trace"):
+            try:
                 self.__trace_cache = self._trace()
-            else:
+            except NotImplementedError:
                 self.__trace_cache = self._trace_fallback()
 
         return self.__trace_cache
@@ -773,14 +773,16 @@ class LinearOperator(abc.ABC):
             Transpose of this linear operator, which is again
             a LinearOperator.
         """
-        raise NotImplementedError("_transpose is not implemented.")
+        raise NotImplementedError()
 
     @property
     def T(self) -> "LinearOperator":
-        if self._is_implemented("_transpose"):
-            return self._transpose()
+        try:
+            self._transpose_cache = self._transpose()
+        except NotImplementedError:
+            self._transpose_cache = TransposeLinearOperator(self)
 
-        return self._transpose_fallback()
+        return self._transpose_cache
 
     def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
         """Transpose this linear operator.
@@ -842,7 +844,7 @@ class LinearOperator(abc.ABC):
             Inverse of this linear operator, which is again
             a LinearOperator.
         """
-        raise NotImplementedError("_inverse is not implemented.")
+        raise NotImplementedError()
 
     def inv(self) -> "LinearOperator":
         """Inverse of the linear operator.
@@ -853,10 +855,12 @@ class LinearOperator(abc.ABC):
             Inverse of this linear operator, which is again
             a LinearOperator.
         """
-        if self._is_implemented("_inverse"):
-            return self._inverse()
-
-        return _InverseLinearOperator(self)
+        try:
+            self._inverse_cache = self._inverse()
+        except NotImplemented
+            self._inverse_cache =  _InverseLinearOperator(self)
+        
+        return self._inverse_cache
 
 
     def symmetrize(self) -> LinearOperator:
@@ -984,7 +988,7 @@ class LinearOperator(abc.ABC):
             A `np.ndarray` of shape `(..., M, K)` that is the result of
             `M = self @ other`.
         """
-        raise NotImplementedError("_matmul is not implemented.")
+        raise NotImplementedError()
 
     def __matmul__(
         self, other: BinaryOperandType
@@ -1287,7 +1291,11 @@ class LambdaLinearOperator(LinearOperator):
 
         self._todense_attr = todense
 
-        self._transpose_attr = transpose
+        self._transpose_attr = (
+            transpose
+            if transpose is not None
+            else TransposeLinearOperator(self, matmul=rmatmul)
+        )
         self._inverse_attr = inverse
 
         # Derived quantities
@@ -1303,8 +1311,7 @@ class LambdaLinearOperator(LinearOperator):
     def _is_implemented(self, method_name: str) -> bool:
         return getattr(self, method_name + "_attr") is not None
         
-    def _call_if_implemented(self, method_name: str):
-        method = getattr(self, method_name + "_attr")
+    def _call_if_implemented(self, method: Optional[callable]) -> callable:
         if method is not None:
             return method
         raise NotImplementedError()
