@@ -370,7 +370,7 @@ blockquote {
 
 .sphx-glr-thumbcontainer {
     background: rgba(var(--pst-color-background-lightgray));
-    min-height: 100px;
+    min-height: 120px;
     max-height: 200px;
     float: none;
     border: none;
@@ -382,14 +382,19 @@ blockquote {
 }
 
 .sphx-glr-thumbcontainer img {
-    vertical-align: middle;
-    max-height: 100px;
+    vertical-align: right;
+    max-height: 120px;
     max-width: 120px;
+    padding-top: 20px;
 }
 
 .sphx-glr-thumbcontainer a.internal {
     text-align: left;
-    padding: 10px 10px 10px 200px;
+    padding: 20px 10px 10px 20px;
+}
+
+.sphx-glr-thumbcontainer p a span {
+	display: flex;
 }
 
 /* ReadTheDocs */
