@@ -13,7 +13,7 @@ from . import _linear_operator
 # pylint: disable="too-many-statements"
 
 
-class Scaling(_linear_operator.LinearOperator):
+class Scaling(_linear_operator.LambdaLinearOperator):
     r"""Scaling linear operator.
 
     Creates a diagonal linear operator which (non-uniformly)
@@ -330,7 +330,7 @@ class Scaling(_linear_operator.LinearOperator):
         return Scaling(np.sqrt(self._factors))
 
 
-class Zero(_linear_operator.LinearOperator):
+class Zero(_linear_operator.LambdaLinearOperator):
     def __init__(self, shape, dtype=np.float64):
 
         matmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))

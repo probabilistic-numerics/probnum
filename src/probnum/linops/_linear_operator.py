@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Callable, Optional, Tuple, Union
+import abc
 
 import numpy as np
 import scipy.linalg
@@ -19,7 +20,7 @@ BinaryOperandType = Union[
 # pylint: disable="too-many-lines"
 
 
-class LinearOperator:
+class LinearOperator(abc.ABC):
     r"""Composite base class for finite-dimensional linear operators.
 
     This class provides a way to define finite-dimensional linear operators without
@@ -32,19 +33,21 @@ class LinearOperator:
     :class:`LinearOperator`, that defers linear operations to the original operators and
     combines the results.
 
-    To construct a concrete :class:`LinearOperator`, either pass appropriate callables
-    to the constructor of this class, or subclass it.
+    To construct a concrete :class:`LinearOperator`, subclass it and implement the
+    appropriate methods. The following methods may be implemented by a subclass:
+    ``_matmul`` (necessary), ``_rmatmul``, ``_apply``, ``_todense``, ``_transpose``,
+    ``_inverse``, ``_rank``, ``_eigvals``, ``_cond``, ``_det``, ``_logabsdet``,
+    ``_trace``.
+    Check the corresponding docstrings for more information.
 
-    A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and
-    the attributes/properties ``shape`` (pair of integers) and ``dtype`` (may be
-    ``None``). It may call the ``__init__`` on this class to have these attributes
-    validated. Implementing ``_matvec`` automatically implements ``_matmat`` (using a
-    naive algorithm) and vice-versa.
+    A subclass must implement the method ``_matmul`` and the attributes/properties 
+    ``shape`` (pair of integers) and ``dtype`` (may be ``None``).
+    It may call the ``__init__`` on this class to have these attributes
+    validated.
 
-    Optionally, a subclass may implement ``_rmatvec`` or ``_adjoint`` to implement the
-    Hermitian adjoint (conjugate transpose). As with ``_matvec`` and ``_matmat``,
-    implementing either ``_rmatvec`` or ``_adjoint`` implements the other automatically.
-    Implementing ``_adjoint`` is preferable; ``_rmatvec`` is mostly there for backwards
+    Optionally, a subclass may implement ``_rmatmul`` or ``_transpose`` to implement the
+    Hermitian adjoint (conjugate transpose).
+    Implementing ``_transpose`` is preferable; ``_rmatmul`` is mostly there for backwards
     compatibility.
 
     Parameters
@@ -79,24 +82,6 @@ class LinearOperator:
     See Also
     --------
     aslinop : Transform into a LinearOperator.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from probnum.linops import LinearOperator
-
-    >>> @LinearOperator.broadcast_matvec
-    ... def mv(v):
-    ...     return np.array([2 * v[0] - v[1], 3 * v[1]])
-
-    >>> A = LinearOperator(shape=(2, 2), dtype=np.float_, matmul=mv)
-    >>> A
-    <LinearOperator with shape=(2, 2) and dtype=float64>
-
-    >>> A @ np.array([1., 2.])
-    array([0., 6.])
-    >>> A @ np.ones(2)
-    array([1., 3.])
     """
 
     # pylint: disable=too-many-public-methods
@@ -105,21 +90,6 @@ class LinearOperator:
         self,
         shape: ShapeLike,
         dtype: DTypeLike,
-        *,
-        matmul: Callable[[np.ndarray], np.ndarray],
-        rmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-        apply: Callable[[np.ndarray, int], np.ndarray] = None,
-        todense: Optional[Callable[[], np.ndarray]] = None,
-        transpose: Optional[Callable[[np.ndarray], "LinearOperator"]] = None,
-        inverse: Optional[Callable[[], "LinearOperator"]] = None,
-        rank: Optional[Callable[[], np.intp]] = None,
-        eigvals: Optional[Callable[[], np.ndarray]] = None,
-        cond: Optional[
-            Callable[[Optional[Union[None, int, str, np.floating]]], np.number]
-        ] = None,
-        det: Optional[Callable[[], np.number]] = None,
-        logabsdet: Optional[Callable[[], np.flexible]] = None,
-        trace: Optional[Callable[[], np.number]] = None,
     ):
         self.__shape = probnum.utils.as_shape(shape, ndim=2)
 
@@ -132,29 +102,12 @@ class LinearOperator:
         if np.issubdtype(self.__dtype, np.complexfloating):
             raise TypeError("Linear operators do not support complex dtypes.")
 
-        self.__matmul = matmul  # (self @ x)
-        self.__rmatmul = rmatmul  # (x @ self)
-        self.__apply = apply  # __call__
-
-        self.__todense = todense
-
-        self.__transpose = transpose
-        self.__inverse = inverse
-
         # Matrix properties
         self._is_symmetric = None
         self._is_lower_triangular = None
         self._is_upper_triangular = None
 
         self._is_positive_definite = None
-
-        # Derived quantities
-        self.__rank = rank
-        self.__eigvals = eigvals
-        self.__cond = cond
-        self.__det = det
-        self.__logabsdet = logabsdet
-        self.__trace = trace
 
         # Caches
         self.__todense_cache = None
@@ -171,6 +124,11 @@ class LinearOperator:
         # Property inference
         if not self.is_square:
             self.is_symmetric = False
+
+    def _is_implemented(self, method_name: str) -> bool:
+        """Helper function to check if a method is implemented by the child class.
+        """
+        return getattr(self, method_name).__qualname__[:-len(method_name) - 1] != 'LinearOperator'
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -204,6 +162,30 @@ class LinearOperator:
             f"dtype={str(self.dtype)}>"
         )
 
+    def _apply(self, x: np.ndarray, axis: int) -> np.ndarray:
+        """Apply the linear operator to an input array along a specified
+        axis.
+        
+        You may implement this method in a subclass.
+        
+        Parameters
+        ----------
+        x : np.ndarray
+            Input array.
+        axis : int
+            Axis along which to apply the linear operator.
+            Guaranteed to be positive and valid, i.e. ``axis`` is a valid
+            index into the shape of ``x``, and ``x`` has the correct
+            shape along ``axis``.
+
+        Returns
+        -------
+        apply_result : np.ndarray
+            Array resulting in the application of the linear operator
+            to ``x`` along ``axis``.
+        """
+        raise NotImplementedError("_apply is not implemented.")
+
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
             raise np.AxisError(axis, ndim=x.ndim)
@@ -228,10 +210,10 @@ class LinearOperator:
             elif axis == (x.ndim - 2):
                 return self @ x
             else:
-                if self.__apply is None:
+                if not self._is_implemented("_apply"):
                     return np.moveaxis(self @ np.moveaxis(x, axis, -2), -2, axis)
 
-                return self.__apply(x, axis)
+                return self._apply(x, axis)
         else:
             raise ValueError("The operand must be at least one dimensional.")
 
@@ -282,6 +264,18 @@ class LinearOperator:
         else:
             return _TypeCastLinearOperator(self, dtype, order, casting, copy)
 
+    def _todense(self) -> np.ndarray:
+        """Dense matrix representation of the linear operator.
+
+        You may implement this method in a subclass.
+
+        Returns
+        -------
+        matrix : np.ndarray
+            Matrix representation of the linear operator.
+        """
+        raise NotImplementedError("_todense is not implemented.")
+        
     def todense(self, cache: bool = True) -> np.ndarray:
         """Dense matrix representation of the linear operator.
 
@@ -294,8 +288,8 @@ class LinearOperator:
             Matrix representation of the linear operator.
         """
         if self.__todense_cache is None:
-            if self.__todense is not None:
-                dense = self.__todense()
+            if self._is_implemented("_todense"):
+                dense = self._todense()
             else:
                 dense = self @ np.eye(self.shape[1], dtype=self.__dtype, order="F")
 
@@ -405,15 +399,29 @@ class LinearOperator:
     # Derived Quantities
     ####################################################################################
 
+    def _rank(self) -> np.intp:
+        """Rank of the linear operator.
+        
+        You may implement this method in a subclass.
+        """
+        raise NotImplementedError("_rank is not implemented.")
+
     def rank(self) -> np.intp:
         """Rank of the linear operator."""
         if self.__rank_cache is None:
-            if self.__rank is not None:
-                self.__rank_cache = self.__rank()
+            if self._is_implemented("_rank"):
+                self.__rank_cache = self._rank()
             else:
                 self.__rank_cache = np.linalg.matrix_rank(self.todense(cache=False))
 
         return self.__rank_cache
+
+    def _eigvals(self) -> np.ndarray:
+        """Eigenvalue spectrum of the linear operator.
+        
+        You may implement this method in a subclass.
+        """
+        raise NotImplementedError("_eigvals is not implemented.")
 
     def eigvals(self) -> np.ndarray:
         """Eigenvalue spectrum of the linear operator."""
@@ -423,14 +431,47 @@ class LinearOperator:
                     "Eigenvalues are only defined for square operators"
                 )
 
-            if self.__eigvals is not None:
-                self.__eigvals_cache = self.__eigvals()
+            if self._is_implemented("_eigvals"):
+                self.__eigvals_cache = self._eigvals()
             else:
                 self.__eigvals_cache = np.linalg.eigvals(self.todense(cache=False))
 
             self.__eigvals_cache.setflags(write=False)
 
         return self.__eigvals_cache
+
+    def _cond(self, p: Optional[Union[None, int, str, np.floating]] = None) -> np.number:
+        """Compute the condition number of the linear operator.
+
+        The condition number of the linear operator with respect to the ``p`` norm. It
+        measures how much the solution :math:`x` of the linear system :math:`Ax=b`
+        changes with respect to small changes in :math:`b`.
+
+        The linear operator is guaranteed to be square.
+
+        You may implement this method in a subclass.
+
+        Parameters
+        ----------
+        p : {None, 1, , 2, , inf, 'fro'}, optional
+            Order of the norm:
+
+            =======  ============================
+            p        norm for matrices
+            =======  ============================
+            None     2-norm, computed directly via singular value decomposition
+            'fro'    Frobenius norm
+            np.inf   max(sum(abs(x), axis=1))
+            1        max(sum(abs(x), axis=0))
+            2        2-norm (largest sing. value)
+            =======  ============================
+
+        Returns
+        -------
+        cond :
+            The condition number of the linear operator. May be infinite.
+        """
+        raise NotImplementedError("_cond is not implemented.")
 
     def cond(self, p=None) -> np.inexact:
         """Compute the condition number of the linear operator.
@@ -458,6 +499,11 @@ class LinearOperator:
         -------
         cond :
             The condition number of the linear operator. May be infinite.
+
+        Raises
+        ------
+        LinAlgError :
+            If :meth:`cond` is called on a non-square matrix.
         """
         if p not in self.__cond_cache:
             if not self.is_square:
@@ -465,38 +511,88 @@ class LinearOperator:
                     "The condition number is only defined for square operators"
                 )
 
-            if self.__cond is not None:
-                self.__cond_cache[p] = self.__cond(p)
+            if self._is_implemented("_cond"):
+                self.__cond_cache[p] = self._cond(p)
             else:
                 self.__cond_cache[p] = np.linalg.cond(self.todense(cache=False), p=p)
 
         return self.__cond_cache[p]
 
+    def _det(self) -> np.number:
+        """Determinant of the linear operator.
+        
+        The linear operator is guaranteed to be square.
+
+        You may implement this method in a subclass.
+
+        Returns
+        -------
+        det :
+            The determinant of the linear operator.
+        """
+        raise NotImplementedError("_det is not implemented.")
+
     def det(self) -> np.inexact:
-        """Determinant of the linear operator."""
+        """Determinant of the linear operator.
+        
+        Returns
+        -------
+        det :
+            The determinant of the linear operator.
+
+        Raises
+        ------
+        LinAlgError :
+            If :meth:`det` is called on a non-square matrix.
+        """
         if self.__det_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
                     "The determinant is only defined for square operators"
                 )
 
-            if self.__det is not None:
-                self.__det_cache = self.__det()
+            if self._is_implemented("_det"):
+                self.__det_cache = self._det()
             else:
                 self.__det_cache = np.linalg.det(self.todense(cache=False))
 
         return self.__det_cache
 
+    def _logabsdet(self) -> np.flexible:
+        """Log absolute determinant of the linear operator.
+        
+        The linear operator is guaranteed to be square.
+
+        You may implement this method in a subclass.
+
+        Returns
+        -------
+        logabsdet :
+            The log absolute determinant of the linear operator.
+        """
+        raise NotImplementedError("_logabsdet is not implemented.")
+
     def logabsdet(self) -> np.inexact:
-        """Log absolute determinant of the linear operator."""
+        """Log absolute determinant of the linear operator.
+        
+        Returns
+        -------
+        logabsdet :
+            The log absolute determinant of the linear operator.
+
+        Raises
+        ------
+        LinAlgError :
+            If :meth:`logabsdet` is called on a non-square matrix.
+        """
         if self.__logabsdet_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
                     "The determinant is only defined for square operators"
                 )
 
-            if self.__logabsdet is not None:
-                self.__logabsdet_cache = self.__logabsdet()
+            if self._is_implemented("_logabsdet"):
+                self.__logabsdet_cache = self._logabsdet()
             else:
                 self.__logabsdet_cache = self._logabsdet_fallback()
 
@@ -507,6 +603,23 @@ class LinearOperator:
             return probnum.utils.as_numpy_scalar(-np.inf, dtype=self._inexact_dtype)
         else:
             return np.log(np.abs(self.det()))
+
+    def _trace(self) -> np.number:
+        r"""Trace of the linear operator.
+
+        Computes the trace of a square linear operator :math:`\text{tr}(A) =
+        \sum_{i-1}^n A_{ii}`.
+
+        The linear operator is guaranteed to be square.
+
+        You may implement this method in a subclass.
+
+        Returns
+        -------
+        trace : float
+            Trace of the linear operator.
+        """
+        raise NotImplementedError("_trace is not implemented.")
 
     def trace(self) -> np.number:
         r"""Trace of the linear operator.
@@ -530,8 +643,8 @@ class LinearOperator:
                     "The trace is only defined for square operators."
                 )
 
-            if self.__trace is not None:
-                self.__trace_cache = self.__trace()
+            if self._is_implemented("_trace"):
+                self.__trace_cache = self._trace()
             else:
                 self.__trace_cache = self._trace_fallback()
 
@@ -649,12 +762,25 @@ class LinearOperator:
 
         return NegatedLinearOperator(self)
 
+    def _transpose(self) -> "LinearOperator":
+        """Transpose of this linear operator.
+
+        You may implement this method in a subclass.
+
+        Returns
+        -------
+        transpose : LinearOperator
+            Transpose of this linear operator, which is again
+            a LinearOperator.
+        """
+        raise NotImplementedError("_transpose is not implemented.")
+
     @property
     def T(self) -> "LinearOperator":
-        if self.__transpose is None:
-            return self._transpose_fallback()
+        if self._is_implemented("_transpose"):
+            return self._transpose()
 
-        return self.__transpose()
+        return self._transpose_fallback()
 
     def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
         """Transpose this linear operator.
@@ -697,20 +823,41 @@ class LinearOperator:
         return self.T
 
     def _transpose_fallback(self) -> "LinearOperator":
-        if self.__rmatmul is not None:
+        if self._is_implemented("_rmatmul"):
             return TransposedLinearOperator(
                 self,
-                matmul=lambda x: self.__rmatmul(x[..., np.newaxis])[..., :],
+                matmul=lambda x: self._rmatmul(x[..., np.newaxis])[..., :],
             )
 
         return TransposedLinearOperator(self)
 
-    def inv(self) -> "LinearOperator":
-        """Inverse of the linear operator."""
-        if self.__inverse is None:
-            return _InverseLinearOperator(self)
+    def _inverse(self) -> "LinearOperator":
+        """Inverse of this linear operator.
 
-        return self.__inverse()
+        You may implement this method in a subclass.
+
+        Returns
+        -------
+        inv : LinearOperator
+            Inverse of this linear operator, which is again
+            a LinearOperator.
+        """
+        raise NotImplementedError("_inverse is not implemented.")
+
+    def inv(self) -> "LinearOperator":
+        """Inverse of the linear operator.
+        
+        Returns
+        -------
+        inv : LinearOperator
+            Inverse of this linear operator, which is again
+            a LinearOperator.
+        """
+        if self._is_implemented("_inverse"):
+            return self._inverse()
+
+        return _InverseLinearOperator(self)
+
 
     def symmetrize(self) -> LinearOperator:
         """Compute or approximate the closest symmetric :class:`LinearOperator` in the
@@ -814,24 +961,51 @@ class LinearOperator:
             and self.dtype == other.dtype
         )
 
+    @abc.abstractmethod
+    def _matmul(self, other: np.ndarray) -> np.ndarray:
+        """Matrix multiplication.
+
+        Performs the operation `M = self @ other` where `self` is 
+        an MxN linear operator and `other` is a stack of matrices
+        of shape `(..., N, K)`.
+
+        The shapes are guaranteed to be correct.
+
+        You must implement this method in a subclass.
+
+        Parameters
+        ----------
+        other :
+            A stack of matrices of shape `(..., N, K)`.
+
+        Returns
+        -------
+        M :
+            A `np.ndarray` of shape `(..., M, K)` that is the result of
+            `M = self @ other`.
+        """
+        raise NotImplementedError("_matmul is not implemented.")
+
     def __matmul__(
         self, other: BinaryOperandType
     ) -> Union["LinearOperator", np.ndarray]:
         """Matrix-vector multiplication.
 
-        Performs the operation `y = self @ x` where `self` is an MxN linear operator
-        and `x` is a 1-d array or random variable.
+        Performs the operation `y = self @ x` where `self` is 
+        an MxN linear operator and `x` is a 1-d array or random variable.
 
         Parameters
         ----------
         x :
             An array or `RandomVariable` with shape `(N,)` or `(N, 1)`.
+
         Returns
         -------
         y :
             A `np.matrix` or `np.ndarray` or `RandomVariable` with
             shape `(M,)` or `(M, 1)`,depending on the type and
             shape of the x argument.
+            
         Notes
         -----
         This matvec wraps the user-specified matvec routine or overridden
@@ -844,12 +1018,12 @@ class LinearOperator:
             M, N = self.shape
 
             if x.ndim == 1 and x.shape == (N,):
-                y = self.__matmul(x[:, np.newaxis])[:, 0]
+                y = self._matmul(x[:, np.newaxis])[:, 0]
 
                 assert y.ndim == 1
                 assert y.shape == (M,)
             elif x.ndim > 1 and x.shape[-2] == N:
-                y = self.__matmul(x)
+                y = self._matmul(x)
 
                 assert y.ndim > 1
                 assert y.shape == x.shape[:-2] + (M, x.shape[-1])
@@ -865,6 +1039,30 @@ class LinearOperator:
 
             return matmul(self, other)
 
+    def _rmatmul(self, other: np.ndarray) -> np.ndarray:
+        """Matrix multiplication from the right.
+
+        Performs the operation `M = other @ self` where `self` is 
+        an MxN linear operator and `other` is a stack of matrices of 
+        shape `(..., K, M)`.
+
+        The shapes are guaranteed to be correct.
+
+        You may implement this method in a subclass.
+
+        Parameters
+        ----------
+        other :
+            A stack of matrices of shape `(..., K, M)`.
+
+        Returns
+        -------
+        M :
+            A `np.ndarray` of shape `(..., K, N)` that is the result of
+            `M = other @ self`.
+        """
+        raise NotImplementedError("_rmatmul is not implemented.")
+
     def __rmatmul__(
         self, other: BinaryOperandType
     ) -> Union["LinearOperator", np.ndarray]:
@@ -874,11 +1072,11 @@ class LinearOperator:
             M, N = self.shape
 
             if x.ndim >= 1 and x.shape[-1] == M:
-                if self.__rmatmul is not None:
+                if self._is_implemented("_rmatmul"):
                     if x.ndim == 1:
-                        y = self.__rmatmul(x[np.newaxis, :])[0, :]
+                        y = self._rmatmul(x[np.newaxis, :])[0, :]
                     else:
-                        y = self.__rmatmul(x)
+                        y = self._rmatmul(x)
                 else:
                     y = (self.T)(x, axis=-1)
             else:
@@ -992,7 +1190,163 @@ def _apply_to_matrix_stack(
     return y
 
 
-class TransposedLinearOperator(LinearOperator):
+class LambdaLinearOperator(LinearOperator):
+    r"""Convenience subclass of LinearOperator that lets you pass
+    implementations of its methods as parameters instead of
+    overriding them in a subclass.
+
+    ``shape``, ``dtype`` and ``matmul`` must be passed, the other
+    parameters are optional.
+
+    Parameters
+    ----------
+    shape
+        Matrix dimensions `(M, N)`.
+    dtype
+        Data type of the operator.
+    matmul
+        Callable which computes the matrix-matrix product :math:`y = A V`, where
+        :math:`A` is the linear operator and :math:`V` is an :math:`N \times K` matrix.
+        The callable must support broadcasted matrix products, i.e. the argument
+        :math:`V` might also be a stack of matrices in which case the broadcasting rules
+        of :func:`np.matmul` must apply.
+        Note that the argument to this callable is guaranteed to have at least two
+        dimensions.
+    rmatmul
+        Callable which implements the matrix-matrix product, i.e. :math:`A @ V`, where
+        :math:`A` is the linear operator and :math:`V` is a matrix of shape `(N, K)`.
+    apply
+        Callable which implements the application of the linear operator to an input
+        array along a specified axis.
+    todense
+        Callable which returns a dense matrix representation of the linear operator as a
+        :class:`np.ndarray`. The output of this function must be equivalent to the
+        output of :code:`A.matmat(np.eye(N, dtype=A.dtype))`.
+    transpose
+        Callable which returns a LinearOperator that corresponds to the 
+        transpose of this linear operator.
+    inverse
+        Callable which returns a LinearOperator that corresponds to the 
+        inverse of this linear operator.
+    rank
+        Callable which returns the rank of this linear operator.
+    eigvals
+        Callable which returns the eigenvalues of this linear operator.
+    cond
+        Callable which returns the condition number of this 
+        linear operator.
+    det
+        Callable which returns the determinant of this linear operator.
+    logabsdet
+        Callable which returns the log absolute determinant of this 
+        linear operator.
+    trace
+        Callable which returns the trace of this linear operator.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum.linops import LambdaLinearOperator, LinearOperator
+
+    >>> @LinearOperator.broadcast_matvec
+    ... def mv(v):
+    ...     return np.array([2 * v[0] - v[1], 3 * v[1]])
+
+    >>> A = LambdaLinearOperator(shape=(2, 2), dtype=np.float_, matmul=mv)
+    >>> A
+    <LambdaLinearOperator with shape=(2, 2) and dtype=float64>
+
+    >>> A @ np.array([1., 2.])
+    array([0., 6.])
+    >>> A @ np.ones(2)
+    array([1., 3.])
+    """
+    def __init__(
+        self,
+        shape: ShapeLike,
+        dtype: DTypeLike,
+        *,
+        matmul: Callable[[np.ndarray], np.ndarray],
+        rmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        apply: Callable[[np.ndarray, int], np.ndarray] = None,
+        todense: Optional[Callable[[], np.ndarray]] = None,
+        transpose: Optional[Callable[[np.ndarray], "LinearOperator"]] = None,
+        inverse: Optional[Callable[[], "LinearOperator"]] = None,
+        rank: Optional[Callable[[], np.intp]] = None,
+        eigvals: Optional[Callable[[], np.ndarray]] = None,
+        cond: Optional[
+            Callable[[Optional[Union[None, int, str, np.floating]]], np.number]
+        ] = None,
+        det: Optional[Callable[[], np.number]] = None,
+        logabsdet: Optional[Callable[[], np.flexible]] = None,
+        trace: Optional[Callable[[], np.number]] = None,
+    ):
+        self._matmul_attr = matmul  # (self @ x)
+        self._rmatmul_attr = rmatmul  # (x @ self)
+        self._apply_attr = apply  # __call__
+
+        self._todense_attr = todense
+
+        self._transpose_attr = transpose
+        self._inverse_attr = inverse
+
+        # Derived quantities
+        self._rank_attr = rank
+        self._eigvals_attr = eigvals
+        self._cond_attr = cond
+        self._det_attr = det
+        self._logabsdet_attr = logabsdet
+        self._trace_attr = trace
+
+        super().__init__(shape, dtype)
+    
+    def _is_implemented(self, method_name: str) -> bool:
+        return getattr(self, method_name + "_attr") is not None
+        
+    def _call_if_implemented(self, method_name: str):
+        method = getattr(self, method_name + "_attr")
+        if method is not None:
+            return method
+        raise NotImplementedError()
+
+    def _matmul(self, other: np.ndarray) -> np.ndarray:
+        return self._matmul_attr(other)
+
+    def _rmatmul(self, other: np.ndarray) -> np.ndarray:
+        return self._call_if_implemented("_rmatmul")(other)
+
+    def _apply(self, x: np.ndarray, axis: int) -> np.ndarray:
+        return self._call_if_implemented("_apply")(x, axis)
+    
+    def _todense(self) -> np.ndarray:
+        return self._call_if_implemented("_todense")()
+    
+    def _transpose(self) -> "LinearOperator":
+        return self._call_if_implemented("_transpose")()
+    
+    def _inverse(self) -> "LinearOperator":
+        return self._call_if_implemented("_inverse")()
+    
+    def _rank(self) -> np.intp:
+        return self._call_if_implemented("_rank")()
+
+    def _eigvals(self) -> np.ndarray:
+        return self._call_if_implemented("_eigvals")()
+    
+    def _cond(self, p: Optional[Union[None, int, str, np.floating]] = None) -> np.number:
+        return self._call_if_implemented("_cond")(p)
+    
+    def _det(self) -> np.number:
+        return self._call_if_implemented("_det")()
+    
+    def _logabsdet(self) -> np.flexible:
+        return self._call_if_implemented("_logabsdet")()
+    
+    def _trace(self) -> np.number:
+        return self._call_if_implemented("_trace")()
+
+
+class TransposedLinearOperator(LambdaLinearOperator):
     """Transposition of a linear operator."""
 
     def __init__(
@@ -1041,7 +1395,7 @@ class TransposedLinearOperator(LinearOperator):
         return super().cholesky(lower)
 
 
-class _InverseLinearOperator(LinearOperator):
+class _InverseLinearOperator(LambdaLinearOperator):
     def __init__(self, linop: LinearOperator):
         if not linop.is_square:
             raise np.linalg.LinAlgError("Only square operators can be inverted.")
@@ -1132,7 +1486,7 @@ class _InverseLinearOperator(LinearOperator):
         return lu, piv
 
 
-class _TypeCastLinearOperator(LinearOperator):
+class _TypeCastLinearOperator(LambdaLinearOperator):
     def __init__(
         self,
         linop: LinearOperator,
@@ -1187,7 +1541,7 @@ class _TypeCastLinearOperator(LinearOperator):
             return _TypeCastLinearOperator(self, dtype, order, casting, copy)
 
 
-class Matrix(LinearOperator):
+class Matrix(LambdaLinearOperator):
     """A linear operator defined via a matrix.
 
     Parameters
@@ -1279,7 +1633,7 @@ class Matrix(LinearOperator):
         return Matrix(0.5 * (self.A + self.A.T))
 
 
-class Identity(LinearOperator):
+class Identity(LambdaLinearOperator):
     """The identity operator.
 
     Parameters
@@ -1358,7 +1712,7 @@ class Identity(LinearOperator):
         return self
 
 
-class Selection(LinearOperator):
+class Selection(LambdaLinearOperator):
     def __init__(self, indices, shape, dtype=np.double):
         if np.ndim(indices) > 1:
             raise ValueError(
@@ -1399,7 +1753,7 @@ def _selection_matmul(indices, M):
     return np.take(M, indices=indices, axis=-2)
 
 
-class Embedding(LinearOperator):
+class Embedding(LambdaLinearOperator):
     def __init__(
         self, take_indices, put_indices, shape, fill_value=0.0, dtype=np.double
     ):

@@ -10,7 +10,7 @@ from probnum.typing import DTypeLike, LinearOperatorLike, NotImplementedType
 from . import _linear_operator, _utils
 
 
-class Symmetrize(_linear_operator.LinearOperator):
+class Symmetrize(_linear_operator.LambdaLinearOperator):
     r"""Symmetrizes a vector in its matrix representation.
 
     Given a vector :math:`x=\operatorname{vec}(X)`
@@ -65,7 +65,7 @@ class Symmetrize(_linear_operator.LinearOperator):
         )
 
 
-class Kronecker(_linear_operator.LinearOperator):
+class Kronecker(_linear_operator.LambdaLinearOperator):
     """Kronecker product of two linear operators.
 
     The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A`
@@ -282,7 +282,7 @@ def _kronecker_rmatmul(
     return y
 
 
-class SymmetricKronecker(_linear_operator.LinearOperator):
+class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
     """Symmetric Kronecker product of two linear operators.
 
     The symmetric Kronecker product [1]_ :math:`A \\otimes_{s} B` of two square linear
@@ -498,7 +498,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         return SymmetricKronecker(A=self.A.symmetrize(), B=self.B.symmetrize())
 
 
-class IdentityKronecker(_linear_operator.LinearOperator):
+class IdentityKronecker(_linear_operator.LambdaLinearOperator):
     """Block-diagonal linear operator.
 
     Parameters

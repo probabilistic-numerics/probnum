@@ -13,7 +13,7 @@ Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate o
 """
 
 from ._kronecker import IdentityKronecker, Kronecker, SymmetricKronecker, Symmetrize
-from ._linear_operator import Embedding, Identity, LinearOperator, Matrix, Selection
+from ._linear_operator import Embedding, Identity, LinearOperator, LambdaLinearOperator, Matrix, Selection
 from ._scaling import Scaling, Zero
 from ._utils import LinearOperatorLike, aslinop
 
@@ -22,6 +22,7 @@ __all__ = [
     "aslinop",
     "Embedding",
     "LinearOperator",
+    "LambdaLinearOperator",
     "Matrix",
     "Identity",
     "IdentityKronecker",
@@ -35,6 +36,7 @@ __all__ = [
 
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearOperator.__module__ = "probnum.linops"
+LambdaLinearOperator.__module__ = "probnum.linops"
 Embedding.__module__ = "probnum.linops"
 Matrix.__module__ = "probnum.linops"
 Identity.__module__ = "probnum.linops"
