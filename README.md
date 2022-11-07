@@ -30,9 +30,9 @@ differential equations. ProbNum solvers not only estimate the solution of the nu
 
 Currently, available solvers are:
 
-- **Linear solvers:** Solve *Ax = b* for *x*.
-- **ODE solvers:** Solve *&#7823;(t) = f(&#8201;y(t), t&#8201;)* for *y*.
-- **Integral solvers (quadrature):** Solve *F = &#x222b; f(x)&#8201;p(x)&#8201;dx* for *F*.
+- **Linear solvers:** Solve $A x = b$ for $x$.
+- **ODE solvers:** Solve $\dot{y}(t) = f(y(t), t)$ for $y$.
+- **Integral solvers (quadrature):** Solve $F = \int_D f(x) \mathrm{d}p(x)$ for $F$.
 
 Lower level structure includes:
 

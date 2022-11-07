@@ -47,7 +47,8 @@ class StoppingCriterion(abc.ABC):
     ...     def __call__(self, solver_state) -> bool:
     ...         return solver_state.rtol < self.rtol
 
-    Now let's combine them by stopping when the solver has reached an absolute and relative tolerance, or a maximum number of iterations.
+    Now let's combine them by stopping when the solver has reached
+    an absolute and relative tolerance, or a maximum number of iterations.
 
     >>> stopcrit = MaxIterations(maxiters=100) | (
     ...     AbsoluteResidualTolerance(atol=1e-6)
@@ -57,7 +58,8 @@ class StoppingCriterion(abc.ABC):
     >>> stopcrit(state)
     False
 
-    Now let's modify the state such that the solver has reached a maximum number of iterations.
+    Now let's modify the state such that the solver has reached
+    a maximum number of iterations.
 
     >>> state.iters = 1000
     >>> stopcrit(state)
@@ -66,8 +68,10 @@ class StoppingCriterion(abc.ABC):
     See Also
     --------
     LambdaStoppingCriterion : Stopping criterion defined via an anonymous function.
-    ~probnum.linalg.solvers.stopping_criteria.LinearSolverStoppingCriterion : Stopping criterion of a probabilistic linear solver.
-    ~probnum.filtsmooth.optim.FiltSmoothStoppingCriterion : Stopping criterion of filters and smoothers.
+    ~probnum.linalg.solvers.stopping_criteria.LinearSolverStoppingCriterion : Stopping
+        criterion of a probabilistic linear solver.
+    ~probnum.filtsmooth.optim.FiltSmoothStoppingCriterion : Stopping criterion of
+        filters and smoothers.
     """
 
     @abc.abstractmethod

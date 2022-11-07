@@ -8,7 +8,7 @@ from probnum import randvars
 from probnum.typing import ArrayLike
 
 from . import _random_process, kernels
-from .. import _function
+from .. import functions
 
 
 class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
@@ -35,7 +35,7 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
     Define a Gaussian process with a zero mean function and RBF kernel.
 
     >>> import numpy as np
-    >>> from probnum.randprocs.mean_fns import Zero
+    >>> from probnum.functions import Zero
     >>> from probnum.randprocs.kernels import ExpQuad
     >>> from probnum.randprocs import GaussianProcess
     >>> mu = Zero(input_shape=())  # zero-mean function
@@ -58,10 +58,10 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
 
     def __init__(
         self,
-        mean: _function.Function,
+        mean: functions.Function,
         cov: kernels.Kernel,
     ):
-        if not isinstance(mean, _function.Function):
+        if not isinstance(mean, functions.Function):
             raise TypeError("The mean function must have type `probnum.Function`.")
 
         super().__init__(

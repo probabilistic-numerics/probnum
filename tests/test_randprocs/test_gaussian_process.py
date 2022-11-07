@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from probnum import randprocs, randvars
-from probnum.randprocs import kernels, mean_fns
+from probnum import functions, randprocs, randvars
+from probnum.randprocs import kernels
 
 
 def test_mean_not_function_raises_error():
@@ -20,20 +20,20 @@ def test_cov_not_kernel_raises_error():
     TypeError."""
     with pytest.raises(TypeError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(1,), output_shape=(1,)), cov=np.dot
+            mean=functions.Zero(input_shape=(1,), output_shape=(1,)), cov=np.dot
         )
 
 
 def test_mean_kernel_shape_mismatch_raises_error():
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2,), output_shape=(1,)),
+            mean=functions.Zero(input_shape=(2,), output_shape=(1,)),
             cov=kernels.ExpQuad(input_shape=(3,)),
         )
 
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2,), output_shape=(2,)),
+            mean=functions.Zero(input_shape=(2,), output_shape=(2,)),
             cov=kernels.ExpQuad(input_shape=(2,)),
         )
 
@@ -41,13 +41,13 @@ def test_mean_kernel_shape_mismatch_raises_error():
 def test_mean_wrong_input_shape_raises_error():
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2, 2), output_shape=(1,)),
+            mean=functions.Zero(input_shape=(2, 2), output_shape=(1,)),
             cov=kernels.ExpQuad(input_shape=(2,)),
         )
 
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2,), output_shape=(2, 1)),
+            mean=functions.Zero(input_shape=(2,), output_shape=(2, 1)),
             cov=kernels.ExpQuad(input_shape=(2,)),
         )
 

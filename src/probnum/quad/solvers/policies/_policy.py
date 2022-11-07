@@ -21,6 +21,7 @@ class Policy(abc.ABC):
     def __init__(self, batch_size: int) -> None:
         self.batch_size = batch_size
 
+    @abc.abstractmethod
     def __call__(self, bq_state: BQState) -> np.ndarray:
         """Find nodes according to the policy.
 
