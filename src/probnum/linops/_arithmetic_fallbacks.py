@@ -10,14 +10,14 @@ import numpy as np
 from probnum.typing import NotImplementedType, ScalarLike
 import probnum.utils
 
-from ._linear_operator import BinaryOperandType, LinearOperator
+from ._linear_operator import BinaryOperandType, LambdaLinearOperator, LinearOperator
 
 ########################################################################################
 # Generic Linear Operator Arithmetic (Fallbacks)
 ########################################################################################
 
 
-class ScaledLinearOperator(LinearOperator):
+class ScaledLinearOperator(LambdaLinearOperator):
     """Linear operator scaled with a scalar."""
 
     def __init__(self, linop: LinearOperator, scalar: ScalarLike):
@@ -81,7 +81,7 @@ class NegatedLinearOperator(ScaledLinearOperator):
         return f"-{self._linop}"
 
 
-class SumLinearOperator(LinearOperator):
+class SumLinearOperator(LambdaLinearOperator):
     """Sum of linear operators."""
 
     def __init__(self, *summands: LinearOperator):
@@ -166,7 +166,7 @@ def _mul_fallback(
     return res
 
 
-class ProductLinearOperator(LinearOperator):
+class ProductLinearOperator(LambdaLinearOperator):
     """(Operator) Product of linear operators."""
 
     def __init__(self, *factors: LinearOperator):

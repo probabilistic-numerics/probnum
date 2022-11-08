@@ -26,7 +26,7 @@ def case_matvec(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarra
     def _matmul(vec: np.ndarray):
         return matrix @ vec
 
-    linop = pn.linops.LinearOperator(
+    linop = pn.linops.LambdaLinearOperator(
         shape=matrix.shape, dtype=matrix.dtype, matmul=_matmul
     )
 
@@ -40,7 +40,7 @@ def case_matvec_spd(matrix: np.ndarray):
     def _matmul(vec: np.ndarray):
         return matrix @ vec
 
-    linop = pn.linops.LinearOperator(
+    linop = pn.linops.LambdaLinearOperator(
         shape=matrix.shape, dtype=matrix.dtype, matmul=_matmul
     )
 

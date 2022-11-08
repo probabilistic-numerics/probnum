@@ -125,7 +125,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         def _matmul(v):
             return np.array([2 * v[0], 3 * v[1]])
 
-        A = linops.LinearOperator(shape=(2, 2), dtype=np.double, matmul=_matmul)
+        A = linops.LambdaLinearOperator(shape=(2, 2), dtype=np.double, matmul=_matmul)
         V = linops.Kronecker(A, A)
         randvars.Normal(mean=A, cov=V)
 
