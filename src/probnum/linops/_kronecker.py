@@ -136,7 +136,6 @@ class Kronecker(_linear_operator.LambdaLinearOperator):
                 self.A.shape[1] * self.B.shape[1],
             ),
             matmul=lambda x: _kronecker_matmul(self.A, self.B, x),
-            rmatmul=lambda x: _kronecker_rmatmul(self.A, self.B, x),
             todense=lambda: np.kron(
                 self.A.todense(cache=False), self.B.todense(cache=False)
             ),
@@ -260,28 +259,6 @@ def _kronecker_matmul(
     return y
 
 
-def _kronecker_rmatmul(
-    A: _linear_operator.LinearOperator,
-    B: _linear_operator.LinearOperator,
-    x: np.ndarray,
-) -> np.ndarray:
-    # Reshape into stack of matrices
-    y = x
-
-    if not y.flags.c_contiguous:
-        y = y.copy(order="C")
-
-    y = y.reshape(y.shape[:-1] + (A.shape[0], B.shape[0]))
-
-    # ((A.T) @ X) @ (B.T).T
-    y = (A.T @ y) @ B
-
-    # Revert to stack of vectorized matrices
-    y = y.reshape(y.shape[:-2] + (-1,))
-
-    return y
-
-
 class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
     """Symmetric Kronecker product of two linear operators.
 
@@ -337,7 +314,6 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
 
             dtype = self.A.dtype
             matmul = lambda x: _kronecker_matmul(self.A, self.A, x)
-            rmatmul = lambda x: _kronecker_rmatmul(self.A, self.A, x)
             todense = self._todense_identical_factors
             # (A (x)_s A)^T = A^T (x)_s A^T
             transpose = lambda: SymmetricKronecker(A=self.A.T)
@@ -357,7 +333,6 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
 
             dtype = np.result_type(self.A.dtype, self.B.dtype, 0.5)
             matmul = self._matmul_different_factors
-            rmatmul = self._rmatmul_different_factors
             todense = self._todense_different_factors
             # (A (x)_s B)^T = A^T (x)_s B^T
             transpose = lambda: SymmetricKronecker(A=self.A.T, B=self.B.T)
@@ -371,7 +346,6 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
             dtype=dtype,
             shape=2 * (self._n**2,),
             matmul=matmul,
-            rmatmul=rmatmul,
             todense=todense,
             transpose=transpose,
             inverse=inverse,
@@ -438,29 +412,6 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
         # Revert to stack of vectorized matrices
         y = y.reshape(y.shape[:-2] + (-1,))
         y = np.swapaxes(y, -1, -2)
-
-        return y
-
-    def _rmatmul_different_factors(self, x: np.ndarray) -> np.ndarray:
-        # Reshape into stack of matrices
-        y = x
-
-        if not y.flags.c_contiguous:
-            y = y.copy(order="C")
-
-        y = y.reshape(y.shape[:-1] + (self._n, self._n))
-
-        # (A.T) @ X @ (B.T).T
-        y1 = (self.A.T @ y) @ self.B
-
-        # (B.T) @ X @ (A.T).T
-        y2 = (self.B.T @ y) @ self.A
-
-        # 1/2 ((A^T)X(B^T)^T + (B^T)X(A^T)^T)
-        y = 0.5 * (y1 + y2)
-
-        # Revert to stack of vectorized matrices
-        y = y.reshape(y.shape[:-2] + (-1,))
 
         return y
 
@@ -531,9 +482,6 @@ class IdentityKronecker(_linear_operator.LambdaLinearOperator):
                 num_blocks * self.B.shape[1],
             ),
             matmul=lambda x: _kronecker_matmul(
-                self.A, self.B, x
-            ),  # TODO: can be implemented more efficiently
-            rmatmul=lambda x: _kronecker_rmatmul(
                 self.A, self.B, x
             ),  # TODO: can be implemented more efficiently
             todense=lambda: np.kron(
