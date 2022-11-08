@@ -1019,7 +1019,7 @@ class LinearOperator(abc.ABC):
             return matmul(other, self)
 
     ####################################################################################
-    # Automatic `(r)mat{vec,mat}`` to `(r)matmul` Broadcasting
+    # Automatic `mat{vec,mat}`` to `matmul` Broadcasting
     ####################################################################################
 
     @classmethod
@@ -1059,30 +1059,6 @@ class LinearOperator(abc.ABC):
             return _apply_to_matrix_stack(matmat, x)
 
         return _matmul
-
-    @classmethod
-    def broadcast_rmatvec(
-        cls, rmatvec: Callable[[np.ndarray], np.ndarray]
-    ) -> Callable[[np.ndarray], np.ndarray]:
-        def _rmatmul(x: np.ndarray) -> np.ndarray:
-            if x.ndim == 2 and x.shape[0] == 1:
-                return rmatvec(x[0, :])[np.newaxis, :]
-
-            return np.apply_along_axis(rmatvec, -1, x)
-
-        return _rmatmul
-
-    @classmethod
-    def broadcast_rmatmat(
-        cls, rmatmat: Callable[[np.ndarray], np.ndarray]
-    ) -> Callable[[np.ndarray], np.ndarray]:
-        def _rmatmul(x: np.ndarray) -> np.ndarray:
-            if x.ndim == 2:
-                return rmatmat(x)
-
-            return _apply_to_matrix_stack(rmatmat, x)
-
-        return _rmatmul
 
     @property
     def _inexact_dtype(self) -> np.dtype:
@@ -1495,7 +1471,6 @@ class Matrix(LambdaLinearOperator):
             dtype = self.A.dtype
 
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
-            rmatmul = LinearOperator.broadcast_rmatmat(lambda x: x @ self.A)
             todense = self.A.toarray
             inverse = self._sparse_inv
             trace = lambda: self.A.diagonal().sum()
@@ -1506,7 +1481,6 @@ class Matrix(LambdaLinearOperator):
             dtype = self.A.dtype
 
             matmul = lambda x: self.A @ x
-            rmatmul = lambda x: x @ self.A
             todense = lambda: self.A
             inverse = None
             trace = lambda: np.trace(self.A)
@@ -1517,7 +1491,6 @@ class Matrix(LambdaLinearOperator):
             shape,
             dtype,
             matmul=matmul,
-            rmatmul=rmatmul,
             todense=todense,
             transpose=transpose,
             inverse=inverse,
