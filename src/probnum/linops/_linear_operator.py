@@ -25,10 +25,10 @@ class LinearOperator(abc.ABC):
 
     This class provides a way to define finite-dimensional linear operators without
     explicitly constructing a matrix representation. Instead it suffices to define a
-    matrix-vector product and a shape attribute. This avoids unnecessary memory usage
-    and can often be more convenient to derive.
+    matrix-vector product, a shape, and a ``dtype``. This avoids unnecessary memory
+    usage and can often be more convenient to derive.
 
-    :class:`LinearOperator` instances can be multiplied, added and exponentiated. This
+    :class:`LinearOperator` instances can be multiplied, added and scaled. This
     happens lazily: the result of these operations is a new, composite
     :class:`LinearOperator`, that defers linear operations to the original operators and
     combines the results.
@@ -78,8 +78,6 @@ class LinearOperator(abc.ABC):
         self._cond_cache = {}
         self._det_cache = None
         self._logabsdet_cache = None
-        self._transpose_cache = None
-        self._inverse_cache = None
         self._trace_cache = None
 
         self._cholesky_cache = None
@@ -736,11 +734,14 @@ class LinearOperator(abc.ABC):
     @property
     def T(self) -> "LinearOperator":
         try:
-            self._transpose_cache = self._transpose()
+            return self._transpose()
         except NotImplementedError:
-            self._transpose_cache = TransposedLinearOperator(self)
+            pass
 
-        return self._transpose_cache
+        # This does not need caching, since the `TransposeLinearOperator` only accesses
+        # quantities (particularly `todense`), which are cached inside the original
+        # `LinearOperator`.
+        return TransposedLinearOperator(self)
 
     def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
         """Transpose this linear operator.
@@ -805,11 +806,11 @@ class LinearOperator(abc.ABC):
             a LinearOperator.
         """
         try:
-            self._inverse_cache = self._inverse()
+            return self._inverse()
         except NotImplementedError:
-            self._inverse_cache = _InverseLinearOperator(self)
+            pass
 
-        return self._inverse_cache
+        return _InverseLinearOperator(self)
 
     def symmetrize(self) -> LinearOperator:
         """Compute or approximate the closest symmetric :class:`LinearOperator` in the
@@ -1279,6 +1280,9 @@ class TransposedLinearOperator(LambdaLinearOperator):
         self._linop = linop
 
         if matmul is None:
+            # Setting `cache=True` here does not allocate any extra memory, since the
+            # transpose of `self._linop.todense(cache=True)` is just a view of the
+            # original array
             matmul = lambda x: self.todense(cache=True) @ x
 
         super().__init__(
@@ -1286,7 +1290,7 @@ class TransposedLinearOperator(LambdaLinearOperator):
             dtype=self._linop.dtype,
             matmul=matmul,
             rmatmul=lambda x: self._linop(x, axis=-1),
-            todense=lambda: self._linop.todense(cache=False).T.copy(order="C"),
+            todense=lambda: self._linop.todense(cache=True).T,
             transpose=lambda: self._linop,
             inverse=None,  # lambda: self._linop.inv().T,
             rank=self._linop.rank,
