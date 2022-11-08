@@ -358,7 +358,7 @@ class LinearOperator(abc.ABC):
 
         You may implement this method in a subclass.
         """
-        raise NotImplementedError("_rank is not implemented.")
+        raise NotImplementedError()
 
     def rank(self) -> np.intp:
         """Rank of the linear operator."""
