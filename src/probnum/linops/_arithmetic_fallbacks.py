@@ -10,7 +10,7 @@ import numpy as np
 from probnum.typing import NotImplementedType, ScalarLike
 import probnum.utils
 
-from ._linear_operator import BinaryOperandType, LinearOperator, LambdaLinearOperator
+from ._linear_operator import BinaryOperandType, LambdaLinearOperator, LinearOperator
 
 ########################################################################################
 # Generic Linear Operator Arithmetic (Fallbacks)

@@ -589,7 +589,9 @@ class IdentityKronecker(_linear_operator.LambdaLinearOperator):
 
         return NotImplemented
 
-    def _cond(self, p) -> np.inexact:
+    def _cond(
+        self, p: Optional[Union[None, int, str, np.floating]] = None
+    ) -> np.number:
         if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
             return self.A.cond(p=p) * self.B.cond(p=p)
 

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
 import abc
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.linalg
@@ -71,16 +71,18 @@ class LinearOperator(abc.ABC):
         self._is_positive_definite = None
 
         # Caches
-        self.todense_cache = None
+        self._todense_cache = None
 
-        self.rank_cache = None
-        self.eigvals_cache = None
-        self.cond_cache = {}
-        self.det_cache = None
-        self.logabsdet_cache = None
-        self.trace_cache = None
+        self._rank_cache = None
+        self._eigvals_cache = None
+        self._cond_cache = {}
+        self._det_cache = None
+        self._logabsdet_cache = None
+        self._transpose_cache = None
+        self._inverse_cache = None
+        self._trace_cache = None
 
-        self.cholesky_cache = None
+        self._cholesky_cache = None
 
         # Property inference
         if not self.is_square:
@@ -241,7 +243,7 @@ class LinearOperator(abc.ABC):
         matrix : np.ndarray
             Matrix representation of the linear operator.
         """
-        if self.todense_cache is None:
+        if self._todense_cache is None:
             try:
                 dense = self._todense()
             except NotImplementedError:
@@ -250,9 +252,9 @@ class LinearOperator(abc.ABC):
             if not cache:
                 return dense
 
-            self.todense_cache = dense
+            self._todense_cache = dense
 
-        return self.todense_cache
+        return self._todense_cache
 
     ####################################################################################
     # Matrix Properties
@@ -362,13 +364,13 @@ class LinearOperator(abc.ABC):
 
     def rank(self) -> np.intp:
         """Rank of the linear operator."""
-        if self.rank_cache is None:
+        if self._rank_cache is None:
             try:
-                self.rank_cache = self._rank()
+                self._rank_cache = self._rank()
             except NotImplementedError:
-                self.rank_cache = np.linalg.matrix_rank(self.todense(cache=False))
+                self._rank_cache = np.linalg.matrix_rank(self.todense(cache=False))
 
-        return self.rank_cache
+        return self._rank_cache
 
     def _eigvals(self) -> np.ndarray:
         """Eigenvalue spectrum of the linear operator.
@@ -379,20 +381,20 @@ class LinearOperator(abc.ABC):
 
     def eigvals(self) -> np.ndarray:
         """Eigenvalue spectrum of the linear operator."""
-        if self.eigvals_cache is None:
+        if self._eigvals_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
                     "Eigenvalues are only defined for square operators"
                 )
 
             try:
-                self.eigvals_cache = self._eigvals()
+                self._eigvals_cache = self._eigvals()
             except NotImplementedError:
-                self.eigvals_cache = np.linalg.eigvals(self.todense(cache=False))
+                self._eigvals_cache = np.linalg.eigvals(self.todense(cache=False))
 
-            self.eigvals_cache.setflags(write=False)
+            self._eigvals_cache.setflags(write=False)
 
-        return self.eigvals_cache
+        return self._eigvals_cache
 
     def _cond(
         self, p: Optional[Union[None, int, str, np.floating]] = None
@@ -461,18 +463,18 @@ class LinearOperator(abc.ABC):
         LinAlgError :
             If :meth:`cond` is called on a non-square matrix.
         """
-        if p not in self.cond_cache:
+        if p not in self._cond_cache:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
                     "The condition number is only defined for square operators"
                 )
 
             try:
-                self.cond_cache[p] = self._cond(p)
+                self._cond_cache[p] = self._cond(p)
             except NotImplementedError:
-                self.cond_cache[p] = np.linalg.cond(self.todense(cache=False), p=p)
+                self._cond_cache[p] = np.linalg.cond(self.todense(cache=False), p=p)
 
-        return self.cond_cache[p]
+        return self._cond_cache[p]
 
     def _det(self) -> np.number:
         """Determinant of the linear operator.
@@ -501,18 +503,18 @@ class LinearOperator(abc.ABC):
         LinAlgError :
             If :meth:`det` is called on a non-square matrix.
         """
-        if self.det_cache is None:
+        if self._det_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
                     "The determinant is only defined for square operators"
                 )
 
             try:
-                self.det_cache = self._det()
+                self._det_cache = self._det()
             except NotImplementedError:
-                self.det_cache = np.linalg.det(self.todense(cache=False))
+                self._det_cache = np.linalg.det(self.todense(cache=False))
 
-        return self.det_cache
+        return self._det_cache
 
     def _logabsdet(self) -> np.flexible:
         """Log absolute determinant of the linear operator.
@@ -541,18 +543,18 @@ class LinearOperator(abc.ABC):
         LinAlgError :
             If :meth:`logabsdet` is called on a non-square matrix.
         """
-        if self.logabsdet_cache is None:
+        if self._logabsdet_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
                     "The determinant is only defined for square operators"
                 )
 
             try:
-                self.logabsdet_cache = self._logabsdet()
+                self._logabsdet_cache = self._logabsdet()
             except NotImplementedError:
-                self.logabsdet_cache = self._logabsdet_fallback()
+                self._logabsdet_cache = self._logabsdet_fallback()
 
-        return self.logabsdet_cache
+        return self._logabsdet_cache
 
     def _logabsdet_fallback(self) -> np.inexact:
         if self.det() == 0:
@@ -593,18 +595,18 @@ class LinearOperator(abc.ABC):
         LinAlgError :
             If :meth:`trace` is called on a non-square matrix.
         """
-        if self.trace_cache is None:
+        if self._trace_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
                     "The trace is only defined for square operators."
                 )
 
             try:
-                self.trace_cache = self._trace()
+                self._trace_cache = self._trace()
             except NotImplementedError:
-                self.trace_cache = self._trace_fallback()
+                self._trace_cache = self._trace_fallback()
 
-        return self.trace_cache
+        return self._trace_cache
 
     def _trace_fallback(self) -> np.number:
         vec = np.zeros(self.shape[1], dtype=self.dtype)
@@ -671,9 +673,9 @@ class LinearOperator(abc.ABC):
         if self.is_positive_definite is False:
             raise np.linalg.LinAlgError("The linear operator is not positive definite.")
 
-        if self.cholesky_cache is None:
+        if self._cholesky_cache is None:
             try:
-                self.cholesky_cache = self._cholesky(lower)
+                self._cholesky_cache = self._cholesky(lower)
 
                 self.is_positive_definite = True
             except np.linalg.LinAlgError as err:
@@ -682,23 +684,23 @@ class LinearOperator(abc.ABC):
                 raise err
 
             if lower:
-                self.cholesky_cache.is_lower_triangular = True
+                self._cholesky_cache.is_lower_triangular = True
             else:
-                self.cholesky_cache.is_upper_triangular = True
+                self._cholesky_cache.is_upper_triangular = True
 
         upper = not lower
 
-        if (lower and self.cholesky_cache.is_lower_triangular) or (
-            upper and self.cholesky_cache.is_upper_triangular
+        if (lower and self._cholesky_cache.is_lower_triangular) or (
+            upper and self._cholesky_cache.is_upper_triangular
         ):
-            return self.cholesky_cache
+            return self._cholesky_cache
 
         assert (
-            self.cholesky_cache.is_lower_triangular
-            or self.cholesky_cache.is_upper_triangular
+            self._cholesky_cache.is_lower_triangular
+            or self._cholesky_cache.is_upper_triangular
         )
 
-        return self.cholesky_cache.T
+        return self._cholesky_cache.T
 
     def _cholesky(self, lower: bool) -> LinearOperator:
         return Matrix(
@@ -912,11 +914,11 @@ class LinearOperator(abc.ABC):
         )
 
     @abc.abstractmethod
-    def _matmul(self, other: np.ndarray) -> np.ndarray:
+    def _matmul(self, x: np.ndarray) -> np.ndarray:
         """Matrix multiplication.
 
-        Performs the operation `M = self @ other` where `self` is
-        an MxN linear operator and `other` is a stack of matrices
+        Performs the operation `M = self @ x` where `self` is
+        an MxN linear operator and `x` is a stack of matrices
         of shape `(..., N, K)`.
 
         The shapes are guaranteed to be correct.
@@ -925,14 +927,14 @@ class LinearOperator(abc.ABC):
 
         Parameters
         ----------
-        other :
+        x :
             A stack of matrices of shape `(..., N, K)`.
 
         Returns
         -------
         M :
             A `np.ndarray` of shape `(..., M, K)` that is the result of
-            `M = self @ other`.
+            `M = self @ x`.
         """
         raise NotImplementedError()
 
@@ -998,7 +1000,7 @@ class LinearOperator(abc.ABC):
             M, N = self.shape
 
             if x.ndim >= 1 and x.shape[-1] == M:
-                y = (self.T)(x, axis=-1)
+                y = (self.T)(x, axis=-1)  # pylint: disable=not-callable
             else:
                 raise ValueError(
                     f"Dimension mismatch. Expected operand of shape (..., {M}), but "
@@ -1108,6 +1110,12 @@ def _apply_to_matrix_stack(
         y[idx] = mat_fn(x[idx])
 
     return y
+
+
+def _call_if_implemented(method: Optional[callable]) -> callable:
+    if method is not None:
+        return method
+    raise NotImplementedError()
 
 
 class LambdaLinearOperator(LinearOperator):
@@ -1224,45 +1232,40 @@ class LambdaLinearOperator(LinearOperator):
         self._logabsdet_fn = logabsdet
         self._trace_fn = trace
 
-    def _call_if_implemented(self, method: Optional[callable]) -> callable:
-        if method is not None:
-            return method
-        raise NotImplementedError()
-
-    def _matmul(self, other: np.ndarray) -> np.ndarray:
-        return self._matmul_fn(other)
+    def _matmul(self, x: np.ndarray) -> np.ndarray:
+        return self._matmul_fn(x)
 
     def _apply(self, x: np.ndarray, axis: int) -> np.ndarray:
-        return self._call_if_implemented(self._apply_fn)(x, axis)
+        return _call_if_implemented(self._apply_fn)(x, axis)
 
     def _todense(self) -> np.ndarray:
-        return self._call_if_implemented(self._todense_fn)()
+        return _call_if_implemented(self._todense_fn)()
 
     def _transpose(self) -> "LinearOperator":
-        return self._call_if_implemented(self._transpose_fn)()
+        return _call_if_implemented(self._transpose_fn)()
 
     def _inverse(self) -> "LinearOperator":
-        return self._call_if_implemented(self._inverse_fn)()
+        return _call_if_implemented(self._inverse_fn)()
 
     def _rank(self) -> np.intp:
-        return self._call_if_implemented(self._rank_fn)()
+        return _call_if_implemented(self._rank_fn)()
 
     def _eigvals(self) -> np.ndarray:
-        return self._call_if_implemented(self._eigvals_fn)()
+        return _call_if_implemented(self._eigvals_fn)()
 
     def _cond(
         self, p: Optional[Union[None, int, str, np.floating]] = None
     ) -> np.number:
-        return self._call_if_implemented(self._cond_fn)(p)
+        return _call_if_implemented(self._cond_fn)(p)
 
     def _det(self) -> np.number:
-        return self._call_if_implemented(self._det_fn)()
+        return _call_if_implemented(self._det_fn)()
 
     def _logabsdet(self) -> np.flexible:
-        return self._call_if_implemented(self._logabsdet_fn)()
+        return _call_if_implemented(self._logabsdet_fn)()
 
     def _trace(self) -> np.number:
-        return self._call_if_implemented(self._trace_fn)()
+        return _call_if_implemented(self._trace_fn)()
 
 
 class TransposedLinearOperator(LambdaLinearOperator):
@@ -1606,7 +1609,9 @@ class Identity(LambdaLinearOperator):
 
         self.is_positive_definite = True
 
-    def _cond(self, p: Union[None, int, float, str]) -> np.inexact:
+    def _cond(
+        self, p: Optional[Union[None, int, str, np.floating]] = None
+    ) -> np.inexact:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
         elif p == "fro":
