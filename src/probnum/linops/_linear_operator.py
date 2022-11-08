@@ -1214,15 +1214,12 @@ class LambdaLinearOperator(LinearOperator):
         super().__init__(shape, dtype)
 
         self._matmul_fn = matmul  # (self @ x)
+        self._rmatmul_fn = rmatmul  # (x @ self)
         self._apply_fn = apply  # __call__
 
         self._todense_fn = todense
 
-        self._transpose_fn = (
-            transpose
-            if transpose is not None
-            else lambda: TransposedLinearOperator(self, matmul=rmatmul)
-        )
+        self._transpose_fn = transpose
         self._inverse_fn = inverse
 
         # Derived quantities
@@ -1243,7 +1240,18 @@ class LambdaLinearOperator(LinearOperator):
         return _call_if_implemented(self._todense_fn)()
 
     def _transpose(self) -> "LinearOperator":
-        return _call_if_implemented(self._transpose_fn)()
+        if self._transpose_fn is not None:
+            return self._transpose_fn()
+
+        if self._rmatmul_fn is not None:
+            return TransposedLinearOperator(
+                self,
+                matmul=lambda x: np.moveaxis(
+                    self._rmatmul_fn(np.moveaxis(x, -2, -1)), -1, -2
+                ),
+            )
+
+        raise NotImplementedError()
 
     def _inverse(self) -> "LinearOperator":
         return _call_if_implemented(self._inverse_fn)()
