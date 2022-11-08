@@ -372,8 +372,9 @@ blockquote {
     background: rgba(var(--pst-color-background-lightgray));
     min-height: 120px;
     max-height: 200px;
-    float: none;
     border: none;
+    display: block;
+
 }
 
 .sphx-glr-thumbcontainer:hover {
@@ -385,12 +386,12 @@ blockquote {
     vertical-align: right;
     max-height: 120px;
     max-width: 120px;
-    padding-top: 20px;
+    padding-top: 0px;
 }
 
 .sphx-glr-thumbcontainer a.internal {
     text-align: left;
-    padding: 20px 10px 10px 20px;
+    padding: 45px 10px 45px 200px;
 }
 
 .sphx-glr-thumbcontainer p a span {
