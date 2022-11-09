@@ -1083,17 +1083,10 @@ class LinearOperator(abc.ABC):
         """Broadcasting for a (implicitly defined) matrix-matrix product.
 
         Convenience function / decorator to broadcast the definition of a matrix-matrix
-        product to vectors. This can be used to easily construct a new linear operator
-        only from a matrix-matrix product.
+        product to stacks of matrices. This can be used to easily construct a new linear
+        operator only from a matrix-matrix product.
         """
-
-        def _matmul(x: np.ndarray) -> np.ndarray:
-            if x.ndim == 2:
-                return matmat(x)
-
-            return _apply_to_matrix_stack(matmat, x)
-
-        return _matmul
+        return np.vectorize(matmat, signature="(n,k)->(m,k)")
 
     @property
     def _inexact_dtype(self) -> np.dtype:
@@ -1101,27 +1094,6 @@ class LinearOperator(abc.ABC):
             return self.dtype
         else:
             return np.double
-
-
-def _apply_to_matrix_stack(
-    mat_fn: Callable[[np.ndarray], np.ndarray], x: np.ndarray
-) -> np.ndarray:
-    idcs = np.ndindex(x.shape[:-2])
-
-    # Shape and dtype inference
-    idx0 = next(idcs)
-    y0 = mat_fn(x[idx0])
-
-    # Result buffer
-    y = np.empty(x.shape[:-2] + y0.shape, dtype=y0.dtype)
-
-    # Fill buffer
-    y[idx0] = y0
-
-    for idx in idcs:
-        y[idx] = mat_fn(x[idx])
-
-    return y
 
 
 def _call_if_implemented(method: Optional[callable]) -> callable:
@@ -1347,15 +1319,19 @@ class _InverseLinearOperator(LambdaLinearOperator):
 
         self._linop = linop
 
+        solve = np.vectorize(
+            self._solve,
+            excluded=("trans",),
+            signature="(n, k)->(n, k)",
+        )
+
         super().__init__(
             shape=self._linop.shape,
             dtype=self._linop._inexact_dtype,
-            matmul=LinearOperator.broadcast_matmat(self._solve),
+            matmul=solve,
             transpose=lambda: TransposedLinearOperator(
                 self,
-                matmul=LinearOperator.broadcast_matmat(
-                    lambda x: self._solve(x, trans=True)
-                ),
+                matmul=lambda x: solve(x, trans=True),
             ),
             inverse=lambda: self._linop,
             det=lambda: 1 / self._linop.det(),
