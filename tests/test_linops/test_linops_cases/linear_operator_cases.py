@@ -97,7 +97,7 @@ def case_sparse_matrix_singular(
 def case_inverse(
     rng: np.random.Generator,
 ) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
-    N = 100
+    N = 21
 
     v = rng.uniform(0.2, 0.5, N)
 
@@ -107,4 +107,4 @@ def case_inverse(
         matmul=lambda x: 2.0 * x + v[:, None] @ (v[None, :] @ x),
     )
 
-    return linop, linop.todense()
+    return linop.inv(), linop.inv().todense()

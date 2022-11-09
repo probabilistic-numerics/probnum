@@ -1377,8 +1377,8 @@ class _InverseLinearOperator(LambdaLinearOperator):
         ----------
         x
             :code:`shape=(N,K)` --
-            The right-hand sides :math:`X` of the linear systems, where :attr:`shape`
-            :code:`=(N,N)`.
+            The right-hand sides :math:`X` of the linear systems, where
+            :code:`A.shape == (N, N)`.
         trans
             If :code:`False`, then :code:`A = self._linop`.
             Otherwise :code:`A = self._linop.T`.
@@ -1388,6 +1388,8 @@ class _InverseLinearOperator(LambdaLinearOperator):
         sol
             The solutions :math:`A^{-1} X` of the linear systems.
         """
+        assert x.ndim == 2
+
         if self._linop.is_symmetric:
             if self._linop.is_positive_definite is not False:
                 try:
