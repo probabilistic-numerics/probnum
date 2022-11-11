@@ -23,7 +23,7 @@ from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQIterInfo, BQState
 
-# pylint: disable=too-many-arguments, too-many-locals, too-many-branches, too-complex
+# pylint: disable=too-many-arguments, too-many-locals, too-many-branches
 
 
 class BayesianQuadrature:
@@ -160,18 +160,7 @@ class BayesianQuadrature:
                 raise ValueError(errormsg)
             policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
         elif policy == "vdc":
-            if input_dim > 1:
-                raise ValueError(
-                    "Policy 'vdc' works only when the input dimension is one."
-                )
-            if (measure.domain[0] or measure.domain[1]) in [np.Inf, -np.Inf]:
-                raise ValueError("Policy 'vdc' requires a finite integration domain.")
-            policy = VanDerCorputPolicy(
-                domain_a=measure.domain[0][0],
-                domain_b=measure.domain[1][0],
-                batch_size=batch_size,
-            )
-
+            policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")
 

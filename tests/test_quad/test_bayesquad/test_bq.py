@@ -46,7 +46,11 @@ def test_integral_values_1d(
     f1d, kernel, domain, input_dim, scale_estimation, var_tol, rel_tol, jitter
 ):
     """Test numerically that BQ computes 1D integrals correctly for a number of
-    different parameters."""
+    different parameters.
+
+    The test currently uses van der Corput policy and therefore works only for finite
+    domains.
+    """
 
     measure = probnum.quad.LebesgueMeasure(input_dim=input_dim, domain=domain)
     # numerical integral
@@ -68,8 +72,6 @@ def test_integral_values_1d(
         jitter=jitter,
     )
     domain = measure.domain
-    if domain is None:
-        domain = (-np.infty, np.infty)
     num_integral, _ = quad(integrand, domain[0], domain[1])
     np.testing.assert_almost_equal(bq_integral.mean, num_integral, decimal=2)
 

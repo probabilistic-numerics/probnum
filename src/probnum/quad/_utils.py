@@ -28,7 +28,7 @@ def as_domain(
     Parameters
     ----------
     domain
-        The integration domain as supllied.
+        The integration domain as supplied.
     input_dim
         The input dimensionality as supplied.
 
@@ -44,7 +44,7 @@ def as_domain(
     ValueError
         If ``input_dim`` is not positive.
         If domain has too many or too little elements.
-        If the bounds of the domain have differening sizes.
+        If the bounds of the domain have differing sizes.
         If ``input_dim`` is incompatible with domain bounds.
         If bounds have wrong shape.
         If integration domain is empty.

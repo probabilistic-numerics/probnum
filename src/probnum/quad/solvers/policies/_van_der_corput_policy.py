@@ -5,6 +5,7 @@ from typing import Optional
 import numpy as np
 
 from probnum.quad.solvers.bq_state import BQState
+from probnum.quad._integration_measures import IntegrationMeasure
 
 from ._policy import Policy
 
@@ -33,8 +34,14 @@ class VanDerCorputPolicy(Policy):
     .. [1] https://en.wikipedia.org/wiki/Van_der_Corput_sequence
     """
 
-    def __init__(self, domain_a: float, domain_b: float, batch_size: int) -> None:
+    def __init__(self, measure: IntegrationMeasure, batch_size: int) -> None:
         super().__init__(batch_size=batch_size)
+        if int(measure.input_dim) > 1:
+            raise ValueError("Policy 'vdc' works only when the input dimension is one.")
+        domain_a = measure.domain[0]
+        domain_b = measure.domain[1]
+        if (domain_a or domain_b) in [np.Inf, -np.Inf]:
+            raise ValueError("Policy 'vdc' works only for bounded domains.")
         self.domain_a = domain_a
         self.domain_b = domain_b
 
@@ -71,8 +78,13 @@ class VanDerCorputPolicy(Policy):
         vdc_seq
             Array containing elements from ``n_start`` to ``n_end - 1`` of the van der
             Corput sequence.
+
+        References
+        --------
+        .. [1] https://en.wikipedia.org/wiki/Van_der_Corput_sequence
         """
 
+        # pylint: disable=invalid-name
         if n_end is None:
             n_end = n_start + 1
         vdc_seq = np.zeros((n_end - n_start,))
