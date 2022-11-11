@@ -50,13 +50,28 @@ class VanDerCorputPolicy(Policy):
     def van_der_corput_sequence(
         n_start: int, n_end: Optional[int] = None
     ) -> np.ndarray:
-        """Returns elements n_start, n_start + 1, ..., n_end - 1 in the van der
-        Corput sequence.
+        """Returns elements ``n_start``, ``n_start + 1``, ..., ``n_end - 1`` in the van
+        der Corput sequence.
 
             0.5, 0.25, 0.75, 0.125, 0.625, ...
 
         If no ``n_end`` is given, only a single element in the
-        sequence is returned."""
+        sequence is returned.
+
+        Parameters
+        ----------
+        n_start
+            First element of the van der Corput to be included (inclusive).
+        n_end
+            Last element of the van der Corput to be included (exclusive). If not given,
+            only the ``n_start`` element is returned.
+
+        Returns
+        -------
+        vdc_seq
+            Array containing elements from ``n_start`` to ``n_end - 1`` of the van der
+            Corput sequence.
+        """
 
         if n_end is None:
             n_end = n_start + 1
