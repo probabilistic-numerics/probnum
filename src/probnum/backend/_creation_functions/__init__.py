@@ -47,7 +47,7 @@ def asarray(
     Parameters
     ----------
     obj
-        object to be converted to an array. May be a Python scalar, a (possibly nested)
+        Object to be converted to an array. May be a Python scalar, a (possibly nested)
         sequence of Python scalars, or an object supporting the Python buffer protocol.
 
         .. admonition:: Tip
@@ -57,7 +57,7 @@ def asarray(
            through ``memoryview(obj)``.
 
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from the data type(s) in ``obj``. If all input values are
         Python scalars, then
 
@@ -66,8 +66,6 @@ def asarray(
             type must be the default integer data type.
         -   if one or more values are ``float``\s, the output data type must be the
             default floating-point data type.
-
-        Default: ``None``.
 
         .. admonition:: Note
            :class: note
@@ -80,15 +78,14 @@ def asarray(
            array library. To perform an explicit cast, use :func:`astype`.
 
     device
-        device on which to place the created array. If ``device`` is ``None`` and ``x``
-        is an array, the output array device must be inferred from ``x``. Default:
-        ``None``.
+        Device on which to place the created array. If ``device`` is ``None`` and ``x``
+        is an array, the output array device must be inferred from ``x``.
     copy
-        boolean indicating whether or not to copy the input. If ``True``, the function
+        Boolean indicating whether or not to copy the input. If ``True``, the function
         must always copy. If ``False``, the function must never copy for input which
         supports the buffer protocol and must raise a ``ValueError`` in case a copy
         would be necessary. If ``None``, the function must reuse existing memory buffer
-        if possible and copy otherwise. Default: ``None``.
+        if possible and copy otherwise.
 
     Returns
     -------
@@ -201,7 +198,7 @@ def arange(
         of the interval (exclusive). If ``stop`` is not specified, the default starting
         value is ``0``.
     stop
-        the end of the interval. Default: ``None``.
+        the end of the interval.
     step
         the distance between two adjacent elements (``out[i+1] - out[i]``). Must not be
         ``0``; may be negative, this results in an empty array if ``stop >= start``.
@@ -209,9 +206,9 @@ def arange(
     dtype
         output array data type. Should be a floating-point data type. If ``dtype`` is
         ``None``, the output array data type must be the default floating-point data
-        type. Default: ``None``.
+        type.
     device
-        device on which to place the created array. Default: ``None``.
+        device on which to place the created array.
 
     .. note::
 
@@ -243,9 +240,9 @@ def empty(
         output array shape.
     dtype
         output array data type. If ``dtype`` is ``None``, the output array data type
-        must be the default floating-point data type. Default: ``None``.
+        must be the default floating-point data type.
     device
-        device on which to place the created array. Default: ``None``.
+        device on which to place the created array.
 
     Returns
     -------
@@ -273,10 +270,10 @@ def empty_like(
         Overrides the shape of the result.
     dtype
         Output array data type. If ``dtype`` is ``None``, the output array data type
-        must be inferred from ``x``. Default: ``None``.
+        must be inferred from ``x``.
     device
         Device on which to place the created array. If ``device`` is ``None``, the
-        output array device must be inferred from ``x``. Default: ``None``.
+        output array device must be inferred from ``x``.
 
     Returns
     -------
@@ -304,15 +301,15 @@ def eye(
         number of rows in the output array.
     n_cols
         number of columns in the output array. If ``None``, the default number of
-        columns in the output array is equal to ``n_rows``. Default: ``None``.
+        columns in the output array is equal to ``n_rows``.
     k
         index of the diagonal. A positive value refers to an upper diagonal, a negative
         value to a lower diagonal, and ``0`` to the main diagonal. Default: ``0``.
     dtype
         output array data type. If ``dtype`` is ``None``, the output array data type
-        must be the default floating-point data type. Default: ``None``.
+        must be the default floating-point data type.
     device
-        device on which to place the created array. Default: ``None``.
+        device on which to place the created array.
 
     Returns
     -------
@@ -344,7 +341,7 @@ def full(
         output array data type must be the default integer data type. If the fill value
         is a ``float``, the output array data type must be the default floating-point
         data type. If the fill value is a ``bool``, the output array must have boolean
-        data type. Default: ``None``.
+        data type.
 
         .. note::
 
@@ -353,7 +350,7 @@ def full(
            implementation-defined.
 
     device
-        device on which to place the created array. Default: ``None``.
+        device on which to place the created array.
 
     Returns
     -------
@@ -385,7 +382,7 @@ def full_like(
         Overrides the shape of the result.
     dtype
         output array data type. If ``dtype`` is ``None``, the output array data type
-        must be inferred from ``x``. Default: ``None``.
+        must be inferred from ``x``.
 
         .. note::
 
@@ -400,7 +397,7 @@ def full_like(
 
     device
         device on which to place the created array. If ``device`` is ``None``, the
-        output array device must be inferred from ``x``. Default: ``None``.
+        output array device must be inferred from ``x``.
 
     Returns
     -------
@@ -447,9 +444,9 @@ def linspace(
         must raise an exception.
     dtype
         output array data type. If ``dtype`` is ``None``, the output array data type
-        must be the default floating-point data type. Default: ``None``.
+        must be the default floating-point data type.
     device
-        device on which to place the created array. Default: ``None``.
+        device on which to place the created array.
     endpoint
         boolean indicating whether to include ``stop`` in the interval. Default:
         ``True``.
@@ -517,9 +514,9 @@ def ones(
         output array shape.
     dtype
         output array data type. If ``dtype`` is ``None``, the output array data type
-        must be the default floating-point data type. Default: ``None``.
+        must be the default floating-point data type.
     device
-        device on which to place the created array. Default: ``None``.
+        device on which to place the created array.
     Returns
     -------
     out
@@ -547,10 +544,10 @@ def ones_like(
         Overrides the shape of the result.
     dtype
         Output array data type. If ``dtype`` is ``None``, the output array data type
-        must be inferred from ``x``. Default: ``None``.
+        must be inferred from ``x``.
     device
         Device on which to place the created array. If ``device`` is ``None``, the
-        output array device must be inferred from ``x``. Default: ``None``.
+        output array device must be inferred from ``x``.
 
     Returns
     -------
@@ -574,9 +571,9 @@ def zeros(
         output array shape.
     dtype
         output array data type. If ``dtype`` is ``None``, the output array data type
-        must be the default floating-point data type. Default: ``None``.
+        must be the default floating-point data type.
     device
-        device on which to place the created array. Default: ``None``.
+        device on which to place the created array.
 
     Returns
     -------
@@ -605,10 +602,10 @@ def zeros_like(
         Overrides the shape of the result.
     dtype
         Output array data type. If ``dtype`` is ``None``, the output array data type
-        must be inferred from ``x``. Default: ``None``.
+        must be inferred from ``x``.
     device
         Device on which to place the created array. If ``device`` is ``None``, the
-        output array device must be inferred from ``x``. Default: ``None``.
+        output array device must be inferred from ``x``.
 
     Returns
     -------
