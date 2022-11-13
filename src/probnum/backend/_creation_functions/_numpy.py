@@ -2,21 +2,7 @@
 from typing import List, Optional, Union
 
 import numpy as np
-from numpy import (  # pylint: disable=redefined-builtin, unused-import
-    arange,
-    empty,
-    empty_like,
-    full,
-    full_like,
-    linspace,
-    meshgrid,
-    ones,
-    ones_like,
-    tril,
-    triu,
-    zeros,
-    zeros_like,
-)
+from numpy import tril, triu  # pylint: disable=redefined-builtin, unused-import
 
 from .. import Array, Device, Dtype
 from ..typing import ShapeType
@@ -37,18 +23,6 @@ def asarray(
     return np.array(obj, dtype=dtype, copy=copy)
 
 
-def eye(
-    n_rows: int,
-    n_cols: Optional[int] = None,
-    /,
-    *,
-    k: int = 0,
-    dtype: Optional[Dtype] = None,
-    device: Optional[Device] = None,
-) -> Array:
-    return np.eye(n_rows, n_cols, k=k, dtype=dtype)
-
-
 def arange(
     start: Union[int, float],
     /,
@@ -57,7 +31,7 @@ def arange(
     *,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
+) -> np.ndarray:
     return np.arange(start, stop, step, dtype=dtype)
 
 
@@ -66,18 +40,19 @@ def empty(
     *,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
+) -> np.ndarray:
     return np.empty(shape, dtype=dtype)
 
 
 def empty_like(
-    x: Array,
+    x: np.ndarray,
     /,
     *,
+    shape: Optional[ShapeType] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
-    return np.empty_like(x, dtype=dtype)
+) -> np.ndarray:
+    return np.empty_like(x, shape=shape, dtype=dtype)
 
 
 def eye(
@@ -88,7 +63,7 @@ def eye(
     k: int = 0,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
+) -> np.ndarray:
     return np.eye(n_rows, n_cols, k=k, dtype=dtype)
 
 
@@ -98,19 +73,20 @@ def full(
     *,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
+) -> np.ndarray:
     return np.full(shape, fill_value, dtype=dtype)
 
 
 def full_like(
-    x: Array,
+    x: np.ndarray,
     /,
     fill_value: Union[int, float],
     *,
+    shape: Optional[ShapeType] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
-    return np.full_like(x, fill_value=fill_value, dtype=dtype)
+) -> np.ndarray:
+    return np.full_like(x, fill_value=fill_value, shape=shape, dtype=dtype)
 
 
 def linspace(
@@ -122,11 +98,11 @@ def linspace(
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
     endpoint: bool = True,
-) -> Array:
+) -> np.ndarray:
     return np.linspace(start, stop, num=num, dtype=dtype, endpoint=endpoint)
 
 
-def meshgrid(*arrays: Array, indexing: str = "xy") -> List[Array]:
+def meshgrid(*arrays: np.ndarray, indexing: str = "xy") -> List[np.ndarray]:
     return np.ones_like(*arrays, indexing=indexing)
 
 
@@ -135,18 +111,19 @@ def ones(
     *,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
+) -> np.ndarray:
     return np.ones(shape, dtype=dtype)
 
 
 def ones_like(
-    x: Array,
+    x: np.ndarray,
     /,
     *,
+    shape: Optional[ShapeType] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
-    return np.ones_like(x, dtype=dtype)
+) -> np.ndarray:
+    return np.ones_like(x, shape=shape, dtype=dtype)
 
 
 def zeros(
@@ -154,15 +131,16 @@ def zeros(
     *,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
+) -> np.ndarray:
     return np.zeros(shape, dtype=dtype)
 
 
 def zeros_like(
-    x: Array,
+    x: np.ndarray,
     /,
     *,
+    shape: Optional[ShapeType] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
-) -> Array:
-    return np.zeros_like(x, dtype=dtype)
+) -> np.ndarray:
+    return np.zeros_like(x, shape=shape, dtype=dtype)

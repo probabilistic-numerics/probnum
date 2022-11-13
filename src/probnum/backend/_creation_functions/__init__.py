@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
-from .. import BACKEND, Array, Backend, Device, Dtype, Scalar, ndim
-from ..typing import DTypeLike, ScalarLike, ShapeType
+from .. import BACKEND, Array, Backend, Device, Dtype, Scalar, asshape, ndim
+from ..typing import DTypeLike, ScalarLike, ShapeLike, ShapeType
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl
@@ -230,7 +230,7 @@ def arange(
 
 
 def empty(
-    shape: ShapeType,
+    shape: ShapeLike,
     *,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
@@ -252,13 +252,14 @@ def empty(
     out
         an array containing uninitialized data.
     """
-    return _impl.empty(shape, dtype=dtype, device=device)
+    return _impl.empty(asshape(shape), dtype=dtype, device=device)
 
 
 def empty_like(
     x: Array,
     /,
     *,
+    shape: Optional[ShapeLike] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
 ) -> Array:
@@ -267,12 +268,14 @@ def empty_like(
     Parameters
     ----------
     x
-        input array from which to derive the output array shape.
+        Input array from which to derive the output array shape.
+    shape
+        Overrides the shape of the result.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from ``x``. Default: ``None``.
     device
-        device on which to place the created array. If ``device`` is ``None``, the
+        Device on which to place the created array. If ``device`` is ``None``, the
         output array device must be inferred from ``x``. Default: ``None``.
 
     Returns
@@ -280,7 +283,7 @@ def empty_like(
     out
         an array having the same shape as ``x`` and containing uninitialized data.
     """
-    return _impl.empty_like(x, dtype=dtype, device=device)
+    return _impl.empty_like(x, shape=asshape(shape), dtype=dtype, device=device)
 
 
 def eye(
@@ -365,6 +368,7 @@ def full_like(
     /,
     fill_value: Union[int, float],
     *,
+    shape: Optional[ShapeLike] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
 ) -> Array:
@@ -377,6 +381,8 @@ def full_like(
         input array from which to derive the output array shape.
     fill_value
         fill value.
+    shape
+        Overrides the shape of the result.
     dtype
         output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from ``x``. Default: ``None``.
@@ -402,7 +408,9 @@ def full_like(
         an array having the same shape as ``x`` and where every element is equal to
         ``fill_value``.
     """
-    return _impl.full_like(x, fill_value=fill_value, dtype=dtype, device=device)
+    return _impl.full_like(
+        x, fill_value=fill_value, shape=asshape(shape), dtype=dtype, device=device
+    )
 
 
 def linspace(
@@ -524,6 +532,7 @@ def ones_like(
     x: Array,
     /,
     *,
+    shape: Optional[ShapeLike] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
 ) -> Array:
@@ -533,12 +542,14 @@ def ones_like(
     Parameters
     ----------
     x
-        input array from which to derive the output array shape.
+        Input array from which to derive the output array shape.
+    shape
+        Overrides the shape of the result.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from ``x``. Default: ``None``.
     device
-        device on which to place the created array. If ``device`` is ``None``, the
+        Device on which to place the created array. If ``device`` is ``None``, the
         output array device must be inferred from ``x``. Default: ``None``.
 
     Returns
@@ -546,7 +557,7 @@ def ones_like(
     out
         an array having the same shape as ``x`` and filled with ones.
     """
-    return _impl.ones_like(x, dtype=dtype, device=device)
+    return _impl.ones_like(x, shape=asshape(shape), dtype=dtype, device=device)
 
 
 def zeros(
@@ -579,6 +590,7 @@ def zeros_like(
     x: Array,
     /,
     *,
+    shape: Optional[ShapeLike] = None,
     dtype: Optional[Dtype] = None,
     device: Optional[Device] = None,
 ) -> Array:
@@ -588,12 +600,14 @@ def zeros_like(
     Parameters
     ----------
     x
-        input array from which to derive the output array shape.
+        Input array from which to derive the output array shape.
+    shape
+        Overrides the shape of the result.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from ``x``. Default: ``None``.
     device
-        device on which to place the created array. If ``device`` is ``None``, the
+        Device on which to place the created array. If ``device`` is ``None``, the
         output array device must be inferred from ``x``. Default: ``None``.
 
     Returns
@@ -601,4 +615,4 @@ def zeros_like(
     out
         an array having the same shape as ``x`` and filled with zeros.
     """
-    return _impl.zeros_like(x, dtype=dtype, device=device)
+    return _impl.zeros_like(x, shape=asshape(shape), dtype=dtype, device=device)

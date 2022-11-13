@@ -493,7 +493,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         """Implementation of the squared Euclidean distance, which supports scalar
         inputs and an optional second argument."""
         if x1 is None:
-            return backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.zeros_like(
                 x0,
                 shape=x0.shape[: x0.ndim - self._input_ndim],
             )
@@ -514,7 +514,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         """Implementation of the Euclidean distance, which supports scalar inputs and an
         optional second argument."""
         if x1 is None:
-            return backend.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.zeros_like(
                 x0,
                 shape=x0.shape[: x0.ndim - self._input_ndim],
             )

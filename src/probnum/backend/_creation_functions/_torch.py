@@ -1,23 +1,11 @@
 """Torch tensor creation functions."""
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import torch
-from torch import (  # pylint: disable=redefined-builtin, unused-import
-    arange,
-    empty,
-    empty_like,
-    eye,
-    full,
-    full_like,
-    linspace,
-    meshgrid,
-    ones,
-    ones_like,
-    tril,
-    triu,
-    zeros,
-    zeros_like,
-)
+from torch import tril, triu  # pylint: disable=redefined-builtin, unused-import
+
+from .. import Device, Dtype
+from ..typing import ShapeType
 
 
 def asarray(
@@ -43,3 +31,135 @@ def tril(x: torch.Tensor, /, k: int = 0) -> torch.Tensor:
 
 def triu(x: torch.Tensor, /, k: int = 0) -> torch.Tensor:
     return triu(x, diagonal=k)
+
+
+def arange(
+    start: Union[int, float],
+    /,
+    stop: Optional[Union[int, float]] = None,
+    step: Union[int, float] = 1,
+    *,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.arange(start=start, stop=stop, step=step, dtype=dtype, device=device)
+
+
+def empty(
+    shape: ShapeType,
+    *,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.empty(shape, dtype=dtype, device=device)
+
+
+def empty_like(
+    x: torch.Tensor,
+    /,
+    *,
+    shape: Optional[ShapeType] = None,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.empty_like(x, layout=shape, dtype=dtype, device=device)
+
+
+def eye(
+    n_rows: int,
+    n_cols: Optional[int] = None,
+    /,
+    *,
+    k: int = 0,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    if k != 0:
+        raise NotImplementedError
+    return torch.eye(n=n_rows, m=n_cols, dtype=dtype, device=device)
+
+
+def full(
+    shape: ShapeType,
+    fill_value: Union[int, float],
+    *,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.full(shape, fill_value, dtype=dtype, device=device)
+
+
+def full_like(
+    x: torch.Tensor,
+    /,
+    fill_value: Union[int, float],
+    *,
+    shape: Optional[ShapeType] = None,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.full_like(
+        x, fill_value=fill_value, layout=shape, dtype=dtype, device=device
+    )
+
+
+def linspace(
+    start: Union[int, float],
+    stop: Union[int, float],
+    /,
+    num: int,
+    *,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+    endpoint: bool = True,
+) -> torch.Tensor:
+    if not endpoint:
+        raise NotImplementedError
+
+    return torch.linspace(
+        start=start, end=stop, steps=num, dtype=dtype, endpoint=endpoint, device=device
+    )
+
+
+def meshgrid(*arrays: torch.Tensor, indexing: str = "xy") -> List[torch.Tensor]:
+    return torch.meshgrid(*arrays, indexing=indexing)
+
+
+def ones(
+    shape: ShapeType,
+    *,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.ones(shape, dtype=dtype, device=device)
+
+
+def ones_like(
+    x: torch.Tensor,
+    /,
+    *,
+    shape: Optional[ShapeType] = None,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.ones_like(x, layout=shape, dtype=dtype, device=device)
+
+
+def zeros(
+    shape: ShapeType,
+    *,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.zeros(shape, dtype=dtype, device=device)
+
+
+def zeros_like(
+    x: torch.Tensor,
+    /,
+    *,
+    shape: Optional[ShapeType] = None,
+    dtype: Optional[Dtype] = None,
+    device: Optional[Device] = None,
+) -> torch.Tensor:
+    return torch.zeros_like(x, layout=shape, dtype=dtype, device=device)
