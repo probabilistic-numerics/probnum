@@ -539,8 +539,7 @@ def exp(x: Array, /) -> Array:
 
 def expm1(x: Array, /) -> Array:
     """Calculates an approximation to ``exp(x)-1``, having domain ``[-infinity,
-
-    +infinity]`` and codomain ``[-1, +infinity]``, for each element ``x_i`` of the input
+    infinity]`` and codomain ``[-1, +infinity]``, for each element ``x_i`` of the input
     array ``x``.
 
     .. note::
