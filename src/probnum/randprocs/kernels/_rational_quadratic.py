@@ -44,10 +44,10 @@ class RatQuad(Kernel, IsotropicMixin):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import RatQuad
     >>> K = RatQuad(input_shape=1, lengthscale=0.1, alpha=3)
-    >>> xs = np.linspace(0, 1, 3)[:, None]
+    >>> xs = backend.linspace(0, 1, 3)[:, None]
     >>> K(xs[:, None, :], xs[None, :, :])
     array([[1.00000000e+00, 7.25051190e-03, 1.81357765e-04],
            [7.25051190e-03, 1.00000000e+00, 7.25051190e-03],

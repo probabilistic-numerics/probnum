@@ -31,10 +31,10 @@ class Polynomial(Kernel):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import Polynomial
     >>> K = Polynomial(input_shape=2, constant=1.0, exponent=3)
-    >>> xs = np.array([[1, -1], [-1, 0]])
+    >>> xs = backend.asarray([[1, -1], [-1, 0]])
     >>> K.matrix(xs)
     array([[27.,  0.],
            [ 0.,  8.]])

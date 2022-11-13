@@ -36,12 +36,12 @@ class ProductMatern(Kernel):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import ProductMatern
-    >>> lengthscales = np.array([0.1, 1.2])
-    >>> nus = np.array([0.5, 3.5])
+    >>> lengthscales = backend.asarray([0.1, 1.2])
+    >>> nus = backend.asarray([0.5, 3.5])
     >>> K = ProductMatern(input_shape=(2,), lengthscales=lengthscales, nus=nus)
-    >>> xs = np.array([[0.0, 0.5], [1.0, 1.0], [0.5, 0.2]])
+    >>> xs = backend.asarray([[0.0, 0.5], [1.0, 1.0], [0.5, 0.2]])
     >>> K.matrix(xs)
     array([[1.00000000e+00, 4.03712525e-05, 6.45332482e-03],
            [4.03712525e-05, 1.00000000e+00, 5.05119251e-03],

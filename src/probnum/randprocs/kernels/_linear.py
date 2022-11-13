@@ -31,10 +31,10 @@ class Linear(Kernel):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import Linear
     >>> K = Linear(input_shape=2)
-    >>> xs = np.array([[1, 2], [2, 3]])
+    >>> xs = backend.asarray([[1, 2], [2, 3]])
     >>> K.matrix(xs)
     array([[ 5.,  8.],
            [ 8., 13.]])
