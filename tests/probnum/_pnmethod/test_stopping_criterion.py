@@ -3,9 +3,9 @@
 import operator
 from typing import Callable
 
-import pytest
-
 from probnum import LambdaStoppingCriterion, StoppingCriterion
+
+import pytest
 
 
 @pytest.fixture

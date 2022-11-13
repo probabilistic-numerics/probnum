@@ -3,7 +3,6 @@ import itertools
 import unittest
 
 import numpy as np
-import scipy.sparse
 import scipy.stats
 
 from probnum import config, linops, randvars
