@@ -26,6 +26,7 @@ from ._pnmethod import (
 
 # Supporting packages need to be imported before compat
 from . import (
+    functions,
     linops,
     randprocs,
     randvars,
@@ -37,23 +38,18 @@ from . import compat
 # isort: on
 
 from . import diffeq, filtsmooth, linalg, problems, quad
-from ._function import Function, LambdaFunction
 from ._version import version as __version__
 from .randvars import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandvar",
-    "Function",
-    "LambdaFunction",
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
     "LambdaStoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-Function.__module__ = "probnum"
-LambdaFunction.__module__ = "probnum"
 ProbabilisticNumericalMethod.__module__ = "probnum"
 StoppingCriterion.__module__ = "probnum"
 LambdaStoppingCriterion.__module__ = "probnum"

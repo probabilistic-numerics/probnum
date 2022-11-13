@@ -1,7 +1,7 @@
 """Tests for Gaussian processes."""
 
 from probnum import backend, randprocs, randvars
-from probnum.randprocs import kernels, mean_fns
+from probnum.randprocs import functions, kernels
 
 import pytest
 import tests.utils
@@ -20,7 +20,7 @@ def test_cov_not_kernel_raises_error():
     TypeError."""
     with pytest.raises(TypeError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(1,), output_shape=(1,)),
+            mean=functions.Zero(input_shape=(1,), output_shape=(1,)),
             cov=lambda x0, x1: backend.exp(-backend.abs(x0 - x1)),
         )
 
@@ -28,13 +28,13 @@ def test_cov_not_kernel_raises_error():
 def test_mean_kernel_shape_mismatch_raises_error():
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2,), output_shape=(1,)),
+            mean=functions.Zero(input_shape=(2,), output_shape=(1,)),
             cov=kernels.ExpQuad(input_shape=(3,)),
         )
 
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2,), output_shape=(2,)),
+            mean=functions.Zero(input_shape=(2,), output_shape=(2,)),
             cov=kernels.ExpQuad(input_shape=(2,)),
         )
 
@@ -42,13 +42,13 @@ def test_mean_kernel_shape_mismatch_raises_error():
 def test_mean_wrong_input_shape_raises_error():
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2, 2), output_shape=(1,)),
+            mean=functions.Zero(input_shape=(2, 2), output_shape=(1,)),
             cov=kernels.ExpQuad(input_shape=(2,)),
         )
 
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
-            mean=mean_fns.Zero(input_shape=(2,), output_shape=(2, 1)),
+            mean=functions.Zero(input_shape=(2,), output_shape=(2, 1)),
             cov=kernels.ExpQuad(input_shape=(2,)),
         )
 

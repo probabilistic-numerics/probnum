@@ -2,9 +2,9 @@
 
 from typing import Any, Callable, Dict, Tuple, Type
 
-from probnum import Function, LambdaFunction, backend, randprocs
+from probnum import backend, functions, randprocs
 from probnum.backend.typing import ShapeType
-from probnum.randprocs import kernels, mean_fns
+from probnum.randprocs import kernels
 
 import pytest
 import pytest_cases
@@ -31,10 +31,10 @@ def output_shape(shape: ShapeType) -> ShapeType:
 @pytest_cases.parametrize(
     "meanfndef",
     [
-        ("Zero", mean_fns.Zero),
+        ("Zero", functions.Zero),
         (
             "Lambda",
-            lambda input_shape, output_shape: LambdaFunction(
+            lambda input_shape, output_shape: functions.LambdaFunction(
                 lambda x: (
                     backend.full_like(x, 2.0, shape=output_shape)
                     * backend.sum(x, axis=tuple(range(-len(input_shape), 0)))
@@ -48,10 +48,10 @@ def output_shape(shape: ShapeType) -> ShapeType:
     idgen="{meanfndef[0]}",
 )
 def mean(
-    meanfndef: Tuple[str, Callable[[ShapeType, ShapeType], Function]],
+    meanfndef: Tuple[str, Callable[[ShapeType, ShapeType], functions.Function]],
     input_shape: ShapeType,
     output_shape: ShapeType,
-) -> Function:
+) -> functions.Function:
     """Mean function of a random process."""
     return meanfndef[1](input_shape=input_shape, output_shape=output_shape)
 
@@ -89,7 +89,7 @@ def cov(
         (
             "GP-Zero-Matern",
             lambda input_shape, output_shape: randprocs.GaussianProcess(
-                mean=mean_fns.Zero(input_shape=input_shape),
+                mean=functions.Zero(input_shape=input_shape),
                 cov=kernels.Matern(input_shape=input_shape),
             ),
         ),
@@ -106,7 +106,9 @@ def random_process(
 
 
 @pytest_cases.fixture(scope="package")
-def gaussian_process(mean: Function, cov: kernels.Kernel) -> randprocs.GaussianProcess:
+def gaussian_process(
+    mean: functions.Function, cov: kernels.Kernel
+) -> randprocs.GaussianProcess:
     """Gaussian process."""
     return randprocs.GaussianProcess(mean=mean, cov=cov)
 

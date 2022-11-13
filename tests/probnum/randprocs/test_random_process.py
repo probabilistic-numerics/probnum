@@ -1,6 +1,6 @@
 """Tests for random processes."""
 
-from probnum import backend, compat, randprocs, randvars
+from probnum import backend, compat, functions, randprocs, randvars
 from probnum.backend.typing import ShapeType
 
 import pytest
@@ -160,7 +160,7 @@ def test_inconsistent_mean_shape_errors():
             input_shape=(42,),
             output_shape=(),
             dtype=backend.float64,
-            mean=randprocs.mean_fns.Zero(
+            mean=functions.Zero(
                 input_shape=(3,),
                 output_shape=(3,),
             ),
@@ -171,7 +171,7 @@ def test_inconsistent_mean_shape_errors():
             input_shape=(),
             output_shape=(1,),
             dtype=backend.float64,
-            mean=randprocs.mean_fns.Zero(
+            mean=functions.Zero(
                 input_shape=(),
                 output_shape=(3,),
             ),

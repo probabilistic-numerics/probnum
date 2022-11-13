@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from probnum import _function, backend, randvars
+from probnum import backend, functions, randvars
 from probnum.backend.random import RNGState
 from probnum.backend.typing import ArrayLike, ShapeLike
 from probnum.randprocs import _random_process, kernels
@@ -26,7 +26,7 @@ class _MarkovBase(_random_process.RandomProcess):
             input_shape=input_shape,
             output_shape=output_shape,
             dtype=backend.float64,
-            mean=_function.LambdaFunction(
+            mean=functions.LambdaFunction(
                 lambda x: self.__call__(args=x).mean,
                 input_shape=input_shape,
                 output_shape=output_shape,
