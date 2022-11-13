@@ -1,9 +1,9 @@
 import numpy as np
-import pytest
 from scipy.optimize._numdiff import approx_derivative
 
-import probnum as pn
-from probnum import backend, compat
+from probnum import backend, compat, functions, randprocs, randvars
+
+import pytest
 
 
 def assert_gradient_approx_finite_differences(
@@ -19,12 +19,12 @@ def assert_gradient_approx_finite_differences(
     if epsilon is None:
         out = func(x0)
 
-        epsilon = np.sqrt(backend.finfo(out.dtype).eps)
+        epsilon = backend.sqrt(backend.finfo(out.dtype).eps)
 
     compat.testing.assert_allclose(
         grad(x0),
         approx_derivative(
-            lambda x: np.array(func(x), copy=False),
+            lambda x: backend.asarray(func(x), copy=False),
             x0,
             method=method,
         ),
@@ -36,9 +36,9 @@ def assert_gradient_approx_finite_differences(
 def g(l):
     l = l[0]
 
-    gp = pn.randprocs.GaussianProcess(
-        mean=pn.randprocs.mean_fns.Zero(input_shape=()),
-        cov=pn.randprocs.kernels.ExpQuad(input_shape=(), lengthscale=l),
+    gp = randprocs.GaussianProcess(
+        mean=functions.Zero(input_shape=()),
+        cov=randprocs.kernels.ExpQuad(input_shape=(), lengthscale=l),
     )
 
     xs = backend.linspace(-1.0, 1.0, 10)
@@ -46,7 +46,7 @@ def g(l):
 
     fX = gp(xs)
 
-    e = pn.randvars.Normal(mean=backend.zeros(10), cov=backend.eye(10))
+    e = randvars.Normal(mean=backend.zeros(10), cov=backend.eye(10))
 
     return -(fX + e).logpdf(ys)
 
