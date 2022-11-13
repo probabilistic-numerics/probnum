@@ -1,7 +1,7 @@
-import pytest
-
 import probnum
 from probnum._config import _DEFAULT_CONFIG_OPTIONS
+
+import pytest
 
 
 def test_defaults():

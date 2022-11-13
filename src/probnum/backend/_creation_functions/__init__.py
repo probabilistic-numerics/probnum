@@ -90,7 +90,7 @@ def asarray(
     Returns
     -------
     out
-        an array containing the data from ``obj``.
+        An array containing the data from ``obj``.
     """
     return _impl.asarray(obj, dtype=dtype, device=device, copy=copy)
 
@@ -122,10 +122,10 @@ def tril(x: Array, /, *, k: int = 0) -> Array:
     Parameters
     ----------
     x
-        input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
         ``MxN`` matrices.
     k
-        diagonal above which to zero elements. If ``k = 0``, the diagonal is the main
+        Diagonal above which to zero elements. If ``k = 0``, the diagonal is the main
         diagonal. If ``k < 0``, the diagonal is below the main diagonal. If ``k > 0``,
         the diagonal is above the main diagonal. Default: ``0``.
 
@@ -137,7 +137,7 @@ def tril(x: Array, /, *, k: int = 0) -> Array:
     Returns
     -------
     out :
-        an array containing the lower triangular part(s). The returned array must have
+        An array containing the lower triangular part(s). The returned array must have
         the same shape and data type as ``x``. All elements above the specified diagonal
         ``k`` must be zeroed. The returned array should be allocated on the same device
         as ``x``.
@@ -194,21 +194,21 @@ def arange(
     Parameters
     ----------
     start
-        if ``stop`` is specified, the start of interval (inclusive); otherwise, the end
+        If ``stop`` is specified, the start of interval (inclusive); otherwise, the end
         of the interval (exclusive). If ``stop`` is not specified, the default starting
         value is ``0``.
     stop
-        the end of the interval.
+        The end of the interval.
     step
-        the distance between two adjacent elements (``out[i+1] - out[i]``). Must not be
+        The distance between two adjacent elements (``out[i+1] - out[i]``). Must not be
         ``0``; may be negative, this results in an empty array if ``stop >= start``.
         Default: ``1``.
     dtype
-        output array data type. Should be a floating-point data type. If ``dtype`` is
+        Output array data type. Should be a floating-point data type. If ``dtype`` is
         ``None``, the output array data type must be the default floating-point data
         type.
     device
-        device on which to place the created array.
+        Device on which to place the created array.
 
     .. note::
 
@@ -219,7 +219,7 @@ def arange(
     Returns
     -------
     out
-        a one-dimensional array containing evenly spaced values. The length of the
+        A one-dimensional array containing evenly spaced values. The length of the
         output array must be ``ceil((stop-start)/step)`` if ``stop - start`` and
         ``step`` have the same sign, and length ``0`` otherwise.
     """
@@ -237,17 +237,17 @@ def empty(
     Parameters
     ----------
     shape
-        output array shape.
+        Output array shape.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be the default floating-point data type.
     device
-        device on which to place the created array.
+        Device on which to place the created array.
 
     Returns
     -------
     out
-        an array containing uninitialized data.
+        An array containing uninitialized data.
     """
     return _impl.empty(asshape(shape), dtype=dtype, device=device)
 
@@ -300,18 +300,18 @@ def eye(
     Parameters
     ----------
     n_rows
-        number of rows in the output array.
+        Number of rows in the output array.
     n_cols
-        number of columns in the output array. If ``None``, the default number of
+        Number of columns in the output array. If ``None``, the default number of
         columns in the output array is equal to ``n_rows``.
     k
-        index of the diagonal. A positive value refers to an upper diagonal, a negative
+        Index of the diagonal. A positive value refers to an upper diagonal, a negative
         value to a lower diagonal, and ``0`` to the main diagonal. Default: ``0``.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be the default floating-point data type.
     device
-        device on which to place the created array.
+        Device on which to place the created array.
 
     Returns
     -------
@@ -334,11 +334,11 @@ def full(
     Parameters
     ----------
     shape
-        output array shape.
+        Output array shape.
     fill_value
-        fill value.
+        Fill value.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from ``fill_value``. If the fill value is an ``int``, the
         output array data type must be the default integer data type. If the fill value
         is a ``float``, the output array data type must be the default floating-point
@@ -352,7 +352,7 @@ def full(
            implementation-defined.
 
     device
-        device on which to place the created array.
+        Device on which to place the created array.
 
     Returns
     -------
@@ -377,13 +377,13 @@ def full_like(
     Parameters
     ----------
     x
-        input array from which to derive the output array shape.
+        Input array from which to derive the output array shape.
     fill_value
         fill value.
     shape
         Overrides the shape of the result.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from ``x``.
 
         .. note::
@@ -398,7 +398,7 @@ def full_like(
            unspecified and, thus, implementation-defined.
 
     device
-        device on which to place the created array. If ``device`` is ``None``, the
+        Device on which to place the created array. If ``device`` is ``None``, the
         output array device must be inferred from ``x``.
 
     Returns
@@ -429,9 +429,9 @@ def linspace(
     Parameters
     ----------
     start
-        the start of the interval.
+        The start of the interval.
     stop
-        the end of the interval. If ``endpoint`` is ``False``, the function must
+        The end of the interval. If ``endpoint`` is ``False``, the function must
         generate a sequence of ``num+1`` evenly spaced numbers starting with ``start``
         and ending with ``stop`` and exclude the ``stop`` from the returned array such
         that the returned array consists of evenly spaced numbers over the half-open
@@ -444,15 +444,15 @@ def linspace(
            The step size changes when `endpoint` is `False`.
 
     num
-        number of samples. Must be a non-negative integer value; otherwise, the function
+        Number of samples. Must be a non-negative integer value; otherwise, the function
         must raise an exception.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be the default floating-point data type.
     device
-        device on which to place the created array.
+        Device on which to place the created array.
     endpoint
-        boolean indicating whether to include ``stop`` in the interval. Default:
+        Boolean indicating whether to include ``stop`` in the interval. Default:
         ``True``.
 
     Returns
@@ -515,12 +515,12 @@ def ones(
     Parameters
     ----------
     shape
-        output array shape.
+        Output array shape.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be the default floating-point data type.
     device
-        device on which to place the created array.
+        Device on which to place the created array.
     Returns
     -------
     out
@@ -574,12 +574,12 @@ def zeros(
     Parameters
     ----------
     shape
-        output array shape.
+        Output array shape.
     dtype
-        output array data type. If ``dtype`` is ``None``, the output array data type
+        Output array data type. If ``dtype`` is ``None``, the output array data type
         must be the default floating-point data type.
     device
-        device on which to place the created array.
+        Device on which to place the created array.
 
     Returns
     -------
