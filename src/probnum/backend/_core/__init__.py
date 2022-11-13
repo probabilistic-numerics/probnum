@@ -42,16 +42,6 @@ swapaxes = _core.swapaxes
 
 # Constructors
 diag = _core.diag
-eye = _core.eye
-full = _core.full
-full_like = _core.full_like
-ones = _core.ones
-ones_like = _core.ones_like
-zeros = _core.zeros
-zeros_like = _core.zeros_like
-linspace = _core.linspace
-arange = _core.arange
-meshgrid = _core.meshgrid
 
 # Element-wise Unary Operations
 sign = _core.sign
@@ -158,16 +148,6 @@ __all__ = [
     "swapaxes",
     # Constructors
     "diag",
-    "eye",
-    "full",
-    "full_like",
-    "ones",
-    "ones_like",
-    "zeros",
-    "zeros_like",
-    "arange",
-    "linspace",
-    "meshgrid",
     # Element-wise Unary Operations
     "sign",
     "abs",

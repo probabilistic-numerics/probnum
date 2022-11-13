@@ -8,6 +8,7 @@ __all__ = [
     "cholesky",
     "cholesky_update",
     "eigh",
+    "eigvals",
     "gram_schmidt",
     "gram_schmidt_double",
     "gram_schmidt_modified",
@@ -256,6 +257,27 @@ def eigh(x: Array, /) -> Tuple[Array]:
     """
     eigenvalues, eigenvectors = _impl.eigh(x)
     return Eigh(eigenvalues, eigenvectors)
+
+
+def eigvalsh(x: Array, /) -> Array:
+    """Returns the eigenvalues of a symmetric matrix (or a stack of symmetric matrices).
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, M)`` and whose innermost two dimensions form
+         square matrices. Must have a real-valued floating-point data type.
+
+    Returns
+    -------
+    out
+        An array containing the computed eigenvalues. The returned array must have shape
+         ``(..., M)`` and have the same data type as ``x``.
+
+    .. note::
+       Eigenvalue sort order is left unspecified and is thus implementation-dependent.
+    """
+    return _impl.eigvalsh(x)
 
 
 SVD = collections.namedtuple("SVD", ["U", "S", "Vh"])

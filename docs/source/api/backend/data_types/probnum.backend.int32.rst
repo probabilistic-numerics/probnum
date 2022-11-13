@@ -5,5 +5,4 @@ int32
 
 .. autoclass:: int32
 
-A 32-bit signed integer whose values exist on the interval
-``[-2,147,483,647, +2,147,483,647]``.
+A 32-bit signed integer whose values exist on the interval ``[-2e9, +2e9]``.

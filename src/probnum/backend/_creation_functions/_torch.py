@@ -2,6 +2,22 @@
 from typing import Optional, Union
 
 import torch
+from torch import (  # pylint: disable=redefined-builtin, unused-import
+    arange,
+    empty,
+    empty_like,
+    eye,
+    full,
+    full_like,
+    linspace,
+    meshgrid,
+    ones,
+    ones_like,
+    tril,
+    triu,
+    zeros,
+    zeros_like,
+)
 
 
 def asarray(
@@ -22,8 +38,8 @@ def asarray(
 
 
 def tril(x: torch.Tensor, /, k: int = 0) -> torch.Tensor:
-    return torch.tril(x, diagonal=k)
+    return tril(x, diagonal=k)
 
 
 def triu(x: torch.Tensor, /, k: int = 0) -> torch.Tensor:
-    return torch.triu(x, diagonal=k)
+    return triu(x, diagonal=k)

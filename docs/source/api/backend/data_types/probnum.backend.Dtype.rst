@@ -5,4 +5,4 @@ Dtype
 
 .. autoclass:: Dtype
 
-Data type of an array.
+Data type of an :class:`~probnum.backend.Array`.

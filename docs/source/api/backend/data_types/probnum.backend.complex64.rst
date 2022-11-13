@@ -6,4 +6,4 @@ complex64
 .. autoclass:: complex64
 
 Single-precision complex number represented by two single-precision floats (real and
-imaginary components.
+imaginary components).

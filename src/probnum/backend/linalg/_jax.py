@@ -5,7 +5,7 @@ from typing import Literal, Optional, Tuple, Union
 
 import jax
 from jax import numpy as jnp
-from jax.numpy.linalg import eigh, solve, svd
+from jax.numpy.linalg import eigh, eigvalsh, solve, svd
 
 
 def vector_norm(

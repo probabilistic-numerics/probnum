@@ -72,14 +72,15 @@ class ProbabilisticLinearSolver(
     --------
     Define a linear system.
 
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.problems import LinearSystem
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
 
-    >>> rng = np.random.default_rng(42)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> rng_state, rng_state_A, rng_state_b = backend.random.split(rng_state, 3)
     >>> n = 100
-    >>> A = random_spd_matrix(rng=rng, shape=(n,n))
-    >>> b = rng.standard_normal(size=(n,))
+    >>> A = random_spd_matrix(rng_state=rng_state_A, shape=(n,n))
+    >>> b = backend.random.standard_normal(rng_state_b, shape=(n,))
     >>> linsys = LinearSystem(A=A, b=b)
 
     Create a custom probabilistic linear solver from pre-defined components.
@@ -116,8 +117,8 @@ class ProbabilisticLinearSolver(
     Solve the linear system using the custom solver.
 
     >>> belief, solver_state = pls.solve(prior=prior, problem=linsys)
-    >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b) / np.linalg.norm(linsys.b)
-    7.1886e-06
+    >>> backend.linalg.vector_norm(solver_state.residual)
+    array(6.56325045e-05)
     """
 
     def __init__(

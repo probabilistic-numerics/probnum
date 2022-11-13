@@ -4,7 +4,7 @@ import functools
 from typing import Callable, Literal, Optional, Tuple, Union
 
 import numpy as np
-from numpy.linalg import eigh, solve, svd
+from numpy.linalg import eigh, eigvalsh, solve, svd
 import scipy.linalg
 
 

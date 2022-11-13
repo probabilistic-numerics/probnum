@@ -56,8 +56,7 @@ def random_linear_system(
 
     Linear system with given system matrix.
 
-    >>> import scipy.stats
-    >>> unitary_matrix = scipy.stats.unitary_group.rvs(dim=5, random_state=rng)
+    >>> unitary_matrix = backend.random.uniform_so_group(rng_state, n=5)
     >>> linsys_unitary = random_linear_system(rng_state, unitary_matrix)
     >>> np.abs(np.linalg.det(linsys_unitary.A))
     1.0
@@ -65,22 +64,22 @@ def random_linear_system(
     Linear system with random symmetric positive-definite matrix.
 
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
-    >>> linsys_spd = random_linear_system(rng_state, random_spd_matrix, dim=2)
+    >>> linsys_spd = random_linear_system(rng_state, random_spd_matrix, shape=(2,2))
     >>> linsys_spd
-    LinearSystem(A=array([[ 9.62543582,  3.14955953],
-            [ 3.14955953, 13.28720426]]), b=array([-2.7108139 ,  1.10779288]),
-            solution=array([-0.33488503,  0.16275307]))
+    LinearSystem(A=array([[10.61706238, -0.78723358],
+           [-0.78723358, 10.06458988]]), b=array([3.96470544, 5.76555243]),
+           solution=array([0.41832997, 0.60557617]))
 
 
     Linear system with random sparse matrix.
 
     >>> import scipy.sparse
-    >>> random_sparse_matrix = lambda rng, m, n: scipy.sparse.random(
+    >>> random_sparse_matrix = lambda rng_state, m, n: scipy.sparse.random(
     ...     m=m,
     ...     n=n,
-    ...     random_state=rng,
+    ...     random_state=rng_state,
     ... )
-    >>> linsys_sparse = random_linear_system(rng, random_sparse_matrix, m=4, n=2)
+    >>> linsys_sparse = random_linear_system(rng_state, random_sparse_matrix, m=4, n=2)
     >>> isinstance(linsys_sparse.A, scipy.sparse.spmatrix)
     True
     """

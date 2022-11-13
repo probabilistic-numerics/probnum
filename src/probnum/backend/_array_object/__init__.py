@@ -13,10 +13,11 @@ elif BACKEND is Backend.JAX:
 elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
-__all__ = ["Scalar", "Array", "isarray"]
+__all__ = ["Array", "Device", "Scalar", "isarray"]
 
 Scalar = _impl.Scalar
 Array = _impl.Array
+Device = _impl.Device
 
 
 def isarray(x: Any) -> bool:

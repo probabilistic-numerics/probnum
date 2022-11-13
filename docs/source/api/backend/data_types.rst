@@ -8,18 +8,25 @@ Fundamental (array) data types.
 Classes
 -------
 
-.. autosummary::
-
-    ~probnum.backend.Dtype
-    ~probnum.backend.bool
-    ~probnum.backend.int32
-    ~probnum.backend.int64
-    ~probnum.backend.float16
-    ~probnum.backend.float32
-    ~probnum.backend.float64
-    ~probnum.backend.complex64
-    ~probnum.backend.complex128
-
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.Dtype`      | Data type of an :class:`~probnum.backend.Array`.                                                                        |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.bool`       | Boolean (``True`` or ``False``).                                                                                        |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.int32`      | A 32-bit signed integer.                                                                                                |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.int64`      | A 64-bit signed integer.                                                                                                |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.float16`    | IEEE 754 half-precision (16-bit) binary floating-point number.                                                          |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.float32`    | IEEE 754 single-precision (32-bit) binary floating-point number.                                                        |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.float64`    | IEEE 754 double-precision (64-bit) binary floating-point number.                                                        |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.complex64`  | Single-precision complex number represented by two :class:`~probnum.backend.float32`\s (real and imaginary components). |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
+| :class:`~probnum.backend.complex128` | Double-precision complex number represented by two :class:`~probnum.backend.float64`\s (real and imaginary components). |
++--------------------------------------+-------------------------------------------------------------------------------------------------------------------------+
 
 .. toctree::
     :hidden:

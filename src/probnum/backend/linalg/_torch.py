@@ -3,7 +3,7 @@
 from typing import Literal, Optional, Tuple, Union
 
 import torch
-from torch.linalg import eigh, qr, solve, svd
+from torch.linalg import eigh, eigvalsh, qr, solve, svd
 
 
 def vector_norm(

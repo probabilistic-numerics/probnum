@@ -3,7 +3,22 @@ from typing import Optional, Union
 
 import jax
 import jax.numpy as jnp
-from jax.numpy import tril, triu  # pylint: disable=redefined-builtin, unused-import
+from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
+    arange,
+    empty,
+    empty_like,
+    eye,
+    full,
+    full_like,
+    linspace,
+    meshgrid,
+    ones,
+    ones_like,
+    tril,
+    triu,
+    zeros,
+    zeros_like,
+)
 
 
 def asarray(
@@ -12,8 +27,8 @@ def asarray(
     ],
     /,
     *,
-    dtype: Optional["probnum.backend.Dtype"] = None,
-    device: Optional["probnum.backend.Device"] = None,
+    dtype=None,
+    device=None,
     copy: Optional[bool] = None,
 ) -> jnp.ndarray:
     if copy is None:

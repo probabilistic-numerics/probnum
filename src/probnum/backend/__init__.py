@@ -1,4 +1,9 @@
-"""Generic computation backend."""
+"""Generic computation backend.
+
+The interface provided by this module follows the Python array API standard
+(https://data-apis.org/array-api/latest/index.html), which defines a common
+common API for array and tensor Python libraries.
+"""
 
 from __future__ import annotations
 
