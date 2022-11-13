@@ -18,13 +18,13 @@ class Configuration:
     ========
 
     >>> import probnum
-    >>> probnum.config.covariance_inversion_damping
-    1e-12
+    >>> probnum.config.matrix_free
+    False
     >>> with probnum.config(
-    ...     covariance_inversion_damping=1e-2,
+    ...     matrix_free=True,
     ... ):
-    ...     probnum.config.covariance_inversion_damping
-    0.01
+    ...     probnum.config.matrix_free
+    True
     """
 
     _NON_REGISTERED_KEY_ERR_MSG = (

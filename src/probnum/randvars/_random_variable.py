@@ -838,23 +838,23 @@ class DiscreteRandomVariable(RandomVariable):
     Examples
     --------
     >>> # Create a custom categorical random variable
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randvars import DiscreteRandomVariable
     >>>
     >>> # Distribution parameters
-    >>> support = np.array([-1, 0, 1])
-    >>> p = np.array([0.2, 0.5, 0.3])
+    >>> support = backend.asarray([-1, 0, 1])
+    >>> p = backend.asarray([0.2, 0.5, 0.3])
     >>> parameters_categorical = {
     ...     "support" : support,
     ...     "p" : p}
     >>>
     >>> # Sampling function
-    >>> def sample_categorical(rng, size=()):
-    ...     return rng.choice(a=support, size=size, p=p)
+    >>> def sample_categorical(rng_state, sample_shape=()):
+    ...     return backend.random.choice(a=support, shape=sample_shape, p=p)
     >>>
     >>> # Probability mass function
     >>> def pmf_categorical(x):
-    ...     idx = np.where(x == support)[0]
+    ...     idx = backend.where(x == support)[0]
     ...     if len(idx) > 0:
     ...         return p[idx]
     ...     else:
@@ -863,17 +863,17 @@ class DiscreteRandomVariable(RandomVariable):
     >>> # Create custom random variable
     >>> x = DiscreteRandomVariable(
     ...       shape=(),
-    ...       dtype=np.dtype(np.int64),
+    ...       dtype=backend.int64,
     ...       parameters=parameters_categorical,
     ...       sample=sample_categorical,
     ...       pmf=pmf_categorical,
-    ...       mean=lambda : np.float64(0),
-    ...       median=lambda : np.float64(0),
+    ...       mean=lambda : backend.float64(0),
+    ...       median=lambda : backend.float64(0),
     ...       )
     >>>
     >>> # Sample from new random variable
-    >>> rng = np.random.default_rng(42)
-    >>> x.sample(rng=rng, size=3)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> x.sample(rng_state=rng_state, sample_shape=3)
     array([1, 0, 1])
     >>> x.pmf(2)
     array(0.)
@@ -1057,8 +1057,8 @@ class ContinuousRandomVariable(RandomVariable):
     >>> parameters_uniform = {"bounds" : [a, b]}
     >>>
     >>> # Sampling function
-    >>> def sample_uniform(rng_state, size=()):
-    ...     return backend.random.uniform(rng_state=rng_state, size=size)
+    >>> def sample_uniform(rng_state, sample_shape=()):
+    ...     return backend.random.uniform(rng_state=rng_state, shape=sample_shape)
     >>>
     >>> # Probability density function
     >>> def pdf_uniform(x):
@@ -1082,7 +1082,7 @@ class ContinuousRandomVariable(RandomVariable):
     >>>
     >>> # Sample from new random variable
     >>> rng_state = backend.random.rng_state(42)
-    >>> u.sample(rng_state, size=3)
+    >>> u.sample(rng_state, 3)
     array([0.77395605, 0.43887844, 0.85859792])
     >>> u.pdf(0.5)
     array(1.)

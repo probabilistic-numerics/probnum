@@ -74,12 +74,12 @@ def random_linear_system(
     Linear system with random sparse matrix.
 
     >>> import scipy.sparse
-    >>> random_sparse_matrix = lambda rng_state, m, n: scipy.sparse.random(
-    ...     m=m,
-    ...     n=n,
-    ...     random_state=rng_state,
-    ... )
-    >>> linsys_sparse = random_linear_system(rng_state, random_sparse_matrix, m=4, n=2)
+    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
+    >>> import scipy.sparse
+    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
+    >>> linsys_sparse = random_linear_system(
+    ...         rng_state, random_sparse_spd_matrix, shape=(10,10), density=0.1
+    ...     )
     >>> isinstance(linsys_sparse.A, scipy.sparse.spmatrix)
     True
     """

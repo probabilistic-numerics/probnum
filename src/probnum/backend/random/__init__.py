@@ -1,7 +1,7 @@
 """Functionality for random number generation."""
 from __future__ import annotations
 
-from typing import Sequence, Union
+from typing import Optional, Sequence, Union
 
 from probnum import backend
 from probnum.backend.typing import FloatLike, SeedType, ShapeLike
@@ -17,6 +17,7 @@ __all__ = [
     "RNGState",
     "rng_state",
     "split",
+    "choice",
     "gamma",
     "permutation",
     "standard_normal",
@@ -61,6 +62,44 @@ def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
         Sequence of RNG states.
     """
     return _impl.split(rng_state=rng_state, num=num)
+
+
+def choice(
+    rng_state: RNGState,
+    x: Union[int, backend.Array],
+    shape: ShapeLike = (),
+    replace: bool = True,
+    p: Optional[backend.Array] = None,
+    axis: int = 0,
+) -> backend.Array:
+    """Generate a random sample from a given array.
+
+    Parameters
+    ----------
+    rng_state
+        Random number generator state.
+    x
+        If a :class:`~probnum.backend.Array`, a random sample is generated from its
+        elements. If an `int`, the random sample is generated as if it were
+        :code:`backend`.arange(x)`.
+    shape
+        Sample shape.
+    replace
+        Whether the sample is with or without replacement.
+    p
+        The probabilities associated with each entry in ``x``. If not given, the sample
+        assumes a uniform distribution over all entries in ``x``.
+    axis
+        The axis along which the selection is performed.
+    """
+    return _impl.choice(
+        rng_state=rng_state,
+        x=x,
+        shape=backend.asshape(shape),
+        replace=replace,
+        p=p,
+        axis=axis,
+    )
 
 
 def gamma(

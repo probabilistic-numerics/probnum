@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import functools
 import secrets
-from typing import Sequence, Union
+from typing import Optional, Sequence, Union
 
 import jax
 from jax import numpy as jnp
@@ -25,6 +25,19 @@ def rng_state(seed: SeedType) -> RNGState:
 
 def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
     return jax.random.split(key=rng_state, num=num)
+
+
+def choice(
+    rng_state: RNGState,
+    x: Union[int, jnp.ndarray],
+    shape: ShapeType = (),
+    replace: bool = True,
+    p: Optional[jnp.ndarray] = None,
+    axis: int = 0,
+) -> jnp.ndarray:
+    return jax.random.choice(
+        key=rng_state, a=x, shape=shape, replace=replace, p=p, axis=axis
+    )
 
 
 def uniform(

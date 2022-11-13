@@ -28,6 +28,19 @@ def _rng_from_rng_state(rng_state: RNGState) -> np.random.Generator:
     return np.random.default_rng(rng_state)
 
 
+def choice(
+    rng_state: RNGState,
+    x: Union[int, np.ndarray],
+    shape: ShapeType = (),
+    replace: bool = True,
+    p: Optional[np.ndarray] = None,
+    axis: int = 0,
+) -> np.ndarray:
+    return _rng_from_rng_state(rng_state).choice(
+        key=rng_state, a=x, shape=shape, replace=replace, p=p, axis=axis
+    )
+
+
 def uniform(
     rng_state: RNGState,
     shape: ShapeType = (),

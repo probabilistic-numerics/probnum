@@ -44,9 +44,10 @@ class Normal(_random_variable.ContinuousRandomVariable):
 
     Examples
     --------
-    >>> x = pn.randvars.Normal(mean=0.5, cov=1.0)
-    >>> rng = np.random.default_rng(42)
-    >>> x.sample(rng=rng, size=(2, 2))
+    >>> from probnum import backend, randvars
+    >>> x = randvars.Normal(mean=0.5, cov=1.0)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> x.sample(rng_state=rng_state, sample_shape=(2, 2))
     array([[ 0.80471708, -0.53998411],
            [ 1.2504512 ,  1.44056472]])
     """

@@ -48,13 +48,12 @@ def vector_norm(
     keepdims: bool = False,
     ord: Union[int, float, Literal["inf", "-inf"]] = 2,
 ) -> Array:
-    """Computes the vector norm of a vector (or batch of vectors) ``x``.
+    """Computes the vector norm of a vector (or batch of vectors).
 
     Parameters
     ----------
     x
         input array. Should have a floating-point data type.
-
     axis
         If an integer, ``axis`` specifies the axis (dimension) along which to compute
         vector norms. If an n-tuple, ``axis`` specifies the axes (dimensions) along

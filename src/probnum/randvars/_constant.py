@@ -42,13 +42,13 @@ class Constant(_random_variable.DiscreteRandomVariable):
 
     Examples
     --------
-    >>> from probnum import randvars
+    >>> from probnum import backend, randvars
     >>> import numpy as np
     >>> rv1 = randvars.Constant(support=0.)
     >>> rv2 = randvars.Constant(support=1.)
     >>> rv = rv1 + rv2
-    >>> rng = np.random.default_rng(seed=42)
-    >>> rv.sample(rng, size=5)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> rv.sample(rng_state, 5)
     array([1., 1., 1., 1., 1.])
     """
 

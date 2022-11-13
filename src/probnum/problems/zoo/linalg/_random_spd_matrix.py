@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
+import numpy as np
 import scipy.stats
 
 from probnum import backend
@@ -166,7 +167,7 @@ def random_sparse_spd_matrix(
             n=shape[0],
             format="csr",
             density=density,
-            random_state=rng_state,
+            random_state=np.random.default_rng(rng_state),
         )
 
         # Rescale entries
