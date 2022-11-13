@@ -30,8 +30,8 @@ def argmax(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -
     keepdims
         If ``True``, the reduced axes (dimensions) must be included in the result as
         singleton dimensions, and, accordingly, the result must be compatible with the
-        input array. Otherwise, if ``False``, the reduced axes
-        (dimensions) must not be included in the result.
+        input array. Otherwise, if ``False``, the reduced axes (dimensions) must not be
+        included in the result.
 
     Returns
     -------
@@ -60,8 +60,8 @@ def argmin(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -
     keepdims
         If ``True``, the reduced axes (dimensions) must be included in the result as
         singleton dimensions, and, accordingly, the result must be compatible with the
-        input array. Otherwise, if ``False``, the reduced axes
-        (dimensions) must not be included in the result. Default: ``False``.
+        input array. Otherwise, if ``False``, the reduced axes (dimensions) must not be
+        included in the result. Default: ``False``.
 
     Returns
     -------
