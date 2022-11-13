@@ -19,7 +19,7 @@ Functions
 .. toctree::
     :hidden:
 
-    creation_functions/probnum.backend.argmax
-    creation_functions/probnum.backend.argmin
-    creation_functions/probnum.backend.nonzero
-    creation_functions/probnum.backend.where
+    searching_functions/probnum.backend.argmax
+    searching_functions/probnum.backend.argmin
+    searching_functions/probnum.backend.nonzero
+    searching_functions/probnum.backend.where

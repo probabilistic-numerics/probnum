@@ -15,9 +15,10 @@ __all__ = ["argmin", "argmax", "nonzero", "where"]
 
 
 def argmax(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -> Array:
-    """Returns the indices of the maximum values along a specified axis. When the
-    maximum value occurs multiple times, only the indices corresponding to the first
-    occurrence are returned.
+    """Returns the indices of the maximum values along a specified axis.
+
+    When the maximum value occurs multiple times, only the indices corresponding to the
+    first occurrence are returned.
 
     Parameters
     ----------
@@ -30,7 +31,7 @@ def argmax(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -
         If ``True``, the reduced axes (dimensions) must be included in the result as
         singleton dimensions, and, accordingly, the result must be compatible with the
         input array. Otherwise, if ``False``, the reduced axes
-         (dimensions) must not be included in the result.
+        (dimensions) must not be included in the result.
 
     Returns
     -------
@@ -44,9 +45,10 @@ def argmax(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -
 
 
 def argmin(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -> Array:
-    """Returns the indices of the minimum values along a specified axis. When the
-    minimum value occurs multiple times, only the indices corresponding to the first
-    occurrence are returned.
+    """Returns the indices of the minimum values along a specified axis.
+
+    When the minimum value occurs multiple times, only the indices corresponding to the
+    first occurrence are returned.
 
     Parameters
     ----------

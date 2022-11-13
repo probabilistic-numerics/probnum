@@ -103,7 +103,7 @@ def test_euclidean_norm_array(array0: backend.Array, axis: int):
 def test_induced_norm_array(array0: backend.Array, axis: int):
     inprod_mat = random_spd_matrix(
         rng_state=backend.random.rng_state(254),
-        dim=array0.shape[axis],
+        shape=(array0.shape[axis], array0.shape[axis]),
     )
     array0_moved_axis = backend.moveaxis(array0, axis, -1)
     A_array_0_moved_axis = (inprod_mat @ array0_moved_axis[..., :, None])[..., 0]

@@ -8,7 +8,7 @@ __all__ = [
     "cholesky",
     "cholesky_update",
     "eigh",
-    "eigvals",
+    "eigvalsh",
     "gram_schmidt",
     "gram_schmidt_double",
     "gram_schmidt_modified",

@@ -19,8 +19,8 @@ def spdmats(even_ndim):
     )
     rng_state1, rng_state2 = backend.random.split(rng_state, num=2)
 
-    spdmat1 = random_spd_matrix(rng_state1, dim=even_ndim)
-    spdmat2 = random_spd_matrix(rng_state2, dim=even_ndim)
+    spdmat1 = random_spd_matrix(rng_state1, shape=(even_ndim, even_ndim))
+    spdmat2 = random_spd_matrix(rng_state2, shape=(even_ndim, even_ndim))
 
     return spdmat1, spdmat2
 
