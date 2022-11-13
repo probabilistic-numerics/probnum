@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Sequence, Union
+from typing import Optional, Sequence, Union
 
 import numpy as np
 
@@ -37,7 +37,7 @@ def choice(
     axis: int = 0,
 ) -> np.ndarray:
     return _rng_from_rng_state(rng_state).choice(
-        key=rng_state, a=x, shape=shape, replace=replace, p=p, axis=axis
+        a=x, size=shape, replace=replace, p=p, axis=axis, shuffle=True
     )
 
 

@@ -850,15 +850,13 @@ class DiscreteRandomVariable(RandomVariable):
     >>>
     >>> # Sampling function
     >>> def sample_categorical(rng_state, sample_shape=()):
-    ...     return backend.random.choice(a=support, shape=sample_shape, p=p)
+    ...     return backend.random.choice(
+    ...         rng_state=rng_state, x=support, shape=sample_shape, p=p
+    ...         )
     >>>
     >>> # Probability mass function
     >>> def pmf_categorical(x):
-    ...     idx = backend.where(x == support)[0]
-    ...     if len(idx) > 0:
-    ...         return p[idx]
-    ...     else:
-    ...         return 0.0
+    ...     idx = backend.where(x == support, p, backend.zeros_like(p))
     >>>
     >>> # Create custom random variable
     >>> x = DiscreteRandomVariable(

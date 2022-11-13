@@ -1,12 +1,13 @@
 """Functionality for random number generation implemented in the PyTorch backend."""
 from __future__ import annotations
 
-from typing import Sequence, Union
+from typing import Optional, Sequence, Union
 
 import numpy as np
 import torch
 from torch.distributions.utils import broadcast_all
 
+from probnum import backend
 from probnum.backend.typing import SeedType, ShapeType
 
 RNGState = np.random.SeedSequence
@@ -28,6 +29,26 @@ def _rng_from_rng_state(rng_state: RNGState) -> torch.Generator:
 
     rng = torch.Generator()
     return rng.manual_seed(int(rng_state.generate_state(1, dtype=np.uint64)[0]))
+
+
+def choice(
+    rng_state: RNGState,
+    x: Union[int, np.ndarray],
+    shape: ShapeType = (),
+    replace: bool = True,
+    p: Optional[np.ndarray] = None,
+    axis: int = 0,
+) -> np.ndarray:
+    idcs = torch.multinomial(
+        generator=_rng_from_rng_state(rng_state),
+        input=p,
+        num_samples=shape,
+        replacement=replace,
+    )
+    if backend.isarray(x):
+        return torch.index_select(input=x, dim=axis, index=idcs)
+    else:
+        return idcs
 
 
 def uniform(
