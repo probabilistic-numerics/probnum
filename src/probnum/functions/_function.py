@@ -148,9 +148,9 @@ class Function(abc.ABC):
 
 
 class LambdaFunction(Function):
-    """Define a :class:`Function` from a given :class:`callable`.
+    """Define a :class:`Function` from a given :class:`Callable`.
 
-    Creates a :class:`Function` from a given :class:`callable` and in- and output
+    Creates a :class:`Function` from a given :class:`Callable` and in- and output
     shapes. This provides a convenient interface to define a :class:`Function`.
 
     Parameters

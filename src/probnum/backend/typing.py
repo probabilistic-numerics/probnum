@@ -55,7 +55,7 @@ SeedType = Optional[int]
 """Type defining a seed of a random number generator.
 
 An object of type :attr:`SeedType` is used to initialize the state of a random number
-generator by passing ``seed`` to :func:`backend.random.rng_state`."""
+generator by passing ``seed`` to :func:`~probnum.backend.random.rng_state`."""
 
 ########################################################################################
 # Argument Types
@@ -79,8 +79,8 @@ ScalarLike = Union[Scalar, int, float, complex, numbers.Number, np.number]
 """Object that can be converted to a scalar value.
 
 Arguments of type :attr:`ScalarLike` should always be converted into objects of
-:class:`~probnum.backend.Scalar` using the function :func:`backend.asscalar` before
-further internal processing."""
+:class:`~probnum.backend.Scalar` using the function :func:`~probnum.backend.asscalar`
+before further internal processing."""
 
 ArrayLike = Union[Array, _NumPyArrayLike]
 """Object that can be converted to an array.
@@ -115,8 +115,8 @@ _ArrayIndexLike = Union[
 ArrayIndicesLike = Union[_ArrayIndexLike, Tuple[_ArrayIndexLike, ...]]
 """Object that can be converted to indices of an array.
 
-Type of the argument to the :meth:`__getitem__` method of an :class:`Array` or similar
-object.
+Type of the argument to the :meth:`__getitem__` method of an
+:class:`~probnum.backend.Array` or similar object.
 """
 
 ########################################################################################
