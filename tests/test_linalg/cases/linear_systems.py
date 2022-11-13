@@ -18,8 +18,8 @@ def case_linsys(
     matrix: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
 ) -> problems.LinearSystem:
     """Linear system."""
-    seed = backend.random.rng_state(abs(hash(matrix)))
-    return random_linear_system(seed, matrix=matrix)
+    rng_state = backend.random.rng_state(abs(hash(matrix)))
+    return random_linear_system(rng_state=rng_state, matrix=matrix)
 
 
 @pytest_cases.parametrize_with_cases(
@@ -32,5 +32,5 @@ def case_spd_linsys(
     spd_matrix: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
 ) -> problems.LinearSystem:
     """Linear system with symmetric positive definite matrix."""
-    seed = backend.random.rng_state(abs(hash(spd_matrix)))
-    return random_linear_system(seed, matrix=spd_matrix)
+    rng_state = backend.random.rng_state(abs(hash(spd_matrix)))
+    return random_linear_system(rng_state=rng_state, matrix=spd_matrix)

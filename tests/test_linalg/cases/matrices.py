@@ -2,14 +2,14 @@
 
 import os
 
-import numpy as np
 import scipy
 
-from probnum import linops
+from probnum import backend, linops
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 from probnum.randprocs import kernels
 
 from pytest_cases import case, parametrize
+from tests.utils.random import rng_state_from_sampling_args
 
 m_rows = [1, 2, 10, 100]
 n_cols = [1, 2, 10, 100]
@@ -17,27 +17,34 @@ n_cols = [1, 2, 10, 100]
 
 @case(tags=["symmetric", "positive_definite"])
 @parametrize("n", n_cols)
-def case_random_spd_matrix(n: int, rng: np.random.Generator) -> np.ndarray:
-    return random_spd_matrix(dim=n, rng=rng)
+def case_random_spd_matrix(n: int) -> backend.Array:
+    rng_state = rng_state_from_sampling_args(n)
+    return random_spd_matrix(rng_state=rng_state, shape=(n, n))
 
 
 @case(tags=["symmetric", "positive_definite"])
-def case_random_sparse_spd_matrix(rng: np.random.Generator) -> scipy.sparse.spmatrix:
-    return random_sparse_spd_matrix(dim=1000, density=0.01, rng_state=rng)
+def case_random_sparse_spd_matrix() -> scipy.sparse.spmatrix:
+    rng_state = backend.random.rng_state(1)
+    return random_sparse_spd_matrix(
+        rng_state=rng_state, shape=(1000, 1000), density=0.01
+    )
 
 
 @case(tags=["symmetric", "positive_definite"])
 @parametrize("n", n_cols)
-def case_kernel_matrix(n: int, rng: np.random.Generator) -> np.ndarray:
+def case_kernel_matrix(n: int) -> backend.Array:
     """Kernel Gram matrix."""
+    rng_state = rng_state_from_sampling_args(n)
     x_min, x_max = (-4.0, 4.0)
-    X = rng.uniform(x_min, x_max, (n, 1))
-    kern = kernels.ExpQuad(input_shape=1, lengthscale=1)
+    X = backend.random.uniform(
+        rng_state=rng_state, minval=x_min, maxval=x_max, shape=(n, 1)
+    )
+    kern = kernels.ExpQuad(input_shape=1, lengthscale=1.0)
     return kern(X)
 
 
 @case(tags=["symmetric", "positive_definite"])
-def case_poisson() -> np.ndarray:
+def case_poisson() -> backend.Array:
     """Poisson equation with Dirichlet conditions.
 
         - Laplace(u) = f    in the interior
@@ -54,4 +61,4 @@ def case_poisson() -> np.ndarray:
 
 @case(tags=["symmetric", "positive_definite"])
 def case_scaling_linop() -> linops.Scaling:
-    return linops.Scaling(np.arange(10))
+    return linops.Scaling(backend.arange(10))
