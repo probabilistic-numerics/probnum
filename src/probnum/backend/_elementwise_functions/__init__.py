@@ -108,8 +108,8 @@ def acos(x: Array, /) -> Array:
 
 def acosh(x: Array, /) -> Array:
     """Calculates an approximation to the inverse hyperbolic cosine, having domain
-    ``[+1, +infinity]`` and codomain ``[+0, +infinity]``, for each element ``x_i`` of
-    the input array ``x``.
+    ``[+1, infinity]`` and codomain ``[+0, infinity]``, for each element ``x_i`` of the
+    input array ``x``.
 
     Parameters
     ----------
@@ -170,7 +170,7 @@ def asin(x: Array, /) -> Array:
 
 def asinh(x: Array, /) -> Array:
     """Calculates an approximation to the inverse hyperbolic sine, having domain
-    ``[-infinity, +infinity]`` and codomain ``[-infinity, +infinity]``, for each element
+    ``[-infinity, infinity]`` and codomain ``[-infinity, infinity]``, for each element
     ``x_i`` in the input array ``x``.
 
     Parameters
@@ -188,7 +188,7 @@ def asinh(x: Array, /) -> Array:
 
 def atan(x: Array, /) -> Array:
     """Calculates an approximation of the principal value of the inverse tangent, having
-    domain ``[-infinity, +infinity]`` and codomain ``[-π/2, +π/2]``, for each element
+    domain ``[-infinity, infinity]`` and codomain ``[-π/2, +π/2]``, for each element
     ``x_i`` of the input array ``x``.
 
     Parameters
@@ -206,9 +206,10 @@ def atan(x: Array, /) -> Array:
 
 def atan2(x1: Array, x2: Array, /) -> Array:
     """Calculates an approximation of the inverse tangent of the quotient ``x1/x2``,
-    having domain ``[-infinity, +infinity] x [-infinity, +infinity]`` and codomain
-    ``[-π, +π]``, for each pair of elements ``(x1_i, x2_i)`` of the input arrays ``x1``
-    and ``x2``, respectively.
+    having domain ``[-infinity, infinity] x [-infinity, infinity]`` and codomain ``[-π,
+
+    +π]``, for each pair of elements ``(x1_i, x2_i)`` of the input arrays ``x1`` and
+    ``x2``, respectively.
 
     The mathematical signs of ``x1_i`` and ``x2_i`` determine the quadrant of each
     element-wise result. The quadrant (i.e., branch) is chosen such that each
@@ -234,8 +235,8 @@ def atan2(x1: Array, x2: Array, /) -> Array:
 
 def atanh(x: Array, /) -> Array:
     """Calculates an approximation to the inverse hyperbolic tangent, having domain
-    ``[-1, +1]`` and codomain ``[-infinity, +infinity]``, for each element ``x_i`` of
-    the input array ``x``.
+    ``[-1, +1]`` and codomain ``[-infinity, infinity]``, for each element ``x_i`` of the
+    input array ``x``.
 
     Parameters
     ----------
@@ -539,7 +540,7 @@ def exp(x: Array, /) -> Array:
 
 def expm1(x: Array, /) -> Array:
     """Calculates an approximation to ``exp(x)-1``, having domain ``[-infinity,
-    infinity]`` and codomain ``[-1, +infinity]``, for each element ``x_i`` of the input
+    infinity]`` and codomain ``[-1, infinity]``, for each element ``x_i`` of the input
     array ``x``.
 
     .. note::
@@ -563,7 +564,7 @@ def expm1(x: Array, /) -> Array:
 
 def floor(x: Array, /) -> Array:
     """Rounds each element ``x_i`` of the input array ``x`` to the greatest (i.e.,
-    closest to ``+infinity``) integer-valued number that is not greater than ``x_i``.
+    closest to ``infinity``) integer-valued number that is not greater than ``x_i``.
 
     Parameters
     ----------
@@ -582,7 +583,7 @@ def floor_divide(x1: Array, x2: Array, /) -> Array:
     r"""
     Rounds the result of dividing each element ``x1_i`` of the input array ``x1`` by the
      respective element ``x2_i`` of the input array ``x2`` to the greatest (i.e.,
-     closest to `+infinity`) integer-value number that is not greater than the division
+     closest to `infinity`) integer-value number that is not greater than the division
      result.
 
     Parameters
@@ -755,7 +756,7 @@ def less_equal(x1: Array, x2: Array, /) -> Array:
 
 def log(x: Array, /) -> Array:
     """Calculates an approximation to the natural (base ``e``) logarithm, having domain
-    ``[0, +infinity]`` and codomain ``[-infinity, +infinity]``, for each element ``x_i``
+    ``[0, infinity]`` and codomain ``[-infinity, infinity]``, for each element ``x_i``
     of the input array ``x``.
 
     **Special cases**
@@ -766,7 +767,7 @@ def log(x: Array, /) -> Array:
     - If ``x_i`` is less than ``0``, the result is ``NaN``.
     - If ``x_i`` is either ``+0`` or ``-0``, the result is ``-infinity``.
     - If ``x_i`` is ``1``, the result is ``+0``.
-    - If ``x_i`` is ``+infinity``, the result is ``+infinity``.
+    - If ``x_i`` is ``infinity``, the result is ``infinity``.
 
     Parameters
     ----------
@@ -783,9 +784,8 @@ def log(x: Array, /) -> Array:
 
 def log1p(x: Array, /) -> Array:
     """Calculates an approximation to ``log(1+x)``, where ``log`` refers to the natural
-    (base ``e``) logarithm, having domain ``[-1, +infinity]`` and codomain ``[-infinity,
-
-    +infinity]``, for each element ``x_i`` of the input array ``x``.
+    (base ``e``) logarithm, having domain ``[-1, infinity]`` and codomain ``[-infinity,
+    infinity]``, for each element ``x_i`` of the input array ``x``.
 
     .. note::
        The purpose of this function is to calculate ``log(1+x)`` more accurately
@@ -806,9 +806,8 @@ def log1p(x: Array, /) -> Array:
 
 def log2(x: Array, /) -> Array:
     """Calculates an approximation to the base ``2`` logarithm, having domain ``[0,
-
-    +infinity]`` and codomain ``[-infinity, +infinity]``, for each element ``x_i`` of
-    the input array ``x``.
+    infinity]`` and codomain ``[-infinity, infinity]``, for each element ``x_i`` of the
+    input array ``x``.
 
     Parameters
     ----------
@@ -818,16 +817,16 @@ def log2(x: Array, /) -> Array:
     Returns
     -------
     out
-        an array containing the evaluated base ``2`` logarithm for each element in ``x``.
+        an array containing the evaluated base ``2`` logarithm for each element in
+        ``x``.
     """
     return _impl.log2(x)
 
 
 def log10(x: Array, /) -> Array:
     """Calculates an approximation to the base ``10`` logarithm, having domain ``[0,
-
-    +infinity]`` and codomain ``[-infinity, +infinity]``, for each element ``x_i`` of
-    the input array ``x``.
+    infinity]`` and codomain ``[-infinity, infinity]``, for each element ``x_i`` of the
+    input array ``x``.
 
     Parameters
     ----------
@@ -837,7 +836,8 @@ def log10(x: Array, /) -> Array:
     Returns
     -------
     out
-        an array containing the evaluated base ``10`` logarithm for each element in ``x``.
+        an array containing the evaluated base ``10`` logarithm for each element in
+        ``x``.
     """
     return _impl.log10(x)
 
@@ -1172,9 +1172,9 @@ def square(x: Array, /) -> Array:
 
 
 def sqrt(x: Array, /) -> Array:
-    """Calculates the square root, having domain ``[0, +infinity]`` and codomain ``[0,
+    """Calculates the square root, having domain ``[0, infinity]`` and codomain ``[0,
 
-    +infinity]``, for each element ``x_i`` of the input array ``x``.
+    infinity]``, for each element ``x_i`` of the input array ``x``.
 
     Parameters
     ----------
