@@ -2,7 +2,7 @@
 
 The interface provided by this module follows the Python array API standard
 (https://data-apis.org/array-api/latest/index.html), which defines a common
-common API for array and tensor Python libraries.
+API for array and tensor Python libraries.
 """
 
 from typing import AbstractSet, Optional, Union
@@ -42,16 +42,6 @@ swapaxes = _core.swapaxes
 
 # Constructors
 diag = _core.diag
-
-# Element-wise Unary Operations
-sign = _core.sign
-abs = _core.abs
-exp = _core.exp
-isfinite = _core.isfinite
-log = _core.log
-sin = _core.sin
-sqrt = _core.sqrt
-
 
 # Element-wise Binary Operations
 maximum = _core.maximum
@@ -148,14 +138,6 @@ __all__ = [
     "swapaxes",
     # Constructors
     "diag",
-    # Element-wise Unary Operations
-    "sign",
-    "abs",
-    "exp",
-    "isfinite",
-    "log",
-    "sin",
-    "sqrt",
     # Element-wise Binary Operations
     "maximum",
     "minimum",
