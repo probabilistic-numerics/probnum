@@ -207,8 +207,7 @@ def atan(x: Array, /) -> Array:
 def atan2(x1: Array, x2: Array, /) -> Array:
     """Calculates an approximation of the inverse tangent of the quotient ``x1/x2``,
     having domain ``[-infinity, infinity] x [-infinity, infinity]`` and codomain ``[-π,
-
-    +π]``, for each pair of elements ``(x1_i, x2_i)`` of the input arrays ``x1`` and
+    π]``, for each pair of elements ``(x1_i, x2_i)`` of the input arrays ``x1`` and
     ``x2``, respectively.
 
     The mathematical signs of ``x1_i`` and ``x2_i`` determine the quadrant of each
@@ -1173,7 +1172,6 @@ def square(x: Array, /) -> Array:
 
 def sqrt(x: Array, /) -> Array:
     """Calculates the square root, having domain ``[0, infinity]`` and codomain ``[0,
-
     infinity]``, for each element ``x_i`` of the input array ``x``.
 
     Parameters
