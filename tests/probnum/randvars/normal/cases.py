@@ -35,7 +35,7 @@ def case_vector(shape: ShapeType) -> randvars.Normal:
 
     return randvars.Normal(
         mean=5.0 * backend.random.standard_normal(rng_state_mean, shape=shape),
-        cov=random_spd_matrix(rng_state_cov, shape[0]),
+        cov=random_spd_matrix(rng_state_cov, shape=(shape[0], shape[0])),
     )
 
 
@@ -84,7 +84,9 @@ def case_matrix(shape: ShapeType) -> randvars.Normal:
 
     return randvars.Normal(
         mean=4.0 * backend.random.standard_normal(rng_state_mean, shape=shape),
-        cov=random_spd_matrix(rng_state_cov, shape[0] * shape[1]),
+        cov=random_spd_matrix(
+            rng_state_cov, shape=(shape[0] * shape[1], shape[0] * shape[1])
+        ),
     )
 
 
@@ -100,8 +102,8 @@ def case_matrix_mean_op_kronecker_cov(shape: ShapeType) -> randvars.Normal:
     )
 
     cov = linops.Kronecker(
-        A=random_spd_matrix(rng_state_cov_A, shape[0]),
-        B=random_spd_matrix(rng_state_cov_B, shape[1]),
+        A=random_spd_matrix(rng_state_cov_A, shape=(shape[0], shape[0])),
+        B=random_spd_matrix(rng_state_cov_B, shape=(shape[1], shape[1])),
     )
     cov.is_symmetric = True
     cov.A.is_symmetric = True

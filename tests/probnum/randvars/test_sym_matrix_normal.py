@@ -20,8 +20,10 @@ def case_symmetric_matrix(shape: ShapeType) -> randvars.SymmetricMatrixNormal:
     assert shape[0] == shape[1]
 
     return randvars.SymmetricMatrixNormal(
-        mean=random_spd_matrix(rng_state_mean, shape[0]),
-        cov=linops.SymmetricKronecker(random_spd_matrix(rng_state_cov, shape[0])),
+        mean=random_spd_matrix(rng_state_mean, shape=(shape[0], shape[0])),
+        cov=linops.SymmetricKronecker(
+            random_spd_matrix(rng_state_cov, shape=(shape[0], shape[0]))
+        ),
     )
 
 
