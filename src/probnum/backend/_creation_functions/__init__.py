@@ -280,7 +280,9 @@ def empty_like(
     out
         an array having the same shape as ``x`` and containing uninitialized data.
     """
-    return _impl.empty_like(x, shape=asshape(shape), dtype=dtype, device=device)
+    if shape is not None:
+        shape = asshape(shape)
+    return _impl.empty_like(x, shape=shape, dtype=dtype, device=device)
 
 
 def eye(
@@ -405,8 +407,10 @@ def full_like(
         an array having the same shape as ``x`` and where every element is equal to
         ``fill_value``.
     """
+    if shape is not None:
+        shape = asshape(shape)
     return _impl.full_like(
-        x, fill_value=fill_value, shape=asshape(shape), dtype=dtype, device=device
+        x, fill_value=fill_value, shape=shape, dtype=dtype, device=device
     )
 
 
@@ -554,7 +558,9 @@ def ones_like(
     out
         an array having the same shape as ``x`` and filled with ones.
     """
-    return _impl.ones_like(x, shape=asshape(shape), dtype=dtype, device=device)
+    if shape is not None:
+        shape = asshape(shape)
+    return _impl.ones_like(x, shape=shape, dtype=dtype, device=device)
 
 
 def zeros(
@@ -612,4 +618,6 @@ def zeros_like(
     out
         an array having the same shape as ``x`` and filled with zeros.
     """
-    return _impl.zeros_like(x, shape=asshape(shape), dtype=dtype, device=device)
+    if shape is not None:
+        shape = asshape(shape)
+    return _impl.zeros_like(x, shape=shape, dtype=dtype, device=device)
