@@ -14,7 +14,9 @@ def grad(
 def hessian(
     fun: Callable, argnums: Union[int, Sequence[int]] = 0, has_aux: bool = False
 ) -> Callable:
-    return functorch.hessian(fun, argnums)
+    return functorch.jacfwd(
+        functorch.jacrev(fun, argnums, has_aux=has_aux), argnums, has_aux=has_aux
+    )
 
 
 def vmap(
