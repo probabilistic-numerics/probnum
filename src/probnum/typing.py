@@ -13,7 +13,7 @@ a class instantiation or an interface. They enable the user to conveniently supp
 variety of objects of different types for the same argument, while ensuring a unified
 internal representation of those same objects. As an example, a user might pass an
 object which can be converted to a finite dimensional linear operator. This argument
-could be an class:`~probnum.backend.Array`, a sparse matrix
+could be an :class:`~probnum.backend.Array`, a sparse matrix
 :class:`~scipy.sparse.spmatrix` or a :class:`~probnum.linops.LinearOperator`. The type
 alias :attr:`LinearOperatorLike` combines all these in a single type. Internally, the
 passed argument is then converted to a :class:`~probnum.linops.LinearOperator`.
