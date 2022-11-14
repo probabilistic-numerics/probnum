@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
-from probnum import randprocs, randvars
+from probnum import backend, randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
+
+import pytest
 
 
 class TestIntegratorTransition:
@@ -101,11 +102,15 @@ def test_same_forward_outputs(both_transitions, diffusion):
     "both_transitions",
     [both_transitions_ibm(), both_transitions_ioup(), both_transitions_matern()],
 )
-def test_same_backward_outputs(both_transitions, diffusion, rng):
+def test_same_backward_outputs(both_transitions, diffusion):
+    rng_state = backend.random.rng_state(3058)
+
     trans1, trans2 = both_transitions
     real = 1 + 0.1 * np.random.rand(trans1.state_dimension)
     real2 = 1 + 0.1 * np.random.rand(trans1.state_dimension)
-    cov = linalg_zoo.random_spd_matrix(rng, dim=trans1.state_dimension)
+    cov = linalg_zoo.random_spd_matrix(
+        rng_state, shape=(trans1.state_dimension, trans1.state_dimension)
+    )
     rv = randvars.Normal(real2, cov)
     out_1, info1 = trans1.backward_realization(
         real, rv, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion

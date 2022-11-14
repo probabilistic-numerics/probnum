@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import randprocs
-from tests.test_randprocs.test_markov import test_transition
+
+import pytest
+from tests.probnum.randprocs.markov import test_transition
 
 
 class TestSDE(test_transition.InterfaceTestTransition):
@@ -10,14 +11,14 @@ class TestSDE(test_transition.InterfaceTestTransition):
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, spdmat1):
+    def _setup(self, state_dim, spdmat1):
 
         self.g = lambda t, x: np.sin(x)
         self.l = lambda t, x: spdmat1
         self.dg = lambda t, x: np.cos(x)
         self.transition = randprocs.markov.continuous.SDE(
-            state_dimension=test_ndim,
-            wiener_process_dimension=test_ndim,
+            state_dimension=state_dim,
+            wiener_process_dimension=state_dim,
             drift_function=self.g,
             dispersion_function=self.l,
             drift_jacobian=self.dg,
@@ -60,14 +61,14 @@ class TestSDE(test_transition.InterfaceTestTransition):
                 some_normal_rv1.mean, some_normal_rv2, 0.0, dt=0.1
             )
 
-    def test_input_dim(self, test_ndim):
-        assert self.transition.input_dim == test_ndim
+    def test_input_dim(self, state_dim):
+        assert self.transition.input_dim == state_dim
 
-    def test_output_dim(self, test_ndim):
-        assert self.transition.output_dim == test_ndim
+    def test_output_dim(self, state_dim):
+        assert self.transition.output_dim == state_dim
 
-    def test_state_dimension(self, test_ndim):
-        assert self.transition.state_dimension == test_ndim
+    def test_state_dimension(self, state_dim):
+        assert self.transition.state_dimension == state_dim
 
-    def test_wiener_process_dimension(self, test_ndim):
-        assert self.transition.wiener_process_dimension == test_ndim
+    def test_wiener_process_dimension(self, state_dim):
+        assert self.transition.wiener_process_dimension == state_dim

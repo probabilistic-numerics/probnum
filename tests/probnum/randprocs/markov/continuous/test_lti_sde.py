@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import randprocs, randvars
-from tests.test_randprocs.test_markov.test_continuous import test_linear_sde
+
+import pytest
+from tests.probnum.randprocs.markov.continuous import test_linear_sde
 
 
 class TestLTISDE(test_linear_sde.TestLinearSDE):
@@ -12,7 +13,7 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        test_ndim,
+        state_dim,
         spdmat1,
         spdmat2,
         forw_impl_string_linear_gauss,
@@ -20,7 +21,7 @@ class TestLTISDE(test_linear_sde.TestLinearSDE):
     ):
 
         self.G_const = spdmat1
-        self.v_const = np.arange(test_ndim)
+        self.v_const = np.arange(state_dim)
         self.L_const = spdmat2
 
         self.transition = randprocs.markov.continuous.LTISDE(

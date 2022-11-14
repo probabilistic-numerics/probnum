@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import randprocs, randvars
-from tests.test_randprocs.test_markov.test_continuous import test_sde
+
+import pytest
+from tests.probnum.randprocs.markov.continuous import test_sde
 
 
 class TestLinearSDE(test_sde.TestSDE):
@@ -10,14 +11,14 @@ class TestLinearSDE(test_sde.TestSDE):
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, spdmat1, spdmat2):
+    def _setup(self, state_dim, spdmat1, spdmat2):
 
         self.G = lambda t: spdmat1
-        self.v = lambda t: np.arange(test_ndim)
+        self.v = lambda t: np.arange(state_dim)
         self.L = lambda t: spdmat2
         self.transition = randprocs.markov.continuous.LinearSDE(
-            state_dimension=test_ndim,
-            wiener_process_dimension=test_ndim,
+            state_dimension=state_dim,
+            wiener_process_dimension=state_dim,
             drift_matrix_function=self.G,
             force_vector_function=self.v,
             dispersion_matrix_function=self.L,

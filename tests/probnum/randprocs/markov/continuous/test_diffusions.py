@@ -3,17 +3,17 @@
 import abc
 
 import numpy as np
-import pytest
 
 from probnum import randprocs, randvars
+
+import pytest
 
 
 @pytest.fixture
 def some_meas_rv1():
     """Generic measurement RV used to test calibration.
 
-    This config should return 9.776307498421126 for
-    Diffusion.calibrate_locally.
+    This config should return 9.776307498421126 for Diffusion.calibrate_locally.
     """
     some_mean = np.arange(10, 13)
     some_cov = np.arange(9).reshape((3, 3)) @ np.arange(9).reshape((3, 3)).T + np.eye(3)
@@ -25,8 +25,7 @@ def some_meas_rv1():
 def some_meas_rv2():
     """Another generic measurement RV used to test calibration.
 
-    This config should return 9.776307498421126 for
-    Diffusion.calibrate_locally.
+    This config should return 9.776307498421126 for Diffusion.calibrate_locally.
     """
     some_mean = np.arange(10, 13)
     some_cov = np.arange(3, 12).reshape((3, 3)) @ np.arange(3, 12).reshape(

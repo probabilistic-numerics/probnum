@@ -1,9 +1,10 @@
 """Tests for the coordinate conversion functions."""
 
 import numpy as np
-import pytest
 
 from probnum import randprocs
+
+import pytest
 
 
 @pytest.fixture

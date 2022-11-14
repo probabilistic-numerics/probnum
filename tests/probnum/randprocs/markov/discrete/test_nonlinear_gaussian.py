@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import randprocs, randvars
-from tests.test_randprocs.test_markov import test_transition
+
+import pytest
+from tests.probnum.randprocs.markov import test_transition
 
 
 class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
@@ -17,17 +18,17 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, spdmat1):
+    def _setup(self, state_dim, spdmat1):
 
         self.transition_fun = lambda t, x: np.sin(x)
         self.noise_fun = lambda t: randvars.Normal(
-            mean=np.zeros(test_ndim), cov=spdmat1
+            mean=np.zeros(state_dim), cov=spdmat1
         )
         self.transition_fun_jacobian = lambda t, x: np.cos(x)
 
         self.transition = randprocs.markov.discrete.NonlinearGaussian(
-            input_dim=test_ndim,
-            output_dim=test_ndim,
+            input_dim=state_dim,
+            output_dim=state_dim,
             transition_fun=self.transition_fun,
             transition_fun_jacobian=self.transition_fun_jacobian,
             noise_fun=self.noise_fun,
@@ -71,8 +72,8 @@ class TestNonlinearGaussian(test_transition.InterfaceTestTransition):
         with pytest.raises(NotImplementedError):
             self.transition.backward_realization(some_normal_rv1.mean, some_normal_rv2)
 
-    def test_input_dim(self, test_ndim):
-        assert self.transition.input_dim == test_ndim
+    def test_input_dim(self, state_dim):
+        assert self.transition.input_dim == state_dim
 
-    def test_output_dim(self, test_ndim):
-        assert self.transition.output_dim == test_ndim
+    def test_output_dim(self, state_dim):
+        assert self.transition.output_dim == state_dim

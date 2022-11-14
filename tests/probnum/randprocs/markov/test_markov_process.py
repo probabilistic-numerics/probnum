@@ -1,13 +1,13 @@
 """Tests for Markov processes."""
 
 import numpy as np
-import pytest
 
-from probnum import randprocs, randvars
+from probnum import backend, randprocs, randvars
+
+import pytest
 
 
 def test_bad_args_shape():
-    rng = np.random.default_rng(seed=1)
     time_domain = (0.0, 10.0)
     time_grid = np.arange(*time_domain)
 
@@ -27,4 +27,6 @@ def test_bad_args_shape():
     )
 
     with pytest.raises(ValueError):
-        prior_process.sample(rng=rng, args=time_grid.reshape(-1, 1))
+        prior_process.sample(
+            rng_state=backend.random.rng_state(1), args=time_grid.reshape(-1, 1)
+        )

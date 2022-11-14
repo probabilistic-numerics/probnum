@@ -4,5 +4,5 @@ import pytest
 
 
 @pytest.fixture
-def some_num_derivatives(test_ndim):
-    return test_ndim - 1
+def some_num_derivatives(state_dim):
+    return state_dim - 1

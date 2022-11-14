@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import config, linops, randprocs, randvars
-from tests.test_randprocs.test_markov.test_discrete import test_nonlinear_gaussian
+
+import pytest
+from tests.probnum.randprocs.markov.discrete import test_nonlinear_gaussian
 
 
 @pytest.fixture(params=["classic", "sqrt"])
@@ -30,7 +31,7 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        test_ndim,
+        state_dim,
         spdmat1,
         spdmat2,
         forw_impl_string_linear_gauss,
@@ -39,12 +40,12 @@ class TestLinearGaussian(test_nonlinear_gaussian.TestNonlinearGaussian):
 
         self.transition_matrix_fun = lambda t: spdmat1
         self.noise_fun = lambda t: randvars.Normal(
-            mean=np.arange(test_ndim), cov=spdmat2
+            mean=np.arange(state_dim), cov=spdmat2
         )
 
         self.transition = randprocs.markov.discrete.LinearGaussian(
-            input_dim=test_ndim,
-            output_dim=test_ndim,
+            input_dim=state_dim,
+            output_dim=state_dim,
             transition_matrix_fun=self.transition_matrix_fun,
             noise_fun=self.noise_fun,
             forward_implementation=forw_impl_string_linear_gauss,
@@ -255,27 +256,27 @@ class TestLinearGaussianLinOps:
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        test_ndim,
+        state_dim,
         spdmat1,
         spdmat2,
     ):
         with config(matrix_free=True):
             self.noise_fun = lambda t: randvars.Normal(
-                mean=np.arange(test_ndim), cov=linops.aslinop(spdmat2)
+                mean=np.arange(state_dim), cov=linops.aslinop(spdmat2)
             )
             self.transition_matrix_fun = lambda t: linops.aslinop(spdmat1)
 
             self.transition = randprocs.markov.discrete.LinearGaussian(
-                input_dim=test_ndim,
-                output_dim=test_ndim,
+                input_dim=state_dim,
+                output_dim=state_dim,
                 transition_matrix_fun=self.transition_matrix_fun,
                 noise_fun=self.noise_fun,
                 forward_implementation="classic",
                 backward_implementation="classic",
             )
             self.sqrt_transition = randprocs.markov.discrete.LinearGaussian(
-                input_dim=test_ndim,
-                output_dim=test_ndim,
+                input_dim=state_dim,
+                output_dim=state_dim,
                 transition_matrix_fun=self.transition_matrix_fun,
                 noise_fun=self.noise_fun,
                 forward_implementation="sqrt",

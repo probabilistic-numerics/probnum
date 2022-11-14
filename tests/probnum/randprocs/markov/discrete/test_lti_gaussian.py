@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import randprocs, randvars
-from tests.test_randprocs.test_markov.test_discrete import test_linear_gaussian
+
+import pytest
+from tests.probnum.randprocs.markov.discrete import test_linear_gaussian
 
 
 class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
@@ -12,7 +13,7 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        test_ndim,
+        state_dim,
         spdmat1,
         spdmat2,
         forw_impl_string_linear_gauss,
@@ -20,7 +21,7 @@ class TestLTIGaussian(test_linear_gaussian.TestLinearGaussian):
     ):
 
         self.transition_matrix = spdmat1
-        self.noise = randvars.Normal(mean=np.arange(test_ndim), cov=spdmat2)
+        self.noise = randvars.Normal(mean=np.arange(state_dim), cov=spdmat2)
 
         self.transition = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=self.transition_matrix,

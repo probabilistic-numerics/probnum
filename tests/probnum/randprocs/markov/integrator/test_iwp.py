@@ -2,12 +2,12 @@
 
 import numpy as np
 
-from probnum import config, randprocs, randvars
+from probnum import backend, config, randprocs, randvars
 from probnum.problems.zoo import linalg as linalg_zoo
 
 import pytest
-from tests.test_randprocs.test_markov.test_continuous import test_lti_sde
-from tests.test_randprocs.test_markov.test_integrator import test_integrator
+from tests.probnum.randprocs.markov.continuous import test_lti_sde
+from tests.probnum.randprocs.markov.integrator import test_integrator
 
 
 @pytest.mark.parametrize("initarg", [0.0, 2.0])
@@ -88,7 +88,7 @@ class TestIntegratedWienerTransition(
     def integrator(self):
         return self.transition
 
-    def test_wiener_process_dimension(self, test_ndim):
+    def test_wiener_process_dimension(self, state_dim):
         assert self.transition.wiener_process_dimension == 1
 
     def test_discretise_no_force(self):
@@ -141,7 +141,7 @@ class TestIBMLinOps(test_lti_sde.TestLTISDE, test_integrator.TestIntegratorTrans
     def integrator(self):
         return self.transition
 
-    def test_wiener_process_dimension(self, test_ndim):
+    def test_wiener_process_dimension(self, state_dim):
         assert self.transition.wiener_process_dimension == 1
 
     def test_drift(self, some_normal_rv1):
@@ -222,8 +222,9 @@ def qh_22_ibm(dt):
 
 
 @pytest.fixture
-def spdmat3x3(rng):
-    return linalg_zoo.random_spd_matrix(rng, dim=3)
+def spdmat3x3():
+    rng_state = backend.random.rng_state(134)
+    return linalg_zoo.random_spd_matrix(rng_state=rng_state, shape=(3, 3))
 
 
 @pytest.fixture
