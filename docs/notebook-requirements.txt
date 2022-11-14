@@ -2,7 +2,7 @@
 jupyter
 
 # Notebook conversion
-nbsphinx>=0.8.6,<0.8.7
+nbsphinx>=0.8.6,<0.8.11
 # Jinja2 version 3.1 introduced a bug in nbconvert, see https://github.com/jupyter/nbconvert/pull/1737
 Jinja2<3.1
 
