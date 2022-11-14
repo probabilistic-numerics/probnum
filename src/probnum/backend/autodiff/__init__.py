@@ -12,7 +12,9 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
     from . import _torch as _impl
 
 
-def grad(fun: Callable, argnums: Union[int, Sequence[int]] = 0) -> Callable:
+def grad(
+    fun: Callable, argnums: Union[int, Sequence[int]] = 0, *, has_aux: bool = False
+) -> Callable:
     """Creates a function that evaluates the gradient of ``fun``.
 
     Parameters
@@ -24,9 +26,10 @@ def grad(fun: Callable, argnums: Union[int, Sequence[int]] = 0) -> Callable:
         inexact (i.e., floating-point or complex) type. It
         should return a scalar (which includes arrays with shape ``()`` but not
         arrays with shape ``(1,)`` etc.)
-
     argnums
         Specifies which positional argument(s) to differentiate with respect to.
+    has_aux
+        Indicates whether ``fun`` returns a pair where the first element is considered the output of the mathematical function to be differentiated and the second element is auxiliary data.
 
     Returns
     -------
@@ -45,4 +48,4 @@ def grad(fun: Callable, argnums: Union[int, Sequence[int]] = 0) -> Callable:
     >>> grad_sin(backend.pi)
     -1.0
     """
-    return _impl.grad(fun=fun, argnums=argnums)
+    return _impl.grad(fun=fun, argnums=argnums, has_aux=has_aux)

@@ -5,7 +5,9 @@ from typing import Callable, Sequence, Union
 import torch
 
 
-def grad(fun: Callable, argnums: Union[int, Sequence[int]] = 0) -> Callable:
+def grad(
+    fun: Callable, argnums: Union[int, Sequence[int]] = 0, has_aux: bool = False
+) -> Callable:
     def _grad_fn(*args, **kwargs):
         args = list(args)
         if isinstance(argnums, int):
