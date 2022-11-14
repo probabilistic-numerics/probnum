@@ -16,7 +16,6 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     dtype as asdtype,
     einsum,
     exp,
-    expand_dims,
     eye,
     finfo,
     flip,

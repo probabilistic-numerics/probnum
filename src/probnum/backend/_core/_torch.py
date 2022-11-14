@@ -189,10 +189,6 @@ def concatenate(arrays: Sequence[torch.Tensor], axis: int = 0) -> torch.Tensor:
     return torch.cat(tensors=arrays, dim=axis)
 
 
-def expand_dims(a: torch.Tensor, axis: int) -> torch.Tensor:
-    return torch.unsqueeze(input=a, dim=axis)
-
-
 def flip(
     m: torch.Tensor, axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> torch.Tensor:

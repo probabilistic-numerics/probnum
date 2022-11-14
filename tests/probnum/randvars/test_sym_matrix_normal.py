@@ -65,6 +65,6 @@ def test_sample_shape(
 
 def test_samples_symmetric(samples: backend.Array):
     compat.testing.assert_array_equal(
-        backend.swapaxes(samples, -2, -1),
+        backend.swap_axes(samples, -2, -1),
         samples,
     )

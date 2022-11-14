@@ -29,16 +29,10 @@ is_floating_dtype = _core.is_floating_dtype
 finfo = _core.finfo
 
 # Array Shape
-reshape = _core.reshape
 atleast_1d = _core.atleast_1d
 atleast_2d = _core.atleast_2d
-broadcast_arrays = _core.broadcast_arrays
 broadcast_shapes = _core.broadcast_shapes
-broadcast_to = _core.broadcast_to
 ndim = _core.ndim
-squeeze = _core.squeeze
-expand_dims = _core.expand_dims
-swapaxes = _core.swapaxes
 
 # Constructors
 diag = _core.diag
@@ -50,7 +44,6 @@ minimum = _core.minimum
 # (Partial) Views
 diagonal = _core.diagonal
 moveaxis = _core.moveaxis
-flip = _core.flip
 
 # Contractions
 einsum = _core.einsum
@@ -60,10 +53,6 @@ all = _core.all
 any = _core.any
 
 # Concatenation and Stacking
-concatenate = _core.concatenate
-stack = _core.stack
-hstack = _core.hstack
-vstack = _core.vstack
 tile = _core.tile
 kron = _core.kron
 
@@ -126,16 +115,10 @@ __all__ = [
     "finfo",
     # Array Shape
     "asshape",
-    "reshape",
     "atleast_1d",
     "atleast_2d",
-    "broadcast_arrays",
     "broadcast_shapes",
-    "broadcast_to",
     "ndim",
-    "squeeze",
-    "expand_dims",
-    "swapaxes",
     # Constructors
     "diag",
     # Element-wise Binary Operations
@@ -144,17 +127,12 @@ __all__ = [
     # (Partial) Views
     "diagonal",
     "moveaxis",
-    "flip",
     # Contractions
     "einsum",
     # Reductions
     "all",
     "any",
     # Concatenation and Stacking
-    "concatenate",
-    "stack",
-    "vstack",
-    "hstack",
     "tile",
     "kron",
     # Misc

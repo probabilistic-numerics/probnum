@@ -27,6 +27,11 @@ Generic computation backend.
 .. toctree::
     :hidden:
 
+    backend/manipulation_functions
+
+.. toctree::
+    :hidden:
+
     backend/searching_functions
 
 .. toctree::

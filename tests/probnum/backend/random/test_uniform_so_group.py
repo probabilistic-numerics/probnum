@@ -29,7 +29,7 @@ def test_orthogonal(so_group_sample: backend.Array):
     n = so_group_sample.shape[-2]
 
     compat.testing.assert_allclose(
-        so_group_sample @ backend.swapaxes(so_group_sample, -2, -1),
+        so_group_sample @ backend.swap_axes(so_group_sample, -2, -1),
         backend.broadcast_arrays(backend.eye(n), so_group_sample)[0],
         atol=1e-6 if so_group_sample.dtype == backend.float32 else 1e-12,
     )
