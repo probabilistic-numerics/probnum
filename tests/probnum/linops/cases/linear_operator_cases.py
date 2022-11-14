@@ -28,7 +28,7 @@ def case_matvec(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarra
     def _matmul(vec: np.ndarray):
         return matrix @ vec
 
-    linop = pn.linops.LinearOperator(
+    linop = pn.linops.LambdaLinearOperator(
         shape=matrix.shape, dtype=matrix.dtype, matmul=_matmul
     )
 
@@ -42,7 +42,7 @@ def case_matvec_spd(matrix: np.ndarray):
     def _matmul(vec: np.ndarray):
         return matrix @ vec
 
-    linop = pn.linops.LinearOperator(
+    linop = pn.linops.LambdaLinearOperator(
         shape=matrix.shape, dtype=matrix.dtype, matmul=_matmul
     )
 
@@ -93,3 +93,20 @@ def case_sparse_matrix_singular(
     )
 
     return pn.linops.Matrix(matrix), matrix.toarray()
+
+
+@pytest.mark.parametrize("rng", [np.random.default_rng(422)])
+def case_inverse(
+    rng: np.random.Generator,
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    N = 21
+
+    v = rng.uniform(0.2, 0.5, N)
+
+    linop = pn.linops.LambdaLinearOperator(
+        shape=(N, N),
+        dtype=np.double,
+        matmul=lambda x: 2.0 * x + v[:, None] @ (v[None, :] @ x),
+    )
+
+    return linop.inv(), linop.inv().todense()

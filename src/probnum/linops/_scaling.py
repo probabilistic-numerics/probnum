@@ -13,7 +13,7 @@ from . import _linear_operator
 # pylint: disable="too-many-statements"
 
 
-class Scaling(_linear_operator.LinearOperator):
+class Scaling(_linear_operator.LambdaLinearOperator):
     r"""Scaling linear operator.
 
     Creates a diagonal linear operator which (non-uniformly)
@@ -76,9 +76,6 @@ class Scaling(_linear_operator.LinearOperator):
                 matmul = lambda x: x.astype(
                     np.result_type(self.dtype, x.dtype), copy=False
                 )
-                rmatmul = lambda x: x.astype(
-                    np.result_type(self.dtype, x.dtype), copy=False
-                )
 
                 apply = lambda x, axis: x.astype(
                     np.result_type(self.dtype, x.dtype), copy=False
@@ -97,7 +94,6 @@ class Scaling(_linear_operator.LinearOperator):
                 )
             else:
                 matmul = lambda x: self._scalar * x
-                rmatmul = lambda x: self._scalar * x
 
                 apply = lambda x, axis: self._scalar * x
 
@@ -129,7 +125,6 @@ class Scaling(_linear_operator.LinearOperator):
             dtype = self._factors.dtype
 
             matmul = lambda x: self._factors[:, np.newaxis] * x
-            rmatmul = lambda x: self._factors * x
 
             apply = lambda x, axis: (
                 self._factors.reshape((-1,) + (x.ndim - (axis + 1)) * (1,)) * x
@@ -154,7 +149,6 @@ class Scaling(_linear_operator.LinearOperator):
             shape,
             dtype,
             matmul=matmul,
-            rmatmul=rmatmul,
             apply=apply,
             todense=todense,
             transpose=lambda: self,
@@ -328,11 +322,10 @@ class Scaling(_linear_operator.LinearOperator):
         return Scaling(np.sqrt(self._factors))
 
 
-class Zero(_linear_operator.LinearOperator):
+class Zero(_linear_operator.LambdaLinearOperator):
     def __init__(self, shape, dtype=np.float64):
 
         matmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
-        rmatmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
         apply = lambda x, axis: np.zeros(x.shape, np.result_type(x, self.dtype))
         todense = lambda: np.zeros(shape=shape, dtype=dtype)
         rank = lambda: np.intp(0)
@@ -345,7 +338,6 @@ class Zero(_linear_operator.LinearOperator):
             shape,
             dtype=dtype,
             matmul=matmul,
-            rmatmul=rmatmul,
             apply=apply,
             todense=todense,
             transpose=lambda: self,

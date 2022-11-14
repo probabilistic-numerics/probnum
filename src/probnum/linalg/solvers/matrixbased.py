@@ -109,14 +109,14 @@ class MatrixBasedSolver(abc.ABC):
 
         Ainv0_mean = linops.Scaling(
             alpha, shape=(self.n, self.n)
-        ) + 2 / bx0 * linops.LinearOperator(
+        ) + 2 / bx0 * linops.LambdaLinearOperator(
             shape=(self.n, self.n),
             dtype=np.result_type(x0.dtype, alpha.dtype, b.dtype),
             matmul=_matmul,
         )
         A0_mean = linops.Scaling(1 / alpha, shape=(self.n, self.n)) - 1 / (
             alpha * np.squeeze((x0 - alpha * b).T @ x0)
-        ) * linops.LinearOperator(
+        ) * linops.LambdaLinearOperator(
             shape=(self.n, self.n),
             dtype=np.result_type(x0.dtype, alpha.dtype, b.dtype),
             matmul=_matmul,
@@ -632,7 +632,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         # Compute calibration term in the A view as a linear operator with scaling from
         # degrees of freedom
-        calibration_term_A = linops.LinearOperator(
+        calibration_term_A = linops.LambdaLinearOperator(
             shape=(self.n, self.n),
             dtype=S.dtype,
             matmul=linops.LinearOperator.broadcast_matvec(
@@ -642,7 +642,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         # Compute calibration term in the Ainv view as a linear operator with scaling
         # from degrees of freedom
-        calibration_term_Ainv = linops.LinearOperator(
+        calibration_term_Ainv = linops.LambdaLinearOperator(
             shape=(self.n, self.n),
             dtype=S.dtype,
             matmul=linops.LinearOperator.broadcast_matvec(
@@ -669,7 +669,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     # First term of calibration covariance class: AS(S'AS)^{-1}S'A
                     return (Y * sy**-1) @ (Y.T @ x.ravel())
 
-                _A_covfactor0 = linops.LinearOperator(
+                _A_covfactor0 = linops.LambdaLinearOperator(
                     shape=(self.n, self.n),
                     dtype=np.result_type(Y, sy),
                     matmul=_matmul,
@@ -686,7 +686,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     )
                     return self.Ainv_mean0 @ (Y @ YAinv0Y_inv_YAinv0x)
 
-                _Ainv_covfactor0 = linops.LinearOperator(
+                _Ainv_covfactor0 = linops.LambdaLinearOperator(
                     shape=(self.n, self.n),
                     dtype=np.result_type(Y, self.Ainv_mean0),
                     matmul=_matmul,
@@ -733,7 +733,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def _matmul(x):
             return 0.5 * (bWb * _Ainv_covfactor @ x + Wb @ (Wb.T @ x))
 
-        cov_op = linops.LinearOperator(
+        cov_op = linops.LambdaLinearOperator(
             shape=(self.n, self.n),
             dtype=np.result_type(Wb.dtype, bWb.dtype),
             matmul=_matmul,
@@ -755,7 +755,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def _matmul(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
 
-        return linops.LinearOperator(
+        return linops.LambdaLinearOperator(
             shape=(self.n, self.n),
             dtype=np.result_type(u.dtype, v.dtype),
             matmul=_matmul,
@@ -768,7 +768,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def _matmul(x):
             return Ws @ (u.T @ x)
 
-        return linops.LinearOperator(
+        return linops.LambdaLinearOperator(
             shape=(self.n, self.n),
             dtype=np.result_type(u.dtype, Ws.dtype),
             matmul=_matmul,
