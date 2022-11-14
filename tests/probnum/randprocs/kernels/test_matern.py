@@ -1,10 +1,10 @@
 """Test cases for the Matern kernel."""
 
-import pytest
-
 from probnum import backend, compat
 from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
+
+import pytest
 
 
 @pytest.mark.parametrize("nu", [-1, -1.0, 0.0, 0])

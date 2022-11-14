@@ -1,9 +1,10 @@
 """Tests for multi-variate normal arithmetic."""
 
 import numpy as np
-import pytest
 
 from probnum import backend
+
+import pytest
 
 
 @pytest.mark.parametrize("shape,shape_const", [((3,), (3,))])

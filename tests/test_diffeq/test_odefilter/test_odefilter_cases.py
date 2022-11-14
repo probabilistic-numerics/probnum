@@ -1,10 +1,10 @@
 """Test-cases for ODE filters."""
 
 
-import pytest_cases
-
 from probnum import diffeq, randprocs
 import probnum.problems.zoo.diffeq as diffeq_zoo
+
+import pytest_cases
 
 
 # logistic.rhs is implemented backend-agnostic,

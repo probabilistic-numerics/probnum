@@ -2,10 +2,11 @@
 
 
 import numpy as np
-import pytest
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
+
+import pytest
 
 
 @pytest.fixture

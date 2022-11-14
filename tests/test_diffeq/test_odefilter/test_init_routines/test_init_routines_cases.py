@@ -1,11 +1,11 @@
 """Test cases for initialization."""
 
-import pytest_cases
-
 from probnum.diffeq.odefilter import init_routines
 from probnum.problems.zoo import diffeq as diffeq_zoo
 
 from . import known_initial_derivatives
+
+import pytest_cases
 
 try:
     from jax.config import config  # speed...

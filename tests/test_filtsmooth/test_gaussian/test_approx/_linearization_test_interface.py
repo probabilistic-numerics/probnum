@@ -1,10 +1,11 @@
 """Test interface for EKF and UKF."""
 
 import numpy as np
-import pytest
 
 from probnum import filtsmooth, problems, randprocs, randvars
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+
+import pytest
 
 
 class InterfaceDiscreteLinearizationTest:

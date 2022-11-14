@@ -1,11 +1,12 @@
 import numpy as np
-import pytest
-import pytest_cases
 from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
 import probnum.problems.zoo.diffeq as diffeq_zoo
+
+import pytest
+import pytest_cases
 
 
 @pytest_cases.fixture

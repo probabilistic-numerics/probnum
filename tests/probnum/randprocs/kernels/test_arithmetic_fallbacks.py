@@ -1,8 +1,5 @@
 """Tests for fall-back implementations of kernel arithmetic."""
 
-import pytest
-from pytest_cases import parametrize
-
 from probnum import backend, compat
 from probnum.randprocs import kernels
 from probnum.randprocs.kernels._arithmetic_fallbacks import (
@@ -10,6 +7,9 @@ from probnum.randprocs.kernels._arithmetic_fallbacks import (
     ScaledKernel,
     SumKernel,
 )
+
+import pytest
+from pytest_cases import parametrize
 
 
 @parametrize("scalar", [1.0, 3, 1000.0])

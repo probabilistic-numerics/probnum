@@ -1,9 +1,10 @@
 """Test for ODE residual information operator."""
 
 import numpy as np
-import pytest
 
 from probnum import diffeq, randprocs, randvars
+
+import pytest
 from tests.test_diffeq.test_odefilter.test_information_operators import (
     _information_operator_test_inferface,
 )

@@ -2,11 +2,11 @@
 
 from typing import Callable, Optional
 
-import pytest
-
 from probnum import backend, compat
 from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
+
+import pytest
 
 
 @pytest.fixture(name="kernmat", scope="module")

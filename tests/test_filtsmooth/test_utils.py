@@ -1,10 +1,11 @@
 import functools
 
 import numpy as np
-import pytest
 
 from probnum import filtsmooth, problems
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+
+import pytest
 
 
 @pytest.fixture(name="car_tracking1")

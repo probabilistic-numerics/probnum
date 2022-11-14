@@ -2,10 +2,11 @@
 system."""
 
 import numpy as np
-from pytest_cases import case
 
 from probnum import linops, randvars
 from probnum.linalg.solvers import beliefs
+
+from pytest_cases import case
 
 
 @case(tags=["sym", "posdef", "square"])

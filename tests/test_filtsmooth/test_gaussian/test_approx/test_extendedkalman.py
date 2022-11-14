@@ -1,13 +1,13 @@
 """Tests for extended Kalman filtering."""
 
-import pytest
-
 from probnum import filtsmooth
 
 from ._linearization_test_interface import (
     InterfaceContinuousLinearizationTest,
     InterfaceDiscreteLinearizationTest,
 )
+
+import pytest
 
 
 class TestDiscreteEKFComponent(InterfaceDiscreteLinearizationTest):

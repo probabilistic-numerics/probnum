@@ -1,6 +1,6 @@
-import pytest
-
 from probnum import backend
+
+import pytest
 
 
 def pytest_configure(config: "_pytest.config.Config"):

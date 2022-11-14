@@ -1,8 +1,8 @@
 """Test cases for the rational quadratic kernel."""
 
-import pytest
-
 from probnum.randprocs import kernels
+
+import pytest
 
 
 @pytest.mark.parametrize("alpha", [-1, -1.0, 0.0, 0])

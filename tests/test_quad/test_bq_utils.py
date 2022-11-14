@@ -1,9 +1,10 @@
 """Basic tests for bq utils."""
 
 import numpy as np
-import pytest
 
 from probnum.quad._utils import as_domain
+
+import pytest
 
 
 # fmt: off

@@ -3,10 +3,11 @@
 import pathlib
 
 import numpy as np
-from pytest_cases import filters, parametrize_with_cases
 
 from probnum import linops, problems, randvars
 from probnum.linalg.solvers import ProbabilisticLinearSolver, beliefs
+
+from pytest_cases import filters, parametrize_with_cases
 
 case_modules = pathlib.Path("cases").stem
 cases_solvers = case_modules + ".solvers"

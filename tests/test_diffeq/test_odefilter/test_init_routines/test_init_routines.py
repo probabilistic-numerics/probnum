@@ -2,10 +2,11 @@
 
 
 import numpy as np
-import pytest
-import pytest_cases
 
 from probnum import randprocs
+
+import pytest
+import pytest_cases
 
 try:
     from jax.config import config  # speed...

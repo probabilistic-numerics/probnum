@@ -1,9 +1,10 @@
 import numpy as np
-import pytest
 
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.odefilter import ODEFilterSolution
 import probnum.problems.zoo.diffeq as diffeq_zoo
+
+import pytest
 
 
 @pytest.fixture

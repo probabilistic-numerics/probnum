@@ -1,8 +1,8 @@
 """Test cases defining probabilistic linear solvers."""
 
-from pytest_cases import case
-
 from probnum.linalg import solvers
+
+from pytest_cases import case
 
 
 @case(tags=["solutionbased", "sym"])

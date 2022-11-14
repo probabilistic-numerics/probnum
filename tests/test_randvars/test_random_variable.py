@@ -4,11 +4,12 @@ import itertools
 import unittest
 
 import numpy as np
-import pytest
 import scipy.stats
 
 import probnum
 from probnum import linops, randvars
+
+import pytest
 from tests.testing import NumpyAssertions
 
 

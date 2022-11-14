@@ -1,9 +1,10 @@
 """Tests for EK0/1."""
 
 import numpy as np
-import pytest
 
 from probnum import diffeq, filtsmooth
+
+import pytest
 from tests.test_diffeq.test_odefilter.test_approx_strategies import (
     _approx_test_interface,
 )

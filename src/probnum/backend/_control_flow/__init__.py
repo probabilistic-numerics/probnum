@@ -12,5 +12,6 @@ elif BACKEND is Backend.TORCH:
 
 __all__ = ["cond"]
 
+
 def cond(pred: Scalar, true_fn: Callable, false_fn: Callable, *operands):
     return _impl.cond(pred, true_fn, false_fn, *operands)

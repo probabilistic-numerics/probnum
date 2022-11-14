@@ -1,9 +1,10 @@
 """Test cases for integration measures."""
 
 import numpy as np
-import pytest
 
 from probnum import quad
+
+import pytest
 
 
 # Tests for Gaussian measure

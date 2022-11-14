@@ -1,10 +1,10 @@
 """Tests for ODE filters."""
 
 
+from probnum import diffeq, randprocs
+
 import pytest
 import pytest_cases
-
-from probnum import diffeq, randprocs
 
 try:
     import jax as _

@@ -1,7 +1,6 @@
 """Basic tests for Bayesian quadrature method."""
 
 import numpy as np
-import pytest
 
 from probnum import LambdaStoppingCriterion
 from probnum.quad import (
@@ -11,6 +10,8 @@ from probnum.quad import (
     RandomPolicy,
 )
 from probnum.randprocs.kernels import ExpQuad
+
+import pytest
 
 
 @pytest.fixture
