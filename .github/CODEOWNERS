@@ -2,7 +2,7 @@
 
 # Compute Backends
 /src/probnum/backend @marvinpfoertner @JonathanWenger
-/tests/test_backend @marvinpfoertner @JonathanWenger
+/tests/probnum/backend @marvinpfoertner @JonathanWenger
 
 # Compatibility Functions
 /src/probnum/compat @marvinpfoertner @JonathanWenger
@@ -12,7 +12,7 @@
 /src/probnum/problems/zoo/diffeq/ @pnkraemer @schmidtjonathan
 
 /tests/test_diffeq/ @pnkraemer @schmidtjonathan
-/tests/test_problems/test_zoo/test_diffeq/ @pnkraemer @schmidtjonathan
+/tests/probnum/problems/zoo/diffeq/ @pnkraemer @schmidtjonathan
 
 /benchmarks/ivpsolvers.py @pnkraemer @schmidtjonathan
 
@@ -21,7 +21,7 @@
 /src/probnum/problems/zoo/filtsmooth/ @pnkraemer @schmidtjonathan
 
 /tests/test_filtsmooth/ @pnkraemer @schmidtjonathan
-/tests/test_problems/test_zoo/test_filtsmooth/ @pnkraemer @schmidtjonathan
+/tests/problems/zoo/filtsmooth/ @pnkraemer @schmidtjonathan
 
 /benchmarks/filtsmooth.py @pnkraemer @schmidtjonathan
 
@@ -29,8 +29,8 @@
 /src/probnum/linalg/ @JonathanWenger @marvinpfoertner
 /src/probnum/problems/zoo/linalg/ @JonathanWenger @marvinpfoertner
 
-/tests/test_linalg/ @JonathanWenger @marvinpfoertner
-/tests/test_problems/test_zoo/test_linalg/ @JonathanWenger @marvinpfoertner
+/tests/probnum/linalg/ @JonathanWenger @marvinpfoertner
+/tests/problems/zoo/linalg/ @JonathanWenger @marvinpfoertner
 
 /benchmarks/linearsolvers.py @JonathanWenger @marvinpfoertner
 
@@ -45,24 +45,20 @@
 /src/probnum/problems/zoo/quad/ @mmahsereci @tskarvone
 
 /tests/test_quad/ @mmahsereci @tskarvone
-/tests/test_problems/test_zoo/test_quad/ @mmahsereci @tskarvone
+/tests/problems/zoo/quad/ @mmahsereci @tskarvone
 
 # Random Processes & Kernels
 /src/probnum/randprocs/ @marvinpfoertner @JonathanWenger
-/tests/test_randprocs/ @marvinpfoertner @JonathanWenger
+/tests/probnum/randprocs/ @marvinpfoertner @JonathanWenger
 
 /benchmarks/randprocs.py @marvinpfoertner @JonathanWenger
 /benchmarks/kernels.py @marvinpfoertner @JonathanWenger
 
 /src/probnum/randprocs/markov/ @pnkraemer @schmidtjonathan
-/tests/test_randprocs/test_markov/ @pnkraemer @schmidtjonathan
+/tests/probnum/randprocs/markov/ @pnkraemer @schmidtjonathan
 
 # Random Variables
 /src/probnum/randvars/ @marvinpfoertner @JonathanWenger
-/tests/test_randvars/ @marvinpfoertner @JonathanWenger
+/tests/probnum/randvars/ @marvinpfoertner @JonathanWenger
 
 /benchmarks/random_variables.py @marvinpfoertner @JonathanWenger
-
-# Utils
-/src/probnum/utils/linalg/_cholesky_updates.py @pnkraemer
-/tests/test_utils/test_linalg/test_cholesky_updates.py @pnkraemer

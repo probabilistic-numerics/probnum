@@ -1,6 +1,6 @@
-import pytest
-
 import probnum.problems.zoo.diffeq as diffeq_zoo
+
+import pytest
 
 # Jax dependency handling
 # pylint: disable=unused-import

@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import problems
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+
+import pytest
 
 
 def rng():

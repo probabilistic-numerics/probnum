@@ -9,6 +9,8 @@ API Reference
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.backend`                         | Generic computation backend.                                 |
     +-------------------------------------------------+--------------------------------------------------------------+
+    | :mod:`~probnum.compat`                          | Compatibility functions.                                     |
+    +-------------------------------------------------+--------------------------------------------------------------+
     | :class:`config <probnum._config.Configuration>` | Global configuration options.                                |
     +-------------------------------------------------+--------------------------------------------------------------+
     | :mod:`~probnum.diffeq`                          | Probabilistic solvers for ordinary differential equations.   |
@@ -39,6 +41,7 @@ API Reference
 
     api/probnum
     api/backend
+    api/compat
     api/config
     api/diffeq
     api/filtsmooth

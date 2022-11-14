@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 import probnum.problems as pnpr
 import probnum.problems.zoo.diffeq as diffeqzoo
+
+import pytest
 
 ODE_LIST = [
     diffeqzoo.vanderpol(),

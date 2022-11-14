@@ -1,8 +1,8 @@
 """Test fixtures for the linear algebra test problem zoo."""
 
-import numpy as np
 import scipy.sparse
 
+from probnum import backend
 from probnum.problems.zoo.linalg import (
     SuiteSparseMatrix,
     random_sparse_spd_matrix,
@@ -12,11 +12,7 @@ from probnum.problems.zoo.linalg import (
 
 import pytest
 import pytest_cases
-
-
-@pytest_cases.fixture()
-def rng() -> np.random.Generator:
-    return np.random.default_rng(42)
+from tests.utils.random import rng_state_from_sampling_args
 
 
 @pytest_cases.fixture()
@@ -39,21 +35,23 @@ def density(density: float) -> float:
 
 
 @pytest_cases.fixture()
-def rnd_dense_spd_mat(n_cols: int, rng: np.random.Generator) -> np.ndarray:
+def rnd_dense_spd_mat(n_cols: int) -> backend.Array:
     """Random spd matrix generated from :meth:`random_spd_matrix`."""
-    return random_spd_matrix(rng=rng, dim=n_cols)
+    rng_state = rng_state_from_sampling_args(base_seed=2984357, shape=n_cols)
+    return random_spd_matrix(rng_state=rng_state, shape=(n_cols, n_cols))
 
 
 @pytest_cases.fixture()
-def rnd_sparse_spd_mat(
-    n_cols: int, density: float, rng: np.random.Generator
-) -> scipy.sparse.spmatrix:
+def rnd_sparse_spd_mat(n_cols: int, density: float) -> scipy.sparse.spmatrix:
     """Random sparse spd matrix generated from :meth:`random_sparse_spd_matrix`."""
-    return random_sparse_spd_matrix(rng_state=rng, dim=n_cols, density=density)
+    rng_state = rng_state_from_sampling_args(base_seed=2984357, shape=n_cols)
+    return random_sparse_spd_matrix(
+        rng_state=rng_state, shape=(n_cols, n_cols), density=density
+    )
 
 
 rnd_spd_mat = pytest_cases.fixture_union(
-    "spd_mat", [rnd_dense_spd_mat, rnd_sparse_spd_mat]
+    "spd_mat", [rnd_dense_spd_mat, rnd_sparse_spd_mat], idstyle="explicit"
 )
 
 
