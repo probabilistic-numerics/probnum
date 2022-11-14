@@ -36,7 +36,7 @@
 
 # Linear Operators
 /src/probnum/linops/ @marvinpfoertner @JonathanWenger
-/tests/test_linops/ @marvinpfoertner @JonathanWenger
+/tests/probnum/linops/ @marvinpfoertner @JonathanWenger
 
 /benchmarks/linops.py @marvinpfoertner @JonathanWenger
 
