@@ -34,10 +34,10 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
     --------
     Define a Gaussian process with a zero mean function and RBF kernel.
 
-    >>> from probnum import backend
+    >>> from probnum import backend, functions
     >>> from probnum.randprocs.kernels import ExpQuad
     >>> from probnum.randprocs import GaussianProcess
-    >>> mu = Zero(input_shape=())
+    >>> mu = functions.Zero(input_shape=())
     >>> k = ExpQuad(input_shape=())
     >>> gp = GaussianProcess(mu, k)
 

@@ -1,7 +1,7 @@
 """Tests for Gaussian processes."""
 
-from probnum import backend, randprocs, randvars
-from probnum.randprocs import functions, kernels
+from probnum import backend, functions, randprocs, randvars
+from probnum.randprocs import kernels
 
 import pytest
 import tests.utils
