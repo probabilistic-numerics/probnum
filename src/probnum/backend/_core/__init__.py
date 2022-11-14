@@ -19,15 +19,6 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 
 # Assignments for common docstrings across backends
 
-# DType
-asdtype = _core.asdtype
-cast = _core.cast
-promote_types = _core.promote_types
-result_type = _core.result_type
-is_floating = _core.is_floating
-is_floating_dtype = _core.is_floating_dtype
-finfo = _core.finfo
-
 # Array Shape
 atleast_1d = _core.atleast_1d
 atleast_2d = _core.atleast_2d
@@ -105,14 +96,6 @@ def vectorize(
 
 
 __all__ = [
-    # DTypes
-    "asdtype",
-    "cast",
-    "promote_types",
-    "result_type",
-    "is_floating",
-    "is_floating_dtype",
-    "finfo",
     # Array Shape
     "asshape",
     "atleast_1d",

@@ -38,30 +38,6 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
 torch.set_default_dtype(torch.double)
 
 
-def arange(start, stop=None, step=None, dtype=None):
-    return torch.arange(start=start, end=stop, step=step, dtype=dtype)
-
-
-def broadcast_to(array: torch.Tensor, shape: Union[int, Tuple]) -> torch.Tensor:
-    return torch.broadcast_to(input=array, size=tuple(shape))
-
-
-def asdtype(x) -> torch.dtype:
-    if isinstance(x, torch.dtype):
-        return x
-
-    return torch.as_tensor(
-        np.empty(
-            (),
-            dtype=np.dtype(x),
-        ),
-    ).dtype
-
-
-def is_floating_dtype(dtype) -> bool:
-    return is_floating(torch.empty((), dtype=dtype))
-
-
 def all(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
     if isinstance(axis, int):
         return torch.all(
@@ -103,18 +79,6 @@ def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
     return res
 
 
-def full(
-    shape,
-    fill_value,
-    dtype=None,
-) -> torch.Tensor:
-    return torch.full(
-        size=shape,
-        fill_value=fill_value,
-        dtype=dtype,
-    )
-
-
 def full_like(
     a: torch.Tensor,
     fill_value,
@@ -131,10 +95,6 @@ def full_like(
     )
 
 
-def meshgrid(*xi: torch.Tensor, indexing: str = "xy") -> Tuple[torch.Tensor, ...]:
-    return torch.meshgrid(*xi, indexing=indexing)
-
-
 def tile(A: torch.Tensor, reps: torch.Tensor) -> torch.Tensor:
     return torch.tile(input=A, dims=reps)
 
@@ -144,10 +104,6 @@ def ndim(a):
         return a.ndim
     except AttributeError:
         return torch.as_tensor(a).ndim
-
-
-def ones(shape, dtype=None):
-    return torch.ones(shape, dtype=dtype)
 
 
 def ones_like(a, dtype=None, *, shape=None):
@@ -169,10 +125,6 @@ def sum(a, axis=None, dtype=None, keepdims=False):
     return torch.sum(a, dim=axis, keepdim=keepdims, dtype=dtype)
 
 
-def zeros(shape, dtype=None):
-    return torch.zeros(shape, dtype=dtype)
-
-
 def zeros_like(a, dtype=None, *, shape=None):
     if shape is None:
         return torch.zeros_like(input=a, dtype=dtype)
@@ -183,20 +135,6 @@ def zeros_like(a, dtype=None, *, shape=None):
         layout=a.layout,
         device=a.device,
     )
-
-
-def concatenate(arrays: Sequence[torch.Tensor], axis: int = 0) -> torch.Tensor:
-    return torch.cat(tensors=arrays, dim=axis)
-
-
-def flip(
-    m: torch.Tensor, axis: Optional[Union[int, Tuple[int, ...]]] = None
-) -> torch.Tensor:
-    return torch.flip(m, dims=axis)
-
-
-def cast(a: torch.Tensor, dtype=None, casting="unsafe", copy=None):
-    return a.to(dtype=dtype, copy=copy)
 
 
 def to_numpy(*arrays: torch.Tensor) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:

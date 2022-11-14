@@ -98,11 +98,11 @@ Arguments of type :attr:`ShapeLike` should always be converted into :class:`Shap
 using the function :func:`~probnum.backend.asshape` before further internal
 processing."""
 
-DTypeLike = Union["probnum.backend.Dtype", _NumPyDTypeLike]
+DTypeLike = Union["probnum.backend.DType", _NumPyDTypeLike]
 """Object that can be converted to an array dtype.
 
 Arguments of type :attr:`DTypeLike` should always be converted into
-:class:`~probnum.backend.Dtype`\\ s before further internal processing."""
+:class:`~probnum.backend.DType`\\ s before further internal processing."""
 
 _ArrayIndexLike = Union[
     int,

@@ -134,7 +134,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         return self._output_ndim
 
     @property
-    def dtype(self) -> backend.Dtype:
+    def dtype(self) -> backend.DType:
         """Data type of (elements of) the random process evaluated at an input."""
         return self._dtype
 

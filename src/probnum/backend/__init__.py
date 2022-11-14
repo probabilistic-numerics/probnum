@@ -18,9 +18,9 @@ BACKEND = _select_backend()
 
 from ._dispatcher import Dispatcher
 
-from ._core import *
-from ._data_types import *
 from ._array_object import *
+from ._data_types import *
+from ._core import *
 from ._constants import *
 from ._control_flow import *
 from ._creation_functions import *
@@ -32,8 +32,8 @@ from ._statistical_functions import *
 
 
 from . import (
-    _data_types,
     _array_object,
+    _data_types,
     _core,
     _constants,
     _control_flow,

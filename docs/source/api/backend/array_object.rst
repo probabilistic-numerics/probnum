@@ -17,9 +17,9 @@ Classes
 
 +----------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 | :class:`~probnum.backend.Array`  | Object representing a multi-dimensional array stored on a :class:`~probnum.backend.Device` and containing elements of the same  |
-|                                  | :class:`~probnum.backend.Dtype`.                                                                                                |
+|                                  | :class:`~probnum.backend.DType`.                                                                                                |
 +----------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| :class:`~probnum.backend.Scalar` | Object representing a scalar with a :class:`~probnum.backend.Dtype`.                                                            |
+| :class:`~probnum.backend.Scalar` | Object representing a scalar with a :class:`~probnum.backend.DType`.                                                            |
 +----------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 | :class:`~probnum.backend.Device` | Device, such as a CPU or GPU, on which an :class:`~probnum.backend.Array` is located.                                           |
 +----------------------------------+---------------------------------------------------------------------------------------------------------------------------------+

@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 import torch
 from torch import tril, triu  # pylint: disable=redefined-builtin, unused-import
 
-from .. import Device, Dtype
+from .. import Device, DType
 from ..typing import ShapeType
 
 
@@ -39,7 +39,7 @@ def arange(
     stop: Optional[Union[int, float]] = None,
     step: Union[int, float] = 1,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.arange(start=start, stop=stop, step=step, dtype=dtype, device=device)
@@ -48,7 +48,7 @@ def arange(
 def empty(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.empty(shape, dtype=dtype, device=device)
@@ -59,7 +59,7 @@ def empty_like(
     /,
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.empty_like(x, layout=shape, dtype=dtype, device=device)
@@ -71,7 +71,7 @@ def eye(
     /,
     *,
     k: int = 0,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     if k != 0:
@@ -83,7 +83,7 @@ def full(
     shape: ShapeType,
     fill_value: Union[int, float],
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.full(shape, fill_value, dtype=dtype, device=device)
@@ -95,7 +95,7 @@ def full_like(
     fill_value: Union[int, float],
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.full_like(
@@ -109,7 +109,7 @@ def linspace(
     /,
     num: int,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
     endpoint: bool = True,
 ) -> torch.Tensor:
@@ -128,7 +128,7 @@ def meshgrid(*arrays: torch.Tensor, indexing: str = "xy") -> List[torch.Tensor]:
 def ones(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.ones(shape, dtype=dtype, device=device)
@@ -139,7 +139,7 @@ def ones_like(
     /,
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.ones_like(x, layout=shape, dtype=dtype, device=device)
@@ -148,7 +148,7 @@ def ones_like(
 def zeros(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.zeros(shape, dtype=dtype, device=device)
@@ -159,7 +159,7 @@ def zeros_like(
     /,
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> torch.Tensor:
     return torch.zeros_like(x, layout=shape, dtype=dtype, device=device)

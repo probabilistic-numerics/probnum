@@ -13,7 +13,7 @@ import tests.utils
 @pytest_cases.parametrize("shape", ((), (1,), (2,), (3, 2)))
 @pytest_cases.parametrize("dtype", (backend.float32, backend.float64))
 def so_group_sample(
-    seed: SeedType, n: int, shape: ShapeType, dtype: backend.Dtype
+    seed: SeedType, n: int, shape: ShapeType, dtype: backend.DType
 ) -> backend.Array:
     return backend.random.uniform_so_group(
         rng_state=tests.utils.random.rng_state_from_sampling_args(

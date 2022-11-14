@@ -44,7 +44,7 @@ def choice(
 def uniform(
     rng_state: RNGState,
     shape: ShapeType = (),
-    dtype: backend.Dtype = np.double,
+    dtype: backend.DType = np.double,
     minval: np.ndarray = np.array(0.0),
     maxval: np.ndarray = np.array(1.0),
 ) -> np.ndarray:

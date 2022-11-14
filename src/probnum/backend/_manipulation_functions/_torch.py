@@ -68,7 +68,7 @@ def squeeze(x: torch.Tensor, /, axis: Union[int, Tuple[int, ...]]) -> torch.Tens
 def stack(
     arrays: Union[Tuple[torch.Tensor, ...], List[torch.Tensor]], /, *, axis: int = 0
 ) -> torch.Tensor:
-    return torch.stack(arrays=arrays, dim=axis)
+    return torch.stack(arrays, dim=axis)
 
 
 def hstack(

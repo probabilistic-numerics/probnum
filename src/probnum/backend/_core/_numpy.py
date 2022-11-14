@@ -36,9 +36,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     ndim,
     ones,
     ones_like,
-    promote_types,
-    reshape,
-    result_type,
     sign,
     sin,
     sqrt,
@@ -52,18 +49,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     zeros,
     zeros_like,
 )
-
-
-def cast(a: np.ndarray, dtype=None, casting="unsafe", copy=None):
-    return a.astype(dtype=dtype, casting=casting, copy=copy)
-
-
-def is_floating(a: np.ndarray) -> bool:
-    return np.issubdtype(a.dtype, np.floating)
-
-
-def is_floating_dtype(dtype) -> bool:
-    return np.issubdtype(dtype, np.floating)
 
 
 def to_numpy(*arrays: np.ndarray) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:

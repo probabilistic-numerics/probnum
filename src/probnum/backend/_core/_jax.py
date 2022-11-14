@@ -34,9 +34,7 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     ndim,
     ones,
     ones_like,
-    promote_types,
     reshape,
-    result_type,
     sign,
     sin,
     sqrt,
@@ -52,24 +50,6 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
 import numpy as np
 
 jax.config.update("jax_enable_x64", True)
-
-
-def broadcast_to(
-    array: jax.numpy.ndarray, shape: Union[int, Tuple]
-) -> jax.numpy.ndarray:
-    return jax.numpy.broadcast_to(arr=array, shape=shape)
-
-
-def cast(a: jax.numpy.ndarray, dtype=None, casting="unsafe", copy=None):
-    return a.astype(dtype=dtype)
-
-
-def is_floating(a: jax.numpy.ndarray) -> bool:
-    return jax.numpy.issubdtype(a.dtype, jax.numpy.floating)
-
-
-def is_floating_dtype(dtype) -> bool:
-    return is_floating(jax.numpy.empty((), dtype=dtype))
 
 
 def to_numpy(*arrays: jax.numpy.ndarray) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:

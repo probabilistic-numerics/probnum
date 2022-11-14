@@ -5,7 +5,7 @@ import jax
 import jax.numpy as jnp
 from jax.numpy import tril, triu  # pylint: disable=redefined-builtin, unused-import
 
-from .. import Device, Dtype
+from .. import Device, DType
 from ..typing import ShapeType
 
 
@@ -15,7 +15,7 @@ def asarray(
     ],
     /,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
     copy: Optional[bool] = None,
 ) -> jnp.ndarray:
@@ -31,7 +31,7 @@ def arange(
     stop: Optional[Union[int, float]] = None,
     step: Union[int, float] = 1,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.arange(start, stop, step, dtype=dtype), device=device)
@@ -40,7 +40,7 @@ def arange(
 def empty(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.empty(shape, dtype=dtype), device=device)
@@ -51,7 +51,7 @@ def empty_like(
     /,
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.empty_like(x, shape=shape, dtype=dtype), device=device)
@@ -63,7 +63,7 @@ def eye(
     /,
     *,
     k: int = 0,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.eye(n_rows, n_cols, k=k, dtype=dtype), device=device)
@@ -73,7 +73,7 @@ def full(
     shape: ShapeType,
     fill_value: Union[int, float],
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.full(shape, fill_value, dtype=dtype), device=device)
@@ -85,7 +85,7 @@ def full_like(
     fill_value: Union[int, float],
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(
@@ -99,7 +99,7 @@ def linspace(
     /,
     num: int,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
     endpoint: bool = True,
 ) -> jnp.ndarray:
@@ -116,7 +116,7 @@ def meshgrid(*arrays: jnp.ndarray, indexing: str = "xy") -> List[jnp.ndarray]:
 def ones(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.ones(shape, dtype=dtype), device=device)
@@ -127,7 +127,7 @@ def ones_like(
     /,
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.ones_like(x, shape=shape, dtype=dtype), device=device)
@@ -136,7 +136,7 @@ def ones_like(
 def zeros(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.zeros(shape, dtype=dtype), device=device)
@@ -147,7 +147,7 @@ def zeros_like(
     /,
     *,
     shape: Optional[ShapeType] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> jnp.ndarray:
     return jax.device_put(jnp.zeros_like(x, shape=shape, dtype=dtype), device=device)

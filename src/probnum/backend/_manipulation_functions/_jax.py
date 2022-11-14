@@ -20,11 +20,11 @@ def concat(
     *,
     axis: Optional[int] = 0,
 ) -> jnp.ndarray:
-    return jnp.concatenate(arrays=arrays, axis=axis)
+    return jnp.concatenate(arrays, axis=axis)
 
 
 def expand_axes(x: jnp.ndarray, /, *, axis: int = 0) -> jnp.ndarray:
-    return jnp.expand_dims(a=x, axis=axis)
+    return jnp.expand_dims(x, axis=axis)
 
 
 def flip(
@@ -67,7 +67,7 @@ def squeeze(x: jnp.ndarray, /, axis: Union[int, Tuple[int, ...]]) -> jnp.ndarray
 def stack(
     arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]], /, *, axis: int = 0
 ) -> jnp.ndarray:
-    return jnp.stack(arrays=arrays, axis=axis)
+    return jnp.stack(arrays, axis=axis)
 
 
 def hstack(arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]], /) -> jnp.ndarray:

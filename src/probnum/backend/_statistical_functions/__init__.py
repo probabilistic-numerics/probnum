@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple, Union
 
-from .. import BACKEND, Array, Backend, Dtype
+from .. import BACKEND, Array, Backend, DType
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl
@@ -145,7 +145,7 @@ def prod(
     /,
     *,
     axis: Optional[Union[int, Tuple[int, ...]]] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     keepdims: bool = False,
 ) -> Array:
     """Calculates the product of input array ``x`` elements.
@@ -249,7 +249,7 @@ def sum(
     /,
     *,
     axis: Optional[Union[int, Tuple[int, ...]]] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     keepdims: bool = False,
 ) -> Array:
     """Calculates the sum of the input array ``x``.

@@ -21,11 +21,11 @@ def concat(
     *,
     axis: Optional[int] = 0,
 ) -> np.ndarray:
-    return np.concatenate(arrays=arrays, axis=axis)
+    return np.concatenate(arrays, axis=axis)
 
 
 def expand_axes(x: np.ndarray, /, *, axis: int = 0) -> np.ndarray:
-    return np.expand_dims(a=x, axis=axis)
+    return np.expand_dims(x, axis=axis)
 
 
 def flip(
@@ -68,7 +68,7 @@ def squeeze(x: np.ndarray, /, axis: Union[int, Tuple[int, ...]]) -> np.ndarray:
 def stack(
     arrays: Union[Tuple[np.ndarray, ...], List[np.ndarray]], /, *, axis: int = 0
 ) -> np.ndarray:
-    return np.stack(arrays=arrays, axis=axis)
+    return np.stack(arrays, axis=axis)
 
 
 def hstack(arrays: Union[Tuple[np.ndarray, ...], List[np.ndarray]], /) -> np.ndarray:

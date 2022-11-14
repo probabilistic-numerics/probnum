@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
-from .. import BACKEND, Array, Backend, Device, Dtype, Scalar, asshape, ndim
+from .. import BACKEND, Array, Backend, Device, DType, Scalar, asshape, ndim
 from ..typing import DTypeLike, ScalarLike, ShapeLike, ShapeType
 
 if BACKEND is Backend.NUMPY:
@@ -38,7 +38,7 @@ def asarray(
     obj: Union[Array, bool, int, float, "NestedSequence", "SupportsBufferProtocol"],
     /,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
     copy: Optional[bool] = None,
 ) -> Array:
@@ -185,7 +185,7 @@ def arange(
     stop: Optional[Union[int, float]] = None,
     step: Union[int, float] = 1,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns evenly spaced values within the half-open interval ``[start, stop)`` as a
@@ -229,7 +229,7 @@ def arange(
 def empty(
     shape: ShapeLike,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns an uninitialized array having a specified ``shape``.
@@ -257,7 +257,7 @@ def empty_like(
     /,
     *,
     shape: Optional[ShapeLike] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns an uninitialized array with the same ``shape`` as an input array ``x``.
@@ -291,7 +291,7 @@ def eye(
     /,
     *,
     k: int = 0,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns a two-dimensional array with ones on the ``k``\\ th diagonal and zeros
@@ -326,7 +326,7 @@ def full(
     shape: ShapeType,
     fill_value: Union[int, float],
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns a new array having a specified ``shape`` and filled with ``fill_value``.
@@ -368,7 +368,7 @@ def full_like(
     fill_value: Union[int, float],
     *,
     shape: Optional[ShapeLike] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns a new array filled with ``fill_value`` and having the same ``shape`` as
@@ -420,7 +420,7 @@ def linspace(
     /,
     num: int,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
     endpoint: bool = True,
 ) -> Array:
@@ -507,7 +507,7 @@ def meshgrid(*arrays: Array, indexing: str = "xy") -> List[Array]:
 def ones(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns a new array having a specified ``shape`` and filled with ones.
@@ -534,7 +534,7 @@ def ones_like(
     /,
     *,
     shape: Optional[ShapeLike] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns a new array filled with ones and having the same ``shape`` as an input
@@ -566,7 +566,7 @@ def ones_like(
 def zeros(
     shape: ShapeType,
     *,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns a new array having a specified ``shape`` and filled with zeros.
@@ -594,7 +594,7 @@ def zeros_like(
     /,
     *,
     shape: Optional[ShapeLike] = None,
-    dtype: Optional[Dtype] = None,
+    dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> Array:
     """Returns a new array filled with zeros and having the same ``shape`` as an input

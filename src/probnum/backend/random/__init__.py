@@ -108,7 +108,7 @@ def gamma(
     scale_param: FloatLike = 1.0,
     shape: ShapeLike = (),
     *,
-    dtype: backend.Dtype = backend.float64,
+    dtype: backend.DType = backend.float64,
 ) -> backend.Array:
     """Draw samples from a Gamma distribution.
 
@@ -180,7 +180,7 @@ def standard_normal(
     rng_state: RNGState,
     shape: ShapeLike = (),
     *,
-    dtype: backend.Dtype = backend.float64,
+    dtype: backend.DType = backend.float64,
 ) -> backend.Array:
     """Draw samples from a standard Normal distribution (mean=0, stdev=1).
 
@@ -209,7 +209,7 @@ def uniform(
     rng_state: RNGState,
     shape: ShapeLike = (),
     *,
-    dtype: backend.Dtype = backend.float64,
+    dtype: backend.DType = backend.float64,
     minval: FloatLike = 0.0,
     maxval: FloatLike = 1.0,
 ) -> backend.Array:
@@ -253,7 +253,7 @@ def uniform_so_group(
     n: int,
     shape: ShapeLike = (),
     *,
-    dtype: backend.Dtype = backend.float64,
+    dtype: backend.DType = backend.float64,
 ) -> backend.Array:
     """Draw samples from the Haar distribution, i.e. from the uniform distribution on
     SO(n).
