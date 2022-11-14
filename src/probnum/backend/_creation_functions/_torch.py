@@ -116,9 +116,7 @@ def linspace(
     if not endpoint:
         raise NotImplementedError
 
-    return torch.linspace(
-        start=start, end=stop, steps=num, dtype=dtype, endpoint=endpoint, device=device
-    )
+    return torch.linspace(start=start, end=stop, steps=num, dtype=dtype, device=device)
 
 
 def meshgrid(*arrays: torch.Tensor, indexing: str = "xy") -> List[torch.Tensor]:

@@ -79,6 +79,9 @@ __all__.sort()
 # Set correct module paths. Corrects links and module paths in documentation.
 member_dict = dict(inspect.getmembers(sys.modules[__name__]))
 for member_name in __all__imported_modules:
+    if member_name == "Array" or member_name == "Scalar":
+        continue  # Avoids overriding the __module__ of aliases.
+
     try:
         member_dict[member_name].__module__ = "probnum.backend"
     except (AttributeError, TypeError):
