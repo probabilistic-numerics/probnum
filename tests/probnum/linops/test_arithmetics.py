@@ -4,9 +4,8 @@
 import itertools
 
 import numpy as np
-import pytest
 
-from probnum import config
+from probnum import backend, config
 from probnum.linops._arithmetic import _add_fns, _matmul_fns, _mul_fns, _sub_fns
 from probnum.linops._arithmetic_fallbacks import (
     NegatedLinearOperator,
@@ -32,9 +31,14 @@ from probnum.linops._linear_operator import (
 from probnum.linops._scaling import Scaling, Zero
 from probnum.problems.zoo.linalg import random_spd_matrix
 
+import pytest
+
 
 def _aslist(arg):
-    """Converts anything to a list. Non-iterables become single-element lists."""
+    """Converts anything to a list.
+
+    Non-iterables become single-element lists.
+    """
     try:
         return list(arg)
     except TypeError:  # excepts TypeError: '<type>' object is not iterable
@@ -69,7 +73,9 @@ def get_linop(linop_type):
     elif linop_type is Matrix:
         return (Matrix(np.random.rand(4, 4)), Matrix(np.random.rand(6, 3)))
     elif linop_type is _InverseLinearOperator:
-        _posdef_randmat = random_spd_matrix(rng=np.random.default_rng(123), dim=4)
+        _posdef_randmat = random_spd_matrix(
+            rng_state=backend.random.rng_state(123), shape=(4, 4)
+        )
         return Matrix(_posdef_randmat).inv()
     elif linop_type is TransposedLinearOperator:
         return TransposedLinearOperator(linop=Matrix(np.random.rand(4, 4)))

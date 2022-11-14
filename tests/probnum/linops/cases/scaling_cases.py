@@ -1,9 +1,10 @@
 from typing import Tuple
 
 import numpy as np
-import pytest_cases
 
 import probnum as pn
+
+import pytest_cases
 
 
 @pytest_cases.case(tags=["square", "symmetric", "indefinite"])

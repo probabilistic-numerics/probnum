@@ -2,14 +2,15 @@ import pathlib
 from typing import Optional, Tuple, Union
 
 import numpy as np
-import pytest
-import pytest_cases
 
 import probnum as pn
 
+import pytest
+import pytest_cases
+
 case_modules = [
-    ".test_linops_cases." + path.stem
-    for path in (pathlib.Path(__file__).parent / "test_linops_cases").glob("*_cases.py")
+    ".cases." + path.stem
+    for path in (pathlib.Path(__file__).parent / "cases").glob("*_cases.py")
 ]
 
 

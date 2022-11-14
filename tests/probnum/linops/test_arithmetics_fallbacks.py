@@ -1,17 +1,14 @@
 """Tests for linear operator arithmetics fallbacks."""
 
 import numpy as np
-import pytest
 
 # NegatedLinearOperator,; ProductLinearOperator,; SumLinearOperator,;
+from probnum import backend
 from probnum.linops._arithmetic_fallbacks import ScaledLinearOperator
 from probnum.linops._linear_operator import Matrix
 from probnum.problems.zoo.linalg import random_spd_matrix
 
-
-@pytest.fixture
-def rng():
-    return np.random.default_rng(123)
+import pytest
 
 
 @pytest.fixture
@@ -20,8 +17,9 @@ def scalar():
 
 
 @pytest.fixture
-def rand_spd_mat(rng):
-    return Matrix(random_spd_matrix(rng, dim=4))
+def rand_spd_mat():
+    rng_state = backend.random.rng_state(1237)
+    return Matrix(random_spd_matrix(rng_state, shape=(4, 4)))
 
 
 def test_scaled_linop(rand_spd_mat, scalar):

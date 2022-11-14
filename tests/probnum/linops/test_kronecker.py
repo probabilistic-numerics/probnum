@@ -1,15 +1,16 @@
 """Tests for Kronecker-type linear operators."""
 
 import numpy as np
-import pytest
-import pytest_cases
 
 import probnum as pn
+
+import pytest
+import pytest_cases
 
 
 @pytest_cases.parametrize_with_cases(
     "linop,matrix",
-    cases=".test_linops_cases.kronecker_cases",
+    cases=".cases.kronecker_cases",
     has_tag="symmetric_kronecker",
 )
 def test_symmetric_kronecker_commutative(
