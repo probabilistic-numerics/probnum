@@ -65,10 +65,10 @@ class Matern(Kernel, IsotropicMixin):
         nu: FloatLike = 1.5,
     ):
         self.lengthscale = backend.asscalar(lengthscale)
-        if not self.lengthscale > 0:
+        if self.lengthscale <= 0.0:
             raise ValueError(f"Lengthscale l={self.lengthscale} must be positive.")
         self.nu = float(nu)
-        if not self.nu > 0:
+        if self.nu <= 0.0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
         super().__init__(input_shape=input_shape)

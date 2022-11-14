@@ -52,7 +52,7 @@ def iinfo(type: Union[DType, jnp.ndarray], /) -> Dict:
 
 
 def is_floating_dtype(dtype: DType, /) -> bool:
-    return jnp.is_floating(jnp.empty((), dtype=dtype))
+    return jnp.issubdtype(dtype, jnp.floating)
 
 
 def promote_types(type1: DType, type2: DType, /) -> DType:

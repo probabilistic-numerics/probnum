@@ -1,4 +1,3 @@
-import numpy as np
 from scipy.optimize._numdiff import approx_derivative
 
 from probnum import backend, compat, functions, randprocs, randvars

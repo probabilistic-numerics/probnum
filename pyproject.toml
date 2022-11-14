@@ -179,6 +179,9 @@ disable = [
     # Temporary ignore, see https://github.com/probabilistic-numerics/probnum/discussions/470#discussioncomment-1998097 for an explanation
     "missing-return-doc",
     "missing-yield-doc",
+    # Import order is enforced via isort and customized in its configuration
+    # (see also https://github.com/PyCQA/pylint/issues/3817#issuecomment-687892090)
+    "wrong-import-order",
 ]
 
 [tool.pylint.format]

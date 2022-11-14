@@ -72,7 +72,7 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
     def __call__(self, args: ArrayLike) -> randvars.Normal:
         return randvars.Normal(
             mean=backend.asarray(
-                self.mean(args), copy=False
-            ),  # pylint: disable=not-callable
+                self.mean(args), copy=False  # pylint: disable=not-callable
+            ),
             cov=self.cov.matrix(args),
         )
