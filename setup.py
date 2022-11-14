@@ -12,7 +12,7 @@ extras_require["jax"] = [
     "jax[cpu]<0.3.25; platform_system!='Windows'",
 ]
 extras_require["torch"] = [
-    "torch>=1.11",
+    "torch>=1.13",
 ]
 extras_require["zoo"] = [
     "tqdm>=4.0",

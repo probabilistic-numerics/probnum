@@ -30,7 +30,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         Output shape of the random process.
     dtype
         Data type of the random process evaluated at an input. If ``object`` will be
-        converted to ``numpy.dtype``.
+        converted to :class:`~probnum.backend.DType``.
     mean
         Mean function of the random process.
     cov
@@ -316,7 +316,8 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         This function should be implemented by subclasses of :class:`RandomProcess`.
         This enables :meth:`sample` to both return functions, i.e. sample paths if
-        only a `sample_shape` is provided and random variables if inputs are provided as well.
+        only a `sample_shape` is provided and random variables if inputs are provided as
+        well.
 
         Parameters
         ----------

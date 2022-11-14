@@ -79,7 +79,8 @@ def random_spd_matrix(
 
         if spectrum.shape != shape[:1]:
             raise ValueError(
-                f"Size of the spectrum {spectrum.shape} and shape {shape} are not compatible."
+                f"Size of the spectrum {spectrum.shape} and shape {shape} are not "
+                + "compatible."
             )
 
         if not backend.all(spectrum > 0):
