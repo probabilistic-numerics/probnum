@@ -21,3 +21,21 @@ def vmap(
     out_axes: Union[int, Sequence[Any]] = 0,
 ) -> Callable:
     raise NotImplementedError
+
+
+def jacrev(
+    fun: Callable,
+    argnums: Union[int, Sequence[int]] = 0,
+    *,
+    has_aux: bool = False,
+) -> Callable:
+    raise NotImplementedError
+
+
+def jacfwd(
+    fun: Callable,
+    argnums: Union[int, Sequence[int]] = 0,
+    *,
+    has_aux: bool = False,
+) -> Callable:
+    raise NotImplementedError

@@ -80,7 +80,7 @@ __all__.sort()
 member_dict = dict(inspect.getmembers(sys.modules[__name__]))
 for member_name in __all__imported_modules:
     if member_name == "Array" or member_name == "Scalar":
-        continue  # Avoids overriding the __module__ of aliases.
+        continue  # Avoids overriding the __module__ of aliases, which can cause bugs.
 
     try:
         member_dict[member_name].__module__ = "probnum.backend"
