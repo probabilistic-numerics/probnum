@@ -18,6 +18,7 @@ BACKEND_ENV_VAR = "PROBNUM_BACKEND"
 
 
 def select_backend() -> Backend:
+    """Select the computation backend."""
     backend_str = None
 
     if BACKEND_ENV_VAR in os.environ:
