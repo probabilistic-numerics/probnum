@@ -2,26 +2,24 @@
 
 from typing import Callable, Sequence, Union
 
-import torch
+import functorch
 
 
 def grad(
     fun: Callable, argnums: Union[int, Sequence[int]] = 0, has_aux: bool = False
 ) -> Callable:
-    def _grad_fn(*args, **kwargs):
-        args = list(args)
-        if isinstance(argnums, int):
-            args[argnums] = args[argnums].clone().detach().requires_grad_(True)
+    return functorch.grad(fun, argnums, has_aux=has_aux)
 
-            return torch.autograd.grad(fun(*args, **kwargs), args[argnums])[0]
 
-        for argnum in argnums:
-            args[argnum] = args[argnum] = (
-                args[argnum].clone().detach().requires_grad_(True)
-            )
+def hessian(
+    fun: Callable, argnums: Union[int, Sequence[int]] = 0, has_aux: bool = False
+) -> Callable:
+    return functorch.hessian(fun, argnums)
 
-        return torch.autograd.grad(
-            fun(*args, **kwargs), tuple(args[argnum] for argnum in argnums)
-        )
 
-    return _grad_fn
+def vmap(
+    fun: Callable,
+    in_axes: Union[int, Sequence[Any]] = 0,
+    out_axes: Union[int, Sequence[Any]] = 0,
+) -> Callable:
+    return functorch.vmap(fun, in_dims=in_axes, out_dims=out_axes)
