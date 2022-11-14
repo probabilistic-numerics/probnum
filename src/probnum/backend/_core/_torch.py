@@ -22,6 +22,7 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     log,
     max,
     maximum,
+    minimum,
     moveaxis,
     promote_types,
     reshape,

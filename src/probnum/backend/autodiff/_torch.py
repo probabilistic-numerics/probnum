@@ -1,6 +1,6 @@
 """(Automatic) Differentiation in PyTorch."""
 
-from typing import Callable, Sequence, Union
+from typing import Any, Callable, Sequence, Union
 
 import functorch
 
