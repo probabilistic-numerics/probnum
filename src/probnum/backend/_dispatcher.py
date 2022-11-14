@@ -5,7 +5,24 @@ from . import BACKEND, Backend
 
 
 class Dispatcher:
-    """
+    """Dispatcher for backend-specific implementations of a function.
+
+    Defines a decorator which can be used to define a function in multiple ways
+    depending on the backend. This is useful, if besides the generic backend
+    implementation, a more efficient implementation can be defined using
+    functionality from a computation backend directly.
+
+    Parameters
+    ----------
+    generic_impl
+        Generic implementation.
+    numpy_impl
+        NumPy implementation.
+    jax_impl
+        JAX implementation.
+    torch_impl
+        PyTorch implementation.
+
     Example
     -------
     >>> @backend.Dispatcher
@@ -62,7 +79,7 @@ class Dispatcher:
     def __get__(self, obj, objtype=None):
         """This is necessary in order to use the :class:`Dispatcher` as a class
         attribute which is then translated into a method of class instances, i.e. to
-        allow for
+        allow for.
 
         .. code::
 

@@ -78,7 +78,9 @@ def random_spd_matrix(
         spectrum = backend.asarray(spectrum)
 
         if spectrum.shape != shape[:1]:
-            raise ValueError(f"Size of the spectrum and shape are not compatible.")
+            raise ValueError(
+                f"Size of the spectrum {spectrum.shape} and shape {shape} are not compatible."
+            )
 
         if not backend.all(spectrum > 0):
             raise ValueError(f"Eigenvalues must be positive, but are {spectrum}.")

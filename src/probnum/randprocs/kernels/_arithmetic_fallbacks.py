@@ -49,7 +49,9 @@ class ScaledKernel(Kernel):
             input_shape=kernel.input_shape, output_shape=kernel.output_shape
         )
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array] = None
+    ) -> backend.Array:
         return self._scalar * self._kernel(x0, x1)
 
     def __repr__(self) -> str:
