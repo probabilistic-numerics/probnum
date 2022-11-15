@@ -1,5 +1,5 @@
 """JAX array manipulation functions."""
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import jax.numpy as jnp
 
@@ -31,6 +31,15 @@ def flip(
     x: jnp.ndarray, /, *, axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> jnp.ndarray:
     return jnp.flip(x, axis=axis)
+
+
+def move_axes(
+    x: jnp.ndarray,
+    /,
+    source: Union[int, Sequence[int]],
+    destination: Union[int, Sequence[int]],
+) -> jnp.ndarray:
+    return jnp.moveaxis(x, source, destination)
 
 
 def permute_axes(x: jnp.ndarray, /, axes: Tuple[int, ...]) -> jnp.ndarray:

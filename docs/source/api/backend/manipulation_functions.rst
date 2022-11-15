@@ -16,6 +16,7 @@ Functions
     ~probnum.backend.expand_axes
     ~probnum.backend.flip
     ~probnum.backend.hstack
+    ~probnum.backend.move_axes
     ~probnum.backend.permute_axes
     ~probnum.backend.reshape
     ~probnum.backend.roll
@@ -34,6 +35,7 @@ Functions
     manipulation_functions/probnum.backend.expand_axes
     manipulation_functions/probnum.backend.flip
     manipulation_functions/probnum.backend.hstack
+    manipulation_functions/probnum.backend.move_axes
     manipulation_functions/probnum.backend.permute_axes
     manipulation_functions/probnum.backend.reshape
     manipulation_functions/probnum.backend.roll

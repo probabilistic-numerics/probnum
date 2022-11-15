@@ -105,7 +105,7 @@ def test_induced_norm_array(array0: backend.Array, axis: int):
         rng_state=backend.random.rng_state(254),
         shape=(array0.shape[axis], array0.shape[axis]),
     )
-    array0_moved_axis = backend.moveaxis(array0, axis, -1)
+    array0_moved_axis = backend.move_axes(array0, axis, -1)
     A_array_0_moved_axis = (inprod_mat @ array0_moved_axis[..., :, None])[..., 0]
 
     assert backend.sqrt(

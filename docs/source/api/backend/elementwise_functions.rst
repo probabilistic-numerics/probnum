@@ -53,6 +53,8 @@ Functions
     ~probnum.backend.logical_or
     ~probnum.backend.logical_xor
     ~probnum.backend.multiply
+    ~probnum.backend.maximum
+    ~probnum.backend.minimum
     ~probnum.backend.negative
     ~probnum.backend.not_equal
     ~probnum.backend.positive
@@ -117,6 +119,8 @@ Functions
     elementwise_functions/probnum.backend.logical_or
     elementwise_functions/probnum.backend.logical_xor
     elementwise_functions/probnum.backend.multiply
+    elementwise_functions/probnum.backend.maximum
+    elementwise_functions/probnum.backend.minimum
     elementwise_functions/probnum.backend.negative
     elementwise_functions/probnum.backend.not_equal
     elementwise_functions/probnum.backend.positive

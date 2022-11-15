@@ -13,6 +13,7 @@ Functions
     ~probnum.backend.arange
     ~probnum.backend.asarray
     ~probnum.backend.asscalar
+    ~probnum.backend.diag
     ~probnum.backend.empty
     ~probnum.backend.empty_like
     ~probnum.backend.eye
@@ -34,6 +35,7 @@ Functions
     creation_functions/probnum.backend.arange
     creation_functions/probnum.backend.asarray
     creation_functions/probnum.backend.asscalar
+    creation_functions/probnum.backend.diag
     creation_functions/probnum.backend.empty
     creation_functions/probnum.backend.empty_like
     creation_functions/probnum.backend.eye

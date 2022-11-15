@@ -1,6 +1,6 @@
 """Torch tensor manipulation functions."""
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import torch
 
@@ -32,6 +32,15 @@ def flip(
     x: torch.Tensor, /, *, axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> torch.Tensor:
     return torch.flip(x, dims=axis)
+
+
+def move_axes(
+    x: torch.Tensor,
+    /,
+    source: Union[int, Sequence[int]],
+    destination: Union[int, Sequence[int]],
+) -> torch.Tensor:
+    return torch.movedim(x, source, destination)
 
 
 def permute_axes(x: torch.Tensor, /, axes: Tuple[int, ...]) -> torch.Tensor:

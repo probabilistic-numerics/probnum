@@ -1,6 +1,6 @@
 """NumPy array manipulation functions."""
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -32,6 +32,15 @@ def flip(
     x: np.ndarray, /, *, axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> np.ndarray:
     return np.flip(x, axis=axis)
+
+
+def move_axes(
+    x: np.ndarray,
+    /,
+    source: Union[int, Sequence[int]],
+    destination: Union[int, Sequence[int]],
+) -> np.ndarray:
+    return np.moveaxis(x, source, destination)
 
 
 def permute_axes(x: np.ndarray, /, axes: Tuple[int, ...]) -> np.ndarray:

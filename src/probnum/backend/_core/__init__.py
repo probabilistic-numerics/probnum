@@ -27,7 +27,6 @@ ndim = _core.ndim
 
 # (Partial) Views
 diagonal = _core.diagonal
-moveaxis = _core.moveaxis
 
 # Contractions
 einsum = _core.einsum
@@ -99,7 +98,6 @@ __all__ = [
     "ndim",
     # (Partial) Views
     "diagonal",
-    "moveaxis",
     # Contractions
     "einsum",
     # Reductions

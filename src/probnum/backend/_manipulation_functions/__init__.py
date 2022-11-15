@@ -1,6 +1,6 @@
 """Array manipulation functions."""
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 from .. import BACKEND, Array, Backend
 
@@ -21,6 +21,7 @@ __all__ = [
     "expand_axes",
     "flip",
     "hstack",
+    "move_axes",
     "permute_axes",
     "reshape",
     "roll",
@@ -147,6 +148,33 @@ def permute_axes(x: Array, /, axes: Tuple[int, ...]) -> Array:
     swap_axes : Permute the axes of an array.
     """
     return _impl.permute_axes(x, axes=axes)
+
+
+def move_axes(
+    x: Array,
+    /,
+    source: Union[int, Sequence[int]],
+    destination: Union[int, Sequence[int]],
+) -> Array:
+    """Move axes of an array to new positions.
+
+    Other axes remain in the original order
+
+    Parameters
+    ----------
+    x
+        Array whose axes should be reordered.
+    source
+        Original positions of the axes to move. These must be unique.
+    destination
+        Destination positions for each of the original axes. These must also be unique.
+
+    Returns
+    -------
+    out
+        Array with moved axes.
+    """
+    return _impl.move_axes(x, source=source, destination=destination)
 
 
 def swap_axes(x: Array, /, axis1: int, axis2: int) -> Array:

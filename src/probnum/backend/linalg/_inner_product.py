@@ -74,7 +74,7 @@ def induced_norm(
     if A is None:
         return backend.linalg.vector_norm(v, ord=2, axis=axis, keepdims=False)
 
-    v = backend.moveaxis(v, axis, -1)
+    v = backend.move_axes(v, axis, -1)
     w = backend.squeeze(A @ v[..., :, None], axis=-1)
 
     return backend.sqrt(backend.sum(v * w, axis=-1))
