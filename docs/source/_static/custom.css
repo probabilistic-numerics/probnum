@@ -370,10 +370,11 @@ blockquote {
 
 .sphx-glr-thumbcontainer {
     background: rgba(var(--pst-color-background-lightgray));
-    min-height: 100px;
+    min-height: 120px;
     max-height: 200px;
-    float: none;
     border: none;
+    display: block;
+
 }
 
 .sphx-glr-thumbcontainer:hover {
@@ -382,14 +383,19 @@ blockquote {
 }
 
 .sphx-glr-thumbcontainer img {
-    vertical-align: middle;
-    max-height: 100px;
+    vertical-align: right;
+    max-height: 120px;
     max-width: 120px;
+    padding-top: 0px;
 }
 
 .sphx-glr-thumbcontainer a.internal {
     text-align: left;
-    padding: 10px 10px 10px 200px;
+    padding: 45px 10px 45px 200px;
+}
+
+.sphx-glr-thumbcontainer p a span {
+	display: flex;
 }
 
 /* ReadTheDocs */
