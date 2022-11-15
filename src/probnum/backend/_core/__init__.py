@@ -62,6 +62,8 @@ def asshape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
     ----------
     x
         Shape representation.
+    ndim
+        Number of axes / dimensions of the object with shape ``x``.
     """
 
     try:
