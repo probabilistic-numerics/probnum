@@ -82,7 +82,9 @@ def eye(
 ) -> torch.Tensor:
     if k != 0:
         raise NotImplementedError
-    return torch.eye(n=n_rows, m=n_cols, dtype=dtype, device=device)
+    if n_cols is None:
+        return torch.eye(n_rows, dtype=dtype, device=device)
+    return torch.eye(n_rows, n_cols, dtype=dtype, device=device)
 
 
 def full(
