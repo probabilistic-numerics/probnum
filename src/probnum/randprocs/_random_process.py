@@ -232,7 +232,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         assert self._output_ndim == 1
 
-        return backend.diagonal(pointwise_covs, axis1=-2, axis2=-1)
+        return backend.linalg.diagonal(pointwise_covs, axis1=-2, axis2=-1)
 
     def std(self, args: InputType) -> OutputType:
         """Standard deviation function.

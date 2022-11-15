@@ -25,9 +25,6 @@ atleast_2d = _core.atleast_2d
 broadcast_shapes = _core.broadcast_shapes
 ndim = _core.ndim
 
-# (Partial) Views
-diagonal = _core.diagonal
-
 # Contractions
 einsum = _core.einsum
 
@@ -96,8 +93,6 @@ __all__ = [
     "atleast_2d",
     "broadcast_shapes",
     "ndim",
-    # (Partial) Views
-    "diagonal",
     # Contractions
     "einsum",
     # Reductions

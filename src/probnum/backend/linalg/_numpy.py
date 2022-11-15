@@ -4,7 +4,8 @@ import functools
 from typing import Callable, Literal, Optional, Tuple, Union
 
 import numpy as np
-from numpy.linalg import eigh, eigvalsh, solve, svd
+from numpy import diagonal  # pylint: disable=unused-import
+from numpy.linalg import eigh, eigvalsh, solve, svd  # pylint: disable=unused-import
 import scipy.linalg
 
 

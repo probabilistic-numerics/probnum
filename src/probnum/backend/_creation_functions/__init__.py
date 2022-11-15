@@ -112,91 +112,79 @@ def asscalar(x: ScalarLike, dtype: DTypeLike = None) -> Scalar:
     return asarray(x, dtype=dtype)[()]
 
 
-def diag(x: ArrayLike, /, *, k: int = 0) -> Array:
+def diag(x: ArrayLike, /, *, offset: int = 0) -> Array:
     """Construct a diagonal array.
 
     Parameters
     ----------
     x
-        Diagonal.
-    k
-        Diagonal in question. Use ``k>0`` for diagonals above the main diagonal and
-        ``k<0`` for diagonals below the main diagonal.
+        Diagonal of the to-be-constructed array.
+    offset
+        Offset specifying the off-diagonal relative to the main diagonal.
+        - ``offset = 0``: the main diagonal.
+        - ``offset > 0``: off-diagonal above the main diagonal.
+        - ``offset < 0``: off-diagonal below the main diagonal.
 
     Returns
     -------
     out
         The constructed diagonal array.
     """
-    return _impl.diag(x, k=k)
+    return _impl.diag(x, k=offset)
 
 
-def tril(x: Array, /, *, k: int = 0) -> Array:
+def tril(x: Array, /, *, offset: int = 0) -> Array:
     """Returns the lower triangular part of a matrix (or a stack of matrices) ``x``.
 
     .. note::
 
        The lower triangular part of the matrix is defined as the elements on and below
-       the specified diagonal ``k``.
+       the specified (off-)diagonal given by ``offset``.
 
     Parameters
     ----------
     x
         Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
         ``MxN`` matrices.
-    k
-        Diagonal above which to zero elements. If ``k = 0``, the diagonal is the main
-        diagonal. If ``k < 0``, the diagonal is below the main diagonal. If ``k > 0``,
-        the diagonal is above the main diagonal. Default: ``0``.
-
-        .. note::
-
-           The main diagonal is defined as the set of indices ``{(i, i)}`` for ``i`` on
-           the interval ``[0, min(M, N) - 1]``.
+    offset
+        Offset defining the (off-)diagonal above which to zero elements.
+        - ``offset = 0``: the main diagonal.
+        - ``offset > 0``: off-diagonal above the main diagonal.
+        - ``offset < 0``: off-diagonal below the main diagonal.
 
     Returns
     -------
     out :
-        An array containing the lower triangular part(s). The returned array must have
-        the same shape and data type as ``x``. All elements above the specified diagonal
-        ``k`` must be zeroed. The returned array should be allocated on the same device
-        as ``x``.
+        An array containing the lower triangular part(s).
     """
-    return _impl.tril(x, k=k)
+    return _impl.tril(x, k=offset)
 
 
-def triu(x: Array, /, *, k: int = 0) -> Array:
+def triu(x: Array, /, *, offset: int = 0) -> Array:
     """Returns the upper triangular part of a matrix (or a stack of matrices) ``x``.
 
     .. note::
 
        The upper triangular part of the matrix is defined as the elements on and above
-       the specified diagonal ``k``.
+       the specified (off-)diagonal given by ``offset``.
 
     Parameters
     ----------
     x
         Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
         ``MxN`` matrices.
-    k
-        Diagonal below which to zero elements. If ``k = 0``, the diagonal is the main
-        diagonal. If ``k < 0``, the diagonal is below the main diagonal. If ``k > 0``,
-        the diagonal is above the main diagonal. Default: ``0``.
-
-        .. note::
-
-           The main diagonal is defined as the set of indices ``{(i, i)}`` for ``i`` on
-           the interval ``[0, min(M, N) - 1]``.
+    offset
+        Offset defining the (off-)diagonal below which to zero elements.
+        - ``offset = 0``: the main diagonal.
+        - ``offset > 0``: off-diagonal above the main diagonal.
+        - ``offset < 0``: off-diagonal below the main diagonal.
 
     Returns
     -------
     out:
-        An array containing the upper triangular part(s). The returned array must have
-        the same shape and data type as ``x``. All elements below the specified diagonal
-        ``k`` must be zeroed. The returned array should be allocated on the same device
-        as ``x``.
+        An array containing the upper triangular part(s).
     """
-    return _impl.triu(x, k=k)
+    return _impl.triu(x, k=offset)
 
 
 def arange(

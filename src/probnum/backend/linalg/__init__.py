@@ -7,6 +7,7 @@ from .. import BACKEND, Array, Backend
 __all__ = [
     "cholesky",
     "cholesky_update",
+    "diagonal",
     "eigh",
     "eigvalsh",
     "gram_schmidt",
@@ -216,6 +217,38 @@ def solve(x1: Array, x2: Array, /) -> Array:
     return _impl.solve(x1, x2)
 
 
+def diagonal(
+    x: Array, /, *, offset: int = 0, axis1: int = -2, axis2: int = -1
+) -> Array:
+    """Returns the specified diagonals of a matrix (or a stack of matrices) ``x``.
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions
+        form ``MxN`` matrices.
+    offset
+        Offset specifying the off-diagonal relative to the main diagonal.
+        - ``offset = 0``: the main diagonal.
+        - ``offset > 0``: off-diagonal above the main diagonal.
+        - ``offset < 0``: off-diagonal below the main diagonal.
+    axis1
+        Axis to be used as the first axis of the 2-D sub-arrays from which the diagonals
+        should be taken.
+    axis2
+        Axis to be used as the second axis of the 2-D sub-arrays from which the
+        diagonals should be taken.
+
+    Returns
+    -------
+    out
+        An array containing the diagonals and whose shape is determined by removing the
+        last two dimensions and appending a dimension equal to the size of the resulting
+        diagonals.
+    """
+    return _impl.diagonal(x, offset, axis1, axis2)
+
+
 Eigh = collections.namedtuple("Eigh", ["eigenvalues", "eigenvectors"])
 
 
@@ -233,13 +266,13 @@ def eigh(x: Array, /) -> Tuple[Array]:
     Parameters
     ----------
     x
-        input array having shape ``(..., M, M)`` and whose innermost two dimensions form
+        Input array having shape ``(..., M, M)`` and whose innermost two dimensions form
         square matrices. Must have a floating-point data type.
 
     Returns
     -------
     out
-        a namedtuple (``eigenvalues``, ``eigenvectors``) whose
+        A namedtuple (``eigenvalues``, ``eigenvectors``) whose
 
         -   first element is an array consisting of computed eigenvalues and has shape
             ``(..., M)``.
@@ -292,7 +325,7 @@ def svd(x: Array, /, *, full_matrices: bool = True) -> Union[Array, Tuple[Array,
     Parameters
     ----------
     x
-        input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
         matrices on which to perform singular value decomposition. Must have a
         floating-point data type.
     full_matrices
@@ -304,7 +337,7 @@ def svd(x: Array, /, *, full_matrices: bool = True) -> Union[Array, Tuple[Array,
     Returns
     -------
     out
-        a namedtuple ``(U, S, Vh)`` whose
+        A namedtuple ``(U, S, Vh)`` whose
 
         -   first element is an array whose shape depends on the value of
             ``full_matrices`` and contains matrices with orthonormal columns (i.e., the
@@ -354,10 +387,10 @@ def qr(
     Parameters
     ----------
     x
-        input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
         ``MxN`` matrices of rank ``N``. Should have a floating-point data type.
     mode
-        decomposition mode. Should be one of the following modes:
+        Decomposition mode. Should be one of the following modes:
 
         -   ``'reduced'``: compute only the leading ``K`` columns of ``q``, such that
             ``q`` and ``r`` have dimensions ``(..., M, K)`` and ``(..., K, N)``,
@@ -368,7 +401,7 @@ def qr(
     Returns
     -------
     out
-        a namedtuple ``(Q, R)`` whose
+        A namedtuple ``(Q, R)`` whose
 
         -   first element is an array whose shape depends on the value of ``mode`` and
             contains matrices with orthonormal columns. If ``mode`` is ``'complete'``,

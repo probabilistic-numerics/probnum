@@ -5,7 +5,8 @@ from typing import Literal, Optional, Tuple, Union
 
 import jax
 from jax import numpy as jnp
-from jax.numpy.linalg import eigh, eigvalsh, solve, svd
+from jax.numpy import diagonal  # pylint: disable=unused-import
+from jax.numpy.linalg import eigh, eigvalsh, solve, svd  # pylint: disable=unused-import
 
 
 def vector_norm(
