@@ -1,7 +1,7 @@
 """Benchmarks for linear solvers."""
 import numpy as np
 
-from probnum import linops, problems, randvars
+from probnum import backend, linops, problems, randvars
 from probnum.linalg import problinsolve
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
@@ -11,26 +11,36 @@ QUANTITIES_OF_INTEREST = ["x", "A", "Ainv"]
 
 
 def get_linear_system(name: str, dim: int):
-    rng = np.random.default_rng(0)
+    rng_state = backend.random.rng_state(42)
 
     if name == "dense":
         if dim > 1000:
             raise NotImplementedError()
-        A = random_spd_matrix(rng=rng, dim=dim)
+        rng_state, rng_state_A = backend.random.split(rng_state, 2)
+        A = random_spd_matrix(rng_state=rng_state_A, shape=(dim, dim))
     elif name == "sparse":
+        rng_state, rng_state_A_sparse = backend.random.split(rng_state, 2)
         A = random_sparse_spd_matrix(
-            rng_state=rng, dim=dim, density=np.minimum(1.0, 1000 / dim**2)
+            rng_state=rng_state_A_sparse,
+            shape=(dim, dim),
+            density=backend.minimum(1.0, 1000 / dim**2),
         )
     elif name == "linop":
         if dim > 100:
             raise NotImplementedError()
             # TODO: Larger benchmarks currently fail. Remove once PLS refactor
             # (https://github.com/probabilistic-numerics/probnum/issues/51) is resolved
-        A = linops.Scaling(factors=rng.normal(size=(dim,)))
+        rng_state, rng_state_A_linop = backend.random.split(rng_state, 2)
+        A = linops.Scaling(
+            factors=backend.random.standard_normal(
+                rng_state=rng_state_A_linop, shape=(dim,)
+            )
+        )
     else:
         raise NotImplementedError()
 
-    solution = rng.normal(size=(dim,))
+    rng_state, rng_state_solution = backend.random.split(rng_state, 2)
+    solution = backend.random.standard_normal(rng_state_solution, shape=(dim,))
     b = A @ solution
     return problems.LinearSystem(A=A, b=b, solution=solution)
 
@@ -72,14 +82,16 @@ class LinSolve:
         problinsolve(A=self.linsys.A, b=self.linsys.b)
 
     def track_residual_norm(self, linsys, dim):
-        return np.linalg.norm(self.linsys.b - self.linsys.A @ self.xhat.mean)
+        return backend.linalg.vector_norm(
+            self.linsys.b - self.linsys.A @ self.xhat.mean
+        )
 
     def track_error_2norm(self, linsys, dim):
-        return np.linalg.norm(self.linsys.solution - self.xhat.mean)
+        return backend.linalg.vector_norm(self.linsys.solution - self.xhat.mean)
 
     def track_error_Anorm(self, linsys, dim):
         diff = self.linsys.solution - self.xhat.mean
-        return np.sqrt(np.inner(diff, self.linsys.A @ diff))
+        return backend.sqrt(np.inner(diff, self.linsys.A @ diff))
 
 
 class PosteriorBelief:
