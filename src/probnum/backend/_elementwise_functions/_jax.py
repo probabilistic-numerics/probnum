@@ -1,6 +1,6 @@
 """Element-wise functions on JAX arrays."""
 
-from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
+from jax.numpy import (  # pylint: disable=unused-import
     abs,
     add,
     arccos as acos,
@@ -42,6 +42,8 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     logical_not,
     logical_or,
     logical_xor,
+    maximum,
+    minimum,
     multiply,
     negative,
     not_equal,

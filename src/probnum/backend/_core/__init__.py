@@ -25,13 +25,6 @@ atleast_2d = _core.atleast_2d
 broadcast_shapes = _core.broadcast_shapes
 ndim = _core.ndim
 
-# Constructors
-diag = _core.diag
-
-# Element-wise Binary Operations
-maximum = _core.maximum
-minimum = _core.minimum
-
 # (Partial) Views
 diagonal = _core.diagonal
 moveaxis = _core.moveaxis
@@ -104,11 +97,6 @@ __all__ = [
     "atleast_2d",
     "broadcast_shapes",
     "ndim",
-    # Constructors
-    "diag",
-    # Element-wise Binary Operations
-    "maximum",
-    "minimum",
     # (Partial) Views
     "diagonal",
     "moveaxis",

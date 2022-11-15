@@ -2,10 +2,12 @@
 from typing import List, Optional, Union
 
 import numpy as np
-from numpy import tril, triu  # pylint: disable=redefined-builtin, unused-import
+from numpy import diag, tril, triu  # pylint: disable= unused-import
 
-from .. import Array, Device, DType
+from .. import Device, DType
 from ..typing import ShapeType
+
+# pylint: disable=redefined-builtin
 
 
 def asarray(

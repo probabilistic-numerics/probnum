@@ -49,7 +49,7 @@ class _MarkovBase(_random_process.RandomProcess):
     ) -> backend.Array:
 
         sample_shape = backend.asshape(sample_shape)
-        args = backend.atleast_1d(args)
+        args = backend.asarray(args)
         if args.ndim > 1:
             raise ValueError(f"Invalid args shape {args.shape}")
 

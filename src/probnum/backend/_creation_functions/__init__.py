@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import List, Optional, Union
 
 from .. import BACKEND, Array, Backend, Device, DType, Scalar, asshape, ndim
-from ..typing import DTypeLike, ScalarLike, ShapeLike, ShapeType
+from ..typing import ArrayLike, DTypeLike, ScalarLike, ShapeLike, ShapeType
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl
@@ -18,6 +18,7 @@ __all__ = [
     "arange",
     "asarray",
     "asscalar",
+    "diag",
     "empty",
     "empty_like",
     "eye",
@@ -109,6 +110,25 @@ def asscalar(x: ScalarLike, dtype: DTypeLike = None) -> Scalar:
         raise ValueError("The given input is not a scalar.")
 
     return asarray(x, dtype=dtype)[()]
+
+
+def diag(x: ArrayLike, /, *, k: int = 0) -> Array:
+    """Construct a diagonal array.
+
+    Parameters
+    ----------
+    x
+        Diagonal.
+    k
+        Diagonal in question. Use ``k>0`` for diagonals above the main diagonal and
+        ``k<0`` for diagonals below the main diagonal.
+
+    Returns
+    -------
+    out
+        The constructed diagonal array.
+    """
+    return _impl.diag(x, k=k)
 
 
 def tril(x: Array, /, *, k: int = 0) -> Array:

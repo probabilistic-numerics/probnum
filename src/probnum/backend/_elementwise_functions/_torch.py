@@ -1,6 +1,6 @@
 """Element-wise functions on torch tensors."""
 
-from torch import (  # pylint: disable=redefined-builtin, unused-import
+from torch import (  # pylint: disable=unused-import
     abs,
     acos,
     acosh,
@@ -43,6 +43,8 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import
     logical_not,
     logical_or,
     logical_xor,
+    maximum,
+    minimum,
     multiply,
     negative,
     not_equal,

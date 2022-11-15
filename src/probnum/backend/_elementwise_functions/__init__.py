@@ -52,6 +52,8 @@ __all__ = [
     "logical_not",
     "logical_or",
     "logical_xor",
+    "maximum",
+    "minimum",
     "multiply",
     "negative",
     "not_equal",
@@ -933,7 +935,55 @@ def logical_xor(x1: Array, x2: Array, /) -> Array:
     out
         an array containing the element-wise results.
     """
-    return _impl.logical_xor(x)
+    return _impl.logical_xor(x1, x2)
+
+
+def maximum(x1: Array, x2: Array, /) -> Array:
+    """Element-wise maximum of two arrays.
+
+    Compare two arrays and returns a new array containing the element-wise maxima. If
+    one of the elements being compared is a NaN, then that element is returned. If both
+    elements are NaNs then the first is returned. The latter distinction is important
+    for complex NaNs, which are defined as at least one of the real or imaginary parts
+    being a NaN. The net effect is that NaNs are propagated.
+
+    Parameters
+    ----------
+    x1
+        First input array.
+    x2
+        Second input array. Must be compatible with ``x1``.
+
+    Returns
+    -------
+    out
+        An array containing the element-wise maxima.
+    """
+    return _impl.maximum(x1, x2)
+
+
+def minimum(x1: Array, x2: Array, /) -> Array:
+    """Element-wise minimum of two arrays.
+
+    Compare two arrays and returns a new array containing the element-wise minima. If
+    one of the elements being compared is a NaN, then that element is returned. If both
+    elements are NaNs then the first is returned. The latter distinction is important
+    for complex NaNs, which are defined as at least one of the real or imaginary parts
+    being a NaN. The net effect is that NaNs are propagated.
+
+    Parameters
+    ----------
+    x1
+        First input array.
+    x2
+        Second input array. Must be compatible with ``x1``.
+
+    Returns
+    -------
+    out
+        An array containing the element-wise minima.
+    """
+    return _impl.minimum(x1, x2)
 
 
 def multiply(x1: Array, x2: Array, /) -> Array:

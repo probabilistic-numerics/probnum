@@ -3,10 +3,12 @@ from typing import List, Optional, Union
 
 import jax
 import jax.numpy as jnp
-from jax.numpy import tril, triu  # pylint: disable=redefined-builtin, unused-import
+from jax.numpy import diag, tril, triu  # pylint: unused-import
 
 from .. import Device, DType
 from ..typing import ShapeType
+
+# pylint: disable=redefined-builtin
 
 
 def asarray(

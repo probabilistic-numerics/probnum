@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import torch
@@ -18,7 +18,6 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     is_floating_point as is_floating,
     isfinite,
     kron,
-    linspace,
     log,
     max,
     maximum,
@@ -80,22 +79,6 @@ def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
     return res
 
 
-def full_like(
-    a: torch.Tensor,
-    fill_value,
-    dtype=None,
-    shape=None,
-) -> torch.Tensor:
-    return torch.full(
-        shape if shape is not None else a.shape,
-        fill_value,
-        dtype=dtype if dtype is not None else a.dtype,
-        layout=a.layout,
-        device=a.device,
-        requires_grad=a.requires_grad,
-    )
-
-
 def tile(A: torch.Tensor, reps: torch.Tensor) -> torch.Tensor:
     return torch.tile(input=A, dims=reps)
 
@@ -105,37 +88,6 @@ def ndim(a):
         return a.ndim
     except AttributeError:
         return torch.as_tensor(a).ndim
-
-
-def ones_like(a, dtype=None, *, shape=None):
-    if shape is None:
-        return torch.ones_like(input=a, dtype=dtype)
-
-    return torch.ones(
-        shape,
-        dtype=a.dtype if dtype is None else dtype,
-        layout=a.layout,
-        device=a.device,
-    )
-
-
-def sum(a, axis=None, dtype=None, keepdims=False):
-    if axis is None:
-        axis = tuple(range(a.ndim))
-
-    return torch.sum(a, dim=axis, keepdim=keepdims, dtype=dtype)
-
-
-def zeros_like(a, dtype=None, *, shape=None):
-    if shape is None:
-        return torch.zeros_like(input=a, dtype=dtype)
-
-    return torch.zeros(
-        shape,
-        dtype=a.dtype if dtype is None else dtype,
-        layout=a.layout,
-        device=a.device,
-    )
 
 
 def to_numpy(*arrays: torch.Tensor) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:

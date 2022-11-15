@@ -2,10 +2,12 @@
 from typing import List, Optional, Union
 
 import torch
-from torch import tril, triu  # pylint: disable=redefined-builtin, unused-import
+from torch import tril, triu  # pylint: unused-import
 
 from .. import Device, DType
 from ..typing import ShapeType
+
+# pylint: disable=redefined-builtin
 
 
 def asarray(
@@ -23,6 +25,10 @@ def asarray(
         if copy:
             return x.clone()
     return x
+
+
+def diag(x: torch.Tensor, /, *, k: int = 0) -> torch.Tensor:
+    return torch.diag(x, diagonal=k)
 
 
 def tril(x: torch.Tensor, /, k: int = 0) -> torch.Tensor:
