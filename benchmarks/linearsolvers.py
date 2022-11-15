@@ -84,10 +84,10 @@ class LinSolve:
     def track_residual_norm(self, linsys, dim):
         return backend.linalg.vector_norm(
             self.linsys.b - self.linsys.A @ self.xhat.mean
-        )
+        ).item()
 
     def track_error_2norm(self, linsys, dim):
-        return backend.linalg.vector_norm(self.linsys.solution - self.xhat.mean)
+        return backend.linalg.vector_norm(self.linsys.solution - self.xhat.mean).item()
 
     def track_error_Anorm(self, linsys, dim):
         diff = self.linsys.solution - self.xhat.mean
