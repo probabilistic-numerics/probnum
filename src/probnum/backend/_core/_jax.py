@@ -23,7 +23,6 @@ from jax.numpy import (  # pylint: disable=redefined-builtin, unused-import
     full_like,
     hstack,
     isfinite,
-    kron,
     linspace,
     log,
     max,

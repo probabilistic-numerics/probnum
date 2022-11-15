@@ -17,7 +17,6 @@ from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name
     hstack,
     is_floating_point as is_floating,
     isfinite,
-    kron,
     log,
     max,
     maximum,

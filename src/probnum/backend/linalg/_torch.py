@@ -3,7 +3,7 @@
 from typing import Literal, Optional, Tuple, Union
 
 import torch
-from torch import diagonal  # pylint: disable=unused-import
+from torch import diagonal, kron  # pylint: disable=unused-import
 from torch.linalg import eigh, eigvalsh, qr, solve, svd
 
 

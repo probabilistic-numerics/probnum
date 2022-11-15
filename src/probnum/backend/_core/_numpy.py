@@ -25,7 +25,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     hstack,
     isfinite,
     isnan,
-    kron,
     linspace,
     log,
     max,

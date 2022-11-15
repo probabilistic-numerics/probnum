@@ -15,6 +15,7 @@ __all__ = [
     "gram_schmidt_modified",
     "induced_norm",
     "inner_product",
+    "kron",
     "matrix_norm",
     "qr",
     "solve",
@@ -54,7 +55,7 @@ def vector_norm(
     Parameters
     ----------
     x
-        input array. Should have a floating-point data type.
+        Input array. Should have a floating-point data type.
     axis
         If an integer, ``axis`` specifies the axis (dimension) along which to compute
         vector norms. If an n-tuple, ``axis`` specifies the axes (dimensions) along
@@ -68,7 +69,7 @@ def vector_norm(
         API_specification/broadcasting.html>`_). Otherwise, if ``False``, the last two
         axes (dimensions) are not be included in the result.
     ord
-        order of the norm. The following mathematical norms are supported:
+        Order of the norm. The following mathematical norms are supported:
 
         +------------------+----------------------------+
         | ord              | description                |
@@ -101,7 +102,7 @@ def vector_norm(
     Returns
     -------
     out
-        an array containing the vector norms. If ``axis`` is ``None``, the returned
+        An array containing the vector norms. If ``axis`` is ``None``, the returned
         array is a zero-dimensional array containing a vector norm. If ``axis`` is a
         scalar value (``int`` or ``float``), the returned array has a rank which
         is one less than the rank of ``x``. If ``axis`` is a ``n``-tuple, the returned
@@ -110,6 +111,22 @@ def vector_norm(
         .org/array-api/latest/API_specification/type_promotion.html>`_..
     """
     return _impl.vector_norm(x, axis=axis, keepdims=keepdims, ord=ord)
+
+
+def kron(x: Array, y: Array, /) -> Array:
+    """Kronecker product of two arrays.
+
+    Computes the Kronecker product, a composite array made of blocks of the second array
+    scaled by the first.
+
+    Parameters
+    ----------
+    x
+        First Kronecker factor.
+    y
+        Second Kronecker factor.
+    """
+    return _impl.kron(x, y)
 
 
 def matrix_norm(
@@ -124,7 +141,7 @@ def matrix_norm(
     Parameters
     ----------
     x
-        input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
         ``MxN`` matrices. Should have a floating-point data type.
     keepdims
         If ``True``, the last two axes (dimensions) are included in the result as
@@ -133,7 +150,7 @@ def matrix_norm(
         API_specification/broadcasting.html>`_). Otherwise, if ``False``, the last two
         axes (dimensions) are not be included in the result.
     ord
-        order of the norm. The following mathematical norms are supported:
+        Order of the norm. The following mathematical norms are supported:
 
         +------------------+---------------------------------+
         | ord              | description                     |
@@ -171,7 +188,7 @@ def matrix_norm(
     Returns
     -------
     out
-        an array containing the norms for each ``MxN`` matrix. If ``keepdims`` is
+        An array containing the norms for each ``MxN`` matrix. If ``keepdims`` is
         ``False``, the returned array has a rank which is two less than the
         rank of ``x``. The returned array must have a floating-point data type
         determined by `type-promotion <https://data-apis.org/array-api/latest/\
@@ -192,23 +209,21 @@ def solve(x1: Array, x2: Array, /) -> Array:
     Parameters
     ----------
     x1
-        coefficient array ``A`` having shape ``(..., M, M)`` and whose innermost two
+        Coefficient array ``A`` having shape ``(..., M, M)`` and whose innermost two
         dimensions form square matrices. Must be of full rank (i.e., all rows or,
-        equivalently, columns must be linearly independent). Should have a
-        floating-point data type.
+        equivalently, columns must be linearly independent).
     x2
-        ordinate (or "dependent variable") array ``B``. If ``x2`` has shape ``(M,)``,
+        Ordinate (or "dependent variable") array ``B``. If ``x2`` has shape ``(M,)``,
         ``x2`` is equivalent to an array having shape ``(..., M, 1)``. If ``x2`` has
         shape ``(..., M, K)``, each column ``k`` defines a set of ordinate values for
         which to compute a solution, and ``shape(x2)[:-1]`` must be compatible with
         ``shape(x1)[:-1]`` (see `broadcasting <https://data-apis.org/array-api/latest\
-        /API_specification/broadcasting.html>`_). Should have a floating-point data
-        type.
+        /API_specification/broadcasting.html>`_).
 
     Returns
     -------
     out:
-        an array containing the solution to the system ``AX = B`` for each square
+        An array containing the solution to the system ``AX = B`` for each square
         matrix. The returned array must have the same shape as ``x2`` (i.e., the array
         corresponding to ``B``) and must have a floating-point data type determined by
         `type-promotion <https://data-apis.org/array-api/latest/API_specification\

@@ -34,7 +34,6 @@ any = _core.any
 
 # Concatenation and Stacking
 tile = _core.tile
-kron = _core.kron
 
 # Misc
 to_numpy = _core.to_numpy
@@ -100,7 +99,6 @@ __all__ = [
     "any",
     # Concatenation and Stacking
     "tile",
-    "kron",
     # Misc
     "to_numpy",
     "vectorize",

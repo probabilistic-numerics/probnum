@@ -504,7 +504,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
             A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
             B_eigvals, B_eigvecs = backend.linalg.eigh(self.cov.B.todense())
 
-            eigvals = backend.kron(A_eigvals, B_eigvals)
+            eigvals = backend.linalg.kron(A_eigvals, B_eigvals)
             Q = linops.Kronecker(A_eigvecs, B_eigvecs)
         elif (
             isinstance(self.cov, linops.SymmetricKronecker)
@@ -512,7 +512,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         ):
             A_eigvals, A_eigvecs = backend.linalg.eigh(self.cov.A.todense())
 
-            eigvals = backend.kron(A_eigvals, B_eigvals)
+            eigvals = backend.linalg.kron(A_eigvals, B_eigvals)
             Q = linops.SymmetricKronecker(A_eigvecs)
         else:
             assert isinstance(self.cov, linops.LinearOperator)
