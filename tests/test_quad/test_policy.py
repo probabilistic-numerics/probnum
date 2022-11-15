@@ -41,6 +41,7 @@ def test_van_der_corput_full(n):
     expected_seq = np.linspace(1.0 / n, 1.0 - 1.0 / n, n - 1)
     np.testing.assert_array_equal(np.sort(vdc_seq), expected_seq)
 
+
 def test_van_der_corput_partial():
     """Test that some partial van der Corput sequences are computed correctly."""
     (n_start, n_end) = (3, 8)
@@ -50,6 +51,5 @@ def test_van_der_corput_partial():
 
     (n_start, n_end) = (4, 11)
     vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(n_start, n_end)
-    expected_seq = np.array([0.125 , 0.625 , 0.375 , 0.875 , 0.0625, 0.5625, 0.3125])
+    expected_seq = np.array([0.125, 0.625, 0.375, 0.875, 0.0625, 0.5625, 0.3125])
     np.testing.assert_array_equal(vdc_seq, expected_seq)
-
