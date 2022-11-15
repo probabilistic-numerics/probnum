@@ -37,6 +37,11 @@ Generic computation backend.
 .. toctree::
     :hidden:
 
+    backend/sorting_functions
+
+.. toctree::
+    :hidden:
+
     backend/statistical_functions
 
 .. toctree::
