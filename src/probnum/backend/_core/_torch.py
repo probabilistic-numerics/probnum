@@ -4,8 +4,6 @@ import numpy as np
 import torch
 from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
     abs,
-    atleast_1d,
-    atleast_2d,
     broadcast_shapes,
     broadcast_tensors as broadcast_arrays,
     diag,
@@ -76,10 +74,6 @@ def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
         res = torch.any(res, dim=axis, keepdims=keepdims)
 
     return res
-
-
-def tile(A: torch.Tensor, reps: torch.Tensor) -> torch.Tensor:
-    return torch.tile(input=A, dims=reps)
 
 
 def ndim(a):

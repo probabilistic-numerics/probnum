@@ -3,6 +3,7 @@
 from typing import List, Optional, Sequence, Tuple, Union
 
 import torch
+from torch import atleast_1d, atleast_2d  # pylint: disable=unused-import
 
 from ..typing import ShapeType
 
@@ -90,3 +91,7 @@ def vstack(
     arrays: Union[Tuple[torch.Tensor, ...], List[torch.Tensor]], /
 ) -> torch.Tensor:
     return torch.vstack(arrays)
+
+
+def tile(A: torch.Tensor, reps: torch.Tensor) -> torch.Tensor:
+    return torch.tile(input=A, dims=reps)

@@ -3,6 +3,7 @@
 from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+from numpy import atleast_1d, atleast_2d  # pylint: disable=unused-import
 
 from ..typing import ShapeType
 
@@ -86,3 +87,7 @@ def hstack(arrays: Union[Tuple[np.ndarray, ...], List[np.ndarray]], /) -> np.nda
 
 def vstack(arrays: Union[Tuple[np.ndarray, ...], List[np.ndarray]], /) -> np.ndarray:
     return np.vstack(arrays)
+
+
+def tile(A: np.ndarray, /, reps: ShapeType) -> np.ndarray:
+    return np.tile(A, reps)

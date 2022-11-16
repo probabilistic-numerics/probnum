@@ -15,6 +15,8 @@ from .. import asshape
 from ..typing import ShapeLike
 
 __all__ = [
+    "atleast_1d",
+    "atleast_2d",
     "broadcast_arrays",
     "broadcast_to",
     "concat",
@@ -28,8 +30,52 @@ __all__ = [
     "squeeze",
     "stack",
     "swap_axes",
+    "tile",
     "vstack",
 ]
+
+
+def atleast_1d(*arrays: Array):
+    """Convert inputs to arrays with at least one dimension.
+
+    Scalar inputs are converted to 1-dimensional arrays, whilst
+    higher-dimensional inputs are preserved.
+
+    Parameters
+    ----------
+    arrays
+        One or more input arrays.
+
+    Returns
+    -------
+    out
+        An array, or list of arrays, each with ``a.ndim >= 1``.
+
+    See Also
+    --------
+    atleast_2d : Convert inputs to arrays with at least two dimensions.
+    """
+    return _impl.atleast_1d(**arrays)
+
+
+def atleast_2d(*arrays: Array):
+    """Convert inputs to arrays with at least two dimensions.
+
+    Parameters
+    ----------
+    arrays
+        One or more input arrays.
+
+    Returns
+    -------
+    out
+        An array, or list of arrays, each with ``a.ndim >= 2``.
+
+    See Also
+    --------
+    atleast_1d : Convert inputs to arrays with at least one dimension.
+    """
+    return _impl.atleast_2d(**arrays)
 
 
 def broadcast_arrays(*arrays: Array) -> List[Array]:
@@ -45,7 +91,7 @@ def broadcast_arrays(*arrays: Array) -> List[Array]:
     out
         A list of broadcasted arrays.
     """
-    return _impl.broadcast_arrays(*arrays)
+    return _impl.broadcast_arrays(**arrays)
 
 
 def broadcast_to(x: Array, /, shape: ShapeLike) -> Array:
@@ -334,3 +380,39 @@ def vstack(arrays: Union[Tuple[Array, ...], List[Array]], /) -> Array:
         An output array formed by stacking the given arrays.
     """
     return _impl.vstack(arrays)
+
+
+def tile(A: Array, /, reps: ShapeLike) -> Array:
+    """Construct an array by repeating ``A`` the number of times given by ``reps``.
+
+    If ``reps`` has length ``d``, the result will have dimension of
+    ``max(d, A.ndim)``.
+
+    If ``A.ndim < d``, ``A`` is promoted to be d-dimensional by prepending new
+    axes. So a shape (3,) array is promoted to (1, 3) for 2-D replication,
+    or shape (1, 1, 3) for 3-D replication. If this is not the desired
+    behavior, promote ``A`` to d-dimensions manually before calling this
+    function.
+
+    If ``A.ndim > d``, ``reps`` is promoted to ``A``.ndim by pre-pending 1's to it.
+    Thus for an ``A`` of shape (2, 3, 4, 5), a ``reps`` of (2, 2) is treated as
+    (1, 1, 2, 2).
+
+    .. note::
+
+        Although tile may be used for broadcasting, it is strongly recommended to use
+        broadcasting operations and functionality instead.
+
+    Parameters
+    ----------
+    A
+        The input array.
+    reps
+        The number of repetitions of ``A`` along each axis.
+
+    Returns
+    -------
+    out
+        The tiled output array.
+    """
+    return _impl.tile(A, asshape(reps))

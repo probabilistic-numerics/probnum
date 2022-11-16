@@ -42,7 +42,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
     stack,
     sum,
     swapaxes,
-    tile,
     vectorize,
     vstack,
     zeros,

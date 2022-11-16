@@ -1,8 +1,14 @@
 """Generic computation backend.
 
-The interface provided by this module follows the Python array API standard
-(https://data-apis.org/array-api/latest/index.html), which defines a common
-common API for array and tensor Python libraries.
+ProbNum's backend implements a unified API for computations with arrays / tensors, that
+allows writing generic code and the use of a custom backend library (currently NumPy,
+JAX and PyTorch).
+
+.. note ::
+
+    The interface provided by this module follows the `Python array API standard
+    <https://data-apis.org/array-api/latest/index.html>`_ closely, which defines a
+    common API for array and tensor Python libraries.
 """
 
 from __future__ import annotations

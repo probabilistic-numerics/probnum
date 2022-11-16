@@ -2,6 +2,7 @@
 from typing import List, Optional, Sequence, Tuple, Union
 
 import jax.numpy as jnp
+from jax.numpy import atleast_1d, atleast_2d  # pylint: disable=unused-import
 
 from ..typing import ShapeType
 
@@ -85,3 +86,7 @@ def hstack(arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]], /) -> jnp.
 
 def vstack(arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]], /) -> jnp.ndarray:
     return jnp.vstack(arrays)
+
+
+def tile(A: jnp.ndarray, /, reps: ShapeType) -> jnp.ndarray:
+    return jnp.tile(A, reps)

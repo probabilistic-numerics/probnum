@@ -2,7 +2,7 @@
 probnum.backend
 ***************
 
-Generic computation backend.
+.. automodule:: probnum.backend
 
 .. toctree::
     :hidden:

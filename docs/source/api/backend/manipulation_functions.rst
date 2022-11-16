@@ -10,6 +10,8 @@ Functions
 
 .. autosummary::
 
+    ~probnum.backend.atleast_1d
+    ~probnum.backend.atleast_2d
     ~probnum.backend.broadcast_arrays
     ~probnum.backend.broadcast_to
     ~probnum.backend.concat
@@ -23,12 +25,15 @@ Functions
     ~probnum.backend.squeeze
     ~probnum.backend.stack
     ~probnum.backend.swap_axes
+    ~probnum.backend.tile
     ~probnum.backend.vstack
 
 
 .. toctree::
     :hidden:
 
+    manipulation_functions/probnum.backend.atleast_1d
+    manipulation_functions/probnum.backend.atleast_2d
     manipulation_functions/probnum.backend.broadcast_arrays
     manipulation_functions/probnum.backend.broadcast_to
     manipulation_functions/probnum.backend.concat
@@ -42,4 +47,5 @@ Functions
     manipulation_functions/probnum.backend.squeeze
     manipulation_functions/probnum.backend.stack
     manipulation_functions/probnum.backend.swap_axes
+    manipulation_functions/probnum.backend.tile
     manipulation_functions/probnum.backend.vstack

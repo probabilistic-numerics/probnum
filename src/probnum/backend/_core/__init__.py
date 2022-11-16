@@ -1,9 +1,4 @@
-"""Core of the compute backend.
-
-The interface provided by this module follows the Python array API standard
-(https://data-apis.org/array-api/latest/index.html), which defines a common
-API for array and tensor Python libraries.
-"""
+"""Core of the compute backend."""
 
 from typing import AbstractSet, Optional, Union
 
@@ -20,8 +15,6 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 # Assignments for common docstrings across backends
 
 # Array Shape
-atleast_1d = _core.atleast_1d
-atleast_2d = _core.atleast_2d
 broadcast_shapes = _core.broadcast_shapes
 ndim = _core.ndim
 
@@ -31,9 +24,6 @@ einsum = _core.einsum
 # Reductions
 all = _core.all
 any = _core.any
-
-# Concatenation and Stacking
-tile = _core.tile
 
 # Misc
 to_numpy = _core.to_numpy
@@ -88,8 +78,6 @@ def vectorize(
 __all__ = [
     # Array Shape
     "asshape",
-    "atleast_1d",
-    "atleast_2d",
     "broadcast_shapes",
     "ndim",
     # Contractions
@@ -97,8 +85,6 @@ __all__ = [
     # Reductions
     "all",
     "any",
-    # Concatenation and Stacking
-    "tile",
     # Misc
     "to_numpy",
     "vectorize",
