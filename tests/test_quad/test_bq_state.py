@@ -106,6 +106,7 @@ def test_state_defaults_types(state, request):
     assert isinstance(s.gram, np.ndarray)
     assert isinstance(s.kernel_means, np.ndarray)
     assert isinstance(s.previous_integral_beliefs, tuple)
+    assert isinstance(s.scale_sq, float)
     assert s.integral_belief is None
 
 
@@ -186,3 +187,13 @@ def test_state_from_new_data(state, request):
     # values
     assert s.input_dim == s.measure.input_dim
     assert s.scale_sq == scale_sq
+
+
+def test_state_raises():
+    wrong_scale = -1.0
+    with pytest.raises(ValueError):
+        BQState(
+            measure=LebesgueMeasure(domain=(0, 1)),
+            kernel=ExpQuad(input_shape=(1,)),
+            scale_sq=wrong_scale,
+        )

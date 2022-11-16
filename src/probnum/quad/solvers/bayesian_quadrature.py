@@ -83,7 +83,7 @@ class BayesianQuadrature:
         rel_tol: Optional[FloatLike] = None,
         batch_size: IntLike = 1,
         rng: np.random.Generator = None,
-        jitter: FloatLike = 1.0e-6,
+        jitter: FloatLike = 1.0e-8,
     ) -> "BayesianQuadrature":
 
         r"""Creates an instance of this class from a problem description.
@@ -115,7 +115,7 @@ class BayesianQuadrature:
             The random number generator.
         jitter
             Non-negative jitter to numerically stabilise kernel matrix inversion.
-            Defaults to 1e-6.
+            Defaults to 1e-8.
 
         Returns
         -------
@@ -193,7 +193,7 @@ class BayesianQuadrature:
 
         # If no stopping criteria are given, use some default values.
         if _stopping_criterion is None:
-            _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
+            _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-8) | MaxNevals(
                 max_nevals=input_dim * 25  # 25 is an arbitrary value
             )
 

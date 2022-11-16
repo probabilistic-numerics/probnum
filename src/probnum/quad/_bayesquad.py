@@ -38,7 +38,7 @@ def bayesquad(
     rel_tol: Optional[FloatLike] = None,
     batch_size: IntLike = 1,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
-    jitter: FloatLike = 1.0e-6,
+    jitter: FloatLike = 1.0e-8,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
     :math:`\int_\Omega f(x) d \mu(x)`
@@ -107,7 +107,7 @@ def bayesquad(
         policies. Optional. Default is `np.random.default_rng()`.
     jitter
         Non-negative jitter to numerically stabilise kernel matrix inversion.
-        Defaults to 1e-6.
+        Defaults to 1e-8.
 
     Returns
     -------
@@ -129,7 +129,7 @@ def bayesquad(
     -----
         If multiple stopping conditions are provided, the method stops once one of
         them is satisfied. If no stopping condition is provided, the default values are
-        ``max_evals = 25 * input_dim`` and ``var_tol = 1e-6``.
+        ``max_evals = 25 * input_dim`` and ``var_tol = 1e-8``.
 
     See Also
     --------
@@ -188,7 +188,7 @@ def bayesquad_from_data(
     domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
     scale_estimation: Optional[str] = "mle",
-    jitter: FloatLike = 1.0e-6,
+    jitter: FloatLike = 1.0e-8,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
@@ -211,7 +211,7 @@ def bayesquad_from_data(
         Estimation method to use to compute the scale parameter. Defaults to 'mle'.
     jitter
         Non-negative jitter to numerically stabilise kernel matrix inversion.
-        Defaults to 1e-6.
+        Defaults to 1e-8.
 
     Returns
     -------

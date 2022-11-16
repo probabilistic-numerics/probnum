@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from scipy.integrate import quad
+from scipy.integrate import quad as scipyquad
 
 import probnum.quad
 from probnum.quad import bayesquad, bayesquad_from_data
@@ -72,7 +72,7 @@ def test_integral_values_1d(
         jitter=jitter,
     )
     domain = measure.domain
-    num_integral, _ = quad(integrand, domain[0], domain[1])
+    num_integral, _ = scipyquad(integrand, domain[0], domain[1])
     np.testing.assert_almost_equal(bq_integral.mean, num_integral, decimal=2)
 
 
@@ -191,16 +191,6 @@ def test_domain_ignored_if_lebesgue(input_dim, measure):
         nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
     )
     assert isinstance(bq_integral, Normal)
-
-
-@pytest.mark.parametrize("jitter", [-1.0, -0.002])
-def test_negative_jitter_throws_error(jitter):
-    """Test that negative values for jitter raise ValueError."""
-    input_dim = 1
-    domain = (0, 1)
-    fun = lambda x: np.reshape(x, (x.shape[0],))
-    with pytest.raises(ValueError):
-        bayesquad(fun=fun, input_dim=input_dim, domain=domain, jitter=jitter)
 
 
 def test_zero_function_gives_zero_variance_with_mle():

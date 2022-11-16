@@ -22,10 +22,8 @@ class VanDerCorputPolicy(Policy):
 
     Parameters
     ----------
-    domain_a
-        Starting point of the interval. Must be finite.
-    domain_b
-        End point of the interval. Must be finite.
+    measure
+        The integration measure with finite domain.
     batch_size
         Size of batch of nodes when calling the policy once.
 
@@ -36,12 +34,15 @@ class VanDerCorputPolicy(Policy):
 
     def __init__(self, measure: IntegrationMeasure, batch_size: int) -> None:
         super().__init__(batch_size=batch_size)
+
         if int(measure.input_dim) > 1:
             raise ValueError("Policy 'vdc' works only when the input dimension is one.")
+
         domain_a = measure.domain[0]
         domain_b = measure.domain[1]
-        if (domain_a or domain_b) in [np.Inf, -np.Inf]:
+        if np.Inf in [abs(domain_a), abs(domain_b)]:
             raise ValueError("Policy 'vdc' works only for bounded domains.")
+
         self.domain_a = domain_a
         self.domain_b = domain_b
 

@@ -3,34 +3,23 @@
 import numpy as np
 import pytest
 
-from probnum.quad import GaussianMeasure, LebesgueMeasure, VanDerCorputPolicy, bayesquad
+from probnum.quad import GaussianMeasure, LebesgueMeasure, VanDerCorputPolicy
 
 
-def test_van_der_corput_multi_d_error(input_dim):
+def test_van_der_corput_multi_d_error():
     """Check that van der Corput policy fails in dimensions higher than one."""
-
-    def fun(x):
-        return np.ones(x.shape)
-
-    measure = GaussianMeasure(input_dim=input_dim, mean=0.0, cov=1.0)
-    if input_dim > 1:
-        with pytest.raises(ValueError):
-            bayesquad(fun=fun, input_dim=input_dim, measure=measure, policy="vdc")
+    wrong_dimension = 2
+    measure = GaussianMeasure(input_dim=wrong_dimension, mean=0.0, cov=1.0)
+    with pytest.raises(ValueError):
+        VanDerCorputPolicy(measure, batch_size=1)
 
 
-@pytest.mark.parametrize(
-    "domain", [(0, 1), (-np.Inf, 0), (1, np.Inf), (-np.Inf, np.Inf)]
-)
+@pytest.mark.parametrize("domain", [(-np.Inf, 0), (1, np.Inf), (-np.Inf, np.Inf)])
 def test_van_der_corput_infinite_error(domain):
     """Check that van der Corput policy fails on infinite domains."""
-
-    def fun(x):
-        return np.ones(x.shape)
-
     measure = LebesgueMeasure(input_dim=1, domain=domain)
-    if domain[1] - domain[0] == np.Inf:
-        with pytest.raises(ValueError):
-            bayesquad(fun=fun, input_dim=1, measure=measure, policy="vdc")
+    with pytest.raises(ValueError):
+        VanDerCorputPolicy(measure, batch_size=1)
 
 
 @pytest.mark.parametrize("n", [4, 8, 16, 32, 64, 128, 256])

@@ -9,6 +9,7 @@ from probnum.quad import (
     ImmediateStop,
     LebesgueMeasure,
     RandomPolicy,
+    VanDerCorputPolicy,
 )
 from probnum.randprocs.kernels import ExpQuad
 
@@ -51,6 +52,17 @@ def test_bq_from_problem_wrong_inputs(input_dim):
     # neither measure nor domain is provided
     with pytest.raises(ValueError):
         BayesianQuadrature.from_problem(input_dim=input_dim)
+
+
+@pytest.mark.parametrize(
+    "policy, policy_type", [("bmc", RandomPolicy), ("vdc", VanDerCorputPolicy)]
+)
+def test_bq_from_problem_policy_assignment(policy, policy_type):
+    """Test if correct policy is assigned from string identifier."""
+    bq = BayesianQuadrature.from_problem(
+        input_dim=1, domain=(0, 1), policy=policy, rng=np.random.default_rng()
+    )
+    assert isinstance(bq.policy, policy_type)
 
 
 def test_bq_from_problem_defaults(bq_no_policy, bq):
