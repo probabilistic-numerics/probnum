@@ -42,3 +42,12 @@ def test_van_der_corput_partial():
     vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(n_start, n_end)
     expected_seq = np.array([0.125, 0.625, 0.375, 0.875, 0.0625, 0.5625, 0.3125])
     np.testing.assert_array_equal(vdc_seq, expected_seq)
+
+
+def test_van_der_corput_start_value_only():
+    """When no end value is given, test if sequence returns the correct value."""
+    (n_start, n_end) = (1, 8)
+    vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(n_start, n_end)
+    vdc_seq_single_value = VanDerCorputPolicy.van_der_corput_sequence(n_end - 1)
+    assert vdc_seq_single_value.shape == (1,)
+    assert vdc_seq[-1] == vdc_seq_single_value[0]
