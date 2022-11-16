@@ -193,7 +193,7 @@ class BayesianQuadrature:
 
         # If no stopping criteria are given, use some default values.
         if _stopping_criterion is None:
-            _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-8) | MaxNevals(
+            _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
                 max_nevals=input_dim * 25  # 25 is an arbitrary value
             )
 
