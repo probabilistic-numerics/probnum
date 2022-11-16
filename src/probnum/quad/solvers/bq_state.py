@@ -11,7 +11,7 @@ from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike
 
-# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
 
 
 class BQState:
@@ -58,10 +58,6 @@ class BQState:
         self.measure = measure
         self.kernel = kernel
         self.kernel_embedding = KernelEmbedding(kernel, measure)
-        if scale_sq < 0:
-            raise ValueError(
-                f"Squared scale parameter ({scale_sq}) must be non-negative."
-            )
         self.scale_sq = scale_sq
         self.integral_belief = integral_belief
         self.previous_integral_beliefs = previous_integral_beliefs

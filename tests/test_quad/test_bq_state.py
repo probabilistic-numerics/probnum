@@ -187,13 +187,3 @@ def test_state_from_new_data(state, request):
     # values
     assert s.input_dim == s.measure.input_dim
     assert s.scale_sq == scale_sq
-
-
-def test_state_raises():
-    wrong_scale = -1.0
-    with pytest.raises(ValueError):
-        BQState(
-            measure=LebesgueMeasure(domain=(0, 1)),
-            kernel=ExpQuad(input_shape=(1,)),
-            scale_sq=wrong_scale,
-        )
