@@ -1,7 +1,7 @@
 """Tests for general inner products."""
 
 from probnum import backend
-from probnum.backend.linalg import induced_norm, inner_product
+from probnum.backend.linalg import induced_vector_norm, inner_product
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 import pytest
@@ -75,32 +75,32 @@ def array1(m: int, n: int) -> backend.Array:
 
 
 def test_inner_product_vectors(vector0: backend.Array, vector1: backend.Array):
-    assert inner_product(v=vector0, w=vector1) == pytest.approx(
+    assert inner_product(vector0, vector1) == pytest.approx(
         backend.sum(vector0 * vector1)
     )
 
 
 def test_inner_product_arrays(array0: backend.Array, array1: backend.Array):
-    assert inner_product(v=array0, w=array1) == pytest.approx(
+    assert inner_product(array0, array1) == pytest.approx(
         backend.einsum("...i,...i", array0, array1)
     )
 
 
 def test_euclidean_norm_vector(vector0: backend.Array):
     assert backend.sqrt(backend.sum(vector0**2)) == pytest.approx(
-        induced_norm(v=vector0)
+        induced_vector_norm(vector0)
     )
 
 
 @pytest.mark.parametrize("axis", [0, 1])
 def test_euclidean_norm_array(array0: backend.Array, axis: int):
     assert backend.sqrt(backend.sum(array0**2, axis=axis)) == pytest.approx(
-        induced_norm(v=array0, axis=axis)
+        induced_vector_norm(array0, axis=axis)
     )
 
 
 @pytest.mark.parametrize("axis", [0, 1])
-def test_induced_norm_array(array0: backend.Array, axis: int):
+def test_induced_vector_norm_array(array0: backend.Array, axis: int):
     inprod_mat = random_spd_matrix(
         rng_state=backend.random.rng_state(254),
         shape=(array0.shape[axis], array0.shape[axis]),
@@ -110,4 +110,4 @@ def test_induced_norm_array(array0: backend.Array, axis: int):
 
     assert backend.sqrt(
         backend.sum(array0_moved_axis * A_array_0_moved_axis, axis=-1)
-    ) == pytest.approx(induced_norm(v=array0, A=inprod_mat, axis=axis))
+    ) == pytest.approx(induced_vector_norm(array0, A=inprod_mat, axis=axis))

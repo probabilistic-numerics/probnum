@@ -6,7 +6,8 @@ from typing import Callable, Iterable, Optional, Union
 import numpy as np
 
 from probnum import linops
-from probnum.backend.linalg import induced_norm, inner_product as inner_product_fn
+
+from ._inner_product import induced_vector_norm, inner_product as inner_product_fn
 
 
 def gram_schmidt(
@@ -48,10 +49,10 @@ def gram_schmidt(
 
     if inner_product is None:
         inprod_fn = inner_product_fn
-        norm_fn = partial(induced_norm, axis=-1)
+        norm_fn = partial(induced_vector_norm, axis=-1)
     elif isinstance(inner_product, (np.ndarray, linops.LinearOperator)):
         inprod_fn = lambda v, w: inner_product_fn(v, w, A=inner_product)
-        norm_fn = lambda v: induced_norm(v, A=inner_product, axis=-1)
+        norm_fn = lambda v: induced_vector_norm(v, A=inner_product, axis=-1)
     else:
         inprod_fn = inner_product
         norm_fn = lambda v: np.sqrt(inprod_fn(v, v))
@@ -107,10 +108,10 @@ def gram_schmidt_modified(
 
     if inner_product is None:
         inprod_fn = inner_product_fn
-        norm_fn = induced_norm
+        norm_fn = induced_vector_norm
     elif isinstance(inner_product, (np.ndarray, linops.LinearOperator)):
         inprod_fn = lambda v, w: inner_product_fn(v, w, A=inner_product)
-        norm_fn = lambda v: induced_norm(v, A=inner_product)
+        norm_fn = lambda v: induced_vector_norm(v, A=inner_product)
     else:
         inprod_fn = inner_product
         norm_fn = lambda v: np.sqrt(inprod_fn(v, v))

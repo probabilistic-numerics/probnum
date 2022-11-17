@@ -5,8 +5,16 @@ from typing import Literal, Optional, Tuple, Union
 
 import jax
 from jax import numpy as jnp
-from jax.numpy import diagonal, einsum, kron, matmul  # pylint: disable=unused-import
-from jax.numpy.linalg import eigh, eigvalsh, solve, svd  # pylint: disable=unused-import
+
+# pylint: disable=unused-import
+from jax.numpy import diagonal, einsum, kron, matmul, tensordot, trace
+from jax.numpy.linalg import det, eigh, eigvalsh, inv, pinv, slogdet, solve, svd
+
+
+def matrix_rank(
+    x: jnp.ndarray, /, *, rtol: Optional[Union[float, jnp.ndarray]] = None
+) -> jnp.ndarray:
+    return jnp.linalg.matrix_rank(x, tol=rtol)
 
 
 def vector_norm(
@@ -104,3 +112,18 @@ def qr(
         q, r = jnp.linalg.qr(x, mode=mode)
 
     return q, r
+
+
+def vecdot(x1: jnp.ndarray, x2: jnp.ndarray, axis: int = -1) -> jnp.ndarray:
+    ndim = max(x1.ndim, x2.ndim)
+    x1_shape = (1,) * (ndim - x1.ndim) + tuple(x1.shape)
+    x2_shape = (1,) * (ndim - x2.ndim) + tuple(x2.shape)
+    if x1_shape[axis] != x2_shape[axis]:
+        raise ValueError("x1 and x2 must have the same shape along the given axis.")
+
+    x1_, x2_ = jnp.broadcast_arrays(x1, x2)
+    x1_ = jnp.moveaxis(x1_, axis, -1)
+    x2_ = jnp.moveaxis(x2_, axis, -1)
+
+    res = x1_[..., None, :] @ x2_[..., None]
+    return jnp.asarray(res[..., 0, 0])

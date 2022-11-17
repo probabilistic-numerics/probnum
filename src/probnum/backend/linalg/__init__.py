@@ -2,29 +2,11 @@
 import collections
 from typing import Literal, Optional, Tuple, Union
 
-from .. import BACKEND, Array, Backend
+from probnum.backend.typing import ShapeLike
+from probnum.typing import MatrixType
 
-__all__ = [
-    "cholesky",
-    "cholesky_update",
-    "diagonal",
-    "eigh",
-    "eigvalsh",
-    "gram_schmidt",
-    "gram_schmidt_double",
-    "gram_schmidt_modified",
-    "induced_norm",
-    "inner_product",
-    "kron",
-    "matrix_norm",
-    "qr",
-    "solve",
-    "solve_cholesky",
-    "solve_triangular",
-    "svd",
-    "tril_to_positive_tril",
-    "vector_norm",
-]
+from .. import BACKEND, Array, Backend, DType, asshape
+from ... import backend as _backend
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl
@@ -34,12 +16,13 @@ elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
 from ._cholesky_updates import cholesky_update, tril_to_positive_tril
-from ._inner_product import induced_norm, inner_product
+from ._inner_product import induced_vector_norm, inner_product
 from ._orthogonalize import gram_schmidt, gram_schmidt_double, gram_schmidt_modified
 
 __all__ = [
     "cholesky",
     "cholesky_update",
+    "det",
     "diagonal",
     "eigh",
     "eigvalsh",
@@ -47,16 +30,23 @@ __all__ = [
     "gram_schmidt",
     "gram_schmidt_double",
     "gram_schmidt_modified",
-    "induced_norm",
+    "induced_vector_norm",
     "inner_product",
+    "inv",
     "kron",
     "matrix_norm",
+    "matrix_rank",
+    "pinv",
     "qr",
+    "slogdet",
     "solve",
     "solve_cholesky",
     "solve_triangular",
     "svd",
+    "tensordot",
+    "trace",
     "tril_to_positive_tril",
+    "vecdot",
     "vector_norm",
 ]
 __all__.sort()
@@ -64,6 +54,138 @@ __all__.sort()
 cholesky = _impl.cholesky
 solve_triangular = _impl.solve_triangular
 solve_cholesky = _impl.solve_cholesky
+
+
+def det(x: Array, /) -> Array:
+    """Returns the determinant of a square matrix (or a stack of square matrices) ``x``.
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, M)`` and whose innermost two dimensions form
+        square matrices.
+
+    Returns
+    -------
+    out
+        If ``x`` is a two-dimensional array, a zero-dimensional array containing the
+        determinant; otherwise, a non-zero dimensional array containing the determinant
+        for each square matrix.
+    """
+    return _impl.det(x)
+
+
+def inv(x: Array, /) -> Array:
+    """Returns the multiplicative inverse of a square matrix (or a stack of square
+    matrices).
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, M)`` and whose innermost two dimensions form
+        square matrices.
+
+    Returns
+    -------
+    out
+        An array containing the multiplicative inverses.
+    """
+    return _impl.inv(x)
+
+
+def pinv(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> Array:
+    """Returns the (Moore-Penrose) pseudo-inverse of a matrix (or a stack of matrices).
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        ``MxN`` matrices. Should have a real-valued floating-point data type.
+    rtol
+        Relative tolerance for small singular values. Singular values approximately less
+        than or equal to ``rtol * largest_singular_value`` are set to zero.
+
+    Returns
+    -------
+    out
+        An array containing the pseudo-inverses.
+    """
+    return _impl.pinv(x, rtol=rtol)
+
+
+def matrix_rank(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> Array:
+    """Returns the rank (i.e., number of non-zero singular values) of a matrix (or a
+    stack of matrices).
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        ``MxN`` matrices. Should have a real-valued floating-point data type.
+    rtol
+        Relative tolerance for small singular values. Singular values approximately less
+        than or equal to ``rtol * largest_singular_value`` are set to zero.
+
+    Returns
+    -------
+    out
+        An array containing the ranks.
+    """
+    return _impl.matrix_rank(x, rtol=rtol)
+
+
+Slogdet = collections.namedtuple("Slogdet", ["sign", "logabsdet"])
+
+
+def slogdet(x: Array, /) -> Tuple[Array, Array]:
+    """Returns the sign and the natural logarithm of the absolute value of the
+    determinant of a square matrix (or a stack of square matrices).
+
+    .. note::
+       The purpose of this function is to calculate the determinant more accurately when the determinant is either very small or very large, as calling ``det`` may overflow or underflow.
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, M)`` and whose innermost two dimensions form
+        square matrices.
+
+    Returns
+    -------
+    out
+        A namedtuple (``sign``, ``logabsdet``) whose
+
+        -   first element ``sign`` is an array representing the sign of the determinant
+            for each square matrix.
+        -   second element ``logabsdet`` is an array containing the determinant for each
+            square matrix.
+    """
+    sign, logabsdet = _impl.slogdet(x)
+    return Slogdet(sign, logabsdet)
+
+
+def trace(x: Array, /, *, offset: int = 0) -> Array:
+    """Returns the sum along the specified diagonals of a matrix (or a stack of
+    matrices).
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
+        ``MxN`` matrices.
+    offset
+        offset specifying the off-diagonal relative to the main diagonal.
+        -   ``offset = 0``: the main diagonal.
+        -   ``offset > 0``: off-diagonal above the main diagonal.
+        -   ``offset < 0``: off-diagonal below the main diagonal.
+
+    Returns
+    -------
+    out
+        An array containing the traces and whose shape is determined by removing the
+        last two dimensions and storing the traces in the last array dimension.
+    """
+    return _impl.trace(x, offset=offset)
 
 
 def einsum(
@@ -510,3 +632,70 @@ def qr(
     """
     Q, R = _impl.qr(x, mode=mode)
     return QR(Q, R)
+
+
+def vecdot(x1: Array, x2: Array, /, *, axis: int = -1) -> Array:
+    """Computes the (vector) dot product of two arrays along an axis.
+
+    Parameters
+    ----------
+    x1
+        First input array.
+    x2
+        Second input array. Must be compatible with ``x1`` for all non-contracted axes.
+        The size of the axis over which to compute the dot product must be the same size
+        as the respective axis in ``x1``.
+    axis
+        Axis over which to compute the dot product.
+
+    Returns
+    -------
+    out
+        If ``x1`` and ``x2`` are both one-dimensional arrays, a zero-dimensional array
+        containing the dot product; otherwise, a non-zero-dimensional array containing
+        the dot products and having rank ``N-1``, where ``N`` is the rank (number of
+        dimensions) of the shape determined according to broadcasting along the
+        non-contracted axes.
+    """
+    return _impl.vecdot(x1, x2, axis)
+
+
+def tensordot(
+    x1: Array, x2: Array, /, *, axes: Union[int, Tuple[ShapeLike, ShapeLike]] = 2
+) -> Array:
+    """Returns a tensor contraction of ``x1`` and ``x2`` over specific axes.
+
+    Parameters
+    ----------
+    x1
+        First input array.
+    x2
+        Second input array. Corresponding contracted axes of ``x1`` and ``x2`` must be equal.
+    axes
+        Number of axes (dimensions) to contract or explicit sequences of axes
+        (dimensions) for ``x1`` and ``x2``, respectively.
+
+        If ``axes`` is an ``int`` equal to ``N``, then contraction will be performed
+        over the last ``N`` axes of ``x1`` and the first ``N`` axes of ``x2`` in order.
+        The size of each corresponding axis (dimension) must match.
+        -   If ``N`` equals ``0``, the result is the tensor (outer) product.
+        -   If ``N`` equals ``1``, the result is the tensor dot product.
+        -   If ``N`` equals ``2``, the result is the tensor double contraction (default).
+
+        If ``axes`` is a tuple of two sequences ``(x1_axes, x2_axes)``, the first
+        sequence must apply to ``x`` and the second sequence to ``x2``. Both sequences
+        must have the same length. Each axis (dimension) ``x1_axes[i]`` for ``x1`` must
+        have the same size as the respective axis (dimension) ``x2_axes[i]`` for ``x2``.
+        Each sequence must consist of unique (nonnegative) integers that specify valid
+        axes for each respective array.
+
+    Returns
+    -------
+    out
+        An array containing the tensor contraction whose shape consists of the
+        non-contracted axes (dimensions) of the first array ``x1``, followed by the
+        non-contracted axes (dimensions) of the second array ``x2``.
+    """
+    if isinstance(axes, tuple):
+        axes = (asshape(axes[0]), asshape(axes[1]))
+    return _impl.tensordot(x1, x2, axes)

@@ -3,8 +3,35 @@
 from typing import Literal, Optional, Tuple, Union
 
 import torch
-from torch import diagonal, kron, matmul  # pylint: disable=unused-import
-from torch.linalg import eigh, eigvalsh, qr, solve, svd
+
+# pylint: disable=unused-import
+from torch import diagonal, kron, matmul, tensordot
+from torch.linalg import (
+    det,
+    eigh,
+    eigvalsh,
+    inv,
+    matrix_rank,
+    pinv,
+    qr,
+    slogdet,
+    solve,
+    svd,
+    vecdot,
+)
+
+
+def trace(x: torch.Tensor, /, *, offset: int = 0) -> torch.Tensor:
+    if offset != 0:
+        raise NotImplementedError
+
+    return torch.trace(x)
+
+
+def pinv(
+    x: torch.Tensor, rtol: Optional[Union[float, torch.Tensor]] = None
+) -> torch.Tensor:
+    return torch.linalg.pinv(x, rtol=rtol)
 
 
 def einsum(

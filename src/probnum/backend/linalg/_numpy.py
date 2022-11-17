@@ -4,9 +4,17 @@ import functools
 from typing import Callable, Literal, Optional, Tuple, Union
 
 import numpy as np
-from numpy import diagonal, einsum, kron, matmul  # pylint: disable=unused-import
-from numpy.linalg import eigh, eigvalsh, solve, svd  # pylint: disable=unused-import
+
+# pylint: disable=unused-import
+from numpy import diagonal, einsum, kron, matmul, tensordot, trace
+from numpy.linalg import det, eigh, eigvalsh, inv, pinv, slogdet, solve, svd
 import scipy.linalg
+
+
+def matrix_rank(
+    x: np.ndarray, /, *, rtol: Optional[Union[float, np.ndarray]] = None
+) -> np.ndarray:
+    return np.linalg.matrix_rank(x, tol=rtol)
 
 
 def vector_norm(
@@ -144,3 +152,18 @@ def qr(
         q, r = np.linalg.qr(x, mode=mode)
 
     return q, r
+
+
+def vecdot(x1: np.ndarray, x2: np.ndarray, axis: int = -1) -> np.ndarray:
+    ndim = max(x1.ndim, x2.ndim)
+    x1_shape = (1,) * (ndim - x1.ndim) + tuple(x1.shape)
+    x2_shape = (1,) * (ndim - x2.ndim) + tuple(x2.shape)
+    if x1_shape[axis] != x2_shape[axis]:
+        raise ValueError("x1 and x2 must have the same shape along the given axis.")
+
+    x1_, x2_ = np.broadcast_arrays(x1, x2)
+    x1_ = np.moveaxis(x1_, axis, -1)
+    x2_ = np.moveaxis(x2_, axis, -1)
+
+    res = x1_[..., None, :] @ x2_[..., None]
+    return np.asarray(res[..., 0, 0])
