@@ -6,7 +6,7 @@ function by iteratively building a probabilistic model and adaptively
 choosing points to evaluate the integrand based on said model.
 """
 
-from probnum.quad.solvers.policies import Policy, RandomPolicy
+from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
     ImmediateStop,
@@ -41,6 +41,7 @@ __all__ = [
     "IntegralVarianceTolerance",
     "MaxNevals",
     "RandomPolicy",
+    "VanDerCorputPolicy",
     "RelativeMeanChange",
 ]
 

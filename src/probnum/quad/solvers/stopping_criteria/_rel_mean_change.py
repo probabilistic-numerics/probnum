@@ -31,6 +31,9 @@ class RelativeMeanChange(BQStoppingCriterion):
 
     def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         integral_belief = bq_state.integral_belief
+        if not bq_state.previous_integral_beliefs:
+            # On the first iteration there is no previous integral value to use
+            return False
         return (
             np.abs(
                 (integral_belief.mean - bq_state.previous_integral_beliefs[-1].mean)

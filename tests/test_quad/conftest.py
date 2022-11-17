@@ -108,7 +108,7 @@ def fixture_measure_params(
 
 @pytest.fixture(name="measure")
 def fixture_measure(measure_params) -> measures.IntegrationMeasure:
-    """Kernel / covariance function."""
+    """Measure."""
     name = measure_params.pop("name")
 
     if name == "gauss":

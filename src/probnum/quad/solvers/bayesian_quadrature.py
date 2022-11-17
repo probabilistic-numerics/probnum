@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 
-from probnum.quad.solvers.policies import Policy, RandomPolicy
+from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
     ImmediateStop,
@@ -22,6 +22,8 @@ from .._quad_typing import DomainLike
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQIterInfo, BQState
+
+# pylint: disable=too-many-branches, too-complex
 
 
 class BayesianQuadrature:
@@ -75,11 +77,13 @@ class BayesianQuadrature:
         measure: Optional[IntegrationMeasure] = None,
         domain: Optional[DomainLike] = None,
         policy: Optional[str] = "bmc",
+        scale_estimation: Optional[str] = "mle",
         max_evals: Optional[IntLike] = None,
         var_tol: Optional[FloatLike] = None,
         rel_tol: Optional[FloatLike] = None,
         batch_size: IntLike = 1,
         rng: np.random.Generator = None,
+        jitter: FloatLike = 1.0e-8,
     ) -> "BayesianQuadrature":
 
         r"""Creates an instance of this class from a problem description.
@@ -97,6 +101,8 @@ class BayesianQuadrature:
         policy
             The policy choosing nodes at which to evaluate the integrand.
             Choose ``None`` if you want to integrate from a fixed dataset.
+        scale_estimation
+            Estimation method to use to compute the scale parameter. Defaults to 'mle'.
         max_evals
             Maximum number of evaluations as stopping criterion.
         var_tol
@@ -104,9 +110,12 @@ class BayesianQuadrature:
         rel_tol
             Relative tolerance as stopping criterion.
         batch_size
-            Batch size used in node acquisition.
+            Batch size used in node acquisition. Defaults to 1.
         rng
             The random number generator.
+        jitter
+            Non-negative jitter to numerically stabilise kernel matrix inversion.
+            Defaults to 1e-8.
 
         Returns
         -------
@@ -150,14 +159,15 @@ class BayesianQuadrature:
                 )
                 raise ValueError(errormsg)
             policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
-
+        elif policy == "vdc":
+            policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)
         else:
-            raise NotImplementedError(
-                "Policies other than random sampling are not available at the moment."
-            )
+            raise NotImplementedError(f"The given policy ({policy}) is unknown.")
 
         # Select the belief updater
-        belief_update = BQStandardBeliefUpdate()
+        belief_update = BQStandardBeliefUpdate(
+            jitter=jitter, scale_estimation=scale_estimation
+        )
 
         # Select stopping criterion: If multiple stopping criteria are given, BQ stops
         # once any criterion is fulfilled (logical `or`).
