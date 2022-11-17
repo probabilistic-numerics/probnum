@@ -1,6 +1,6 @@
 """(Automatic) Differentiation."""
 
-from typing import Any, Callable, Sequence, Union
+from typing import Callable, Sequence, Union
 
 from probnum import backend as _backend
 
@@ -17,7 +17,6 @@ __all__ = [
     "hessian",
     "jacfwd",
     "jacrev",
-    "vmap",
 ]
 __all__.sort()
 
@@ -158,46 +157,3 @@ def jacrev(
       then a pair of (jacobian, auxiliary_data) is returned.
     """
     return _impl.jacrev(fun, argnums, has_aux=has_aux)
-
-
-def vmap(
-    fun: Callable,
-    in_axes: Union[int, Sequence[Any]] = 0,
-    out_axes: Union[int, Sequence[Any]] = 0,
-) -> Callable:
-    """Vectorizing map, which creates a function which maps ``fun`` over argument axes.
-
-    Parameters
-    ----------
-    fun
-        Function to be mapped over additional axes.
-    in_axes
-        Input array axes to map over.
-
-        If each positional argument to ``fun`` is an array, then ``in_axes`` can
-        be an integer, a None, or a tuple of integers and Nones with length equal
-        to the number of positional arguments to ``fun``. An integer or ``None``
-        indicates which array axis to map over for all arguments (with ``None``
-        indicating not to map any axis), and a tuple indicates which axis to map
-        for each corresponding positional argument. Axis integers must be in the
-        range ``[-ndim, ndim)`` for each array, where ``ndim`` is the number of
-        axes of the corresponding input array.
-    out_axes
-        Where the mapped axis should appear in the output.
-
-        All outputs with a mapped axis must have a non-None
-        ``out_axes`` specification. Axis integers must be in the range ``[-ndim,
-        ndim)`` for each output array, where ``ndim`` is the number of dimensions
-        (axes) of the array returned by the :func:`vmap`-ed function, which is one
-        more than the number of dimensions (axes) of the corresponding array
-        returned by ``fun``.
-
-    Returns
-    -------
-    vfun
-        Batched/vectorized version of ``fun`` with arguments that correspond to
-        those of ``fun``, but with extra array axes at positions indicated by
-        ``in_axes``, and a return value that corresponds to that of ``fun``, but
-        with extra array axes at positions indicated by ``out_axes``.
-    """
-    return _impl.vmap(fun, in_axes, out_axes)

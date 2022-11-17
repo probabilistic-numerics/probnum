@@ -57,6 +57,11 @@ Classes
 .. toctree::
     :hidden:
 
+    backend/vectorization
+
+.. toctree::
+    :hidden:
+
     backend/probnum.backend.Dispatcher
 
 .. toctree::

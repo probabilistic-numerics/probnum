@@ -1,6 +1,6 @@
 """(Automatic) Differentiation in PyTorch."""
 
-from typing import Any, Callable, Sequence, Union
+from typing import Callable, Sequence, Union
 
 import functorch
 
@@ -17,14 +17,6 @@ def hessian(
     return functorch.jacfwd(
         functorch.jacrev(fun, argnums, has_aux=has_aux), argnums, has_aux=has_aux
     )
-
-
-def vmap(
-    fun: Callable,
-    in_axes: Union[int, Sequence[Any]] = 0,
-    out_axes: Union[int, Sequence[Any]] = 0,
-) -> Callable:
-    return functorch.vmap(fun, in_dims=in_axes, out_dims=out_axes)
 
 
 def jacrev(

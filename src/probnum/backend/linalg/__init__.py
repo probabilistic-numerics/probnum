@@ -3,10 +3,8 @@ import collections
 from typing import Literal, Optional, Tuple, Union
 
 from probnum.backend.typing import ShapeLike
-from probnum.typing import MatrixType
 
-from .. import BACKEND, Array, Backend, DType, asshape
-from ... import backend as _backend
+from .. import BACKEND, Array, Backend, asshape
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl

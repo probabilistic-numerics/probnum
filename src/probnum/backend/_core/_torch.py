@@ -1,33 +1,4 @@
 import torch
-from torch import (  # pylint: disable=redefined-builtin, unused-import, no-name-in-module
-    abs,
-    broadcast_shapes,
-    broadcast_tensors as broadcast_arrays,
-    diag,
-    diagonal,
-    einsum,
-    exp,
-    eye,
-    finfo,
-    hstack,
-    is_floating_point as is_floating,
-    isfinite,
-    log,
-    max,
-    maximum,
-    minimum,
-    moveaxis,
-    promote_types,
-    reshape,
-    result_type,
-    sign,
-    sin,
-    sqrt,
-    squeeze,
-    stack,
-    swapaxes,
-    vstack,
-)
 
 torch.set_default_dtype(torch.double)
 
@@ -79,7 +50,3 @@ def jit(f, *args, **kwargs):
 
 def jit_method(f, *args, **kwargs):
     return f
-
-
-def vectorize(pyfunc, /, *, excluded=None, signature=None):
-    raise NotImplementedError()

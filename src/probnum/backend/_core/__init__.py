@@ -1,6 +1,5 @@
 """Core of the compute backend."""
 
-from typing import AbstractSet, Optional, Union
 
 from probnum import backend as _backend
 
@@ -20,22 +19,10 @@ jit = _core.jit
 jit_method = _core.jit_method
 
 
-def vectorize(
-    pyfunc,
-    /,
-    *,
-    excluded: Optional[AbstractSet[Union[int, str]]] = None,
-    signature: Optional[str] = None,
-):
-    return _core.vectorize(pyfunc, excluded=excluded, signature=signature)
-
-
 __all__ = [
     # Reductions
     "all",
     "any",
-    # Misc
-    "vectorize",
     # Just-in-Time Compilation
     "jit",
     "jit_method",
