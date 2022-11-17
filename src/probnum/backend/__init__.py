@@ -13,6 +13,7 @@ JAX and PyTorch).
 
 from __future__ import annotations
 
+import builtins
 import inspect
 import sys
 
@@ -85,7 +86,7 @@ __all__.sort()
 # Set correct module paths. Corrects links and module paths in documentation.
 member_dict = dict(inspect.getmembers(sys.modules[__name__]))
 for member_name in __all__imported_modules:
-    if member_name == "Array" or member_name == "Scalar":
+    if builtins.any([member_name == mn for mn in ["Array", "Scalar", "Device"]]):
         continue  # Avoids overriding the __module__ of aliases, which can cause bugs.
 
     try:
