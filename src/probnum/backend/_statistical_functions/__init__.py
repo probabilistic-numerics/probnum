@@ -14,6 +14,7 @@ elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
 __all__ = ["max", "mean", "min", "prod", "std", "sum", "var"]
+__all__.sort()
 
 
 def max(

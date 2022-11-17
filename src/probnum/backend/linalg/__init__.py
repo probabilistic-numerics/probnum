@@ -37,6 +37,29 @@ from ._cholesky_updates import cholesky_update, tril_to_positive_tril
 from ._inner_product import induced_norm, inner_product
 from ._orthogonalize import gram_schmidt, gram_schmidt_double, gram_schmidt_modified
 
+__all__ = [
+    "cholesky",
+    "cholesky_update",
+    "diagonal",
+    "eigh",
+    "eigvalsh",
+    "gram_schmid",
+    "gram_schmidt_double",
+    "gram_schmidt_modified",
+    "induced_norm",
+    "inner_product",
+    "kron",
+    "matrix_norm",
+    "qr",
+    "solve",
+    "solve_cholesky",
+    "solve_triangular",
+    "svd",
+    "tril_to_positive_tril",
+    "vector_norm",
+]
+__all__.sort()
+
 cholesky = _impl.cholesky
 solve_triangular = _impl.solve_triangular
 solve_cholesky = _impl.solve_cholesky

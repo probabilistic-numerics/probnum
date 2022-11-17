@@ -34,6 +34,7 @@ __all__ = [
     "tile",
     "vstack",
 ]
+__all__.sort()
 
 
 def atleast_1d(*arrays: Array):
@@ -112,7 +113,7 @@ def broadcast_shapes(*shapes: ShapeType) -> ShapeType:
     outshape
         Broadcasted shape.
     """
-    return _impl.broadcast_shapes(**shapes)
+    return _impl.broadcast_shapes(*shapes)
 
 
 def broadcast_to(x: Array, /, shape: ShapeLike) -> Array:

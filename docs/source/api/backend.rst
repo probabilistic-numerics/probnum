@@ -4,6 +4,16 @@ probnum.backend
 
 .. automodule:: probnum.backend
 
+.. currentmodule:: probnum.backend
+
+Classes
+-------
+
+.. autosummary::
+
+    ~probnum.backend.Dispatcher
+
+
 .. toctree::
     :hidden:
 
@@ -43,6 +53,11 @@ probnum.backend
     :hidden:
 
     backend/statistical_functions
+
+.. toctree::
+    :hidden:
+
+    backend/probnum.backend.Dispatcher
 
 .. toctree::
     :hidden:

@@ -58,6 +58,10 @@ from . import (
 
 # isort: on
 
+# Import some often used functions into probnum.backend
+from .linalg import diagonal
+
+# Define probnum.backend API
 __all__imported_modules = (
     _array_object.__all__
     + _data_types.__all__
@@ -79,9 +83,6 @@ __all__ = (
     + _core.__all__
     + __all__imported_modules
 )
-# Sort entries in documentation. Necessary since autodoc config option `member_order`
-# seems to not work for our doc build setup.
-__all__.sort()
 
 # Set correct module paths. Corrects links and module paths in documentation.
 member_dict = dict(inspect.getmembers(sys.modules[__name__]))

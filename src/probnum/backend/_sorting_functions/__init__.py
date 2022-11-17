@@ -10,6 +10,7 @@ elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
 __all__ = ["argsort", "sort"]
+__all__.sort()
 
 
 def argsort(

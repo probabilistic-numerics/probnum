@@ -18,7 +18,7 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 # Contractions
 einsum = _core.einsum
 
-# Reductions
+# Logical functions
 all = _core.all
 any = _core.any
 

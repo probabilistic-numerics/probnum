@@ -72,6 +72,7 @@ __all__ = [
     "tanh",
     "trunc",
 ]
+__all__.sort()
 
 
 def abs(x: Array, /) -> Array:

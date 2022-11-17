@@ -19,6 +19,7 @@ __all__ = [
     "jacrev",
     "vmap",
 ]
+__all__.sort()
 
 
 def grad(

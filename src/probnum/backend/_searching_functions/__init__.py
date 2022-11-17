@@ -12,6 +12,7 @@ elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
 __all__ = ["argmin", "argmax", "nonzero", "where"]
+__all__.sort()
 
 
 def argmax(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -> Array:

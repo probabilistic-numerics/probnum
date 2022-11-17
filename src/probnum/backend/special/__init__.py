@@ -14,3 +14,4 @@ __all__ = [
     "ndtr",
     "ndtri",
 ]
+__all__.sort()

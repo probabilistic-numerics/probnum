@@ -33,6 +33,7 @@ __all__ = [
     "zeros",
     "zeros_like",
 ]
+__all__.sort()
 
 
 def asarray(
