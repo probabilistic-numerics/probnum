@@ -3,7 +3,6 @@
 from typing import AbstractSet, Optional, Union
 
 from probnum import backend as _backend
-from probnum.backend.typing import IntLike, ShapeLike, ShapeType
 
 if _backend.BACKEND is _backend.Backend.NUMPY:
     from . import _numpy as _core
@@ -11,12 +10,6 @@ elif _backend.BACKEND is _backend.Backend.JAX:
     from . import _jax as _core
 elif _backend.BACKEND is _backend.Backend.TORCH:
     from . import _torch as _core
-
-# Assignments for common docstrings across backends
-
-
-# Contractions
-einsum = _core.einsum
 
 # Logical functions
 all = _core.all
@@ -38,8 +31,6 @@ def vectorize(
 
 
 __all__ = [
-    # Contractions
-    "einsum",
     # Reductions
     "all",
     "any",

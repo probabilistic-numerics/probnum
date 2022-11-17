@@ -57,7 +57,6 @@ def grad(
 
     Examples
     --------
-    >>> from probnum import backend
     >>> from probnum.backend.autodiff import grad
     >>> grad_sin = grad(backend.sin)
     >>> grad_sin(backend.pi)
@@ -94,7 +93,6 @@ def hessian(
         A function with the same arguments as ``fun``, that evaluates the Hessian of
         ``fun``.
 
-    >>> from probnum import backend
     >>> from probnum.backend.autodiff import hessian
     >>> g = lambda x: x[0]**3 - 2*x[0]*x[1] - x[1]**6
     >>> hessian(g)(backend.asarray([1., 2.])))

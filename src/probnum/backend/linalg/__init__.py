@@ -43,7 +43,8 @@ __all__ = [
     "diagonal",
     "eigh",
     "eigvalsh",
-    "gram_schmid",
+    "einsum",
+    "gram_schmidt",
     "gram_schmidt_double",
     "gram_schmidt_modified",
     "induced_norm",
@@ -63,6 +64,39 @@ __all__.sort()
 cholesky = _impl.cholesky
 solve_triangular = _impl.solve_triangular
 solve_cholesky = _impl.solve_cholesky
+
+
+def einsum(
+    *arrays: Array,
+    optimization: Optional[str] = "greedy",
+):
+    """Evaluates the Einstein summation convention on the given ``arrays``.
+
+    Using the Einstein summation convention, many common multi-dimensional, linear
+    algebraic array operations can be represented in a simple fashion.
+
+    Parameters
+    ----------
+    arrays
+        Arrays to use for the operation.
+    optimization
+        Controls what kind of intermediate optimization of the contraction path should
+        occur. Options are:
+
+        +---------------+--------------------------------------------------------+
+        | ``None``      | No optimization will be done.                          |
+        +---------------+--------------------------------------------------------+
+        | ``"optimal"`` | Exhaustively search all possible paths.                |
+        +---------------+--------------------------------------------------------+
+        | ``"greedy"``  | Find a path one step at a time using a cost heuristic. |
+        +---------------+--------------------------------------------------------+
+
+    Returns
+    -------
+    out
+        The calculation based on the Einstein summation convention.
+    """
+    return _impl.einsum(*arrays, optimize=optimization)
 
 
 def vector_norm(
@@ -150,6 +184,24 @@ def kron(x: Array, y: Array, /) -> Array:
         Second Kronecker factor.
     """
     return _impl.kron(x, y)
+
+
+def matmul(x1: Array, x2: Array, /) -> Array:
+    """Computes the matrix product.
+
+    Parameters
+    ----------
+    x1
+        First input array.
+    x2
+        Second input array.
+
+    Returns
+    -------
+    out
+        Matrix product of ``x1 and ``x2``.
+    """
+    return _impl.matmul(x1, x2)
 
 
 def matrix_norm(

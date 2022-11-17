@@ -3,6 +3,7 @@
 import numpy as np
 
 import probnum as pn
+from probnum import backend
 
 import pytest
 
@@ -14,3 +15,4 @@ def autoimport_packages(doctest_namespace):
 
     doctest_namespace["pn"] = pn
     doctest_namespace["np"] = np
+    doctest_namespace["backend"] = backend

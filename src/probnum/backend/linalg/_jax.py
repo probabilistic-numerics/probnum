@@ -5,7 +5,7 @@ from typing import Literal, Optional, Tuple, Union
 
 import jax
 from jax import numpy as jnp
-from jax.numpy import diagonal, kron  # pylint: disable=unused-import
+from jax.numpy import diagonal, einsum, kron, matmul  # pylint: disable=unused-import
 from jax.numpy.linalg import eigh, eigvalsh, solve, svd  # pylint: disable=unused-import
 
 

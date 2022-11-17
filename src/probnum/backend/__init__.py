@@ -59,7 +59,7 @@ from . import (
 # isort: on
 
 # Import some often used functions into probnum.backend
-from .linalg import diagonal
+from .linalg import diagonal, einsum, matmul
 
 # Define probnum.backend API
 __all__imported_modules = (

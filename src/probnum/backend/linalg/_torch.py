@@ -3,8 +3,15 @@
 from typing import Literal, Optional, Tuple, Union
 
 import torch
-from torch import diagonal, kron  # pylint: disable=unused-import
+from torch import diagonal, kron, matmul  # pylint: disable=unused-import
 from torch.linalg import eigh, eigvalsh, qr, solve, svd
+
+
+def einsum(
+    *arrays: torch.Tensor,
+    optimization: Optional[str] = "greedy",
+):
+    return torch.einsum(*arrays)
 
 
 def vector_norm(
