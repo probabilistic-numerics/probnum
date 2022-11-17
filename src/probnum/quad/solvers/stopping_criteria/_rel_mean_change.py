@@ -1,6 +1,8 @@
 """Stopping criterion based on the relative change of the successive integral
 estimators."""
 
+from __future__ import annotations
+
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQIterInfo, BQState

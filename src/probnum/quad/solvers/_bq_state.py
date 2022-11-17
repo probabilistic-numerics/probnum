@@ -1,5 +1,7 @@
 """State of a Bayesian quadrature method."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional, Tuple
 

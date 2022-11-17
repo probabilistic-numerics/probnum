@@ -1,5 +1,7 @@
 """Probabilistic numerical methods for solving integrals."""
 
+from __future__ import annotations
+
 from typing import Callable, Optional, Tuple
 import warnings
 
