@@ -17,11 +17,10 @@ from probnum.quad.solvers.stopping_criteria import (
     MaxNevals,
     RelativeMeanChange,
 )
+from probnum.quad.typing import DomainLike
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
-
-from .._quad_typing import DomainLike
 
 # pylint: disable=too-many-branches, too-complex
 

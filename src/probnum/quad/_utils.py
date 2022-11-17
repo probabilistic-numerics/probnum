@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum.typing import IntLike
 
-from ._quad_typing import DomainLike, DomainType
+from .typing import DomainLike, DomainType
 
 
 def as_domain(

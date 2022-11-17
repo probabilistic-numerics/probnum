@@ -6,9 +6,8 @@ function by iteratively building a probabilistic model and adaptively
 choosing points to evaluate the integrand based on said model.
 """
 
-from probnum.quad._bayesquad import bayesquad, bayesquad_from_data
-
 from . import integration_measures, kernel_embeddings, solvers
+from ._bayesquad import bayesquad, bayesquad_from_data
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
