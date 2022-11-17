@@ -2,7 +2,7 @@
 
 from . import belief_updates, policies, stopping_criteria
 from ._bayesian_quadrature import BayesianQuadrature
-from ._bq_state import BQState, BQIterInfo
+from ._bq_state import BQIterInfo, BQState
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

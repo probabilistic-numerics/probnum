@@ -5,6 +5,10 @@ import warnings
 
 import numpy as np
 
+from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasure
+from probnum.quad.kernel_embeddings import KernelEmbedding
+from probnum.quad.solvers._bq_state import BQIterInfo, BQState
+from probnum.quad.solvers.belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
@@ -17,11 +21,7 @@ from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
-from probnum.quad.integration_measures._integration_measures import IntegrationMeasure, LebesgueMeasure
 from .._quad_typing import DomainLike
-from ..kernel_embeddings import KernelEmbedding
-from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
-from ._bq_state import BQIterInfo, BQState
 
 # pylint: disable=too-many-branches, too-complex
 

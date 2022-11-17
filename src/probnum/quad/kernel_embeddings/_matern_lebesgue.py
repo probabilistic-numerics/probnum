@@ -5,7 +5,7 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from probnum.quad.integration_measures._integration_measures import LebesgueMeasure
+from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.randprocs.kernels import Matern, ProductMatern
 
 

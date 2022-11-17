@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from probnum.quad.integration_measures._integration_measures import (
+from probnum.quad.integration_measures import (
     GaussianMeasure,
     IntegrationMeasure,
     LebesgueMeasure,

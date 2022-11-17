@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.quad.integration_measures._integration_measures import IntegrationMeasure
+from probnum.quad.integration_measures import IntegrationMeasure
 from probnum.quad.solvers._bq_state import BQState
 
 from ._policy import Policy
