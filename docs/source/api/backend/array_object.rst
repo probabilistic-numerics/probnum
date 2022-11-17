@@ -10,7 +10,10 @@ Functions
 
 .. autosummary::
 
+    ~probnum.backend.asshape
     ~probnum.backend.isarray
+    ~probnum.backend.ndim
+    ~probnum.backend.to_numpy
 
 Classes
 -------
@@ -28,7 +31,10 @@ Classes
 .. toctree::
     :hidden:
 
+    array_object/probnum.backend.asshape
     array_object/probnum.backend.isarray
+    array_object/probnum.backend.ndim
+    array_object/probnum.backend.to_numpy
     array_object/probnum.backend.Array
     array_object/probnum.backend.Device
     array_object/probnum.backend.Scalar

@@ -12,12 +12,13 @@ elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
 from .. import asshape
-from ..typing import ShapeLike
+from ..typing import ShapeLike, ShapeType
 
 __all__ = [
     "atleast_1d",
     "atleast_2d",
     "broadcast_arrays",
+    "broadcast_shapes",
     "broadcast_to",
     "concat",
     "expand_axes",
@@ -55,7 +56,7 @@ def atleast_1d(*arrays: Array):
     --------
     atleast_2d : Convert inputs to arrays with at least two dimensions.
     """
-    return _impl.atleast_1d(**arrays)
+    return _impl.atleast_1d(*arrays)
 
 
 def atleast_2d(*arrays: Array):
@@ -75,7 +76,7 @@ def atleast_2d(*arrays: Array):
     --------
     atleast_1d : Convert inputs to arrays with at least one dimension.
     """
-    return _impl.atleast_2d(**arrays)
+    return _impl.atleast_2d(*arrays)
 
 
 def broadcast_arrays(*arrays: Array) -> List[Array]:
@@ -91,7 +92,27 @@ def broadcast_arrays(*arrays: Array) -> List[Array]:
     out
         A list of broadcasted arrays.
     """
-    return _impl.broadcast_arrays(**arrays)
+    return _impl.broadcast_arrays(*arrays)
+
+
+def broadcast_shapes(*shapes: ShapeType) -> ShapeType:
+    """Broadcast the input shapes into a single shape.
+
+    Returns the resulting shape of `broadcasting
+    <https://data-apis.org/array-api/latest/API_specification/broadcasting.html>`_
+    arrays of the given ``shapes``.
+
+    Parameters
+    ----------
+    shapes
+        The shapes to be broadcast against each other.
+
+    Returns
+    -------
+    outshape
+        Broadcasted shape.
+    """
+    return _impl.broadcast_shapes(**shapes)
 
 
 def broadcast_to(x: Array, /, shape: ShapeLike) -> Array:

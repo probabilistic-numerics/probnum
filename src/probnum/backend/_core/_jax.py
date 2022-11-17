@@ -48,13 +48,6 @@ import numpy as np
 jax.config.update("jax_enable_x64", True)
 
 
-def to_numpy(*arrays: jax.numpy.ndarray) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:
-    if len(arrays) == 1:
-        return np.array(arrays[0])
-
-    return tuple(np.array(arr) for arr in arrays)
-
-
 def vectorize(pyfunc, /, *, excluded, signature):
     return jax.numpy.vectorize(
         pyfunc,

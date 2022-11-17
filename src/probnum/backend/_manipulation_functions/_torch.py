@@ -1,15 +1,19 @@
 """Torch tensor manipulation functions."""
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import torch
-from torch import atleast_1d, atleast_2d  # pylint: disable=unused-import
+from torch import (  # pylint: disable=unused-import
+    atleast_1d,
+    atleast_2d,
+    broadcast_shapes,
+    broadcast_tensors as broadcast_arrays,
+    hstack,
+    movedim as move_axes,
+    vstack,
+)
 
 from ..typing import ShapeType
-
-
-def broadcast_arrays(*arrays: torch.Tensor) -> List[torch.Tensor]:
-    return torch.broadcast_tensors(*arrays)
 
 
 def broadcast_to(x: torch.Tensor, /, shape: ShapeType) -> torch.Tensor:
@@ -33,15 +37,6 @@ def flip(
     x: torch.Tensor, /, *, axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> torch.Tensor:
     return torch.flip(x, dims=axis)
-
-
-def move_axes(
-    x: torch.Tensor,
-    /,
-    source: Union[int, Sequence[int]],
-    destination: Union[int, Sequence[int]],
-) -> torch.Tensor:
-    return torch.movedim(x, source, destination)
 
 
 def permute_axes(x: torch.Tensor, /, axes: Tuple[int, ...]) -> torch.Tensor:
@@ -79,18 +74,6 @@ def stack(
     arrays: Union[Tuple[torch.Tensor, ...], List[torch.Tensor]], /, *, axis: int = 0
 ) -> torch.Tensor:
     return torch.stack(arrays, dim=axis)
-
-
-def hstack(
-    arrays: Union[Tuple[torch.Tensor, ...], List[torch.Tensor]], /
-) -> torch.Tensor:
-    return torch.hstack(arrays)
-
-
-def vstack(
-    arrays: Union[Tuple[torch.Tensor, ...], List[torch.Tensor]], /
-) -> torch.Tensor:
-    return torch.vstack(arrays)
 
 
 def tile(A: torch.Tensor, reps: torch.Tensor) -> torch.Tensor:

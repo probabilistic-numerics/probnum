@@ -76,20 +76,6 @@ def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
     return res
 
 
-def ndim(a):
-    try:
-        return a.ndim
-    except AttributeError:
-        return torch.as_tensor(a).ndim
-
-
-def to_numpy(*arrays: torch.Tensor) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:
-    if len(arrays) == 1:
-        return arrays[0].cpu().detach().numpy()
-
-    return tuple(arr.cpu().detach().numpy() for arr in arrays)
-
-
 def jit(f, *args, **kwargs):
     return f
 

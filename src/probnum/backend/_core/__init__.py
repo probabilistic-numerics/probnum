@@ -14,9 +14,6 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 
 # Assignments for common docstrings across backends
 
-# Array Shape
-broadcast_shapes = _core.broadcast_shapes
-ndim = _core.ndim
 
 # Contractions
 einsum = _core.einsum
@@ -25,44 +22,9 @@ einsum = _core.einsum
 all = _core.all
 any = _core.any
 
-# Misc
-to_numpy = _core.to_numpy
-
 # Just-in-Time Compilation
 jit = _core.jit
 jit_method = _core.jit_method
-
-
-def asshape(x: ShapeLike, ndim: Optional[IntLike] = None) -> ShapeType:
-    """Convert a shape representation into a shape defined as a tuple of ints.
-
-    Parameters
-    ----------
-    x
-        Shape representation.
-    ndim
-        Number of axes / dimensions of the object with shape ``x``.
-    """
-
-    try:
-        # x is an `IntLike`
-        shape = (int(x),)
-    except (TypeError, ValueError):
-        # x is an iterable
-        try:
-            shape = tuple(int(item) for item in x)
-        except (TypeError, ValueError) as err:
-            raise TypeError(
-                f"The given shape {x} must be an integer or an iterable of integers."
-            ) from err
-
-    if ndim is not None:
-        ndim = int(ndim)
-
-        if len(shape) != ndim:
-            raise TypeError(f"The given shape {shape} must have {ndim} dimensions.")
-
-    return shape
 
 
 def vectorize(
@@ -76,17 +38,12 @@ def vectorize(
 
 
 __all__ = [
-    # Array Shape
-    "asshape",
-    "broadcast_shapes",
-    "ndim",
     # Contractions
     "einsum",
     # Reductions
     "all",
     "any",
     # Misc
-    "to_numpy",
     "vectorize",
     # Just-in-Time Compilation
     "jit",

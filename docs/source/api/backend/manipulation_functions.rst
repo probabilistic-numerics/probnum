@@ -13,6 +13,7 @@ Functions
     ~probnum.backend.atleast_1d
     ~probnum.backend.atleast_2d
     ~probnum.backend.broadcast_arrays
+    ~probnum.backend.broadcast_shapes
     ~probnum.backend.broadcast_to
     ~probnum.backend.concat
     ~probnum.backend.expand_axes
@@ -35,6 +36,7 @@ Functions
     manipulation_functions/probnum.backend.atleast_1d
     manipulation_functions/probnum.backend.atleast_2d
     manipulation_functions/probnum.backend.broadcast_arrays
+    manipulation_functions/probnum.backend.broadcast_shapes
     manipulation_functions/probnum.backend.broadcast_to
     manipulation_functions/probnum.backend.concat
     manipulation_functions/probnum.backend.expand_axes

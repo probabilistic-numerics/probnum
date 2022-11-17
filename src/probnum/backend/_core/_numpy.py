@@ -49,13 +49,6 @@ from numpy import (  # pylint: disable=redefined-builtin, unused-import
 )
 
 
-def to_numpy(*arrays: np.ndarray) -> Union[np.ndarray, Tuple[np.ndarray, ...]]:
-    if len(arrays) == 1:
-        return arrays[0]
-
-    return tuple(arrays)
-
-
 def jit(f, *args, **kwargs):
     return f
 

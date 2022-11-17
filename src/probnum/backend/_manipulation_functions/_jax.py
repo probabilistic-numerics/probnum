@@ -2,53 +2,27 @@
 from typing import List, Optional, Sequence, Tuple, Union
 
 import jax.numpy as jnp
-from jax.numpy import atleast_1d, atleast_2d  # pylint: disable=unused-import
+from jax.numpy import (  # pylint: disable=unused-import
+    atleast_1d,
+    atleast_2d,
+    broadcast_arrays,
+    broadcast_shapes,
+    broadcast_to,
+    concatenate as concat,
+    expand_dims as expand_axes,
+    flip,
+    hstack,
+    moveaxis as move_axes,
+    roll,
+    squeeze,
+    stack,
+    swapaxes as swap_axes,
+    tile,
+    transpose as permute_axes,
+    vstack,
+)
 
 from ..typing import ShapeType
-
-
-def broadcast_arrays(*arrays: jnp.ndarray) -> List[jnp.ndarray]:
-    return jnp.broadcast_arrays(*arrays)
-
-
-def broadcast_to(x: jnp.ndarray, /, shape: ShapeType) -> jnp.ndarray:
-    return jnp.broadcast_to(x, shape=shape)
-
-
-def concat(
-    arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]],
-    /,
-    *,
-    axis: Optional[int] = 0,
-) -> jnp.ndarray:
-    return jnp.concatenate(arrays, axis=axis)
-
-
-def expand_axes(x: jnp.ndarray, /, *, axis: int = 0) -> jnp.ndarray:
-    return jnp.expand_dims(x, axis=axis)
-
-
-def flip(
-    x: jnp.ndarray, /, *, axis: Optional[Union[int, Tuple[int, ...]]] = None
-) -> jnp.ndarray:
-    return jnp.flip(x, axis=axis)
-
-
-def move_axes(
-    x: jnp.ndarray,
-    /,
-    source: Union[int, Sequence[int]],
-    destination: Union[int, Sequence[int]],
-) -> jnp.ndarray:
-    return jnp.moveaxis(x, source, destination)
-
-
-def permute_axes(x: jnp.ndarray, /, axes: Tuple[int, ...]) -> jnp.ndarray:
-    return jnp.transpose(x, axes=axes)
-
-
-def swap_axes(x: jnp.ndarray, /, axis1: int, axis2: int) -> jnp.ndarray:
-    return jnp.swapaxes(x, axis1=axis1, axis2=axis2)
 
 
 def reshape(
@@ -58,35 +32,3 @@ def reshape(
         if copy:
             out = jnp.copy(x)
     return jnp.reshape(out, newshape=shape)
-
-
-def roll(
-    x: jnp.ndarray,
-    /,
-    shift: Union[int, Tuple[int, ...]],
-    *,
-    axis: Optional[Union[int, Tuple[int, ...]]] = None,
-) -> jnp.ndarray:
-    return jnp.roll(x, shift=shift, axis=axis)
-
-
-def squeeze(x: jnp.ndarray, /, axis: Union[int, Tuple[int, ...]]) -> jnp.ndarray:
-    return jnp.squeeze(x, axis=axis)
-
-
-def stack(
-    arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]], /, *, axis: int = 0
-) -> jnp.ndarray:
-    return jnp.stack(arrays, axis=axis)
-
-
-def hstack(arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]], /) -> jnp.ndarray:
-    return jnp.hstack(arrays)
-
-
-def vstack(arrays: Union[Tuple[jnp.ndarray, ...], List[jnp.ndarray]], /) -> jnp.ndarray:
-    return jnp.vstack(arrays)
-
-
-def tile(A: jnp.ndarray, /, reps: ShapeType) -> jnp.ndarray:
-    return jnp.tile(A, reps)
