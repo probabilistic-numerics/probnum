@@ -6,7 +6,7 @@ measure."""
 import numpy as np
 from scipy.special import erf
 
-from probnum.quad._integration_measures import LebesgueMeasure
+from probnum.quad.integration_measures._integration_measures import LebesgueMeasure
 from probnum.randprocs.kernels import ExpQuad
 
 

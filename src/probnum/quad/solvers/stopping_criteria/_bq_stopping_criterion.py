@@ -1,7 +1,7 @@
 """Base class for Bayesian quadrature stopping criteria."""
 
 from probnum import StoppingCriterion
-from probnum.quad.solvers.bq_state import BQIterInfo, BQState
+from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 
 # pylint: disable=too-few-public-methods,arguments-differ fixme
 

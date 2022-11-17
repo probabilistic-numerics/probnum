@@ -17,11 +17,11 @@ from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
-from .._integration_measures import IntegrationMeasure, LebesgueMeasure
+from probnum.quad.integration_measures._integration_measures import IntegrationMeasure, LebesgueMeasure
 from .._quad_typing import DomainLike
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
-from .bq_state import BQIterInfo, BQState
+from ._bq_state import BQIterInfo, BQState
 
 # pylint: disable=too-many-branches, too-complex
 

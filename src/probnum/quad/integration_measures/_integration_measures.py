@@ -10,8 +10,8 @@ import scipy.stats
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
 
-from ._quad_typing import DomainLike
-from ._utils import as_domain
+from probnum.quad._quad_typing import DomainLike
+from probnum.quad._utils import as_domain
 
 
 class IntegrationMeasure(abc.ABC):

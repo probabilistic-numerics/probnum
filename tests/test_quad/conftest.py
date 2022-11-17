@@ -5,7 +5,7 @@ from typing import Dict
 import numpy as np
 import pytest
 
-import probnum.quad._integration_measures as measures
+import probnum.quad.integration_measures._integration_measures as measures
 from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
 from probnum.randprocs import kernels
 

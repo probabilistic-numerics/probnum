@@ -4,7 +4,7 @@ measure."""
 import numpy as np
 import scipy.linalg as slinalg
 
-from probnum.quad._integration_measures import GaussianMeasure
+from probnum.quad.integration_measures._integration_measures import GaussianMeasure
 from probnum.randprocs.kernels import ExpQuad
 
 

@@ -1,6 +1,6 @@
 """Stopping criterion based on the absolute value of the integral variance"""
 
-from probnum.quad.solvers.bq_state import BQIterInfo, BQState
+from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
 from probnum.typing import FloatLike
 
