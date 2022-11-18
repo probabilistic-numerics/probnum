@@ -2,13 +2,13 @@
 
 from typing import Any, Callable, Sequence, Tuple, Union
 
-from probnum import backend as _backend
+from .. import BACKEND, Backend
 
-if _backend.BACKEND is _backend.Backend.NUMPY:
+if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl
-elif _backend.BACKEND is _backend.Backend.JAX:
+elif BACKEND is Backend.JAX:
     from . import _jax as _impl
-elif _backend.BACKEND is _backend.Backend.TORCH:
+elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
 
