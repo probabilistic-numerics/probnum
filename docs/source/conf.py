@@ -56,11 +56,15 @@ autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
 # Ensure type aliases are correctly displayed and linked in the documentation
 autodoc_type_aliases = {
-    type_alias: f"typing.{type_alias}" for type_alias in probnum.backend.typing.__all__
-}
-autodoc_type_aliases.update(
-    {type_alias: f"typing.{type_alias}" for type_alias in probnum.typing.__all__}
-)
+    **{type_alias: f"typing.{type_alias}" for type_alias in probnum.typing.__all__},
+    **{
+        type_alias: f"typing.{type_alias}"
+        for type_alias in probnum.backend.typing.__all__
+    },
+    **{
+        type_alias: f"typing.{type_alias}" for type_alias in probnum.quad.typing.__all__
+    },
+}  # Ensures type aliases are correctly displayed and linked in the documentation
 
 # Settings for napoleon
 napoleon_use_param = True

@@ -1,7 +1,9 @@
 """Stopping criterion based on the absolute value of the integral variance."""
 
+from __future__ import annotations
+
 from probnum.backend.typing import FloatLike
-from probnum.quad.solvers.bq_state import BQIterInfo, BQState
+from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
 
 # pylint: disable=too-few-public-methods

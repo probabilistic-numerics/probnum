@@ -4,8 +4,12 @@ from typing import Dict
 
 import numpy as np
 
-import probnum.quad._integration_measures as measures
-from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
+from probnum.quad.integration_measures import (
+    GaussianMeasure,
+    IntegrationMeasure,
+    LebesgueMeasure,
+)
+from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs import kernels
 
 import pytest
@@ -108,14 +112,14 @@ def fixture_measure_params(
 
 
 @pytest.fixture(name="measure")
-def fixture_measure(measure_params) -> measures.IntegrationMeasure:
-    """Kernel / covariance function."""
+def fixture_measure(measure_params) -> IntegrationMeasure:
+    """Measure."""
     name = measure_params.pop("name")
 
     if name == "gauss":
-        return measures.GaussianMeasure(**measure_params)
+        return GaussianMeasure(**measure_params)
     elif name == "lebesgue":
-        return measures.LebesgueMeasure(**measure_params)
+        return LebesgueMeasure(**measure_params)
     raise NotImplementedError
 
 
@@ -137,7 +141,7 @@ def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
 # Kernel Embeddings
 @pytest.fixture(name="kernel_embedding")
 def fixture_kernel_embedding(
-    request, kernel: kernels.Kernel, measure: measures.IntegrationMeasure
+    request, kernel: kernels.Kernel, measure: IntegrationMeasure
 ) -> KernelEmbedding:
     """Set up kernel embedding."""
     return KernelEmbedding(kernel, measure)

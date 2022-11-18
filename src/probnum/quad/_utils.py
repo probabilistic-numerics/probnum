@@ -1,4 +1,6 @@
-"""Helper functions for the quad package"""
+"""Helper functions for the quad package."""
+
+from __future__ import annotations
 
 from typing import Optional, Tuple
 
@@ -6,14 +8,14 @@ import numpy as np
 
 from probnum.backend.typing import IntLike
 
-from ._quad_typing import DomainLike, DomainType
+from .typing import DomainLike, DomainType
 
 
 def as_domain(
     domain: DomainLike, input_dim: Optional[IntLike]
 ) -> Tuple[DomainType, int]:
-    """Static method that converts the integration domain and input dimension to
-    the correct types.
+    """Static method that converts the integration domain and input dimension to the
+    correct types.
 
     If no ``input_dim`` is given, the dimension is inferred from the size of
     domain limits ``domain[0]`` and ``domain[1]``. These must be either scalars
@@ -28,7 +30,7 @@ def as_domain(
     Parameters
     ----------
     domain
-        The integration domain as supllied.
+        The integration domain as supplied.
     input_dim
         The input dimensionality as supplied.
 
@@ -44,7 +46,7 @@ def as_domain(
     ValueError
         If ``input_dim`` is not positive.
         If domain has too many or too little elements.
-        If the bounds of the domain have differening sizes.
+        If the bounds of the domain have differing sizes.
         If ``input_dim`` is incompatible with domain bounds.
         If bounds have wrong shape.
         If integration domain is empty.

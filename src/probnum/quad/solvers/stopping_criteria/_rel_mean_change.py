@@ -1,10 +1,12 @@
 """Stopping criterion based on the relative change of the successive integral
 estimators."""
 
+from __future__ import annotations
+
 import numpy as np
 
 from probnum.backend.typing import FloatLike
-from probnum.quad.solvers.bq_state import BQIterInfo, BQState
+from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
 
 # pylint: disable=too-few-public-methods
@@ -31,6 +33,9 @@ class RelativeMeanChange(BQStoppingCriterion):
 
     def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         integral_belief = bq_state.integral_belief
+        if not bq_state.previous_integral_beliefs:
+            # On the first iteration there is no previous integral value to use
+            return False
         return (
             np.abs(
                 (integral_belief.mean - bq_state.previous_integral_beliefs[-1].mean)

@@ -2,8 +2,9 @@
 
 import numpy as np
 
-from probnum.quad import IntegrationMeasure, KernelEmbedding, LebesgueMeasure
-from probnum.quad.solvers.bq_state import BQIterInfo, BQState
+from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasure
+from probnum.quad.kernel_embeddings import KernelEmbedding
+from probnum.quad.solvers import BQIterInfo, BQState
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 
@@ -107,6 +108,7 @@ def test_state_defaults_types(state, request):
     assert isinstance(s.gram, np.ndarray)
     assert isinstance(s.kernel_means, np.ndarray)
     assert isinstance(s.previous_integral_beliefs, tuple)
+    assert isinstance(s.scale_sq, float)
     assert s.integral_belief is None
 
 
@@ -151,9 +153,13 @@ def test_state_from_new_data(state, request):
     integral = Normal(0, 1)
     gram = np.eye(new_nevals)
     kernel_means = np.ones(new_nevals)
+    kernel = ExpQuad(input_shape=(old_state.input_dim,))
+    scale_sq = 1.7
 
     # previously no data given
     s = BQState.from_new_data(
+        kernel=kernel,
+        scale_sq=scale_sq,
         nodes=x,
         fun_evals=y,
         integral_belief=integral,
@@ -182,3 +188,4 @@ def test_state_from_new_data(state, request):
 
     # values
     assert s.input_dim == s.measure.input_dim
+    assert s.scale_sq == scale_sq

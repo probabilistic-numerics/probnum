@@ -8,10 +8,9 @@ import numpy as np
 import scipy.stats
 
 from probnum.backend.typing import FloatLike, IntLike
+from probnum.quad._utils import as_domain
+from probnum.quad.typing import DomainLike
 from probnum.randvars import Normal
-
-from ._quad_typing import DomainLike
-from ._utils import as_domain
 
 
 class IntegrationMeasure(abc.ABC):
@@ -90,7 +89,7 @@ class LebesgueMeasure(IntegrationMeasure):
     input_dim
         Dimension of the integration domain. If not given, inferred from ``domain``.
     normalized
-         Boolean which controls whether or not the measure is normalized (i.e.,
+         Boolean which controls whether the measure is normalized (i.e.,
          integral over the domain is one). Defaults to ``False``.
     """
 
