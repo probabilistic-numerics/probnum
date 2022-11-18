@@ -1,6 +1,8 @@
 """Vectorization in JAX."""
 
-from jax import vamp  # pylint: disable=unused-import
+from typing import AbstractSet, Callable, Optional, Union
+
+from jax import vmap  # pylint: disable=unused-import
 import jax.numpy as jnp
 
 

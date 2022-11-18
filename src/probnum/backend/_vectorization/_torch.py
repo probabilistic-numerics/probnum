@@ -1,5 +1,5 @@
 """Vectorization in PyTorch."""
-from typing import Any, Callable, Sequence, Union
+from typing import AbstractSet, Any, Callable, Optional, Sequence, Union
 
 import functorch
 

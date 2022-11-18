@@ -1,3 +1,3 @@
 """(Automatic) Differentiation in JAX."""
-
-from jax import grad, hessian, jacfwd, jacrev  # pylint: disable=unused-import
+# pylint: disable=unused-import
+from jax import grad, hessian, jacfwd, jacrev, value_and_grad

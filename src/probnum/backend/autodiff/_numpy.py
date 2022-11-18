@@ -31,3 +31,9 @@ def jacfwd(
     has_aux: bool = False,
 ) -> Callable:
     raise NotImplementedError
+
+
+def value_and_grad(
+    fun: Callable, argnums: Union[int, Sequence[int]] = 0, has_aux: bool = False
+) -> Callable:
+    raise NotImplementedError()

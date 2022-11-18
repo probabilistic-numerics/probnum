@@ -36,6 +36,7 @@ from ._manipulation_functions import *
 from ._searching_functions import *
 from ._sorting_functions import *
 from ._statistical_functions import *
+from ._jit_compilation import *
 from ._vectorization import *
 
 from . import (
@@ -50,6 +51,7 @@ from . import (
     _searching_functions,
     _sorting_functions,
     _statistical_functions,
+    _jit_compilation,
     _vectorization,
     autodiff,
     linalg,
@@ -74,6 +76,7 @@ __all__imported_modules = (
     + _searching_functions.__all__
     + _sorting_functions.__all__
     + _statistical_functions.__all__
+    + _jit_compilation.__all__
     + _vectorization.__all__
 )
 __all__ = (

@@ -14,16 +14,8 @@ elif _backend.BACKEND is _backend.Backend.TORCH:
 all = _core.all
 any = _core.any
 
-# Just-in-Time Compilation
-jit = _core.jit
-jit_method = _core.jit_method
-
-
 __all__ = [
     # Reductions
     "all",
     "any",
-    # Just-in-Time Compilation
-    "jit",
-    "jit_method",
 ]

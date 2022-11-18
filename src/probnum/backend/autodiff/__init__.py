@@ -1,6 +1,6 @@
 """(Automatic) Differentiation."""
 
-from typing import Callable, Sequence, Union
+from typing import Any, Callable, Sequence, Tuple, Union
 
 from probnum import backend as _backend
 
@@ -17,6 +17,7 @@ __all__ = [
     "hessian",
     "jacfwd",
     "jacrev",
+    "value_and_grad",
 ]
 __all__.sort()
 
@@ -157,3 +158,40 @@ def jacrev(
       then a pair of (jacobian, auxiliary_data) is returned.
     """
     return _impl.jacrev(fun, argnums, has_aux=has_aux)
+
+
+def value_and_grad(
+    fun: Callable,
+    argnums: Union[int, Sequence[int]] = 0,
+    *,
+    has_aux: bool = False,
+) -> Callable[..., Tuple[Any, Any]]:
+    """Create a function that efficiently evaluates both ``fun`` and the gradient of
+    ``fun``.
+
+    Parameters
+    ----------
+    fun
+        Function to be differentiated. Its arguments at positions specified by
+        ``argnums`` should be arrays, scalars, or standard Python containers. It should
+        return a scalar (which includes arrays with shape ``()`` but not arrays with
+        shape ``(1,)`` etc.)
+    argnums
+        Specifies which positional argument(s) to differentiate with respect to.
+    has_aux
+        Indicates whether ``fun`` returns a pair where the first element is considered
+        the output of the mathematical function to be differentiated and the second
+        element is auxiliary data.
+
+    Returns
+    -------
+    value_and_grad
+        A function with the same arguments as ``fun`` that evaluates both ``fun`` and
+        the gradient of ``fun`` and returns them as a pair (a two-element tuple). If
+        ``argnums`` is an integer then the gradient has the same shape and type as the
+        positional argument indicated by that integer. If ``argnums`` is a sequence of
+        integers, the gradient is a tuple of values with the same shapes and types as
+        the corresponding arguments. If ``has_aux`` is ``True`` then a tuple of
+        ``((value, auxiliary_data), gradient)`` is returned.
+    """
+    return _impl.value_and_grad(fun, argnums, has_aux=has_aux)

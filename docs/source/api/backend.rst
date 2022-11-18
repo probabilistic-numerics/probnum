@@ -57,6 +57,11 @@ Classes
 .. toctree::
     :hidden:
 
+    backend/jit_compilation
+
+.. toctree::
+    :hidden:
+
     backend/vectorization
 
 .. toctree::
