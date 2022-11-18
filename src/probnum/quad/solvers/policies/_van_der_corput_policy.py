@@ -4,8 +4,8 @@ from typing import Optional
 
 import numpy as np
 
-from probnum.quad._integration_measures import IntegrationMeasure
-from probnum.quad.solvers.bq_state import BQState
+from probnum.quad.integration_measures import IntegrationMeasure
+from probnum.quad.solvers._bq_state import BQState
 
 from ._policy import Policy
 

@@ -1,12 +1,14 @@
 """Helper functions for the quad package"""
 
+from __future__ import annotations
+
 from typing import Optional, Tuple
 
 import numpy as np
 
 from probnum.typing import IntLike
 
-from ._quad_typing import DomainLike, DomainType
+from .typing import DomainLike, DomainType
 
 
 def as_domain(

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from scipy.integrate import quad
 
-from probnum.quad import KernelEmbedding
+from probnum.quad.kernel_embeddings import KernelEmbedding
 
 from .util import gauss_hermite_tensor, gauss_legendre_tensor
 

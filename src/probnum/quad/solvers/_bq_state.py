@@ -1,11 +1,13 @@
 """State of a Bayesian quadrature method."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.quad._integration_measures import IntegrationMeasure
+from probnum.quad.integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal

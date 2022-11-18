@@ -5,15 +5,15 @@ from typing import Tuple
 import numpy as np
 import pytest
 
-from probnum.quad import (
+from probnum.quad.integration_measures import LebesgueMeasure
+from probnum.quad.solvers import BQIterInfo, BQState
+from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
     ImmediateStop,
     IntegralVarianceTolerance,
-    LebesgueMeasure,
     MaxNevals,
     RelativeMeanChange,
 )
-from probnum.quad.solvers.bq_state import BQIterInfo, BQState
 from probnum.randprocs.kernels import ExpQuad
 from probnum.randvars import Normal
 

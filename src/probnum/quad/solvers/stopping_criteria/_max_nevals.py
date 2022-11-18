@@ -1,6 +1,8 @@
 """Stopping criterion based on a maximum number of integrand evaluations."""
 
-from probnum.quad.solvers.bq_state import BQIterInfo, BQState
+from __future__ import annotations
+
+from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
 from probnum.typing import IntLike
 

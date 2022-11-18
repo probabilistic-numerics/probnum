@@ -3,7 +3,8 @@
 import numpy as np
 import pytest
 
-from probnum.quad import GaussianMeasure, LebesgueMeasure, VanDerCorputPolicy
+from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
+from probnum.quad.solvers.policies import VanDerCorputPolicy
 
 
 def test_van_der_corput_multi_d_error():

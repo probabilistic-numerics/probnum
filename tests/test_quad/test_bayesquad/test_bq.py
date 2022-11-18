@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from scipy.integrate import quad as scipyquad
 
-import probnum.quad
 from probnum.quad import bayesquad, bayesquad_from_data
+from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
@@ -52,7 +52,7 @@ def test_integral_values_1d(
     domains.
     """
 
-    measure = probnum.quad.LebesgueMeasure(input_dim=input_dim, domain=domain)
+    measure = LebesgueMeasure(input_dim=input_dim, domain=domain)
     # numerical integral
     # pylint: disable=invalid-name
     def integrand(x):

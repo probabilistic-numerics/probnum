@@ -13,14 +13,12 @@ import warnings
 
 import numpy as np
 
-from probnum.quad.solvers.bq_state import BQIterInfo
+from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasure
+from probnum.quad.solvers import BayesianQuadrature, BQIterInfo
+from probnum.quad.typing import DomainLike, DomainType
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
-
-from ._integration_measures import IntegrationMeasure, LebesgueMeasure
-from ._quad_typing import DomainLike, DomainType
-from .solvers import BayesianQuadrature
 
 
 def bayesquad(

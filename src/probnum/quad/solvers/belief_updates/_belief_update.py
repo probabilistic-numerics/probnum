@@ -1,5 +1,7 @@
 """Belief updates for Bayesian quadrature."""
 
+from __future__ import annotations
+
 import abc
 from typing import Optional, Tuple
 
@@ -7,7 +9,7 @@ import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 
 from probnum.quad.kernel_embeddings import KernelEmbedding
-from probnum.quad.solvers.bq_state import BQState
+from probnum.quad.solvers._bq_state import BQState
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike
