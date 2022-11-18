@@ -2,7 +2,10 @@
 
 from typing import Callable, Sequence, Union
 
-import functorch
+try:
+    import functorch
+except ModuleNotFoundError:
+    pass
 
 
 def grad(

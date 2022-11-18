@@ -1,3 +1,5 @@
+"""Special functions."""
+
 from .. import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:

@@ -1,8 +1,11 @@
 """Just-In-Time Compilation in JAX."""
 from typing import Callable, Iterable, Union
 
-import jax
-from jax import jit  # pylint: disable=unused-import
+try:
+    import jax
+    from jax import jit  # pylint: disable=unused-import
+except ModuleNotFoundError:
+    pass
 
 
 def jit_method(

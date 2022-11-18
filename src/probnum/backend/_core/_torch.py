@@ -1,9 +1,12 @@
-import torch
+try:
+    import torch
 
-torch.set_default_dtype(torch.double)
+    torch.set_default_dtype(torch.double)
+except ModuleNotFoundError:
+    pass
 
 
-def all(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
+def all(a: "torch.Tensor", *, axis=None, keepdims: bool = False) -> "torch.Tensor":
     if isinstance(axis, int):
         return torch.all(
             a,
@@ -22,7 +25,7 @@ def all(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
     return res
 
 
-def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
+def any(a: "torch.Tensor", *, axis=None, keepdims: bool = False) -> "torch.Tensor":
     if axis is None:
         return torch.any(a)
 
@@ -42,11 +45,3 @@ def any(a: torch.Tensor, *, axis=None, keepdims: bool = False) -> torch.Tensor:
         res = torch.any(res, dim=axis, keepdims=keepdims)
 
     return res
-
-
-def jit(f, *args, **kwargs):
-    return f
-
-
-def jit_method(f, *args, **kwargs):
-    return f

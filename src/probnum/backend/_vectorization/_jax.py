@@ -2,8 +2,11 @@
 
 from typing import AbstractSet, Callable, Optional, Union
 
-from jax import vmap  # pylint: disable=unused-import
-import jax.numpy as jnp
+try:
+    from jax import vmap  # pylint: disable=unused-import
+    import jax.numpy as jnp
+except ModuleNotFoundError:
+    pass
 
 
 def vectorize(

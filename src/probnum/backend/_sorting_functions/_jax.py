@@ -1,16 +1,20 @@
 """Sorting functions for JAX arrays."""
-import jax.numpy as jnp
-from jax.numpy import isnan  # pylint: disable=redefined-builtin, unused-import
+
+try:
+    import jax.numpy as jnp
+    from jax.numpy import isnan  # pylint: disable=redefined-builtin, unused-import
+except ModuleNotFoundError:
+    pass
 
 
 def sort(
-    x: jnp.DeviceArray,
+    x: "jnp.ndarray",
     /,
     *,
     axis: int = -1,
     descending: bool = False,
     stable: bool = True,
-) -> jnp.DeviceArray:
+) -> "jnp.ndarray":
     kind = "quicksort"
     if stable:
         kind = "stable"
@@ -24,13 +28,13 @@ def sort(
 
 
 def argsort(
-    x: jnp.DeviceArray,
+    x: "jnp.ndarray",
     /,
     *,
     axis: int = -1,
     descending: bool = False,
     stable: bool = True,
-) -> jnp.DeviceArray:
+) -> "jnp.ndarray":
     kind = "quicksort"
     if stable:
         kind = "stable"

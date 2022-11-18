@@ -3,36 +3,41 @@
 import functools
 from typing import Literal, Optional, Tuple, Union
 
-import jax
-from jax import numpy as jnp
+try:
+    import jax
+    from jax import numpy as jnp
 
-# pylint: disable=unused-import
-from jax.numpy import diagonal, einsum, kron, matmul, tensordot, trace
-from jax.numpy.linalg import det, eigh, eigvalsh, inv, pinv, slogdet, solve, svd
+    # pylint: disable=unused-import
+    from jax.numpy import diagonal, einsum, kron, matmul, tensordot, trace
+    from jax.numpy.linalg import det, eigh, eigvalsh, inv, pinv, slogdet, solve, svd
+except ModuleNotFoundError:
+    pass
 
 
 def matrix_rank(
-    x: jnp.ndarray, /, *, rtol: Optional[Union[float, jnp.ndarray]] = None
-) -> jnp.ndarray:
+    x: "jnp.ndarray", /, *, rtol: Optional[Union[float, "jnp.ndarray"]] = None
+) -> "jnp.ndarray":
     return jnp.linalg.matrix_rank(x, tol=rtol)
 
 
 def vector_norm(
-    x: jnp.ndarray,
+    x: "jnp.ndarray",
     /,
     *,
     axis: Optional[Union[int, Tuple[int, ...]]] = None,
     keepdims: bool = False,
     ord: Union[int, float, Literal["inf", "-inf"]] = 2,
-) -> jnp.ndarray:
+) -> "jnp.ndarray":
     return jnp.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=axis)
 
 
-def matrix_norm(x: jnp.ndarray, /, *, keepdims: bool = False, ord="fro") -> jnp.ndarray:
+def matrix_norm(
+    x: "jnp.ndarray", /, *, keepdims: bool = False, ord="fro"
+) -> "jnp.ndarray":
     return jnp.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=(-2, -1))
 
 
-def cholesky(x: jnp.ndarray, /, *, upper: bool = False) -> jnp.ndarray:
+def cholesky(x: "jnp.ndarray", /, *, upper: bool = False) -> "jnp.ndarray":
     L = jax.numpy.linalg.cholesky(x)
 
     return jnp.conj(L.swapaxes(-2, -1)) if upper else L
@@ -103,8 +108,8 @@ def solve_cholesky(
 
 
 def qr(
-    x: jnp.ndarray, /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
-) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    x: "jnp.ndarray", /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
+) -> Tuple["jnp.ndarray", "jnp.ndarray"]:
     if mode == "r":
         r = jnp.linalg.qr(x, mode=mode)
         q = None
@@ -114,7 +119,7 @@ def qr(
     return q, r
 
 
-def vecdot(x1: jnp.ndarray, x2: jnp.ndarray, axis: int = -1) -> jnp.ndarray:
+def vecdot(x1: "jnp.ndarray", x2: "jnp.ndarray", axis: int = -1) -> "jnp.ndarray":
     ndim = max(x1.ndim, x2.ndim)
     x1_shape = (1,) * (ndim - x1.ndim) + tuple(x1.shape)
     x2_shape = (1,) * (ndim - x2.ndim) + tuple(x2.shape)

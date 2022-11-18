@@ -1,4 +1,9 @@
-from torch.special import ndtr, ndtri
+"""Special functions in PyTorch."""
+
+try:
+    from torch.special import ndtr, ndtri
+except ModuleNotFoundError:
+    pass
 
 
 def gamma(*args, **kwargs):

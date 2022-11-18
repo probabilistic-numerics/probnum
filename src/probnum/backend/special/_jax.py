@@ -1,4 +1,9 @@
-from jax.scipy.special import ndtr, ndtri  # pylint: disable=unused-import
+"""Special functions in JAX."""
+
+try:
+    from jax.scipy.special import ndtr, ndtri  # pylint: disable=unused-import
+except ModuleNotFoundError:
+    pass
 
 
 def gamma(*args, **kwargs):

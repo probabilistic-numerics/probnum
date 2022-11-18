@@ -1,3 +1,11 @@
 """(Automatic) Differentiation in JAX."""
-# pylint: disable=unused-import
-from jax import grad, hessian, jacfwd, jacrev, value_and_grad
+try:
+    from jax import (  # pylint: disable=unused-import
+        grad,
+        hessian,
+        jacfwd,
+        jacrev,
+        value_and_grad,
+    )
+except ModuleNotFoundError:
+    pass

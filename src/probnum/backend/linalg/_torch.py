@@ -2,26 +2,29 @@
 
 from typing import Literal, Optional, Tuple, Union
 
-import torch
+try:
+    import torch
 
-# pylint: disable=unused-import
-from torch import diagonal, kron, matmul, tensordot
-from torch.linalg import (
-    det,
-    eigh,
-    eigvalsh,
-    inv,
-    matrix_rank,
-    pinv,
-    qr,
-    slogdet,
-    solve,
-    svd,
-    vecdot,
-)
+    # pylint: disable=unused-import
+    from torch import diagonal, kron, matmul, tensordot
+    from torch.linalg import (
+        det,
+        eigh,
+        eigvalsh,
+        inv,
+        matrix_rank,
+        pinv,
+        qr,
+        slogdet,
+        solve,
+        svd,
+        vecdot,
+    )
+except ModuleNotFoundError:
+    pass
 
 
-def trace(x: torch.Tensor, /, *, offset: int = 0) -> torch.Tensor:
+def trace(x: "torch.Tensor", /, *, offset: int = 0) -> "torch.Tensor":
     if offset != 0:
         raise NotImplementedError
 
@@ -29,37 +32,37 @@ def trace(x: torch.Tensor, /, *, offset: int = 0) -> torch.Tensor:
 
 
 def pinv(
-    x: torch.Tensor, rtol: Optional[Union[float, torch.Tensor]] = None
-) -> torch.Tensor:
+    x: "torch.Tensor", rtol: Optional[Union[float, "torch.Tensor"]] = None
+) -> "torch.Tensor":
     return torch.linalg.pinv(x, rtol=rtol)
 
 
 def einsum(
-    *arrays: torch.Tensor,
+    *arrays: "torch.Tensor",
     optimization: Optional[str] = "greedy",
 ):
     return torch.einsum(*arrays)
 
 
 def vector_norm(
-    x: torch.Tensor,
+    x: "torch.Tensor",
     /,
     *,
     axis: Optional[Union[int, Tuple[int, ...]]] = None,
     keepdims: bool = False,
     ord: Union[int, float, Literal["inf", "-inf"]] = 2,
-) -> torch.Tensor:
+) -> "torch.Tensor":
     return torch.linalg.vector_norm(x, ord=ord, dim=axis, keepdim=keepdims)
 
 
 def matrix_norm(
-    x: torch.Tensor, /, *, keepdims: bool = False, ord="fro"
-) -> torch.Tensor:
+    x: "torch.Tensor", /, *, keepdims: bool = False, ord="fro"
+) -> "torch.Tensor":
     return torch.linalg.matrix_norm(x, ord=ord, dim=(-2, -1), keepdim=keepdims)
 
 
 def norm(
-    x: torch.Tensor,
+    x: "torch.Tensor",
     ord: Optional[Union[int, str]] = None,
     axis: Optional[Tuple[int, ...]] = None,
     keepdims: bool = False,
@@ -67,7 +70,7 @@ def norm(
     return torch.linalg.norm(x, ord=ord, dim=axis, keepdim=keepdims)
 
 
-def cholesky(x: torch.Tensor, /, *, upper: bool = False) -> torch.Tensor:
+def cholesky(x: "torch.Tensor", /, *, upper: bool = False) -> "torch.Tensor":
     try:
         return torch.linalg.cholesky(x, upper=upper)
     except RuntimeError:
@@ -75,13 +78,13 @@ def cholesky(x: torch.Tensor, /, *, upper: bool = False) -> torch.Tensor:
 
 
 def solve_triangular(
-    A: torch.Tensor,
-    b: torch.Tensor,
+    A: "torch.Tensor",
+    b: "torch.Tensor",
     *,
     transpose: bool = False,
     lower: bool = False,
     unit_diagonal: bool = False,
-) -> torch.Tensor:
+) -> "torch.Tensor":
     if b.ndim == 1:
         return torch.triangular_solve(
             b[:, None],
@@ -101,8 +104,8 @@ def solve_triangular(
 
 
 def solve_cholesky(
-    cholesky: torch.Tensor,
-    b: torch.Tensor,
+    cholesky: "torch.Tensor",
+    b: "torch.Tensor",
     *,
     lower: bool = False,
     overwrite_b: bool = False,
@@ -115,7 +118,7 @@ def solve_cholesky(
 
 
 def qr(
-    x: torch.Tensor, /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
-) -> Tuple[torch.Tensor, torch.Tensor]:
+    x: "torch.Tensor", /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
+) -> Tuple["torch.Tensor", "torch.Tensor"]:
     q, r = torch.linalg.qr(x, mode=mode)
     return q, r

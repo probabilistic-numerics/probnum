@@ -4,8 +4,12 @@ from __future__ import annotations
 from typing import Optional, Sequence, Union
 
 import numpy as np
-import torch
-from torch.distributions.utils import broadcast_all
+
+try:
+    import torch
+    from torch.distributions.utils import broadcast_all
+except ModuleNotFoundError:
+    pass
 
 from probnum import backend
 from probnum.backend.typing import SeedType, ShapeType
@@ -33,12 +37,12 @@ def _rng_from_rng_state(rng_state: RNGState) -> torch.Generator:
 
 def choice(
     rng_state: RNGState,
-    x: Union[int, np.ndarray],
+    x: Union[int, "torch.Tensor"],
     shape: ShapeType = (),
     replace: bool = True,
-    p: Optional[np.ndarray] = None,
+    p: Optional["torch.Tensor"] = None,
     axis: int = 0,
-) -> np.ndarray:
+) -> "torch.Tensor":
     idcs = torch.multinomial(
         generator=_rng_from_rng_state(rng_state),
         input=p,
@@ -54,10 +58,10 @@ def choice(
 def uniform(
     rng_state: RNGState,
     shape: ShapeType = (),
-    dtype: torch.dtype = torch.double,
-    minval: torch.Tensor = torch.as_tensor(0.0),
-    maxval: torch.Tensor = torch.as_tensor(1.0),
-) -> torch.Tensor:
+    dtype: "torch.dtype" = None,
+    minval: float = None,
+    maxval: float = None,
+) -> "torch.Tensor":
     rng = _rng_from_rng_state(rng_state)
     return (maxval - minval) * torch.rand(shape, generator=rng, dtype=dtype) + minval
 
@@ -65,8 +69,8 @@ def uniform(
 def standard_normal(
     rng_state: RNGState,
     shape: ShapeType = (),
-    dtype: torch.dtype = torch.double,
-) -> torch.Tensor:
+    dtype: "torch.dtype" = None,
+) -> "torch.Tensor":
     rng = _rng_from_rng_state(rng_state)
 
     return torch.randn(shape, generator=rng, dtype=dtype)
@@ -74,11 +78,11 @@ def standard_normal(
 
 def gamma(
     rng_state: RNGState,
-    shape_param: torch.Tensor,
-    scale_param: torch.Tensor = torch.as_tensor(1.0),
+    shape_param: "torch.Tensor",
+    scale_param: "torch.Tensor",
     shape: ShapeType = (),
-    dtype=torch.double,
-) -> torch.Tensor:
+    dtype: "torch.dtype" = None,
+) -> "torch.Tensor":
     rng = _rng_from_rng_state(rng_state)
 
     shape_param = torch.as_tensor(shape_param, dtype=dtype)
@@ -99,8 +103,8 @@ def uniform_so_group(
     rng_state: RNGState,
     n: int,
     shape: ShapeType = (),
-    dtype: torch.dtype = torch.double,
-) -> torch.Tensor:
+    dtype: "torch.dtype" = None,
+) -> "torch.Tensor":
     if n == 1:
         return torch.ones(shape + (1, 1), dtype=dtype)
 
@@ -111,54 +115,59 @@ def uniform_so_group(
     return sample.reshape(shape + (n, n))
 
 
-@torch.jit.script
-def _uniform_so_group_pushforward_fn(omega: torch.Tensor) -> torch.Tensor:
-    n = omega.shape[-1]
+try:
 
-    assert omega.ndim == 3 and omega.shape[-2] == n - 1
+    @torch.jit.script
+    def _uniform_so_group_pushforward_fn(omega: "torch.Tensor") -> "torch.Tensor":
+        n = omega.shape[-1]
 
-    samples = []
+        assert omega.ndim == 3 and omega.shape[-2] == n - 1
 
-    for sample_idx in range(omega.shape[0]):
-        X = torch.triu(omega[sample_idx, :, :])
-        X_diag = torch.diag(X)
+        samples = []
 
-        D = torch.where(
-            X_diag != 0,
-            torch.sign(X_diag),
-            torch.ones((), dtype=omega.dtype),
-        )
+        for sample_idx in range(omega.shape[0]):
+            X = torch.triu(omega[sample_idx, :, :])
+            X_diag = torch.diag(X)
 
-        row_norms_sq = torch.sum(X**2, dim=1)
+            D = torch.where(
+                X_diag != 0,
+                torch.sign(X_diag),
+                torch.ones((), dtype=omega.dtype),
+            )
 
-        diag_indices = torch.arange(n - 1)
-        X[diag_indices, diag_indices] = torch.sqrt(row_norms_sq) * D
+            row_norms_sq = torch.sum(X**2, dim=1)
 
-        X /= torch.sqrt((row_norms_sq - X_diag**2 + torch.diag(X) ** 2) / 2.0)[
-            :, None
-        ]
+            diag_indices = torch.arange(n - 1)
+            X[diag_indices, diag_indices] = torch.sqrt(row_norms_sq) * D
 
-        H = torch.eye(n, dtype=omega.dtype)
+            X /= torch.sqrt((row_norms_sq - X_diag**2 + torch.diag(X) ** 2) / 2.0)[
+                :, None
+            ]
 
-        for idx in range(n - 1):
-            H -= torch.outer(H @ X[idx, :], X[idx, :])
+            H = torch.eye(n, dtype=omega.dtype)
 
-        D = torch.cat(
-            (
-                D,
-                (-1.0 if n % 2 == 0 else 1.0) * torch.prod(D, dim=0, keepdim=True),
-            ),
-            dim=0,
-        )
+            for idx in range(n - 1):
+                H -= torch.outer(H @ X[idx, :], X[idx, :])
 
-        samples.append(D[:, None] * H)
+            D = torch.cat(
+                (
+                    D,
+                    (-1.0 if n % 2 == 0 else 1.0) * torch.prod(D, dim=0, keepdim=True),
+                ),
+                dim=0,
+            )
 
-    return torch.stack(samples, dim=0)
+            samples.append(D[:, None] * H)
+
+        return torch.stack(samples, dim=0)
+
+except (ModuleNotFoundError, NameError):
+    pass
 
 
 def permutation(
     rng_state: RNGState,
-    x: Union[int, torch.Tensor],
+    x: Union[int, "torch.Tensor"],
     *,
     axis: int = 0,
     independent: bool = False,

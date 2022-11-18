@@ -1,7 +1,10 @@
 """Vectorization in PyTorch."""
 from typing import AbstractSet, Any, Callable, Optional, Sequence, Union
 
-import functorch
+try:
+    import functorch
+except ModuleNotFoundError:
+    pass
 
 
 def vectorize(

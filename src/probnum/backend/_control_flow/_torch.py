@@ -1,9 +1,12 @@
 from typing import Callable
 
-import torch
+try:
+    import torch
+except ModuleNotFoundError:
+    pass
 
 
-def cond(pred: torch.Tensor, true_fn: Callable, false_fn: Callable, *operands):
+def cond(pred: " torch.Tensor", true_fn: Callable, false_fn: Callable, *operands):
     pred = torch.as_tensor(pred)
 
     if pred.ndim != 0:
