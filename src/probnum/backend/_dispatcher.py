@@ -1,7 +1,7 @@
 from types import MethodType
 from typing import Callable, Optional
 
-from . import BACKEND, Backend
+from .._select_backend import BACKEND, Backend
 
 
 class Dispatcher:

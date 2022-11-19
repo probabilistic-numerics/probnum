@@ -6,7 +6,7 @@ from typing import Any, Optional, Tuple, Union
 
 import numpy as np
 
-from .. import BACKEND, Backend
+from ..._select_backend import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl

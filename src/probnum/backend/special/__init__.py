@@ -1,6 +1,6 @@
 """Special functions."""
 
-from .. import BACKEND, Backend
+from ..._select_backend import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:
     from ._numpy import *

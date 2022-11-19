@@ -8,13 +8,16 @@ finite computational resources and stochastic input.
 
 # isort: off
 
+# Determine backend to use
+from ._select_backend import BACKEND, Backend
+
 # Global Configuration
 # The global configuration registry. Can be used as a context manager to create local
 # contexts in which configuration is temporarily overwritten. This object contains
 # unguarded global state and is hence not thread-safe!
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
-# Compute Backend
+# Compute backend functionality
 from . import backend
 
 # Abstract interfaces for (components of) probabilistic numerical methods.
@@ -44,6 +47,7 @@ from .randvars import asrandvar
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandvar",
+    "BACKEND",
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
     "LambdaStoppingCriterion",

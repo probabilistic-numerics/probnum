@@ -2,7 +2,7 @@
 
 import scipy.stats
 
-from probnum import backend, compat, randvars
+from probnum import Backend, backend, compat, randvars
 from probnum.backend.typing import ShapeType
 
 import pytest
@@ -79,8 +79,8 @@ def test_pdf_multivariate(rv: randvars.Normal, shape: ShapeType):
     compat.testing.assert_allclose(rv.pdf(x), scipy_pdf)
 
 
-@pytest.mark.skipif_backend(backend.Backend.JAX)
-@pytest.mark.skipif_backend(backend.Backend.TORCH)
+@pytest.mark.skipif_backend(Backend.JAX)
+@pytest.mark.skipif_backend(Backend.TORCH)
 @parametrize_with_cases(
     "rv",
     cases=".cases",

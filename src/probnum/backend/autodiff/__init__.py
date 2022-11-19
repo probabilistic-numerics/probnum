@@ -2,7 +2,7 @@
 
 from typing import Any, Callable, Sequence, Tuple, Union
 
-from .. import BACKEND, Backend
+from ..._select_backend import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl

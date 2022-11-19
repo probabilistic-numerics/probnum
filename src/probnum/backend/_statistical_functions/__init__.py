@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Optional, Tuple, Union
 
-from .. import BACKEND, Array, Backend, DType
+from .. import Array, DType
+from ..._select_backend import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl

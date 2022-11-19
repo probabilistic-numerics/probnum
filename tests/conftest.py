@@ -1,4 +1,4 @@
-from probnum import backend
+from probnum import BACKEND
 
 import pytest
 
@@ -16,5 +16,5 @@ def pytest_runtest_setup(item: pytest.Item):
     ]
 
     if skipped_backends:
-        if backend.BACKEND in skipped_backends:
-            pytest.skip(f"Test skipped for backend {backend.BACKEND}.")
+        if BACKEND in skipped_backends:
+            pytest.skip(f"Test skipped for backend {BACKEND}.")

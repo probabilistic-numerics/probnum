@@ -3,14 +3,17 @@ from __future__ import annotations
 
 from typing import Optional, Sequence, Union
 
-from probnum import backend
 from probnum.backend.typing import FloatLike, SeedType, ShapeLike
 
-if backend.BACKEND is backend.Backend.NUMPY:
+from .. import Array, DType, asscalar, asshape, float64
+from ... import config
+from ..._select_backend import BACKEND, Backend
+
+if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl
-elif backend.BACKEND is backend.Backend.JAX:
+elif BACKEND is Backend.JAX:
     from . import _jax as _impl
-elif backend.BACKEND is backend.Backend.TORCH:
+elif BACKEND is Backend.TORCH:
     from . import _torch as _impl
 
 __all__ = [
@@ -66,12 +69,12 @@ def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
 
 def choice(
     rng_state: RNGState,
-    x: Union[int, backend.Array],
+    x: Union[int, Array],
     shape: ShapeLike = (),
     replace: bool = True,
-    p: Optional[backend.Array] = None,
+    p: Optional[Array] = None,
     axis: int = 0,
-) -> backend.Array:
+) -> Array:
     """Generate a random sample from a given array.
 
     Parameters
@@ -95,7 +98,7 @@ def choice(
     return _impl.choice(
         rng_state=rng_state,
         x=x,
-        shape=backend.asshape(shape),
+        shape=asshape(shape),
         replace=replace,
         p=p,
         axis=axis,
@@ -108,8 +111,8 @@ def gamma(
     scale_param: FloatLike = 1.0,
     shape: ShapeLike = (),
     *,
-    dtype: backend.DType = backend.float64,
-) -> backend.Array:
+    dtype: DType = None,
+) -> Array:
     """Draw samples from a Gamma distribution.
 
     Samples are drawn from a Gamma distribution with specified parameters, shape
@@ -134,22 +137,24 @@ def gamma(
     samples
         Samples from the Gamma distribution.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.gamma(
         rng_state=rng_state,
-        shape_param=backend.asscalar(shape_param),
-        scale_param=backend.asscalar(scale_param),
-        shape=backend.asshape(shape),
+        shape_param=asscalar(shape_param),
+        scale_param=asscalar(scale_param),
+        shape=asshape(shape),
         dtype=dtype,
     )
 
 
 def permutation(
     rng_state: RNGState,
-    x: Union[int, backend.Array],
+    x: Union[int, Array],
     *,
     axis: int = 0,
     independent: bool = False,
-):
+) -> Array:
     """Returns a randomly permuted array or range.
 
     Parameters
@@ -180,8 +185,8 @@ def standard_normal(
     rng_state: RNGState,
     shape: ShapeLike = (),
     *,
-    dtype: backend.DType = backend.float64,
-) -> backend.Array:
+    dtype: DType = None,
+) -> Array:
     """Draw samples from a standard Normal distribution (mean=0, stdev=1).
 
     Parameters
@@ -198,9 +203,11 @@ def standard_normal(
     samples
         Samples from the standard normal distribution.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.standard_normal(
         rng_state=rng_state,
-        shape=backend.asshape(shape),
+        shape=asshape(shape),
         dtype=dtype,
     )
 
@@ -209,10 +216,10 @@ def uniform(
     rng_state: RNGState,
     shape: ShapeLike = (),
     *,
-    dtype: backend.DType = backend.float64,
+    dtype: DType = None,
     minval: FloatLike = 0.0,
     maxval: FloatLike = 1.0,
-) -> backend.Array:
+) -> Array:
     """Draw samples from a uniform distribution.
 
     Samples are uniformly distributed over the half-open interval ``[minval, maxval)``
@@ -239,12 +246,14 @@ def uniform(
     samples
         Samples from the uniform distribution.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.uniform(
         rng_state=rng_state,
-        shape=backend.asshape(shape),
+        shape=asshape(shape),
         dtype=dtype,
-        minval=backend.asscalar(minval, dtype=dtype),
-        maxval=backend.asscalar(maxval, dtype=dtype),
+        minval=asscalar(minval, dtype=dtype),
+        maxval=asscalar(maxval, dtype=dtype),
     )
 
 
@@ -253,8 +262,8 @@ def uniform_so_group(
     n: int,
     shape: ShapeLike = (),
     *,
-    dtype: backend.DType = backend.float64,
-) -> backend.Array:
+    dtype: DType = None,
+) -> Array:
     """Draw samples from the Haar distribution, i.e. from the uniform distribution on
     SO(n).
 
@@ -277,9 +286,11 @@ def uniform_so_group(
     samples
         Samples from the Haar distribution.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.uniform_so_group(
         rng_state=rng_state,
         n=n,
-        shape=backend.asshape(shape),
+        shape=asshape(shape),
         dtype=dtype,
     )

@@ -56,3 +56,6 @@ def _select_via_import() -> Backend:
         pass
 
     return Backend.NUMPY
+
+
+BACKEND = select_backend()

@@ -1,6 +1,6 @@
 from typing import Callable
 
-from .. import BACKEND, Backend
+from ..._select_backend import BACKEND, Backend
 from ..typing import Scalar
 
 if BACKEND is Backend.NUMPY:

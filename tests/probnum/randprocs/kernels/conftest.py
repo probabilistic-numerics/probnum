@@ -2,7 +2,7 @@
 
 from typing import Callable, Optional
 
-from probnum import backend
+from probnum import Backend, backend
 from probnum.backend.typing import ShapeType
 from probnum.randprocs import kernels
 
@@ -47,7 +47,7 @@ def kernel(request, input_shape: ShapeType) -> kernels.Kernel:
     return request.param[0](input_shape=input_shape, **request.param[1])
 
 
-@pytest.mark.skipif_backend(backend.Backend.TORCH)
+@pytest.mark.skipif_backend(Backend.TORCH)
 @pytest.fixture(scope="package")
 def kernel_call_naive(
     kernel: kernels.Kernel,

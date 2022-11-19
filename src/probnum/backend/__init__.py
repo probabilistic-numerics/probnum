@@ -17,10 +17,6 @@ import builtins
 import inspect
 import sys
 
-from ._select_backend import Backend, select_backend as _select_backend
-
-BACKEND = _select_backend()
-
 # isort: off
 
 from ._dispatcher import Dispatcher
@@ -81,8 +77,6 @@ __all__imported_modules = (
     + _vectorization.__all__
 )
 __all__ = [
-    "Backend",
-    "BACKEND",
     "Dispatcher",
 ] + __all__imported_modules
 
@@ -96,20 +90,3 @@ for member_name in __all__imported_modules:
         member_dict[member_name].__module__ = "probnum.backend"
     except (AttributeError, TypeError):
         pass
-
-# Set default precision.
-# TODO: this is dangerous as it sets the default precision on import. Move to config
-# and make it exclusive to arrays created in with `probnum.backend`
-try:
-    import jax
-
-    jax.config.update("jax_enable_x64", True)
-except ModuleNotFoundError:
-    pass
-
-try:
-    import torch
-
-    torch.set_default_dtype(torch.double)
-except ModuleNotFoundError:
-    pass

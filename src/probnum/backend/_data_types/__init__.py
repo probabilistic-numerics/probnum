@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Union
 
-from .. import BACKEND, Array, Backend
+from .. import Array
+from ..._select_backend import BACKEND, Backend
 from ..typing import DTypeLike
 
 if BACKEND is Backend.NUMPY:

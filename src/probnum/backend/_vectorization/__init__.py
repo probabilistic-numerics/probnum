@@ -1,7 +1,7 @@
 """Vectorization of functions."""
 from typing import AbstractSet, Any, Callable, Optional, Sequence, Union
 
-from .. import BACKEND, Backend
+from ..._select_backend import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl

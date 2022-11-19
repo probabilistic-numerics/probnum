@@ -4,7 +4,8 @@ from typing import Literal, Optional, Tuple, Union
 
 from probnum.backend.typing import ShapeLike
 
-from .. import BACKEND, Array, Backend, asshape
+from .. import Array, asshape
+from ..._select_backend import BACKEND, Backend
 
 if BACKEND is Backend.NUMPY:
     from . import _numpy as _impl

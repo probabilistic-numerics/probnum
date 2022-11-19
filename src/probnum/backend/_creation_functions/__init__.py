@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
-from .. import BACKEND, Array, Backend, Device, DType, Scalar, asshape, ndim
+from .. import Array, Device, DType, Scalar, asshape, ndim
+from ... import config
+from ..._select_backend import BACKEND, Backend
 from ..typing import ArrayLike, DTypeLike, ScalarLike, ShapeLike, ShapeType
 
 if BACKEND is Backend.NUMPY:
@@ -51,34 +53,8 @@ def asarray(
     obj
         Object to be converted to an array. May be a Python scalar, a (possibly nested)
         sequence of Python scalars, or an object supporting the Python buffer protocol.
-
-        .. admonition:: Tip
-           :class: important
-
-           An object supporting the buffer protocol can be turned into a memoryview
-           through ``memoryview(obj)``.
-
     dtype
-        Output array data type. If ``dtype`` is ``None``, the output array data type
-        must be inferred from the data type(s) in ``obj``. If all input values are
-        Python scalars, then
-
-        -   if all values are of type ``bool``, the output data type must be ``bool``.
-        -   if the values are a mixture of ``bool``\ss and ``int``, the output data
-            type must be the default integer data type.
-        -   if one or more values are ``float``\ss, the output data type must be the
-            default floating-point data type.
-
-        .. admonition:: Note
-           :class: note
-
-           If ``dtype`` is not ``None``, then array conversions should obey
-           `type-promotion <https://data-apis.org/array-api/latest/API_specification\
-           /type_promotion.html>`_ rules. Conversions not specified according to
-           `type-promotion <https://data-apis.org/array-api/latest/API_specification\
-           /type_promotion.html>`_ rules may or may not be permitted by a conforming
-           array library. To perform an explicit cast, use :func:`astype`.
-
+        Output array data type.
     device
         Device on which to place the created array. If ``device`` is ``None`` and ``x``
         is an array, the output array device must be inferred from ``x``.
@@ -94,10 +70,15 @@ def asarray(
     out
         An array containing the data from ``obj``.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.asarray(obj, dtype=dtype, device=device, copy=copy)
 
 
-def asscalar(x: ScalarLike, dtype: DTypeLike = None) -> Scalar:
+def asscalar(
+    x: ScalarLike,
+    dtype: Optional[DType] = None,
+) -> Scalar:
     """Convert a scalar into a NumPy scalar.
 
     Parameters
@@ -109,7 +90,8 @@ def asscalar(x: ScalarLike, dtype: DTypeLike = None) -> Scalar:
     """
     if ndim(x) != 0:
         raise ValueError("The given input is not a scalar.")
-
+    if dtype is None:
+        dtype = config.default_dtype
     return asarray(x, dtype=dtype)[()]
 
 
@@ -232,6 +214,8 @@ def arange(
         output array must be ``ceil((stop-start)/step)`` if ``stop - start`` and
         ``step`` have the same sign, and length ``0`` otherwise.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.arange(start, stop, step, dtype=dtype, device=device)
 
 
@@ -258,6 +242,8 @@ def empty(
     out
         An array containing uninitialized data.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.empty(asshape(shape), dtype=dtype, device=device)
 
 
@@ -289,6 +275,8 @@ def empty_like(
     out
         an array having the same shape as ``x`` and containing uninitialized data.
     """
+    if dtype is None:
+        dtype = x.dtype
     if shape is not None:
         shape = asshape(shape)
     return _impl.empty_like(x, shape=shape, dtype=dtype, device=device)
@@ -328,6 +316,8 @@ def eye(
         an array where all elements are equal to zero, except for the ``k``\\th
         diagonal, whose values are equal to one.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.eye(n_rows, n_cols, k=k, dtype=dtype, device=device)
 
 
@@ -394,18 +384,6 @@ def full_like(
     dtype
         Output array data type. If ``dtype`` is ``None``, the output array data type
         must be inferred from ``x``.
-
-        .. note::
-
-           If the ``fill_value`` exceeds the precision of the resolved output array data
-           type, behavior is unspecified and, thus, implementation-defined.
-
-        .. note::
-
-           If the ``fill_value`` has a data type (``int`` or ``float``) which is not of
-           the same data type kind as the resolved output array data type, behavior is
-           unspecified and, thus, implementation-defined.
-
     device
         Device on which to place the created array. If ``device`` is ``None``, the
         output array device must be inferred from ``x``.
@@ -418,6 +396,8 @@ def full_like(
     """
     if shape is not None:
         shape = asshape(shape)
+    if dtype is None:
+        dtype = x.dtype
     return _impl.full_like(
         x, fill_value=fill_value, shape=shape, dtype=dtype, device=device
     )
@@ -469,6 +449,8 @@ def linspace(
     out
         a one-dimensional array containing evenly spaced values.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.linspace(
         start, stop, num=num, dtype=dtype, device=device, endpoint=endpoint
     )
@@ -535,6 +517,8 @@ def ones(
     out
         an array containing ones.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.ones(shape, dtype=dtype, device=device)
 
 
@@ -569,6 +553,8 @@ def ones_like(
     """
     if shape is not None:
         shape = asshape(shape)
+    if dtype is None:
+        dtype = x.dtype
     return _impl.ones_like(x, shape=shape, dtype=dtype, device=device)
 
 
@@ -595,6 +581,8 @@ def zeros(
     out
         an array containing zeros.
     """
+    if dtype is None:
+        dtype = config.default_dtype
     return _impl.zeros(shape, dtype=dtype, device=device)
 
 
@@ -627,6 +615,8 @@ def zeros_like(
     out
         an array having the same shape as ``x`` and filled with zeros.
     """
+    if dtype is None:
+        dtype = x.dtype
     if shape is not None:
         shape = asshape(shape)
     return _impl.zeros_like(x, shape=shape, dtype=dtype, device=device)

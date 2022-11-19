@@ -1,6 +1,7 @@
 """Logic functions."""
 
-from .. import BACKEND, Array, Backend
+from .. import Array
+from ..._select_backend import BACKEND, Backend
 from ..typing import ShapeType
 
 if BACKEND is Backend.NUMPY:

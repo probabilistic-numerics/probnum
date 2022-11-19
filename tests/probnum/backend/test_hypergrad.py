@@ -1,6 +1,6 @@
 from scipy.optimize._numdiff import approx_derivative
 
-from probnum import backend, compat, functions, randprocs, randvars
+from probnum import Backend, backend, compat, functions, randprocs, randvars
 
 import pytest
 
@@ -50,7 +50,7 @@ def g(l):
     return -(fX + e).logpdf(ys)
 
 
-@pytest.mark.skipif_backend(backend.Backend.NUMPY)
+@pytest.mark.skipif_backend(Backend.NUMPY)
 def test_compare_grad():
     l = backend.asarray([3.0])
     dg = backend.autodiff.grad(g)
