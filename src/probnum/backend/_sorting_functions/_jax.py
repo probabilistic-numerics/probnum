@@ -1,6 +1,7 @@
 """Sorting functions for JAX arrays."""
 
 try:
+    import jax
     import jax.numpy as jnp
     from jax.numpy import isnan  # pylint: disable=redefined-builtin, unused-import
 except ModuleNotFoundError:
@@ -8,13 +9,13 @@ except ModuleNotFoundError:
 
 
 def sort(
-    x: "jnp.ndarray",
+    x: "jax.Array",
     /,
     *,
     axis: int = -1,
     descending: bool = False,
     stable: bool = True,
-) -> "jnp.ndarray":
+) -> "jax.Array":
     kind = "quicksort"
     if stable:
         kind = "stable"
@@ -28,13 +29,13 @@ def sort(
 
 
 def argsort(
-    x: "jnp.ndarray",
+    x: "jax.Array",
     /,
     *,
     axis: int = -1,
     descending: bool = False,
     stable: bool = True,
-) -> "jnp.ndarray":
+) -> "jax.Array":
     kind = "quicksort"
     if stable:
         kind = "stable"

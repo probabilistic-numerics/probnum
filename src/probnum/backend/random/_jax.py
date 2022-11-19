@@ -32,12 +32,12 @@ def split(rng_state: RNGState, num: int = 2) -> Sequence[RNGState]:
 
 def choice(
     rng_state: RNGState,
-    x: Union[int, "jnp.ndarray"],
+    x: Union[int, "jax.Array"],
     shape: ShapeType = (),
     replace: bool = True,
-    p: Optional["jnp.ndarray"] = None,
+    p: Optional["jax.Array"] = None,
     axis: int = 0,
-) -> "jnp.ndarray":
+) -> "jax.Array":
     return jax.random.choice(
         key=rng_state, a=x, shape=shape, replace=replace, p=p, axis=axis
     )
@@ -47,9 +47,9 @@ def uniform(
     rng_state: RNGState,
     shape: ShapeType = (),
     dtype: "jnp.dtype" = None,
-    minval: "jnp.ndarray" = jnp.array(0.0),
-    maxval: "jnp.ndarray" = jnp.array(1.0),
-) -> "jnp.ndarray":
+    minval: "jax.Array" = jnp.array(0.0),
+    maxval: "jax.Array" = jnp.array(1.0),
+) -> "jax.Array":
     return jax.random.uniform(
         key=rng_state, shape=shape, dtype=dtype, minval=minval, maxval=maxval
     )
@@ -59,17 +59,17 @@ def standard_normal(
     rng_state: RNGState,
     shape: ShapeType = (),
     dtype: jnp.dtype = None,
-) -> "jnp.ndarray":
+) -> "jax.Array":
     return jax.random.normal(key=rng_state, shape=shape, dtype=dtype)
 
 
 def gamma(
     rng_state: RNGState,
-    shape_param: "jnp.ndarray",
-    scale_param: "jnp.ndarray" = jnp.array(1.0),
+    shape_param: "jax.Array",
+    scale_param: "jax.Array" = jnp.array(1.0),
     shape: ShapeType = (),
     dtype: jnp.dtype = None,
-) -> "jnp.ndarray":
+) -> "jax.Array":
     return (
         jax.random.gamma(key=rng_state, a=shape_param, shape=shape, dtype=dtype)
         * scale_param
@@ -82,7 +82,7 @@ def uniform_so_group(
     n: int,
     shape: ShapeType = (),
     dtype: jnp.dtype = None,
-) -> "jnp.ndarray":
+) -> "jax.Array":
     if n == 1:
         return jnp.ones(shape + (1, 1), dtype=dtype)
 
@@ -92,7 +92,7 @@ def uniform_so_group(
 
 
 @functools.partial(jnp.vectorize, signature="(M,N)->(N,N)")
-def _uniform_so_group_pushforward_fn(omega: "jnp.ndarray") -> "jnp.ndarray":
+def _uniform_so_group_pushforward_fn(omega: "jax.Array") -> "jax.Array":
     n = omega.shape[1]
 
     assert omega.shape == (n - 1, n)
@@ -131,7 +131,7 @@ def _uniform_so_group_pushforward_fn(omega: "jnp.ndarray") -> "jnp.ndarray":
 
 def permutation(
     rng_state: RNGState,
-    x: Union[int, "jnp.ndarray"],
+    x: Union[int, "jax.Array"],
     *,
     axis: int = 0,
     independent: bool = False,

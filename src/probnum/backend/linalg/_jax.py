@@ -15,29 +15,27 @@ except ModuleNotFoundError:
 
 
 def matrix_rank(
-    x: "jnp.ndarray", /, *, rtol: Optional[Union[float, "jnp.ndarray"]] = None
-) -> "jnp.ndarray":
+    x: "jax.Array", /, *, rtol: Optional[Union[float, "jax.Array"]] = None
+) -> "jax.Array":
     return jnp.linalg.matrix_rank(x, tol=rtol)
 
 
 def vector_norm(
-    x: "jnp.ndarray",
+    x: "jax.Array",
     /,
     *,
     axis: Optional[Union[int, Tuple[int, ...]]] = None,
     keepdims: bool = False,
     ord: Union[int, float, Literal["inf", "-inf"]] = 2,
-) -> "jnp.ndarray":
+) -> "jax.Array":
     return jnp.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=axis)
 
 
-def matrix_norm(
-    x: "jnp.ndarray", /, *, keepdims: bool = False, ord="fro"
-) -> "jnp.ndarray":
+def matrix_norm(x: "jax.Array", /, *, keepdims: bool = False, ord="fro") -> "jax.Array":
     return jnp.linalg.norm(x=x, ord=ord, keepdims=keepdims, axis=(-2, -1))
 
 
-def cholesky(x: "jnp.ndarray", /, *, upper: bool = False) -> "jnp.ndarray":
+def cholesky(x: "jax.Array", /, *, upper: bool = False) -> "jax.Array":
     L = jax.numpy.linalg.cholesky(x)
 
     return jnp.conj(L.swapaxes(-2, -1)) if upper else L
@@ -108,8 +106,8 @@ def solve_cholesky(
 
 
 def qr(
-    x: "jnp.ndarray", /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
-) -> Tuple["jnp.ndarray", "jnp.ndarray"]:
+    x: "jax.Array", /, *, mode: Literal["reduced", "complete", "r"] = "reduced"
+) -> Tuple["jax.Array", "jax.Array"]:
     if mode == "r":
         r = jnp.linalg.qr(x, mode=mode)
         q = None
@@ -119,7 +117,7 @@ def qr(
     return q, r
 
 
-def vecdot(x1: "jnp.ndarray", x2: "jnp.ndarray", axis: int = -1) -> "jnp.ndarray":
+def vecdot(x1: "jax.Array", x2: "jax.Array", axis: int = -1) -> "jax.Array":
     ndim = max(x1.ndim, x2.ndim)
     x1_shape = (1,) * (ndim - x1.ndim) + tuple(x1.shape)
     x2_shape = (1,) * (ndim - x2.ndim) + tuple(x2.shape)

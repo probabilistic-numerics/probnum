@@ -1,7 +1,8 @@
 """JAX array manipulation functions."""
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Optional
 
 try:
+    import jax
     import jax.numpy as jnp
     from jax.numpy import (  # pylint: disable=unused-import
         atleast_1d,
@@ -29,8 +30,8 @@ from ..typing import ShapeType
 
 
 def reshape(
-    x: "jnp.ndarray", /, shape: ShapeType, *, copy: Optional[bool] = None
-) -> "jnp.ndarray":
+    x: "jax.Array", /, shape: ShapeType, *, copy: Optional[bool] = None
+) -> "jax.Array":
     if copy is not None:
         if copy:
             out = jnp.copy(x)
