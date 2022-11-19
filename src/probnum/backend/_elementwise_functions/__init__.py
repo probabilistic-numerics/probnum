@@ -30,33 +30,23 @@ __all__ = [
     "cos",
     "cosh",
     "divide",
-    "equal",
     "exp",
     "expm1",
     "floor",
     "floor_divide",
-    "greater",
-    "greater_equal",
     "imag",
     "isfinite",
     "isinf",
     "isnan",
-    "less",
-    "less_equal",
     "log",
     "log1p",
     "log2",
     "log10",
     "logaddexp",
-    "logical_and",
-    "logical_not",
-    "logical_or",
-    "logical_xor",
     "maximum",
     "minimum",
     "multiply",
     "negative",
-    "not_equal",
     "positive",
     "pow",
     "real",
@@ -502,25 +492,6 @@ def divide(x1: Array, x2: Array, /) -> Array:
     return _impl.divide(x1, x2)
 
 
-def equal(x1: Array, x2: Array, /) -> Array:
-    """Computes the truth value of ``x1_i == x2_i`` for each element ``x1_i`` of the
-    input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. May have any data type.
-    x2
-        second input array. Must be compatible with ``x1``. May have any data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.equal(x1, x2)
-
-
 def exp(x: Array, /) -> Array:
     """Calculates an approximation to the exponential function for each element ``x_i``
     of the input array ``x`` (``e`` raised to the power of ``x_i``, where ``e`` is the
@@ -604,46 +575,6 @@ def floor_divide(x1: Array, x2: Array, /) -> Array:
     return _impl.floor_divide(x)
 
 
-def greater(x1: Array, x2: Array, /) -> Array:
-    """Computes the truth value of ``x1_i > x2_i`` for each element ``x1_i`` of the
-    input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. Should have a real-valued data type.
-    x2
-        second input array. Must be compatible with ``x1``. Should have a real-valued
-        data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.greater(x1, x2)
-
-
-def greater_equal(x1: Array, x2: Array, /) -> Array:
-    """Computes the truth value of ``x1_i >= x2_i`` for each element ``x1_i`` of the
-    input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. Should have a real-valued data type.
-    x2
-        second input array. Must be compatible with ``x1``. Should have a real-valued
-        data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.greater_equal(x1, x2)
-
-
 def imag(x: Array, /) -> Array:
     """Returns the imaginary component of a complex number for each element ``x_i`` of
     the input array ``x``.
@@ -714,46 +645,6 @@ def isnan(x: Array, /) -> Array:
         ``bool``.
     """
     return _impl.isnan(x)
-
-
-def less(x1: Array, x2: Array, /) -> Array:
-    """Computes the truth value of ``x1_i < x2_i`` for each element ``x1_i`` of the
-    input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. Should have a real-valued data type.
-    x2
-        second input array. Must be compatible with ``x1``. Should have a real-valued
-        data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.less(x1, x2)
-
-
-def less_equal(x1: Array, x2: Array, /) -> Array:
-    """Computes the truth value of ``x1_i <= x2_i`` for each element ``x1_i`` of the
-    input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. Should have a real-valued data type.
-    x2
-        second input array. Must be compatible with ``x1``. Should have a real-valued
-        data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.less_equal(x1, x2)
 
 
 def log(x: Array, /) -> Array:
@@ -865,80 +756,6 @@ def logaddexp(x1: Array, x2: Array, /) -> Array:
     return _impl.logaddexp(x1, x2)
 
 
-def logical_and(x1: Array, x2: Array, /) -> Array:
-    """Computes the logical AND for each element ``x1_i`` of the input array ``x1`` with
-    the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. Should have a boolean data type.
-    x2
-        second input array. Must be compatible with ``x1``. Should have a boolean data
-        type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.logical_and(x1, x2)
-
-
-def logical_not(x: Array, /) -> Array:
-    """Computes the logical NOT for each element ``x_i`` of the input array ``x``.
-
-    Parameters
-    ----------
-    x
-        input array. Should have a boolean data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.logical_not(x)
-
-
-def logical_or(x1: Array, x2: Array, /) -> Array:
-    """Computes the logical OR for each element ``x1_i`` of the input array ``x1`` with
-    the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. Should have a boolean data type.
-    x2
-        second input array. Must be compatible with ``x1``. Should have a boolean data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.logical_or(x1, x2)
-
-
-def logical_xor(x1: Array, x2: Array, /) -> Array:
-    """Computes the logical XOR for each element ``x1_i`` of the input array ``x1`` with
-    the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. Should have a boolean data type.
-    x2
-        second input array. Must be compatible with ``x1``. Should have a boolean data type.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.logical_xor(x1, x2)
-
-
 def maximum(x1: Array, x2: Array, /) -> Array:
     """Element-wise maximum of two arrays.
 
@@ -1023,25 +840,6 @@ def negative(x: Array, /) -> Array:
         an array containing the evaluated result for each element in ``x``.
     """
     return _impl.negative(x)
-
-
-def not_equal(x1: Array, x2: Array, /) -> Array:
-    """Computes the truth value of ``x1_i != x2_i`` for each element ``x1_i`` of the
-    input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
-
-    Parameters
-    ----------
-    x1
-        first input array. May have any data type.
-    x2
-        second input array. Must be compatible with ``x1``.
-
-    Returns
-    -------
-    out
-        an array containing the element-wise results.
-    """
-    return _impl.not_equal(x1, x2)
 
 
 def positive(x: Array, /) -> Array:

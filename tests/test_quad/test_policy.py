@@ -1,10 +1,11 @@
 """Basic tests for BQ policies."""
 
 import numpy as np
-import pytest
 
 from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
 from probnum.quad.solvers.policies import VanDerCorputPolicy
+
+import pytest
 
 
 def test_van_der_corput_multi_d_error():

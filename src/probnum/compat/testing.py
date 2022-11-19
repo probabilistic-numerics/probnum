@@ -24,7 +24,7 @@ def assert_equal(
     """Raises an AssertionError if two objects are not equal.
 
     Given two objects (scalars, lists, tuples, dictionaries,
-    :class:`~probnum.backend.Array`\s, :class:`~probnum.linops.LinearOperator`\s),
+    :class:`~probnum.backend.Array`\\s, :class:`~probnum.linops.LinearOperator`\\s),
     check that all elements of these objects are equal. An exception is raised
     at the first conflicting values.
 
@@ -72,14 +72,14 @@ def assert_allclose(
     """Raises an AssertionError if two objects are not equal up to desired tolerance.
 
     The test compares the difference
-    between `actual` and `desired` to ``atol + rtol * abs(desired)``.
+    between ``actual`` and ``desired`` to ``atol + rtol * abs(desired)``.
 
     Parameters
     ----------
     actual
-        Array obtained.
+        The ``actual`` object to check.
     desired
-        Array desired.
+        The ``desired``, expected object.
     rtol
         Relative tolerance.
     atol
@@ -94,7 +94,7 @@ def assert_allclose(
     Raises
     ------
     AssertionError
-        If actual and desired are not equal up to specified precision.
+        If ``actual`` and ``desired`` are not equal up to specified precision.
     """
     np.testing.assert_allclose(
         *_core.to_numpy(actual, desired),
@@ -114,9 +114,9 @@ def assert_array_equal(
     err_msg: str = "",
     verbose: bool = True,
 ):
-    """Raises an AssertionError if two array_like objects are not equal.
+    """Raises an AssertionError if two array-like objects are not equal.
 
-    Given two array_like objects, check that the shape is equal and all
+    Given two array-like objects, check that the shape is equal and all
     elements of these objects are equal (but see the Notes for the special
     handling of a scalar). An exception is raised at shape mismatch or
     conflicting values. In contrast to the standard usage in numpy, NaNs
@@ -126,9 +126,9 @@ def assert_array_equal(
     Parameters
     ----------
     actual
-        The actual object to check.
+        The ``actual`` object to check.
     desired
-        The desired, expected object.
+        The ``desired``, expected object.
     err_msg
         The error message to be printed in case of failure.
     verbose
@@ -137,7 +137,7 @@ def assert_array_equal(
     Raises
     ------
     AssertionError
-        If actual and desired objects are not equal.
+        If ``actual`` and ``desired`` objects are not equal.
     """
     np.testing.assert_array_equal(
         *_core.to_numpy(actual, desired), err_msg=err_msg, verbose=verbose

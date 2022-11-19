@@ -37,6 +37,11 @@ Classes
 .. toctree::
     :hidden:
 
+    backend/logic_functions
+
+.. toctree::
+    :hidden:
+
     backend/manipulation_functions
 
 .. toctree::

@@ -64,9 +64,9 @@ def asarray(
         Python scalars, then
 
         -   if all values are of type ``bool``, the output data type must be ``bool``.
-        -   if the values are a mixture of ``bool``\s and ``int``, the output data
+        -   if the values are a mixture of ``bool``\ss and ``int``, the output data
             type must be the default integer data type.
-        -   if one or more values are ``float``\s, the output data type must be the
+        -   if one or more values are ``float``\ss, the output data type must be the
             default floating-point data type.
 
         .. admonition:: Note

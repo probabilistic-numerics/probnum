@@ -30,33 +30,23 @@ Functions
     ~probnum.backend.cos
     ~probnum.backend.cosh
     ~probnum.backend.divide
-    ~probnum.backend.equal
     ~probnum.backend.exp
     ~probnum.backend.expm1
     ~probnum.backend.floor
     ~probnum.backend.floor_divide
-    ~probnum.backend.greater
-    ~probnum.backend.greater_equal
     ~probnum.backend.imag
     ~probnum.backend.isfinite
     ~probnum.backend.isinf
     ~probnum.backend.isnan
-    ~probnum.backend.less
-    ~probnum.backend.less_equal
     ~probnum.backend.log
     ~probnum.backend.log1p
     ~probnum.backend.log2
     ~probnum.backend.log10
     ~probnum.backend.logaddexp
-    ~probnum.backend.logical_and
-    ~probnum.backend.logical_not
-    ~probnum.backend.logical_or
-    ~probnum.backend.logical_xor
     ~probnum.backend.multiply
     ~probnum.backend.maximum
     ~probnum.backend.minimum
     ~probnum.backend.negative
-    ~probnum.backend.not_equal
     ~probnum.backend.positive
     ~probnum.backend.pow
     ~probnum.backend.real
@@ -96,33 +86,23 @@ Functions
     elementwise_functions/probnum.backend.cos
     elementwise_functions/probnum.backend.cosh
     elementwise_functions/probnum.backend.divide
-    elementwise_functions/probnum.backend.equal
     elementwise_functions/probnum.backend.exp
     elementwise_functions/probnum.backend.expm1
     elementwise_functions/probnum.backend.floor
     elementwise_functions/probnum.backend.floor_divide
-    elementwise_functions/probnum.backend.greater
-    elementwise_functions/probnum.backend.greater_equal
     elementwise_functions/probnum.backend.imag
     elementwise_functions/probnum.backend.isfinite
     elementwise_functions/probnum.backend.isinf
     elementwise_functions/probnum.backend.isnan
-    elementwise_functions/probnum.backend.less
-    elementwise_functions/probnum.backend.less_equal
     elementwise_functions/probnum.backend.log
     elementwise_functions/probnum.backend.log1p
     elementwise_functions/probnum.backend.log2
     elementwise_functions/probnum.backend.log10
     elementwise_functions/probnum.backend.logaddexp
-    elementwise_functions/probnum.backend.logical_and
-    elementwise_functions/probnum.backend.logical_not
-    elementwise_functions/probnum.backend.logical_or
-    elementwise_functions/probnum.backend.logical_xor
     elementwise_functions/probnum.backend.multiply
     elementwise_functions/probnum.backend.maximum
     elementwise_functions/probnum.backend.minimum
     elementwise_functions/probnum.backend.negative
-    elementwise_functions/probnum.backend.not_equal
     elementwise_functions/probnum.backend.positive
     elementwise_functions/probnum.backend.pow
     elementwise_functions/probnum.backend.real
