@@ -9,6 +9,7 @@ except ModuleNotFoundError:
     pass
 
 from .. import Device, DType
+from .._data_types import is_floating_dtype
 from ..typing import ShapeType
 
 # pylint: disable=redefined-builtin
@@ -27,7 +28,12 @@ def asarray(
     if copy is None:
         copy = True
 
-    return jax.device_put(jnp.array(obj, dtype=dtype, copy=copy), device=device)
+    out = jnp.array(obj, dtype=dtype, copy=copy)
+
+    if is_floating_dtype(out.dtype):
+        out = out.astype(config.default_floating_dtype, copy=False)
+
+    return jax.device_put(out, device=device)
 
 
 def arange(

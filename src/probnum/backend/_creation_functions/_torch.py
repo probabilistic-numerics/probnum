@@ -7,6 +7,7 @@ try:
 except ModuleNotFoundError:
     pass
 from .. import Device, DType
+from .._data_types import is_floating_dtype
 from ..typing import ShapeType
 
 # pylint: disable=redefined-builtin
@@ -22,11 +23,17 @@ def asarray(
     device: Optional["torch.device"] = None,
     copy: Optional[bool] = None,
 ) -> "torch.Tensor":
-    x = torch.as_tensor(obj, dtype=dtype, device=device)
-    if copy is not None:
-        if copy:
-            return x.clone()
-    return x
+    out = torch.as_tensor(obj, dtype=dtype, device=device)
+
+    if is_floating_dtype(out.dtype):
+        out = out.to(dtype=config.default_floating_dtype, copy=False)
+
+    if copy is None:
+        copy = False
+    if copy:
+        return out.clone()
+
+    return out
 
 
 def diag(x: "torch.Tensor", /, *, k: int = 0) -> "torch.Tensor":

@@ -5,7 +5,7 @@ import functools
 import operator
 from typing import Any, Dict, Optional, Union
 
-from probnum import backend, linops
+from probnum import backend, config, linops
 from probnum.backend.random import RNGState
 from probnum.backend.typing import (
     ArrayIndicesLike,
@@ -72,7 +72,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
         dtype = backend.promote_types(mean.dtype, cov.dtype)
 
         if not backend.is_floating_dtype(dtype):
-            dtype = backend.float64
+            dtype = config.default_floating_dtype
 
         # Circular dependency -> defer import
         from probnum import compat  # pylint: disable=import-outside-toplevel

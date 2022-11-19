@@ -70,8 +70,6 @@ def asarray(
     out
         An array containing the data from ``obj``.
     """
-    if dtype is None:
-        dtype = config.default_dtype
     return _impl.asarray(obj, dtype=dtype, device=device, copy=copy)
 
 
@@ -90,8 +88,7 @@ def asscalar(
     """
     if ndim(x) != 0:
         raise ValueError("The given input is not a scalar.")
-    if dtype is None:
-        dtype = config.default_dtype
+
     return asarray(x, dtype=dtype)[()]
 
 
@@ -215,7 +212,7 @@ def arange(
         ``step`` have the same sign, and length ``0`` otherwise.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.arange(start, stop, step, dtype=dtype, device=device)
 
 
@@ -243,7 +240,7 @@ def empty(
         An array containing uninitialized data.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.empty(asshape(shape), dtype=dtype, device=device)
 
 
@@ -317,7 +314,7 @@ def eye(
         diagonal, whose values are equal to one.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.eye(n_rows, n_cols, k=k, dtype=dtype, device=device)
 
 
@@ -450,7 +447,7 @@ def linspace(
         a one-dimensional array containing evenly spaced values.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.linspace(
         start, stop, num=num, dtype=dtype, device=device, endpoint=endpoint
     )
@@ -518,7 +515,7 @@ def ones(
         an array containing ones.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.ones(shape, dtype=dtype, device=device)
 
 
@@ -582,7 +579,7 @@ def zeros(
         an array containing zeros.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.zeros(shape, dtype=dtype, device=device)
 
 

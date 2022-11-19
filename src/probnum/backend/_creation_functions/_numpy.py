@@ -5,6 +5,8 @@ import numpy as np
 from numpy import diag, tril, triu  # pylint: disable= unused-import
 
 from .. import Device, DType
+from ... import config
+from .._data_types import is_floating_dtype
 from ..typing import ShapeType
 
 # pylint: disable=redefined-builtin
@@ -22,6 +24,10 @@ def asarray(
 ) -> np.ndarray:
     if copy is None:
         copy = False
+    out = np.array(obj, dtype=dtype, copy=copy)
+    if is_floating_dtype(out.dtype):
+        return out.astype(config.default_floating_dtype, copy=False)
+
     return np.array(obj, dtype=dtype, copy=copy)
 
 

@@ -138,7 +138,7 @@ def gamma(
         Samples from the Gamma distribution.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.gamma(
         rng_state=rng_state,
         shape_param=asscalar(shape_param),
@@ -204,7 +204,7 @@ def standard_normal(
         Samples from the standard normal distribution.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.standard_normal(
         rng_state=rng_state,
         shape=asshape(shape),
@@ -247,7 +247,7 @@ def uniform(
         Samples from the uniform distribution.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.uniform(
         rng_state=rng_state,
         shape=asshape(shape),
@@ -287,7 +287,7 @@ def uniform_so_group(
         Samples from the Haar distribution.
     """
     if dtype is None:
-        dtype = config.default_dtype
+        dtype = config.default_floating_dtype
     return _impl.uniform_so_group(
         rng_state=rng_state,
         n=n,

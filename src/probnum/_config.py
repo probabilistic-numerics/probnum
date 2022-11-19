@@ -5,16 +5,16 @@ from typing import Any
 from . import BACKEND, Backend
 
 # Select default dtype.
-default_dtype = None
+default_floating_dtype = None
 if BACKEND is Backend.NUMPY:
-    from numpy import float64 as default_dtype
+    from numpy import float64 as default_floating_dtype
 elif BACKEND is Backend.JAX:
     import jax
-    from jax.numpy import float64 as default_dtype
+    from jax.numpy import float64 as default_floating_dtype
 
     jax.config.update("jax_enable_x64", True)
 elif BACKEND is Backend.TORCH:
-    from torch import float64 as default_dtype
+    from torch import float64 as default_floating_dtype
 
 
 class Configuration:
@@ -132,11 +132,12 @@ _GLOBAL_CONFIG_SINGLETON = Configuration()
 _DEFAULT_CONFIG_OPTIONS = [
     # list of tuples (config_key, default_value)
     (
-        "default_dtype",
-        default_dtype,
+        "default_floating_dtype",
+        default_floating_dtype,
         (
-            r"The default data type to use when numeric objects, such as "
-            r":class:`~probnum.backend.Array`\ s, are created. One of "
+            r"The default floating point data type to use when creating numeric "
+            r"objects, such as "
+            r":class:`~probnum.backend.Array`\ s. One of "
             r"``None, backend.float32, backend.float64``. If ``None``, the default "
             r"``dtype`` of the chosen computation backend is used."
         ),
