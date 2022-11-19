@@ -61,7 +61,8 @@ class MachineLimitsFloatingPoint:
     min
         The smallest representable number, typically ``-max``.
     eps
-        The difference between 1.0 and the next smallest representable float larger than 1.0. For example, for 64-bit binary floats in the IEEE-754 standard,
+        The difference between 1.0 and the next smallest representable float larger than
+        1.0. For example, for 64-bit binary floats in the IEEE-754 standard,
         ``eps = 2**-52``, approximately 2.22e-16.
     """
 
@@ -115,7 +116,11 @@ def cast(
     casting
         Controls what kind of data casting may occur.
     copy
-        Specifies whether to copy an array when the specified ``dtype`` matches the data type of the input array ``x``. If ``True``, a newly allocated array will always be returned. If ``False`` and the specified ``dtype`` matches the data type of the input array, the input array will be returned; otherwise, a newly allocated will be returned.
+        Specifies whether to copy an array when the specified ``dtype`` matches the data
+        type of the input array ``x``. If ``True``, a newly allocated array will always
+        be returned. If ``False`` and the specified ``dtype`` matches the data type of
+        the input array, the input array will be returned; otherwise, a newly allocated
+        will be returned.
 
     Returns
     -------
@@ -139,7 +144,8 @@ def can_cast(from_: Union[DType, Array], to: DType, /) -> bool:
     Returns
     -------
     out
-        ``True`` if the cast can occur according to the type promotion rules; otherwise, ``False``.
+        ``True`` if the cast can occur according to the type promotion rules; otherwise,
+        ``False``.
     """
     return _impl.can_cast(from_, to)
 
@@ -150,7 +156,8 @@ def finfo(type: Union[DType, Array], /) -> MachineLimitsFloatingPoint:
     Parameters
     ----------
     type
-        The kind of floating-point data-type about which to get information. If complex, the information is about its component data type.
+        The kind of floating-point data-type about which to get information. If complex,
+        the information is about its component data type.
 
     Returns
     -------
@@ -215,7 +222,8 @@ def result_type(*arrays_and_dtypes: Union[Array, DType]) -> DType:
     arguments.
 
     .. note::
-       If provided mixed dtypes (e.g., integer and floating-point), the returned dtype will be implementation-specific.
+       If provided mixed dtypes (e.g., integer and floating-point), the returned dtype
+       will be implementation-specific.
 
     Parameters
     ----------

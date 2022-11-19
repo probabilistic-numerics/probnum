@@ -14,7 +14,7 @@ finite computational resources and stochastic input.
 # unguarded global state and is hence not thread-safe!
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
 
-# Compute Backends
+# Compute Backend
 from . import backend
 
 # Abstract interfaces for (components of) probabilistic numerical methods.

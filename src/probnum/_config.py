@@ -115,7 +115,6 @@ class Configuration:
 _GLOBAL_CONFIG_SINGLETON = Configuration()
 
 # ... define some configuration options, and the respective default values
-# (which have to be documented in the Configuration-class docstring!!), ...
 _DEFAULT_CONFIG_OPTIONS = [
     # list of tuples (config_key, default_value)
     (
