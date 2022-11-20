@@ -39,9 +39,6 @@ class ParticleFilter(_bayesfiltsmooth.BayesFiltSmooth):
     A PF estimates the posterior distribution of a Markov process
     given noisy, non-linear observations, with a set of particles.
 
-    The random state of the particle filter is inferred
-    from the random state of the initial random variable.
-
     Parameters
     ----------
     prior_process :

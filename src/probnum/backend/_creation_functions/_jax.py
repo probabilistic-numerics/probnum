@@ -71,6 +71,8 @@ def empty_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "jax.Array":
+    if device is None:
+        device = x.device()
     return jax.device_put(jnp.empty_like(x, shape=shape, dtype=dtype), device=device)
 
 
@@ -105,6 +107,8 @@ def full_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "jax.Array":
+    if device is None:
+        device = x.device()
     return jax.device_put(
         jnp.full_like(x, fill_value=fill_value, shape=shape, dtype=dtype), device=device
     )
@@ -147,6 +151,8 @@ def ones_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "jax.Array":
+    if device is None:
+        device = x.device()
     return jax.device_put(jnp.ones_like(x, shape=shape, dtype=dtype), device=device)
 
 
@@ -167,4 +173,6 @@ def zeros_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "jax.Array":
+    if device is None:
+        device = x.device()
     return jax.device_put(jnp.zeros_like(x, shape=shape, dtype=dtype), device=device)

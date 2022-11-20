@@ -43,7 +43,7 @@ def argmax(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -
         containing the indices of the maximum values. The returned array must have be
         the default array index data type.
     """
-    return _impl.argmax(x=x, axis=axis, keepdims=keepdims)
+    return _impl.argmax(x, axis=axis, keepdims=keepdims)
 
 
 def argmin(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -> Array:
@@ -73,7 +73,7 @@ def argmin(x: Array, /, *, axis: Optional[int] = None, keepdims: bool = False) -
         containing the indices of the minimum values. The returned array must have the
         default array index data type.
     """
-    return _impl.argmin(x=x, axis=axis, keepdims=keepdims)
+    return _impl.argmin(x, axis=axis, keepdims=keepdims)
 
 
 def nonzero(x: Array, /) -> Tuple[Array, ...]:

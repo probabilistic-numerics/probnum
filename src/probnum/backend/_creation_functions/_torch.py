@@ -78,6 +78,8 @@ def empty_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "torch.Tensor":
+    if device is None:
+        device = x.device
     return torch.empty_like(x, layout=shape, dtype=dtype, device=device)
 
 
@@ -116,6 +118,8 @@ def full_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "torch.Tensor":
+    if device is None:
+        device = x.device
     return torch.full_like(
         x, fill_value=fill_value, layout=shape, dtype=dtype, device=device
     )
@@ -158,6 +162,8 @@ def ones_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "torch.Tensor":
+    if device is None:
+        device = x.device
     return torch.ones_like(x, layout=shape, dtype=dtype, device=device)
 
 
@@ -178,4 +184,6 @@ def zeros_like(
     dtype: Optional[DType] = None,
     device: Optional[Device] = None,
 ) -> "torch.Tensor":
+    if device is None:
+        device = x.device
     return torch.zeros_like(x, layout=shape, dtype=dtype, device=device)
