@@ -65,7 +65,7 @@ def iinfo(type: Union["DType", "torch.Tensor"], /) -> Dict:
 
 
 def is_floating_dtype(dtype: "DType", /) -> bool:
-    return torch.is_floating(torch.empty((), dtype=dtype))
+    return torch.is_floating_point(torch.empty((), dtype=dtype))
 
 
 def promote_types(type1: "DType", type2: "DType", /) -> "DType":

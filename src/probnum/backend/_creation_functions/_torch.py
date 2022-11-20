@@ -7,6 +7,7 @@ try:
 except ModuleNotFoundError:
     pass
 from .. import Device, DType
+from ... import config
 from .._data_types import is_floating_dtype
 from ..typing import ShapeType
 

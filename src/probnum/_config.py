@@ -6,15 +6,23 @@ from . import BACKEND, Backend
 
 # Select default dtype.
 default_floating_dtype = None
+default_device = None
 if BACKEND is Backend.NUMPY:
     from numpy import float64 as default_floating_dtype
 elif BACKEND is Backend.JAX:
     import jax
     from jax.numpy import float64 as default_floating_dtype
 
+    default_device = jax.devices()[0]
     jax.config.update("jax_enable_x64", True)
 elif BACKEND is Backend.TORCH:
+    import torch
     from torch import float64 as default_floating_dtype
+
+    default_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+__all__ = ["Configuration", "_GLOBAL_CONFIG_SINGLETON"]
 
 
 class Configuration:
@@ -138,8 +146,20 @@ _DEFAULT_CONFIG_OPTIONS = [
             r"The default floating point data type to use when creating numeric "
             r"objects, such as "
             r":class:`~probnum.backend.Array`\ s. One of "
-            r"``None, backend.float32, backend.float64``. If ``None``, the default "
-            r"``dtype`` of the chosen computation backend is used."
+            r"``None``, :class:`~probnum.backend.float32`, "
+            r":class:`~probnum.backend.float64`. If ``None``, the default "
+            r"``dtype`` of the selected computation backend is used."
+        ),
+    ),
+    (
+        "default_device",
+        default_device,
+        (
+            r"The default device to use for numeric objects, such as "
+            r":class:`~probnum.backend.Array`\ s. By default uses the (first) GPU,"
+            r" if available; if not, the CPU is used. If ``None``, "
+            r"the placement is controlled by the behavior of the selected "
+            r"computation backend."
         ),
     ),
     (

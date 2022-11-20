@@ -213,6 +213,8 @@ def arange(
     """
     if dtype is None:
         dtype = config.default_floating_dtype
+    if device is None:
+        device = config.default_device
     return _impl.arange(start, stop, step, dtype=dtype, device=device)
 
 
@@ -241,6 +243,8 @@ def empty(
     """
     if dtype is None:
         dtype = config.default_floating_dtype
+    if device is None:
+        device = config.default_device
     return _impl.empty(asshape(shape), dtype=dtype, device=device)
 
 
@@ -276,6 +280,8 @@ def empty_like(
         dtype = x.dtype
     if shape is not None:
         shape = asshape(shape)
+    if device is None:
+        device = x.device
     return _impl.empty_like(x, shape=shape, dtype=dtype, device=device)
 
 
@@ -315,6 +321,8 @@ def eye(
     """
     if dtype is None:
         dtype = config.default_floating_dtype
+    if device is None:
+        device = config.default_device
     return _impl.eye(n_rows, n_cols, k=k, dtype=dtype, device=device)
 
 
@@ -355,6 +363,8 @@ def full(
     out
         an array where every element is equal to ``fill_value``.
     """
+    if device is None:
+        device = config.default_device
     return _impl.full(shape, fill_value, dtype=dtype, device=device)
 
 
@@ -395,6 +405,8 @@ def full_like(
         shape = asshape(shape)
     if dtype is None:
         dtype = x.dtype
+    if device is None:
+        device = x.device
     return _impl.full_like(
         x, fill_value=fill_value, shape=shape, dtype=dtype, device=device
     )
@@ -448,6 +460,8 @@ def linspace(
     """
     if dtype is None:
         dtype = config.default_floating_dtype
+    if device is None:
+        device = config.default_device
     return _impl.linspace(
         start, stop, num=num, dtype=dtype, device=device, endpoint=endpoint
     )
@@ -516,6 +530,8 @@ def ones(
     """
     if dtype is None:
         dtype = config.default_floating_dtype
+    if device is None:
+        device = config.default_device
     return _impl.ones(shape, dtype=dtype, device=device)
 
 
@@ -552,6 +568,8 @@ def ones_like(
         shape = asshape(shape)
     if dtype is None:
         dtype = x.dtype
+    if device is None:
+        device = x.device
     return _impl.ones_like(x, shape=shape, dtype=dtype, device=device)
 
 
@@ -580,6 +598,8 @@ def zeros(
     """
     if dtype is None:
         dtype = config.default_floating_dtype
+    if device is None:
+        device = config.default_device
     return _impl.zeros(shape, dtype=dtype, device=device)
 
 
@@ -616,4 +636,6 @@ def zeros_like(
         dtype = x.dtype
     if shape is not None:
         shape = asshape(shape)
+    if device is None:
+        device = x.device
     return _impl.zeros_like(x, shape=shape, dtype=dtype, device=device)
