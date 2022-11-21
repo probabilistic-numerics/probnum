@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 from scipy.stats import qmc
 
@@ -21,15 +23,13 @@ class LatinDesign(InitialDesign):
         The integration measure.
     num_nodes
         The number of nodes to be designed.
-    rng
-        A random number generator.
+
     """
 
     def __init__(
         self,
         measure: IntegrationMeasure,
         num_nodes: IntLike,
-        rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
         if np.Inf in [abs(measure.domain[0]), abs(measure.domain[1])]:
             raise ValueError(
@@ -38,9 +38,8 @@ class LatinDesign(InitialDesign):
             )
 
         super().__init__(measure=measure, num_nodes=num_nodes)
-        self.rng = rng
 
-    def __call__(self) -> np.ndarray:
-        sampler = qmc.LatinHypercube(d=self.measure.input_dim, seed=self.rng)
+    def __call__(self, rng: Optional[np.random.Generator]) -> np.ndarray:
+        sampler = qmc.LatinHypercube(d=self.measure.input_dim, seed=rng)
         sample = sampler.random(n=self.num_nodes)
         return qmc.scale(sample, self.measure.domain[0], self.measure.domain[1])

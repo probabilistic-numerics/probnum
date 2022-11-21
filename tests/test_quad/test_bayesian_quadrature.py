@@ -40,7 +40,6 @@ def bq_no_policy(input_dim):
         input_dim=input_dim,
         domain=(np.zeros(input_dim), np.ones(input_dim)),
         policy=None,
-        options=dict(rng=np.random.default_rng(42)),
     )
 
 

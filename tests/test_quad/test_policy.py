@@ -6,6 +6,8 @@ import pytest
 from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
 from probnum.quad.solvers.policies import VanDerCorputPolicy
 
+# Todo: tests for other policies
+
 
 def test_van_der_corput_multi_d_error():
     """Check that van der Corput policy fails in dimensions higher than one."""

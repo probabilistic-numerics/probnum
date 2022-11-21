@@ -354,7 +354,7 @@ class BayesianQuadrature:
 
         # Get the rng
         if isinstance(rng, IntLike):
-            rng = np.random.default_rng(int(rng))  # Todo: use this in policy and init design
+            rng = np.random.default_rng(int(rng))
 
         # no policy given: Integrate on fixed dataset.
         if self.policy is None:
@@ -379,7 +379,7 @@ class BayesianQuadrature:
                 "'fun_evals'."
             )
 
-        # Setup initial design
+        # Setup fixed design
         if nodes is not None and fun_evals is None:
             fun_evals = fun(nodes)
 
@@ -401,7 +401,7 @@ class BayesianQuadrature:
 
         # get initial design nodes
         if self.initial_design is not None:
-            initial_design_nodes = self.initial_design()
+            initial_design_nodes = self.initial_design(rng)
             initial_design_fun_evals = fun(initial_design_nodes)
             if nodes is not None:
                 nodes = np.concatenate((nodes, initial_design_nodes), axis=0)

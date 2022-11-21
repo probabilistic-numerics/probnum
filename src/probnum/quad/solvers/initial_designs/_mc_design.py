@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 
 from probnum.quad.integration_measures import IntegrationMeasure
@@ -33,5 +35,5 @@ class MCDesign(InitialDesign):
         super().__init__(measure=measure, num_nodes=num_nodes)
         self.rng = rng
 
-    def __call__(self) -> np.ndarray:
-        return self.measure.sample(self.num_nodes, rng=self.rng)
+    def __call__(self, rng: Optional[np.random.Generator]) -> np.ndarray:
+        return self.measure.sample(self.num_nodes, rng=rng)
