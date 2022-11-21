@@ -142,6 +142,6 @@ class KernelEmbedding:
 
         # other kernels
         raise NotImplementedError(
-            "The combination of kernel ({0}) and measure ({1}) is not available as kernel "
-            "embedding.".format(type(kernel), type(measure))
+            "The combination of kernel ({0}) and measure ({1}) is not available as "
+            "kernel embedding.".format(type(kernel), type(measure))
         )
