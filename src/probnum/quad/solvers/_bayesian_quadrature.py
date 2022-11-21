@@ -20,6 +20,7 @@ from probnum.quad.solvers.stopping_criteria import (
     RelativeMeanChange,
 )
 from probnum.quad.typing import DomainLike
+from probnum.quad.solvers.initial_designs import InitialDesign
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
@@ -63,12 +64,14 @@ class BayesianQuadrature:
         policy: Optional[Policy],
         belief_update: BQBeliefUpdate,
         stopping_criterion: BQStoppingCriterion,
+        initial_design: Optional[InitialDesign],
     ) -> None:
         self.kernel = kernel
         self.measure = measure
         self.policy = policy
         self.belief_update = belief_update
         self.stopping_criterion = stopping_criterion
+        self.initial_design = initial_design
 
     @classmethod
     def from_problem(
@@ -85,6 +88,8 @@ class BayesianQuadrature:
         batch_size: IntLike = 1,
         rng: np.random.Generator = None,
         jitter: FloatLike = 1.0e-8,
+        initial_design: Optional[str] = None,
+        num_initial_design_nodes: Optional[int] = None,
     ) -> "BayesianQuadrature":
 
         r"""Creates an instance of this class from a problem description.
