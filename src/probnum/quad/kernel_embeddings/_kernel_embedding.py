@@ -29,19 +29,10 @@ class KernelEmbedding:
 
     ============= ===============
     ExpQuad       LebesgueMeasure
-    ============= ===============
-
-    ============= ===============
     ExpQuad       GaussianMeasure
+    Matern (1d)   LebesgueMeasure
+    ProductMatern LebesgueMeasure
     ============= ===============
-
-    =============  ===============
-    Matern (1d)    LebesgueMeasure
-    =============  ===============
-
-    =============  ===============
-    ProductMatern  LebesgueMeasure
-    =============  ===============
 
     Parameters
     ----------

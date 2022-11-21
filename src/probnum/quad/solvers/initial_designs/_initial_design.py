@@ -22,6 +22,9 @@ class InitialDesign(abc.ABC):
         The number of nodes to be designed.
     """
 
+    # Todo: make stateless.
+    # Todo: rename call to sample
+
     def __init__(self, measure: IntegrationMeasure, num_nodes: IntLike) -> None:
         self.measure = measure
         self.num_nodes = int(num_nodes)

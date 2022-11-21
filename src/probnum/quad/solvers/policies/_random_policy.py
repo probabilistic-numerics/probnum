@@ -1,6 +1,6 @@
 """Random policy for Bayesian Monte Carlo."""
 
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -22,19 +22,18 @@ class RandomPolicy(Policy):
         shape (batch_size, n_dim).
     batch_size
         Size of batch of nodes when calling the policy once.
-    rng
-        A random number generator.
+
     """
 
     def __init__(
         self,
         sample_func: Callable,
         batch_size: int,
-        rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
         super().__init__(batch_size=batch_size)
         self.sample_func = sample_func
-        self.rng = rng
 
-    def __call__(self, bq_state: BQState) -> np.ndarray:
-        return self.sample_func(self.batch_size, rng=self.rng)
+    def __call__(
+        self, bq_state: BQState, rng: Optional[np.random.Generator]
+    ) -> np.ndarray:
+        return self.sample_func(self.batch_size, rng=rng)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 import warnings
 
 import numpy as np
@@ -125,8 +125,6 @@ class BayesianQuadrature:
                 num_initial_design_nodes : Optional[IntLike]
                     The number of nodes created by the initial design. Defaults to
                     ``input_dim * 5`` if an initial design is given.
-                rng : Optional[np.random.Generator]
-                    The random number generator used for random methods.
 
         Returns
         -------
@@ -137,9 +135,6 @@ class BayesianQuadrature:
         ------
         ValueError
             If neither a ``domain`` nor a ``measure`` are given.
-        ValueError
-            If Bayesian Monte Carlo ('bmc') is selected as ``policy`` and no random
-            number generator (``rng``) is given.
         NotImplementedError
             If an unknown ``policy`` is given.
         NotImplementedError
@@ -160,7 +155,6 @@ class BayesianQuadrature:
         num_initial_design_nodes = options.get(
             "num_initial_design_nodes", int(5 * input_dim)
         )
-        rng = options.get("rng", np.random.default_rng())
 
         # var_tol may be adjusted later if no other stopping condition is given.
         var_tol = options.get("var_tol", None)
@@ -184,7 +178,7 @@ class BayesianQuadrature:
             # require an acquisition loop. The error handling is done in ``integrate``.
             pass
         elif policy == "bmc":
-            policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
+            policy = RandomPolicy(measure.sample, batch_size=batch_size)
         elif policy == "vdc":
             policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)
         else:
@@ -253,6 +247,7 @@ class BayesianQuadrature:
         bq_state: BQState,
         info: BQIterInfo,
         fun: Optional[Callable],
+        rng: np.random.Generator,
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Generator that implements the iteration of the BQ method.
 
@@ -269,6 +264,8 @@ class BayesianQuadrature:
         fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
+        rng
+            The random number generator used for random methods.
 
         Yields
         ------
@@ -285,14 +282,14 @@ class BayesianQuadrature:
             _has_converged = self.stopping_criterion(bq_state, info)
             info = BQIterInfo.from_stopping_decision(info, has_converged=_has_converged)
 
-            yield bq_state.integral_belief, bq_state, info
+            yield bq_state.integral_belief, bq_state, info, rng
 
             # Have we already converged?
             if _has_converged:
                 break
 
             # Select new nodes via policy
-            new_nodes = self.policy(bq_state=bq_state)
+            new_nodes = self.policy(bq_state=bq_state, rng=rng)
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)
@@ -312,6 +309,7 @@ class BayesianQuadrature:
         fun: Optional[Callable],
         nodes: Optional[np.ndarray],
         fun_evals: Optional[np.ndarray],
+        rng: Union[IntLike, np.random.Generator] = np.random.default_rng(),
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Integrates the function ``fun``.
 
@@ -331,6 +329,8 @@ class BayesianQuadrature:
         fun_evals
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
+        rng
+            The random number generator used for random methods, or a seed.
 
         Returns
         -------
@@ -349,7 +349,13 @@ class BayesianQuadrature:
         ValueError
             If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
+
         """
+
+        # Get the rng
+        if isinstance(rng, IntLike):
+            rng = np.random.default_rng(int(rng))  # Todo: use this in policy and init design
+
         # no policy given: Integrate on fixed dataset.
         if self.policy is None:
             # nodes must be provided if no policy is given.
@@ -423,7 +429,7 @@ class BayesianQuadrature:
         info = BQIterInfo.from_bq_state(bq_state)
 
         # run loop
-        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun):
+        for (_, bq_state, info, rng) in self.bq_iterator(bq_state, info, fun, rng):
             pass
 
         return bq_state.integral_belief, bq_state, info

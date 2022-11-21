@@ -8,7 +8,7 @@ integral.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 import warnings
 
 import numpy as np
@@ -29,6 +29,7 @@ def bayesquad(
     domain: Optional[DomainLike] = None,
     policy: Optional[str] = "bmc",
     initial_design: Optional[str] = None,
+    rng: Union[IntLike, np.random.Generator] = np.random.default_rng(),
     options: Optional[dict] = None,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
@@ -83,6 +84,10 @@ def bayesquad(
          Latin hypercube [3]_       ``latin``
         ==========================  =========
 
+    rng
+        The random number generator used for random methods, or a seed.
+        Default is `np.random.default_rng()`.
+
     options
         A dictionary with the following optional solver settings
 
@@ -108,9 +113,6 @@ def bayesquad(
             num_initial_design_nodes : Optional[IntLike]
                 The number of nodes created by the initial design. Defaults to
                 ``input_dim * 5`` if an initial design is given.
-            rng : Optional[np.random.Generator]
-                The random number generator used for random methods. Default is
-                `np.random.default_rng()`.
 
     Returns
     -------
@@ -176,7 +178,9 @@ def bayesquad(
     )
 
     # Integrate
-    integral_belief, _, info = bq_method.integrate(fun=fun, nodes=None, fun_evals=None)
+    integral_belief, _, info = bq_method.integrate(
+        fun=fun, nodes=None, fun_evals=None, rng=rng
+    )
 
     return integral_belief, info
 
