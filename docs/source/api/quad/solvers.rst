@@ -19,3 +19,8 @@ probnum.quad.solvers
     :hidden:
 
     solvers.stopping_criteria
+
+.. toctree::
+    :hidden:
+
+    solvers.initial_designs

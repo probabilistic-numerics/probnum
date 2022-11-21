@@ -23,18 +23,13 @@ from probnum.typing import FloatLike, IntLike
 
 def bayesquad(
     fun: Callable,
-    input_dim: int,
+    input_dim: IntLike,
     kernel: Optional[Kernel] = None,
-    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
+    domain: Optional[DomainLike] = None,
     policy: Optional[str] = "bmc",
-    scale_estimation: Optional[str] = "mle",
-    max_evals: Optional[IntLike] = None,
-    var_tol: Optional[FloatLike] = None,
-    rel_tol: Optional[FloatLike] = None,
-    batch_size: IntLike = 1,
-    rng: Optional[np.random.Generator] = np.random.default_rng(),
-    jitter: FloatLike = 1.0e-8,
+    initial_design: Optional[str] = None,
+    options: Optional[dict] = None,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
     :math:`\int_\Omega f(x) d \mu(x)`
@@ -66,44 +61,56 @@ def bayesquad(
         Input dimension of the integration problem.
     kernel
         The kernel used for the GP model. Defaults to the ``ExpQuad`` kernel.
+    measure
+        The integration measure. Defaults to the Lebesgue measure on ``domain``.
     domain
         The integration domain. Contains lower and upper bound as scalar or
         ``np.ndarray``. Obsolete if ``measure`` is given.
-    measure
-        The integration measure. Defaults to the Lebesgue measure on ``domain``.
     policy
         Type of acquisition strategy to use. Defaults to 'bmc'. Options are
 
         ==========================  =======
          Bayesian Monte Carlo [2]_  ``bmc``
-        ==========================  =======
-
-        ==========================  =======
          van Der Corput points      ``vdc``
         ==========================  =======
 
-    scale_estimation
-        Estimation method to use to compute the scale parameter. Defaults to 'mle'.
-        Options are
+    initial_design
+        The type of initial design to use. If ``None`` is given, no initial design is
+        used. Options are
 
-        ==============================  =======
-         Maximum likelihood estimation  ``mle``
-        ==============================  =======
+        ==========================  =========
+         Samples from measure       ``mc``
+         Latin hypercube [3]_       ``latin``
+        ==========================  =========
 
-    max_evals
-        Maximum number of function evaluations.
-    var_tol
-        Tolerance on the variance of the integral.
-    rel_tol
-        Tolerance on consecutive updates of the integral mean.
-    batch_size
-        Number of new observations at each update. Defaults to 1.
-    rng
-        Random number generator. Used by Bayesian Monte Carlo other random sampling
-        policies. Optional. Default is `np.random.default_rng()`.
-    jitter
-        Non-negative jitter to numerically stabilise kernel matrix inversion.
-        Defaults to 1e-8.
+    options
+        A dictionary with the following optional solver settings
+
+            scale_estimation : Optional[str]
+                Estimation method to use to compute the scale parameter. Defaults
+                to 'mle'. Options are
+
+                ==============================  =======
+                 Maximum likelihood estimation  ``mle``
+                ==============================  =======
+
+            max_evals : Optional[IntLike]
+                Maximum number of function evaluations.
+            var_tol : Optional[FloatLike]
+                Tolerance on the variance of the integral.
+            rel_tol : Optional[FloatLike]
+                Tolerance on consecutive updates of the integral mean.
+            jitter : Optional[FloatLike]
+                Non-negative jitter to numerically stabilise kernel matrix
+                inversion. Defaults to 1e-8.
+            batch_size : Optional[IntLike]
+                Number of new observations at each update. Defaults to 1.
+            num_initial_design_nodes : Optional[IntLike]
+                The number of nodes created by the initial design. Defaults to
+                ``input_dim * 5`` if an initial design is given.
+            rng : Optional[np.random.Generator]
+                The random number generator used for random methods. Default is
+                `np.random.default_rng()`.
 
     Returns
     -------
@@ -138,6 +145,8 @@ def bayesquad(
         computation?, *Statistical Science 34.1*, 2019, 1-22, 2019
     .. [2] Rasmussen, C. E., and Z. Ghahramani, Bayesian Monte Carlo, *Advances in
         Neural Information Processing Systems*, 2003, 505-512.
+    .. [3] Mckay et al., A Comparison of Three Methods for Selecting Values of Input
+        Variables in the Analysis of Output from a Computer Code, *Technometrics*, 1979.
 
     Examples
     --------
@@ -162,13 +171,8 @@ def bayesquad(
         measure=measure,
         domain=domain,
         policy=policy,
-        scale_estimation=scale_estimation,
-        max_evals=max_evals,
-        var_tol=var_tol,
-        rel_tol=rel_tol,
-        batch_size=batch_size,
-        rng=rng,
-        jitter=jitter,
+        initial_design=initial_design,
+        options=options,
     )
 
     # Integrate
@@ -181,10 +185,9 @@ def bayesquad_from_data(
     nodes: np.ndarray,
     fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
-    domain: Optional[DomainLike] = None,
     measure: Optional[IntegrationMeasure] = None,
-    scale_estimation: Optional[str] = "mle",
-    jitter: FloatLike = 1.0e-8,
+    domain: Optional[DomainLike] = None,
+    options: Optional[dict] = None,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the value of an integral from a given set of nodes and function
     evaluations.
@@ -198,16 +201,25 @@ def bayesquad_from_data(
         *shape=(n_eval,)* -- Function evaluations at ``nodes``.
     kernel
         The kernel used for the GP model. Defaults to the ``ExpQuad`` kernel.
+    measure
+        The integration measure. Defaults to the Lebesgue measure.
     domain
         The integration domain. Contains lower and upper bound as scalar or
         ``np.ndarray``. Obsolete if ``measure`` is given.
-    measure
-        The integration measure. Defaults to the Lebesgue measure.
-    scale_estimation
-        Estimation method to use to compute the scale parameter. Defaults to 'mle'.
-    jitter
-        Non-negative jitter to numerically stabilise kernel matrix inversion.
-        Defaults to 1e-8.
+    options
+        A dictionary with the following optional solver settings
+
+            scale_estimation : Optional[str]
+                Estimation method to use to compute the scale parameter. Defaults
+                to 'mle'. Options are
+
+                ==============================  =======
+                 Maximum likelihood estimation  ``mle``
+                ==============================  =======
+
+            jitter : Optional[FloatLike]
+                Non-negative jitter to numerically stabilise kernel matrix
+                inversion. Defaults to 1e-8.
 
     Returns
     -------
@@ -255,8 +267,8 @@ def bayesquad_from_data(
         measure=measure,
         domain=domain,
         policy=None,
-        scale_estimation=scale_estimation,
-        jitter=jitter,
+        initial_design=None,
+        options=options,
     )
 
     # Integrate
@@ -272,6 +284,8 @@ def _check_domain_measure_compatibility(
     domain: Optional[DomainLike],
     measure: Optional[IntegrationMeasure],
 ) -> Tuple[int, Optional[DomainType], IntegrationMeasure]:
+
+    input_dim = int(input_dim)
 
     # Neither domain nor measure given
     if domain is None and measure is None:
