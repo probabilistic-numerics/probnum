@@ -204,7 +204,7 @@ class BayesianQuadrature:
         info: Optional[BQIterInfo],
         fun: Optional[Callable],
         rng: np.random.Generator,
-    ) -> Tuple[Normal, BQState, BQIterInfo, np.random.Generator]:
+    ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Generator that implements the iteration of the BQ method.
 
         This function exposes the state of the BQ method one step at a time while
