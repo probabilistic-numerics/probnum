@@ -3,9 +3,11 @@
 import numpy as np
 
 from probnum.quad.integration_measures import IntegrationMeasure
+
 from ._initial_design import InitialDesign
 
 
+# pylint: disable=too-few-public-methods
 class BMCDesign(InitialDesign):
     """Initial design for Bayesian quadrature that samples from the integration measure.
 
@@ -15,9 +17,13 @@ class BMCDesign(InitialDesign):
         The integration measure.
      rng
         A random number generator.
-   """
+    """
 
-    def __init__(self, measure: IntegrationMeasure, rng: np.random.Generator = np.random.default_rng()) -> None:
+    def __init__(
+        self,
+        measure: IntegrationMeasure,
+        rng: np.random.Generator = np.random.default_rng(),
+    ) -> None:
         # Todo: check if sampling from measure is possible.
         super().__init__(measure=measure)
         self.rng = rng

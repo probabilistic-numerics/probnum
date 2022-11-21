@@ -7,6 +7,7 @@ import numpy as np
 from probnum.quad.integration_measures import IntegrationMeasure
 
 
+# pylint: disable=too-few-public-methods
 class InitialDesign(abc.ABC):
     """An abstract class for an initial design for Bayesian quadrature.
 

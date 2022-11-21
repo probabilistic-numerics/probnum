@@ -11,6 +11,7 @@ from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasur
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
+from probnum.quad.solvers.initial_designs import InitialDesign
 from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
@@ -20,7 +21,6 @@ from probnum.quad.solvers.stopping_criteria import (
     RelativeMeanChange,
 )
 from probnum.quad.typing import DomainLike
-from probnum.quad.solvers.initial_designs import InitialDesign
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.typing import FloatLike, IntLike
