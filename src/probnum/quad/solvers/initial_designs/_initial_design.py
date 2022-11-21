@@ -1,4 +1,4 @@
-"""Abstract base class for BQ initial designs."""
+"""Abstract base class of an initial design for Bayesian quadrature."""
 
 import abc
 
