@@ -18,10 +18,15 @@ def rng():
 
 
 @pytest.mark.parametrize("input_dim", [1], ids=["dim1"])
-def test_type_1d(f1d, kernel, measure, input_dim):
+def test_type_1d(f1d, kernel, measure, input_dim, rng):
     """Test that BQ outputs normal random variables for 1D integrands."""
     integral, _ = bayesquad(
-        fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_evals=10
+        fun=f1d,
+        input_dim=input_dim,
+        kernel=kernel,
+        measure=measure,
+        max_evals=10,
+        rng=rng,
     )
     assert isinstance(integral, Normal)
 
@@ -43,7 +48,7 @@ def test_type_1d(f1d, kernel, measure, input_dim):
 @pytest.mark.parametrize("scale_estimation", [None, "mle"])
 @pytest.mark.parametrize("jitter", [1e-6, 1e-7])
 def test_integral_values_1d(
-    f1d, kernel, domain, input_dim, scale_estimation, var_tol, rel_tol, jitter
+    f1d, kernel, domain, input_dim, scale_estimation, var_tol, rel_tol, jitter, rng
 ):
     """Test numerically that BQ computes 1D integrals correctly for a number of
     different parameters.
@@ -70,6 +75,7 @@ def test_integral_values_1d(
         var_tol=var_tol,
         rel_tol=rel_tol,
         jitter=jitter,
+        rng=rng,
     )
     domain = measure.domain
     num_integral, _ = scipyquad(integrand, domain[0], domain[1])

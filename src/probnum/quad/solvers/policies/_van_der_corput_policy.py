@@ -46,7 +46,9 @@ class VanDerCorputPolicy(Policy):
         self.domain_a = domain_a
         self.domain_b = domain_b
 
-    def __call__(self, bq_state: BQState) -> np.ndarray:
+    def __call__(
+        self, bq_state: BQState, rng: Optional[np.random.Generator]
+    ) -> np.ndarray:
         n_nodes = bq_state.nodes.shape[0]
         vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(
             n_nodes + 1, n_nodes + 1 + self.batch_size

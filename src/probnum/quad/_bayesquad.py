@@ -167,12 +167,13 @@ def bayesquad(
         var_tol=var_tol,
         rel_tol=rel_tol,
         batch_size=batch_size,
-        rng=rng,
         jitter=jitter,
     )
 
     # Integrate
-    integral_belief, _, info = bq_method.integrate(fun=fun, nodes=None, fun_evals=None)
+    integral_belief, _, info = bq_method.integrate(
+        fun=fun, nodes=None, fun_evals=None, rng=rng
+    )
 
     return integral_belief, info
 
@@ -261,7 +262,7 @@ def bayesquad_from_data(
 
     # Integrate
     integral_belief, _, info = bq_method.integrate(
-        fun=None, nodes=nodes, fun_evals=fun_evals
+        fun=None, nodes=nodes, fun_evals=fun_evals, rng=None
     )
 
     return integral_belief, info

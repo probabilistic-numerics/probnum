@@ -1,6 +1,7 @@
 """Abstract base class for BQ policies."""
 
 import abc
+from typing import Optional
 
 import numpy as np
 
@@ -22,13 +23,18 @@ class Policy(abc.ABC):
         self.batch_size = batch_size
 
     @abc.abstractmethod
-    def __call__(self, bq_state: BQState) -> np.ndarray:
+    def __call__(
+        self, bq_state: BQState, rng: Optional[np.random.Generator]
+    ) -> np.ndarray:
         """Find nodes according to the policy.
 
         Parameters
         ----------
         bq_state
             State of the BQ belief.
+        rng
+            A random number generator.
+
         Returns
         -------
         nodes :
