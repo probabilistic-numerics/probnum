@@ -23,7 +23,7 @@ from probnum.quad.solvers.stopping_criteria import (
 from probnum.quad.typing import DomainLike
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
+from probnum.typing import IntLike
 
 # pylint: disable=too-many-branches, too-complex
 
@@ -160,9 +160,9 @@ class BayesianQuadrature:
         num_initial_design_nodes = options.get(
             "num_initial_design_nodes", int(5 * input_dim)
         )
+        rng = options.get("rng", np.random.default_rng())
 
-        # these options may be adjusted later depending on if they are needed.
-        rng = options.get("rng", None)
+        # var_tol may be adjusted later if no other stopping condition is given.
         var_tol = options.get("var_tol", None)
 
         # Set up integration measure
@@ -184,12 +184,6 @@ class BayesianQuadrature:
             # require an acquisition loop. The error handling is done in ``integrate``.
             pass
         elif policy == "bmc":
-            if rng is None:
-                errormsg = (
-                    "Policy 'bmc' relies on random sampling, "
-                    "thus requires a random number generator ('rng')."
-                )
-                raise ValueError(errormsg)
             policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
         elif policy == "vdc":
             policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)

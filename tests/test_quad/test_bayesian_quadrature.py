@@ -31,7 +31,6 @@ def bq(input_dim):
     return BayesianQuadrature.from_problem(
         input_dim=input_dim,
         domain=(np.zeros(input_dim), np.ones(input_dim)),
-        rng=np.random.default_rng(),
     )
 
 
@@ -41,6 +40,7 @@ def bq_no_policy(input_dim):
         input_dim=input_dim,
         domain=(np.zeros(input_dim), np.ones(input_dim)),
         policy=None,
+        options=dict(rng=np.random.default_rng(42)),
     )
 
 
@@ -56,9 +56,7 @@ def test_bq_from_problem_wrong_inputs(input_dim):
 )
 def test_bq_from_problem_policy_assignment(policy, policy_type):
     """Test if correct policy is assigned from string identifier."""
-    bq = BayesianQuadrature.from_problem(
-        input_dim=1, domain=(0, 1), policy=policy, rng=np.random.default_rng()
-    )
+    bq = BayesianQuadrature.from_problem(input_dim=1, domain=(0, 1), policy=policy)
     assert isinstance(bq.policy, policy_type)
 
 

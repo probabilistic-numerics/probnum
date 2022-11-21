@@ -18,10 +18,14 @@ def rng():
 
 
 @pytest.mark.parametrize("input_dim", [1], ids=["dim1"])
-def test_type_1d(f1d, kernel, measure, input_dim):
+def test_type_1d(f1d, kernel, measure, input_dim, rng):
     """Test that BQ outputs normal random variables for 1D integrands."""
     integral, _ = bayesquad(
-        fun=f1d, input_dim=input_dim, kernel=kernel, measure=measure, max_evals=10
+        fun=f1d,
+        input_dim=input_dim,
+        kernel=kernel,
+        measure=measure,
+        options=dict(max_evals=10, rng=rng),
     )
     assert isinstance(integral, Normal)
 
@@ -65,11 +69,13 @@ def test_integral_values_1d(
         kernel=kernel,
         domain=domain,
         policy="vdc",
-        scale_estimation=scale_estimation,
-        max_evals=250,
-        var_tol=var_tol,
-        rel_tol=rel_tol,
-        jitter=jitter,
+        options=dict(
+            scale_estimation=scale_estimation,
+            max_evals=250,
+            var_tol=var_tol,
+            rel_tol=rel_tol,
+            jitter=jitter,
+        ),
     )
     domain = measure.domain
     num_integral, _ = scipyquad(integrand, domain[0], domain[1])
@@ -96,7 +102,7 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim, scale_estimatio
         fun_evals=fun_evals,
         kernel=kernel,
         measure=measure,
-        scale_estimation=scale_estimation,
+        options=dict(scale_estimation=scale_estimation),
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
 
@@ -129,8 +135,7 @@ def test_integral_values_sin_lebesgue(
         fun_evals=fun_evals,
         kernel=kernel,
         measure=measure,
-        scale_estimation=scale_estimation,
-        jitter=jitter,
+        options=dict(scale_estimation=scale_estimation, jitter=jitter),
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
 
@@ -138,7 +143,7 @@ def test_integral_values_sin_lebesgue(
 @pytest.mark.parametrize("input_dim", [2, 3, 4])
 @pytest.mark.parametrize("num_data", [1])
 # pylint: disable=invalid-name
-def test_integral_values_kernel_translate(kernel, measure, input_dim, x):
+def test_integral_values_kernel_translate(kernel, measure, input_dim, x, rng):
     """Test numerical integration of kernel translates."""
     kernel_embedding = KernelEmbedding(kernel, measure)
     # pylint: disable=cell-var-from-loop
@@ -149,9 +154,7 @@ def test_integral_values_kernel_translate(kernel, measure, input_dim, x):
             input_dim=input_dim,
             kernel=kernel,
             measure=measure,
-            var_tol=1e-8,
-            max_evals=1000,
-            batch_size=50,
+            options=dict(max_evals=1000, var_tol=1e-8, batch_size=50, rng=rng),
         )
         true_integral = kernel_embedding.kernel_mean(np.atleast_2d(translate_point))
         np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
@@ -193,7 +196,7 @@ def test_domain_ignored_if_lebesgue(input_dim, measure):
     assert isinstance(bq_integral, Normal)
 
 
-def test_zero_function_gives_zero_variance_with_mle():
+def test_zero_function_gives_zero_variance_with_mle(rng):
     """Test that BQ variance is zero for zero function when MLE is used to set the
     scale parameter."""
     input_dim = 1
@@ -203,10 +206,16 @@ def test_zero_function_gives_zero_variance_with_mle():
     fun_evals = fun(nodes)
 
     bq_integral1, _ = bayesquad(
-        fun=fun, input_dim=input_dim, domain=domain, scale_estimation="mle"
+        fun=fun,
+        input_dim=input_dim,
+        domain=domain,
+        options=dict(scale_estimation="mle", rng=rng),
     )
     bq_integral2, _ = bayesquad_from_data(
-        nodes=nodes, fun_evals=fun_evals, domain=domain, scale_estimation="mle"
+        nodes=nodes,
+        fun_evals=fun_evals,
+        domain=domain,
+        options=dict(scale_estimation="mle"),
     )
     assert bq_integral1.var == 0.0
     assert bq_integral2.var == 0.0

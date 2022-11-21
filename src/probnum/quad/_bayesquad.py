@@ -18,7 +18,7 @@ from probnum.quad.solvers import BayesianQuadrature, BQIterInfo
 from probnum.quad.typing import DomainLike, DomainType
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
+from probnum.typing import IntLike
 
 
 def bayesquad(
