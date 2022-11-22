@@ -6,8 +6,18 @@ from typing import Callable, Literal, Optional, Tuple, Union
 import numpy as np
 
 # pylint: disable=unused-import
-from numpy import diagonal, einsum, kron, matmul, tensordot, trace
-from numpy.linalg import det, eigh, eigvalsh, inv, pinv, slogdet, solve, svd
+from numpy import diagonal, einsum, kron, matmul, outer, tensordot, trace
+from numpy.linalg import (
+    det,
+    eigh,
+    eigvalsh,
+    inv,
+    matrix_power,
+    pinv,
+    slogdet,
+    solve,
+    svd,
+)
 import scipy.linalg
 
 
@@ -15,6 +25,10 @@ def matrix_rank(
     x: np.ndarray, /, *, rtol: Optional[Union[float, np.ndarray]] = None
 ) -> np.ndarray:
     return np.linalg.matrix_rank(x, tol=rtol)
+
+
+def matrix_transpose(x: np.ndarray, /) -> np.ndarray:
+    return np.swapaxes(x, -2, -1)
 
 
 def vector_norm(
@@ -167,3 +181,7 @@ def vecdot(x1: np.ndarray, x2: np.ndarray, axis: int = -1) -> np.ndarray:
 
     res = x1_[..., None, :] @ x2_[..., None]
     return np.asarray(res[..., 0, 0])
+
+
+def svdvals(x: np.ndarray, /) -> np.ndarray:
+    return np.linalg.svd(x, compute_uv=False, hermitian=False)

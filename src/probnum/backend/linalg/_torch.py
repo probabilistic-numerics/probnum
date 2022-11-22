@@ -6,22 +6,28 @@ try:
     import torch
 
     # pylint: disable=unused-import
-    from torch import diagonal, kron, matmul, tensordot
+    from torch import diagonal, kron, matmul, outer, tensordot
     from torch.linalg import (
         det,
         eigh,
         eigvalsh,
         inv,
+        matrix_power,
         matrix_rank,
         pinv,
         qr,
         slogdet,
         solve,
         svd,
+        svdvals,
         vecdot,
     )
 except ModuleNotFoundError:
     pass
+
+
+def matrix_transpose(x: "torch.Tensor", /) -> "torch.Tensor":
+    return torch.transpose(x, -2, -1)
 
 
 def trace(x: "torch.Tensor", /, *, offset: int = 0) -> "torch.Tensor":

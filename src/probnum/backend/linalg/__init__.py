@@ -35,6 +35,9 @@ __all__ = [
     "kron",
     "matrix_norm",
     "matrix_rank",
+    "matrix_power",
+    "matrix_transpose",
+    "outer",
     "pinv",
     "qr",
     "slogdet",
@@ -42,6 +45,7 @@ __all__ = [
     "solve_cholesky",
     "solve_triangular",
     "svd",
+    "svdvals",
     "tensordot",
     "trace",
     "tril_to_positive_tril",
@@ -50,9 +54,49 @@ __all__ = [
 ]
 __all__.sort()
 
-cholesky = _impl.cholesky
-solve_triangular = _impl.solve_triangular
-solve_cholesky = _impl.solve_cholesky
+
+def cholesky(x: Array, /, *, upper: bool = False) -> Array:
+    r"""
+    Returns the lower (upper) Cholesky decomposition of a complex Hermitian or real symmetric positive-definite matrix (or stack of matrices) ``x``.
+
+    If ``x`` is real-valued, let :math:`\mathbb{K}` be the set of real numbers
+    $\mathbb{R}$, and, if ``x`` is complex-valued, let $\mathbb{K}$ be the set of
+    complex numbers $\mathbb{C}$.
+
+    The lower Cholesky decomposition of a complex Hermitian or real symmetric
+    positive-definite matrix :math:`x \in \mathbb{K}^{n \times n}` is defined as
+
+    .. math::
+
+        x = LL^{H} \qquad \text{L $\in \mathbb{K}^{n \times n}$}
+
+    where :math:`L` is a lower triangular matrix and :math:`L^{H}` is the conjugate
+    transpose when :math:`L` is complex-valued and the transpose when :math:`L` is
+    real-valued.
+
+    The upper Cholesky decomposition is defined similarly
+
+    .. math::
+
+       x = UU^{H} \qquad \text{U $\in\ \mathbb{K}^{n \times n}$}
+
+    where :math:`U` is an upper triangular matrix.
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, M)`` and whose innermost two dimensions
+        form square complex Hermitian or real symmetric positive-definite matrices.
+    upper
+        If ``True``, the result will be the upper-triangular Cholesky factor :math:`U`.
+        If ``False``, the result will be the lower-triangular Cholesky factor :math:`L`.
+
+    Returns
+    -------
+    out
+        An array containing the Cholesky factors for each square matrix.
+    """
+    return _impl.cholesky(x, upper=upper)
 
 
 def det(x: Array, /) -> Array:
@@ -92,6 +136,25 @@ def inv(x: Array, /) -> Array:
     return _impl.inv(x)
 
 
+def outer(x1: Array, x2: Array, /) -> Array:
+    """Returns the outer product of two vectors ``x1`` and ``x2``.
+
+    Parameters
+    ----------
+    x1
+        First one-dimensional input array of size ``N``.
+    x2
+        Second one-dimensional input array of size ``M``.
+
+    Returns
+    -------
+    out
+        A two-dimensional array containing the outer product and whose shape is
+        ``(N, M)``.
+    """
+    return _impl.outer(x1, x2)
+
+
 def pinv(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> Array:
     """Returns the (Moore-Penrose) pseudo-inverse of a matrix (or a stack of matrices).
 
@@ -99,7 +162,7 @@ def pinv(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> Array:
     ----------
     x
         Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
-        ``MxN`` matrices. Should have a real-valued floating-point data type.
+        ``MxN`` matrices.
     rtol
         Relative tolerance for small singular values. Singular values approximately less
         than or equal to ``rtol * largest_singular_value`` are set to zero.
@@ -112,6 +175,25 @@ def pinv(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> Array:
     return _impl.pinv(x, rtol=rtol)
 
 
+def matrix_power(x: Array, n: int, /) -> Array:
+    """Raises a square matrix (or a stack of square matrices) ``x`` to an integer power
+    ``n``.
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, M)`` and whose innermost two dimensions form square matrices.
+    n
+        Integer exponent.
+
+    Returns
+    -------
+    out
+        If ``n`` is equal to zero, an array containing the identity matrix for each square matrix. If ``n`` is less than zero, an array containing the inverse of each square matrix raised to the absolute value of ``n``, provided that each square matrix is invertible. If ``n`` is greater than zero, an array containing the result of raising each square matrix to the power ``n``.
+    """
+    return _impl.matrix_power(x, n)
+
+
 def matrix_rank(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> Array:
     """Returns the rank (i.e., number of non-zero singular values) of a matrix (or a
     stack of matrices).
@@ -120,7 +202,7 @@ def matrix_rank(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> A
     ----------
     x
         Input array having shape ``(..., M, N)`` and whose innermost two dimensions form
-        ``MxN`` matrices. Should have a real-valued floating-point data type.
+        ``MxN`` matrices.
     rtol
         Relative tolerance for small singular values. Singular values approximately less
         than or equal to ``rtol * largest_singular_value`` are set to zero.
@@ -131,6 +213,23 @@ def matrix_rank(x: Array, /, *, rtol: Optional[Union[float, Array]] = None) -> A
         An array containing the ranks.
     """
     return _impl.matrix_rank(x, rtol=rtol)
+
+
+def matrix_transpose(x: Array, /) -> Array:
+    """Transposes a matrix (or a stack of matrices) ``x``.
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form ``M x N`` matrices.
+
+    Returns
+    -------
+    out
+        An array containing the transpose for each matrix and having shape
+        ``(..., N, M)``. The returned array must have the same data type as ``x``.
+    """
+    return _impl.matrix_transpose(x)
 
 
 Slogdet = collections.namedtuple("Slogdet", ["sign", "logabsdet"])
@@ -243,8 +342,7 @@ def vector_norm(
     keepdims
         If ``True``, the axes (dimensions) specified by ``axis`` are included in the
         result as singleton dimensions, and, accordingly, the result is compatible with
-        the input array (see `broadcasting <https://data-apis.org/array-api/latest/\
-        API_specification/broadcasting.html>`_). Otherwise, if ``False``, the last two
+        the input array. Otherwise, if ``False``, the last two
         axes (dimensions) are not be included in the result.
     ord
         Order of the norm. The following mathematical norms are supported:
@@ -263,19 +361,19 @@ def vector_norm(
 
         The following non-mathematical "norms" are supported:
 
-        +------------------+--------------------------------+
-        | ord              | description                    |
-        +==================+================================+
-        | 0                | sum(a != 0)                    |
-        +------------------+--------------------------------+
-        | -1               | 1./sum(1./abs(a))              |
-        +------------------+--------------------------------+
-        | -2               | 1./sqrt(sum(1./abs(a)\*\*2))   |
-        +------------------+--------------------------------+
-        | -inf             | min(abs(a))                    |
-        +------------------+--------------------------------+
-        | (int,float < 1)  | sum(abs(a)\*\*ord)\*\*(1./ord) |
-        +------------------+--------------------------------+
+        +------------------+------------------------------------+
+        | ord              | description                        |
+        +==================+====================================+
+        | 0                | :code:`sum(a != 0)`                |
+        +------------------+------------------------------------+
+        | -1               | :code:`1./sum(1./abs(a))`          |
+        +------------------+------------------------------------+
+        | -2               | :code:`1./sqrt(sum(1./abs(a)**2))` |
+        +------------------+------------------------------------+
+        | -inf             | :code:`min(abs(a))                 |
+        +------------------+------------------------------------+
+        | (int,float < 1)  | :code:`sum(abs(a)**ord)**(1./ord)` |
+        +------------------+------------------------------------+
 
     Returns
     -------
@@ -284,9 +382,7 @@ def vector_norm(
         array is a zero-dimensional array containing a vector norm. If ``axis`` is a
         scalar value (``int`` or ``float``), the returned array has a rank which
         is one less than the rank of ``x``. If ``axis`` is a ``n``-tuple, the returned
-        array has a rank which is ``n`` less than the rank of ``x``. The returned array
-        has a floating-point data type determined by `type-promotion <https://data-apis\
-        .org/array-api/latest/API_specification/type_promotion.html>`_..
+        array has a rank which is ``n`` less than the rank of ``x``.
     """
     return _impl.vector_norm(x, axis=axis, keepdims=keepdims, ord=ord)
 
@@ -393,7 +489,7 @@ def matrix_norm(
     return _impl.matrix_norm(x, keepdims=keepdims, ord=ord)
 
 
-def solve(x1: Array, x2: Array, /) -> Array:
+def solve(A: Array, B: Array, /) -> Array:
     """Returns the solution to the system of linear equations represented by the
     well-determined (i.e., full rank) linear matrix equation ``AX = B``.
 
@@ -404,15 +500,15 @@ def solve(x1: Array, x2: Array, /) -> Array:
 
     Parameters
     ----------
-    x1
+    A
         Coefficient array ``A`` having shape ``(..., M, M)`` and whose innermost two
         dimensions form square matrices. Must be of full rank (i.e., all rows or,
         equivalently, columns must be linearly independent).
-    x2
-        Ordinate (or "dependent variable") array ``B``. If ``x2`` has shape ``(M,)``,
-        ``x2`` is equivalent to an array having shape ``(..., M, 1)``. If ``x2`` has
+    B
+        Ordinate (or "dependent variable") array ``B``. If ``B`` has shape ``(M,)``,
+        ``B`` is equivalent to an array having shape ``(..., M, 1)``. If ``B`` has
         shape ``(..., M, K)``, each column ``k`` defines a set of ordinate values for
-        which to compute a solution, and ``shape(x2)[:-1]`` must be compatible with
+        which to compute a solution, and ``shape(B)[:-1]`` must be compatible with
         ``shape(x1)[:-1]`` (see `broadcasting <https://data-apis.org/array-api/latest\
         /API_specification/broadcasting.html>`_).
 
@@ -420,12 +516,56 @@ def solve(x1: Array, x2: Array, /) -> Array:
     -------
     out:
         An array containing the solution to the system ``AX = B`` for each square
-        matrix. The returned array must have the same shape as ``x2`` (i.e., the array
-        corresponding to ``B``) and must have a floating-point data type determined by
-        `type-promotion <https://data-apis.org/array-api/latest/API_specification\
-        /type_promotion.html>`_.
+        matrix.
     """
-    return _impl.solve(x1, x2)
+    return _impl.solve(A, B)
+
+
+solve_cholesky = _impl.solve_cholesky
+
+
+def solve_triangular(
+    A: Array,
+    B: Array,
+    /,
+    *,
+    transpose: bool = False,
+    lower: bool = False,
+    unit_diagonal: bool = False,
+) -> Array:
+    r"""Computes the solution of a triangular system of linear equations ``AX = B``
+    with a unique solution.
+
+    Parameters
+    ----------
+    A
+        Coefficient array ``A`` having shape ``(..., M, M)`` and whose innermost two
+        dimensions form triangular matrices. Must be of full rank (i.e., all rows or,
+        equivalently, columns must be linearly independent).
+    B
+        Ordinate (or "dependent variable") array ``B``. If ``B`` has shape ``(M,)``,
+        ``B`` is equivalent to an array having shape ``(..., M, 1)``. If ``B`` has
+        shape ``(..., M, K)``, each column ``k`` defines a set of ordinate values for
+        which to compute a solution, and ``shape(B)[:-1]`` must be compatible with
+        ``shape(A)[:-1]`` (see `broadcasting <https://data-apis.org/array-api/latest\
+        /API_specification/broadcasting.html>`_).
+    transpose
+        Whether to solve the system :math:`AX=B` or the system
+        :math:`A^\top X=B`.
+    lower
+        Use only data contained in the lower triangle of ``A``.
+    unit_diagonal
+        Whether the diagonal(s) of the triangular matrices in ``A`` consistent of ones.
+
+    Returns
+    -------
+    out:
+        An array containing the solution to the system ``AX = B`` for each square
+        matrix.
+    """
+    return _impl.solve_triangular(
+        A, B, transpose=transpose, lower=lower, unit_diagonal=unit_diagonal
+    )
 
 
 def diagonal(
@@ -576,6 +716,22 @@ def svd(x: Array, /, *, full_matrices: bool = True) -> Union[Array, Tuple[Array,
     """
     U, S, Vh = _impl.svd(x, full_matrices=full_matrices)
     return SVD(U, S, Vh)
+
+
+def svdvals(x: Array, /) -> Array:
+    """Returns the singular values of a matrix (or a stack of matrices) ``x``.
+
+    Parameters
+    ----------
+    x
+        Input array having shape ``(..., M, N)`` and whose innermost two dimensions form matrices on which to perform singular value decomposition.
+
+    Returns
+    -------
+    out
+        An array with shape ``(..., K)`` that contains the vector(s) of singular values of length ``K``, where ``K = min(M, N)``. For each vector, the singular values are sorted in descending order by magnitude.
+    """
+    return _impl.svdvals(x)
 
 
 QR = collections.namedtuple("QR", ["Q", "R"])

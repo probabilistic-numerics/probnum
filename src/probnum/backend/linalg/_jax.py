@@ -8,8 +8,18 @@ try:
     from jax import numpy as jnp
 
     # pylint: disable=unused-import
-    from jax.numpy import diagonal, einsum, kron, matmul, tensordot, trace
-    from jax.numpy.linalg import det, eigh, eigvalsh, inv, pinv, slogdet, solve, svd
+    from jax.numpy import diagonal, einsum, kron, matmul, outer, tensordot, trace
+    from jax.numpy.linalg import (
+        det,
+        eigh,
+        eigvalsh,
+        inv,
+        matrix_power,
+        pinv,
+        slogdet,
+        solve,
+        svd,
+    )
 except ModuleNotFoundError:
     pass
 
@@ -18,6 +28,10 @@ def matrix_rank(
     x: "jax.Array", /, *, rtol: Optional[Union[float, "jax.Array"]] = None
 ) -> "jax.Array":
     return jnp.linalg.matrix_rank(x, tol=rtol)
+
+
+def matrix_transpose(x: "jax.Array", /) -> "jax.Array":
+    return jnp.swapaxes(x, -2, -1)
 
 
 def vector_norm(
@@ -130,3 +144,7 @@ def vecdot(x1: "jax.Array", x2: "jax.Array", axis: int = -1) -> "jax.Array":
 
     res = x1_[..., None, :] @ x2_[..., None]
     return jnp.asarray(res[..., 0, 0])
+
+
+def svdvals(x: "jax.Array", /) -> "jax.Array":
+    return jnp.linalg.svd(x, compute_uv=False, hermitian=False)
