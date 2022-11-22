@@ -55,13 +55,13 @@ def cholesky(x: "jax.Array", /, *, upper: bool = False) -> "jax.Array":
     return jnp.conj(L.swapaxes(-2, -1)) if upper else L
 
 
-@functools.partial(jax.jit, static_argnames=("transpose", "lower", "unit_diagonal"))
+@functools.partial(jax.jit, static_argnames=("transpose", "upper", "unit_diagonal"))
 def solve_triangular(
     A: jax.numpy.ndarray,
     b: jax.numpy.ndarray,
     *,
     transpose: bool = False,
-    lower: bool = False,
+    upper: bool = False,
     unit_diagonal: bool = False,
 ) -> jax.numpy.ndarray:
     if b.ndim in (1, 2):
@@ -69,7 +69,7 @@ def solve_triangular(
             A,
             b,
             trans=1 if transpose else 0,
-            lower=lower,
+            lower=not upper,
             unit_diagonal=unit_diagonal,
         )
 
@@ -82,19 +82,19 @@ def solve_triangular(
             A,
             b,
             trans=1 if transpose else 0,
-            lower=lower,
+            lower=not upper,
             unit_diagonal=unit_diagonal,
         )
 
     return _solve_triangular_vectorized(A, b)
 
 
-@functools.partial(jax.jit, static_argnames=("lower", "overwrite_b", "check_finite"))
+@functools.partial(jax.jit, static_argnames=("upper", "overwrite_b", "check_finite"))
 def solve_cholesky(
     cholesky: jax.numpy.ndarray,
     b: jax.numpy.ndarray,
     *,
-    lower: bool = False,
+    upper: bool = False,
     overwrite_b: bool = False,
     check_finite: bool = True,
 ):
@@ -104,7 +104,7 @@ def solve_cholesky(
         b: jax.numpy.ndarray,
     ):
         return jax.scipy.linalg.cho_solve(
-            (cholesky, lower),
+            (cholesky, not upper),
             b,
             overwrite_b=overwrite_b,
             check_finite=check_finite,

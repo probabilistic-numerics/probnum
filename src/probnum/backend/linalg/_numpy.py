@@ -60,7 +60,7 @@ def solve_triangular(
     b: np.ndarray,
     *,
     transpose: bool = False,
-    lower: bool = False,
+    upper: bool = False,
     unit_diagonal: bool = False,
 ) -> np.ndarray:
     if b.ndim in (1, 2):
@@ -68,7 +68,7 @@ def solve_triangular(
             A,
             b,
             trans=1 if transpose else 0,
-            lower=lower,
+            lower=not upper,
             unit_diagonal=unit_diagonal,
         )
 
@@ -77,7 +77,7 @@ def solve_triangular(
             scipy.linalg.solve_triangular,
             A,
             trans=1 if transpose else 0,
-            lower=lower,
+            lower=not upper,
             unit_diagonal=unit_diagonal,
         ),
         b,
@@ -88,13 +88,13 @@ def solve_cholesky(
     cholesky: np.ndarray,
     b: np.ndarray,
     *,
-    lower: bool = False,
+    upper: bool = False,
     overwrite_b: bool = False,
     check_finite: bool = True,
 ):
     if b.ndim in (1, 2):
         return scipy.linalg.cho_solve(
-            (cholesky, lower),
+            (cholesky, not upper),
             b,
             overwrite_b=overwrite_b,
             check_finite=check_finite,
@@ -103,7 +103,7 @@ def solve_cholesky(
     return _matmul_broadcasting(
         functools.partial(
             scipy.linalg.cho_solve,
-            (cholesky, lower),
+            (cholesky, not upper),
             overwrite_b=overwrite_b,
             check_finite=check_finite,
         ),

@@ -581,7 +581,7 @@ class Normal(_random_variable.ContinuousRandomVariable):
             lambda x: backend.linalg.solve_triangular(
                 self._cov_matrix_cholesky,
                 x[..., None],
-                lower=True,
+                upper=False,
             )[..., 0],
             x,
         )

@@ -88,14 +88,14 @@ def solve_triangular(
     b: "torch.Tensor",
     *,
     transpose: bool = False,
-    lower: bool = False,
+    upper: bool = False,
     unit_diagonal: bool = False,
 ) -> "torch.Tensor":
     if b.ndim == 1:
         return torch.triangular_solve(
             b[:, None],
             A,
-            upper=not lower,
+            upper=upper,
             transpose=transpose,
             unitriangular=unit_diagonal,
         ).solution[:, 0]
@@ -103,7 +103,7 @@ def solve_triangular(
     return torch.triangular_solve(
         b,
         A,
-        upper=not lower,
+        upper=upper,
         transpose=transpose,
         unitriangular=unit_diagonal,
     ).solution
@@ -113,14 +113,14 @@ def solve_cholesky(
     cholesky: "torch.Tensor",
     b: "torch.Tensor",
     *,
-    lower: bool = False,
+    upper: bool = False,
     overwrite_b: bool = False,
     check_finite: bool = True,
 ):
     if b.ndim == 1:
-        return torch.cholesky_solve(b[:, None], cholesky, upper=not lower)[:, 0]
+        return torch.cholesky_solve(b[:, None], cholesky, upper=upper)[:, 0]
 
-    return torch.cholesky_solve(b, cholesky, upper=not lower)
+    return torch.cholesky_solve(b, cholesky, upper=upper)
 
 
 def qr(

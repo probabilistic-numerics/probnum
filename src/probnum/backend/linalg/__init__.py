@@ -347,33 +347,33 @@ def vector_norm(
     ord
         Order of the norm. The following mathematical norms are supported:
 
-        +------------------+----------------------------+
-        | ord              | description                |
-        +==================+============================+
-        | 1                | L1-norm (Manhattan)        |
-        +------------------+----------------------------+
-        | 2                | L2-norm (Euclidean)        |
-        +------------------+----------------------------+
-        | inf              | infinity norm              |
-        +------------------+----------------------------+
-        | (int,float >= 1) | p-norm                     |
-        +------------------+----------------------------+
+        +--------------------+----------------------------+
+        | ord                | description                |
+        +====================+============================+
+        | `1`                | L1-norm (Manhattan)        |
+        +--------------------+----------------------------+
+        | `2`                | L2-norm (Euclidean)        |
+        +--------------------+----------------------------+
+        | `inf`              | infinity norm              |
+        +--------------------+----------------------------+
+        | `(int,float >= 1)` | p-norm                     |
+        +--------------------+----------------------------+
 
         The following non-mathematical "norms" are supported:
 
-        +------------------+------------------------------------+
-        | ord              | description                        |
-        +==================+====================================+
-        | 0                | :code:`sum(a != 0)`                |
-        +------------------+------------------------------------+
-        | -1               | :code:`1./sum(1./abs(a))`          |
-        +------------------+------------------------------------+
-        | -2               | :code:`1./sqrt(sum(1./abs(a)**2))` |
-        +------------------+------------------------------------+
-        | -inf             | :code:`min(abs(a))                 |
-        +------------------+------------------------------------+
-        | (int,float < 1)  | :code:`sum(abs(a)**ord)**(1./ord)` |
-        +------------------+------------------------------------+
+        +--------------------+------------------------------------+
+        | ord                | description                        |
+        +====================+====================================+
+        | `0`                | :code:`sum(a != 0)`                |
+        +--------------------+------------------------------------+
+        | `-1`               | :code:`1./sum(1./abs(a))`          |
+        +--------------------+------------------------------------+
+        | `-2`               | :code:`1./sqrt(sum(1./abs(a)**2))` |
+        +--------------------+------------------------------------+
+        | `-inf`             | :code:`min(abs(a))`                |
+        +--------------------+------------------------------------+
+        | `(int,float < 1)`  | :code:`sum(abs(a)**ord)**(1./ord)` |
+        +--------------------+------------------------------------+
 
     Returns
     -------
@@ -521,7 +521,44 @@ def solve(A: Array, B: Array, /) -> Array:
     return _impl.solve(A, B)
 
 
-solve_cholesky = _impl.solve_cholesky
+def solve_cholesky(
+    C: Array,
+    B: Array,
+    /,
+    *,
+    upper: bool = False,
+    check_finite: bool = True,
+) -> Array:
+    r"""Computes the solution of the system of linear equations ``A X = B``
+    given the Cholesky factor ``C`` of ``A``.
+
+    Parameters
+    ----------
+    C
+        Cholesky factor(s) ``C`` having shape ``(..., M, M)`` and whose innermost two
+        dimensions form triangular matrices.
+    B
+        Ordinate (or "dependent variable") array ``B``. If ``B`` has shape ``(M,)``,
+        ``B`` is equivalent to an array having shape ``(..., M, 1)``. If ``B`` has
+        shape ``(..., M, K)``, each column ``k`` defines a set of ordinate values for
+        which to compute a solution, and ``shape(B)[:-1]`` must be compatible with
+        ``shape(A)[:-1]`` (see `broadcasting <https://data-apis.org/array-api/latest\
+        /API_specification/broadcasting.html>`_).
+    upper
+        If ``True``, the result will be the upper-triangular Cholesky factor :math:`U`.
+        If ``False``, the result will be the lower-triangular Cholesky factor :math:`L`.
+    check_finite
+        Whether to check that the input matrices contain only finite numbers. Disabling
+        may give a performance gain, but may result in problems (crashes,
+        non-termination) if the inputs do contain infinities or NaNs.
+
+    Returns
+    -------
+    out:
+        An array containing the solution to the system ``AX = B`` for each Cholesky
+        factor.
+    """
+    return _impl.solve_cholesky(cholfac, B, upper=upper, check_finite=check_finite)
 
 
 def solve_triangular(
@@ -530,7 +567,7 @@ def solve_triangular(
     /,
     *,
     transpose: bool = False,
-    lower: bool = False,
+    upper: bool = False,
     unit_diagonal: bool = False,
 ) -> Array:
     r"""Computes the solution of a triangular system of linear equations ``AX = B``
@@ -552,19 +589,19 @@ def solve_triangular(
     transpose
         Whether to solve the system :math:`AX=B` or the system
         :math:`A^\top X=B`.
-    lower
-        Use only data contained in the lower triangle of ``A``.
+    upper
+        Use only data contained in the upper triangle of ``A``.
     unit_diagonal
         Whether the diagonal(s) of the triangular matrices in ``A`` consistent of ones.
 
     Returns
     -------
     out:
-        An array containing the solution to the system ``AX = B`` for each square
+        An array containing the solution to the system ``AX = B`` for each triangular
         matrix.
     """
     return _impl.solve_triangular(
-        A, B, transpose=transpose, lower=lower, unit_diagonal=unit_diagonal
+        A, B, transpose=transpose, upper=upper, unit_diagonal=unit_diagonal
     )
 
 
