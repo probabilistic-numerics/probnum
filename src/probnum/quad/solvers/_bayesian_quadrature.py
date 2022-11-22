@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union, get_args
 import warnings
 
 import numpy as np
@@ -353,7 +353,7 @@ class BayesianQuadrature:
         """
 
         # Get the rng
-        if isinstance(rng, IntLike):
+        if isinstance(rng, get_args(IntLike)):
             rng = np.random.default_rng(int(rng))
 
         # no policy given: Integrate on fixed dataset.
