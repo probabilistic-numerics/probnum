@@ -157,10 +157,12 @@ def test_integrate_max_evals_output(no_data, data, rng):
     max_evals = 10
     assert max_evals > nevals  # make sure that some nodes are collected
 
+    # if there is data, the number of updates is shorter
     num_updates = max_evals - nevals + 1
     if no_data:
         nodes, fun_evals, num_updates = None, None, max_evals
 
+    # the total number of evals is the same, but the number of initial nodes differs
     bq = BayesianQuadrature.from_problem(
         input_dim=input_dim, domain=(0, 1), options=dict(max_evals=max_evals)
     )
