@@ -7,7 +7,12 @@ from probnum import LambdaStoppingCriterion
 from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.quad.solvers import BayesianQuadrature
 from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
-from probnum.quad.solvers.stopping_criteria import ImmediateStop
+from probnum.quad.solvers.stopping_criteria import (
+    ImmediateStop,
+    IntegralVarianceTolerance,
+    MaxNevals,
+    RelativeMeanChange,
+)
 from probnum.randprocs.kernels import ExpQuad
 
 
@@ -78,6 +83,30 @@ def test_bq_from_problem_defaults(bq_no_policy, bq):
     assert isinstance(bq.kernel, ExpQuad)
 
 
+@pytest.mark.parametrize(
+    "max_evals, var_tol, rel_tol, t",
+    [
+        (None, None, None, LambdaStoppingCriterion),
+        (1000, None, None, MaxNevals),
+        (None, 1e-5, None, IntegralVarianceTolerance),
+        (None, None, 1e-5, RelativeMeanChange),
+        (None, 1e-5, 1e-5, LambdaStoppingCriterion),
+        (1000, None, 1e-5, LambdaStoppingCriterion),
+        (1000, 1e-5, None, LambdaStoppingCriterion),
+        (1000, 1e-5, 1e-5, LambdaStoppingCriterion),
+    ],
+)
+def test_bq_from_problem_stopping_condition_assignment(max_evals, var_tol, rel_tol, t):
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+        max_evals=max_evals,
+        var_tol=var_tol,
+        rel_tol=rel_tol,
+    )
+    assert isinstance(bq.stopping_criterion, t)
+
+
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):
     nodes, fun_evals, fun = data
 
@@ -117,3 +146,14 @@ def test_integrate_wrong_input(bq, bq_no_policy, data):
         bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=wrong_nodes, fun_evals=fun_evals)
+
+
+@pytest.mark.parametrize("rng", [np.random.default_rng(42), 42])
+def test_integrate_runs_with_integer_rng(bq, data, rng):
+    # rng is a generator
+    nodes, fun_evals, fun = data
+    bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)
+
+    # rng is a seed
+    nodes, fun_evals, fun = data
+    bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)
