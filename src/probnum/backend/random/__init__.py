@@ -265,10 +265,10 @@ def uniform_so_group(
     dtype: DType = None,
 ) -> Array:
     """Draw samples from the Haar distribution, i.e. from the uniform distribution on
-    SO(n).
+    :math:`SO(n)`.
 
     The generated samples are randomly drawn orthogonal matrices with determinant 1,
-    i.e. elements of the special orthogonal group SO(n).
+    i.e. elements of the special orthogonal group :math:`SO(n)`.
 
     Parameters
     ----------
