@@ -1,4 +1,4 @@
-"""Latin hypercube initial design."""
+"""Latin hypercube initial design for Bayesian quadrature."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ class LatinDesign(InitialDesign):
         measure: IntegrationMeasure,
         num_nodes: IntLike,
     ) -> None:
-        if np.Inf in [abs(measure.domain[0]), abs(measure.domain[1])]:
+        if np.Inf in np.hstack([abs(measure.domain[0]), abs(measure.domain[1])]):
             raise ValueError(
                 "Latin hypercube samples require a finite domain. "
                 "At least one dimension seems to be unbounded."

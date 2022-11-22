@@ -22,18 +22,14 @@ class MCDesign(InitialDesign):
         The integration measure.
     num_nodes
         The number of nodes to be designed.
-    rng
-        A random number generator.
     """
 
     def __init__(
         self,
         measure: IntegrationMeasure,
         num_nodes: IntLike,
-        rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
         super().__init__(measure=measure, num_nodes=num_nodes)
-        self.rng = rng
 
     def __call__(self, rng: Optional[np.random.Generator]) -> np.ndarray:
         return self.measure.sample(self.num_nodes, rng=rng)

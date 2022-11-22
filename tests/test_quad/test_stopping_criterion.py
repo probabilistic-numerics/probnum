@@ -22,11 +22,6 @@ _rel_tol = 1e-5
 _var_tol = 1e-5
 
 
-@pytest.fixture()
-def input_dim() -> int:
-    return 2
-
-
 @pytest.fixture(
     params=[
         pytest.param(sc, id=sc[0].__name__)
