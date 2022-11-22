@@ -12,6 +12,11 @@ from probnum.randprocs.kernels import ExpQuad
 
 
 @pytest.fixture
+def input_dim():
+    return 3
+
+
+@pytest.fixture
 def data(input_dim):
     def fun(x):
         return 2 * np.ones(x.shape[0])
