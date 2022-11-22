@@ -25,6 +25,15 @@ from ._matern_lebesgue import (
 class KernelEmbedding:
     """Integrals over kernels against integration measures.
 
+    The available kernel embeddings are:
+
+    ============= ===============
+    ExpQuad       LebesgueMeasure
+    ExpQuad       GaussianMeasure
+    Matern (1d)   LebesgueMeasure
+    ProductMatern LebesgueMeasure
+    ============= ===============
+
     Parameters
     ----------
     kernel:
@@ -51,7 +60,7 @@ class KernelEmbedding:
         (self.input_dim,) = self.kernel.input_shape
 
         # retrieve the functions for the provided combination of kernel and measure
-        self._kmean, self._kvar = _get_kernel_embedding(
+        self._kmean, self._kvar = self._get_kernel_embedding(
             kernel=self.kernel, measure=self.measure
         )
 
@@ -82,48 +91,48 @@ class KernelEmbedding:
         """
         return self._kvar(kernel=self.kernel, measure=self.measure)
 
+    @staticmethod
+    def _get_kernel_embedding(
+        kernel: Kernel, measure: IntegrationMeasure
+    ) -> Tuple[Callable, Callable]:
+        """Select the right kernel embedding given the kernel and integration measure.
 
-def _get_kernel_embedding(
-    kernel: Kernel, measure: IntegrationMeasure
-) -> Tuple[Callable, Callable]:
-    """Select the right kernel embedding given the kernel and integration measure.
+        Parameters
+        ----------
+        kernel :
+            Instance of a kernel.
+        measure :
+            Instance of an integration measure.
 
-    Parameters
-    ----------
-    kernel :
-        Instance of a kernel.
-    measure :
-        Instance of an integration measure.
+        Returns
+        -------
+        kernel_mean :
+            The kernel mean function.
+        kernel_variance :
+            The kernel variance function.
 
-    Returns
-    -------
-    kernel_mean :
-        The kernel mean function.
-    kernel_variance :
-        The kernel variance function.
+        Raises
+        ------
+        NotImplementedError
+            If the given kernel is unknown.
+        NotImplementedError
+            If the kernel embedding of the kernel-measure pair is unknown.
+        """
 
-    Raises
-    ------
-    NotImplementedError
-        If the given kernel is unknown.
-    NotImplementedError
-        If the kernel embedding of the kernel-measure pair is unknown.
-    """
+        # Exponentiated quadratic kernel
+        if isinstance(kernel, ExpQuad):
+            if isinstance(measure, GaussianMeasure):
+                return _kernel_mean_expquad_gauss, _kernel_variance_expquad_gauss
+            if isinstance(measure, LebesgueMeasure):
+                return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
 
-    # Exponentiated quadratic kernel
-    if isinstance(kernel, ExpQuad):
-        if isinstance(measure, GaussianMeasure):
-            return _kernel_mean_expquad_gauss, _kernel_variance_expquad_gauss
-        if isinstance(measure, LebesgueMeasure):
-            return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
+        # Matern
+        if isinstance(kernel, (Matern, ProductMatern)):
+            if isinstance(measure, LebesgueMeasure):
+                return _kernel_mean_matern_lebesgue, _kernel_variance_matern_lebesgue
 
-    # Matern
-    if isinstance(kernel, (Matern, ProductMatern)):
-        if isinstance(measure, LebesgueMeasure):
-            return _kernel_mean_matern_lebesgue, _kernel_variance_matern_lebesgue
-
-    # other kernels
-    raise NotImplementedError(
-        "The combination of kernel ({0}) and measure ({1}) is not available as kernel "
-        "embedding.".format(type(kernel), type(measure))
-    )
+        # other kernels
+        raise NotImplementedError(
+            f"The combination of kernel ({type(kernel)}) and measure ({type(measure)}) "
+            f"is not available as kernel embedding."
+        )
