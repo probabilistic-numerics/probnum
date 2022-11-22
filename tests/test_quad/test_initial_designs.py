@@ -28,8 +28,8 @@ def gaussian_measure(input_dim):
 
 @pytest.fixture(
     params=[
-        pytest.param(sc, id=sc[0].__name__)
-        for sc in [
+        pytest.param(des, id=des[0].__name__)
+        for des in [
             (MCDesign, "lebesgue_measure"),
             (MCDesign, "gaussian_measure"),
             (LatinDesign, "lebesgue_measure"),
@@ -37,7 +37,7 @@ def gaussian_measure(input_dim):
     ],
     name="design",
 )
-def fixture_stopping_criterion(request, num_nodes) -> InitialDesign:
+def fixture_initial_design(request, num_nodes) -> InitialDesign:
     measure = request.getfixturevalue(request.param[1])
     return request.param[0](**dict(measure=measure, num_nodes=num_nodes))
 

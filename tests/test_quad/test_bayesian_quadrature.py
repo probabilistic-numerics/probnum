@@ -9,6 +9,7 @@ from probnum.quad.solvers import BayesianQuadrature
 from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import ImmediateStop
 from probnum.randprocs.kernels import ExpQuad
+from probnum.randvars import Normal
 
 
 @pytest.fixture
@@ -21,7 +22,7 @@ def data(input_dim):
     def fun(x):
         return 2 * np.ones(x.shape[0])
 
-    nodes = np.ones([20, input_dim])
+    nodes = np.ones([5, input_dim])
     fun_evals = fun(nodes)
     return nodes, fun_evals, fun
 
@@ -43,11 +44,7 @@ def bq_no_policy(input_dim):
     )
 
 
-def test_bq_from_problem_wrong_inputs(input_dim):
-
-    # neither measure nor domain is provided
-    with pytest.raises(ValueError):
-        BayesianQuadrature.from_problem(input_dim=input_dim)
+# Tests for correct assignments start here.
 
 
 @pytest.mark.parametrize(
@@ -76,6 +73,19 @@ def test_bq_from_problem_defaults(bq_no_policy, bq):
     # default kernel
     assert isinstance(bq_no_policy.kernel, ExpQuad)
     assert isinstance(bq.kernel, ExpQuad)
+
+
+# Tests for input checks and exception raises start here.
+
+
+def test_bq_from_problem_wrong_inputs(input_dim):
+
+    # neither measure nor domain is provided
+    with pytest.raises(ValueError):
+        BayesianQuadrature.from_problem(input_dim=input_dim)
+
+
+# Tests for integrate function start here.
 
 
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):
@@ -117,3 +127,51 @@ def test_integrate_wrong_input(bq, bq_no_policy, data):
         bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=wrong_nodes, fun_evals=fun_evals)
+
+
+def test_integrate_max_evals_output(data, rng):
+    nodes, fun_evals, fun = data
+    input_dim = nodes.shape[1]
+    max_evals = 10
+
+    # no initial data
+    bq = BayesianQuadrature.from_problem(
+        input_dim=input_dim, domain=(0, 1), options=dict(max_evals=max_evals)
+    )
+    res, bq_state, info = bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)
+    assert isinstance(res, Normal)
+    assert isinstance(bq_state.integral_belief, Normal)
+    assert isinstance(bq_state.scale_sq, float)
+    assert len(bq_state.previous_integral_beliefs) == max_evals
+    assert len(bq_state.kernel_means) == max_evals
+    assert bq_state.nodes.shape == (max_evals, input_dim)
+    assert bq_state.fun_evals.shape == (max_evals,)
+    assert bq_state.gram.shape == (max_evals, max_evals)
+
+
+@pytest.mark.parametrize("no_data", [True, False])
+def test_integrate_max_evals_output(no_data, data, rng):
+    nodes, fun_evals, fun = data
+
+    nevals, input_dim = nodes.shape
+    max_evals = 10
+    assert max_evals > nevals  # make sure that some nodes are collected
+
+    num_updates = max_evals - nevals + 1
+    if no_data:
+        nodes, fun_evals, num_updates = None, None, max_evals
+
+    bq = BayesianQuadrature.from_problem(
+        input_dim=input_dim, domain=(0, 1), options=dict(max_evals=max_evals)
+    )
+    res, bq_state, info = bq.integrate(
+        fun=fun, nodes=nodes, fun_evals=fun_evals, rng=rng
+    )
+    assert isinstance(res, Normal)
+    assert isinstance(bq_state.integral_belief, Normal)
+    assert isinstance(bq_state.scale_sq, float)
+    assert len(bq_state.kernel_means) == max_evals
+    assert len(bq_state.previous_integral_beliefs) == num_updates
+    assert bq_state.nodes.shape == (max_evals, input_dim)
+    assert bq_state.fun_evals.shape == (max_evals,)
+    assert bq_state.gram.shape == (max_evals, max_evals)
