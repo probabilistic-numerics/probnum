@@ -2,8 +2,9 @@
 
 
 from probnum import randvars
+from probnum.backend.typing import ArrayLike
 from probnum.randprocs.markov.discrete import _linear_gaussian
-from probnum.typing import ArrayLike, LinearOperatorLike
+from probnum.typing import LinearOperatorLike
 
 
 class LTIGaussian(_linear_gaussian.LinearGaussian):

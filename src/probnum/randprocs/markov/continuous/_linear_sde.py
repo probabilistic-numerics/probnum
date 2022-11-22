@@ -7,9 +7,9 @@ import scipy.integrate
 import scipy.linalg
 
 from probnum import randvars
+from probnum.backend.linalg import tril_to_positive_tril
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.randprocs.markov.continuous import _sde
-from probnum.typing import FloatLike, IntLike
-from probnum.utils.linalg import tril_to_positive_tril
 
 
 class LinearSDE(_sde.SDE):
@@ -212,7 +212,7 @@ class LinearSDE(_sde.SDE):
         )
 
         return randvars.Normal(
-            mean=new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky
+            mean=new_mean, cov=new_cov, cache={"cov_cholesky": new_cov_cholesky}
         ), {
             "sol": sol,
             "sol_mean": sol_mean,
@@ -403,7 +403,7 @@ class LinearSDE(_sde.SDE):
             y_new = np.hstack((new_mean, new_cov_cholesky_flat))
             return y_new
 
-        initcov_cholesky_flat = initrv.cov_cholesky.flatten()
+        initcov_cholesky_flat = initrv._cov_cholesky.flatten()
         y0 = np.hstack((initrv.mean, initcov_cholesky_flat))
 
         return f, y0

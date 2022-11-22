@@ -3,7 +3,6 @@
 from typing import Tuple
 
 import numpy as np
-import pytest
 
 from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.quad.solvers import BQIterInfo, BQState
@@ -16,6 +15,8 @@ from probnum.quad.solvers.stopping_criteria import (
 )
 from probnum.randprocs.kernels import ExpQuad
 from probnum.randvars import Normal
+
+import pytest
 
 _nevals = 5
 _rel_tol = 1e-5

@@ -1,8 +1,8 @@
 """Stopping criteria test cases."""
 
-from pytest_cases import parametrize
-
 from probnum.linalg.solvers import stopping_criteria
+
+from pytest_cases import parametrize
 
 
 def case_maxiter():

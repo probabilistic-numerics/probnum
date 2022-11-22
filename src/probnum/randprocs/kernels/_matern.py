@@ -2,12 +2,8 @@
 
 from typing import Optional
 
-import numpy as np
-import scipy.spatial.distance
-import scipy.special
-
-from probnum.typing import ScalarLike, ShapeLike
-import probnum.utils as _utils
+from probnum import backend
+from probnum.backend.typing import FloatLike, ScalarLike, ShapeLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -52,10 +48,10 @@ class Matern(Kernel, IsotropicMixin):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import Matern
     >>> K = Matern(input_shape=(), lengthscale=0.1, nu=2.5)
-    >>> xs = np.linspace(0, 1, 3)
+    >>> xs = backend.linspace(0, 1, 3)
     >>> K.matrix(xs)
     array([[1.00000000e+00, 7.50933789e-04, 3.69569622e-08],
            [7.50933789e-04, 1.00000000e+00, 7.50933789e-04],
@@ -66,52 +62,55 @@ class Matern(Kernel, IsotropicMixin):
         self,
         input_shape: ShapeLike,
         lengthscale: ScalarLike = 1.0,
-        nu: ScalarLike = 1.5,
+        nu: FloatLike = 1.5,
     ):
-        self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        if not self.lengthscale > 0:
+        self.lengthscale = backend.asscalar(lengthscale)
+        if self.lengthscale <= 0.0:
             raise ValueError(f"Lengthscale l={self.lengthscale} must be positive.")
-        self.nu = _utils.as_numpy_scalar(nu)
-        if not self.nu > 0:
+        self.nu = float(nu)
+        if self.nu <= 0.0:
             raise ValueError(f"Hyperparameter nu={self.nu} must be positive.")
 
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    @backend.jit_method
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array] = None
+    ) -> backend.Array:
         distances = self._euclidean_distances(x0, x1)
 
         # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
-            return np.exp(-1.0 / self.lengthscale * distances)
+            return backend.exp(-1.0 / self.lengthscale * distances)
 
         if self.nu == 1.5:
-            scaled_distances = np.sqrt(3) / self.lengthscale * distances
-            return (1.0 + scaled_distances) * np.exp(-scaled_distances)
+            scaled_distances = backend.sqrt(3) / self.lengthscale * distances
+            return (1.0 + scaled_distances) * backend.exp(-scaled_distances)
 
         if self.nu == 2.5:
-            scaled_distances = np.sqrt(5) / self.lengthscale * distances
-            return (1.0 + scaled_distances + scaled_distances**2 / 3.0) * np.exp(
+            scaled_distances = backend.sqrt(5) / self.lengthscale * distances
+            return (1.0 + scaled_distances + scaled_distances**2 / 3.0) * backend.exp(
                 -scaled_distances
             )
         if self.nu == 3.5:
-            scaled_distances = np.sqrt(7) / self.lengthscale * distances
+            scaled_distances = backend.sqrt(7) / self.lengthscale * distances
             # Using Horner's method speeds up computations substantially
             return (
                 1.0
                 + (1.0 + (2.0 / 5.0 + scaled_distances / 15.0) * scaled_distances)
                 * scaled_distances
-            ) * np.exp(-scaled_distances)
+            ) * backend.exp(-scaled_distances)
 
-        if self.nu == np.inf:
-            return np.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)
+        if self.nu == backend.inf:
+            return backend.exp(-1.0 / (2.0 * self.lengthscale**2) * distances**2)
 
         # The modified Bessel function K_nu is not defined for z=0
-        distances = np.maximum(distances, np.finfo(distances.dtype).eps)
+        distances = backend.maximum(distances, backend.finfo(distances.dtype).eps)
 
-        scaled_distances = np.sqrt(2 * self.nu) / self.lengthscale * distances
+        scaled_distances = backend.sqrt(2 * self.nu) / self.lengthscale * distances
         return (
             2 ** (1.0 - self.nu)
-            / scipy.special.gamma(self.nu)
+            / backend.special.gamma(self.nu)
             * scaled_distances**self.nu
-            * scipy.special.kv(self.nu, scaled_distances)
+            * backend.special.kv(self.nu, scaled_distances)
         )

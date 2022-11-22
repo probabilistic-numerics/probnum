@@ -1,9 +1,10 @@
 """Tests for multi-variate normal arithmetic."""
 
 import numpy as np
-import pytest
 
-from probnum import utils
+from probnum import backend
+
+import pytest
 
 
 @pytest.mark.parametrize("shape,shape_const", [((3,), (3,))])
@@ -112,7 +113,7 @@ def test_constant_multivariate_normal_matrix_multiplication_right(
     if matrix_product.cov_cholesky_is_precomputed:
         np.testing.assert_allclose(
             matrix_product.cov_cholesky,
-            utils.linalg.cholesky_update(
+            backend.linalg.cholesky_update(
                 constant.support @ multivariate_normal.cov_cholesky
             ),
         )
@@ -142,7 +143,7 @@ def test_constant_multivariate_normal_matrix_multiplication_left(
     if matrix_product.cov_cholesky_is_precomputed:
         np.testing.assert_allclose(
             matrix_product.cov_cholesky,
-            utils.linalg.cholesky_update(
+            backend.linalg.cholesky_update(
                 constant.support.T @ multivariate_normal.cov_cholesky
             ),
         )

@@ -9,9 +9,8 @@ import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
 
-from probnum import config
-from probnum.typing import DTypeLike, ScalarLike, ShapeLike
-import probnum.utils
+from probnum import backend, config
+from probnum.backend.typing import DTypeLike, ScalarLike, ShapeLike
 
 BinaryOperandType = Union[
     "LinearOperator", ScalarLike, np.ndarray, scipy.sparse.spmatrix
@@ -52,7 +51,7 @@ class LinearOperator(abc.ABC):
         shape: ShapeLike,
         dtype: DTypeLike,
     ):
-        self.__shape = probnum.utils.as_shape(shape, ndim=2)
+        self.__shape = backend.asshape(shape, ndim=2)
 
         # DType
         self.__dtype = np.dtype(dtype)
@@ -123,8 +122,7 @@ class LinearOperator(abc.ABC):
         raise NotImplementedError()
 
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
-        """Apply the linear operator to an input array along a specified
-        axis.
+        """Apply the linear operator to an input array along a specified axis.
 
         Parameters
         ----------
@@ -557,7 +555,7 @@ class LinearOperator(abc.ABC):
 
     def _logabsdet_fallback(self) -> np.inexact:
         if self.det() == 0:
-            return probnum.utils.as_numpy_scalar(-np.inf, dtype=self._inexact_dtype)
+            return backend.asscalar(-np.inf, dtype=self._inexact_dtype)
         else:
             return np.log(np.abs(self.det()))
 
@@ -1544,7 +1542,7 @@ class Identity(LambdaLinearOperator):
         shape: ShapeLike,
         dtype: DTypeLike = np.double,
     ):
-        shape = probnum.utils.as_shape(shape)
+        shape = backend.asshape(shape)
 
         if len(shape) == 1:
             shape = 2 * shape
@@ -1568,13 +1566,9 @@ class Identity(LambdaLinearOperator):
             rank=lambda: np.intp(shape[0]),
             eigvals=lambda: np.ones(shape[0], dtype=self._inexact_dtype),
             cond=self._cond,
-            det=lambda: probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype),
-            logabsdet=lambda: probnum.utils.as_numpy_scalar(
-                0.0, dtype=self._inexact_dtype
-            ),
-            trace=lambda: probnum.utils.as_numpy_scalar(
-                self.shape[0], dtype=self.dtype
-            ),
+            det=lambda: backend.asscalar(1.0, dtype=self._inexact_dtype),
+            logabsdet=lambda: backend.asscalar(0.0, dtype=self._inexact_dtype),
+            trace=lambda: backend.asscalar(self.shape[0], dtype=self.dtype),
         )
 
         # Matrix properties
@@ -1588,11 +1582,9 @@ class Identity(LambdaLinearOperator):
         self, p: Optional[Union[None, int, str, np.floating]] = None
     ) -> np.inexact:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
-            return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
+            return backend.asscalar(1.0, dtype=self._inexact_dtype)
         elif p == "fro":
-            return probnum.utils.as_numpy_scalar(
-                self.shape[0], dtype=self._inexact_dtype
-            )
+            return backend.asscalar(self.shape[0], dtype=self._inexact_dtype)
         else:
             return np.linalg.cond(self.todense(cache=False), p=p)
 
@@ -1624,7 +1616,7 @@ class Selection(LambdaLinearOperator):
                 "output-dimension (shape[0]) is larger than the input-dimension "
                 "(shape[1]), consider using `Embedding`."
             )
-        self._indices = probnum.utils.as_shape(indices)
+        self._indices = backend.asshape(indices)
         assert len(self._indices) == shape[0]
 
         super().__init__(
@@ -1676,8 +1668,8 @@ class Embedding(LambdaLinearOperator):
                 "(shape[1]), consider using `Selection`."
             )
 
-        self._take_indices = probnum.utils.as_shape(take_indices)
-        self._put_indices = probnum.utils.as_shape(put_indices)
+        self._take_indices = backend.asshape(take_indices)
+        self._put_indices = backend.asshape(put_indices)
         self._fill_value = fill_value
 
         super().__init__(

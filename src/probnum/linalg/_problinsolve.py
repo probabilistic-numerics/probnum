@@ -15,7 +15,7 @@ import numpy as np
 import scipy.sparse
 
 import probnum  # pylint: disable=unused-import
-from probnum import linops, randvars, utils
+from probnum import linops, randvars
 from probnum.linalg.solvers.matrixbased import SymmetricMatrixBasedSolver
 from probnum.typing import LinearOperatorLike
 
@@ -201,7 +201,7 @@ def problinsolve(
             # Select and initialize solver
             linear_solver = _init_solver(
                 A=A,
-                b=utils.as_colvec(b[:, i]),
+                b=as_colvec(b[:, i]),
                 A0=A0,
                 Ainv0=Ainv0,
                 x0=x,
@@ -344,9 +344,9 @@ def _preprocess_linear_system(A, b, x0=None):
     """
     # Transform linear system to correct dimensions
     if not isinstance(b, randvars.RandomVariable):
-        b = utils.as_colvec(b)  # (n,) -> (n, 1)
+        b = as_colvec(b)  # (n,) -> (n, 1)
     if x0 is not None:
-        x0 = utils.as_colvec(x0)  # (n,) -> (n, 1)
+        x0 = as_colvec(x0)  # (n,) -> (n, 1)
 
     return A, b, x0
 
@@ -477,3 +477,24 @@ def _postprocess(info, A):
             scipy.linalg.LinAlgWarning,
             stacklevel=3,
         )
+
+
+def as_colvec(
+    vec: Union[np.ndarray, "probnum.randvars.RandomVariable"]
+) -> Union[np.ndarray, "probnum.randvars.RandomVariable"]:
+    """Transform the given vector or random variable to column format. Given a vector
+    (or random variable) of dimension (n,) return an array with dimensions (n, 1)
+    instead. Higher-dimensional arrays are not changed.
+
+    Parameters
+    ----------
+    vec
+        Vector, array or random variable to be transformed into a column vector.
+    """
+    if isinstance(vec, probnum.randvars.RandomVariable):
+        if vec.shape != (vec.shape[0], 1):
+            vec.reshape(newshape=(vec.shape[0], 1))
+    else:
+        if vec.ndim == 1:
+            return vec[:, None]
+    return vec

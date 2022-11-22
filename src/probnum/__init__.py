@@ -8,11 +8,17 @@ finite computational resources and stochastic input.
 
 # isort: off
 
+# Determine backend to use
+from ._select_backend import BACKEND, Backend
+
 # Global Configuration
 # The global configuration registry. Can be used as a context manager to create local
 # contexts in which configuration is temporarily overwritten. This object contains
 # unguarded global state and is hence not thread-safe!
 from ._config import _GLOBAL_CONFIG_SINGLETON as config
+
+# Compute backend functionality
+from . import backend
 
 # Abstract interfaces for (components of) probabilistic numerical methods.
 from ._pnmethod import (
@@ -21,26 +27,27 @@ from ._pnmethod import (
     LambdaStoppingCriterion,
 )
 
-# isort: on
-
+# Supporting packages need to be imported before compat
 from . import (
-    diffeq,
-    filtsmooth,
     functions,
-    linalg,
     linops,
-    problems,
-    quad,
     randprocs,
     randvars,
-    utils,
 )
+
+# Compatibility functionality between backend, linops and randvars
+from . import compat
+
+# isort: on
+
+from . import diffeq, filtsmooth, linalg, problems, quad
 from ._version import version as __version__
 from .randvars import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandvar",
+    "BACKEND",
     "ProbabilisticNumericalMethod",
     "StoppingCriterion",
     "LambdaStoppingCriterion",

@@ -3,7 +3,6 @@
 from typing import Dict
 
 import numpy as np
-import pytest
 
 from probnum.quad.integration_measures import (
     GaussianMeasure,
@@ -12,6 +11,8 @@ from probnum.quad.integration_measures import (
 )
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs import kernels
+
+import pytest
 
 # pylint: disable=unnecessary-lambda
 

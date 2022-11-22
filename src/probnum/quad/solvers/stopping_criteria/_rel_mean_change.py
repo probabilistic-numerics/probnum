@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import numpy as np
 
+from probnum.backend.typing import FloatLike
 from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.stopping_criteria import BQStoppingCriterion
-from probnum.typing import FloatLike
 
 # pylint: disable=too-few-public-methods
 

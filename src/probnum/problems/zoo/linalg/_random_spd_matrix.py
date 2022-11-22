@@ -6,14 +6,16 @@ from typing import Sequence
 import numpy as np
 import scipy.stats
 
-from probnum.typing import IntLike
+from probnum import backend
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ShapeLike
 
 
 def random_spd_matrix(
-    rng: np.random.Generator,
-    dim: IntLike,
+    rng_state: RNGState,
+    shape: ShapeLike,
     spectrum: Sequence = None,
-) -> np.ndarray:
+) -> backend.Array:
     r"""Random symmetric positive definite matrix.
 
     Constructs a random symmetric positive definite matrix from a given spectrum. An
@@ -25,10 +27,10 @@ def random_spd_matrix(
 
     Parameters
     ----------
-    rng
-        Random number generator.
-    dim
-        Matrix dimension.
+    rng_state
+        State of the random number generator.
+    shape
+        Shape of the resulting matrix.
     spectrum
         Eigenvalues of the matrix.
 
@@ -39,53 +41,60 @@ def random_spd_matrix(
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
-    >>> rng = np.random.default_rng(1)
-    >>> mat = random_spd_matrix(rng, dim=5)
+    >>> rng_state = backend.random.rng_state(1)
+    >>> mat = random_spd_matrix(rng_state, shape=(5, 5))
     >>> mat
-    array([[10.24394619,  0.05484236,  0.39575826, -0.70032495, -0.75482692],
-           [ 0.05484236, 11.31516868,  0.6968935 , -0.13877394,  0.52783063],
-           [ 0.39575826,  0.6968935 , 11.5728974 ,  0.21214568,  1.07692458],
-           [-0.70032495, -0.13877394,  0.21214568,  9.88674751, -1.09750511],
-           [-0.75482692,  0.52783063,  1.07692458, -1.09750511, 10.193655  ]])
+    array([[ 8.93286789,  0.46676405, -2.10171474,  1.44158222, -0.32869563],
+           [ 0.46676405,  7.63938418, -2.45135608,  2.03734623,  0.8095071 ],
+           [-2.10171474, -2.45135608,  8.52968389, -0.11968995,  1.74237472],
+           [ 1.44158222,  2.03734623, -0.11968995,  8.58417432, -1.61553113],
+           [-0.32869563,  0.8095071 ,  1.74237472, -1.61553113,  8.1054103 ]])
 
     Check for symmetry and positive definiteness.
 
-    >>> np.all(mat == mat.T)
+    >>> backend.all(mat == mat.T)
     True
-    >>> np.linalg.eigvals(mat)
-    array([ 8.09147328, 12.7635956 , 10.84504988, 10.73086331, 10.78143272])
+    >>> backend.linalg.eigvalsh(mat)
+    array([ 3.51041217,  7.80937731,  8.49510526,  8.76024149, 13.21638435])
     """
+    shape = backend.asshape(shape)
+
+    if not shape == () and shape[0] != shape[1]:
+        raise ValueError(f"Shape must represent a square matrix, but is {shape}.")
+
+    gamma_rng_state, so_rng_state = backend.random.split(rng_state, num=2)
 
     # Initialization
     if spectrum is None:
-        # Create a custom ordered spectrum if none is given.
-        spectrum_shape: float = 10.0
-        spectrum_scale: float = 1.0
-        spectrum_offset: float = 0.0
-
-        spectrum = scipy.stats.gamma.rvs(
-            spectrum_shape,
-            loc=spectrum_offset,
-            scale=spectrum_scale,
-            size=dim,
-            random_state=rng,
+        spectrum = backend.random.gamma(
+            gamma_rng_state,
+            shape_param=10.0,
+            scale_param=1.0,
+            shape=shape[:1],
         )
-        spectrum = np.sort(spectrum)[::-1]
-
     else:
-        spectrum = np.asarray(spectrum)
-        if not np.all(spectrum > 0):
+        spectrum = backend.asarray(spectrum)
+
+        if spectrum.shape != shape[:1]:
+            raise ValueError(
+                f"Size of the spectrum {spectrum.shape} and shape {shape} are not "
+                + "compatible."
+            )
+
+        if not backend.all(spectrum > 0):
             raise ValueError(f"Eigenvalues must be positive, but are {spectrum}.")
 
-    # Early exit for d=1 -- special_ortho_group does not like this case.
-    if dim == 1:
+    if len(shape) == 0:
+        return spectrum
+
+    if shape[0] == 1:
         return spectrum.reshape((1, 1))
 
     # Draw orthogonal matrix with respect to the Haar measure
-    orth_mat = scipy.stats.special_ortho_group.rvs(dim, random_state=rng)
-    spd_mat = orth_mat @ np.diag(spectrum) @ orth_mat.T
+    orth_mat = backend.random.uniform_so_group(so_rng_state, n=shape[0])
+    spd_mat = (orth_mat * spectrum[None, :]) @ orth_mat.T
 
     # Symmetrize to avoid numerically not symmetric matrix
     # Since A commutes with itself (AA' = A'A = AA) the eigenvalues do not change.
@@ -93,8 +102,8 @@ def random_spd_matrix(
 
 
 def random_sparse_spd_matrix(
-    rng: np.random.Generator,
-    dim: IntLike,
+    rng_state: RNGState,
+    shape: ShapeLike,
     density: float,
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
@@ -110,10 +119,10 @@ def random_sparse_spd_matrix(
 
     Parameters
     ----------
-    rng
-        Random number generator.
-    dim
-        Matrix dimension.
+    rng_state
+        State of the random number generator.
+    shape
+        Shape of the resulting matrix.
     density
         Degree of sparsity of the off-diagonal entries of the Cholesky factor.
         Between 0 and 1 where 1 represents a dense matrix.
@@ -130,10 +139,10 @@ def random_sparse_spd_matrix(
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
-    >>> rng = np.random.default_rng(42)
-    >>> sparsemat = random_sparse_spd_matrix(rng, dim=5, density=0.1)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> sparsemat = random_sparse_spd_matrix(rng_state, shape=(5,5), density=0.1)
     >>> sparsemat
     <5x5 sparse matrix of type '<class 'numpy.float64'>'
         with 9 stored elements in Compressed Sparse Row format>
@@ -148,17 +157,20 @@ def random_sparse_spd_matrix(
     # Initialization
     if not 0 <= density <= 1:
         raise ValueError(f"Density must be between 0 and 1, but is {density}.")
-    chol = scipy.sparse.eye(dim, format="csr")
-    num_off_diag_cholesky = int(0.5 * dim * (dim - 1))
+    if not shape == () and shape[0] != shape[1]:
+        raise ValueError(f"Shape must represent a square matrix, but is {shape}.")
+
+    chol = scipy.sparse.eye(shape[0], format="csr")
+    num_off_diag_cholesky = int(0.5 * shape[0] * (shape[0] - 1))
     num_nonzero_entries = int(num_off_diag_cholesky * density)
 
     if num_nonzero_entries > 0:
         sparse_matrix = scipy.sparse.rand(
-            m=dim,
-            n=dim,
+            m=shape[0],
+            n=shape[0],
             format="csr",
             density=density,
-            random_state=rng,
+            random_state=np.random.default_rng(rng_state),
         )
 
         # Rescale entries

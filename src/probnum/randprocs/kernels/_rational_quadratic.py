@@ -2,10 +2,8 @@
 
 from typing import Optional
 
-import numpy as np
-
-from probnum.typing import ScalarLike, ShapeLike
-import probnum.utils as _utils
+from probnum import backend
+from probnum.backend.typing import ScalarLike, ShapeLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -46,10 +44,10 @@ class RatQuad(Kernel, IsotropicMixin):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import RatQuad
     >>> K = RatQuad(input_shape=1, lengthscale=0.1, alpha=3)
-    >>> xs = np.linspace(0, 1, 3)[:, None]
+    >>> xs = backend.linspace(0, 1, 3)[:, None]
     >>> K(xs[:, None, :], xs[None, :, :])
     array([[1.00000000e+00, 7.25051190e-03, 1.81357765e-04],
            [7.25051190e-03, 1.00000000e+00, 7.25051190e-03],
@@ -62,15 +60,17 @@ class RatQuad(Kernel, IsotropicMixin):
         lengthscale: ScalarLike = 1.0,
         alpha: ScalarLike = 1.0,
     ):
-        self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        self.alpha = _utils.as_numpy_scalar(alpha)
+        self.lengthscale = backend.asscalar(lengthscale)
+        self.alpha = backend.asscalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array] = None
+    ) -> backend.Array:
         if x1 is None:
-            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.ones_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[: x0.ndim - self.input_ndim],
             )

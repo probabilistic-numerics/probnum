@@ -1,22 +1,23 @@
 """Probabilistic linear solver state test cases."""
 
 import numpy as np
-from pytest_cases import case
 
-from probnum import linalg, linops, randvars
+from probnum import backend, linalg, linops, randvars
 from probnum.problems.zoo.linalg import random_linear_system, random_spd_matrix
+
+from pytest_cases import case
 
 # Problem
 n = 10
 linsys = random_linear_system(
-    rng=np.random.default_rng(42), matrix=random_spd_matrix, dim=n
+    backend.random.rng_state(42), matrix=random_spd_matrix, shape=(n, n)
 )
 
 # Prior
 Ainv = randvars.Normal(
     mean=linops.Identity(n), cov=linops.SymmetricKronecker(linops.Identity(n))
 )
-b = randvars.Constant(linsys.b)
+b = randvars.Constant(backend.to_numpy(linsys.b))
 prior = linalg.solvers.beliefs.LinearSystemBelief(
     A=randvars.Constant(linsys.A),
     Ainv=Ainv,
@@ -32,21 +33,21 @@ def case_initial_state():
 
 
 @case(tags=["has_action"])
-def case_state(
-    rng: np.random.Generator,
-):
+def case_state():
     """State of a linear solver."""
+    rng_state = backend.random.rng_state(35792)
     state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
-    state.action = rng.standard_normal(size=state.problem.A.shape[1])
+    state.action = backend.random.standard_normal(
+        rng_state=rng_state, shape=state.problem.A.shape[1]
+    )
 
     return state
 
 
 @case(tags=["has_action", "has_observation", "matrix_based"])
-def case_state_matrix_based(
-    rng: np.random.Generator,
-):
+def case_state_matrix_based():
     """State of a matrix-based linear solver."""
+    rng_state = backend.random.rng_state(9876534)
     prior = linalg.solvers.beliefs.LinearSystemBelief(
         A=randvars.Normal(
             mean=linops.Matrix(linsys.A),
@@ -60,17 +61,20 @@ def case_state_matrix_based(
         b=b,
     )
     state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
-    state.action = rng.standard_normal(size=state.problem.A.shape[1])
-    state.observation = rng.standard_normal(size=state.problem.A.shape[1])
+    state.action = backend.random.standard_normal(
+        rng_state=rng_state, shape=state.problem.A.shape[1]
+    )
+    state.observation = backend.random.standard_normal(
+        rng_state=rng_state, shape=state.problem.A.shape[1]
+    )
 
     return state
 
 
 @case(tags=["has_action", "has_observation", "symmetric_matrix_based"])
-def case_state_symmetric_matrix_based(
-    rng: np.random.Generator,
-):
+def case_state_symmetric_matrix_based():
     """State of a symmetric matrix-based linear solver."""
+    rng_state = backend.random.rng_state(93456)
     prior = linalg.solvers.beliefs.LinearSystemBelief(
         A=randvars.Normal(
             mean=linops.Matrix(linsys.A),
@@ -84,27 +88,31 @@ def case_state_symmetric_matrix_based(
         b=b,
     )
     state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
-    state.action = rng.standard_normal(size=state.problem.A.shape[1])
-    state.observation = rng.standard_normal(size=state.problem.A.shape[1])
+    state.action = backend.random.standard_normal(
+        rng_state=rng_state, shape=state.problem.A.shape[1]
+    )
+    state.observation = backend.random.standard_normal(
+        rng_state=rng_state, shape=state.problem.A.shape[1]
+    )
 
     return state
 
 
 @case(tags=["has_action", "has_observation", "solution_based"])
-def case_state_solution_based(
-    rng: np.random.Generator,
-):
+def case_state_solution_based():
     """State of a solution-based linear solver."""
+    rng_state = backend.random.rng_state(4832)
+
     initial_state = linalg.solvers.LinearSolverState(problem=linsys, prior=prior)
-    initial_state.action = rng.standard_normal(size=initial_state.problem.A.shape[1])
-    initial_state.observation = rng.standard_normal()
+    initial_state.action = backend.random.standard_normal(
+        rng_state=rng_state, shape=initial_state.problem.A.shape[1]
+    )
+    initial_state.observation = backend.random.standard_normal(rng_state=rng_state)
 
     return initial_state
 
 
-def case_state_converged(
-    rng: np.random.Generator,
-):
+def case_state_converged():
     """State of a linear solver, which has converged at initialization."""
     belief = linalg.solvers.beliefs.LinearSystemBelief(
         A=randvars.Constant(linsys.A),

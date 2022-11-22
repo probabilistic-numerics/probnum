@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from probnum import linops, randvars as rvs
+from probnum import backend, linops, randvars
 
 # Module level variables
 RV_NAMES = [
@@ -39,15 +39,15 @@ def get_randvar(rv_name):
     cov_2d_symkron = linops.SymmetricKronecker(A=SPD_MATRIX_5x5)
 
     if rv_name == "univar_normal":
-        randvar = rvs.Normal(mean=mean_0d, cov=cov_0d)
+        randvar = randvars.Normal(mean=mean_0d, cov=cov_0d)
     elif rv_name == "multivar_normal":
-        randvar = rvs.Normal(mean=mean_1d, cov=cov_1d)
+        randvar = randvars.Normal(mean=mean_1d, cov=cov_1d)
     elif rv_name == "matrixvar_normal":
-        randvar = rvs.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
+        randvar = randvars.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
     elif rv_name == "symmatrixvar_normal":
-        randvar = rvs.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
+        randvar = randvars.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
     elif rv_name == "operatorvar_normal":
-        randvar = rvs.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
+        randvar = randvars.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
     else:
         raise ValueError("Random variable not found.")
 
@@ -87,14 +87,14 @@ class Sampling:
     params = [RV_NAMES]
 
     def setup(self, randvar):
-        self.rng = np.random.default_rng(seed=2)
+        self.rng_state = backend.random.rng_state(23529)
         self.n_samples = 1000
         self.randvar = get_randvar(rv_name=randvar)
 
     def time_sample(self, randvar):
         """Times sampling from this distribution."""
-        self.randvar.sample(rng=self.rng, size=self.n_samples)
+        self.randvar.sample(rng_state=self.rng_state, sample_shape=self.n_samples)
 
     def peakmem_sample(self, randvar):
         """Peak memory of sampling process."""
-        self.randvar.sample(rng=self.rng, size=self.n_samples)
+        self.randvar.sample(rng_state=self.rng_state, sample_shape=self.n_samples)

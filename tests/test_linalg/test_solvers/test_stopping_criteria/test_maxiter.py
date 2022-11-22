@@ -2,9 +2,9 @@
 
 import pathlib
 
-from pytest_cases import parametrize_with_cases
-
 from probnum.linalg.solvers import LinearSolverState, stopping_criteria
+
+from pytest_cases import parametrize_with_cases
 
 case_modules = (pathlib.Path(__file__).parent / "cases").stem
 cases_stopping_criteria = case_modules + ".stopping_criteria"

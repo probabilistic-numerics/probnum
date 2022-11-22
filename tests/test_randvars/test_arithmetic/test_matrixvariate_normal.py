@@ -1,9 +1,10 @@
 """Tests for matrix-variate normal arithmetic."""
 
 import numpy as np
-import pytest
 
 from probnum import linops
+
+import pytest
 
 
 @pytest.mark.parametrize(

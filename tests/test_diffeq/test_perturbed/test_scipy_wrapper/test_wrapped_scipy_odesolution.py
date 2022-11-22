@@ -1,7 +1,8 @@
 import numpy as np
-import pytest_cases
 
 from probnum import randvars
+
+import pytest_cases
 
 
 @pytest_cases.fixture

@@ -1,7 +1,8 @@
 import numpy as np
-import pytest
 
 from probnum import filtsmooth, randvars
+
+import pytest
 
 
 @pytest.fixture(name="state_list")

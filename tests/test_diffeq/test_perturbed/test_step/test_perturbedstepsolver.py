@@ -1,9 +1,10 @@
 import numpy as np
-import pytest
-import pytest_cases
 from scipy.integrate._ivp import base
 
 from probnum import diffeq, randvars
+
+import pytest
+import pytest_cases
 
 
 @pytest_cases.fixture

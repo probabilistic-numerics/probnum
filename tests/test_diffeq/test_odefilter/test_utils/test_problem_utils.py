@@ -2,10 +2,11 @@
 
 
 import numpy as np
-import pytest
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars
 from probnum.problems.zoo import diffeq as diffeq_zoo
+
+import pytest
 
 
 @pytest.fixture
@@ -87,8 +88,8 @@ def test_ivp_to_regression_problem(
     # the process noise covariance matrices should be non-zero.
     if ode_measurement_variance > 0.0:
         noise = regprob.measurement_models[1].noise_fun(locations[0])
-        assert np.linalg.norm(noise.cov > 0.0)
-        assert np.linalg.norm(noise.cov_cholesky > 0.0)
+        assert np.linalg.norm(noise.cov) > 0.0
+        assert np.linalg.norm(noise._cov_cholesky) > 0.0
 
     # If an approximation strategy is passed, the output should be an EKF component
     # which should suppoert forward_rv().

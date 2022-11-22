@@ -1,7 +1,8 @@
 import numpy as np
-import pytest
 
 from probnum import diffeq
+
+import pytest
 
 
 @pytest.fixture

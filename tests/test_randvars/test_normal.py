@@ -3,83 +3,16 @@ import itertools
 import unittest
 
 import numpy as np
-import scipy.linalg
-import scipy.sparse
 import scipy.stats
 
 from probnum import config, linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
+
 from tests.testing import NumpyAssertions
 
 
 class NormalTestCase(unittest.TestCase, NumpyAssertions):
     """General test case for the normal distribution."""
-
-    def setUp(self):
-        """Resources for tests."""
-
-        # Seed
-        self.seed = 42
-        self.rng = np.random.default_rng(seed=self.seed)
-
-        # Parameters
-        m = 7
-        n = 3
-        self.constants = [-1, -2.4, 0, 200, np.pi]
-        sparsemat = scipy.sparse.rand(m=m, n=n, density=0.1, random_state=self.rng)
-        self.normal_params = [
-            # Univariate
-            (-1.0, 3.0),
-            (1, 3),
-            # Multivariate
-            (np.random.uniform(size=10), np.eye(10)),
-            (np.random.uniform(size=10), random_spd_matrix(rng=self.rng, dim=10)),
-            # Matrixvariate
-            (
-                np.random.uniform(size=(2, 2)),
-                linops.SymmetricKronecker(
-                    A=np.array([[1.0, 2.0], [2.0, 10.0]]),
-                    B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
-                ).todense(),
-            ),
-            # Operatorvariate
-            (
-                np.array([1.0, -5.0]),
-                linops.Matrix(A=np.array([[2.0, 1.0], [1.0, 1.0]])),
-            ),
-            (
-                linops.Matrix(A=np.array([[0.0, -5.0]])),
-                linops.Identity(shape=(2, 2)),
-            ),
-            (
-                np.array([[1.0, 2.0], [-3.0, -0.4], [4.0, 1.0]]),
-                linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
-            ),
-            (
-                linops.Matrix(A=sparsemat.todense()),
-                linops.Kronecker(linops.Identity(m), linops.Identity(n)),
-            ),
-            (
-                linops.Matrix(A=np.random.uniform(size=(2, 2))),
-                linops.SymmetricKronecker(
-                    A=np.array([[1.0, 2.0], [2.0, 10.0]]),
-                    B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
-                ),
-            ),
-            # Symmetric Kronecker Identical Factors
-            (
-                linops.Identity(shape=25),
-                linops.SymmetricKronecker(A=linops.Identity(25)),
-            ),
-        ]
-
-    def test_correct_instantiation(self):
-        """Test whether different variants of the normal distribution are instances of
-        Normal."""
-        for mean, cov in self.normal_params:
-            with self.subTest():
-                dist = randvars.Normal(mean=mean, cov=cov)
-                self.assertIsInstance(dist, randvars.Normal)
 
     def test_scalarmult(self):
         """Multiply a rv with a normal distribution with a scalar."""
@@ -454,23 +387,6 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         with self.subTest("Cholesky is precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
 
-    def test_damping_factor_config(self):
-        mean, cov = self.params
-        rv = randvars.Normal(mean, cov)
-
-        chol_standard_damping = rv.dense_cov_cholesky(damping_factor=None)
-        self.assertAllClose(
-            chol_standard_damping,
-            np.sqrt(rv.cov + 1e-12),
-        )
-
-        with config(covariance_inversion_damping=1e-3):
-            chol_altered_damping = rv.dense_cov_cholesky(damping_factor=None)
-            self.assertAllClose(
-                chol_altered_damping,
-                np.sqrt(rv.cov + 1e-3),
-            )
-
     def test_cov_cholesky_cov_cholesky_passed(self):
         """A value for cov_cholesky is passed in init.
 
@@ -483,7 +399,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand()
 
-        rv = randvars.Normal(mean, cov, cov_cholesky=cov_cholesky)
+        rv = randvars.Normal(mean, cov, cache={"cov_cholesky": cov_cholesky})
 
         with self.subTest("Cholesky precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
@@ -497,25 +413,6 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
 
 class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
-    def setUp(self):
-
-        self.seed = 42
-        self.rng = np.random.default_rng(self.seed)
-
-        self.params = (
-            self.rng.uniform(size=10),
-            random_spd_matrix(rng=self.rng, dim=10),
-        )
-
-    def test_newaxis(self):
-        vector_rv = randvars.Normal(*self.params)
-
-        matrix_rv = vector_rv[:, np.newaxis]
-
-        self.assertEqual(matrix_rv.shape, (10, 1))
-        self.assertArrayEqual(np.squeeze(matrix_rv.mean), vector_rv.mean)
-        self.assertArrayEqual(matrix_rv.cov, vector_rv.cov)
-
     def test_reshape(self):
         rv = randvars.Normal(*self.params)
 
@@ -621,7 +518,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand(*cov.shape)
 
-        rv = randvars.Normal(mean, cov, cov_cholesky=cov_cholesky)
+        rv = randvars.Normal(mean, cov, cache={"cov_cholesky": cov_cholesky})
 
         with self.subTest("Cholesky precomputed"):
             self.assertTrue(rv.cov_cholesky_is_precomputed)
@@ -641,12 +538,16 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         cov_cholesky_wrong_type = cov_cholesky.tolist()
         with self.subTest("Different type raises ValueError"):
             with self.assertRaises(TypeError):
-                randvars.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_type)
+                randvars.Normal(
+                    mean, cov, cache={"cov_cholesky": cov_cholesky_wrong_type}
+                )
 
         cov_cholesky_wrong_shape = cov_cholesky[1:]
         with self.subTest("Different shape raises ValueError"):
             with self.assertRaises(ValueError):
-                randvars.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_shape)
+                randvars.Normal(
+                    mean, cov, cache={"cov_cholesky": cov_cholesky_wrong_shape}
+                )
 
         cov_cholesky_wrong_dtype = cov_cholesky.astype(int)
         with self.subTest("Different data type is promoted"):
@@ -656,7 +557,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
             # Assert data type of cov_cholesky is changed during __init__
             normal_new_dtype = randvars.Normal(
-                mean, cov, cov_cholesky=cov_cholesky_wrong_dtype
+                mean, cov, cache={"cov_cholesky": cov_cholesky_wrong_dtype}
             )
             self.assertEqual(
                 normal_new_dtype.cov.dtype, normal_new_dtype.cov_cholesky.dtype
@@ -664,11 +565,6 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
 
 class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
-    def setUp(self):
-        # Seed
-        self.seed = 42
-        self.rng = np.random.default_rng(seed=self.seed)
-
     def test_reshape(self):
         rv = randvars.Normal(
             mean=np.random.uniform(size=(4, 3)),
@@ -765,7 +661,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         rv = randvars.Normal(
             mean=np.random.uniform(size=(2, 2)),
             cov=random_spd_matrix(rng=self.rng, dim=4),
-            cov_cholesky=cov_cholesky,
+            cache={"cov_cholesky": cov_cholesky},
         )
 
         with self.subTest("Cholesky precomputed"):

@@ -41,7 +41,7 @@ An exception from these rules are type-related modules, which include `typing` a
 Types are always imported directly.
 
 - `from typing import Optional, Callable`
-- `from probnum.typing import FloatLike`
+- `from probnum.backend.typing import FloatLike`
 
 Please do not abbreviate import paths unnecessarily. We do **not** use the following imports:
 - `import probnum.random_variables as pnrv` or `import probnum.filtsmooth as pnfs` (correct would be `from probnum import randvars, filtsmooth`)
@@ -64,8 +64,7 @@ Many types representing numeric values, shapes, dtypes, random states, etc. have
 possible representations. For example a shape could be specified in the following ways: `n, (n,), (n, 1), [n], [n, 1]`.
 
 For this reason most types should be standardized internally to a core set of types defined
-in `probnum.typing`, e.g. for numeric types `np.generic`, `np.ndarray`. Methods for input
-argument standardization can be found in `probnum.utils.argutils`.
+in `probnum.typing`, e.g. for numeric types `np.generic`, `np.ndarray`.
 
 ### Naming
 

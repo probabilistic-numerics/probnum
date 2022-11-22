@@ -4,9 +4,10 @@
 import string
 
 import numpy as np
-import pytest
 
-from probnum import randvars, utils
+from probnum import backend, randvars
+
+import pytest
 
 NDIM = 5
 
@@ -53,7 +54,7 @@ def test_support(categ):
 @pytest.mark.parametrize("size", [(), 1, (1,), (1, 1)])
 def test_sample(categ, size, rng):
     samples = categ.sample(rng=rng, size=size)
-    expected_shape = utils.as_shape(size) + categ.shape
+    expected_shape = backend.asshape(size) + categ.shape
     assert samples.shape == expected_shape
 
 

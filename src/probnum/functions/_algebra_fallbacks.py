@@ -5,10 +5,8 @@ from __future__ import annotations
 import functools
 import operator
 
-import numpy as np
-
-from probnum import utils
-from probnum.typing import ScalarLike, ScalarType
+from probnum import backend
+from probnum.backend.typing import ScalarLike
 
 from ._function import Function
 
@@ -61,7 +59,7 @@ class SumFunction(Function):
         r"""The functions :math:`f_1, \dotsc, f_n` to be added."""
         return self._summands
 
-    def _evaluate(self, x: np.ndarray) -> np.ndarray:
+    def _evaluate(self, x: backend.Array) -> backend.Array:
         return functools.reduce(
             operator.add, (summand(x) for summand in self._summands)
         )
@@ -100,7 +98,7 @@ class ScaledFunction(Function):
             )
 
         self._function = function
-        self._scalar = utils.as_numpy_scalar(scalar)
+        self._scalar = backend.asscalar(scalar)
 
         super().__init__(
             input_shape=self._function.input_shape,
@@ -113,29 +111,29 @@ class ScaledFunction(Function):
         return self._function
 
     @property
-    def scalar(self) -> ScalarType:
+    def scalar(self) -> backend.Scalar:
         r"""The scalar :math:`\alpha`."""
         return self._scalar
 
-    def _evaluate(self, x: np.ndarray) -> np.ndarray:
+    def _evaluate(self, x: backend.Array) -> backend.Array:
         return self._scalar * self._function(x)
 
     @functools.singledispatchmethod
     def __mul__(self, other):
-        if np.ndim(other) == 0:
+        if backend.ndim(other) == 0:
             return ScaledFunction(
                 function=self._function,
-                scalar=self._scalar * np.asarray(other),
+                scalar=self._scalar * backend.asarray(other),
             )
 
         return super().__mul__(other)
 
     @functools.singledispatchmethod
     def __rmul__(self, other):
-        if np.ndim(other) == 0:
+        if backend.ndim(other) == 0:
             return ScaledFunction(
                 function=self._function,
-                scalar=np.asarray(other) * self._scalar,
+                scalar=backend.asarray(other) * self._scalar,
             )
 
         return super().__rmul__(other)

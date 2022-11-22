@@ -1,7 +1,6 @@
 """Test cases for Bayesian quadrature."""
 
 import numpy as np
-import pytest
 from scipy.integrate import quad as scipyquad
 
 from probnum.quad import bayesquad, bayesquad_from_data
@@ -10,6 +9,8 @@ from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
 from ..util import gauss_hermite_tensor, gauss_legendre_tensor
+
+import pytest
 
 
 @pytest.fixture
@@ -194,8 +195,8 @@ def test_domain_ignored_if_lebesgue(input_dim, measure):
 
 
 def test_zero_function_gives_zero_variance_with_mle():
-    """Test that BQ variance is zero for zero function when MLE is used to set the
-    scale parameter."""
+    """Test that BQ variance is zero for zero function when MLE is used to set the scale
+    parameter."""
     input_dim = 1
     domain = (0, 1)
     fun = lambda x: np.zeros(x.shape[0])

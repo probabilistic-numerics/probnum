@@ -4,10 +4,8 @@ from __future__ import annotations
 
 from typing import Optional
 
-import numpy as np
-
-from probnum.typing import ScalarLike, ShapeLike
-import probnum.utils as _utils
+from probnum import backend
+from probnum.backend.typing import ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 
@@ -33,18 +31,21 @@ class Linear(Kernel):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import Linear
     >>> K = Linear(input_shape=2)
-    >>> xs = np.array([[1, 2], [2, 3]])
+    >>> xs = backend.asarray([[1, 2], [2, 3]])
     >>> K.matrix(xs)
     array([[ 5.,  8.],
            [ 8., 13.]])
     """
 
     def __init__(self, input_shape: ShapeLike, constant: ScalarLike = 0.0):
-        self.constant = _utils.as_numpy_scalar(constant)
+        self.constant = backend.asscalar(constant)
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+    @backend.jit_method
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         return self._euclidean_inner_products(x0, x1) + self.constant

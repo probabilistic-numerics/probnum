@@ -29,7 +29,7 @@ class _StackBase(InitializationRoutine):
         return randvars.Normal(
             mean=np.asarray(mean),
             cov=np.diag(std**2),
-            cov_cholesky=np.diag(std),
+            cache={"cov_cholesky": np.diag(std)},
         )
 
     def _stack_initial_states(self, *, ivp, num_derivatives):

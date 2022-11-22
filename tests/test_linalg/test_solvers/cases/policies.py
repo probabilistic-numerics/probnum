@@ -1,8 +1,8 @@
 """Test cases defined by policies."""
-from pytest_cases import case
-
+from probnum.backend.linalg import gram_schmidt_double, gram_schmidt_modified
 from probnum.linalg.solvers import policies
-from probnum.utils.linalg import double_gram_schmidt, modified_gram_schmidt
+
+from pytest_cases import case
 
 
 def case_conjugate_gradient():
@@ -11,13 +11,13 @@ def case_conjugate_gradient():
 
 def case_conjugate_gradient_reorthogonalized_residuals():
     return policies.ConjugateGradientPolicy(
-        reorthogonalization_fn_residual=double_gram_schmidt
+        reorthogonalization_fn_residual=gram_schmidt_double
     )
 
 
 def case_conjugate_gradient_reorthogonalized_actions():
     return policies.ConjugateGradientPolicy(
-        reorthogonalization_fn_action=modified_gram_schmidt
+        reorthogonalization_fn_action=gram_schmidt_modified
     )
 
 

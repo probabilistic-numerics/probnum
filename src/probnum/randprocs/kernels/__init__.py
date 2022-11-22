@@ -21,13 +21,13 @@ from ._white_noise import WhiteNoise
 __all__ = [
     "Kernel",
     "IsotropicMixin",
-    "WhiteNoise",
-    "Linear",
-    "Polynomial",
     "ExpQuad",
-    "RatQuad",
+    "Linear",
     "Matern",
+    "Polynomial",
     "ProductMatern",
+    "RatQuad",
+    "WhiteNoise",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.

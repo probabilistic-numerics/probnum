@@ -8,7 +8,7 @@ import numpy as np
 import scipy.integrate as sci
 
 from probnum import filtsmooth, problems, randprocs, randvars
-from probnum.typing import FloatLike
+from probnum.backend.typing import FloatLike
 
 from ._interface import InitializationRoutine
 
@@ -54,7 +54,7 @@ class _NonProbabilisticFitBase(InitializationRoutine):
         process_noise = randvars.Normal(
             mean=np.zeros(ode_dim),
             cov=np.diag(observation_noise_std**2),
-            cov_cholesky=np.diag(observation_noise_std),
+            cache={"cov_cholesky": np.diag(observation_noise_std)},
         )
         measmod_scipy = randprocs.markov.discrete.LTIGaussian(
             transition_matrix=proj_to_y,

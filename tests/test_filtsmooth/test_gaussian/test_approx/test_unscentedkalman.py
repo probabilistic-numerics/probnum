@@ -1,10 +1,10 @@
 """Tests for unscented Kalman filtering."""
 
-import pytest
-
 from probnum import filtsmooth
 
 from ._linearization_test_interface import InterfaceDiscreteLinearizationTest
+
+import pytest
 
 
 class TestDiscreteUKFComponent(InterfaceDiscreteLinearizationTest):

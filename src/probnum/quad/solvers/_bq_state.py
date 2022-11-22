@@ -7,11 +7,11 @@ from typing import Optional, Tuple
 
 import numpy as np
 
+from probnum.backend.typing import FloatLike
 from probnum.quad.integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike
 
 # pylint: disable=too-few-public-methods,too-many-instance-attributes
 

@@ -5,8 +5,8 @@ from typing import Optional
 import numpy as np
 
 from probnum import randvars
+from probnum.backend.typing import ArrayLike, FloatLike, ShapeLike
 from probnum.filtsmooth import _timeseriesposterior
-from probnum.typing import ArrayLike, FloatLike, ShapeLike
 
 
 class ParticleFilterPosterior(_timeseriesposterior.TimeSeriesPosterior):

@@ -3,9 +3,9 @@
 
 import dataclasses
 
-import pytest
-
 from probnum import diffeq
+
+import pytest
 from tests.test_diffeq.test_callbacks import _callback_test_interface
 
 

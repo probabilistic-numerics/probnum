@@ -4,10 +4,11 @@ The tests in here go through probsolve_ivp(), but do not directly test the inter
 but the implementation. Therefore this test module is named w.r.t. ivpfiltsmooth.py.
 """
 import numpy as np
-import pytest
 
 from probnum import diffeq, randprocs
 import probnum.problems.zoo.diffeq as diffeq_zoo
+
+import pytest
 
 
 @pytest.fixture(name="ivp")

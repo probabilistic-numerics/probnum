@@ -1,9 +1,10 @@
 """Test for the convenience functions."""
 
 import numpy as np
-import pytest
 
 from probnum import filtsmooth
+
+import pytest
 
 
 @pytest.fixture(name="prior_dimension")

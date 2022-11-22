@@ -4,9 +4,9 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import filtsmooth, randvars, utils
+from probnum import backend, filtsmooth, randvars
+from probnum.backend.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 from probnum.diffeq import _odesolution
-from probnum.typing import ArrayLike, FloatLike, IntLike, ShapeLike
 
 
 class ODEFilterSolution(_odesolution.ODESolution):
@@ -150,5 +150,5 @@ def _project_rv(projmat, rv):
 
     new_mean = projmat @ rv.mean
     new_cov = projmat @ rv.cov @ projmat.T
-    new_cov_cholesky = utils.linalg.cholesky_update(projmat @ rv.cov_cholesky)
-    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
+    new_cov_cholesky = backend.linalg.cholesky_update(projmat @ rv._cov_cholesky)
+    return randvars.Normal(new_mean, new_cov, cache={"cov_cholesky": new_cov_cholesky})

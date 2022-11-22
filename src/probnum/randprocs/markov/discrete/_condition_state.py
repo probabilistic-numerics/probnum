@@ -6,7 +6,9 @@ from probnum import randvars
 def condition_state_on_measurement(measurement, forwarded_rv, rv, gain):
     zero_mat = np.zeros((len(measurement), len(measurement)))
 
-    meas_as_rv = randvars.Normal(mean=measurement, cov=zero_mat, cov_cholesky=zero_mat)
+    meas_as_rv = randvars.Normal(
+        mean=measurement, cov=zero_mat, cache={"cov_cholesky": zero_mat}
+    )
     return condition_state_on_rv(meas_as_rv, forwarded_rv, rv, gain)
 
 

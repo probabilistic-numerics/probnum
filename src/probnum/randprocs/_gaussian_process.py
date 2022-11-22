@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-import numpy as np
-
-from probnum import randvars
-from probnum.typing import ArrayLike
+from probnum import backend, randvars
+from probnum.backend.typing import ArrayLike
 
 from . import _random_process, kernels
 from .. import functions
 
 
-class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
+class GaussianProcess(_random_process.RandomProcess[ArrayLike, backend.Array]):
     """Gaussian processes.
 
     A Gaussian process is a continuous stochastic process which if evaluated at a
@@ -34,20 +32,19 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
     --------
     Define a Gaussian process with a zero mean function and RBF kernel.
 
-    >>> import numpy as np
-    >>> from probnum.functions import Zero
+    >>> from probnum import backend, functions
     >>> from probnum.randprocs.kernels import ExpQuad
     >>> from probnum.randprocs import GaussianProcess
-    >>> mu = Zero(input_shape=())  # zero-mean function
-    >>> k = ExpQuad(input_shape=())  # RBF kernel
+    >>> mu = functions.Zero(input_shape=())
+    >>> k = ExpQuad(input_shape=())
     >>> gp = GaussianProcess(mu, k)
 
     Sample from the Gaussian process.
 
-    >>> x = np.linspace(-1, 1, 5)
-    >>> rng = np.random.default_rng(seed=42)
-    >>> gp.sample(rng, x)
-    array([-0.7539949 , -0.6658092 , -0.52972512,  0.0674298 ,  0.72066223])
+    >>> x = backend.linspace(-1, 1, 5)
+    >>> rng_state = backend.random.rng_state(seed=42)
+    >>> gp.sample(rng_state, x)
+    array([ 0.30471708, -0.22021158, -0.36160304,  0.05888274,  0.27793918])
     >>> gp.cov.matrix(x)
     array([[1.        , 0.8824969 , 0.60653066, 0.32465247, 0.13533528],
            [0.8824969 , 1.        , 0.8824969 , 0.60653066, 0.32465247],
@@ -67,13 +64,15 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
         super().__init__(
             input_shape=mean.input_shape,
             output_shape=mean.output_shape,
-            dtype=np.dtype(np.float_),
+            dtype=backend.asdtype(backend.float64),
             mean=mean,
             cov=cov,
         )
 
     def __call__(self, args: ArrayLike) -> randvars.Normal:
         return randvars.Normal(
-            mean=np.array(self.mean(args), copy=False),  # pylint: disable=not-callable
+            mean=backend.asarray(
+                self.mean(args), copy=False  # pylint: disable=not-callable
+            ),
             cov=self.cov.matrix(args),
         )

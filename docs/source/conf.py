@@ -14,7 +14,6 @@
 # serve to show the default.
 from datetime import datetime
 import os
-from pathlib import Path
 import sys
 
 from pkg_resources import DistributionNotFound, get_distribution
@@ -55,8 +54,13 @@ templates_path = ["_templates"]
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "all"
 autodoc_typehints_format = "short"
+# Ensure type aliases are correctly displayed and linked in the documentation
 autodoc_type_aliases = {
     **{type_alias: f"typing.{type_alias}" for type_alias in probnum.typing.__all__},
+    **{
+        type_alias: f"typing.{type_alias}"
+        for type_alias in probnum.backend.typing.__all__
+    },
     **{
         type_alias: f"typing.{type_alias}" for type_alias in probnum.quad.typing.__all__
     },
@@ -65,15 +69,11 @@ autodoc_type_aliases = {
 # Settings for napoleon
 napoleon_use_param = True
 
-# Remove possible duplicate methods when using 'automodapi'
-# autodoc_default_flags = ['no-members']
-numpydoc_show_class_members = True
-
-
 # Settings for automodapi
 automodapi_toctreedirnm = "api/automod"
 automodapi_writereprocessed = False
 automodsumm_inherited_members = True
+numpydoc_show_class_members = False
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:
@@ -158,6 +158,8 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
+    "torch": ("https://pytorch.org/docs/stable/", None),
+    "jax": ("https://jax.readthedocs.io/en/latest/", None),
 }
 
 # -- Options for HTML output ----------------------------------------------
@@ -238,11 +240,3 @@ sphinx_gallery_conf = {
 # MyST configuration
 myst_update_mathjax = False  # needed for mathjax compatibility with nbsphinx
 myst_enable_extensions = ["dollarmath", "amsmath"]
-
-# Sphinx Bibtex configuration
-bibtex_bibfiles = []
-for f in Path("research/bibliography").glob("*.bib"):
-    bibtex_bibfiles.append(str(f))
-bibtex_default_style = "unsrtalpha"
-bibtex_reference_style = "label"
-bibtex_encoding = "utf-8-sig"

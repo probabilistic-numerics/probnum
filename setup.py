@@ -11,6 +11,9 @@ extras_require = dict()
 extras_require["jax"] = [
     "jax[cpu]<0.3.26; platform_system!='Windows'",
 ]
+extras_require["torch"] = [
+    "torch>=1.13",
+]
 extras_require["zoo"] = [
     "tqdm>=4.0",
     "requests>=2.0",

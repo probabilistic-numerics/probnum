@@ -1,9 +1,9 @@
 """Test cases for converting kernels to product kernels in quad."""
 
-import pytest
-
 from probnum.quad.kernel_embeddings._matern_lebesgue import _convert_to_product_matern
 from probnum.randprocs.kernels import Matern
+
+import pytest
 
 
 def test_product_kernel_conversion_matern():

@@ -5,11 +5,10 @@ from __future__ import annotations
 import abc
 from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
-import numpy as np
-
-from probnum import functions, randvars, utils as _utils
+from probnum import backend, functions, randvars
+from probnum.backend.random import RNGState
+from probnum.backend.typing import DTypeLike, ShapeLike, ShapeType
 from probnum.randprocs import kernels
-from probnum.typing import DTypeLike, ShapeLike, ShapeType
 
 InputType = TypeVar("InputType")
 OutputType = TypeVar("OutputType")
@@ -31,7 +30,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         Output shape of the random process.
     dtype
         Data type of the random process evaluated at an input. If ``object`` will be
-        converted to ``numpy.dtype``.
+        converted to :class:`~probnum.backend.DType``.
     mean
         Mean function of the random process.
     cov
@@ -59,10 +58,10 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         mean: Optional[functions.Function] = None,
         cov: Optional[kernels.Kernel] = None,
     ):
-        self._input_shape = _utils.as_shape(input_shape)
+        self._input_shape = backend.asshape(input_shape)
         self._input_ndim = len(self._input_shape)
 
-        self._output_shape = _utils.as_shape(output_shape)
+        self._output_shape = backend.asshape(output_shape)
         self._output_ndim = len(self._output_shape)
 
         if self._output_ndim > 1:
@@ -71,7 +70,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
                 "dimension."
             )
 
-        self._dtype = np.dtype(dtype)
+        self._dtype = backend.asdtype(dtype)
 
         # Mean function
         if mean is not None:
@@ -135,7 +134,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         return self._output_ndim
 
     @property
-    def dtype(self) -> np.dtype:
+    def dtype(self) -> backend.DType:
         """Data type of (elements of) the random process evaluated at an input."""
         return self._dtype
 
@@ -147,7 +146,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         )
 
     @abc.abstractmethod
-    def __call__(self, args: InputType) -> randvars.RandomVariable[OutputType]:
+    def __call__(self, args: InputType) -> randvars.RandomVariable:
         """Evaluate the random process at a set of input arguments.
 
         Parameters
@@ -233,7 +232,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         assert self._output_ndim == 1
 
-        return np.diagonal(pointwise_covs, axis1=-2, axis2=-1)
+        return backend.linalg.diagonal(pointwise_covs, axis1=-2, axis2=-1)
 
     def std(self, args: InputType) -> OutputType:
         """Standard deviation function.
@@ -250,14 +249,14 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
             *shape=* ``batch_shape +`` :attr:`output_shape` -- Standard deviation of the
             process at ``args``.
         """
-        return np.sqrt(self.var(args=args))
+        return backend.sqrt(self.var(args=args))
 
     def push_forward(
         self,
         args: InputType,
         base_measure: Type[randvars.RandomVariable],
-        sample: np.ndarray,
-    ) -> np.ndarray:
+        sample: backend.Array,
+    ) -> backend.Array:
         """Transform samples from a base measure into samples from the random process.
 
         This function can be used to control sampling from the random process by
@@ -278,9 +277,9 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
     def sample(
         self,
-        rng: np.random.Generator,
-        args: InputType = None,
-        size: ShapeLike = (),
+        rng_state: RNGState,
+        args: Optional[InputType] = None,
+        sample_shape: ShapeLike = (),
     ) -> Union[Callable[[InputType], OutputType], OutputType]:
         """Sample paths from the random process.
 
@@ -290,42 +289,45 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         Parameters
         ----------
-        rng
-            Random number generator.
+        rng_state
+            Random number generator state.
         args
-            *shape=* ``size +`` :attr:`input_shape` -- (Batch of) input(s) at
+            *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
             which the sample paths will be evaluated. Currently, we require
-            ``size`` to have at most one dimension. If ``None``, sample paths,
+            ``sample_shape`` to have at most one dimension. If ``None``, sample paths,
             i.e. callables are returned.
-        size
-            Size of the sample.
+        sample_shape
+            Shape of the sample.
         """
         if args is None:
             raise NotImplementedError
 
-        return self._sample_at_input(rng=rng, args=args, size=size)
+        return self._sample_at_input(
+            rng_state=rng_state, args=args, sample_shape=sample_shape
+        )
 
     def _sample_at_input(
         self,
-        rng: np.random.Generator,
+        rng_state: RNGState,
         args: InputType,
-        size: ShapeLike = (),
+        sample_shape: ShapeLike = (),
     ) -> OutputType:
         """Evaluate a set of sample paths at the given inputs.
 
         This function should be implemented by subclasses of :class:`RandomProcess`.
         This enables :meth:`sample` to both return functions, i.e. sample paths if
-        only a `size` is provided and random variables if inputs are provided as well.
+        only a `sample_shape` is provided and random variables if inputs are provided as
+        well.
 
         Parameters
         ----------
-        rng
-            Random number generator.
+        rng_state
+            Random number generator state.
         args
-            *shape=* ``size +`` :attr:`input_shape` -- (Batch of) input(s) at
+            *shape=* ``sample_shape +`` :attr:`input_shape` -- (Batch of) input(s) at
             which the sample paths will be evaluated. Currently, we require
-            ``size`` to have at most one dimension.
-        size
-            Size of the sample.
+            ``sample_shape`` to have at most one dimension.
+        sample_shape
+            Shape of the sample.
         """
-        return self(args).sample(rng, size=size)
+        return self(args).sample(rng_state=rng_state, sample_shape=sample_shape)

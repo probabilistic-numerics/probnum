@@ -7,8 +7,8 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from probnum.typing import NotImplementedType, ScalarLike
-import probnum.utils
+from probnum import backend
+from probnum.backend.typing import NotImplementedType, ScalarLike
 
 from ._linear_operator import BinaryOperandType, LambdaLinearOperator, LinearOperator
 
@@ -30,7 +30,7 @@ class ScaledLinearOperator(LambdaLinearOperator):
         dtype = np.result_type(linop.dtype, scalar)
 
         self._linop = linop
-        self._scalar = probnum.utils.as_numpy_scalar(scalar, dtype)
+        self._scalar = backend.asscalar(scalar, dtype)
 
         super().__init__(
             self._linop.shape,
@@ -72,7 +72,7 @@ class ScaledLinearOperator(LambdaLinearOperator):
 
 class NegatedLinearOperator(ScaledLinearOperator):
     def __init__(self, linop: LinearOperator):
-        super().__init__(linop, scalar=probnum.utils.as_numpy_scalar(-1, linop.dtype))
+        super().__init__(linop, scalar=backend.asscalar(-1, linop.dtype))
 
     def __neg__(self) -> "LinearOperator":
         return self._linop

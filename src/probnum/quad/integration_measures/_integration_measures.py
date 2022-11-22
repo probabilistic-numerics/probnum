@@ -7,10 +7,10 @@ from typing import Optional, Union
 import numpy as np
 import scipy.stats
 
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.quad._utils import as_domain
 from probnum.quad.typing import DomainLike
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
 
 
 class IntegrationMeasure(abc.ABC):

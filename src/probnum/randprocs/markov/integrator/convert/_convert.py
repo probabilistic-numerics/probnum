@@ -2,8 +2,8 @@
 
 import numpy as np
 
+from probnum.backend.typing import IntLike
 from probnum.randprocs.markov.integrator import _integrator
-from probnum.typing import IntLike
 
 
 def convert_derivwise_to_coordwise(

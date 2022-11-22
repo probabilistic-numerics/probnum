@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from probnum.typing import ArrayLike, FloatLike, IntLike
+from probnum.backend.typing import ArrayLike, FloatLike, IntLike
 
 
 class StepRule(ABC):

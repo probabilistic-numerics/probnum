@@ -1,9 +1,10 @@
 """Test cases for integration measures."""
 
 import numpy as np
-import pytest
 
 from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
+
+import pytest
 
 
 # Tests for Gaussian measure

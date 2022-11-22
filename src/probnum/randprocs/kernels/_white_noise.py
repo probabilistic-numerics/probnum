@@ -2,10 +2,8 @@
 
 from typing import Optional
 
-import numpy as np
-
-from probnum import utils as _utils
-from probnum.typing import ScalarLike, ShapeLike
+from probnum import backend
+from probnum.backend.typing import ScalarLike, ShapeLike
 
 from ._kernel import Kernel
 
@@ -31,13 +29,15 @@ class WhiteNoise(Kernel):
         if sigma_sq < 0:
             raise ValueError(f"Noise level sigma_sq={sigma_sq} must be non-negative.")
 
-        self.sigma_sq = _utils.as_numpy_scalar(sigma_sq)
+        self.sigma_sq = backend.asscalar(sigma_sq)
 
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         if x1 is None:
-            return np.full_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.full_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 self.sigma_sq,
                 shape=x0.shape[: x0.ndim - self.input_ndim],
@@ -46,4 +46,4 @@ class WhiteNoise(Kernel):
         if self.input_shape == ():
             return self.sigma_sq * (x0 == x1)
 
-        return self.sigma_sq * np.all(x0 == x1, axis=-1)
+        return self.sigma_sq * backend.all(x0 == x1, axis=-1)

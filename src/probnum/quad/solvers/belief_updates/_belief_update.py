@@ -8,11 +8,11 @@ from typing import Optional, Tuple
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 
+from probnum.backend.typing import FloatLike
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers._bq_state import BQState
 from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike
 
 # pylint: disable=too-few-public-methods, too-many-locals
 
@@ -63,7 +63,7 @@ class BQBeliefUpdate(abc.ABC):
 
     def _compute_gram_cho_factor(self, gram: np.ndarray) -> np.ndarray:
         """Compute the Cholesky decomposition of a positive-definite Gram matrix for use
-        in scipy.linalg.cho_solve
+        in scipy.linalg.cho_solve.
 
         .. warning::
             Uses scipy.linalg.cho_factor. The returned matrix is only to be used in
@@ -84,8 +84,11 @@ class BQBeliefUpdate(abc.ABC):
 
     # pylint: disable=no-self-use
     def _gram_cho_solve(self, gram_cho_factor: np.ndarray, z: np.ndarray) -> np.ndarray:
-        """Wrapper for scipy.linalg.cho_solve. Meant to be used for linear systems of
-        the gram matrix. Requires the solution of scipy.linalg.cho_factor as input."""
+        """Wrapper for scipy.linalg.cho_solve.
+
+        Meant to be used for linear systems of the gram matrix. Requires the solution of
+        scipy.linalg.cho_factor as input.
+        """
         return cho_solve(gram_cho_factor, z)
 
 
@@ -173,8 +176,10 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
     # pylint: disable=no-self-use
     def _estimate_kernel(self, kernel: Kernel) -> Tuple[Kernel, bool]:
-        """Estimate the intrinsic kernel parameters. That is, all parameters except the
-        scale."""
+        """Estimate the intrinsic kernel parameters.
+
+        That is, all parameters except the scale.
+        """
         new_kernel = kernel
         kernel_was_updated = False
         return new_kernel, kernel_was_updated

@@ -8,7 +8,13 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike, IntLike, ShapeLike
+from probnum.backend.typing import (
+    ArrayIndicesLike,
+    ArrayLike,
+    FloatLike,
+    IntLike,
+    ShapeLike,
+)
 
 DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
 """Output type of interpolation.

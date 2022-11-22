@@ -8,9 +8,9 @@ from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import randvars
+from probnum.backend.typing import FloatLike
 from probnum.diffeq import _odesolver, _odesolver_state
 from probnum.diffeq.perturbed.scipy_wrapper import _wrapped_scipy_odesolution
-from probnum.typing import FloatLike
 
 
 class WrappedScipyRungeKutta(_odesolver.ODESolver):

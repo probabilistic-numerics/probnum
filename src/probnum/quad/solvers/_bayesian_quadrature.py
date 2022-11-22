@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers._bq_state import BQIterInfo, BQState
@@ -22,7 +23,6 @@ from probnum.quad.solvers.stopping_criteria import (
 from probnum.quad.typing import DomainLike
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
 
 # pylint: disable=too-many-branches, too-complex
 

@@ -2,7 +2,7 @@
 
 import functools
 
-import numpy as np
+from probnum import backend
 
 from . import _function
 
@@ -10,8 +10,8 @@ from . import _function
 class Zero(_function.Function):
     """Zero mean function."""
 
-    def _evaluate(self, x: np.ndarray) -> np.ndarray:
-        return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+    def _evaluate(self, x: backend.Array) -> backend.Array:
+        return backend.zeros_like(
             x,
             shape=x.shape[: x.ndim - self._input_ndim] + self._output_shape,
         )

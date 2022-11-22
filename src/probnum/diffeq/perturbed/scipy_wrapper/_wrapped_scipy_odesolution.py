@@ -3,9 +3,9 @@ import numpy as np
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import randvars
+from probnum.backend.typing import ArrayLike
 from probnum.diffeq import _odesolution
 from probnum.filtsmooth._timeseriesposterior import DenseOutputValueType
-from probnum.typing import ArrayLike
 
 
 class WrappedScipyODESolution(_odesolution.ODESolution):

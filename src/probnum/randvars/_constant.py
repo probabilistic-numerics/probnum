@@ -3,19 +3,16 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import Callable, TypeVar
+from typing import Callable
 
-import numpy as np
-
-from probnum import config, linops, utils as _utils
-from probnum.typing import ArrayIndicesLike, ShapeLike, ShapeType
+from probnum import backend, config, linops
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ArrayIndicesLike, ShapeLike, ShapeType
 
 from . import _random_variable
 
-ValueType = TypeVar("ValueType")
 
-
-class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
+class Constant(_random_variable.DiscreteRandomVariable):
     """Random variable representing a constant value.
 
     Discrete random variable which (with probability one) takes a constant value. The
@@ -45,38 +42,35 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
 
     Examples
     --------
-    >>> from probnum import randvars
+    >>> from probnum import backend, randvars
     >>> import numpy as np
     >>> rv1 = randvars.Constant(support=0.)
     >>> rv2 = randvars.Constant(support=1.)
     >>> rv = rv1 + rv2
-    >>> rng = np.random.default_rng(seed=42)
-    >>> rv.sample(rng, size=5)
+    >>> rng_state = backend.random.rng_state(42)
+    >>> rv.sample(rng_state, 5)
     array([1., 1., 1., 1., 1.])
     """
 
     def __init__(
         self,
-        support: ValueType,
+        support: backend.Array,
     ):
-        if np.isscalar(support):
-            support = _utils.as_numpy_scalar(support)
-
-        self._support = support
+        self._support = backend.asarray(support)
 
         support_floating = self._support.astype(
-            np.promote_types(self._support.dtype, np.float_)
+            backend.promote_types(self._support.dtype, backend.float64)
         )
 
         if config.matrix_free:
             cov = lambda: (
                 linops.Zero(shape=((self._support.size, self._support.size)))
                 if self._support.ndim > 0
-                else _utils.as_numpy_scalar(0.0, support_floating.dtype)
+                else backend.asscalar(0.0, support_floating.dtype)
             )
         else:
-            cov = lambda: np.broadcast_to(
-                _utils.as_numpy_scalar(0.0, support_floating.dtype),
+            cov = lambda: backend.broadcast_to(
+                backend.asscalar(0.0, support_floating.dtype),
                 shape=(
                     (self._support.size, self._support.size)
                     if self._support.ndim > 0
@@ -84,8 +78,8 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
                 ),
             )
 
-        var = lambda: np.broadcast_to(
-            _utils.as_numpy_scalar(0.0, support_floating.dtype),
+        var = lambda: backend.broadcast_to(
+            backend.asscalar(0.0, support_floating.dtype),
             shape=self._support.shape,
         )
 
@@ -94,9 +88,13 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
             dtype=self._support.dtype,
             parameters={"support": self._support},
             sample=self._sample,
-            in_support=lambda x: np.all(x == self._support),
-            pmf=lambda x: np.float_(1.0 if np.all(x == self._support) else 0.0),
-            cdf=lambda x: np.float_(1.0 if np.all(x >= self._support) else 0.0),
+            in_support=lambda x: backend.all(x == self._support),
+            pmf=lambda x: backend.float64(
+                1.0 if backend.all(x == self._support) else 0.0
+            ),
+            cdf=lambda x: backend.float64(
+                1.0 if backend.all(x >= self._support) else 0.0
+            ),
             mode=lambda: self._support,
             median=lambda: support_floating,
             mean=lambda: support_floating,
@@ -106,13 +104,13 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
         )
 
     @cached_property
-    def cov_cholesky(self):
+    def _cov_cholesky(self):
         # Pure utility attribute (it is zero anyway).
         # Make Constant behave more like Normal with zero covariance.
         return self.cov
 
     @property
-    def support(self) -> ValueType:
+    def support(self) -> backend.Array:
         """Constant value taken by the random variable."""
         return self._support
 
@@ -141,13 +139,15 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(self, rng: np.random.Generator, size: ShapeLike = ()) -> ValueType:
-        size = _utils.as_shape(size)
+    def _sample(
+        self, rng_state: RNGState, sample_shape: ShapeLike = ()
+    ) -> backend.Array:
+        # pylint: disable=unused-argument
 
-        if size == ():
+        if sample_shape == ():
             return self._support.copy()
 
-        return np.tile(self._support, reps=size + (1,) * self.ndim)
+        return backend.tile(self._support, reps=sample_shape + (1,) * self.ndim)
 
     # Unary arithmetic operations
 
@@ -170,7 +170,7 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
 
     @staticmethod
     def _binary_operator_factory(
-        operator: Callable[[ValueType, ValueType], ValueType]
+        operator: Callable[[backend.Array, backend.Array], backend.Array]
     ) -> Callable[["Constant", "Constant"], "Constant"]:
         def _constant_rv_binary_operator(
             constant_rv1: Constant, constant_rv2: Constant

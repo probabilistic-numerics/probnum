@@ -15,8 +15,8 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum import problems, randprocs
+from probnum.backend.typing import ArrayLike, FloatLike
 from probnum.diffeq import _utils, odefilter
-from probnum.typing import ArrayLike, FloatLike
 
 __all__ = ["probsolve_ivp"]
 

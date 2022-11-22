@@ -6,10 +6,8 @@ import abc
 import functools
 from typing import Callable
 
-import numpy as np
-
-from probnum import utils
-from probnum.typing import ArrayLike, ShapeLike, ShapeType
+from probnum import backend
+from probnum.backend.typing import ArrayLike, ShapeLike, ShapeType
 
 
 class Function(abc.ABC):
@@ -36,10 +34,10 @@ class Function(abc.ABC):
     """
 
     def __init__(self, input_shape: ShapeLike, output_shape: ShapeLike = ()) -> None:
-        self._input_shape = utils.as_shape(input_shape)
+        self._input_shape = backend.asshape(input_shape)
         self._input_ndim = len(self._input_shape)
 
-        self._output_shape = utils.as_shape(output_shape)
+        self._output_shape = backend.asshape(output_shape)
         self._output_ndim = len(self._output_shape)
 
     @property
@@ -68,7 +66,7 @@ class Function(abc.ABC):
         """Syntactic sugar for ``len(output_shape)``."""
         return self._output_ndim
 
-    def __call__(self, x: ArrayLike) -> np.ndarray:
+    def __call__(self, x: ArrayLike) -> backend.Array:
         """Evaluate the function at a given input.
 
         The function is vectorized over the batch shape of the input.
@@ -91,7 +89,7 @@ class Function(abc.ABC):
             If the shape of ``x`` does not match :attr:`input_shape` along its last
             dimensions.
         """
-        x = np.asarray(x)
+        x = backend.asarray(x)
 
         # Shape checking
         if x.shape[x.ndim - self.input_ndim :] != self.input_shape:
@@ -112,7 +110,7 @@ class Function(abc.ABC):
         return fx
 
     @abc.abstractmethod
-    def _evaluate(self, x: np.ndarray) -> np.ndarray:
+    def _evaluate(self, x: backend.Array) -> backend.Array:
         pass
 
     def __neg__(self):
@@ -128,7 +126,7 @@ class Function(abc.ABC):
 
     @functools.singledispatchmethod
     def __mul__(self, other):
-        if np.ndim(other) == 0:
+        if backend.ndim(other) == 0:
             from ._algebra_fallbacks import (  # pylint: disable=import-outside-toplevel
                 ScaledFunction,
             )
@@ -139,7 +137,7 @@ class Function(abc.ABC):
 
     @functools.singledispatchmethod
     def __rmul__(self, other):
-        if np.ndim(other) == 0:
+        if backend.ndim(other) == 0:
             from ._algebra_fallbacks import (  # pylint: disable=import-outside-toplevel
                 ScaledFunction,
             )
@@ -150,9 +148,9 @@ class Function(abc.ABC):
 
 
 class LambdaFunction(Function):
-    """Define a :class:`Function` from a given :class:`callable`.
+    """Define a :class:`Function` from a given :class:`Callable`.
 
-    Creates a :class:`Function` from a given :class:`callable` and in- and output
+    Creates a :class:`Function` from a given :class:`Callable` and in- and output
     shapes. This provides a convenient interface to define a :class:`Function`.
 
     Parameters
@@ -166,10 +164,10 @@ class LambdaFunction(Function):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.functions import LambdaFunction
     >>> fn = LambdaFunction(fn=lambda x: 2 * x + 1, input_shape=(2,), output_shape=(2,))
-    >>> fn(np.array([[1, 2], [4, 5]]))
+    >>> fn(backend.asarray([[1, 2], [4, 5]]))
     array([[ 3,  5],
            [ 9, 11]])
 
@@ -180,7 +178,7 @@ class LambdaFunction(Function):
 
     def __init__(
         self,
-        fn: Callable[[np.ndarray], np.ndarray],
+        fn: Callable[[backend.Array], backend.Array],
         input_shape: ShapeLike,
         output_shape: ShapeLike = (),
     ) -> None:
@@ -188,5 +186,5 @@ class LambdaFunction(Function):
 
         super().__init__(input_shape, output_shape)
 
-    def _evaluate(self, x: np.ndarray) -> np.ndarray:
+    def _evaluate(self, x: backend.Array) -> backend.Array:
         return self._fn(x)

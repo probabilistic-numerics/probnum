@@ -3,6 +3,10 @@ from typing import Optional
 
 import numpy as np
 
+from probnum import BACKEND, Backend, backend
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ArrayLike, SeedType, ShapeLike
+
 from ._random_variable import DiscreteRandomVariable
 
 
@@ -11,26 +15,29 @@ class Categorical(DiscreteRandomVariable):
 
     Parameters
     ----------
-    probabilities :
+    probabilities
         Probabilities of the events.
-    support :
+    support
         Support of the categorical distribution. Optional. Default is None,
         in which case the support is chosen as :math:`(0, ..., K-1)` where
-        :math:`K` is the number of elements in `event_probabilities`.
+        :math:`K` is the number of elements in `probabilities`.
     """
 
     def __init__(
         self,
-        probabilities: np.ndarray,
-        support: Optional[np.ndarray] = None,
+        probabilities: ArrayLike,
+        support: Optional[backend.Array] = None,
     ):
-        # The set of events is names "support" to be aligned with the method
+
+        # The set of events is named "support" to be aligned with the method
         # DiscreteRandomVariable.in_support().
 
+        self._probabilities = backend.asarray(probabilities)
         num_categories = len(probabilities)
-        self._probabilities = np.asarray(probabilities)
         self._support = (
-            np.asarray(support) if support is not None else np.arange(num_categories)
+            backend.asarray(support)
+            if support is not None
+            else backend.arange(num_categories)
         )
 
         parameters = {
@@ -39,28 +46,30 @@ class Categorical(DiscreteRandomVariable):
             "num_categories": num_categories,
         }
 
-        def _sample_categorical(rng, size=()):
+        def _sample_categorical(rng_state: RNGState, sample_shape: ShapeLike = ()):
             """Sample from a categorical distribution.
 
-            While on first sight, one might think that this
-            implementation can be replaced by
-            `np.random.choice(self.support, size, self.probabilities)`,
-            this is not true, because `np.random.choice` cannot handle
-            arrays with `ndim > 1`, but `self.support` can be just that.
-            This detour via the `mask` avoids this problem.
+            While on first sight, one might think that this implementation can be
+            replaced by `np.random.choice(self.support, sample_shape,
+            self.probabilities)`, this is not true, because `np.random.choice` cannot
+            handle arrays with `ndim > 1`, but `self.support` can be just that. This
+            detour via the `mask` avoids this problem.
             """
-
-            indices = rng.choice(
-                np.arange(len(self.support)), size=size, p=self.probabilities
-            ).reshape(size)
+            sample_shape = backend.asshape(sample_shape)
+            indices = backend.random.choice(
+                rng_state,
+                np.arange(len(self.support)),
+                shape=sample_shape,
+                p=self.probabilities,
+            ).reshape(sample_shape)
             return self.support[indices]
 
-        def _pmf_categorical(x):
+        def _pmf_categorical(x: ArrayLike):
             """PMF of a categorical distribution."""
 
             # This implementation is defense against cryptic warnings such as:
             # https://stackoverflow.com/questions/45020217/numpy-where-function-throws-a-futurewarning-returns-scalar-instead-of-list
-            x = np.asarray(x)
+            x = backend.asarray(x)
             if x.dtype != self.dtype:
                 raise ValueError(
                     "The data type of x does not match with the data type of the "
@@ -71,7 +80,7 @@ class Categorical(DiscreteRandomVariable):
             return self.probabilities[mask][0] if len(mask) > 0 else 0.0
 
         def _mode_categorical():
-            mask = np.argmax(self.probabilities)
+            mask = backend.argmax(self.probabilities)
             return self.support[mask]
 
         super().__init__(
@@ -84,16 +93,16 @@ class Categorical(DiscreteRandomVariable):
         )
 
     @property
-    def probabilities(self) -> np.ndarray:
+    def probabilities(self) -> backend.Array:
         """Event probabilities of the categorical distribution."""
         return self._probabilities
 
     @property
-    def support(self) -> np.ndarray:
+    def support(self) -> backend.Array:
         """Support of the categorical distribution."""
         return self._support
 
-    def resample(self, rng: np.random.Generator) -> "Categorical":
+    def resample(self, rng_state: RNGState) -> "Categorical":
         """Resample the support of the categorical random variable.
 
         Return a new categorical random variable (RV), where the support
@@ -103,18 +112,18 @@ class Categorical(DiscreteRandomVariable):
 
         Parameters
         ----------
-        rng :
-            Random number generator.
+        rng_state
+            Random number generator state.
 
         Returns
         -------
         Categorical
             Categorical random variable with resampled support
-            (according to self.probabilities).
+            (according to ``self.probabilities``).
         """
         num_events = len(self.support)
-        new_support = self.sample(rng=rng, size=num_events)
-        new_probabilities = np.ones(self.probabilities.shape) / num_events
+        new_support = self.sample(rng_state, sample_shape=num_events)
+        new_probabilities = backend.ones(self.probabilities.shape) / num_events
         return Categorical(
             support=new_support,
             probabilities=new_probabilities,

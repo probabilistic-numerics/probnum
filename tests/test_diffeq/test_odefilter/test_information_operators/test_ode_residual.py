@@ -1,9 +1,10 @@
 """Test for ODE residual information operator."""
 
 import numpy as np
-import pytest
 
 from probnum import diffeq, randprocs, randvars
+
+import pytest
 from tests.test_diffeq.test_odefilter.test_information_operators import (
     _information_operator_test_inferface,
 )
@@ -53,7 +54,7 @@ class TestODEResidual(_information_operator_test_inferface.ODEInformationOperato
         noise = transition.noise_fun(0.0)
         assert isinstance(transition, randprocs.markov.discrete.NonlinearGaussian)
         assert np.linalg.norm(noise.cov) > 0.0
-        assert np.linalg.norm(noise.cov_cholesky) > 0.0
+        assert np.linalg.norm(noise._cov_cholesky) > 0.0
 
     def test_incorporate_ode(self, fitzhughnagumo):
         self.info_op.incorporate_ode(ode=fitzhughnagumo)

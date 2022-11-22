@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import diffeq
 import probnum.problems.zoo.diffeq as diffeq_zoo
+
+import pytest
 
 
 @pytest.fixture

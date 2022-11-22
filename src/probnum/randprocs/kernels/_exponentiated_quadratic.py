@@ -2,10 +2,8 @@
 
 from typing import Optional
 
-import numpy as np
-
-from probnum.typing import ScalarLike, ShapeLike
-import probnum.utils as _utils
+from probnum import backend
+from probnum.backend.typing import ScalarLike, ShapeLike
 
 from ._kernel import IsotropicMixin, Kernel
 
@@ -36,10 +34,10 @@ class ExpQuad(Kernel, IsotropicMixin):
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.randprocs.kernels import ExpQuad
     >>> K = ExpQuad(input_shape=(), lengthscale=0.1)
-    >>> xs = np.linspace(0, 1, 3)
+    >>> xs = backend.linspace(0, 1, 3)
     >>> K.matrix(xs)
     array([[1.00000000e+00, 3.72665317e-06, 1.92874985e-22],
            [3.72665317e-06, 1.00000000e+00, 3.72665317e-06],
@@ -47,16 +45,19 @@ class ExpQuad(Kernel, IsotropicMixin):
     """
 
     def __init__(self, input_shape: ShapeLike, lengthscale: ScalarLike = 1.0):
-        self.lengthscale = _utils.as_numpy_scalar(lengthscale)
+        self.lengthscale = backend.asscalar(lengthscale)
         super().__init__(input_shape=input_shape)
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    @backend.jit_method
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         if x1 is None:
-            return np.ones_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.ones_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
-        return np.exp(
+        return backend.exp(
             -self._squared_euclidean_distances(x0, x1) / (2.0 * self.lengthscale**2)
         )

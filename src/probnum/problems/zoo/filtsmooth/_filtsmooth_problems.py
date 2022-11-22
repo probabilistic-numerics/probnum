@@ -5,8 +5,8 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randprocs, randvars
+from probnum.backend.typing import FloatLike, IntLike
 from probnum.problems.zoo import diffeq as diffeq_zoo
-from probnum.typing import FloatLike, IntLike
 
 __all__ = [
     "benes_daum",
@@ -119,7 +119,7 @@ def car_tracking(
         initrv = randvars.Normal(
             np.zeros(model_dim),
             measurement_variance * np.eye(model_dim),
-            cov_cholesky=np.sqrt(measurement_variance) * np.eye(model_dim),
+            cache={"cov_cholesky": np.sqrt(measurement_variance) * np.eye(model_dim)},
         )
 
     # Set up regression problem

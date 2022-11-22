@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import filtsmooth
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+
+import pytest
 
 
 @pytest.fixture(name="setup", params=[filtsmooth_zoo.logistic_ode])

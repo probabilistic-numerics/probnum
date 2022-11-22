@@ -7,6 +7,7 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 from probnum import linalg, linops, randvars
+
 from tests.testing import NumpyAssertions
 
 

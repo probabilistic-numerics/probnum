@@ -3,9 +3,10 @@ import operator
 from typing import Callable
 
 import numpy as np
-import pytest
 
 from probnum import randvars
+
+import pytest
 
 
 @pytest.mark.parametrize(

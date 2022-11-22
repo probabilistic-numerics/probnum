@@ -1,13 +1,14 @@
 """Basic tests for the BQ info container and BQ state."""
 
 import numpy as np
-import pytest
 
 from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers import BQIterInfo, BQState
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
+
+import pytest
 
 
 @pytest.fixture

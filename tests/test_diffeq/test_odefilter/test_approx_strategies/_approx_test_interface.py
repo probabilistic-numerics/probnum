@@ -2,9 +2,9 @@
 
 import abc
 
-import pytest
-
 from probnum.problems.zoo import diffeq as diffeq_zoo
+
+import pytest
 
 
 class ApproximationStrategyTest(abc.ABC):

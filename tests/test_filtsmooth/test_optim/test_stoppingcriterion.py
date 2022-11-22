@@ -2,9 +2,10 @@
 
 
 import numpy as np
-import pytest
 
 from probnum.filtsmooth.optim import _stopping_criterion
+
+import pytest
 
 
 @pytest.fixture(name="d1")

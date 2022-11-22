@@ -4,8 +4,8 @@ import numpy as np
 
 import probnum  # pylint: disable="unused-import"
 from probnum import randvars
+from probnum.backend.typing import FloatLike
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
-from probnum.typing import FloatLike
 
 from .._linear_solver_belief_update import LinearSolverBeliefUpdate
 

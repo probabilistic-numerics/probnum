@@ -4,8 +4,8 @@ from typing import Callable
 
 import numpy as np
 
-from probnum import utils
-from probnum.typing import FloatLike
+from probnum import backend
+from probnum.backend.typing import FloatLike
 
 
 def function_evaluation(
@@ -22,7 +22,7 @@ def function_evaluation(
     """
     observation = fun(action)
     try:
-        return utils.as_numpy_scalar(observation, dtype=np.floating)
+        return backend.asscalar(observation, dtype=np.floating)
     except TypeError as exc:
         raise TypeError(
             "The given argument `p` can not be cast to a `np.floating` object."

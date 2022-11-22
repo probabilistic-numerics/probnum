@@ -1,8 +1,8 @@
 """Test cases for the BQ belief updater."""
 
-import pytest
-
 from probnum.quad.solvers.belief_updates import BQStandardBeliefUpdate
+
+import pytest
 
 
 def test_belief_update_raises():

@@ -4,11 +4,12 @@ information."""
 import pathlib
 
 import numpy as np
-import pytest
-from pytest_cases import parametrize_with_cases
 
 from probnum import randvars
 from probnum.linalg.solvers import LinearSolverState, belief_updates, beliefs
+
+import pytest
+from pytest_cases import parametrize_with_cases
 
 case_modules = (pathlib.Path(__file__).parent.parent / "cases").stem
 cases_belief_updates = case_modules + ".belief_updates"

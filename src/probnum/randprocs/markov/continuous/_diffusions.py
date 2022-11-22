@@ -8,7 +8,7 @@ import numpy as np
 import scipy.linalg
 
 from probnum import randvars
-from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike
+from probnum.backend.typing import ArrayIndicesLike, ArrayLike, FloatLike
 
 
 class Diffusion(abc.ABC):
@@ -194,7 +194,7 @@ class PiecewiseConstantDiffusion(Diffusion):
 
 
 def _compute_local_quasi_mle(meas_rv):
-    std_like = meas_rv.cov_cholesky
+    std_like = meas_rv._cov_cholesky
     whitened_res = scipy.linalg.solve_triangular(std_like, meas_rv.mean, lower=True)
     ssq = whitened_res @ whitened_res / meas_rv.size
     return ssq

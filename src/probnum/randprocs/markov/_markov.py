@@ -1,17 +1,12 @@
 """Markovian processes."""
 
-from typing import Optional, Union
+from typing import Optional
 
-import numpy as np
-import scipy.stats
-
-from probnum import functions, randvars, utils
+from probnum import backend, functions, randvars
+from probnum.backend.random import RNGState
+from probnum.backend.typing import ArrayLike, ShapeLike
 from probnum.randprocs import _random_process, kernels
 from probnum.randprocs.markov import _transition, continuous, discrete
-from probnum.typing import ShapeLike
-
-InputType = Union[np.floating, np.ndarray]
-OutputType = Union[np.floating, np.ndarray]
 
 
 class _MarkovBase(_random_process.RandomProcess):
@@ -30,7 +25,7 @@ class _MarkovBase(_random_process.RandomProcess):
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
-            dtype=np.dtype(np.float_),
+            dtype=backend.float64,
             mean=functions.LambdaFunction(
                 lambda x: self.__call__(args=x).mean,
                 input_shape=input_shape,
@@ -43,42 +38,43 @@ class _MarkovBase(_random_process.RandomProcess):
             ),
         )
 
-    def __call__(self, args: InputType) -> randvars.RandomVariable:
+    def __call__(self, args: ArrayLike) -> randvars.RandomVariable:
         raise NotImplementedError
 
     def _sample_at_input(
         self,
-        rng: np.random.Generator,
-        args: InputType,
-        size: ShapeLike = (),
-    ) -> OutputType:
+        rng_state: RNGState,
+        args: ArrayLike,
+        sample_shape: ShapeLike = (),
+    ) -> backend.Array:
 
-        size = utils.as_shape(size)
-        args = np.atleast_1d(args)
+        sample_shape = backend.asshape(sample_shape)
+        args = backend.asarray(args)
         if args.ndim > 1:
             raise ValueError(f"Invalid args shape {args.shape}")
 
-        base_measure_realizations = scipy.stats.norm.rvs(
-            size=(size + args.shape + self.initrv.shape), random_state=rng
+        base_measure_realizations = backend.random.standard_normal(
+            rng_state=rng_state,
+            shape=(sample_shape + args.shape + self.initrv.shape),
         )
 
-        if size == ():
-            return np.array(
+        if sample_shape == ():
+            return backend.asarray(
                 self.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_measure_realizations,
                     t=args,
                     initrv=self.initrv,
-                    _diffusion_list=np.ones_like(args[:-1]),
+                    _diffusion_list=backend.ones_like(args[:-1]),
                 )
             )
 
-        return np.stack(
+        return backend.stack(
             [
                 self.transition.jointly_transform_base_measure_realization_list_forward(
                     base_measure_realizations=base_real,
                     t=args,
                     initrv=self.initrv,
-                    _diffusion_list=np.ones_like(args[:-1]),
+                    _diffusion_list=backend.ones_like(args[:-1]),
                 )
                 for base_real in base_measure_realizations
             ]
@@ -95,7 +91,9 @@ class _MarkovBase(_random_process.RandomProcess):
                 output_shape=output_shape,
             )
 
-        def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+        def _evaluate(
+            self, x0: backend.Array, x1: Optional[backend.Array]
+        ) -> backend.Array:
             if x1 is None:
                 return self._markov_proc_call(args=x0).cov
 
@@ -129,7 +127,7 @@ class MarkovProcess(_MarkovBase):
     def __init__(
         self,
         *,
-        initarg: np.ndarray,
+        initarg: backend.Array,
         initrv: randvars.RandomVariable,
         transition: continuous.SDE,
     ):
@@ -140,7 +138,7 @@ class MarkovProcess(_MarkovBase):
         super().__init__(
             initrv=initrv,
             transition=transition,
-            input_shape=np.asarray(initarg).shape,
+            input_shape=backend.asarray(initarg).shape,
         )
         self.initarg = initarg
 
@@ -151,7 +149,7 @@ class MarkovSequence(_MarkovBase):
     def __init__(
         self,
         *,
-        initarg: np.ndarray,
+        initarg: backend.Array,
         initrv: randvars.RandomVariable,
         transition: continuous.SDE,
     ):
@@ -162,6 +160,6 @@ class MarkovSequence(_MarkovBase):
         super().__init__(
             initrv=initrv,
             transition=transition,
-            input_shape=np.asarray(initarg).shape,
+            input_shape=backend.asarray(initarg).shape,
         )
         self.initarg = initarg

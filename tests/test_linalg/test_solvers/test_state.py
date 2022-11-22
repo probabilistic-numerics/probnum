@@ -1,9 +1,10 @@
 """Tests for the state of a probabilistic linear solver."""
 
 import numpy as np
-from pytest_cases import parametrize, parametrize_with_cases
 
 from probnum.linalg.solvers import LinearSolverState
+
+from pytest_cases import parametrize, parametrize_with_cases
 
 cases_states = "cases.states"
 

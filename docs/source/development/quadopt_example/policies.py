@@ -5,7 +5,7 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum import randvars
-from probnum.typing import FloatLike
+from probnum.backend.typing import FloatLike
 
 
 def explore_exploit_policy(

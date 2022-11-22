@@ -4,9 +4,8 @@ variables."""
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
-import numpy as np
-
-from probnum import utils as _utils
+from probnum import backend
+from probnum.backend.typing import NotImplementedType
 import probnum.linops as _linear_operators
 
 from ._constant import Constant as _Constant
@@ -56,7 +55,7 @@ def pow_(rv1: Any, rv2: Any) -> _RandomVariable:
 ########################################################################################
 
 _RandomVariableBinaryOperator = Callable[
-    [_RandomVariable, _RandomVariable], Union[_RandomVariable, type(NotImplemented)]
+    [_RandomVariable, _RandomVariable], Union[_RandomVariable, NotImplementedType]
 ]
 _OperatorRegistryType = Dict[Tuple[type, type], _RandomVariableBinaryOperator]
 
@@ -76,12 +75,12 @@ def _apply(
     op_registry: _OperatorRegistryType,
     rv1: Any,
     rv2: Any,
-) -> Union[_RandomVariable, type(NotImplemented)]:
+) -> Union[_RandomVariable, NotImplementedType]:
     # Convert arguments to random variables
     rv1 = _asrandvar(rv1)
     rv2 = _asrandvar(rv2)
 
-    # Search specific operatir
+    # Search specific operator
     key = (type(rv1), type(rv2))
 
     if key in op_registry:
@@ -125,13 +124,16 @@ def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
 
 
 def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
-    sample_fn = lambda rng, size: op_fn(
-        rv1.sample(rng, size=size),
-        rv2.sample(rng, size=size),
-    )
+    def sample_fn(rng_state, sample_shape):
+        rng_state1, rng_state2 = backend.random.split(rng_state, 2)
+
+        return op_fn(
+            rv1.sample(rng_state=rng_state1, sample_shape=sample_shape),
+            rv2.sample(rng_state=rng_state2, sample_shape=sample_shape),
+        )
 
     # Infer shape and dtype
-    infer_sample = sample_fn(np.random.default_rng(1), ())
+    infer_sample = sample_fn(backend.random.rng_state(1), ())
 
     shape = infer_sample.shape
     dtype = infer_sample.dtype
@@ -181,29 +183,32 @@ _pow_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
 # Constant - Constant Arithmetic
 ########################################################################################
 
-_add_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.add)
-_sub_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.sub)
-_mul_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.mul)
-_matmul_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+_constant_constant_operator_factory = (
+    _Constant._binary_operator_factory  # pylint: disable=protected-access
+)
+
+_add_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.add)
+_sub_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.sub)
+_mul_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.mul)
+_matmul_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(
     operator.matmul
 )
-_truediv_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+_truediv_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(
     operator.truediv
 )
-_floordiv_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+_floordiv_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(
     operator.floordiv
 )
-_mod_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.mod)
-_divmod_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(divmod)
-_pow_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.pow)
+_mod_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.mod)
+_divmod_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(divmod)
+_pow_fns[(_Constant, _Constant)] = _constant_constant_operator_factory(operator.pow)
 
 ########################################################################################
 # Normal - Normal Arithmetic
 ########################################################################################
 
-_add_fns[(_Normal, _Normal)] = _Normal._add_normal
-_sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
-
+_add_fns[(_Normal, _Normal)] = _Normal._add_normal  # pylint: disable=protected-access
+_sub_fns[(_Normal, _Normal)] = _Normal._sub_normal  # pylint: disable=protected-access
 
 ########################################################################################
 # Normal - Constant Arithmetic
@@ -211,11 +216,15 @@ _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
 
 
 def _add_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
-    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
+    if "cov_cholesky" in norm_rv._cache:
+        cache = norm_rv._cache["cov_cholesky"]
+    else:
+        cache = None
+
     return _Normal(
         mean=norm_rv.mean + constant_rv.support,
         cov=norm_rv.cov,
-        cov_cholesky=cov_cholesky,
+        cache=cache,
     )
 
 
@@ -224,11 +233,15 @@ _add_fns[(_Constant, _Normal)] = _swap_operands(_add_normal_constant)
 
 
 def _sub_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
-    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
+    if "cov_cholesky" in norm_rv._cache:
+        cache = {"cov_cholesky": norm_rv._cache["cov_cholesky"]}
+    else:
+        cache = None
+
     return _Normal(
         mean=norm_rv.mean - constant_rv.support,
         cov=norm_rv.cov,
-        cov_cholesky=cov_cholesky,
+        cache=cache,
     )
 
 
@@ -236,11 +249,15 @@ _sub_fns[(_Normal, _Constant)] = _sub_normal_constant
 
 
 def _sub_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
-    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
+    if "cov_cholesky" in norm_rv._cache:
+        cache = {"cov_cholesky": norm_rv._cache["cov_cholesky"]}
+    else:
+        cache = None
+
     return _Normal(
         mean=constant_rv.support - norm_rv.mean,
         cov=norm_rv.cov,
-        cov_cholesky=cov_cholesky,
+        cache=cache,
     )
 
 
@@ -249,22 +266,24 @@ _sub_fns[(_Constant, _Normal)] = _sub_constant_normal
 
 def _mul_normal_constant(
     norm_rv: _Normal, constant_rv: _Constant
-) -> Union[_Normal, _Constant, type(NotImplemented)]:
+) -> Union[_Normal, _Constant, NotImplementedType]:
     if constant_rv.size == 1:
         if constant_rv.support == 0:
             return _Constant(
-                support=np.zeros_like(norm_rv.mean),
+                support=backend.zeros_like(norm_rv.mean),
             )
 
-        if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = constant_rv.support * norm_rv.cov_cholesky
+        if "cov_cholesky" in norm_rv._cache:
+            cache = {
+                "cov_cholesky": constant_rv.support * norm_rv._cache["cov_cholesky"]
+            }
         else:
-            cov_cholesky = None
+            cache = None
 
         return _Normal(
             mean=constant_rv.support * norm_rv.mean,
             cov=(constant_rv.support**2) * norm_rv.cov,
-            cov_cholesky=cov_cholesky,
+            cache=cache,
         )
 
     return NotImplemented
@@ -281,9 +300,10 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
     is a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
-        if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = _utils.linalg.cholesky_update(
-                constant_rv.support.T @ norm_rv.cov_cholesky
+
+        if "cov_cholesky" in norm_rv._cache:
+            cov_cholesky = backend.linalg.cholesky_update(
+                constant_rv.support.T @ norm_rv._cache["cov_cholesky"]
             )
         else:
             cov_cholesky = None
@@ -291,10 +311,21 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
         mean = norm_rv.mean @ constant_rv.support
         cov = constant_rv.support.T @ (norm_rv.cov @ constant_rv.support)
 
-        if cov.shape == () and mean.shape == (1,):
+        if mean.shape == ():
+            cov = cov.reshape(())
+
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape(())
+        elif mean.shape == (1,):
             cov = cov.reshape((1, 1))
 
-        return _Normal(mean=mean, cov=cov, cov_cholesky=cov_cholesky)
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape((1, 1))
+
+        if cov_cholesky is not None:
+            return _Normal(mean=mean, cov=cov, cache={"cov_cholesky": cov_cholesky})
+
+        return _Normal(mean=mean, cov=cov)
 
     # This part does not do the Cholesky update,
     # because of performance configurations: currently, there is no way of switching
@@ -326,17 +357,32 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
     a matrix- or multi-variate normal random variable and :math:`A` a constant.
     """
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
-        if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = _utils.linalg.cholesky_update(
-                constant_rv.support @ norm_rv.cov_cholesky
+
+        if "cov_cholesky" in norm_rv._cache:
+            cov_cholesky = backend.linalg.cholesky_update(
+                constant_rv.support @ norm_rv._cache["cov_cholesky"]
             )
         else:
             cov_cholesky = None
-        return _Normal(
-            mean=constant_rv.support @ norm_rv.mean,
-            cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
-            cov_cholesky=cov_cholesky,
-        )
+
+        mean = constant_rv.support @ norm_rv.mean
+        cov = constant_rv.support @ (norm_rv.cov @ constant_rv.support.T)
+
+        if mean.shape == ():
+            cov = cov.reshape(())
+
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape(())
+        elif mean.shape == (1,):
+            cov = cov.reshape((1, 1))
+
+            if cov_cholesky is not None:
+                cov_cholesky = cov_cholesky.reshape((1, 1))
+
+        if cov_cholesky is not None:
+            return _Normal(mean=mean, cov=cov, cache={"cov_cholesky": cov_cholesky})
+
+        return _Normal(mean=mean, cov=cov)
 
     # This part does not do the Cholesky update,
     # because of performance configurations: currently, there is no way of switching
@@ -345,7 +391,7 @@ def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal
     if constant_rv.support.ndim == 1:
         constant_rv_support = constant_rv.support[None, :]
     else:
-        constant_rv_support = constant_rv.support
+        constant_rv_support = constant_rv.supportndarray
 
     cov_update = _linear_operators.Kronecker(
         constant_rv_support,
@@ -367,15 +413,17 @@ def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Norma
         if constant_rv.support == 0:
             raise ZeroDivisionError
 
-        if norm_rv.cov_cholesky_is_precomputed:
-            cov_cholesky = norm_rv.cov_cholesky / constant_rv.support
+        if "cov_cholesky" in norm_rv._cache:
+            cache = {
+                "cov_cholesky": norm_rv._cache["cov_cholesky"] / constant_rv.support
+            }
         else:
-            cov_cholesky = None
+            cache = None
 
         return _Normal(
             mean=norm_rv.mean / constant_rv.support,
             cov=norm_rv.cov / (constant_rv.support**2),
-            cov_cholesky=cov_cholesky,
+            cache=cache,
         )
 
     return NotImplemented

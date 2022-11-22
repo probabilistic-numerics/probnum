@@ -3,9 +3,10 @@
 import pathlib
 
 import numpy as np
-from pytest_cases import parametrize_with_cases
 
 from probnum.linalg.solvers import LinearSolverState, information_ops
+
+from pytest_cases import parametrize_with_cases
 
 case_modules = (pathlib.Path(__file__).parent / "cases").stem
 cases_information_ops = case_modules + ".information_ops"

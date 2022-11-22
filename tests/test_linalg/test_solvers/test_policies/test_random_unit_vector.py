@@ -2,10 +2,11 @@
 import pathlib
 
 import numpy as np
-import pytest
-from pytest_cases import parametrize, parametrize_with_cases
 
 from probnum.linalg.solvers import LinearSolverState, policies
+
+import pytest
+from pytest_cases import parametrize, parametrize_with_cases
 
 case_modules = (pathlib.Path(__file__).parent / "cases").stem
 cases_policies = case_modules + ".policies"

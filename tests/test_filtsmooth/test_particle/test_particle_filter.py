@@ -1,8 +1,9 @@
 import numpy as np
-import pytest
 
 from probnum import filtsmooth, randvars
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+
+import pytest
 
 
 def test_effective_number_of_events():

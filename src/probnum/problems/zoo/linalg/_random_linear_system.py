@@ -6,16 +6,17 @@ from typing import Any, Callable, Optional, Union
 import numpy as np
 import scipy.sparse
 
-from probnum import linops, problems, randvars
+from probnum import backend, linops, problems, randvars
+from probnum.backend.random import RNGState
 from probnum.typing import LinearOperatorLike
 
 
 def random_linear_system(
-    rng: np.random.Generator,
+    rng_state: RNGState,
     matrix: Union[
         LinearOperatorLike,
         Callable[
-            [np.random.Generator, Optional[Any]],
+            [RNGState, Optional[Any]],
             Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
         ],
     ],
@@ -24,20 +25,18 @@ def random_linear_system(
 ) -> problems.LinearSystem:
     """Random linear system.
 
-    Generate a random linear system from a (random) matrix.
-    If ``matrix`` is a callable instead of a matrix or linear operator,
-    the system matrix is sampled by passing the random generator
-    instance ``rng``. The solution of the linear system is set
-    to a realization from ``solution_rv``. If ``None`` the solution
-    is drawn from a standard normal distribution with iid components.
+    Generate a random linear system from a (random) matrix. If ``matrix`` is a callable
+    instead of a matrix or linear operator, the system matrix is sampled by passing the
+    random generator state ``rng_state``. The solution of the linear system is set to a
+    realization from ``solution_rv``. If ``None`` the solution is drawn from a
+    standard normal distribution with iid components.
 
     Parameters
     ----------
-    rng
-        Random number generator.
+    rng_state
+        State of the random number generator.
     matrix
-        Matrix, linear operator or callable returning either
-        for a given random number generator instance.
+        Matrix, linear operator or callable returning either for a given RNG state.
     solution_rv
         Random variable from which the solution of the linear system is sampled.
     kwargs
@@ -51,53 +50,58 @@ def random_linear_system(
 
     Examples
     --------
-    >>> import numpy as np
+    >>> from probnum import backend
     >>> from probnum.problems.zoo.linalg import random_linear_system
-    >>> rng = np.random.default_rng(42)
+    >>> rng_state = backend.random.rng_state(42)
 
     Linear system with given system matrix.
 
-    >>> import scipy.stats
-    >>> unitary_matrix = scipy.stats.unitary_group.rvs(dim=5, random_state=rng)
-    >>> linsys_unitary = random_linear_system(rng, unitary_matrix)
+    >>> unitary_matrix = backend.random.uniform_so_group(rng_state, n=5)
+    >>> linsys_unitary = random_linear_system(rng_state, unitary_matrix)
     >>> np.abs(np.linalg.det(linsys_unitary.A))
     1.0
 
     Linear system with random symmetric positive-definite matrix.
 
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
-    >>> linsys_spd = random_linear_system(rng, random_spd_matrix, dim=2)
+    >>> linsys_spd = random_linear_system(rng_state, random_spd_matrix, shape=(2,2))
     >>> linsys_spd
-    LinearSystem(A=array([[ 9.62543582,  3.14955953],
-            [ 3.14955953, 13.28720426]]), b=array([-2.7108139 ,  1.10779288]),
-            solution=array([-0.33488503,  0.16275307]))
+    LinearSystem(A=array([[10.61706238, -0.78723358],
+           [-0.78723358, 10.06458988]]), b=array([3.96470544, 5.76555243]),
+           solution=array([0.41832997, 0.60557617]))
 
 
     Linear system with random sparse matrix.
 
     >>> import scipy.sparse
-    >>> random_sparse_matrix = lambda rng,m,n: scipy.sparse.random(m=m, n=n,\
-            random_state=rng)
-    >>> linsys_sparse = random_linear_system(rng, random_sparse_matrix, m=4, n=2)
+    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
+    >>> import scipy.sparse
+    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
+    >>> linsys_sparse = random_linear_system(
+    ...         rng_state, random_sparse_spd_matrix, shape=(10,10), density=0.1
+    ...     )
     >>> isinstance(linsys_sparse.A, scipy.sparse.spmatrix)
     True
     """
+
     # Generate system matrix
     if isinstance(matrix, (np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator)):
         A = matrix
     else:
-        A = matrix(rng=rng, **kwargs)
+        rng_state, matrix_rng_state = backend.random.split(rng_state, num=2)
+
+        A = matrix(rng_state=matrix_rng_state, **kwargs)
 
     # Sample solution
     if solution_rv is None:
         n = A.shape[1]
-        x = randvars.Normal(mean=0.0, cov=1.0).sample(size=(n,), rng=rng)
+        x = backend.random.standard_normal(rng_state, shape=(n,))
     else:
         if A.shape[1] != solution_rv.shape[0]:
             raise ValueError(
                 f"Shape of the system matrix: {A.shape} must match shape \
                 of the solution: {solution_rv.shape}."
             )
-        x = solution_rv.sample(size=(), rng=rng)
+        x = solution_rv.sample(rng_state=rng_state, sample_shape=())
 
     return problems.LinearSystem(A=A, b=A @ x, solution=x)

@@ -6,15 +6,13 @@ import functools
 import operator
 from typing import Optional, Tuple, Union
 
-import numpy as np
-
-from probnum import utils
-from probnum.typing import NotImplementedType, ScalarLike
+from probnum import backend
+from probnum.backend.typing import NotImplementedType, ScalarLike
 
 from ._kernel import BinaryOperandType, Kernel
 
 ########################################################################################
-# Generic Linear Operator Arithmetic (Fallbacks)
+# Generic Kernel Arithmetic (Fallbacks)
 ########################################################################################
 
 
@@ -41,17 +39,19 @@ class ScaledKernel(Kernel):
         if not isinstance(kernel, Kernel):
             raise TypeError("`kernel` must be a `Kernel`")
 
-        if np.ndim(scalar) != 0:
+        if backend.ndim(scalar) != 0:
             raise TypeError("`scalar` must be a scalar.")
 
         self._kernel = kernel
-        self._scalar = utils.as_numpy_scalar(scalar)
+        self._scalar = backend.asscalar(scalar)
 
         super().__init__(
             input_shape=kernel.input_shape, output_shape=kernel.output_shape
         )
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array] = None
+    ) -> backend.Array:
         return self._scalar * self._kernel(x0, x1)
 
     def __repr__(self) -> str:
@@ -90,7 +90,9 @@ class SumKernel(Kernel):
             input_shape=summands[0].input_shape, output_shape=summands[0].output_shape
         )
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         return functools.reduce(
             operator.add, (summand(x0, x1) for summand in self._summands)
         )
@@ -147,7 +149,9 @@ class ProductKernel(Kernel):
             input_shape=factors[0].input_shape, output_shape=factors[0].output_shape
         )
 
-    def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
+    def _evaluate(
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         return functools.reduce(
             operator.mul, (factor(x0, x1) for factor in self._factors)
         )
@@ -180,9 +184,9 @@ def _mul_fallback(
     if isinstance(op1, Kernel):
         if isinstance(op2, Kernel):
             res = ProductKernel(op1, op2)
-        elif np.ndim(op2) == 0:
+        elif backend.ndim(op2) == 0:
             res = ScaledKernel(kernel=op1, scalar=op2)
     elif isinstance(op2, Kernel):
-        if np.ndim(op1) == 0:
+        if backend.ndim(op1) == 0:
             res = ScaledKernel(kernel=op2, scalar=op1)
     return res

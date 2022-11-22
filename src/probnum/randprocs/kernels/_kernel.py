@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import abc
+import functools
+import operator
 from typing import Optional, Union
 
-import numpy as np
-
-from probnum import utils as _pn_utils
-from probnum.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
+from probnum import backend
+from probnum.backend.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
 
 BinaryOperandType = Union["Kernel", ScalarLike]
 
@@ -138,7 +138,7 @@ class Kernel(abc.ABC):
         input_shape: ShapeLike,
         output_shape: ShapeLike = (),
     ):
-        self._input_shape = _pn_utils.as_shape(input_shape)
+        self._input_shape = backend.asshape(input_shape)
         self._input_ndim = len(self._input_shape)
 
         if self._input_ndim > 1:
@@ -146,7 +146,7 @@ class Kernel(abc.ABC):
                 "Currently, we only support kernels with at most 1 input dimension."
             )
 
-        self._output_shape = _pn_utils.as_shape(output_shape)
+        self._output_shape = backend.asshape(output_shape)
         self._output_ndim = len(self._output_shape)
 
     @property
@@ -158,6 +158,11 @@ class Kernel(abc.ABC):
     def input_ndim(self) -> int:
         """Syntactic sugar for ``len(input_shape)``."""
         return self._input_ndim
+
+    @functools.cached_property
+    def input_size(self) -> int:
+        """Product over the entries of :attr:`input_shape`."""
+        return functools.reduce(operator.add, self._input_shape, 1)
 
     @property
     def output_shape(self) -> ShapeType:
@@ -182,11 +187,12 @@ class Kernel(abc.ABC):
             f" output_shape={self.output_shape}>"
         )
 
+    @backend.jit_method
     def __call__(
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> np.ndarray:
+    ) -> backend.Array:
         """Evaluate the (cross-)covariance function(s).
 
         The evaluation of the (cross-covariance) function(s) is vectorized over the
@@ -244,10 +250,10 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = np.asarray(x0)
+        x0 = backend.asarray(x0)
 
         if x1 is not None:
-            x1 = np.asarray(x1)
+            x1 = backend.asarray(x1)
 
         # Shape checking
         broadcast_batch_shape = self._check_shapes(
@@ -261,11 +267,12 @@ class Kernel(abc.ABC):
 
         return k_x0_x1
 
+    @backend.jit_method
     def matrix(
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
-    ) -> np.ndarray:
+    ) -> backend.Array:
         """A convenience function for computing a kernel matrix for two sets of inputs.
 
         This is syntactic sugar for ``k(x0[:, None], x1[None, :])``. Hence, it
@@ -308,8 +315,8 @@ class Kernel(abc.ABC):
         See documentation of class :class:`Kernel`.
         """
 
-        x0 = np.asarray(x0)
-        x1 = x0 if x1 is None else np.asarray(x1)
+        x0 = backend.asarray(x0)
+        x1 = x0 if x1 is None else backend.asarray(x1)
 
         # Shape checking
         errmsg = (
@@ -335,7 +342,7 @@ class Kernel(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike],
-    ) -> np.ndarray:
+    ) -> backend.Array:
         """Implementation of the kernel evaluation which is called after input checking.
 
         When implementing a particular kernel, the subclass should implement the kernel
@@ -407,7 +414,7 @@ class Kernel(abc.ABC):
                 raise ValueError(err_msg.format(argname="x1", shape=x1_shape))
 
             try:
-                broadcast_batch_shape = np.broadcast_shapes(
+                broadcast_batch_shape = backend.broadcast_shapes(
                     broadcast_batch_shape,
                     x1_shape[: len(x1_shape) - self._input_ndim],
                 )
@@ -420,9 +427,10 @@ class Kernel(abc.ABC):
 
         return broadcast_batch_shape
 
+    @backend.jit_method
     def _euclidean_inner_products(
-        self, x0: np.ndarray, x1: Optional[np.ndarray]
-    ) -> np.ndarray:
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         """Implementation of the Euclidean inner product, which supports scalar inputs
         and an optional second argument."""
         prods = x0**2 if x1 is None else x0 * x1
@@ -432,7 +440,7 @@ class Kernel(abc.ABC):
 
         assert self.input_ndim == 1
 
-        return np.sum(prods, axis=-1)
+        return backend.sum(prods, axis=-1)
 
     ####################################################################################
     # Binary Arithmetic
@@ -478,13 +486,14 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     Hence, all isotropic kernels are stationary.
     """
 
+    @backend.jit_method
     def _squared_euclidean_distances(
-        self, x0: np.ndarray, x1: Optional[np.ndarray]
-    ) -> np.ndarray:
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         """Implementation of the squared Euclidean distance, which supports scalar
         inputs and an optional second argument."""
         if x1 is None:
-            return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.zeros_like(
                 x0,
                 shape=x0.shape[: x0.ndim - self._input_ndim],
             )
@@ -496,17 +505,18 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
 
         assert self.input_ndim == 1
 
-        return np.sum(sqdiffs, axis=-1)
+        return backend.sum(sqdiffs, axis=-1)
 
+    @backend.jit_method
     def _euclidean_distances(
-        self, x0: np.ndarray, x1: Optional[np.ndarray]
-    ) -> np.ndarray:
+        self, x0: backend.Array, x1: Optional[backend.Array]
+    ) -> backend.Array:
         """Implementation of the Euclidean distance, which supports scalar inputs and an
         optional second argument."""
         if x1 is None:
-            return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
+            return backend.zeros_like(
                 x0,
                 shape=x0.shape[: x0.ndim - self._input_ndim],
             )
 
-        return np.sqrt(self._squared_euclidean_distances(x0, x1))
+        return backend.sqrt(self._squared_euclidean_distances(x0, x1))
