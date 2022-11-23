@@ -1,6 +1,7 @@
 """Belief updates for Bayesian quadrature."""
 
-from ._belief_update import BQBeliefUpdate, BQStandardBeliefUpdate
+from ._belief_update import BQBeliefUpdate
+from ._standard_update import BQStandardBeliefUpdate
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

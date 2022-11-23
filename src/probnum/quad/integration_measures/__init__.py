@@ -1,6 +1,8 @@
 """Integration measures for Bayesian quadrature methods."""
 
-from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
+from ._gaussian_measure import GaussianMeasure
+from ._integration_measure import IntegrationMeasure
+from ._lebesgue_measure import LebesgueMeasure
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
