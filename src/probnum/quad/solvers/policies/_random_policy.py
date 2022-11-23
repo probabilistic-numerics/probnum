@@ -5,6 +5,7 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
+from probnum.typing import IntLike
 
 from ._policy import Policy
 
@@ -16,18 +17,18 @@ class RandomPolicy(Policy):
 
     Parameters
     ----------
+    batch_size
+        Size of batch of nodes when calling the policy once.
     sample_func
         The sample function. Needs to have the following interface:
         `sample_func(batch_size: int, rng: np.random.Generator)` and return an array of
-        shape (batch_size, n_dim).
-    batch_size
-        Size of batch of nodes when calling the policy once.
+        shape (batch_size, input_dim).
     """
 
     def __init__(
         self,
+        batch_size: IntLike,
         sample_func: Callable,
-        batch_size: int,
     ) -> None:
         super().__init__(batch_size=batch_size)
         self.sample_func = sample_func

@@ -6,6 +6,7 @@ import numpy as np
 
 from probnum.quad.integration_measures import IntegrationMeasure
 from probnum.quad.solvers._bq_state import BQState
+from probnum.typing import IntLike
 
 from ._policy import Policy
 
@@ -22,17 +23,17 @@ class VanDerCorputPolicy(Policy):
 
     Parameters
     ----------
-    measure
-        The integration measure with finite domain.
     batch_size
         Size of batch of nodes when calling the policy once.
+    measure
+        The integration measure with finite domain.
 
     References
     --------
     .. [1] https://en.wikipedia.org/wiki/Van_der_Corput_sequence
     """
 
-    def __init__(self, measure: IntegrationMeasure, batch_size: int) -> None:
+    def __init__(self, batch_size: IntLike, measure: IntegrationMeasure) -> None:
         super().__init__(batch_size=batch_size)
 
         if int(measure.input_dim) > 1:
