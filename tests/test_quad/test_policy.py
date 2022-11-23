@@ -91,10 +91,10 @@ def test_policy_shapes(policy, batch_size, rng):
     ndim = params["ndim"]
 
     # bq state contains data
-    assert policy(bq_state=bq_state, rng=rng).shape == (batch_size, ndim)
+    assert policy(bq_state, rng).shape == (batch_size, ndim)
 
     # bq state contains no data yet
-    assert policy(bq_state=bq_state_no_data, rng=rng).shape == (batch_size, ndim)
+    assert policy(bq_state_no_data, rng).shape == (batch_size, ndim)
 
 
 # Tests specific to VanDerCorputPolicy start here

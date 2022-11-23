@@ -1,5 +1,7 @@
 """Van der Corput points for integration on 1D intervals."""
 
+from __future__ import annotations
+
 from typing import Optional
 
 import numpy as np

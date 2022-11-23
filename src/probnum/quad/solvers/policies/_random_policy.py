@@ -1,5 +1,7 @@
 """Random policy for Bayesian Monte Carlo."""
 
+from __future__ import annotations
+
 from typing import Callable, Optional
 
 import numpy as np
