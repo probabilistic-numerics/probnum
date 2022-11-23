@@ -1,5 +1,7 @@
 """Abstract base class for BQ policies."""
 
+from __future__ import annotations
+
 import abc
 from typing import Optional
 
