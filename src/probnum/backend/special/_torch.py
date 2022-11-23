@@ -1,14 +1,15 @@
 """Special functions in PyTorch."""
 
 try:
+    import torch
     from torch.special import ndtr, ndtri
 except ModuleNotFoundError:
     pass
 
 
-def gamma(*args, **kwargs):
-    raise NotImplementedError()
+def gamma(x: torch.Tensor, /) -> torch.Tensor:
+    raise NotImplementedError
 
 
-def kv(*args, **kwargs):
-    raise NotImplementedError()
+def modified_bessel(x: torch.Tensor, order: torch.Tensor) -> torch.Tensor:
+    return NotImplementedError

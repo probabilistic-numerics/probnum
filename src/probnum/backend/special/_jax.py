@@ -1,14 +1,15 @@
 """Special functions in JAX."""
 
 try:
+    import jax.numpy as jnp
     from jax.scipy.special import ndtr, ndtri  # pylint: disable=unused-import
 except ModuleNotFoundError:
     pass
 
 
-def gamma(*args, **kwargs):
-    raise NotImplementedError()
+def modified_bessel(x: "jax.Array", order: "jax.Array") -> "jax.Array":
+    return NotImplementedError
 
 
-def kv(*args, **kwargs):
-    raise NotImplementedError()
+def gamma(x: "jax.Array", /) -> "jax.Array":
+    raise NotImplementedError
