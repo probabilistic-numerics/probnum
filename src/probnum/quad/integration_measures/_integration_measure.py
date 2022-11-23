@@ -1,4 +1,4 @@
-"""Base class of an integration measures for Bayesian quadrature."""
+"""Base class of an integration measure for Bayesian quadrature."""
 
 from __future__ import annotations
 

@@ -7,7 +7,12 @@ from probnum import LambdaStoppingCriterion
 from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.quad.solvers import BayesianQuadrature
 from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
-from probnum.quad.solvers.stopping_criteria import ImmediateStop
+from probnum.quad.solvers.stopping_criteria import (
+    ImmediateStop,
+    IntegralVarianceTolerance,
+    MaxNevals,
+    RelativeMeanChange,
+)
 from probnum.randprocs.kernels import ExpQuad
 from probnum.randvars import Normal
 
@@ -86,6 +91,28 @@ def test_bq_from_problem_wrong_inputs(input_dim):
 
 
 # Tests for integrate function start here.
+
+
+@pytest.mark.parametrize(
+    "max_evals, var_tol, rel_tol, t",
+    [
+        (None, None, None, LambdaStoppingCriterion),
+        (1000, None, None, MaxNevals),
+        (None, 1e-5, None, IntegralVarianceTolerance),
+        (None, None, 1e-5, RelativeMeanChange),
+        (None, 1e-5, 1e-5, LambdaStoppingCriterion),
+        (1000, None, 1e-5, LambdaStoppingCriterion),
+        (1000, 1e-5, None, LambdaStoppingCriterion),
+        (1000, 1e-5, 1e-5, LambdaStoppingCriterion),
+    ],
+)
+def test_bq_from_problem_stopping_condition_assignment(max_evals, var_tol, rel_tol, t):
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+        options=dict(max_evals=max_evals, var_tol=var_tol, rel_tol=rel_tol),
+    )
+    assert isinstance(bq.stopping_criterion, t)
 
 
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):
@@ -177,3 +204,10 @@ def test_integrate_max_evals_output(no_data, data, rng):
     assert bq_state.nodes.shape == (max_evals, input_dim)
     assert bq_state.fun_evals.shape == (max_evals,)
     assert bq_state.gram.shape == (max_evals, max_evals)
+
+
+@pytest.mark.parametrize("rng", [np.random.default_rng(42), 42])
+def test_integrate_runs_with_integer_rng(bq, data, rng):
+    # make sure integrate runs with both a rn generator and a seed.
+    nodes, fun_evals, fun = data
+    bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)

@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
+from probnum.typing import IntLike
 
 # pylint: disable=too-few-public-methods, fixme
 
@@ -19,8 +20,8 @@ class Policy(abc.ABC):
         Size of batch of nodes when calling the policy once.
     """
 
-    def __init__(self, batch_size: int) -> None:
-        self.batch_size = batch_size
+    def __init__(self, batch_size: IntLike) -> None:
+        self.batch_size = int(batch_size)
 
     @abc.abstractmethod
     def __call__(

@@ -19,7 +19,7 @@ class MaxNevals(BQStoppingCriterion):
     """
 
     def __init__(self, max_nevals: IntLike):
-        self.max_nevals = max_nevals
+        self.max_nevals = int(max_nevals)
 
     def __call__(self, bq_state: BQState, info: BQIterInfo) -> bool:
         return info.nevals >= self.max_nevals

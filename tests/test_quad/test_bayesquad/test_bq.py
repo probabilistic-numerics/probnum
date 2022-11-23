@@ -42,7 +42,7 @@ def test_type_1d(f1d, kernel, measure, input_dim, rng):
 @pytest.mark.parametrize("scale_estimation", [None, "mle"])
 @pytest.mark.parametrize("jitter", [1e-6, 1e-7])
 def test_integral_values_1d(
-    f1d, kernel, domain, input_dim, scale_estimation, var_tol, rel_tol, jitter
+    f1d, kernel, domain, input_dim, scale_estimation, var_tol, rel_tol, jitter, rng
 ):
     """Test numerically that BQ computes 1D integrals correctly for a number of
     different parameters.
