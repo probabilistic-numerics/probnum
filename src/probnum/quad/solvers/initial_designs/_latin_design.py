@@ -15,7 +15,7 @@ from ._initial_design import InitialDesign
 
 # pylint: disable=too-few-public-methods
 class LatinDesign(InitialDesign):
-    """Initial design for Bayesian quadrature that samples from a latin hypercube.
+    """Initial design for Bayesian quadrature that samples from a Latin hypercube. [1]_
 
     Parameters
     ----------
@@ -23,6 +23,11 @@ class LatinDesign(InitialDesign):
         The number of nodes to be designed.
     measure
         The integration measure.
+
+    References
+    ----------
+    .. [1] Mckay et al., A Comparison of Three Methods for Selecting Values of Input
+       Variables in the Analysis of Output from a Computer Code. Technometrics, 1979.
 
     """
 

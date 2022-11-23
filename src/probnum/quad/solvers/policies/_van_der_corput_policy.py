@@ -31,7 +31,7 @@ class VanDerCorputPolicy(Policy):
         The integration measure with finite domain.
 
     References
-    --------
+    ----------
     .. [1] https://en.wikipedia.org/wiki/Van_der_Corput_sequence
     """
 

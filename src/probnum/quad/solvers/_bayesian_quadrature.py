@@ -282,7 +282,7 @@ class BayesianQuadrature:
             _has_converged = self.stopping_criterion(bq_state, info)
             info = BQIterInfo.from_stopping_decision(info, has_converged=_has_converged)
 
-            yield bq_state.integral_belief, bq_state, info, rng
+            yield bq_state.integral_belief, bq_state, info
 
             # Have we already converged?
             if _has_converged:
@@ -404,7 +404,7 @@ class BayesianQuadrature:
         # get initial design nodes
         if self.initial_design is not None:
             if fun is None:
-                raise ValueError(f"Initial design requires ``fun`` to be given.")
+                raise ValueError("Initial design requires ``fun`` to be given.")
 
             initial_design_nodes = self.initial_design(rng)
             initial_design_fun_evals = fun(initial_design_nodes)
@@ -434,7 +434,7 @@ class BayesianQuadrature:
         info = BQIterInfo.from_bq_state(bq_state)
 
         # run loop
-        for (_, bq_state, info, rng) in self.bq_iterator(bq_state, info, fun, rng):
+        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun, rng):
             pass
 
         return bq_state.integral_belief, bq_state, info
