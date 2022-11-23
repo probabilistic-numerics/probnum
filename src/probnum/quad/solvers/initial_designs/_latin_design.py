@@ -19,18 +19,14 @@ class LatinDesign(InitialDesign):
 
     Parameters
     ----------
-    measure
-        The integration measure.
     num_nodes
         The number of nodes to be designed.
+    measure
+        The integration measure.
 
     """
 
-    def __init__(
-        self,
-        measure: IntegrationMeasure,
-        num_nodes: IntLike,
-    ) -> None:
+    def __init__(self, num_nodes: IntLike, measure: IntegrationMeasure) -> None:
         if np.Inf in np.hstack([abs(measure.domain[0]), abs(measure.domain[1])]):
             raise ValueError(
                 "Latin hypercube samples require a finite domain. "

@@ -17,15 +17,16 @@ class InitialDesign(abc.ABC):
 
     Parameters
     ----------
-    measure
-        The integration measure.
     num_nodes
         The number of nodes to be designed.
+    measure
+        The integration measure.
+
     """
 
-    def __init__(self, measure: IntegrationMeasure, num_nodes: IntLike) -> None:
-        self.measure = measure
+    def __init__(self, num_nodes: IntLike, measure: IntegrationMeasure) -> None:
         self.num_nodes = int(num_nodes)
+        self.measure = measure
 
     @abc.abstractmethod
     def __call__(self, rng: Optional[np.random.Generator]) -> np.ndarray:

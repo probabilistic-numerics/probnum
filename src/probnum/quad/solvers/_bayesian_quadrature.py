@@ -193,9 +193,9 @@ class BayesianQuadrature:
         if initial_design is None:
             pass  # not to raise the exception
         elif initial_design == "mc":
-            initial_design = MCDesign(measure, num_initial_design_nodes)
+            initial_design = MCDesign(num_initial_design_nodes, measure)
         elif initial_design == "latin":
-            initial_design = LatinDesign(measure, num_initial_design_nodes)
+            initial_design = LatinDesign(num_initial_design_nodes, measure)
         else:
             raise NotImplementedError(
                 f"The given initial design ({initial_design}) " f"is unknown."
@@ -342,10 +342,12 @@ class BayesianQuadrature:
         Raises
         ------
         ValueError
-            If neither the integrand function (``fun``) nor integrand evaluations
-            (``fun_evals``) are given.
+            If neither the integrand function ``fun`` nor integrand evaluations
+            ``fun_evals`` are given.
         ValueError
-            If ``nodes`` are not given and no policy is present.
+            If ``initial_design`` is given but ``fun`` is not given.
+        ValueError
+            If ``policy`` is not given and ``nodes`` are not given.
         ValueError
             If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
@@ -401,6 +403,9 @@ class BayesianQuadrature:
 
         # get initial design nodes
         if self.initial_design is not None:
+            if fun is None:
+                raise ValueError(f"Initial design requires ``fun`` to be given.")
+
             initial_design_nodes = self.initial_design(rng)
             initial_design_fun_evals = fun(initial_design_nodes)
             if nodes is not None:
