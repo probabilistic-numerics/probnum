@@ -22,7 +22,6 @@ class RandomPolicy(Policy):
         shape (batch_size, n_dim).
     batch_size
         Size of batch of nodes when calling the policy once.
-
     """
 
     def __init__(
