@@ -10,7 +10,7 @@ import pytest
 
 from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
 from probnum.quad.solvers import BQState
-from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
+from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
 from probnum.randprocs.kernels import ExpQuad
 
 
