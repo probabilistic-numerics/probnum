@@ -1,5 +1,10 @@
 """Basic tests for BQ policies."""
 
+
+# New policies need to be added to the fixtures 'policy_name' and 'policy_params'
+# and 'policy'.
+
+
 import numpy as np
 import pytest
 
@@ -14,80 +19,86 @@ def batch_size():
     return 3
 
 
-@pytest.fixture
-def bq_state_no_data(input_dim):
-    return BQState(
-        measure=LebesgueMeasure(input_dim=input_dim, domain=(0, 1)),
-        kernel=ExpQuad(input_shape=(input_dim,)),
-    )
-
-
-@pytest.fixture
-def bq_state(input_dim):
-    nevals = 5
-    return BQState(
-        measure=LebesgueMeasure(input_dim=input_dim, domain=(0, 1)),
-        kernel=ExpQuad(input_shape=(input_dim,)),
-        nodes=np.zeros([nevals, input_dim]),
-        fun_evals=np.ones(nevals),
-    )
-
-
-@pytest.fixture
-def sample_func(batch_size, input_dim, rng):
-    def f(batch_size, rng):
-        return np.ones([batch_size, input_dim])
-
-    return f
-
-
 @pytest.fixture(
     params=[
-        pytest.param(sc, id=sc[0].__name__)
-        for sc in [
-            (RandomPolicy, dict(batch_size="batch_size", sample_func="sample_func")),
-        ]
-    ],
-    name="policy",
+        pytest.param(name, id=name) for name in ["RandomPolicy", "VanDerCorputPolicy"]
+    ]
 )
-def fixture_policy(request) -> Policy:
-    """Policies that only allow univariate inputs need to be handled separately."""
-    params = {}
-    for key in request.param[1]:
-        params[key] = request.getfixturevalue(request.param[1][key])
-    return request.param[0](**params)
+def policy_name(request):
+    return request.param
 
 
-def test_policy_shapes(policy, batch_size, rng, input_dim, bq_state, bq_state_no_data):
+@pytest.fixture
+def policy_params(policy_name, input_dim, batch_size, rng):
+    def _get_bq_states(ndim):
+        nevals = 5
+        bq_state_no_data = BQState(
+            measure=LebesgueMeasure(input_dim=ndim, domain=(0, 1)),
+            kernel=ExpQuad(input_shape=(ndim,)),
+        )
+        bq_state = BQState(
+            measure=LebesgueMeasure(input_dim=ndim, domain=(0, 1)),
+            kernel=ExpQuad(input_shape=(ndim,)),
+            nodes=np.zeros([nevals, ndim]),
+            fun_evals=np.ones(nevals),
+        )
+        return bq_state, bq_state_no_data
+
+    params = dict(name=policy_name, ndim=input_dim)
+    params["bq_state"], params["bq_state_no_data"] = _get_bq_states(input_dim)
+
+    if policy_name == "RandomPolicy":
+        input_params = dict(
+            batch_size=batch_size,
+            sample_func=lambda batch_size, rng: np.ones([batch_size, input_dim]),
+        )
+    elif policy_name == "VanDerCorputPolicy":
+        # Since VanDerCorputPolicy can only produce univariate nodes, this overrides
+        # input_dim = 1 for all tests. This is a bit cheap, but pytest parametrization
+        # is convoluted enough.
+        input_params = dict(
+            batch_size=batch_size,
+            measure=LebesgueMeasure(input_dim=1, domain=(0, 1)),
+        )
+        params["bq_state"], params["bq_state_no_data"] = _get_bq_states(1)
+        params["ndim"] = 1
+    else:
+        raise NotImplementedError
+
+    params["input_params"] = input_params
+
+    return params
+
+
+@pytest.fixture()
+def policy(policy_params):
+    name = policy_params.pop("name")
+    input_params = policy_params.pop("input_params")
+
+    if name == "RandomPolicy":
+        return RandomPolicy(**input_params), policy_params
+    elif name == "VanDerCorputPolicy":
+        return VanDerCorputPolicy(**input_params), policy_params
+    else:
+        raise NotImplementedError
+
+
+# Tests shared by all policies start here.
+
+
+def test_policy_shapes(policy, batch_size, rng):
+    policy, params = policy
+    bq_state, bq_state_no_data = params["bq_state"], params["bq_state_no_data"]
+    ndim = params["ndim"]
 
     # bq state contains data
-    assert policy(bq_state=bq_state, rng=rng).shape == (batch_size, input_dim)
+    assert policy(bq_state=bq_state, rng=rng).shape == (batch_size, ndim)
 
     # bq state contains no data yet
-    assert policy(bq_state=bq_state_no_data, rng=rng).shape == (batch_size, input_dim)
+    assert policy(bq_state=bq_state_no_data, rng=rng).shape == (batch_size, ndim)
 
 
 # Tests specific to VanDerCorputPolicy start here
-
-
-def test_van_der_corput_shapes(batch_size, rng):
-    """This is the same test as test_policies_shapes but for 1d only."""
-    measure = LebesgueMeasure(domain=(0, 1))
-    policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)
-
-    # bq state contains no data yet
-    bq_state_no_data = BQState(measure=measure, kernel=ExpQuad(input_shape=(1,)))
-    assert policy(bq_state=bq_state_no_data, rng=rng).shape == (batch_size, 1)
-
-    # bq state contains data
-    nevals = 5
-    bq_state = BQState(
-        measure=measure,
-        kernel=ExpQuad(input_shape=(1,)),
-        nodes=np.zeros([nevals, 1]),
-        fun_evals=np.ones(nevals),
-    )
-    assert policy(bq_state=bq_state, rng=rng).shape == (batch_size, 1)
 
 
 def test_van_der_corput_multi_d_error():

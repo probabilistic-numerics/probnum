@@ -150,10 +150,6 @@ def test_integrate_wrong_input(bq, bq_no_policy, data):
 
 @pytest.mark.parametrize("rng", [np.random.default_rng(42), 42])
 def test_integrate_runs_with_integer_rng(bq, data, rng):
-    # rng is a generator
-    nodes, fun_evals, fun = data
-    bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)
-
-    # rng is a seed
+    # make sure integrate runs with both a rn generator and a seed.
     nodes, fun_evals, fun = data
     bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)
