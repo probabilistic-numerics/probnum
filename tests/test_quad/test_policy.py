@@ -92,10 +92,10 @@ def test_policy_shapes(policy, batch_size, rng):
     ndim = params["ndim"]
 
     # bq state contains data
-    assert policy(bq_state=bq_state, rng=rng).shape == (batch_size, ndim)
+    assert policy(bq_state, rng).shape == (batch_size, ndim)
 
     # bq state contains no data yet
-    assert policy(bq_state=bq_state_no_data, rng=rng).shape == (batch_size, ndim)
+    assert policy(bq_state_no_data, rng).shape == (batch_size, ndim)
 
 
 # Tests specific to VanDerCorputPolicy start here
@@ -106,7 +106,7 @@ def test_van_der_corput_multi_d_error():
     wrong_dimension = 2
     measure = GaussianMeasure(input_dim=wrong_dimension, mean=0.0, cov=1.0)
     with pytest.raises(ValueError):
-        VanDerCorputPolicy(measure, batch_size=1)
+        VanDerCorputPolicy(1, measure)
 
 
 @pytest.mark.parametrize("domain", [(-np.Inf, 0), (1, np.Inf), (-np.Inf, np.Inf)])
@@ -114,7 +114,7 @@ def test_van_der_corput_infinite_error(domain):
     """Check that van der Corput policy fails on infinite domains."""
     measure = LebesgueMeasure(input_dim=1, domain=domain)
     with pytest.raises(ValueError):
-        VanDerCorputPolicy(measure, batch_size=1)
+        VanDerCorputPolicy(1, measure)
 
 
 @pytest.mark.parametrize("n", [4, 8, 16, 32, 64, 128, 256])

@@ -147,9 +147,9 @@ class BayesianQuadrature:
             # require an acquisition loop. The error handling is done in ``integrate``.
             pass
         elif policy == "bmc":
-            policy = RandomPolicy(measure.sample, batch_size=batch_size)
+            policy = RandomPolicy(batch_size, measure.sample)
         elif policy == "vdc":
-            policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)
+            policy = VanDerCorputPolicy(batch_size, measure)
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")
 
@@ -249,7 +249,7 @@ class BayesianQuadrature:
                 break
 
             # Select new nodes via policy
-            new_nodes = self.policy(bq_state=bq_state, rng=rng)
+            new_nodes = self.policy(bq_state, rng)
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)
