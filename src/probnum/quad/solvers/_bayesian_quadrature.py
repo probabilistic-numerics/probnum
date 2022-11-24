@@ -329,7 +329,6 @@ class BayesianQuadrature:
             # override stopping condition as no policy is given.
             self.stopping_criterion = ImmediateStop()
 
-        # policy given: use policy
         elif self.policy.requires_rng and rng is None:
             raise ValueError(
                 f"The policy '{self.policy.__class__.__name__}' requires a random "
