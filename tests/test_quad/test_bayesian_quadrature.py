@@ -7,7 +7,12 @@ from probnum import LambdaStoppingCriterion
 from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.quad.solvers import BayesianQuadrature
 from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
-from probnum.quad.solvers.stopping_criteria import ImmediateStop
+from probnum.quad.solvers.stopping_criteria import (
+    ImmediateStop,
+    IntegralVarianceTolerance,
+    MaxNevals,
+    RelativeMeanChange,
+)
 from probnum.randprocs.kernels import ExpQuad
 
 
@@ -31,7 +36,6 @@ def bq(input_dim):
     return BayesianQuadrature.from_problem(
         input_dim=input_dim,
         domain=(np.zeros(input_dim), np.ones(input_dim)),
-        rng=np.random.default_rng(),
     )
 
 
@@ -56,9 +60,7 @@ def test_bq_from_problem_wrong_inputs(input_dim):
 )
 def test_bq_from_problem_policy_assignment(policy, policy_type):
     """Test if correct policy is assigned from string identifier."""
-    bq = BayesianQuadrature.from_problem(
-        input_dim=1, domain=(0, 1), policy=policy, rng=np.random.default_rng()
-    )
+    bq = BayesianQuadrature.from_problem(input_dim=1, domain=(0, 1), policy=policy)
     assert isinstance(bq.policy, policy_type)
 
 
@@ -81,7 +83,32 @@ def test_bq_from_problem_defaults(bq_no_policy, bq):
     assert isinstance(bq.kernel, ExpQuad)
 
 
+@pytest.mark.parametrize(
+    "max_evals, var_tol, rel_tol, t",
+    [
+        (None, None, None, LambdaStoppingCriterion),
+        (1000, None, None, MaxNevals),
+        (None, 1e-5, None, IntegralVarianceTolerance),
+        (None, None, 1e-5, RelativeMeanChange),
+        (None, 1e-5, 1e-5, LambdaStoppingCriterion),
+        (1000, None, 1e-5, LambdaStoppingCriterion),
+        (1000, 1e-5, None, LambdaStoppingCriterion),
+        (1000, 1e-5, 1e-5, LambdaStoppingCriterion),
+    ],
+)
+def test_bq_from_problem_stopping_criterion_assignment(max_evals, var_tol, rel_tol, t):
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+        max_evals=max_evals,
+        var_tol=var_tol,
+        rel_tol=rel_tol,
+    )
+    assert isinstance(bq.stopping_criterion, t)
+
+
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):
+    # The combination of inputs below is important to trigger the correct exception.
     nodes, fun_evals, fun = data
 
     # no nodes provided
@@ -93,30 +120,36 @@ def test_integrate_no_policy_wrong_input(bq_no_policy, data):
         bq_no_policy.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals)
 
 
-def test_integrate_wrong_input(bq, bq_no_policy, data):
+def test_integrate_wrong_input(bq, bq_no_policy, data, rng):
+    # The combination of inputs below is important to trigger the correct exception.
+
     nodes, fun_evals, fun = data
 
     # no integrand provided
     with pytest.raises(ValueError):
-        bq.integrate(fun=None, nodes=nodes, fun_evals=None)
+        bq.integrate(fun=None, nodes=nodes, fun_evals=None, rng=rng)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=nodes, fun_evals=None)
 
     # wrong fun_evals shape
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals[:, None])
+        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals[:, None], rng=rng)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=nodes, fun_evals=fun_evals[:, None])
 
     # wrong nodes shape
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes[:, None], fun_evals=None)
+        bq.integrate(fun=fun, nodes=nodes[:, None], fun_evals=fun_evals, rng=rng)
     with pytest.raises(ValueError):
-        bq_no_policy.integrate(fun=None, nodes=nodes[:, None], fun_evals=None)
+        bq_no_policy.integrate(fun=None, nodes=nodes[:, None], fun_evals=fun_evals)
 
     # number of points in nodes and fun_evals do not match
     wrong_nodes = np.vstack([nodes, np.ones([1, nodes.shape[1]])])
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals)
+        bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals, rng=rng)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=wrong_nodes, fun_evals=fun_evals)
+
+    # no rng provided but policy requires it
+    with pytest.raises(ValueError):
+        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals, rng=None)

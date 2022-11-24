@@ -1,11 +1,14 @@
 """Van der Corput points for integration on 1D intervals."""
 
+from __future__ import annotations
+
 from typing import Optional
 
 import numpy as np
 
 from probnum.quad.integration_measures import IntegrationMeasure
 from probnum.quad.solvers._bq_state import BQState
+from probnum.typing import IntLike
 
 from ._policy import Policy
 
@@ -22,17 +25,17 @@ class VanDerCorputPolicy(Policy):
 
     Parameters
     ----------
-    measure
-        The integration measure with finite domain.
     batch_size
         Size of batch of nodes when calling the policy once.
+    measure
+        The integration measure with finite domain.
 
     References
     --------
     .. [1] https://en.wikipedia.org/wiki/Van_der_Corput_sequence
     """
 
-    def __init__(self, measure: IntegrationMeasure, batch_size: int) -> None:
+    def __init__(self, batch_size: IntLike, measure: IntegrationMeasure) -> None:
         super().__init__(batch_size=batch_size)
 
         if int(measure.input_dim) > 1:
@@ -46,7 +49,13 @@ class VanDerCorputPolicy(Policy):
         self.domain_a = domain_a
         self.domain_b = domain_b
 
-    def __call__(self, bq_state: BQState) -> np.ndarray:
+    @property
+    def requires_rng(self) -> bool:
+        return False
+
+    def __call__(
+        self, bq_state: BQState, rng: Optional[np.random.Generator]
+    ) -> np.ndarray:
         n_nodes = bq_state.nodes.shape[0]
         vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(
             n_nodes + 1, n_nodes + 1 + self.batch_size

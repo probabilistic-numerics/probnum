@@ -83,7 +83,6 @@ class BayesianQuadrature:
         var_tol: Optional[FloatLike] = None,
         rel_tol: Optional[FloatLike] = None,
         batch_size: IntLike = 1,
-        rng: np.random.Generator = None,
         jitter: FloatLike = 1.0e-8,
     ) -> "BayesianQuadrature":
 
@@ -112,8 +111,6 @@ class BayesianQuadrature:
             Relative tolerance as stopping criterion.
         batch_size
             Batch size used in node acquisition. Defaults to 1.
-        rng
-            The random number generator.
         jitter
             Non-negative jitter to numerically stabilise kernel matrix inversion.
             Defaults to 1e-8.
@@ -127,9 +124,6 @@ class BayesianQuadrature:
         ------
         ValueError
             If neither a ``domain`` nor a ``measure`` are given.
-        ValueError
-            If Bayesian Monte Carlo ('bmc') is selected as ``policy`` and no random
-            number generator (``rng``) is given.
         NotImplementedError
             If an unknown ``policy`` is given.
         """
@@ -153,15 +147,9 @@ class BayesianQuadrature:
             # require an acquisition loop. The error handling is done in ``integrate``.
             pass
         elif policy == "bmc":
-            if rng is None:
-                errormsg = (
-                    "Policy 'bmc' relies on random sampling, "
-                    "thus requires a random number generator ('rng')."
-                )
-                raise ValueError(errormsg)
-            policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
+            policy = RandomPolicy(batch_size, measure.sample)
         elif policy == "vdc":
-            policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)
+            policy = VanDerCorputPolicy(batch_size, measure)
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")
 
@@ -215,6 +203,7 @@ class BayesianQuadrature:
         bq_state: BQState,
         info: Optional[BQIterInfo],
         fun: Optional[Callable],
+        rng: Optional[np.random.Generator],
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Generator that implements the iteration of the BQ method.
 
@@ -231,6 +220,8 @@ class BayesianQuadrature:
         fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
+        rng
+            The random number generator used for random methods.
 
         Yields
         ------
@@ -258,7 +249,7 @@ class BayesianQuadrature:
                 break
 
             # Select new nodes via policy
-            new_nodes = self.policy(bq_state=bq_state)
+            new_nodes = self.policy(bq_state, rng)
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)
@@ -278,6 +269,7 @@ class BayesianQuadrature:
         fun: Optional[Callable],
         nodes: Optional[np.ndarray],
         fun_evals: Optional[np.ndarray],
+        rng: Optional[np.random.Generator] = None,
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Integrates the function ``fun``.
 
@@ -297,6 +289,8 @@ class BayesianQuadrature:
         fun_evals
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
+        rng
+            The random number generator used for random methods.
 
         Returns
         -------
@@ -308,14 +302,17 @@ class BayesianQuadrature:
         Raises
         ------
         ValueError
-            If neither the integrand function (``fun``) nor integrand evaluations
-            (``fun_evals``) are given.
+            If neither the integrand function ``fun`` nor integrand evaluations
+            ``fun_evals`` are given.
         ValueError
-            If ``nodes`` are not given and no policy is present.
+            If neither ``nodes`` nor ``policy`` is given.
         ValueError
             If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
+        ValueError
+            If ``rng`` is not given but ``policy`` requires it.
         """
+
         # no policy given: Integrate on fixed dataset.
         if self.policy is None:
             # nodes must be provided if no policy is given.
@@ -325,12 +322,18 @@ class BayesianQuadrature:
             # Use fun_evals and disregard fun if both are given
             if fun is not None and fun_evals is not None:
                 warnings.warn(
-                    "No policy available: 'fun_eval' are used instead of 'fun'."
+                    "No policy available: 'fun_evals' are used instead of 'fun'."
                 )
                 fun = None
 
             # override stopping condition as no policy is given.
             self.stopping_criterion = ImmediateStop()
+
+        elif self.policy.requires_rng and rng is None:
+            raise ValueError(
+                f"The policy '{self.policy.__class__.__name__}' requires a random "
+                f"number generator (rng) to be given."
+            )
 
         # Check if integrand function is provided
         if fun is None and fun_evals is None:
@@ -375,7 +378,7 @@ class BayesianQuadrature:
             )
 
         info = None
-        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun):
+        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun, rng):
             pass
 
         return bq_state.integral_belief, bq_state, info

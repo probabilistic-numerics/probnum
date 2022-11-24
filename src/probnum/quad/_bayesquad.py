@@ -33,7 +33,7 @@ def bayesquad(
     var_tol: Optional[FloatLike] = None,
     rel_tol: Optional[FloatLike] = None,
     batch_size: IntLike = 1,
-    rng: Optional[np.random.Generator] = np.random.default_rng(),
+    rng: Optional[np.random.Generator] = None,
     jitter: FloatLike = 1.0e-8,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
@@ -100,7 +100,7 @@ def bayesquad(
         Number of new observations at each update. Defaults to 1.
     rng
         Random number generator. Used by Bayesian Monte Carlo other random sampling
-        policies. Optional. Default is `np.random.default_rng()`.
+        policies.
     jitter
         Non-negative jitter to numerically stabilise kernel matrix inversion.
         Defaults to 1e-8.
@@ -145,9 +145,9 @@ def bayesquad(
 
     >>> input_dim = 1
     >>> domain = (0, 1)
-    >>> def f(x):
+    >>> def fun(x):
     ...     return x.reshape(-1, )
-    >>> F, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
+    >>> F, info = bayesquad(fun, input_dim, domain=domain, rng=np.random.default_rng(0))
     >>> print(F.mean)
     0.5
     """
@@ -167,12 +167,13 @@ def bayesquad(
         var_tol=var_tol,
         rel_tol=rel_tol,
         batch_size=batch_size,
-        rng=rng,
         jitter=jitter,
     )
 
     # Integrate
-    integral_belief, _, info = bq_method.integrate(fun=fun, nodes=None, fun_evals=None)
+    integral_belief, _, info = bq_method.integrate(
+        fun=fun, nodes=None, fun_evals=None, rng=rng
+    )
 
     return integral_belief, info
 
@@ -261,7 +262,7 @@ def bayesquad_from_data(
 
     # Integrate
     integral_belief, _, info = bq_method.integrate(
-        fun=None, nodes=nodes, fun_evals=fun_evals
+        fun=None, nodes=nodes, fun_evals=fun_evals, rng=None
     )
 
     return integral_belief, info
