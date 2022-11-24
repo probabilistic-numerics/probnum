@@ -190,6 +190,7 @@ class BayesianQuadrature:
         )
 
         # Select initial design
+        # Todo: initial design does not obey stopping condition
         if initial_design is None:
             pass  # not to raise the exception
         elif initial_design == "mc":
@@ -407,6 +408,7 @@ class BayesianQuadrature:
             if fun is None:
                 raise ValueError("Initial design requires ``fun`` to be given.")
 
+            # Todo: add test for this
             if self.initial_design.requires_rng and rng is None:
                 raise ValueError(
                     f"The initial design '{self.initial_design.__class__.__name__}' "
