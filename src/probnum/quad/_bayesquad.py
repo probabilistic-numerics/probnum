@@ -8,7 +8,7 @@ integral.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 import warnings
 
 import numpy as np
