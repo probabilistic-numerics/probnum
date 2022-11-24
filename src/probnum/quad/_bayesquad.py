@@ -155,9 +155,9 @@ def bayesquad(
 
     >>> input_dim = 1
     >>> domain = (0, 1)
-    >>> def f(x):
+    >>> def fun(x):
     ...     return x.reshape(-1, )
-    >>> F, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
+    >>> F, info = bayesquad(fun, input_dim, domain=domain, rng=np.random.default_rng(0))
     >>> print(F.mean)
     0.5
     """
