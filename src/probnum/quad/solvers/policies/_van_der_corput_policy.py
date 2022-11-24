@@ -49,6 +49,10 @@ class VanDerCorputPolicy(Policy):
         self.domain_a = domain_a
         self.domain_b = domain_b
 
+    @property
+    def requires_rng(self) -> bool:
+        return False
+
     def __call__(
         self, bq_state: BQState, rng: Optional[np.random.Generator]
     ) -> np.ndarray:
@@ -58,10 +62,6 @@ class VanDerCorputPolicy(Policy):
         )
         transformed_vdc_seq = vdc_seq * (self.domain_b - self.domain_a) + self.domain_a
         return transformed_vdc_seq.reshape((self.batch_size, 1))
-
-    @property
-    def requires_rng(self) -> bool:
-        return False
 
     @staticmethod
     def van_der_corput_sequence(
