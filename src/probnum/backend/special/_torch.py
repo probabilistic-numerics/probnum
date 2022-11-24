@@ -11,5 +11,5 @@ def gamma(x: torch.Tensor, /) -> torch.Tensor:
     raise NotImplementedError
 
 
-def modified_bessel(x: torch.Tensor, order: torch.Tensor) -> torch.Tensor:
+def modified_bessel2(x: torch.Tensor, order: torch.Tensor) -> torch.Tensor:
     return NotImplementedError

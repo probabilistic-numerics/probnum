@@ -13,7 +13,7 @@ elif BACKEND is Backend.TORCH:
 
 __all__ = [
     "gamma",
-    "modified_bessel",
+    "modified_bessel2",
     "ndtr",
     "ndtri",
 ]
@@ -45,8 +45,8 @@ def gamma(x: Array, /) -> Array:
     return _impl.gamma(x)
 
 
-def modified_bessel(x: Array, /, *, order: FloatLike) -> Array:
-    """Modified Bessel function of the second kind of real ``order``.
+def modified_bessel2(x: Array, /, *, order: FloatLike) -> Array:
+    """Modified Bessel function of the second kind of the given order.
 
     Parameters
     ----------
@@ -55,7 +55,7 @@ def modified_bessel(x: Array, /, *, order: FloatLike) -> Array:
     order
         Order of Bessel function.
     """
-    return _impl.modified_bessel(x, order)
+    return _impl.modified_bessel2(x, order)
 
 
 def ndtr(x: Array, /) -> Array:

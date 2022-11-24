@@ -7,7 +7,7 @@ except ModuleNotFoundError:
     pass
 
 
-def modified_bessel(x: "jax.Array", order: "jax.Array") -> "jax.Array":
+def modified_bessel2(x: "jax.Array", order: "jax.Array") -> "jax.Array":
     return NotImplementedError
 
 

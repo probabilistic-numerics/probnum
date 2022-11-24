@@ -112,5 +112,5 @@ class Matern(Kernel, IsotropicMixin):
             2 ** (1.0 - self.nu)
             / backend.special.gamma(self.nu)
             * scaled_distances**self.nu
-            * backend.special.modified_bessel(scaled_distances, order=self.nu)
+            * backend.special.modified_bessel2(scaled_distances, order=self.nu)
         )
