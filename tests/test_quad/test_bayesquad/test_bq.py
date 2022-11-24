@@ -20,7 +20,8 @@ def test_type_1d(f1d, kernel, measure, input_dim, rng):
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
-        options=dict(max_evals=10, rng=rng),
+        rng=rng,
+        options=dict(max_evals=10),
     )
     assert isinstance(integral, Normal)
 
@@ -54,6 +55,7 @@ def test_integral_values_1d(
     measure = LebesgueMeasure(input_dim=input_dim, domain=domain)
     # numerical integral
     # pylint: disable=invalid-name
+
     def integrand(x):
         return f1d(x) * measure(np.atleast_2d(x))
 
@@ -149,7 +151,8 @@ def test_integral_values_kernel_translate(kernel, measure, input_dim, x, rng):
             input_dim=input_dim,
             kernel=kernel,
             measure=measure,
-            options=dict(max_evals=1000, var_tol=1e-8, batch_size=50, rng=rng),
+            rng=rng,
+            options=dict(max_evals=1000, var_tol=1e-8, batch_size=50),
         )
         true_integral = kernel_embedding.kernel_mean(np.atleast_2d(translate_point))
         np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
@@ -171,13 +174,13 @@ def test_no_domain_or_measure_raises_error(input_dim):
 
 @pytest.mark.parametrize("input_dim", [1])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
-def test_domain_ignored_if_lebesgue(input_dim, measure):
+def test_domain_ignored_if_lebesgue(input_dim, measure, rng):
     domain = (0, 1)
     fun = lambda x: np.reshape(x, (x.shape[0],))
 
     # standard BQ
     bq_integral, _ = bayesquad(
-        fun=fun, input_dim=input_dim, domain=domain, measure=measure
+        fun=fun, input_dim=input_dim, domain=domain, measure=measure, rng=rng
     )
     assert isinstance(bq_integral, Normal)
 
@@ -204,7 +207,8 @@ def test_zero_function_gives_zero_variance_with_mle(rng):
         fun=fun,
         input_dim=input_dim,
         domain=domain,
-        options=dict(scale_estimation="mle", rng=rng),
+        rng=rng,
+        options=dict(scale_estimation="mle"),
     )
     bq_integral2, _ = bayesquad_from_data(
         nodes=nodes,
