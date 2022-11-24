@@ -28,5 +28,9 @@ class MCDesign(InitialDesign):
     def __init__(self, num_nodes: IntLike, measure: IntegrationMeasure) -> None:
         super().__init__(measure=measure, num_nodes=num_nodes)
 
+    @property
+    def requires_rng(self) -> bool:
+        return True
+
     def __call__(self, rng: Optional[np.random.Generator]) -> np.ndarray:
         return self.measure.sample(self.num_nodes, rng=rng)

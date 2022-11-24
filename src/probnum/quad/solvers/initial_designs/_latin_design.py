@@ -40,6 +40,10 @@ class LatinDesign(InitialDesign):
 
         super().__init__(measure=measure, num_nodes=num_nodes)
 
+    @property
+    def requires_rng(self) -> bool:
+        return True
+
     def __call__(self, rng: Optional[np.random.Generator]) -> np.ndarray:
         sampler = qmc.LatinHypercube(d=self.measure.input_dim, seed=rng)
         sample = sampler.random(n=self.num_nodes)

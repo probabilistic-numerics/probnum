@@ -407,6 +407,12 @@ class BayesianQuadrature:
             if fun is None:
                 raise ValueError("Initial design requires ``fun`` to be given.")
 
+            if self.initial_design.requires_rng and rng is None:
+                raise ValueError(
+                    f"The initial design '{self.initial_design.__class__.__name__}' "
+                    f"requires a random number generator (rng) to be given."
+                )
+
             initial_design_nodes = self.initial_design(rng)
             initial_design_fun_evals = fun(initial_design_nodes)
             if nodes is not None:

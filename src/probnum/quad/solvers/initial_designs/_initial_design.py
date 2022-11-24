@@ -28,6 +28,12 @@ class InitialDesign(abc.ABC):
         self.num_nodes = int(num_nodes)
         self.measure = measure
 
+    @property
+    @abc.abstractmethod
+    def requires_rng(self) -> bool:
+        """Whether the initial design requires a random number generator when called."""
+        raise NotImplementedError
+
     @abc.abstractmethod
     def __call__(self, rng: Optional[np.random.Generator]) -> np.ndarray:
         """Get the initial nodes.
