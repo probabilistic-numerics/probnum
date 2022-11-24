@@ -191,6 +191,7 @@ class BayesianQuadrature:
 
         # Select initial design
         # Todo: initial design does not obey stopping condition
+        # Todo: inital design only in combination with policy?
         if initial_design is None:
             pass  # not to raise the exception
         elif initial_design == "mc":

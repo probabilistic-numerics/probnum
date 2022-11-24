@@ -66,6 +66,7 @@ def test_integral_values_1d(
         kernel=kernel,
         domain=domain,
         policy="vdc",
+        rng=None,
         options=dict(
             scale_estimation=scale_estimation,
             max_evals=250,
