@@ -96,7 +96,7 @@ def test_bq_from_problem_defaults(bq_no_policy, bq):
         (1000, 1e-5, 1e-5, LambdaStoppingCriterion),
     ],
 )
-def test_bq_from_problem_stopping_condition_assignment(max_evals, var_tol, rel_tol, t):
+def test_bq_from_problem_stopping_criterion_assignment(max_evals, var_tol, rel_tol, t):
     bq = BayesianQuadrature.from_problem(
         input_dim=2,
         domain=(0, 1),
@@ -108,6 +108,7 @@ def test_bq_from_problem_stopping_condition_assignment(max_evals, var_tol, rel_t
 
 
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):
+    # The combination of inputs below is important to trigger the correct exception.
     nodes, fun_evals, fun = data
 
     # no nodes provided
@@ -119,37 +120,36 @@ def test_integrate_no_policy_wrong_input(bq_no_policy, data):
         bq_no_policy.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals)
 
 
-def test_integrate_wrong_input(bq, bq_no_policy, data):
+def test_integrate_wrong_input(bq, bq_no_policy, data, rng):
+    # The combination of inputs below is important to trigger the correct exception.
+
     nodes, fun_evals, fun = data
 
     # no integrand provided
     with pytest.raises(ValueError):
-        bq.integrate(fun=None, nodes=nodes, fun_evals=None)
+        bq.integrate(fun=None, nodes=nodes, fun_evals=None, rng=rng)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=nodes, fun_evals=None)
 
     # wrong fun_evals shape
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals[:, None])
+        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals[:, None], rng=rng)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=nodes, fun_evals=fun_evals[:, None])
 
     # wrong nodes shape
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes[:, None], fun_evals=None)
+        bq.integrate(fun=fun, nodes=nodes[:, None], fun_evals=fun_evals, rng=rng)
     with pytest.raises(ValueError):
-        bq_no_policy.integrate(fun=None, nodes=nodes[:, None], fun_evals=None)
+        bq_no_policy.integrate(fun=None, nodes=nodes[:, None], fun_evals=fun_evals)
 
     # number of points in nodes and fun_evals do not match
     wrong_nodes = np.vstack([nodes, np.ones([1, nodes.shape[1]])])
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals)
+        bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals, rng=rng)
     with pytest.raises(ValueError):
         bq_no_policy.integrate(fun=None, nodes=wrong_nodes, fun_evals=fun_evals)
 
-
-@pytest.mark.parametrize("rng", [np.random.default_rng(42), 42])
-def test_integrate_runs_with_integer_rng(bq, data, rng):
-    # make sure integrate runs with both a rn generator and a seed.
-    nodes, fun_evals, fun = data
-    bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)
+    # no rng provided but policy requires it
+    with pytest.raises(ValueError):
+        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals, rng=None)

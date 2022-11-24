@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union, get_args
+from typing import Callable, Optional, Tuple
 import warnings
 
 import numpy as np
@@ -203,7 +203,7 @@ class BayesianQuadrature:
         bq_state: BQState,
         info: Optional[BQIterInfo],
         fun: Optional[Callable],
-        rng: np.random.Generator,
+        rng: Optional[np.random.Generator],
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Generator that implements the iteration of the BQ method.
 
@@ -269,7 +269,7 @@ class BayesianQuadrature:
         fun: Optional[Callable],
         nodes: Optional[np.ndarray],
         fun_evals: Optional[np.ndarray],
-        rng: Union[IntLike, np.random.Generator] = np.random.default_rng(),
+        rng: Optional[np.random.Generator] = None,
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Integrates the function ``fun``.
 
@@ -290,7 +290,7 @@ class BayesianQuadrature:
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
         rng
-            The random number generator used for random methods, or a seed.
+            The random number generator used for random methods.
 
         Returns
         -------
@@ -302,17 +302,16 @@ class BayesianQuadrature:
         Raises
         ------
         ValueError
-            If neither the integrand function (``fun``) nor integrand evaluations
-            (``fun_evals``) are given.
+            If neither the integrand function ``fun`` nor integrand evaluations
+            ``fun_evals`` are given.
         ValueError
-            If ``nodes`` are not given and no policy is present.
+            If neither ``nodes`` nor ``policy`` is given.
         ValueError
             If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
+        ValueError
+            If ``rng`` is not given but ``policy`` requires it.
         """
-        # Get the rng
-        if isinstance(rng, get_args(IntLike)):
-            rng = np.random.default_rng(int(rng))
 
         # no policy given: Integrate on fixed dataset.
         if self.policy is None:
@@ -323,12 +322,19 @@ class BayesianQuadrature:
             # Use fun_evals and disregard fun if both are given
             if fun is not None and fun_evals is not None:
                 warnings.warn(
-                    "No policy available: 'fun_eval' are used instead of 'fun'."
+                    "No policy available: 'fun_evals' are used instead of 'fun'."
                 )
                 fun = None
 
             # override stopping condition as no policy is given.
             self.stopping_criterion = ImmediateStop()
+
+        # policy given: use policy
+        elif self.policy.requires_rng and rng is None:
+            raise ValueError(
+                f"The policy '{self.policy.__class__.__name__}' requires a random "
+                f"number generator (rng) to be given."
+            )
 
         # Check if integrand function is provided
         if fun is None and fun_evals is None:

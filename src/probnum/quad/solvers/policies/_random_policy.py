@@ -35,6 +35,10 @@ class RandomPolicy(Policy):
         super().__init__(batch_size=batch_size)
         self.sample_func = sample_func
 
+    @property
+    def requires_rng(self) -> bool:
+        return True
+
     def __call__(
         self, bq_state: BQState, rng: Optional[np.random.Generator]
     ) -> np.ndarray:

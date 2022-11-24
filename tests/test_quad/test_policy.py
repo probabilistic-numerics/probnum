@@ -52,6 +52,7 @@ def policy_params(policy_name, input_dim, batch_size, rng):
             batch_size=batch_size,
             sample_func=lambda batch_size, rng: np.ones([batch_size, input_dim]),
         )
+        params["requires_rng"] = True
     elif policy_name == "VanDerCorputPolicy":
         # Since VanDerCorputPolicy can only produce univariate nodes, this overrides
         # input_dim = 1 for all tests. This is a bit cheap, but pytest parametrization
@@ -62,6 +63,7 @@ def policy_params(policy_name, input_dim, batch_size, rng):
         )
         params["bq_state"], params["bq_state_no_data"] = _get_bq_states(1)
         params["ndim"] = 1
+        params["requires_rng"] = False
     else:
         raise NotImplementedError
 
@@ -96,6 +98,11 @@ def test_policy_shapes(policy, batch_size, rng):
 
     # bq state contains no data yet
     assert policy(bq_state_no_data, rng).shape == (batch_size, ndim)
+
+
+def test_policy_property_values(policy):
+    policy, params = policy
+    assert policy.requires_rng is params["requires_rng"]
 
 
 # Tests specific to VanDerCorputPolicy start here

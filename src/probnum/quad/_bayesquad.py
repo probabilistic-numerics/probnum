@@ -33,7 +33,7 @@ def bayesquad(
     var_tol: Optional[FloatLike] = None,
     rel_tol: Optional[FloatLike] = None,
     batch_size: IntLike = 1,
-    rng: Optional[np.random.Generator] = np.random.default_rng(),
+    rng: Optional[np.random.Generator] = None,
     jitter: FloatLike = 1.0e-8,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
@@ -100,7 +100,7 @@ def bayesquad(
         Number of new observations at each update. Defaults to 1.
     rng
         Random number generator. Used by Bayesian Monte Carlo other random sampling
-        policies. Optional. Default is `np.random.default_rng()`.
+        policies.
     jitter
         Non-negative jitter to numerically stabilise kernel matrix inversion.
         Defaults to 1e-8.
