@@ -96,7 +96,7 @@ def test_bq_from_problem_initial_design_assignment(design, design_type):
         (1000, 1e-5, 1e-5, LambdaStoppingCriterion),
     ],
 )
-def test_bq_from_problem_stopping_condition_assignment(max_evals, var_tol, rel_tol, t):
+def test_bq_from_problem_stopping_criterion_assignment(max_evals, var_tol, rel_tol, t):
     bq = BayesianQuadrature.from_problem(
         input_dim=2,
         domain=(0, 1),
@@ -181,45 +181,41 @@ def test_integrate_output_shapes(initial_design_provided, nodes_provided, data, 
     assert bq_state.gram.shape == (max_evals, max_evals)
 
 
-@pytest.mark.parametrize("rng", [np.random.default_rng(42), 42])
-def test_integrate_runs_with_integer_rng(bq, data, rng):
-    # make sure integrate runs with both a rn generator and a seed.
-    nodes, fun_evals, fun = data
-    bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=rng)
-
-
 # Tests for 'integrate' input checks and exception raises start here.
 
 
-def test_integrate_wrong_input(bq, data):
+def test_integrate_wrong_input(bq, data, rng):
     """Exception tests shared by all bq methods."""
+    # The combination of inputs below is important to trigger the correct exception.
 
     nodes, fun_evals, fun = data
 
     # no integrand provided
     with pytest.raises(ValueError):
-        bq.integrate(fun=None, nodes=nodes, fun_evals=None)
+        bq.integrate(fun=None, nodes=nodes, fun_evals=None, rng=rng)
 
     # wrong fun_evals shape
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals[:, None])
+        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals[:, None], rng=rng)
 
     # wrong nodes shape
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes[:, None], fun_evals=None)
+        bq.integrate(fun=fun, nodes=nodes[:, None], fun_evals=None, rng=rng)
 
     # number of points in nodes and fun_evals do not match
     wrong_nodes = np.vstack([nodes, np.ones([1, nodes.shape[1]])])
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals)
+        bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals, rng=rng)
 
-    # initial design provided, but no fun provided
+    # no rng provided but policy requires it
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes[:, None], fun_evals=None)
+        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals, rng=None)
 
 
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):
     """Exception tests specific to when no policy is given."""
+    # The combination of inputs below is important to trigger the correct exception.
+
     nodes, fun_evals, fun = data
 
     # no nodes provided
@@ -232,10 +228,11 @@ def test_integrate_no_policy_wrong_input(bq_no_policy, data):
 
 
 def test_integrate_initial_design_wrong_input(bq_initial_design, data):
-    """Exception tests specific to when an initial desgin is given."""
+    """Exception tests specific to when an initial design is given."""
+    # The combination of inputs below is important to trigger the correct exception.
+
     nodes, fun_evals, fun = data
 
-    # no fun provided while initial design is given (nodes and fun_evals must be given
-    # for this test to make sense).
+    # no fun provided but initial design requires it
     with pytest.raises(ValueError):
         bq_initial_design.integrate(fun=None, nodes=nodes, fun_evals=fun_evals)

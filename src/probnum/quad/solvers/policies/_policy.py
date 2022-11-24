@@ -25,6 +25,12 @@ class Policy(abc.ABC):
     def __init__(self, batch_size: IntLike) -> None:
         self.batch_size = int(batch_size)
 
+    @property
+    @abc.abstractmethod
+    def requires_rng(self) -> bool:
+        """Whether the policy requires a random number generator when called."""
+        raise NotImplementedError
+
     @abc.abstractmethod
     def __call__(
         self, bq_state: BQState, rng: Optional[np.random.Generator]

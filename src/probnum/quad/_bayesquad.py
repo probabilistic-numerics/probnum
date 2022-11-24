@@ -29,7 +29,7 @@ def bayesquad(
     domain: Optional[DomainLike] = None,
     policy: Optional[str] = "bmc",
     initial_design: Optional[str] = None,
-    rng: Union[IntLike, np.random.Generator] = np.random.default_rng(),
+    rng: Optional[np.random.Generator] = None,
     options: Optional[dict] = None,
 ) -> Tuple[Normal, BQIterInfo]:
     r"""Infer the solution of the uni- or multivariate integral
@@ -85,8 +85,7 @@ def bayesquad(
         ==========================  =========
 
     rng
-        The random number generator used for random methods, or a seed.
-        Default is `np.random.default_rng()`.
+        The random number generator used for random methods.
 
     options
         A dictionary with the following optional solver settings

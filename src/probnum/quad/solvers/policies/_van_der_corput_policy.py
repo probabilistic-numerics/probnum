@@ -49,6 +49,10 @@ class VanDerCorputPolicy(Policy):
         self.domain_a = domain_a
         self.domain_b = domain_b
 
+    @property
+    def requires_rng(self) -> bool:
+        return False
+
     def __call__(
         self, bq_state: BQState, rng: Optional[np.random.Generator]
     ) -> np.ndarray:
