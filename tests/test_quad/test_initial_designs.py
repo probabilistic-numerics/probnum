@@ -1,7 +1,7 @@
 """Test cases for initial designs."""
 
 
-# New designs need to be added to the fixtures 'fixture_initial_design'.
+# New designs need to be added to the fixture 'design'.
 
 
 from typing import Tuple

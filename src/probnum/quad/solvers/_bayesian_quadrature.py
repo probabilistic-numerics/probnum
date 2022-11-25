@@ -58,9 +58,11 @@ class BayesianQuadrature:
 
     See Also
     --------
-    bayesquad : Computes the integral using an acquisition policy.
-    bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
-                          nodes and function evaluations.
+    :func:`bayesquad <probnum.quad.bayesquad>` :
+        Computes the integral using an acquisition policy.
+    :func:`bayesquad_from_data <probnum.quad.bayesquad_from_data>` :
+        Computes the integral :math:`F` using a given dataset of nodes and function
+        evaluations.
 
 
     """
@@ -77,7 +79,7 @@ class BayesianQuadrature:
 
         if policy is None and initial_design is not None:
             raise ValueError(
-                "An initial design can only be used in combination with" "a policy."
+                "An initial design can only be used in combination with a policy."
             )
 
         self.kernel = kernel
@@ -149,6 +151,12 @@ class BayesianQuadrature:
             If an unknown ``policy`` or an unknown ``initial_design`` is given.
         ValueError
             If neither ``domain`` nor ``measure`` is given.
+
+        See Also
+        --------
+        :func:`bayesquad <probnum.quad.bayesquad>` :
+            For details on options for ``policy`` and ``initial_design``.
+
         """
 
         input_dim = int(input_dim)
@@ -362,44 +370,28 @@ class BayesianQuadrature:
             If neither the integrand function ``fun`` nor integrand evaluations
             ``fun_evals`` are given.
         ValueError
-            If neither ``nodes`` nor ``policy`` is given.
-        ValueError
             If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
         ValueError
             If ``rng`` is not given but ``policy`` or ``initial_design`` requires it.
+        ValueError
+            If a policy is available but ``fun`` is not given.
+        ValueError
+            If no policy is available and no ``nodes`` are given.
+
+        Warns
+        -----
+        UserWarning
+            When no policy is given and ``fun`` is ignored.
 
         Notes
         -----
-        The initial design may not obey the stopping criterion since it is evaluated
-        prior to running the ``bq_iterator``. For example, the initial design will be
-        evaluated even if the batch size exceeds the maximum number of evaluations
-        (``max_evals``) of a MaxNevals stopping criterion.
+        The initial design is evaluated prior to running the ``bq_iterator`` and hence
+        may not obey the stopping criterion. For example, if stopping is induced via a
+        maximum number of evaluations (``max_evals``) smaller than the batch size of the
+        initial design, the initial design will be evaluated nevertheless.
 
         """
-
-        # Todo: check error handling again
-        # no policy given: Integrate on fixed dataset.
-        if self.policy is None:
-            # nodes must be provided if no policy is given.
-            if nodes is None:
-                raise ValueError("No policy available: Please provide nodes.")
-
-            # Use fun_evals and disregard fun if both are given
-            if fun is not None and fun_evals is not None:
-                warnings.warn(
-                    "No policy available: 'fun_evals' are used instead of 'fun'."
-                )
-                fun = None
-
-            # override stopping condition as no policy is given.
-            self.stopping_criterion = ImmediateStop()
-
-        elif self.policy.requires_rng and rng is None:
-            raise ValueError(
-                f"The policy '{self.policy.__class__.__name__}' requires a random "
-                f"number generator (rng) to be given."
-            )
 
         # Check if integrand function is provided
         if fun is None and fun_evals is None:
@@ -428,13 +420,40 @@ class BayesianQuadrature:
                     f"of evaluations."
                 )
 
-        # get initial design nodes
-        if self.initial_design is not None:
-            if fun is None:
-                # Todo: is this redundant as we know poliy checks it already
-                raise ValueError("Initial design requires ``fun`` to be given.")
+        # policy given
+        if self.policy is not None:
 
-            # Todo: add test for this
+            # function handle must be given for policy to work
+            if fun is None:
+                raise ValueError("Policy requires ``fun`` to be given.")
+
+            # some policies require and rng
+            if self.policy.requires_rng and rng is None:
+                raise ValueError(
+                    f"The policy '{self.policy.__class__.__name__}' requires a random "
+                    f"number generator (rng) to be given."
+                )
+
+        # no policy given: Integrate on fixed dataset.
+        else:
+            # nodes must be provided if no policy is given.
+            if nodes is None:
+                raise ValueError("No policy available: Please provide nodes.")
+
+            # Use fun_evals and disregard fun if both are given
+            if fun is not None and fun_evals is not None:
+                warnings.warn(
+                    "No policy available: 'fun_evals' are used instead of 'fun'."
+                )
+                fun = None
+
+            # override stopping condition as no policy is given.
+            self.stopping_criterion = ImmediateStop()
+
+        # initial design given (which implies policy and fun is given)
+        if self.initial_design is not None:
+
+            # some designs require and rng
             if self.initial_design.requires_rng and rng is None:
                 raise ValueError(
                     f"The initial design '{self.initial_design.__class__.__name__}' "
@@ -458,6 +477,8 @@ class BayesianQuadrature:
                 0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
             ),
         )
+
+        # update BQ state if nodes and evaluations are available
         if nodes is not None:
             _, bq_state = self.belief_update(
                 bq_state=bq_state,

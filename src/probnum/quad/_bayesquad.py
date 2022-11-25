@@ -127,7 +127,8 @@ def bayesquad(
 
     Warns
     -----
-    When ``domain`` is given but not used.
+    UserWarning
+        When ``domain`` is given but not used.
 
     Notes
     -----
@@ -238,7 +239,8 @@ def bayesquad_from_data(
 
     Warns
     -----
-    When ``domain`` is given but not used.
+    UserWarning
+        When ``domain`` is given but not used.
 
     See Also
     --------

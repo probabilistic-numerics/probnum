@@ -51,20 +51,9 @@ def bq_no_policy(input_dim):
     )
 
 
-@pytest.fixture
-def bq_initial_design(input_dim):
-    return BayesianQuadrature.from_problem(
-        input_dim=input_dim,
-        domain=(0, 1),
-        policy="bmc",
-        initial_design="mc",
-        options=dict(num_initial_design_nodes=2),
-    )
-
-
-# =============================================
-# Tests for '__init__' function start here.
-# =============================================
+# =======================================
+# Tests for '__init__' method start here.
+# =======================================
 
 
 def test_bayesian_quadrature_wrong_input(input_dim):
@@ -83,9 +72,9 @@ def test_bayesian_quadrature_wrong_input(input_dim):
         )
 
 
-# =============================================
-# Tests for 'from_problem' function start here.
-# =============================================
+# ===========================================
+# Tests for 'from_problem' method start here.
+# ===========================================
 
 # Tests for correct assignments start here.
 
@@ -174,9 +163,9 @@ def test_bq_from_problem_wrong_inputs(input_dim):
         )
 
 
-# ==========================================
-# Tests for 'integrate' function start here.
-# ==========================================
+# ========================================
+# Tests for 'integrate' method start here.
+# ========================================
 
 
 @pytest.mark.parametrize("initial_design_provided", [True, False])
@@ -194,8 +183,8 @@ def test_integrate_output_shapes(initial_design_provided, nodes_provided, data, 
 
     params = dict(input_dim=input_dim, domain=(0, 1))
     options = dict(max_evals=max_evals)
-
     num_updates = max_evals
+
     # get correct shapes and values
     if nodes_provided:
         num_updates += -num_nodes + 1
@@ -232,7 +221,7 @@ def test_integrate_wrong_input(bq, data, rng):
 
     nodes, fun_evals, fun = data
 
-    # no integrand provided
+    # no integrand provided (neither fun nor fun_evals)
     with pytest.raises(ValueError):
         bq.integrate(fun=None, nodes=nodes, fun_evals=None, rng=rng)
 
@@ -249,9 +238,20 @@ def test_integrate_wrong_input(bq, data, rng):
     with pytest.raises(ValueError):
         bq.integrate(fun=fun, nodes=wrong_nodes, fun_evals=fun_evals, rng=rng)
 
+
+def test_integrate_with_policy_wrong_input(bq, data, rng):
+    """Exception tests specific to when a policy is given."""
+    # The combination of inputs below is important to trigger the correct exception.
+
+    nodes, fun_evals, fun = data
+
+    # a policy always requires fun
+    with pytest.raises(ValueError):
+        bq.integrate(fun=None, nodes=nodes, fun_evals=fun_evals, rng=rng)
+
     # no rng provided but policy requires it
     with pytest.raises(ValueError):
-        bq.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals, rng=None)
+        bq.integrate(fun=fun, nodes=None, fun_evals=None, rng=None)
 
 
 def test_integrate_no_policy_wrong_input(bq_no_policy, data):
@@ -269,12 +269,18 @@ def test_integrate_no_policy_wrong_input(bq_no_policy, data):
         bq_no_policy.integrate(fun=fun, nodes=nodes, fun_evals=fun_evals)
 
 
-def test_integrate_initial_design_wrong_input(bq_initial_design, data):
+def test_integrate_initial_design_wrong_input(rng):
     """Exception tests specific to when an initial design is given."""
     # The combination of inputs below is important to trigger the correct exception.
 
-    nodes, fun_evals, fun = data
-
-    # no fun provided but initial design requires it
+    # no rng provided but initial design requires it (and policy does not)
     with pytest.raises(ValueError):
-        bq_initial_design.integrate(fun=None, nodes=nodes, fun_evals=fun_evals)
+        bq = BayesianQuadrature.from_problem(
+            input_dim=1,
+            domain=(0, 1),
+            policy="vdc",  # does not need rng
+            initial_design="mc",  # needs rng
+        )
+        bq.integrate(
+            fun=lambda x: np.ones(x.shape[0]), nodes=None, fun_evals=None, rng=None
+        )
