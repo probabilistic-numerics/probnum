@@ -6,6 +6,7 @@ import pytest
 from probnum import LambdaStoppingCriterion
 from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.quad.solvers import BayesianQuadrature
+from probnum.quad.solvers.belief_updates import BQStandardBeliefUpdate
 from probnum.quad.solvers.initial_designs import LatinDesign, MCDesign
 from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import (
@@ -37,7 +38,7 @@ def data(input_dim):
 def bq(input_dim):
     return BayesianQuadrature.from_problem(
         input_dim=input_dim,
-        domain=(np.zeros(input_dim), np.ones(input_dim)),
+        domain=(0, 1),
     )
 
 
@@ -45,7 +46,7 @@ def bq(input_dim):
 def bq_no_policy(input_dim):
     return BayesianQuadrature.from_problem(
         input_dim=input_dim,
-        domain=(np.zeros(input_dim), np.ones(input_dim)),
+        domain=(0, 1),
         policy=None,
     )
 
@@ -54,11 +55,37 @@ def bq_no_policy(input_dim):
 def bq_initial_design(input_dim):
     return BayesianQuadrature.from_problem(
         input_dim=input_dim,
-        domain=(np.zeros(input_dim), np.ones(input_dim)),
+        domain=(0, 1),
+        policy="bmc",
         initial_design="mc",
         options=dict(num_initial_design_nodes=2),
     )
 
+
+# =============================================
+# Tests for '__init__' function start here.
+# =============================================
+
+
+def test_bayesian_quadrature_wrong_input(input_dim):
+    """These exceptions are raised in the __init__ method."""
+    measure = LebesgueMeasure(domain=(0, 1), input_dim=input_dim)
+
+    # initial design is given but policy is not given
+    with pytest.raises(ValueError):
+        BayesianQuadrature(
+            kernel=ExpQuad(input_shape=(input_dim,)),
+            measure=measure,
+            policy=None,
+            belief_update=BQStandardBeliefUpdate(jitter=1e-6, scale_estimation=None),
+            stopping_criterion=MaxNevals(max_nevals=10),
+            initial_design=MCDesign(num_nodes=3, measure=measure),
+        )
+
+
+# =============================================
+# Tests for 'from_problem' function start here.
+# =============================================
 
 # Tests for correct assignments start here.
 
@@ -130,6 +157,21 @@ def test_bq_from_problem_wrong_inputs(input_dim):
     # neither measure nor domain is provided
     with pytest.raises(ValueError):
         BayesianQuadrature.from_problem(input_dim=input_dim)
+
+    # unknown policy is provided
+    with pytest.raises(NotImplementedError):
+        BayesianQuadrature.from_problem(
+            input_dim=input_dim, domain=(0, 1), policy="unknown_policy"
+        )
+
+    # unknown initial_design is provided
+    with pytest.raises(NotImplementedError):
+        BayesianQuadrature.from_problem(
+            input_dim=input_dim,
+            domain=(0, 1),
+            policy="bmc",
+            initial_design="unknown_design",
+        )
 
 
 # ==========================================

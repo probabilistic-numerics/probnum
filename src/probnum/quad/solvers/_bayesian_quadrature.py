@@ -48,14 +48,20 @@ class BayesianQuadrature:
     stopping_criterion
         The criterion that determines convergence.
     initial_design
-        The initial design chooses a set of nodes once before the acquisition loop with
+        The initial design chooses a set of nodes once, before the acquisition loop with
         the policy runs.
+
+    Raises
+    ------
+    ValueError
+        If ``initial_design`` is given but ``policy`` is not given.
 
     See Also
     --------
     bayesquad : Computes the integral using an acquisition policy.
     bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
                           nodes and function evaluations.
+
 
     """
 
@@ -68,6 +74,12 @@ class BayesianQuadrature:
         stopping_criterion: BQStoppingCriterion,
         initial_design: Optional[InitialDesign],
     ) -> None:
+
+        if policy is None and initial_design is not None:
+            raise ValueError(
+                "An initial design can only be used in combination with" "a policy."
+            )
+
         self.kernel = kernel
         self.measure = measure
         self.policy = policy
@@ -103,8 +115,8 @@ class BayesianQuadrature:
             The policy choosing nodes at which to evaluate the integrand.
             Choose ``None`` if you want to integrate from a fixed dataset.
         initial_design
-            The initial design samples a set of nodes before the acquisition loop with
-            the specified policy runs.
+            The initial design chooses a set of nodes once, before the acquisition loop
+            with the policy runs.
         options
             A dictionary with the following optional solver settings
 
@@ -133,12 +145,10 @@ class BayesianQuadrature:
 
         Raises
         ------
+        NotImplementedError
+            If an unknown ``policy`` or an unknown ``initial_design`` is given.
         ValueError
-            If neither a ``domain`` nor a ``measure`` are given.
-        NotImplementedError
-            If an unknown ``policy`` is given.
-        NotImplementedError
-            If an unknown ``initial_design`` is given.
+            If neither ``domain`` nor ``measure`` is given.
         """
 
         input_dim = int(input_dim)
@@ -149,15 +159,14 @@ class BayesianQuadrature:
 
         max_evals = options.get("max_evals", None)
         rel_tol = options.get("rel_tol", None)
+        var_tol = options.get("var_tol", None)
+
         scale_estimation = options.get("scale_estimation", "mle")
         jitter = options.get("jitter", 1.0e-8)
         batch_size = options.get("batch_size", int(1))
         num_initial_design_nodes = options.get(
             "num_initial_design_nodes", int(5 * input_dim)
         )
-
-        # var_tol may be adjusted later if no other stopping condition is given.
-        var_tol = options.get("var_tol", None)
 
         # Set up integration measure
         if domain is None and measure is None:
@@ -189,20 +198,6 @@ class BayesianQuadrature:
             jitter=jitter, scale_estimation=scale_estimation
         )
 
-        # Select initial design
-        # Todo: initial design does not obey stopping condition
-        # Todo: inital design only in combination with policy?
-        if initial_design is None:
-            pass  # not to raise the exception
-        elif initial_design == "mc":
-            initial_design = MCDesign(num_initial_design_nodes, measure)
-        elif initial_design == "latin":
-            initial_design = LatinDesign(num_initial_design_nodes, measure)
-        else:
-            raise NotImplementedError(
-                f"The given initial design ({initial_design}) " f"is unknown."
-            )
-
         # Select stopping criterion: If multiple stopping criteria are given, BQ stops
         # once any criterion is fulfilled (logical `or`).
         def _stopcrit_or(sc1, sc2):
@@ -227,13 +222,27 @@ class BayesianQuadrature:
 
         # If no stopping criteria are given, use some default values.
         if _stopping_criterion is None:
-            _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
-                max_nevals=input_dim * 25  # 25 is an arbitrary value
-            )
+            max_evals = input_dim * 25  # 25 is an arbitrary value
+            var_tol = 1e-6
+            _stopping_criterion = IntegralVarianceTolerance(
+                var_tol=var_tol
+            ) | MaxNevals(max_nevals=max_evals)
 
         # If no policy is given, then the iteration must terminate immediately.
         if policy is None:
             _stopping_criterion = ImmediateStop()
+
+        # Select initial design
+        if initial_design is None:
+            pass  # not to raise the exception
+        elif initial_design == "mc":
+            initial_design = MCDesign(num_initial_design_nodes, measure)
+        elif initial_design == "latin":
+            initial_design = LatinDesign(num_initial_design_nodes, measure)
+        else:
+            raise NotImplementedError(
+                f"The given initial design ({initial_design}) is unknown."
+            )
 
         return cls(
             kernel=kernel,
@@ -313,12 +322,18 @@ class BayesianQuadrature:
         fun_evals: Optional[np.ndarray],
         rng: Optional[np.random.Generator] = None,
     ) -> Tuple[Normal, BQState, BQIterInfo]:
-        """Integrates the function ``fun``.
+        """Integrates a given function.
 
-        ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at
-        fixed nodes. This function calls the generator ``bq_iterator`` until the first
-        stopping criterion is met. It immediately stops after processing the initial
-        ``nodes`` if ``policy`` is not available.
+        The function may be given as a function handle ``fun`` and/or numerically in
+        terms of ``fun_evals`` at fixed nodes ``nodes``.
+
+        If a policy is defined this method calls the generator ``bq_iterator`` until
+        the first stopping criterion is met. The initial design is evaluated in a batch
+        prior to running ``bq_iterator``.
+
+        If no policy is defined this method immediately stops after processing the
+        given ``nodes``.
+
 
         Parameters
         ----------
@@ -352,9 +367,18 @@ class BayesianQuadrature:
             If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
         ValueError
-            If ``rng`` is not given but ``policy`` requires it.
+            If ``rng`` is not given but ``policy`` or ``initial_design`` requires it.
+
+        Notes
+        -----
+        The initial design may not obey the stopping criterion since it is evaluated
+        prior to running the ``bq_iterator``. For example, the initial design will be
+        evaluated even if the batch size exceeds the maximum number of evaluations
+        (``max_evals``) of a MaxNevals stopping criterion.
+
         """
 
+        # Todo: check error handling again
         # no policy given: Integrate on fixed dataset.
         if self.policy is None:
             # nodes must be provided if no policy is given.
@@ -407,6 +431,7 @@ class BayesianQuadrature:
         # get initial design nodes
         if self.initial_design is not None:
             if fun is None:
+                # Todo: is this redundant as we know poliy checks it already
                 raise ValueError("Initial design requires ``fun`` to be given.")
 
             # Todo: add test for this
