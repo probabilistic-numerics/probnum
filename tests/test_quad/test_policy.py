@@ -1,6 +1,5 @@
 """Basic tests for BQ policies."""
 
-
 # New policies need to be added to the fixtures 'policy_name' and 'policy_params'
 # and 'policy'.
 
@@ -139,7 +138,6 @@ def test_van_der_corput_partial():
     vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(n_start, n_end)
     expected_seq = np.array([0.75, 0.125, 0.625, 0.375, 0.875])
     np.testing.assert_array_equal(vdc_seq, expected_seq)
-
     (n_start, n_end) = (4, 11)
     vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(n_start, n_end)
     expected_seq = np.array([0.125, 0.625, 0.375, 0.875, 0.0625, 0.5625, 0.3125])

@@ -31,7 +31,7 @@ class VanDerCorputPolicy(Policy):
         The integration measure with finite domain.
 
     References
-    --------
+    ----------
     .. [1] https://en.wikipedia.org/wiki/Van_der_Corput_sequence
     """
 
@@ -43,7 +43,7 @@ class VanDerCorputPolicy(Policy):
 
         domain_a = measure.domain[0]
         domain_b = measure.domain[1]
-        if np.Inf in np.hstack([abs(measure.domain[0]), abs(measure.domain[1])]):
+        if np.Inf in np.hstack([abs(domain_a), abs(domain_b)]):
             raise ValueError("Policy 'vdc' works only for bounded domains.")
 
         self.domain_a = domain_a
