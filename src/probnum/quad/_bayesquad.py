@@ -284,6 +284,36 @@ def bayesquad_from_data(
     return integral_belief, info
 
 
+def Probnum_mlbq(L, X, Y, kernel=None, domain=None, measure=None):
+    """
+    L: (int) the number of levels
+    X: (list of np.ndarray)  shape (L, n_eval, input_dim)
+    Y: (list of np.ndarray) – shape=(L, n_eval,) – Function evaluations at nodes
+    kernel: None Defaults to the ExpQuad kernel.  (list of kernels)
+    domain=None,The integration domain. Contains lower and upper bound as scalar or np.ndarray.
+    measure=None, The integration measure. Defaults to the Lebesgue measure.
+    """
+    # #scale_estimation='mle', cannot add
+    # #jitter=None default=1e-8 list of floats, cannot add
+    # if jitter is None:
+    #     jitter = [1e-8]*L
+
+    if kernel is None:
+        kernel = [None] * (L + 1)
+
+    mean = np.zeros(L + 1)
+    var = np.zeros(L + 1)
+
+    for l in range(L + 1):
+        mv, info = pn.quad.bayesquad_from_data(
+            nodes=X[l], fun_evals=Y[l], kernel=kernel[l], domain=domain, measure=measure
+        )
+        mean[l] = mv.mean
+        var[l] = mv.var
+
+    return np.sum(mean), np.sum(var), mean, var
+
+
 def _check_domain_measure_compatibility(
     input_dim: IntLike,
     domain: Optional[DomainLike],
