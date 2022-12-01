@@ -35,7 +35,7 @@ def hennig1d() -> QuadratureProblem:
     """
 
     def fun(x):
-        return np.exp(-x[:, 0] ** 2 - np.sin(3.0 * x[:, 0]) ** 2)
+        return np.exp(-x[:, 0]**2 - np.sin(3.0 * x[:, 0])**2)
 
     measure = LebesgueMeasure(input_dim=1, domain=(-3, 3))
     return QuadratureProblem(fun=fun, measure=measure, solution=1.1433287777179366)
@@ -80,7 +80,7 @@ def hennig2d(c: Optional[np.ndarray] = None) -> QuadratureProblem:
         raise ValueError("'c' must be positive definite.")
 
     def fun(x):
-        return np.exp(-np.sin(3 * np.sum(x**2, axis=1)) - np.sum((x @ c) * x, axis=1))
+        return np.exp(- np.sum((x @ c) * x, axis=1) - np.sin(3 * np.sum(x**2, axis=1)))
 
     measure = LebesgueMeasure(input_dim=2, domain=(-3, 3))
     return QuadratureProblem(fun=fun, measure=measure, solution=solution)
@@ -186,7 +186,7 @@ def circulargaussian2d(
 
     def fun(x):
         r = np.linalg.norm(x, axis=1)
-        rel_square_diff = (r - m) ** 2 / (2.0 * v)
+        rel_square_diff = (r - m)**2 / (2.0 * v)
         return r**2 * np.exp(-rel_square_diff) / np.sqrt(2.0 * np.pi * v)
 
     measure = LebesgueMeasure(input_dim=2, domain=(-3, 3))
