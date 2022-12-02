@@ -80,7 +80,7 @@ def test_problem_hennig2d_raises():
 
     # c not pos def
     with pytest.raises(ValueError):
-        hennig2d(c=-np.eye(3))
+        hennig2d(c=-np.eye(2))
 
 
 def test_problem_circulargaussian2d_raises():
