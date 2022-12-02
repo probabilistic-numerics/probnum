@@ -10,9 +10,15 @@ import numpy as np
 from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers._bq_state import BQIterInfo, BQState
+from probnum.quad.solvers.acquisition_functions import WeightedPredictiveVariance
 from probnum.quad.solvers.belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from probnum.quad.solvers.initial_designs import InitialDesign, LatinDesign, MCDesign
-from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
+from probnum.quad.solvers.policies import (
+    Policy,
+    RandomMaxAcquisitionPolicy,
+    RandomPolicy,
+    VanDerCorputPolicy,
+)
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
     ImmediateStop,
@@ -139,6 +145,9 @@ class BayesianQuadrature:
                 num_initial_design_nodes : Optional[IntLike]
                     The number of nodes created by the initial design. Defaults to
                     ``input_dim * 5`` if an initial design is given.
+                us_rand_num_candidates : Optional[IntLike]
+                    The number of candidate nodes used by the policy 'us_rand'. Defaults
+                    to 1e3.
 
         Returns
         -------
@@ -175,6 +184,7 @@ class BayesianQuadrature:
         num_initial_design_nodes = options.get(
             "num_initial_design_nodes", int(5 * input_dim)
         )
+        us_rand_num_candidates = options.get("us_rand_num_candidates", int(1e3))
 
         # Set up integration measure
         if domain is None and measure is None:
@@ -198,6 +208,12 @@ class BayesianQuadrature:
             policy = RandomPolicy(batch_size, measure.sample)
         elif policy == "vdc":
             policy = VanDerCorputPolicy(batch_size, measure)
+        elif policy == "us_rand":
+            policy = RandomMaxAcquisitionPolicy(
+                batch_size=1,
+                acquisition_func=WeightedPredictiveVariance(),
+                n_candidates=us_rand_num_candidates,
+            )
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")
 

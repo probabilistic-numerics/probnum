@@ -70,10 +70,11 @@ def bayesquad(
     policy
         Type of acquisition strategy to use. Defaults to 'bmc'. Options are
 
-        ==========================  =======
-         Bayesian Monte Carlo [2]_  ``bmc``
-         van Der Corput points      ``vdc``
-        ==========================  =======
+        ============================================  ===========
+         Bayesian Monte Carlo [2]_                    ``bmc``
+         van Der Corput points                        ``vdc``
+         Uncertainty Sampling with random candidates  ``us_rand``
+        ============================================  ===========
 
     initial_design
         The type of initial design to use. If ``None`` is given, no initial design is
@@ -112,6 +113,9 @@ def bayesquad(
             num_initial_design_nodes : Optional[IntLike]
                 The number of nodes created by the initial design. Defaults to
                 ``input_dim * 5`` if an initial design is given.
+            us_rand_num_candidates : Optional[IntLike]
+                The number of candidate nodes used by the policy 'us_rand'. Defaults
+                to 1e3.
 
     Returns
     -------
