@@ -8,7 +8,7 @@ integral.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 import warnings
 
 import numpy as np
@@ -284,31 +284,37 @@ def bayesquad_from_data(
     return integral_belief, info
 
 
-def multilevel_bayesquad(
-        nodes: np.ndarray,
-        fun_evals: np.ndarray,
-        kernel: Optional[np.ndarray[Kernel]] = None,
-        measure: Optional[IntegrationMeasure] = None,
-        domain: Optional[DomainLike] = None,
-        options: Optional[dict] = None,
-) -> Tuple[Normal, BQIterInfo]:
+def bayesquad_multilevel(
+    nodes: Tuple[np.ndarray, ...],
+    fun_diff_evals: Tuple[np.ndarray, ...],
+    kernels: Optional[Union[Kernel, Tuple[Kernel, ...]]] = None,
+    measure: Optional[IntegrationMeasure] = None,
+    domain: Optional[DomainLike] = None,
+    options: Optional[dict] = None,
+) -> Tuple[Normal, Tuple[BQIterInfo, ...]]:
 
-    L = 1
-    if kernel is None:
-        kernel = [None] * (L + 1)
-
-    mean = np.zeros(L + 1)
-    var = np.zeros(L + 1)
-    X = 0
-
-    for l in range(L + 1):
-        mv, info = bayesquad_from_data(
-            nodes=X[l], fun_evals=Y[l], kernel=kernel[l], domain=domain, measure=measure
+    max_level = len(nodes)
+    if len(fun_diff_evals) != max_level or len(kernels) != max_level:
+        raise ValueError(
+            "You must provide an equal number of kernels, vectors of "
+            "function evaluations and sets of nodes."
         )
-        mean[l] = mv.mean
-        var[l] = mv.var
 
-    return np.sum(mean), np.sum(var), mean, var
+    integer_belief = Normal(mean=0.0, cov=0.0)
+    infos = ()
+    for l in range(max_level):
+        integer_belief_l, info_l = bayesquad_from_data(
+            nodes=nodes[l],
+            fun_evals=fun_diff_evals[l],
+            kernel=kernels[l],
+            measure=measure,
+            domain=domain,
+            options=options,
+        )
+        integer_belief += integer_belief_l
+        infos += (info_l,)
+
+    return integer_belief, infos
 
 
 def _check_domain_measure_compatibility(

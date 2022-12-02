@@ -7,13 +7,13 @@ choosing points to evaluate the integrand based on said model.
 """
 
 from . import integration_measures, kernel_embeddings, solvers
-from ._bayesquad import bayesquad, bayesquad_from_data, multilevel_bayesquad
+from ._bayesquad import bayesquad, bayesquad_from_data, bayesquad_multilevel
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "bayesquad",
     "bayesquad_from_data",
-    "multilevel_bayesquad",
+    "bayesquad_multilevel",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
