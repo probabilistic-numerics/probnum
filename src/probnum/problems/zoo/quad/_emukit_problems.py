@@ -74,8 +74,8 @@ def hennig2d(c: Optional[np.ndarray] = None) -> QuadratureProblem:
     if c.shape != (2, 2):
         raise ValueError(f"'c' must be a (2, 2) array. Found shape is {c.shape}.")
 
-    det = c[0, 0] * c[1, 1] - c[1, 0] * c[0, 1]
-    if det <= 0:
+    eigvals = np.linalg.eigvals(c)
+    if np.any(eigvals <= 0):
         raise ValueError("'c' must be positive definite.")
 
     def fun(x):
