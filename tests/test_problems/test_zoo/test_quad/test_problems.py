@@ -45,7 +45,11 @@ def test_problem_fun_shapes(problem, num_dat):
 def test_problem_correct_solution_value(problem):
     s = problem.solution
     m = problem.measure
-    if s is not None and isinstance(s, float) and problem.input_dim <= 2:
+
+    # 1e3 samples for MC estimator.
+    # Test might not work for high dimensions (>5). Testing integrals in high dimensions
+    # is intrinsically hard.
+    if s is not None and isinstance(s, float):
         x = m.sample(int(1e3), rng=np.random.default_rng(0))
         f = problem.fun(x)
         s_test = f.mean()

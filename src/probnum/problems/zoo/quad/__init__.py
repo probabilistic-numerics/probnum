@@ -3,4 +3,4 @@
 from ._emukit_problems import circulargaussian2d, hennig1d, hennig2d, sombrero2d
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["hennig1d", "hennig2d", "circulargaussian2d", "sombrero2d"]
+__all__ = ["circulargaussian2d", "hennig1d", "hennig2d", "sombrero2d"]

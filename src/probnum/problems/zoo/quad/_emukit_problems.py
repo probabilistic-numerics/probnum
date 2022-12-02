@@ -9,8 +9,7 @@ import numpy as np
 
 from probnum.problems import QuadratureProblem
 from probnum.quad.integration_measures import LebesgueMeasure
-
-# pylint: disable=line-too-long
+from probnum.typing import FloatLike
 
 
 def hennig1d() -> QuadratureProblem:
@@ -32,10 +31,10 @@ def hennig1d() -> QuadratureProblem:
     ----------
     .. [1] Emukit docs on `hennig1d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.hennig1D.hennig1D/>`__.
 
-    """
+    """  # pylint: disable=line-too-long
 
     def fun(x):
-        return np.exp(-x[:, 0]**2 - np.sin(3.0 * x[:, 0])**2)
+        return np.exp(-x[:, 0] ** 2 - np.sin(3.0 * x[:, 0]) ** 2)
 
     measure = LebesgueMeasure(input_dim=1, domain=(-3, 3))
     return QuadratureProblem(fun=fun, measure=measure, solution=1.1433287777179366)
@@ -65,7 +64,7 @@ def hennig2d(c: Optional[np.ndarray] = None) -> QuadratureProblem:
     ----------
     .. [1] Emukit docs on `hennig2d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.hennig2D.hennig2D/>`__ .
 
-    """
+    """  # pylint: disable=line-too-long
 
     solution = None
     if c is None:
@@ -80,13 +79,13 @@ def hennig2d(c: Optional[np.ndarray] = None) -> QuadratureProblem:
         raise ValueError("'c' must be positive definite.")
 
     def fun(x):
-        return np.exp(- np.sum((x @ c) * x, axis=1) - np.sin(3 * np.sum(x**2, axis=1)))
+        return np.exp(-np.sum((x @ c) * x, axis=1) - np.sin(3 * np.sum(x**2, axis=1)))
 
     measure = LebesgueMeasure(input_dim=2, domain=(-3, 3))
     return QuadratureProblem(fun=fun, measure=measure, solution=solution)
 
 
-def sombrero2d(w: Optional[float] = None) -> QuadratureProblem:
+def sombrero2d(w: Optional[FloatLike] = None) -> QuadratureProblem:
     r"""The two-dimensional sombrero function integrated wrt the Lebesgue
     measure. [1]_
 
@@ -112,7 +111,7 @@ def sombrero2d(w: Optional[float] = None) -> QuadratureProblem:
     ----------
     .. [1] Emukit docs on `sombrero2d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.sombrero2D.sombrero2D/>`__ .
 
-    """
+    """  # pylint: disable=line-too-long
 
     solution = None
     if w is None:
@@ -121,6 +120,8 @@ def sombrero2d(w: Optional[float] = None) -> QuadratureProblem:
 
     if w <= 0:
         raise ValueError(f"The 'w' parameter must be positive ({w}).")
+
+    w = float(w)
 
     def fun(x):
         r_scaled = (np.pi * w) * np.sqrt((x * x).sum(axis=1))
@@ -133,7 +134,7 @@ def sombrero2d(w: Optional[float] = None) -> QuadratureProblem:
 
 
 def circulargaussian2d(
-    m: Optional[float] = None, v: Optional[float] = None
+    m: Optional[FloatLike] = None, v: Optional[FloatLike] = None
 ) -> QuadratureProblem:
     r"""The two-dimensional circular Gaussian integrated wrt the Lebesgue
     measure. [1]_
@@ -164,7 +165,8 @@ def circulargaussian2d(
     ----------
     .. [1] Emukit docs on `circulargaussian2d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.circular_gaussian.circular_gaussian/>`__ .
 
-    """
+    """  # pylint: disable=line-too-long
+
     _v = 1.0
     _m = 0.0
 
@@ -184,9 +186,11 @@ def circulargaussian2d(
     if v <= 0:
         raise ValueError(f"'v' ({v}) must be positive.")
 
+    m, v = float(m), float(v)
+
     def fun(x):
         r = np.linalg.norm(x, axis=1)
-        rel_square_diff = (r - m)**2 / (2.0 * v)
+        rel_square_diff = (r - m) ** 2 / (2.0 * v)
         return r**2 * np.exp(-rel_square_diff) / np.sqrt(2.0 * np.pi * v)
 
     measure = LebesgueMeasure(input_dim=2, domain=(-3, 3))
