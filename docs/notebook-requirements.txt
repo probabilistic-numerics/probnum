@@ -1,5 +1,10 @@
 # Jupyter notebooks
+ipython<=8.6.0
+# ipython 8.7 introduced a bug regarding pygments lexer support
+# https://github.com/spatialaudio/nbsphinx/issues/24
+# https://github.com/ipython/ipython/issues/13845
 jupyter
+
 
 # Notebook conversion
 nbsphinx>=0.8.6,<0.8.7
