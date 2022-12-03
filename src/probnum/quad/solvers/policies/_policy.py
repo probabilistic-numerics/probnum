@@ -1,10 +1,14 @@
 """Abstract base class for BQ policies."""
 
+from __future__ import annotations
+
 import abc
+from typing import Optional
 
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
+from probnum.typing import IntLike
 
 # pylint: disable=too-few-public-methods, fixme
 
@@ -18,17 +22,28 @@ class Policy(abc.ABC):
         Size of batch of nodes when calling the policy once.
     """
 
-    def __init__(self, batch_size: int) -> None:
-        self.batch_size = batch_size
+    def __init__(self, batch_size: IntLike) -> None:
+        self.batch_size = int(batch_size)
+
+    @property
+    @abc.abstractmethod
+    def requires_rng(self) -> bool:
+        """Whether the policy requires a random number generator when called."""
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def __call__(self, bq_state: BQState) -> np.ndarray:
+    def __call__(
+        self, bq_state: BQState, rng: Optional[np.random.Generator]
+    ) -> np.ndarray:
         """Find nodes according to the policy.
 
         Parameters
         ----------
         bq_state
             State of the BQ belief.
+        rng
+            A random number generator.
+
         Returns
         -------
         nodes :

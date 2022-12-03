@@ -11,6 +11,7 @@ from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasur
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers._bq_state import BQIterInfo, BQState
 from probnum.quad.solvers.belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
+from probnum.quad.solvers.initial_designs import InitialDesign, LatinDesign, MCDesign
 from probnum.quad.solvers.policies import Policy, RandomPolicy, VanDerCorputPolicy
 from probnum.quad.solvers.stopping_criteria import (
     BQStoppingCriterion,
@@ -22,7 +23,7 @@ from probnum.quad.solvers.stopping_criteria import (
 from probnum.quad.typing import DomainLike
 from probnum.randprocs.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
-from probnum.typing import FloatLike, IntLike
+from probnum.typing import IntLike
 
 # pylint: disable=too-many-branches, too-complex
 
@@ -46,12 +47,22 @@ class BayesianQuadrature:
         The inference method.
     stopping_criterion
         The criterion that determines convergence.
+    initial_design
+        The initial design chooses a set of nodes once, before the acquisition loop with
+        the policy runs.
+
+    Raises
+    ------
+    ValueError
+        If ``initial_design`` is given but ``policy`` is not given.
 
     See Also
     --------
-    bayesquad : Computes the integral using an acquisition policy.
-    bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
-                          nodes and function evaluations.
+    :func:`bayesquad <probnum.quad.bayesquad>` :
+        Computes the integral using an acquisition policy.
+    :func:`bayesquad_from_data <probnum.quad.bayesquad_from_data>` :
+        Computes the integral :math:`F` using a given dataset of nodes and function
+        evaluations.
 
 
     """
@@ -63,28 +74,31 @@ class BayesianQuadrature:
         policy: Optional[Policy],
         belief_update: BQBeliefUpdate,
         stopping_criterion: BQStoppingCriterion,
+        initial_design: Optional[InitialDesign],
     ) -> None:
+
+        if policy is None and initial_design is not None:
+            raise ValueError(
+                "An initial design can only be used in combination with a policy."
+            )
+
         self.kernel = kernel
         self.measure = measure
         self.policy = policy
         self.belief_update = belief_update
         self.stopping_criterion = stopping_criterion
+        self.initial_design = initial_design
 
     @classmethod
     def from_problem(
         cls,
-        input_dim: int,
+        input_dim: IntLike,
         kernel: Optional[Kernel] = None,
         measure: Optional[IntegrationMeasure] = None,
         domain: Optional[DomainLike] = None,
         policy: Optional[str] = "bmc",
-        scale_estimation: Optional[str] = "mle",
-        max_evals: Optional[IntLike] = None,
-        var_tol: Optional[FloatLike] = None,
-        rel_tol: Optional[FloatLike] = None,
-        batch_size: IntLike = 1,
-        rng: np.random.Generator = None,
-        jitter: FloatLike = 1.0e-8,
+        initial_design: Optional[str] = None,
+        options: Optional[dict] = None,
     ) -> "BayesianQuadrature":
 
         r"""Creates an instance of this class from a problem description.
@@ -102,21 +116,29 @@ class BayesianQuadrature:
         policy
             The policy choosing nodes at which to evaluate the integrand.
             Choose ``None`` if you want to integrate from a fixed dataset.
-        scale_estimation
-            Estimation method to use to compute the scale parameter. Defaults to 'mle'.
-        max_evals
-            Maximum number of evaluations as stopping criterion.
-        var_tol
-            Variance tolerance as stopping criterion.
-        rel_tol
-            Relative tolerance as stopping criterion.
-        batch_size
-            Batch size used in node acquisition. Defaults to 1.
-        rng
-            The random number generator.
-        jitter
-            Non-negative jitter to numerically stabilise kernel matrix inversion.
-            Defaults to 1e-8.
+        initial_design
+            The initial design chooses a set of nodes once, before the acquisition loop
+            with the policy runs.
+        options
+            A dictionary with the following optional solver settings
+
+                scale_estimation : Optional[str]
+                    Estimation method to use to compute the scale parameter. Defaults
+                    to 'mle'.
+                max_evals : Optional[IntLike]
+                    Maximum number of evaluations as stopping criterion.
+                var_tol : Optional[FloatLike]
+                    Variance tolerance as stopping criterion.
+                rel_tol : Optional[FloatLike]
+                    Relative tolerance as stopping criterion.
+                jitter : Optional[FloatLike]
+                    Non-negative jitter to numerically stabilise kernel matrix
+                    inversion. Defaults to 1e-8.
+                batch_size : Optional[IntLike]
+                    Batch size used in node acquisition. Defaults to 1.
+                num_initial_design_nodes : Optional[IntLike]
+                    The number of nodes created by the initial design. Defaults to
+                    ``input_dim * 5`` if an initial design is given.
 
         Returns
         -------
@@ -125,14 +147,34 @@ class BayesianQuadrature:
 
         Raises
         ------
-        ValueError
-            If neither a ``domain`` nor a ``measure`` are given.
-        ValueError
-            If Bayesian Monte Carlo ('bmc') is selected as ``policy`` and no random
-            number generator (``rng``) is given.
         NotImplementedError
-            If an unknown ``policy`` is given.
+            If an unknown ``policy`` or an unknown ``initial_design`` is given.
+        ValueError
+            If neither ``domain`` nor ``measure`` is given.
+
+        See Also
+        --------
+        :func:`bayesquad <probnum.quad.bayesquad>` :
+            For details on options for ``policy`` and ``initial_design``.
+
         """
+
+        input_dim = int(input_dim)
+
+        # Set some solver options
+        if options is None:
+            options = {}
+
+        max_evals = options.get("max_evals", None)
+        rel_tol = options.get("rel_tol", None)
+        var_tol = options.get("var_tol", None)
+
+        scale_estimation = options.get("scale_estimation", "mle")
+        jitter = options.get("jitter", 1.0e-8)
+        batch_size = options.get("batch_size", int(1))
+        num_initial_design_nodes = options.get(
+            "num_initial_design_nodes", int(5 * input_dim)
+        )
 
         # Set up integration measure
         if domain is None and measure is None:
@@ -153,15 +195,9 @@ class BayesianQuadrature:
             # require an acquisition loop. The error handling is done in ``integrate``.
             pass
         elif policy == "bmc":
-            if rng is None:
-                errormsg = (
-                    "Policy 'bmc' relies on random sampling, "
-                    "thus requires a random number generator ('rng')."
-                )
-                raise ValueError(errormsg)
-            policy = RandomPolicy(measure.sample, batch_size=batch_size, rng=rng)
+            policy = RandomPolicy(batch_size, measure.sample)
         elif policy == "vdc":
-            policy = VanDerCorputPolicy(measure=measure, batch_size=batch_size)
+            policy = VanDerCorputPolicy(batch_size, measure)
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")
 
@@ -202,19 +238,33 @@ class BayesianQuadrature:
         if policy is None:
             _stopping_criterion = ImmediateStop()
 
+        # Select initial design
+        if initial_design is None:
+            pass  # not to raise the exception
+        elif initial_design == "mc":
+            initial_design = MCDesign(num_initial_design_nodes, measure)
+        elif initial_design == "latin":
+            initial_design = LatinDesign(num_initial_design_nodes, measure)
+        else:
+            raise NotImplementedError(
+                f"The given initial design ({initial_design}) is unknown."
+            )
+
         return cls(
             kernel=kernel,
             measure=measure,
             policy=policy,
             belief_update=belief_update,
             stopping_criterion=_stopping_criterion,
+            initial_design=initial_design,
         )
 
     def bq_iterator(
         self,
         bq_state: BQState,
-        info: Optional[BQIterInfo],
+        info: BQIterInfo,
         fun: Optional[Callable],
+        rng: Optional[np.random.Generator],
     ) -> Tuple[Normal, BQState, BQIterInfo]:
         """Generator that implements the iteration of the BQ method.
 
@@ -231,6 +281,8 @@ class BayesianQuadrature:
         fun
             Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
             ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
+        rng
+            The random number generator used for random methods.
 
         Yields
         ------
@@ -241,10 +293,6 @@ class BayesianQuadrature:
         new_info :
             The updated state of the iteration.
         """
-
-        # Setup iteration info
-        if info is None:
-            info = BQIterInfo.from_bq_state(bq_state)
 
         while True:
 
@@ -258,7 +306,7 @@ class BayesianQuadrature:
                 break
 
             # Select new nodes via policy
-            new_nodes = self.policy(bq_state=bq_state)
+            new_nodes = self.policy(bq_state, rng)
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)
@@ -278,13 +326,20 @@ class BayesianQuadrature:
         fun: Optional[Callable],
         nodes: Optional[np.ndarray],
         fun_evals: Optional[np.ndarray],
+        rng: Optional[np.random.Generator] = None,
     ) -> Tuple[Normal, BQState, BQIterInfo]:
-        """Integrates the function ``fun``.
+        """Integrates a given function.
 
-        ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at
-        fixed nodes. This function calls the generator ``bq_iterator`` until the first
-        stopping criterion is met. It immediately stops after processing the initial
-        ``nodes`` if ``policy`` is not available.
+        The function may be given as a function handle ``fun`` and/or numerically in
+        terms of ``fun_evals`` at fixed nodes ``nodes``.
+
+        If a policy is defined this method calls the generator ``bq_iterator`` until
+        the first stopping criterion is met. The initial design is evaluated in a batch
+        prior to running ``bq_iterator``.
+
+        If no policy is defined this method immediately stops after processing the
+        given ``nodes``.
+
 
         Parameters
         ----------
@@ -297,6 +352,8 @@ class BayesianQuadrature:
         fun_evals
             *shape=(n_eval,)* -- Optional function evaluations at ``nodes`` available
             from the start.
+        rng
+            The random number generator used for random methods.
 
         Returns
         -------
@@ -308,29 +365,31 @@ class BayesianQuadrature:
         Raises
         ------
         ValueError
-            If neither the integrand function (``fun``) nor integrand evaluations
-            (``fun_evals``) are given.
-        ValueError
-            If ``nodes`` are not given and no policy is present.
+            If neither the integrand function ``fun`` nor integrand evaluations
+            ``fun_evals`` are given.
         ValueError
             If dimension of ``nodes`` or ``fun_evals`` is incorrect, or if their
             shapes do not match.
+        ValueError
+            If ``rng`` is not given but ``policy`` or ``initial_design`` requires it.
+        ValueError
+            If a policy is available but ``fun`` is not given.
+        ValueError
+            If no policy is available and no ``nodes`` are given.
+
+        Warns
+        -----
+        UserWarning
+            When no policy is given and ``fun`` is ignored.
+
+        Notes
+        -----
+        The initial design is evaluated prior to running the ``bq_iterator`` and hence
+        may not obey the stopping criterion. For example, if stopping is induced via a
+        maximum number of evaluations (``max_evals``) smaller than the batch size of the
+        initial design, the initial design will be evaluated nevertheless.
+
         """
-        # no policy given: Integrate on fixed dataset.
-        if self.policy is None:
-            # nodes must be provided if no policy is given.
-            if nodes is None:
-                raise ValueError("No policy available: Please provide nodes.")
-
-            # Use fun_evals and disregard fun if both are given
-            if fun is not None and fun_evals is not None:
-                warnings.warn(
-                    "No policy available: 'fun_eval' are used instead of 'fun'."
-                )
-                fun = None
-
-            # override stopping condition as no policy is given.
-            self.stopping_criterion = ImmediateStop()
 
         # Check if integrand function is provided
         if fun is None and fun_evals is None:
@@ -339,7 +398,7 @@ class BayesianQuadrature:
                 "'fun_evals'."
             )
 
-        # Setup initial design
+        # Setup fixed design
         if nodes is not None and fun_evals is None:
             fun_evals = fun(nodes)
 
@@ -359,7 +418,56 @@ class BayesianQuadrature:
                     f"of evaluations."
                 )
 
-        # Setup BQ state: This encodes a zero-mean prior.
+        # policy given
+        if self.policy is not None:
+
+            # function handle must be given for policy to work
+            if fun is None:
+                raise ValueError("Policy requires ``fun`` to be given.")
+
+            # some policies require and rng
+            if self.policy.requires_rng and rng is None:
+                raise ValueError(
+                    f"The policy '{self.policy.__class__.__name__}' requires a random "
+                    f"number generator (rng) to be given."
+                )
+
+        # no policy given: Integrate on fixed dataset.
+        else:
+            # nodes must be provided if no policy is given.
+            if nodes is None:
+                raise ValueError("No policy available: Please provide nodes.")
+
+            # Use fun_evals and disregard fun if both are given
+            if fun is not None and fun_evals is not None:
+                warnings.warn(
+                    "No policy available: 'fun_evals' are used instead of 'fun'."
+                )
+                fun = None
+
+            # override stopping condition as no policy is given.
+            self.stopping_criterion = ImmediateStop()
+
+        # initial design given (which implies policy and fun is given)
+        if self.initial_design is not None:
+
+            # some designs require and rng
+            if self.initial_design.requires_rng and rng is None:
+                raise ValueError(
+                    f"The initial design '{self.initial_design.__class__.__name__}' "
+                    f"requires a random number generator (rng) to be given."
+                )
+
+            initial_design_nodes = self.initial_design(rng)
+            initial_design_fun_evals = fun(initial_design_nodes)
+            if nodes is not None:
+                nodes = np.concatenate((nodes, initial_design_nodes), axis=0)
+                fun_evals = np.append(fun_evals, initial_design_fun_evals)
+            else:
+                nodes = initial_design_nodes
+                fun_evals = initial_design_fun_evals
+
+        # set BQ state: This encodes a zero-mean prior.
         bq_state = BQState(
             measure=self.measure,
             kernel=self.kernel,
@@ -367,6 +475,8 @@ class BayesianQuadrature:
                 0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
             ),
         )
+
+        # update BQ state if nodes and evaluations are available
         if nodes is not None:
             _, bq_state = self.belief_update(
                 bq_state=bq_state,
@@ -374,8 +484,11 @@ class BayesianQuadrature:
                 new_fun_evals=fun_evals,
             )
 
-        info = None
-        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun):
+        # set iteration info
+        info = BQIterInfo.from_bq_state(bq_state)
+
+        # run loop
+        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun, rng):
             pass
 
         return bq_state.integral_belief, bq_state, info
