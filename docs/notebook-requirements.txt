@@ -5,7 +5,6 @@ ipython<=8.6.0
 # https://github.com/ipython/ipython/issues/13845
 jupyter
 
-
 # Notebook conversion
 nbsphinx>=0.8.6,<0.8.7
 # Jinja2 version 3.1 introduced a bug in nbconvert, see https://github.com/jupyter/nbconvert/pull/1737
