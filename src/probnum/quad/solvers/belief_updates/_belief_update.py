@@ -58,7 +58,7 @@ class BQBeliefUpdate(abc.ABC):
         """
         raise NotImplementedError
 
-    def _compute_gram_cho_factor(self, gram: np.ndarray) -> np.ndarray:
+    def compute_gram_cho_factor(self, gram: np.ndarray) -> np.ndarray:
         """Compute the Cholesky decomposition of a positive-definite Gram matrix for use
         in scipy.linalg.cho_solve
 
@@ -68,7 +68,7 @@ class BQBeliefUpdate(abc.ABC):
 
         Parameters
         ----------
-        gram :
+        gram
             symmetric pos. def. kernel Gram matrix :math:`K`, shape (nevals, nevals)
 
         Returns
@@ -79,8 +79,22 @@ class BQBeliefUpdate(abc.ABC):
         """
         return cho_factor(gram + self.jitter * np.eye(gram.shape[0]))
 
-    # pylint: disable=no-self-use
-    def _gram_cho_solve(self, gram_cho_factor: np.ndarray, z: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def gram_cho_solve(gram_cho_factor: np.ndarray, z: np.ndarray) -> np.ndarray:
         """Wrapper for scipy.linalg.cho_solve. Meant to be used for linear systems of
-        the gram matrix. Requires the solution of scipy.linalg.cho_factor as input."""
+        the gram matrix. Requires the solution of scipy.linalg.cho_factor as input.
+
+        Parameters
+        ----------
+        gram_cho_factor
+            The return object of compute_gram_cho_factor.
+        z
+            An array of appropriate shape.
+
+        Returns
+        -------
+        solution :
+            The solution ``x`` to the linear system ``gram x = z``.
+
+        """
         return cho_solve(gram_cho_factor, z)

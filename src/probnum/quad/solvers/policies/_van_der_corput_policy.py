@@ -8,6 +8,7 @@ import numpy as np
 
 from probnum.quad.integration_measures import IntegrationMeasure
 from probnum.quad.solvers._bq_state import BQState
+from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 from probnum.typing import IntLike
 
 from ._policy import Policy
@@ -54,7 +55,10 @@ class VanDerCorputPolicy(Policy):
         return False
 
     def __call__(
-        self, bq_state: BQState, rng: Optional[np.random.Generator]
+        self,
+        bq_state: BQState,
+        belief_update: BQBeliefUpdate,
+        rng: Optional[np.random.Generator],
     ) -> np.ndarray:
         n_nodes = bq_state.nodes.shape[0]
         vdc_seq = VanDerCorputPolicy.van_der_corput_sequence(

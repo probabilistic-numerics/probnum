@@ -8,6 +8,7 @@ from typing import Optional
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
+from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 from probnum.typing import IntLike
 
 # pylint: disable=too-few-public-methods, fixme
@@ -33,7 +34,10 @@ class Policy(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, bq_state: BQState, rng: Optional[np.random.Generator]
+        self,
+        bq_state: BQState,
+        belief_update: BQBeliefUpdate,
+        rng: Optional[np.random.Generator],
     ) -> np.ndarray:
         """Find nodes according to the policy.
 
@@ -41,6 +45,8 @@ class Policy(abc.ABC):
         ----------
         bq_state
             State of the BQ belief.
+        belief_update
+            The belief updater.
         rng
             A random number generator.
 

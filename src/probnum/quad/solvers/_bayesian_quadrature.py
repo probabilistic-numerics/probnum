@@ -322,7 +322,7 @@ class BayesianQuadrature:
                 break
 
             # Select new nodes via policy
-            new_nodes = self.policy(bq_state, rng)
+            new_nodes = self.policy(bq_state, self.belief_update, rng)
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)

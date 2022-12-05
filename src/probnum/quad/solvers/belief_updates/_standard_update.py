@@ -72,13 +72,16 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
             )
 
         # Cholesky factorisation of the Gram matrix
-        gram_cho_factor = self._compute_gram_cho_factor(gram)
+        gram_cho_factor = self.compute_gram_cho_factor(gram)
 
         # Estimate scaling parameter
         new_scale_sq = self._estimate_scale(fun_evals, gram_cho_factor, bq_state)
 
         # Integral mean and variance
-        weights = self._gram_cho_solve(gram_cho_factor, kernel_means)
+        print("****************")
+        print(gram_cho_factor)
+        print(kernel_means.shape)
+        weights = self.gram_cho_solve(gram_cho_factor, kernel_means)
         integral_mean = weights @ fun_evals
         initial_integral_variance = new_kernel_embedding.kernel_variance()
         integral_variance = new_scale_sq * (
@@ -116,7 +119,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         elif self.scale_estimation == "mle":
             new_scale_sq = (
                 fun_evals
-                @ self._gram_cho_solve(gram_cho_factor, fun_evals)
+                @ self.gram_cho_solve(gram_cho_factor, fun_evals)
                 / fun_evals.shape[0]
             )
         else:

@@ -7,6 +7,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
+from probnum.quad.solvers.belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 
 from ._acquisition_function import AcquisitionFunction
 
@@ -30,11 +31,16 @@ class WeightedPredictiveVariance(AcquisitionFunction):
         return False
 
     def __call__(
-        self, x: np.ndarray, bq_state: BQState
+        self,
+        x: np.ndarray,
+        bq_state: BQState,
+        belief_update: BQBeliefUpdate,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        weights = bq_state.measure(x) ** 2
-        k = bq_state.kernel
-
-        # Todo: implement
-        predicitve_variance = weights
-        return weights * predicitve_variance, None
+        predictive_variance = bq_state.kernel(x, x)
+        if bq_state.fun_evals.shape != (0,):
+            gram_cho_factor = belief_update.compute_gram_cho_factor(bq_state.gram)
+            kXx = bq_state.kernel.matrix(bq_state.nodes, x)
+            bq_weights = belief_update.gram_cho_solve(gram_cho_factor, kXx)
+            predictive_variance -= np.sum(bq_weights * kXx, axis=0)
+        values = bq_state.scale_sq * predictive_variance * bq_state.measure(x) ** 2
+        return values, None

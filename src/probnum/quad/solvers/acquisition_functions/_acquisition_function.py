@@ -8,6 +8,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
+from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 
 
 class AcquisitionFunction(abc.ABC):
@@ -25,7 +26,7 @@ class AcquisitionFunction(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, x: np.ndarray, bq_state: BQState
+        self, x: np.ndarray, bq_state: BQState, belief_update: BQBeliefUpdate
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         """Evaluates the acquisition function and its gradients.
 

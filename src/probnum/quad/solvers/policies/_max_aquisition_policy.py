@@ -9,6 +9,7 @@ from scipy.optimize import minimize as scipy_minimize
 
 from probnum.quad.solvers._bq_state import BQState
 from probnum.quad.solvers.acquisition_functions import AcquisitionFunction
+from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 from probnum.typing import IntLike
 
 from ._policy import Policy
@@ -58,10 +59,14 @@ class RandomMaxAcquisitionPolicy(Policy):
         return True
 
     def __call__(
-        self, bq_state: BQState, rng: Optional[np.random.Generator]
+        self,
+        bq_state: BQState,
+        belief_update: BQBeliefUpdate,
+        rng: Optional[np.random.Generator],
     ) -> np.ndarray:
+
         random_nodes = bq_state.measure.sample(n_sample=self.n_candidates)
-        values = self.acquisition_func(random_nodes, bq_state)[0]
+        values = self.acquisition_func(random_nodes, bq_state, belief_update)[0]
         idx_max = int(np.argmax(values))
         return random_nodes[idx_max, :][None, :]
 
@@ -102,8 +107,12 @@ class GreedyMaxAcquisitionPolicy(Policy):
         return True
 
     def __call__(
-        self, bq_state: BQState, rng: Optional[np.random.Generator]
-    ) -> Union[np.ndarray, np.ndarray]:
+        self,
+        bq_state: BQState,
+        belief_update: BQBeliefUpdate,
+        rng: Optional[np.random.Generator],
+    ) -> np.ndarray:
+
         measure = bq_state.measure
         domain = bq_state.measure.domain
         bounds = [(low, up) for (low, up) in zip(domain[0], domain[1])]
