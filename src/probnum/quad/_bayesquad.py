@@ -153,22 +153,13 @@ def bayesquad(
     Examples
     --------
     >>> import numpy as np
-
     >>> input_dim = 1
     >>> domain = (0, 1)
-    >>> n_level = 6
-    >>> def fun(x, l):
-    ...     return x.reshape(-1, ) / (l + 1.0)
-    >>> nodes = ()
-    >>> fun_diff_evals = ()
-    >>> for l in range(n_level):
-    ...     n_l = 2*l + 1
-    ...     nodes += (np.reshape(np.linspace(0, 1, n_l), (n_l, input_dim)),)
-    ...     fun_diff_evals += (np.reshape(fun(nodes[l], l), (n_l,)),)
-    >>> F, info = bayesquad_multilevel(nodes=nodes, fun_diff_evals=fun_diff_evals,
-    ...                                domain=domain)
+    >>> def fun(x):
+    ...     return x.reshape(-1, )
+    >>> F, info = bayesquad(fun, input_dim, domain=domain, rng=np.random.default_rng(0))
     >>> print(F.mean)
-    0.7252421350019139
+    0.5
     """
 
     input_dim, domain, measure = _check_domain_measure_compatibility(
@@ -366,12 +357,22 @@ def bayesquad_multilevel(
     Examples
     --------
     >>> import numpy as np
+
+    >>> input_dim = 1
     >>> domain = (0, 1)
-    >>> nodes = np.linspace(0, 1, 15)[:, None]
-    >>> fun_evals = nodes.reshape(-1, )
-    >>> F, info = bayesquad_from_data(nodes=nodes, fun_evals=fun_evals, domain=domain)
+    >>> n_level = 6
+    >>> def fun(x, l):
+    ...     return x.reshape(-1, ) / (l + 1.0)
+    >>> nodes = ()
+    >>> fun_diff_evals = ()
+    >>> for l in range(n_level):
+    ...     n_l = 2*l + 1
+    ...     nodes += (np.reshape(np.linspace(0, 1, n_l), (n_l, input_dim)),)
+    ...     fun_diff_evals += (np.reshape(fun(nodes[l], l), (n_l,)),)
+    >>> F, info = bayesquad_multilevel(nodes=nodes, fun_diff_evals=fun_diff_evals,
+    ...                                domain=domain)
     >>> print(F.mean)
-    0.5
+    0.7252421350019139
     """
 
     if kernels is None:
