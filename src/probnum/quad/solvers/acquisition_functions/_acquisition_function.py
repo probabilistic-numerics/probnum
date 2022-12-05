@@ -12,11 +12,7 @@ from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 
 
 class AcquisitionFunction(abc.ABC):
-    """An abstract class for an acquisition function for Bayesian quadrature.
-
-    Parameters
-    ----------
-    """
+    """An abstract class for an acquisition function for Bayesian quadrature."""
 
     @property
     @abc.abstractmethod

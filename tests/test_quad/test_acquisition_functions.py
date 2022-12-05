@@ -1,8 +1,6 @@
 """Basic tests for BQ acquisition functions."""
 
-# New policies need to be added to the fixtures 'policy_name' and 'policy_params'
-# and 'policy'. Further, add the new policy to the assignment test in
-# test_bayesian_quadrature.py.
+# New acquisition functions need to be added to the fixtures 'acquisition'.
 
 
 import numpy as np
@@ -46,7 +44,9 @@ def test_acquisition_shapes(acquisition, input_dim, nevals, rng, belief_update):
         fun_evals=np.ones(nevals),
         gram=np.eye(nevals),
         kernel_means=np.ones(nevals),
-        previous_integral_beliefs=tuple([Normal(mean=0.0, cov=1.0) for _ in range(nevals)]),
+        previous_integral_beliefs=tuple(
+            [Normal(mean=0.0, cov=1.0) for _ in range(nevals)]
+        ),
         integral_belief=Normal(mean=0.0, cov=1.0),
     )
 
