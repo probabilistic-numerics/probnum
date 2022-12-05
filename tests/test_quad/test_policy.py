@@ -1,7 +1,8 @@
 """Basic tests for BQ policies."""
 
 # New policies need to be added to the fixtures 'policy_name' and 'policy_params'
-# and 'policy'.
+# and 'policy'. Further, add the new policy to the assignment test in
+# test_bayesian_quadrature.py.
 
 
 import numpy as np
@@ -9,18 +10,24 @@ import pytest
 
 from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
 from probnum.quad.solvers import BQState
-from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
+from probnum.quad.solvers.acquisition_functions import WeightedPredictiveVariance
+from probnum.quad.solvers.policies import (
+    RandomMaxAcquisitionPolicy,
+    RandomPolicy,
+    VanDerCorputPolicy,
+)
 from probnum.randprocs.kernels import ExpQuad
 
 
-@pytest.fixture
-def batch_size():
-    return 3
+@pytest.fixture(params=[pytest.param(s, id=f"bs{s}") for s in [1, 3, 5]])
+def batch_size(request):
+    return request.param
 
 
 @pytest.fixture(
     params=[
-        pytest.param(name, id=name) for name in ["RandomPolicy", "VanDerCorputPolicy"]
+        pytest.param(name, id=name)
+        for name in ["RandomPolicy", "VanDerCorputPolicy", "RandomMaxAcquisitionPolicy"]
     ]
 )
 def policy_name(request):
@@ -43,7 +50,7 @@ def policy_params(policy_name, input_dim, batch_size, rng):
         )
         return bq_state, bq_state_no_data
 
-    params = dict(name=policy_name, ndim=input_dim)
+    params = dict(name=policy_name, input_dim=input_dim)
     params["bq_state"], params["bq_state_no_data"] = _get_bq_states(input_dim)
 
     if policy_name == "RandomPolicy":
@@ -61,8 +68,16 @@ def policy_params(policy_name, input_dim, batch_size, rng):
             measure=LebesgueMeasure(input_dim=1, domain=(0, 1)),
         )
         params["bq_state"], params["bq_state_no_data"] = _get_bq_states(1)
-        params["ndim"] = 1
+        params["input_dim"] = 1
         params["requires_rng"] = False
+    elif policy_name == "RandomMaxAcquisitionPolicy":
+        # Since RandomMaxAcquisitionPolicy requires batch_size=1, we override it here.
+        input_params = dict(
+            batch_size=1,
+            acquisition_func=WeightedPredictiveVariance(),
+            n_candidates=10,
+        )
+        params["requires_rng"] = True
     else:
         raise NotImplementedError
 
@@ -74,34 +89,69 @@ def policy_params(policy_name, input_dim, batch_size, rng):
 @pytest.fixture()
 def policy(policy_params):
     name = policy_params.pop("name")
-    input_params = policy_params.pop("input_params")
-
-    if name == "RandomPolicy":
-        return RandomPolicy(**input_params), policy_params
-    elif name == "VanDerCorputPolicy":
-        return VanDerCorputPolicy(**input_params), policy_params
-    else:
-        raise NotImplementedError
+    input_params = policy_params["input_params"]
+    # add new policy to this dict
+    policy = dict(
+        RandomPolicy=RandomPolicy,
+        VanDerCorputPolicy=VanDerCorputPolicy,
+        RandomMaxAcquisitionPolicy=RandomMaxAcquisitionPolicy,
+    )
+    return policy[name](**input_params), policy_params
 
 
 # Tests shared by all policies start here.
 
 
-def test_policy_shapes(policy, batch_size, rng):
+def test_policy_shapes(policy, rng):
     policy, params = policy
-    bq_state, bq_state_no_data = params["bq_state"], params["bq_state_no_data"]
-    ndim = params["ndim"]
+    bq_state = params["bq_state"]
+    bq_state_no_data = params["bq_state_no_data"]
+    input_dim = params["input_dim"]
+    batch_size = params["input_params"]["batch_size"]
 
     # bq state contains data
-    assert policy(bq_state, rng).shape == (batch_size, ndim)
+    assert policy(bq_state, rng).shape == (batch_size, input_dim)
 
     # bq state contains no data yet
-    assert policy(bq_state_no_data, rng).shape == (batch_size, ndim)
+    assert policy(bq_state_no_data, rng).shape == (batch_size, input_dim)
 
 
 def test_policy_property_values(policy):
     policy, params = policy
     assert policy.requires_rng is params["requires_rng"]
+
+
+# Tests specific to RandomMaxAcquisitionPolicy start here
+
+
+def test_random_max_acquisition_attribute_values():
+    n_cadidates = 10
+    policy = RandomMaxAcquisitionPolicy(
+        batch_size=1,
+        acquisition_func=WeightedPredictiveVariance(),
+        n_candidates=n_cadidates,
+    )
+    assert policy.n_candidates == n_cadidates
+
+
+def test_random_max_acquisition_raises():
+    # batch size larger than 1
+    with pytest.raises(ValueError):
+        wrong_batch_size = 2
+        RandomMaxAcquisitionPolicy(
+            batch_size=wrong_batch_size,
+            acquisition_func=WeightedPredictiveVariance(),
+            n_candidates=10,
+        )
+
+    # n_candidates too small
+    with pytest.raises(ValueError):
+        wrong_n_candidates = 0
+        RandomMaxAcquisitionPolicy(
+            batch_size=1,
+            acquisition_func=WeightedPredictiveVariance(),
+            n_candidates=wrong_n_candidates,
+        )
 
 
 # Tests specific to VanDerCorputPolicy start here

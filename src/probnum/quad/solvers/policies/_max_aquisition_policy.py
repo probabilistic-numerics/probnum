@@ -43,6 +43,12 @@ class RandomMaxAcquisitionPolicy(Policy):
                 f"RandomMaxAcquisitionPolicy can only be used with batch "
                 f"size 1 ({batch_size})."
             )
+        if n_candidates < 1:
+            raise ValueError(
+                f"The number of candidates ({n_candidates}) must be equal "
+                f"or larger than 1."
+            )
+
         super().__init__(batch_size=batch_size)
         self.acquisition_func = acquisition_func
         self.n_candidates = int(n_candidates)
