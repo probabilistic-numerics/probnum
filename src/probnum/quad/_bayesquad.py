@@ -287,14 +287,91 @@ def bayesquad_from_data(
 def bayesquad_multilevel(
     nodes: Tuple[np.ndarray, ...],
     fun_diff_evals: Tuple[np.ndarray, ...],
-    kernels: Optional[Union[Kernel, Tuple[Kernel, ...]]] = None,
+    kernels: Optional[Tuple[Kernel, ...]] = None,
     measure: Optional[IntegrationMeasure] = None,
     domain: Optional[DomainLike] = None,
     options: Optional[dict] = None,
 ) -> Tuple[Normal, Tuple[BQIterInfo, ...]]:
+    r"""Infer the value of an integral from a given set of nodes and function
+    evaluations.
 
-    max_level = len(nodes)
-    if len(fun_diff_evals) != max_level or len(kernels) != max_level:
+    Parameters
+    ----------
+    nodes
+        *shape=(n_level,)* -- Tuple containing the locations for each level at which
+        the functionn evaluations are available as ``fun_diff_evals``. Each element
+        must be a shape=(n_eval, input_dim) ``np.ndarray``. If a tuple containing only
+        one element is provided, it is inferred that the same nodes ``nodes[0]`` are
+        used on every level.
+    fun_diff_evals
+        *shape=(n_level,)* --- Tuple containing the evaluations of :math:`f_l - f_{l-1}`
+        for each level at the nodes provided in ``nodes``. Each element must be a
+        shape=(n_eval,) ``np.ndarray``. The zeroth element contains the evaluations of
+        :math:`f_0`.
+    kernels
+        Tuple containing the kernels used for the GP model at each level. If a tuple
+        containing only one element is provided, it is inferred that the same kernel
+        ``kernels[0]`` is used on every level. Defaults to the ``ExpQuad`` kernel.
+    measure
+        The integration measure. Defaults to the Lebesgue measure.
+    domain
+        The integration domain. Contains lower and upper bound as scalar or
+        ``np.ndarray``. Obsolete if ``measure`` is given.
+    options
+        A dictionary with the following optional solver settings
+
+            scale_estimation : Optional[str]
+                Estimation method to use to compute the scale parameter. Used
+                independently on each level. Defaults to 'mle'. Options are
+
+                ==============================  =======
+                 Maximum likelihood estimation  ``mle``
+                ==============================  =======
+
+            jitter : Optional[FloatLike]
+                Non-negative jitter to numerically stabilise kernel matrix
+                inversion. Same jitter is used on each level. Defaults to 1e-8.
+
+    Returns
+    -------
+    integral :
+        The integral belief subject to the provided measure or domain.
+    infos :
+        Information on the performance of the method for each level.
+
+    Raises
+    ------
+    ValueError
+        If ``nodes``, ``fun_diff_evals`` or ``kernels`` have different lengths.
+
+    Warns
+    -----
+    UserWarning
+        When ``domain`` is given but not used.
+
+    See Also
+    --------
+    bayesquad : Computes the integral using an acquisition policy.
+    bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
+                          nodes and function evaluations.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> domain = (0, 1)
+    >>> nodes = np.linspace(0, 1, 15)[:, None]
+    >>> fun_evals = nodes.reshape(-1, )
+    >>> F, info = bayesquad_from_data(nodes=nodes, fun_evals=fun_evals, domain=domain)
+    >>> print(F.mean)
+    0.5
+    """
+
+    n_level = np.max([len(nodes), len(fun_diff_evals), len(kernels)])
+    if len(nodes) == 1:
+        nodes = n_level * (nodes[0],)
+    if len(kernels) == 1:
+        kernels = n_level * (kernels[0],)
+    if len(fun_diff_evals) != n_level or len(kernels) != n_level:
         raise ValueError(
             "You must provide an equal number of kernels, vectors of "
             "function evaluations and sets of nodes."
@@ -302,7 +379,7 @@ def bayesquad_multilevel(
 
     integer_belief = Normal(mean=0.0, cov=0.0)
     infos = ()
-    for l in range(max_level):
+    for l in range(n_level):
         integer_belief_l, info_l = bayesquad_from_data(
             nodes=nodes[l],
             fun_evals=fun_diff_evals[l],
