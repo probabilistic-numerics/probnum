@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from scipy.integrate import quad as scipyquad
 
-from probnum.quad import bayesquad, bayesquad_from_data
-from probnum.quad.integration_measures import LebesgueMeasure
+from probnum.quad import bayesquad, bayesquad_from_data, bayesquad_multilevel
+from probnum.quad.integration_measures import LebesgueMeasure, GaussianMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
@@ -219,3 +219,71 @@ def test_zero_function_gives_zero_variance_with_mle(rng):
     )
     assert bq_integral1.var == 0.0
     assert bq_integral2.var == 0.0
+
+
+def test_multilevel_bq_equals_bq_with_trivial_data_1d():
+    """Test that multilevel BQ equals BQ when all but one level are given non-zero
+    function evaluations for 1D data."""
+    input_dim = 1
+    n_level = 5
+    domain = (0, 3.3)
+    nodes = ()
+    for l in range(n_level):
+        n_l = 2 * l + 1
+        nodes += (np.reshape(np.linspace(0, 1, n_l), (n_l, input_dim)),)
+    for i in range(n_level):
+        jitter = 1e-5 * (i + 1.0)
+        fun_diff_evals = [np.zeros(shape=(len(xs),)) for xs in nodes]
+        fun_evals = np.reshape(nodes[i] ** (2 + 0.3 * l) + 1.2, (len(nodes[i]),))
+        fun_diff_evals[i] = fun_evals
+        mlbq_integral, _ = bayesquad_multilevel(
+            nodes=nodes,
+            fun_diff_evals=fun_diff_evals,
+            domain=domain,
+            options=dict(jitter=jitter),
+        )
+        bq_integral, _ = bayesquad_from_data(
+            nodes=nodes[i],
+            fun_evals=fun_evals,
+            domain=domain,
+            options=dict(jitter=jitter),
+        )
+        assert mlbq_integral.mean == bq_integral.mean
+        assert mlbq_integral.cov == bq_integral.cov
+
+
+def test_multilevel_bq_equals_bq_with_trivial_data_2d():
+    """Test that multilevel BQ equals BQ when all but one level are given non-zero
+    function evaluations for 2D data."""
+    input_dim = 2
+    n_level = 5
+    measure = GaussianMeasure(np.full((input_dim,), 0.2), cov=0.6 * np.eye(input_dim))
+    nodes = ()
+    for l in range(n_level):
+        n_gh_l = l + 1  # Be very careful about increasing this too much
+        nodes_l, _ = gauss_hermite_tensor(
+            n_points=n_gh_l, input_dim=input_dim, mean=measure.mean, cov=measure.cov
+        )
+        nodes += (nodes_l,)
+    for i in range(n_level):
+        jitter = 1e-5 * (i + 1.0)
+        fun_diff_evals = [np.zeros(shape=(len(xs),)) for xs in nodes]
+        fun_evals = np.reshape(
+            np.sin(nodes[i][:, 0] * l) + (l + 1.0) * np.cos(nodes[i][:, 1]),
+            (len(nodes[i]),),
+        )
+        fun_diff_evals[i] = fun_evals
+        mlbq_integral, _ = bayesquad_multilevel(
+            nodes=nodes,
+            fun_diff_evals=fun_diff_evals,
+            measure=measure,
+            options=dict(jitter=jitter),
+        )
+        bq_integral, _ = bayesquad_from_data(
+            nodes=nodes[i],
+            fun_evals=fun_evals,
+            measure=measure,
+            options=dict(jitter=jitter),
+        )
+        assert mlbq_integral.mean == bq_integral.mean
+        assert mlbq_integral.cov == bq_integral.cov
