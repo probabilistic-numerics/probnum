@@ -33,6 +33,8 @@ class AcquisitionFunction(abc.ABC):
             acquisition function at.
         bq_state
             State of the BQ belief.
+        belief_update
+            The belief update.
 
         Returns
         -------
