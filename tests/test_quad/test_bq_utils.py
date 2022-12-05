@@ -17,6 +17,8 @@ from probnum.quad._utils import as_domain
         ((np.array([0, 0]), np.array([1, 0])), None),  # integration domain is empty
         ((np.zeros([2, 1]), np.ones([2, 1])), None),  # bounds have too many dimensions
         ((np.zeros([2, 1]), np.ones([2, 1])), 2),  # bounds have too many dimensions
+        ((0, 1, 2), 2),  # domain has too many elements
+        ((-np.ones(2), np.zeros(2), np.ones(2)), 2),  # domain has too many elements
     ]
 )
 def test_as_domain_wrong_input(dom, in_dim):
