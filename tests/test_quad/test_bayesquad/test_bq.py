@@ -221,6 +221,61 @@ def test_zero_function_gives_zero_variance_with_mle(rng):
     assert bq_integral2.var == 0.0
 
 
+def test_multilevel_bq_input_handling(kernel, measure, rng):
+    """Test that inputs to multilevel BQ are handled properly."""
+    n_level = 3
+    fun_diff_evals_1 = ()
+    ns_1 = (3, 7, 2)
+    for l in range(n_level):
+        fun_diff_evals_1 += (np.zeros((ns_1[l],)),)
+    # Only one kernel
+    kernels_1 = (kernel,)
+    nodes_full = ()
+    for l in range(n_level):
+        nodes_full += (measure.sample(n_sample=ns_1[l], rng=rng),)
+    F, _ = bayesquad_multilevel(
+        nodes=nodes_full,
+        fun_diff_evals=fun_diff_evals_1,
+        kernels=kernels_1,
+        measure=measure,
+    )
+    # Only one set of nodes
+    ns_2 = (7, 7, 7)
+    fun_diff_evals_2 = n_level * (np.zeros((ns_2[0],)),)
+    kernels_full = n_level * (kernel,)
+    nodes_1 = (measure.sample(n_sample=ns_2[0], rng=rng),)
+    F, _ = bayesquad_multilevel(
+        nodes=nodes_1,
+        fun_diff_evals=fun_diff_evals_2,
+        kernels=kernels_full,
+        measure=measure,
+    )
+    # Only one kernel and one set of nodes
+    F, _ = bayesquad_multilevel(
+        nodes=nodes_1,
+        fun_diff_evals=fun_diff_evals_2,
+        kernels=kernels_1,
+        measure=measure,
+    )
+    # Wrong number inputs should throw error
+    kernels_2 = (kernel, kernel)
+    with pytest.raises(ValueError):
+        F, _ = bayesquad_multilevel(
+            nodes=nodes_1,
+            fun_diff_evals=fun_diff_evals_2,
+            kernels=kernels_2,
+            measure=measure,
+        )
+    nodes_2 = (nodes_full[0], nodes_full[1])
+    with pytest.raises(ValueError):
+        F, _ = bayesquad_multilevel(
+            nodes=nodes_2,
+            fun_diff_evals=fun_diff_evals_2,
+            kernels=kernels_2,
+            measure=measure,
+        )
+
+
 def test_multilevel_bq_equals_bq_with_trivial_data_1d():
     """Test that multilevel BQ equals BQ when all but one level are given non-zero
     function evaluations for 1D data."""
