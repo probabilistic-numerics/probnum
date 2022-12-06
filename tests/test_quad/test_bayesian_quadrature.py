@@ -209,7 +209,7 @@ def test_bq_from_problem_options_custom_values(bq, bq_no_policy):
     # num_initial_design_nodes for initial design
     input_dim = 5
     num_initial_design_nodes = 3
-    assert not int(input_dim * 5) == num_initial_design_nodes
+    assert int(input_dim * 5) != num_initial_design_nodes
     bq = BayesianQuadrature.from_problem(
         input_dim=input_dim,
         domain=(0, 1),
