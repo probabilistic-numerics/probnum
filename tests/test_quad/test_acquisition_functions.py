@@ -39,9 +39,7 @@ def test_acquisition_shapes(acquisition, input_dim, nevals, rng):
         gram=np.eye(nevals),
         gram_cho_factor=(np.eye(nevals), False),
         kernel_means=np.ones(nevals),
-        previous_integral_beliefs=tuple(
-            [Normal(mean=0.0, cov=1.0) for _ in range(nevals)]
-        ),
+        previous_integral_beliefs=nevals * (Normal(mean=0.0, cov=1.0),),
         integral_belief=Normal(mean=0.0, cov=1.0),
     )
 
