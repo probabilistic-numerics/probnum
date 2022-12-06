@@ -40,8 +40,6 @@ class RandomPolicy(Policy):
         return True
 
     def __call__(
-        self,
-        bq_state: BQState,
-        rng: Optional[np.random.Generator],
+        self, bq_state: BQState, rng: Optional[np.random.Generator]
     ) -> np.ndarray:
         return self.sample_func(self.batch_size, rng=rng)

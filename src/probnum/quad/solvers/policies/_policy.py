@@ -33,9 +33,7 @@ class Policy(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self,
-        bq_state: BQState,
-        rng: Optional[np.random.Generator],
+        self, bq_state: BQState, rng: Optional[np.random.Generator]
     ) -> np.ndarray:
         """Find nodes according to the policy.
 
