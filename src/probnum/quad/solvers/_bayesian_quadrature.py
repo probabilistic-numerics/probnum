@@ -44,7 +44,7 @@ class BayesianQuadrature:
     Parameters
     ----------
     kernel
-        The kernel used for the GP model.
+        The kernel used for the Gaussian process model.
     measure
         The integration measure.
     policy
@@ -147,7 +147,7 @@ class BayesianQuadrature:
                     ``input_dim * 5`` if an initial design is given.
                 us_rand_num_candidates : Optional[IntLike]
                     The number of candidate nodes used by the policy 'us_rand'. Defaults
-                    to 1e3.
+                    to 1e2.
 
         Returns
         -------
@@ -184,7 +184,7 @@ class BayesianQuadrature:
         num_initial_design_nodes = options.get(
             "num_initial_design_nodes", int(5 * input_dim)
         )
-        us_rand_num_candidates = options.get("us_rand_num_candidates", int(1e3))
+        us_rand_num_candidates = options.get("us_rand_num_candidates", int(1e2))
 
         # Set up integration measure
         if domain is None and measure is None:
@@ -322,7 +322,7 @@ class BayesianQuadrature:
                 break
 
             # Select new nodes via policy
-            new_nodes = self.policy(bq_state, self.belief_update, rng)
+            new_nodes = self.policy(bq_state, rng)
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)

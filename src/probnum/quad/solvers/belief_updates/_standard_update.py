@@ -78,9 +78,6 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         new_scale_sq = self._estimate_scale(fun_evals, gram_cho_factor, bq_state)
 
         # Integral mean and variance
-        print("****************")
-        print(gram_cho_factor)
-        print(kernel_means.shape)
         weights = self.gram_cho_solve(gram_cho_factor, kernel_means)
         integral_mean = weights @ fun_evals
         initial_integral_variance = new_kernel_embedding.kernel_variance()
@@ -97,6 +94,7 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
             integral_belief=new_belief,
             prev_state=bq_state,
             gram=gram,
+            gram_cho_factor=gram_cho_factor,
             kernel_means=kernel_means,
         )
 
@@ -111,7 +109,10 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         return new_kernel, kernel_was_updated
 
     def _estimate_scale(
-        self, fun_evals: np.ndarray, gram_cho_factor: np.ndarray, bq_state: BQState
+        self,
+        fun_evals: np.ndarray,
+        gram_cho_factor: Tuple[np.ndarray, bool],
+        bq_state: BQState,
     ) -> FloatLike:
         """Estimate the scale parameter."""
         if self.scale_estimation is None:

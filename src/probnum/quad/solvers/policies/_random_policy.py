@@ -7,7 +7,6 @@ from typing import Callable, Optional
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
-from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 from probnum.typing import IntLike
 
 from ._policy import Policy
@@ -43,7 +42,6 @@ class RandomPolicy(Policy):
     def __call__(
         self,
         bq_state: BQState,
-        belief_update: BQBeliefUpdate,
         rng: Optional[np.random.Generator],
     ) -> np.ndarray:
         return self.sample_func(self.batch_size, rng=rng)

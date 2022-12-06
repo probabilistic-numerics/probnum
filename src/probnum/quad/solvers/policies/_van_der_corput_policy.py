@@ -8,7 +8,6 @@ import numpy as np
 
 from probnum.quad.integration_measures import IntegrationMeasure
 from probnum.quad.solvers._bq_state import BQState
-from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 from probnum.typing import IntLike
 
 from ._policy import Policy
@@ -30,6 +29,13 @@ class VanDerCorputPolicy(Policy):
         Size of batch of nodes when calling the policy once.
     measure
         The integration measure with finite domain.
+
+    Raises
+    ------
+    ValueError
+        If input dimension is not 1.
+    ValueError
+        If measure domain is not bounded.
 
     References
     ----------
@@ -57,7 +63,6 @@ class VanDerCorputPolicy(Policy):
     def __call__(
         self,
         bq_state: BQState,
-        belief_update: BQBeliefUpdate,
         rng: Optional[np.random.Generator],
     ) -> np.ndarray:
         n_nodes = bq_state.nodes.shape[0]

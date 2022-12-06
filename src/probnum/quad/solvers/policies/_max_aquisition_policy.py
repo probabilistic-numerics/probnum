@@ -5,11 +5,9 @@ from __future__ import annotations
 from typing import Optional
 
 import numpy as np
-from scipy.optimize import minimize as scipy_minimize
 
 from probnum.quad.solvers._bq_state import BQState
 from probnum.quad.solvers.acquisition_functions import AcquisitionFunction
-from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 from probnum.typing import IntLike
 
 from ._policy import Policy
@@ -18,18 +16,24 @@ from ._policy import Policy
 
 
 class RandomMaxAcquisitionPolicy(Policy):
-    """Policy that maximizer an acquisition function.
+    """Policy that maximizes an acquisition function by sampling random candidate nodes.
+
+    The candidate nodes are random draws from the integration measure. The node with the
+    largest acquisition value is chosen.
 
     Parameters
     ----------
     batch_size
-        Size of batch of nodes when calling the policy once.
+        Size of batch of nodes when calling the policy once (must be equal to 1).
     acquisition_func
-        The sample function. Needs to have the following interface:
-        `sample_func(batch_size: int, rng: np.random.Generator)` and return an array of
-        shape (batch_size, input_dim).
+        The acquisition function.
     n_candidates
-        The number of candidate samples used to determine the maximizer.
+        The number of candidate nodes.
+
+    Raises
+    ------
+    ValueError
+        If ``batch_size`` is not 1, or if ``n_candidates`` is too small.
     """
 
     def __init__(
@@ -61,11 +65,10 @@ class RandomMaxAcquisitionPolicy(Policy):
     def __call__(
         self,
         bq_state: BQState,
-        belief_update: BQBeliefUpdate,
         rng: Optional[np.random.Generator],
     ) -> np.ndarray:
 
         random_nodes = bq_state.measure.sample(n_sample=self.n_candidates)
-        values = self.acquisition_func(random_nodes, bq_state, belief_update)[0]
+        values = self.acquisition_func(random_nodes, bq_state)[0]
         idx_max = int(np.argmax(values))
         return random_nodes[idx_max, :][None, :]

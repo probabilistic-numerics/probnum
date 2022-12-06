@@ -163,7 +163,7 @@ def test_bq_from_problem_options_default_values():
 
     # n_candidates for policy 'us_rand'
     bq = BayesianQuadrature.from_problem(input_dim=2, domain=(0, 1), policy="us_rand")
-    assert bq.policy.n_candidates == int(1e3)
+    assert bq.policy.n_candidates == int(1e2)
 
     # num_initial_design_nodes for initial design
     input_dim = 5

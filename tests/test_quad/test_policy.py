@@ -47,6 +47,8 @@ def policy_params(policy_name, input_dim, batch_size, rng):
             kernel=ExpQuad(input_shape=(ndim,)),
             nodes=np.zeros([nevals, ndim]),
             fun_evals=np.ones(nevals),
+            gram=np.eye(nevals),
+            gram_cho_factor=(np.eye(nevals), False),
         )
         return bq_state, bq_state_no_data
 

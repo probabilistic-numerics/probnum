@@ -8,7 +8,6 @@ from typing import Optional, Tuple
 import numpy as np
 
 from probnum.quad.solvers._bq_state import BQState
-from probnum.quad.solvers.belief_updates import BQBeliefUpdate
 
 
 class AcquisitionFunction(abc.ABC):
@@ -22,24 +21,23 @@ class AcquisitionFunction(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, x: np.ndarray, bq_state: BQState, belief_update: BQBeliefUpdate
+        self, x: np.ndarray, bq_state: BQState
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        """Evaluates the acquisition function and its gradients.
+        """Evaluates the acquisition function and optionally its gradients.
 
         Parameters
         ----------
         x
-            *shape=(batch_size, input_dim)* -- The nodes where to evaluate the
-            acquisition function at.
+            *shape=(batch_size, input_dim)* -- The nodes where the acquisition function
+            is being evaluated.
         bq_state
             State of the BQ belief.
-        belief_update
-            The belief update.
 
         Returns
         -------
-        nodes :
-            *shape=(batch_size, )* -- The acquisition values.
+        acquisition_values :
+            *shape=(batch_size, )* -- The acquisition values at nodes ``x``.
+        acquisition_gradients :
             *shape=(batch_size, input_dim)* -- The corresponding gradients (optional).
         """
         raise NotImplementedError
