@@ -291,8 +291,19 @@ def bayesquad_multilevel(
     domain: Optional[DomainLike] = None,
     options: Optional[dict] = None,
 ) -> Tuple[Normal, Tuple[BQIterInfo, ...]]:
-    r"""Infer the value of an integral from a given set of nodes and function
-    evaluations.
+    r"""Infer the value of an integral from given sets of nodes and function
+    evaluations using a multilevel method.
+
+    In multilevel Bayesian quadrature, the integral :math:`\int_\Omega f(x) d \mu(x)`
+    is (approximately) decomposed as a telescoping sum over :math:`L+1` levels:
+
+    .. math:: \int_\Omega f(x) d \mu(x) \approx :math:`\int_\Omega f_0(x) d
+    \mu(x)` + \sum_{l=1}^L :math:`\int_\Omega [f_l(x) - f_{l-1}(x)] d \mu(x)`,
+
+    where :math:`f_l` is an increasingly accurate but also increasingly expensive
+    approximation to :math:`f`. Bayesian quadrature is subsequently applied to
+    independently infer each of the :math:`L+1` integrals and the outputs are summed
+    to infer :math:`\int_\Omega f(x) d \mu(x)`.
 
     Parameters
     ----------
@@ -353,6 +364,10 @@ def bayesquad_multilevel(
     bayesquad : Computes the integral using an acquisition policy.
     bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
                           nodes and function evaluations.
+
+    References
+    ----------
+    .. [1] Li, K., et al., Multilevel Bayesian quadrature, *arXiv:2210.08329*, 2022.
 
     Examples
     --------
