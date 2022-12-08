@@ -8,7 +8,7 @@ integral.
 """
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 import warnings
 
 import numpy as np
@@ -405,11 +405,11 @@ def bayesquad_multilevel(
 
     integer_belief = Normal(mean=0.0, cov=0.0)
     infos = ()
-    for l in range(n_level):
+    for level in range(n_level):
         integer_belief_l, info_l = bayesquad_from_data(
-            nodes=nodes[l],
-            fun_evals=fun_diff_evals[l],
-            kernel=kernels[l],
+            nodes=nodes[level],
+            fun_evals=fun_diff_evals[level],
+            kernel=kernels[level],
             measure=measure,
             domain=domain,
             options=options,
