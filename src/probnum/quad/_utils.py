@@ -53,12 +53,11 @@ def as_domain(
     """
     if input_dim is not None and input_dim < 1:
         raise ValueError(
-            f"If given, input dimension must be positive. Current value "
-            f"is ({input_dim})."
+            f"Input dimension must be positive. Current value is ({input_dim})."
         )
 
     if len(domain) != 2:
-        raise ValueError(f"domain must be of length 2 ({len(domain)}).")
+        raise ValueError(f"'domain' must be of length 2 ({len(domain)}).")
 
     # Domain limits must have equal dimensions
     if np.size(domain[0]) != np.size(domain[1]):
@@ -85,8 +84,8 @@ def as_domain(
         # Size of domain and input dimension do not match
         if input_dim != domain_dim:
             raise ValueError(
-                "If domain limits are not scalars, their lengths "
-                "must match the input dimension."
+                f"If domain limits are not scalars, their lengths "
+                f"must match the input dimension ({input_dim})."
             )
         domain_a = domain[0]
         domain_b = domain[1]
