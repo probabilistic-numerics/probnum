@@ -144,7 +144,7 @@ def bayesquad(
     References
     ----------
     .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical
-        computation?, *Statistical Science 34.1*, 2019, 1-22, 2019
+        computation?, *Statistical Science 34.1*, 2019, 1-22.
     .. [2] Rasmussen, C. E., and Z. Ghahramani, Bayesian Monte Carlo, *Advances in
         Neural Information Processing Systems*, 2003, 505-512.
     .. [3] Mckay et al., A Comparison of Three Methods for Selecting Values of Input
