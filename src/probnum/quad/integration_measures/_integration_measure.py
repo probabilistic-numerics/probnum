@@ -54,7 +54,7 @@ class IntegrationMeasure(abc.ABC):
     def sample(
         self,
         n_sample: IntLike,
-        rng: Optional[np.random.Generator] = np.random.default_rng(),
+        rng: np.random.Generator,
     ) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
 
@@ -63,7 +63,7 @@ class IntegrationMeasure(abc.ABC):
         n_sample
             Number of points to be sampled
         rng
-            Random number generator. Optional. Default is `np.random.default_rng()`.
+            A Random number generator.
 
         Returns
         -------
