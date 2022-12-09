@@ -65,8 +65,7 @@ class RandomMaxAcquisitionPolicy(Policy):
     def __call__(
         self, bq_state: BQState, rng: Optional[np.random.Generator]
     ) -> np.ndarray:
-
-        random_nodes = bq_state.measure.sample(n_sample=self.n_candidates)
+        random_nodes = bq_state.measure.sample(n_sample=self.n_candidates, rng=rng)
         values = self.acquisition_func(random_nodes, bq_state)[0]
         idx_max = int(np.argmax(values))
         return random_nodes[idx_max, :][None, :]
