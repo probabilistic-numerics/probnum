@@ -40,9 +40,9 @@ class WeightedPredictiveVariance(AcquisitionFunction):
         predictive_variance = bq_state.kernel(x, x)
         if bq_state.fun_evals.shape != (0,):
             kXx = bq_state.kernel.matrix(bq_state.nodes, x)
-            bq_weights = BQStandardBeliefUpdate.gram_cho_solve(
+            regression_weights = BQStandardBeliefUpdate.gram_cho_solve(
                 bq_state.gram_cho_factor, kXx
             )
-            predictive_variance -= np.sum(bq_weights * kXx, axis=0)
+            predictive_variance -= np.sum(regression_weights * kXx, axis=0)
         values = bq_state.scale_sq * predictive_variance * bq_state.measure(x) ** 2
         return values, None
