@@ -65,7 +65,7 @@ class LebesgueMeasure(IntegrationMeasure):
     def sample(
         self,
         n_sample: IntLike,
-        rng: Optional[np.random.Generator] = np.random.default_rng(),
+        rng: np.random.Generator,
     ) -> np.ndarray:
         return self.random_variable.rvs(
             size=(n_sample, self.input_dim), random_state=rng
