@@ -30,6 +30,13 @@ class VanDerCorputPolicy(Policy):
     measure
         The integration measure with finite domain.
 
+    Raises
+    ------
+    ValueError
+        If input dimension is not 1.
+    ValueError
+        If measure domain is not bounded.
+
     References
     ----------
     .. [1] https://en.wikipedia.org/wiki/Van_der_Corput_sequence
