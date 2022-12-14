@@ -6,6 +6,7 @@ points of the integrand to estimate the value of the integral. Bayesian quadratu
 methods return a random variable, specifying the belief about the true value of the
 integral.
 """
+
 from __future__ import annotations
 
 from typing import Callable, Optional, Tuple
@@ -70,10 +71,11 @@ def bayesquad(
     policy
         Type of acquisition strategy to use. Defaults to 'bmc'. Options are
 
-        ==========================  =======
-         Bayesian Monte Carlo [2]_  ``bmc``
-         van Der Corput points      ``vdc``
-        ==========================  =======
+        ============================================  ===========
+         Bayesian Monte Carlo [2]_                    ``bmc``
+         Van Der Corput points                        ``vdc``
+         Uncertainty Sampling with random candidates  ``us_rand``
+        ============================================  ===========
 
     initial_design
         The type of initial design to use. If ``None`` is given, no initial design is
@@ -112,6 +114,9 @@ def bayesquad(
             num_initial_design_nodes : Optional[IntLike]
                 The number of nodes created by the initial design. Defaults to
                 ``input_dim * 5`` if an initial design is given.
+            us_rand_num_candidates : Optional[IntLike]
+                The number of candidate nodes used by the policy 'us_rand'. Defaults
+                to 1e2.
 
     Returns
     -------

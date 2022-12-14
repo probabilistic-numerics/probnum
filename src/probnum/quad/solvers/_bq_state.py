@@ -37,6 +37,8 @@ class BQState:
         Function evaluations at nodes.
     gram
         The kernel Gram matrix.
+    gram_cho_factor
+        The output of BQBeliefUpdate.compute_gram_cho_factor.
     kernel_means
         All kernel mean evaluations at ``nodes``.
 
@@ -55,6 +57,7 @@ class BQState:
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
         gram: np.ndarray = np.array([[]]),
+        gram_cho_factor: Tuple[np.ndarray, bool] = (np.array([[]]), False),
         kernel_means: np.ndarray = np.array([]),
     ):
         self.measure = measure
@@ -73,6 +76,7 @@ class BQState:
             self.fun_evals = fun_evals
 
         self.gram = gram
+        self.gram_cho_factor = gram_cho_factor
         self.kernel_means = kernel_means
 
     @classmethod
@@ -85,6 +89,7 @@ class BQState:
         integral_belief: Normal,
         prev_state: "BQState",
         gram: np.ndarray,
+        gram_cho_factor: Tuple[np.ndarray, bool],
         kernel_means: np.ndarray,
     ) -> "BQState":
         r"""Initialize state from updated data.
@@ -105,6 +110,8 @@ class BQState:
             Previous state of the BQ loop.
         gram
             The Gram matrix of the given nodes.
+        gram_cho_factor
+            The output of BQBeliefUpdate.compute_gram_cho_factor for ``gram``.
         kernel_means
             The kernel means at the given nodes.
 
@@ -123,6 +130,7 @@ class BQState:
             nodes=nodes,
             fun_evals=fun_evals,
             gram=gram,
+            gram_cho_factor=gram_cho_factor,
             kernel_means=kernel_means,
         )
 

@@ -1,6 +1,12 @@
 """Bayesian quadrature methods and their components."""
 
-from . import belief_updates, initial_designs, policies, stopping_criteria
+from . import (
+    acquisition_functions,
+    belief_updates,
+    initial_designs,
+    policies,
+    stopping_criteria,
+)
 from ._bayesian_quadrature import BayesianQuadrature
 from ._bq_state import BQIterInfo, BQState
 

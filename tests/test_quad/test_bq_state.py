@@ -105,6 +105,8 @@ def test_state_defaults_types(state, request):
     assert isinstance(s.nodes, np.ndarray)
     assert isinstance(s.fun_evals, np.ndarray)
     assert isinstance(s.gram, np.ndarray)
+    assert isinstance(s.gram_cho_factor[0], np.ndarray)
+    assert isinstance(s.gram_cho_factor[1], bool)
     assert isinstance(s.kernel_means, np.ndarray)
     assert isinstance(s.previous_integral_beliefs, tuple)
     assert isinstance(s.scale_sq, float)
@@ -122,6 +124,7 @@ def test_state_defaults_shapes(state, request):
     s = request.getfixturevalue(state)
     assert len(s.previous_integral_beliefs) == 0
     assert s.gram.shape == (1, 0)
+    assert s.gram_cho_factor[0].shape == (1, 0)
     assert s.kernel_means.shape == (0,)
 
 
@@ -151,6 +154,7 @@ def test_state_from_new_data(state, request):
     y = np.ones(new_nevals)
     integral = Normal(0, 1)
     gram = np.eye(new_nevals)
+    gram_cho_factor = (np.eye(new_nevals), False)
     kernel_means = np.ones(new_nevals)
     kernel = ExpQuad(input_shape=(old_state.input_dim,))
     scale_sq = 1.7
@@ -164,6 +168,7 @@ def test_state_from_new_data(state, request):
         integral_belief=integral,
         prev_state=old_state,
         gram=gram,
+        gram_cho_factor=gram_cho_factor,
         kernel_means=kernel_means,
     )
 
@@ -174,6 +179,8 @@ def test_state_from_new_data(state, request):
     assert isinstance(s.nodes, np.ndarray)
     assert isinstance(s.fun_evals, np.ndarray)
     assert isinstance(s.gram, np.ndarray)
+    assert isinstance(s.gram_cho_factor[0], np.ndarray)
+    assert isinstance(s.gram_cho_factor[1], bool)
     assert isinstance(s.kernel_means, np.ndarray)
     assert isinstance(s.integral_belief, Normal)
     assert isinstance(s.previous_integral_beliefs, tuple)
@@ -183,6 +190,7 @@ def test_state_from_new_data(state, request):
     assert s.fun_evals.shape == (new_nevals,)
     assert len(s.previous_integral_beliefs) == 1
     assert s.gram.shape == (new_nevals, new_nevals)
+    assert s.gram_cho_factor[0].shape == (new_nevals, new_nevals)
     assert s.kernel_means.shape == (new_nevals,)
 
     # values
