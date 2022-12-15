@@ -8,7 +8,11 @@ from probnum.quad.integration_measures import LebesgueMeasure
 from probnum.quad.solvers import BayesianQuadrature
 from probnum.quad.solvers.belief_updates import BQStandardBeliefUpdate
 from probnum.quad.solvers.initial_designs import LatinDesign, MCDesign
-from probnum.quad.solvers.policies import RandomPolicy, VanDerCorputPolicy
+from probnum.quad.solvers.policies import (
+    RandomMaxAcquisitionPolicy,
+    RandomPolicy,
+    VanDerCorputPolicy,
+)
 from probnum.quad.solvers.stopping_criteria import (
     ImmediateStop,
     IntegralVarianceTolerance,
@@ -80,7 +84,12 @@ def test_bayesian_quadrature_wrong_input(input_dim):
 
 
 @pytest.mark.parametrize(
-    "policy, policy_type", [("bmc", RandomPolicy), ("vdc", VanDerCorputPolicy)]
+    "policy, policy_type",
+    [
+        ("bmc", RandomPolicy),
+        ("vdc", VanDerCorputPolicy),
+        ("us_rand", RandomMaxAcquisitionPolicy),
+    ],
 )
 def test_bq_from_problem_policy_assignment(policy, policy_type):
     """Test if correct policy is assigned from string identifier."""
@@ -121,7 +130,7 @@ def test_bq_from_problem_stopping_criterion_assignment(max_evals, var_tol, rel_t
     assert isinstance(bq.stopping_criterion, t)
 
 
-def test_bq_from_problem_defaults(bq, bq_no_policy):
+def test_bq_from_problem_default_attribute_types(bq, bq_no_policy):
 
     # defaults if policy is available
     assert isinstance(bq.measure, LebesgueMeasure)
@@ -136,6 +145,78 @@ def test_bq_from_problem_defaults(bq, bq_no_policy):
     assert isinstance(bq_no_policy.stopping_criterion, ImmediateStop)
     assert bq_no_policy.policy is None
     assert bq_no_policy.initial_design is None
+
+
+def test_bq_from_problem_options_default_values():
+    """Check if default values of the options dictionary are set correctly."""
+
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+    )
+
+    # batch_size default
+    assert bq.policy.batch_size == 1
+
+    # jitter default
+    assert bq.belief_update.jitter == 1e-8
+
+    # n_candidates for policy 'us_rand'
+    bq = BayesianQuadrature.from_problem(input_dim=2, domain=(0, 1), policy="us_rand")
+    assert bq.policy.n_candidates == int(1e2)
+
+    # num_initial_design_nodes for initial design
+    input_dim = 5
+    bq = BayesianQuadrature.from_problem(
+        input_dim=input_dim,
+        domain=(0, 1),
+        initial_design="mc",
+    )
+    assert bq.initial_design.num_nodes == int(5 * input_dim)
+
+
+def test_bq_from_problem_options_custom_values(bq, bq_no_policy):
+    """Check if custom values of the options dictionary are set correctly."""
+
+    # batch_size manual value
+    batch_size = 3
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+        options=dict(batch_size=batch_size),
+    )
+    assert bq.policy.batch_size == batch_size
+
+    # jitter manual value
+    jitter = 1.3
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+        options=dict(jitter=jitter),
+    )
+    assert bq.belief_update.jitter == jitter
+
+    # n_candidates for policy 'us_rand'
+    us_rand_num_candidates = 5
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+        policy="us_rand",
+        options=dict(us_rand_num_candidates=us_rand_num_candidates),
+    )
+    assert bq.policy.n_candidates == us_rand_num_candidates
+
+    # num_initial_design_nodes for initial design
+    input_dim = 5
+    num_initial_design_nodes = 3
+    assert int(input_dim * 5) != num_initial_design_nodes
+    bq = BayesianQuadrature.from_problem(
+        input_dim=input_dim,
+        domain=(0, 1),
+        initial_design="mc",
+        options=dict(num_initial_design_nodes=num_initial_design_nodes),
+    )
+    assert bq.initial_design.num_nodes == num_initial_design_nodes
 
 
 # Tests for input checks and exception raises start here.

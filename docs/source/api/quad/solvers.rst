@@ -18,6 +18,11 @@ probnum.quad.solvers
 .. toctree::
     :hidden:
 
+    solvers.acquisition_functions
+
+.. toctree::
+    :hidden:
+
     solvers.stopping_criteria
 
 .. toctree::
