@@ -14,6 +14,7 @@ from probnum.quad.solvers.acquisition_functions import WeightedPredictiveVarianc
 from probnum.quad.solvers.belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from probnum.quad.solvers.initial_designs import InitialDesign, LatinDesign, MCDesign
 from probnum.quad.solvers.policies import (
+    MaxAcquisitionPolicy,
     Policy,
     RandomMaxAcquisitionPolicy,
     RandomPolicy,
@@ -148,6 +149,10 @@ class BayesianQuadrature:
                 us_rand_num_candidates : Optional[IntLike]
                     The number of candidate nodes used by the policy 'us_rand'. Defaults
                     to 1e2.
+                us_num_restarts : Optional[IntLike]
+                    The number of restarts that the acquisition optimizer performs in
+                    order to find the maximizer when policy 'us' is used. Defaults
+                    to 10.
 
         Returns
         -------
@@ -185,6 +190,7 @@ class BayesianQuadrature:
             "num_initial_design_nodes", int(5 * input_dim)
         )
         us_rand_num_candidates = options.get("us_rand_num_candidates", int(1e2))
+        us_num_restarts = options.get("us_num_restarts", int(10))
 
         # Set up integration measure
         if domain is None and measure is None:
@@ -213,6 +219,12 @@ class BayesianQuadrature:
                 batch_size=1,
                 acquisition_func=WeightedPredictiveVariance(),
                 n_candidates=us_rand_num_candidates,
+            )
+        elif policy == "us":
+            policy = MaxAcquisitionPolicy(
+                batch_size=1,
+                acquisition_func=WeightedPredictiveVariance(),
+                n_restarts=us_num_restarts,
             )
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")

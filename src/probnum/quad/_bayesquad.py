@@ -75,6 +75,7 @@ def bayesquad(
          Bayesian Monte Carlo [2]_                    ``bmc``
          Van Der Corput points                        ``vdc``
          Uncertainty Sampling with random candidates  ``us_rand``
+         Uncertainty Sampling with optimizer          ``us``
         ============================================  ===========
 
     initial_design

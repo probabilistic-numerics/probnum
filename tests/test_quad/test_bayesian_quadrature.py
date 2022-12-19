@@ -9,6 +9,7 @@ from probnum.quad.solvers import BayesianQuadrature
 from probnum.quad.solvers.belief_updates import BQStandardBeliefUpdate
 from probnum.quad.solvers.initial_designs import LatinDesign, MCDesign
 from probnum.quad.solvers.policies import (
+    MaxAcquisitionPolicy,
     RandomMaxAcquisitionPolicy,
     RandomPolicy,
     VanDerCorputPolicy,
@@ -89,6 +90,7 @@ def test_bayesian_quadrature_wrong_input(input_dim):
         ("bmc", RandomPolicy),
         ("vdc", VanDerCorputPolicy),
         ("us_rand", RandomMaxAcquisitionPolicy),
+        ("us", MaxAcquisitionPolicy),
     ],
 )
 def test_bq_from_problem_policy_assignment(policy, policy_type):
@@ -165,6 +167,10 @@ def test_bq_from_problem_options_default_values():
     bq = BayesianQuadrature.from_problem(input_dim=2, domain=(0, 1), policy="us_rand")
     assert bq.policy.n_candidates == int(1e2)
 
+    # n_restarts for policy 'us'
+    bq = BayesianQuadrature.from_problem(input_dim=2, domain=(0, 1), policy="us")
+    assert bq.policy.n_restarts == int(10)
+
     # num_initial_design_nodes for initial design
     input_dim = 5
     bq = BayesianQuadrature.from_problem(
@@ -205,6 +211,16 @@ def test_bq_from_problem_options_custom_values(bq, bq_no_policy):
         options=dict(us_rand_num_candidates=us_rand_num_candidates),
     )
     assert bq.policy.n_candidates == us_rand_num_candidates
+
+    # n_restarts for policy 'us'
+    us_num_restarts = 5
+    bq = BayesianQuadrature.from_problem(
+        input_dim=2,
+        domain=(0, 1),
+        policy="us",
+        options=dict(us_num_restarts=us_num_restarts),
+    )
+    assert bq.policy.n_restarts == us_num_restarts
 
     # num_initial_design_nodes for initial design
     input_dim = 5
