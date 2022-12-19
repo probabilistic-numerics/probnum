@@ -88,6 +88,13 @@ class MaxAcquisitionPolicy(Policy):
     ------
     ValueError
         If ``batch_size`` is not 1, or if ``n_restarts`` is too small.
+
+    Notes
+    -----
+    The policy uses SciPy's 'Nelder-Mead' optimizer when gradients are unavailable.
+    This is the current standard setting since ``probnum`` does not provide gradients
+    yet.
+
     """
 
     def __init__(
@@ -121,7 +128,7 @@ class MaxAcquisitionPolicy(Policy):
     ) -> np.ndarray:
 
         measure = bq_state.measure
-        domain = bq_state.measure.domain  # Todo: non-bounded?
+        domain = bq_state.measure.domain
         bounds = list(zip(domain[0], domain[1]))
 
         if self.acquisition_func.has_gradients:
