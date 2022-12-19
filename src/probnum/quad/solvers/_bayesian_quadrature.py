@@ -96,6 +96,7 @@ class BayesianQuadrature:
         self.stopping_criterion = stopping_criterion
         self.initial_design = initial_design
 
+    # pylint: disable=too-many-statements
     @classmethod
     def from_problem(
         cls,
