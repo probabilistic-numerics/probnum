@@ -73,7 +73,7 @@ def test_bayesian_quadrature_wrong_input(input_dim):
             policy=None,
             belief_update=BQStandardBeliefUpdate(jitter=1e-6, scale_estimation=None),
             stopping_criterion=MaxNevals(max_nevals=10),
-            initial_design=MCDesign(num_nodes=3, measure=measure),
+            initial_design=MCDesign(n_nodes=3, measure=measure),
         )
 
 
@@ -171,14 +171,14 @@ def test_bq_from_problem_options_default_values():
     bq = BayesianQuadrature.from_problem(input_dim=2, domain=(0, 1), policy="us")
     assert bq.policy.n_restarts == int(10)
 
-    # num_initial_design_nodes for initial design
+    # n_initial_design_nodes for initial design
     input_dim = 5
     bq = BayesianQuadrature.from_problem(
         input_dim=input_dim,
         domain=(0, 1),
         initial_design="mc",
     )
-    assert bq.initial_design.num_nodes == int(5 * input_dim)
+    assert bq.initial_design.n_nodes == int(5 * input_dim)
 
 
 def test_bq_from_problem_options_custom_values(bq, bq_no_policy):
@@ -203,36 +203,36 @@ def test_bq_from_problem_options_custom_values(bq, bq_no_policy):
     assert bq.belief_update.jitter == jitter
 
     # n_candidates for policy 'us_rand'
-    us_rand_num_candidates = 5
+    us_rand_n_candidates = 5
     bq = BayesianQuadrature.from_problem(
         input_dim=2,
         domain=(0, 1),
         policy="us_rand",
-        options=dict(us_rand_num_candidates=us_rand_num_candidates),
+        options=dict(us_rand_n_candidates=us_rand_n_candidates),
     )
-    assert bq.policy.n_candidates == us_rand_num_candidates
+    assert bq.policy.n_candidates == us_rand_n_candidates
 
     # n_restarts for policy 'us'
-    us_num_restarts = 5
+    us_n_restarts = 5
     bq = BayesianQuadrature.from_problem(
         input_dim=2,
         domain=(0, 1),
         policy="us",
-        options=dict(us_num_restarts=us_num_restarts),
+        options=dict(us_n_restarts=us_n_restarts),
     )
-    assert bq.policy.n_restarts == us_num_restarts
+    assert bq.policy.n_restarts == us_n_restarts
 
-    # num_initial_design_nodes for initial design
+    # n_initial_design_nodes for initial design
     input_dim = 5
-    num_initial_design_nodes = 3
-    assert int(input_dim * 5) != num_initial_design_nodes
+    n_initial_design_nodes = 3
+    assert int(input_dim * 5) != n_initial_design_nodes
     bq = BayesianQuadrature.from_problem(
         input_dim=input_dim,
         domain=(0, 1),
         initial_design="mc",
-        options=dict(num_initial_design_nodes=num_initial_design_nodes),
+        options=dict(n_initial_design_nodes=n_initial_design_nodes),
     )
-    assert bq.initial_design.num_nodes == num_initial_design_nodes
+    assert bq.initial_design.n_nodes == n_initial_design_nodes
 
 
 # Tests for input checks and exception raises start here.
@@ -272,28 +272,28 @@ def test_integrate_output_shapes(initial_design_provided, nodes_provided, data, 
     # consistently.
 
     max_evals = 15
-    num_design_nodes = 4
+    n_design_nodes = 4
 
     # get data
     nodes, fun_evals, fun = data
-    (num_nodes, input_dim) = nodes.shape
+    (n_nodes, input_dim) = nodes.shape
 
     params = dict(input_dim=input_dim, domain=(0, 1))
     options = dict(max_evals=max_evals)
-    num_updates = max_evals
+    n_updates = max_evals
 
     # get correct shapes and values
     if nodes_provided:
-        num_updates += -num_nodes + 1
+        n_updates += -n_nodes + 1
     else:
         nodes, fun_evals = None, None
 
     if initial_design_provided:
-        num_updates += -num_design_nodes + (1 - 1 * nodes_provided) * 1
+        n_updates += -n_design_nodes + (1 - 1 * nodes_provided) * 1
         params["initial_design"] = "mc"
-        options["num_initial_design_nodes"] = num_design_nodes
+        options["n_initial_design_nodes"] = n_design_nodes
 
-    assert num_updates > 1  # make sure that some nodes are collected
+    assert n_updates > 1  # make sure that some nodes are collected
 
     bq = BayesianQuadrature.from_problem(**params, options=options)
     res, bq_state, info = bq.integrate(
@@ -303,7 +303,7 @@ def test_integrate_output_shapes(initial_design_provided, nodes_provided, data, 
     assert isinstance(bq_state.integral_belief, Normal)
     assert isinstance(bq_state.scale_sq, float)
     assert len(bq_state.kernel_means) == max_evals
-    assert len(bq_state.previous_integral_beliefs) == num_updates
+    assert len(bq_state.previous_integral_beliefs) == n_updates
     assert bq_state.nodes.shape == (max_evals, input_dim)
     assert bq_state.fun_evals.shape == (max_evals,)
     assert bq_state.gram.shape == (max_evals, max_evals)

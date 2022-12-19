@@ -112,12 +112,16 @@ def bayesquad(
                 inversion. Defaults to 1e-8.
             batch_size : Optional[IntLike]
                 Number of new observations at each update. Defaults to 1.
-            num_initial_design_nodes : Optional[IntLike]
+            n_initial_design_nodes : Optional[IntLike]
                 The number of nodes created by the initial design. Defaults to
                 ``input_dim * 5`` if an initial design is given.
-            us_rand_num_candidates : Optional[IntLike]
+            us_rand_n_candidates : Optional[IntLike]
                 The number of candidate nodes used by the policy 'us_rand'. Defaults
                 to 1e2.
+            us_n_restarts : Optional[IntLike]
+                The number of restarts that the acquisition optimizer performs in
+                order to find the maximizer when policy 'us' is used. Defaults
+                to 10.
 
     Returns
     -------

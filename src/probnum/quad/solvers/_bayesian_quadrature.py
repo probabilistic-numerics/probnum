@@ -144,13 +144,13 @@ class BayesianQuadrature:
                     inversion. Defaults to 1e-8.
                 batch_size : Optional[IntLike]
                     Batch size used in node acquisition. Defaults to 1.
-                num_initial_design_nodes : Optional[IntLike]
+                n_initial_design_nodes : Optional[IntLike]
                     The number of nodes created by the initial design. Defaults to
                     ``input_dim * 5`` if an initial design is given.
-                us_rand_num_candidates : Optional[IntLike]
+                us_rand_n_candidates : Optional[IntLike]
                     The number of candidate nodes used by the policy 'us_rand'. Defaults
                     to 1e2.
-                us_num_restarts : Optional[IntLike]
+                us_n_restarts : Optional[IntLike]
                     The number of restarts that the acquisition optimizer performs in
                     order to find the maximizer when policy 'us' is used. Defaults
                     to 10.
@@ -187,11 +187,11 @@ class BayesianQuadrature:
         scale_estimation = options.get("scale_estimation", "mle")
         jitter = options.get("jitter", 1.0e-8)
         batch_size = options.get("batch_size", int(1))
-        num_initial_design_nodes = options.get(
-            "num_initial_design_nodes", int(5 * input_dim)
+        n_initial_design_nodes = options.get(
+            "n_initial_design_nodes", int(5 * input_dim)
         )
-        us_rand_num_candidates = options.get("us_rand_num_candidates", int(1e2))
-        us_num_restarts = options.get("us_num_restarts", int(10))
+        us_rand_n_candidates = options.get("us_rand_n_candidates", int(1e2))
+        us_n_restarts = options.get("us_n_restarts", int(10))
 
         # Set up integration measure
         if domain is None and measure is None:
@@ -219,13 +219,13 @@ class BayesianQuadrature:
             policy = RandomMaxAcquisitionPolicy(
                 batch_size=1,
                 acquisition_func=WeightedPredictiveVariance(),
-                n_candidates=us_rand_num_candidates,
+                n_candidates=us_rand_n_candidates,
             )
         elif policy == "us":
             policy = MaxAcquisitionPolicy(
                 batch_size=1,
                 acquisition_func=WeightedPredictiveVariance(),
-                n_restarts=us_num_restarts,
+                n_restarts=us_n_restarts,
             )
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")
@@ -271,9 +271,9 @@ class BayesianQuadrature:
         if initial_design is None:
             pass  # not to raise the exception
         elif initial_design == "mc":
-            initial_design = MCDesign(num_initial_design_nodes, measure)
+            initial_design = MCDesign(n_initial_design_nodes, measure)
         elif initial_design == "latin":
-            initial_design = LatinDesign(num_initial_design_nodes, measure)
+            initial_design = LatinDesign(n_initial_design_nodes, measure)
         else:
             raise NotImplementedError(
                 f"The given initial design ({initial_design}) is unknown."
