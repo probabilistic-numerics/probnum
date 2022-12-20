@@ -1,7 +1,7 @@
 # Dependencies for a full ProbNum development environment
 -e .[full]
 
-tox>=3.18,<4
+tox>=3.18,<5
 
 -r benchmarks/requirements.txt
 -r docs/requirements.txt
