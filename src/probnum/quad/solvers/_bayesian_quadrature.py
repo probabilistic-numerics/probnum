@@ -100,7 +100,7 @@ class BayesianQuadrature:
         self.stopping_criterion = stopping_criterion
         self.initial_design = initial_design
 
-    # pylint: disable=too-many-statements
+    # pylint: disable=too-many-statements, too-many-locals
     @classmethod
     def from_problem(
         cls,
@@ -226,7 +226,7 @@ class BayesianQuadrature:
         elif policy == "vdc":
             policy = VanDerCorputPolicy(batch_size, measure)
         # all random max acquisition policies
-        elif "_rand" == policy[-5:]:
+        elif "_rand" in policy:
             policy = RandomMaxAcquisitionPolicy(
                 batch_size=1,
                 acquisition_func=acquisition_dict[policy[:-5]],
