@@ -152,12 +152,13 @@ class BayesianQuadrature:
                     The number of nodes created by the initial design. Defaults to
                     ``input_dim * 5`` if an initial design is given.
                 n_candidates : Optional[IntLike]
-                    The number of candidate nodes used by the policies 'us_rand',
-                    'mi_rand' and 'ivr_rand'. Defaults to 1e2.
+                    The number of candidate nodes used by the policies that maximize an
+                    acquisition function by drawing random candidates. Defaults to 1e2.
+                    Applicable to policies 'us_rand', 'mi_rand' and 'ivr_rand'.
                 n_restarts : Optional[IntLike]
                     The number of restarts that the acquisition optimizer performs in
-                    order to find the maximizer. Applicable to policies 'us', 'mi' and
-                    'ivr'. Defaults to 10.
+                    order to find the maximizer. Defaults to 10. Applicable to policies
+                    'us', 'mi' and 'ivr'.
 
         Returns
         -------
