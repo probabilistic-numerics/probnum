@@ -7,53 +7,66 @@ import numpy as np
 import pytest
 
 from probnum.quad.integration_measures import LebesgueMeasure
+from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers import BQState
-from probnum.quad.solvers.acquisition_functions import WeightedPredictiveVariance
+from probnum.quad.solvers.acquisition_functions import (
+    IntegralVarianceReduction,
+    MutualInformation,
+    WeightedPredictiveVariance,
+)
+from probnum.quad.solvers.belief_updates import BQStandardBeliefUpdate
 from probnum.randprocs.kernels import ExpQuad
 from probnum.randvars import Normal
 
 
-@pytest.fixture(params=[pytest.param(n, id=f"nevals{n}") for n in [1, 3, 5]])
+@pytest.fixture(params=[pytest.param(n, id=f"nevals{n}") for n in [0, 1, 3, 5]])
 def nevals(request):
+    # 0 means no data
     return request.param
 
 
-@pytest.fixture(params=[pytest.param(a) for a in [WeightedPredictiveVariance]])
+@pytest.fixture(
+    params=[
+        pytest.param(a)
+        for a in [
+            IntegralVarianceReduction,
+            MutualInformation,
+            WeightedPredictiveVariance,
+        ]
+    ]
+)
 def acquisition(request):
     return request.param()
 
 
-def test_acquisition_shapes(acquisition, input_dim, nevals, rng):
+@pytest.fixture
+def bq_state(input_dim, nevals, rng):
 
-    m = LebesgueMeasure(input_dim=input_dim, domain=(0, 1))
-    k = ExpQuad(input_shape=(input_dim,))
-    bq_state_no_data = BQState(
-        measure=m,
-        kernel=k,
-    )
-    bq_state = BQState(
-        measure=m,
-        kernel=k,
-        nodes=np.zeros([nevals, input_dim]),
-        fun_evals=np.ones(nevals),
-        gram=np.eye(nevals),
-        gram_cho_factor=(np.eye(nevals), False),
-        kernel_means=np.ones(nevals),
-        previous_integral_beliefs=nevals * (Normal(mean=0.0, cov=1.0),),
-        integral_belief=Normal(mean=0.0, cov=1.0),
-    )
+    # no data if nevals == 0
+    measure = LebesgueMeasure(input_dim=input_dim, domain=(0, 1))
+    kernel = ExpQuad(input_shape=(input_dim,), lengthscale=0.1)
+    integral = Normal(0.0, KernelEmbedding(kernel, measure).kernel_variance())
+    bq_state = BQState(measure=measure, kernel=kernel, integral_belief=integral)
 
-    n_nodes = 3
-    x = np.ones([n_nodes, input_dim])
+    # with data
+    if nevals > 0:
+        nodes = rng.uniform(size=(nevals, input_dim))
+        fun_evals = np.sin(10 * np.linalg.norm(nodes, axis=1))
+        belief_update = BQStandardBeliefUpdate(jitter=1e-8, scale_estimation=None)
+        _, bq_state = belief_update(
+            bq_state=bq_state,
+            new_nodes=nodes,
+            new_fun_evals=fun_evals,
+        )
+    return bq_state
 
-    # no data yet in bq_state
-    res = acquisition(x, bq_state_no_data)
-    assert res[0].shape == (n_nodes,)  # values
-    assert res[1] is None  # no gradients yet
 
-    # data has been collected previously
+@pytest.mark.parametrize("n_pred", [1, 7, 9], ids=[f"npred{n}" for n in [1, 7, 9]])
+def test_acquisition_shapes(acquisition, n_pred, bq_state, rng):
+    x = bq_state.measure.sample(n_sample=n_pred, rng=rng)
+
     res = acquisition(x, bq_state)
-    assert res[0].shape == (n_nodes,)  # values
+    assert res[0].shape == (n_pred,)  # values
     assert res[1] is None  # no gradients yet
 
 

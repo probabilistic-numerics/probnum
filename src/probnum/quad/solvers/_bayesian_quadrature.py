@@ -10,7 +10,11 @@ import numpy as np
 from probnum.quad.integration_measures import IntegrationMeasure, LebesgueMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.quad.solvers._bq_state import BQIterInfo, BQState
-from probnum.quad.solvers.acquisition_functions import WeightedPredictiveVariance
+from probnum.quad.solvers.acquisition_functions import (
+    IntegralVarianceReduction,
+    MutualInformation,
+    WeightedPredictiveVariance,
+)
 from probnum.quad.solvers.belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from probnum.quad.solvers.initial_designs import InitialDesign, LatinDesign, MCDesign
 from probnum.quad.solvers.policies import (
@@ -147,13 +151,13 @@ class BayesianQuadrature:
                 n_initial_design_nodes : Optional[IntLike]
                     The number of nodes created by the initial design. Defaults to
                     ``input_dim * 5`` if an initial design is given.
-                us_rand_n_candidates : Optional[IntLike]
-                    The number of candidate nodes used by the policy 'us_rand'. Defaults
-                    to 1e2.
-                us_n_restarts : Optional[IntLike]
+                n_candidates : Optional[IntLike]
+                    The number of candidate nodes used by the policies 'us_rand',
+                    'mi_rand' and 'ivr_rand'. Defaults to 1e2.
+                n_restarts : Optional[IntLike]
                     The number of restarts that the acquisition optimizer performs in
-                    order to find the maximizer when policy 'us' is used. Defaults
-                    to 10.
+                    order to find the maximizer. Applicable to policies 'us', 'mi' and
+                    'ivr'. Defaults to 10.
 
         Returns
         -------
@@ -190,8 +194,8 @@ class BayesianQuadrature:
         n_initial_design_nodes = options.get(
             "n_initial_design_nodes", int(5 * input_dim)
         )
-        us_rand_n_candidates = options.get("us_rand_n_candidates", int(1e2))
-        us_n_restarts = options.get("us_n_restarts", int(10))
+        n_candidates = options.get("n_candidates", int(1e2))
+        n_restarts = options.get("n_restarts", int(10))
 
         # Set up integration measure
         if domain is None and measure is None:
@@ -206,6 +210,11 @@ class BayesianQuadrature:
             kernel = ExpQuad(input_shape=(input_dim,))
 
         # Select policy
+        acquisition_dict = dict(
+            mi=MutualInformation,
+            ivr=IntegralVarianceReduction,
+            us=WeightedPredictiveVariance,
+        )
         if policy is None:
             # If policy is None, this implies that the integration problem is defined
             # through a fixed set of nodes and function evaluations which will not
@@ -215,17 +224,19 @@ class BayesianQuadrature:
             policy = RandomPolicy(batch_size, measure.sample)
         elif policy == "vdc":
             policy = VanDerCorputPolicy(batch_size, measure)
-        elif policy == "us_rand":
+        # all random max acquisition policies
+        elif "_rand" == policy[-5:]:
             policy = RandomMaxAcquisitionPolicy(
                 batch_size=1,
-                acquisition_func=WeightedPredictiveVariance(),
-                n_candidates=us_rand_n_candidates,
+                acquisition_func=acquisition_dict[policy[:-5]],
+                n_candidates=n_candidates,
             )
-        elif policy == "us":
+        # all max acquisition policies with optimizer
+        elif policy in ["us", "mi", "ivr"]:
             policy = MaxAcquisitionPolicy(
                 batch_size=1,
-                acquisition_func=WeightedPredictiveVariance(),
-                n_restarts=us_n_restarts,
+                acquisition_func=acquisition_dict[policy],
+                n_restarts=n_restarts,
             )
         else:
             raise NotImplementedError(f"The given policy ({policy}) is unknown.")
@@ -242,30 +253,23 @@ class BayesianQuadrature:
                 return sc2
             return sc1 | sc2
 
-        _stopping_criterion = None
-
+        _stop_crit = None
         if max_evals is not None:
-            _stopping_criterion = _stopcrit_or(
-                _stopping_criterion, MaxNevals(max_evals)
-            )
+            _stop_crit = _stopcrit_or(_stop_crit, MaxNevals(max_evals))
         if var_tol is not None:
-            _stopping_criterion = _stopcrit_or(
-                _stopping_criterion, IntegralVarianceTolerance(var_tol)
-            )
+            _stop_crit = _stopcrit_or(_stop_crit, IntegralVarianceTolerance(var_tol))
         if rel_tol is not None:
-            _stopping_criterion = _stopcrit_or(
-                _stopping_criterion, RelativeMeanChange(rel_tol)
-            )
+            _stop_crit = _stopcrit_or(_stop_crit, RelativeMeanChange(rel_tol))
 
         # If no stopping criteria are given, use some default values.
-        if _stopping_criterion is None:
-            _stopping_criterion = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
-                max_nevals=input_dim * 25  # 25 is an arbitrary value
-            )
+        if _stop_crit is None:
+            _stop_crit = IntegralVarianceTolerance(var_tol=1e-6) | MaxNevals(
+                max_nevals=input_dim * 25
+            )  # 25 is an arbitrary value
 
         # If no policy is given, then the iteration must terminate immediately.
         if policy is None:
-            _stopping_criterion = ImmediateStop()
+            _stop_crit = ImmediateStop()
 
         # Select initial design
         if initial_design is None:
@@ -284,7 +288,7 @@ class BayesianQuadrature:
             measure=measure,
             policy=policy,
             belief_update=belief_update,
-            stopping_criterion=_stopping_criterion,
+            stopping_criterion=_stop_crit,
             initial_design=initial_design,
         )
 

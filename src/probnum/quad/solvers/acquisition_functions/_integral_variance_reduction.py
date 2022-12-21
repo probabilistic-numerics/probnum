@@ -33,7 +33,7 @@ class IntegralVarianceReduction(AcquisitionFunction):
     the hypothetical observation at :math:`x` and the integral value. [1]_
 
     The normalization constant :math:`\mathfrak{v}^{-1}` ensures that
-    :math:`a(x)\in[0, 1]`. [1]_
+    :math:`a(x)\in[0, 1]`.
 
     References
     ----------
@@ -59,14 +59,15 @@ class IntegralVarianceReduction(AcquisitionFunction):
         observation_noise_var = 0.0  # dummy placeholder
         y_predictive_var += observation_noise_var
 
-        weights = BQStandardBeliefUpdate.gram_cho_solve(
-            bq_state.gram_cho_factor, bq_state.kernel.matrix(bq_state.nodes, x)
-        )
+        predictive_embedding = bq_state.kernel_embedding.kernel_mean(x)
 
-        predictive_embedding = np.transpose(
-            bq_state.kernel_embedding.kernel_mean(x)
-            - np.dot(bq_state.kernel_means, weights)
-        )
+        # posterior if observations are available
+        if bq_state.fun_evals.shape[0] > 0:
+
+            weights = BQStandardBeliefUpdate.gram_cho_solve(
+                bq_state.gram_cho_factor, bq_state.kernel.matrix(bq_state.nodes, x)
+            )
+            predictive_embedding -= np.dot(bq_state.kernel_means, weights)
 
         values = predictive_embedding**2 / (
             bq_state.integral_belief.cov * y_predictive_var

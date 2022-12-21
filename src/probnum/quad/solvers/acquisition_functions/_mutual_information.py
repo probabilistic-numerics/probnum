@@ -15,7 +15,7 @@ from ._integral_variance_reduction import IntegralVarianceReduction
 
 
 class MutualInformation(AcquisitionFunction):
-    r"""The mutual information between a hypothetical integrand observations and the
+    r"""The mutual information between a hypothetical integrand observation and the
     integral value.
 
     The acquisition function is
@@ -23,11 +23,11 @@ class MutualInformation(AcquisitionFunction):
     .. math::
         a(x) = -0.5 \log(1-\rho^2(x))
 
-    where :math:`\rho^2(x)` is the squared correlation between a hypothetical integrand
+    where :math:`\rho^2(x)` is the square correlation between a hypothetical integrand
     observations at :math:`x` and the integral value. [1]_
 
-    The mutual information is unbounded for a 'perfect' observation and
-    :math:`\rho^2(x) = 1`. [1]_
+    The mutual information is non-negative and unbounded for a 'perfect' observation
+    and :math:`\rho^2(x) = 1`.
 
     References
     ----------
