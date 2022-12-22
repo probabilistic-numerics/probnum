@@ -131,35 +131,19 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
     def predict_integrand(
         x: np.ndarray, bq_state: BQState
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Predictive mean and variances of the integrand at given nodes.
 
-        Parameters
-        ----------
-        x
-            *shape=(n_nodes, input_dim)* -- The nodes where to predict.
-        bq_state
-            The BQ state.
-
-        Returns
-        -------
-        mean_prediction :
-            *shape=(n_nodes,)* -- The mean of the predictions.
-        var_predictions :
-            *shape=(n_nodes,)* -- The variances of the predictions.
-
-        """
         predictive_mean = np.zeros(x.shape[0])  # zero mean prior
         predictive_var = bq_state.kernel(x, x)
 
-        n_nodes = bq_state.fun_evals.shape[0]
-        if n_nodes != 0:
+        nevals = bq_state.fun_evals.shape[0]
+        if nevals != 0:
             kXx = bq_state.kernel.matrix(bq_state.nodes, x)
             weights = BQStandardBeliefUpdate.gram_cho_solve(
                 bq_state.gram_cho_factor, kXx
             )
 
             # values (with zero mean prior at evals)
-            predictive_mean += weights.T @ (bq_state.fun_evals - np.zeros(n_nodes))
+            predictive_mean += weights.T @ (bq_state.fun_evals - np.zeros(nevals))
 
             # variances
             predictive_var -= np.sum(weights * kXx, axis=0)
