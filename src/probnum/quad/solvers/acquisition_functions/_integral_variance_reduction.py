@@ -29,7 +29,7 @@ class IntegralVarianceReduction(AcquisitionFunction):
     :math:`x`, :math:`v(x)` is the predictive variance for :math:`f(x)` and
     :math:`k(x', x)` is the posterior kernel function.
 
-    The value :math:`a(x)` is equal to the square correlation :math:`\rho^2(x)` between
+    The value :math:`a(x)` is equal to the squared correlation :math:`\rho^2(x)` between
     the hypothetical observation at :math:`x` and the integral value. [1]_
 
     The normalization constant :math:`\mathfrak{v}^{-1}` ensures that
