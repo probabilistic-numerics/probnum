@@ -128,7 +128,9 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         return new_scale_sq
 
     @staticmethod
-    def predict_integrand(x: np.ndarray, bq_state: BQState):
+    def predict_integrand(
+        x: np.ndarray, bq_state: BQState
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Predictive mean and variances of the integrand at given nodes.
 
         Parameters
