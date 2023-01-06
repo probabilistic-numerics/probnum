@@ -153,9 +153,15 @@ def wrap_scipy_rv(
         # Multivariate distributions
         if scipy_rv.__class__.__name__ == "multivariate_normal_frozen":
             # Multivariate normal distribution
+            try:
+                cov_explicit = scipy_rv.cov
+            except AttributeError as e:
+                # As of SciPy 1.10.0 multivariate normal rvs have a Covariance object
+                # See https://scipy.github.io/devdocs/release.1.10.0.html#scipy-stats-improvements
+                cov_explicit = scipy_rv.cov_object.covariance
             return _normal.Normal(
                 mean=scipy_rv.mean,
-                cov=scipy_rv.cov,
+                cov=cov_explicit,
             )
 
     # Generic random variables
