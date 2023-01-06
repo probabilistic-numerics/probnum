@@ -155,9 +155,10 @@ def wrap_scipy_rv(
             # Multivariate normal distribution
             try:
                 cov_explicit = scipy_rv.cov
-            except AttributeError as e:
+            except AttributeError:
                 # As of SciPy 1.10.0 multivariate normal rvs have a Covariance object
-                # See https://scipy.github.io/devdocs/release.1.10.0.html#scipy-stats-improvements
+                # See https://scipy.github.io/devdocs/release.1.10.0.html\
+                # scipy-stats-improvements
                 cov_explicit = scipy_rv.cov_object.covariance
             return _normal.Normal(
                 mean=scipy_rv.mean,
