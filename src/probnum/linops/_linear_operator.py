@@ -1487,6 +1487,16 @@ class Matrix(LambdaLinearOperator):
             trace=trace,
         )
 
+    def _transpose(self) -> "Matrix":
+        M = Matrix(self.A.T)
+        if self.is_lower_triangular:
+            M.is_upper_triangular = True
+        elif self.is_upper_triangular:
+            M.is_lower_triangular = True
+        M.is_symmetric = self.is_symmetric
+        M.is_positive_definite = self.is_positive_definite
+        return M
+
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
     ) -> "LinearOperator":
