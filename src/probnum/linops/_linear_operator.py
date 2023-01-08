@@ -768,9 +768,9 @@ class LinearOperator(abc.ABC):
         try:
             transposed = self._transpose()
         except NotImplementedError:
-            # This does not need caching, since the `TransposeLinearOperator` only accesses
-            # quantities (particularly `todense`), which are cached inside the original
-            # `LinearOperator`.
+            # This does not need caching, since the `TransposeLinearOperator`
+            # only accesses quantities (particularly `todense`), which are
+            # cached inside the origina`LinearOperator`.
             transposed = TransposedLinearOperator(self)
 
         transposed.is_upper_triangular = self.is_lower_triangular
