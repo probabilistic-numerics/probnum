@@ -766,14 +766,18 @@ class LinearOperator(abc.ABC):
     @property
     def T(self) -> "LinearOperator":
         try:
-            return self._transpose()
+            transposed = self._transpose()
         except NotImplementedError:
-            pass
+            # This does not need caching, since the `TransposeLinearOperator` only accesses
+            # quantities (particularly `todense`), which are cached inside the original
+            # `LinearOperator`.
+            transposed = TransposedLinearOperator(self)
 
-        # This does not need caching, since the `TransposeLinearOperator` only accesses
-        # quantities (particularly `todense`), which are cached inside the original
-        # `LinearOperator`.
-        return TransposedLinearOperator(self)
+        transposed.is_upper_triangular = self.is_lower_triangular
+        transposed.is_lower_triangular = self.is_upper_triangular
+        transposed.is_symmetric = self.is_symmetric
+        transposed.is_positive_definite = self.is_positive_definite
+        return transposed
 
     def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
         """Transpose this linear operator.
@@ -1290,16 +1294,6 @@ class TransposedLinearOperator(LambdaLinearOperator):
             trace=self._linop.trace,
         )
 
-        # Property Inference
-        self.is_symmetric = self._linop.is_symmetric
-        self.is_positive_definite = self._linop.is_positive_definite
-
-        if self._linop.is_lower_triangular:
-            self._linop.is_upper_triangular = True
-
-        if self._linop.is_upper_triangular:
-            self._linop.is_lower_triangular = True
-
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
     ) -> "LinearOperator":
@@ -1486,16 +1480,6 @@ class Matrix(LambdaLinearOperator):
             inverse=inverse,
             trace=trace,
         )
-
-    def _transpose(self) -> "Matrix":
-        M = Matrix(self.A.T)
-        if self.is_lower_triangular:
-            M.is_upper_triangular = True
-        elif self.is_upper_triangular:
-            M.is_lower_triangular = True
-        M.is_symmetric = self.is_symmetric
-        M.is_positive_definite = self.is_positive_definite
-        return M
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
