@@ -16,7 +16,7 @@
   <a href="https://probnum.readthedocs.io/en/latest/development.html">Contributing</a>
 </h4>
 
-[![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?style=flat-square&logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
+[![CI build](https://img.shields.io/github/actions/workflow/status/probabilistic-numerics/probnum/CI-build.yml?branch=main&style=flat-square&logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 [![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/main?style=flat-square&label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/main)
 [![Benchmarks](http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat-square&logo=swift&logoColor=white)](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/)
 [![PyPI](https://img.shields.io/pypi/v/probnum?style=flat-square&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
