@@ -69,7 +69,6 @@ def case_identity(n: int) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
     return pn.linops.Identity(shape=n), np.eye(n)
 
 
-@pytest_cases.case(tags=("symmetric"))
 @pytest.mark.parametrize("shape", [(3, 3), (3, 4), (6, 5)])
 def case_zero(shape: tuple) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
     return pn.linops.Zero(shape=shape), np.zeros(shape)
