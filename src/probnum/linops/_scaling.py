@@ -326,9 +326,6 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
 class Zero(_linear_operator.LambdaLinearOperator):
     def __init__(self, shape, dtype=np.float64):
-
-        matmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
-        apply = lambda x, axis: np.zeros(x.shape, np.result_type(x, self.dtype))
         todense = lambda: np.zeros(shape=shape, dtype=dtype)
         rank = lambda: np.intp(0)
         eigvals = lambda: np.zeros(shape=(shape[0],), dtype=dtype)
@@ -336,13 +333,17 @@ class Zero(_linear_operator.LambdaLinearOperator):
 
         trace = lambda: np.zeros(shape=(), dtype=dtype)
 
+        def matmul(x: np.ndarray) -> np.ndarray:
+            target_shape = list(x.shape)
+            target_shape[-2] = self.shape[0]
+            return np.zeros(target_shape, np.result_type(x, self.dtype))
+
         super().__init__(
             shape,
             dtype=dtype,
             matmul=matmul,
-            apply=apply,
             todense=todense,
-            transpose=lambda: self,
+            transpose=lambda: Zero(self.shape[::-1], self.dtype),
             rank=rank,
             eigvals=eigvals,
             det=det,
