@@ -17,15 +17,15 @@ class InitialDesign(abc.ABC):
 
     Parameters
     ----------
-    num_nodes
+    n_nodes
         The number of nodes to be designed.
     measure
         The integration measure.
 
     """
 
-    def __init__(self, num_nodes: IntLike, measure: IntegrationMeasure) -> None:
-        self.num_nodes = int(num_nodes)
+    def __init__(self, n_nodes: IntLike, measure: IntegrationMeasure) -> None:
+        self.n_nodes = int(n_nodes)
         self.measure = measure
 
     @property
@@ -46,6 +46,6 @@ class InitialDesign(abc.ABC):
         Returns
         -------
         nodes :
-            *shape=(num_nodes, input_dim)* -- Initial design nodes.
+            *shape=(n_nodes, input_dim)* -- Initial design nodes.
         """
         raise NotImplementedError
