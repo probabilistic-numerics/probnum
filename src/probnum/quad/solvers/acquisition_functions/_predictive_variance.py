@@ -45,5 +45,5 @@ class WeightedPredictiveVariance(AcquisitionFunction):
         _, predictive_variance = BQStandardBeliefUpdate.predict_integrand(x, bq_state)
         predictive_variance *= 1 / bq_state.scale_sq  # for numerical stability
 
-        values = predictive_variance * bq_state.measure(x)**2
+        values = predictive_variance * bq_state.measure(x) ** 2
         return values, None
