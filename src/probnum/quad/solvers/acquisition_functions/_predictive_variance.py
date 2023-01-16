@@ -25,6 +25,10 @@ class WeightedPredictiveVariance(AcquisitionFunction):
     where :math:`\operatorname{Var}(f(x))` is the predictive variance of the model and
     :math:`p(x)` is the density of the integration measure :math:`\mu`.
 
+    Notes
+    -----
+        The implementation scales :math:`a(x)` with the inverse of the squared kernel
+        scale for numerical stability.
     """
 
     @property
@@ -39,5 +43,7 @@ class WeightedPredictiveVariance(AcquisitionFunction):
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
 
         _, predictive_variance = BQStandardBeliefUpdate.predict_integrand(x, bq_state)
-        values = bq_state.scale_sq * predictive_variance * bq_state.measure(x) ** 2
+        predictive_variance *= 1 / bq_state.scale_sq  # for numerical stability
+
+        values = predictive_variance * bq_state.measure(x)**2
         return values, None

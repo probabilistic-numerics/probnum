@@ -148,4 +148,4 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
             # variances
             predictive_var -= np.sum(weights * kXx, axis=0)
 
-        return predictive_mean, predictive_var
+        return predictive_mean, bq_state.scale_sq * predictive_var

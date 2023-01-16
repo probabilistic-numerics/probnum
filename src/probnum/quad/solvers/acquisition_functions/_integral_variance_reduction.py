@@ -69,7 +69,7 @@ class IntegralVarianceReduction(AcquisitionFunction):
             )
             predictive_embedding -= np.dot(bq_state.kernel_means, weights)
 
-        values = predictive_embedding**2 / (
+        values = (bq_state.scale_sq * predictive_embedding) ** 2 / (
             bq_state.integral_belief.cov * y_predictive_var
         )
         return values, None
