@@ -226,7 +226,7 @@ class BayesianQuadrature:
         elif policy == "vdc":
             policy = VanDerCorputPolicy(batch_size, measure)
         # all random max acquisition policies
-        elif "_rand" in policy:
+        elif policy in ["us_rand", "mi_rand", "ivr_rand"]:
             policy = RandomMaxAcquisitionPolicy(
                 batch_size=1,
                 acquisition_func=acquisition_dict[policy[:-5]],
