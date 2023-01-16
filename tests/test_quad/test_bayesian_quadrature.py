@@ -131,6 +131,7 @@ def test_bq_from_problem_initial_design_assignment(design, design_type):
     ],
 )
 def test_bq_from_problem_stopping_criterion_assignment(max_evals, var_tol, rel_tol, t):
+    """Test if correct stopping criterion is assigned from input parameters."""
     bq = BayesianQuadrature.from_problem(
         input_dim=2,
         domain=(0, 1),
@@ -140,6 +141,7 @@ def test_bq_from_problem_stopping_criterion_assignment(max_evals, var_tol, rel_t
 
 
 def test_bq_from_problem_default_attribute_types(bq, bq_no_policy):
+    """Test if default are sets correctly (using the default options dict)."""
 
     # defaults if policy is available
     assert isinstance(bq.measure, LebesgueMeasure)
@@ -157,7 +159,7 @@ def test_bq_from_problem_default_attribute_types(bq, bq_no_policy):
 
 
 def test_bq_from_problem_options_values_default():
-    """Check if default values of the options dictionary are set correctly."""
+    """Test if default values of the options dictionary are set correctly."""
 
     bq = BayesianQuadrature.from_problem(
         input_dim=2,
@@ -172,7 +174,8 @@ def test_bq_from_problem_options_values_default():
 
 
 def test_bq_from_problem_options_values_custom():
-    """Check if custom values of the options dictionary are set correctly."""
+    """Tst if custom values of the options dictionary are set correctly
+    (apart from design and policy options)."""
 
     # batch_size manual value
     batch_size = 3
@@ -195,6 +198,7 @@ def test_bq_from_problem_options_values_custom():
 
 @pytest.mark.parametrize("design", _all_designs)
 def test_bq_from_problem_options_design_values_default(design):
+    """Test if default values in options dict related to design are set correctly."""
     input_dim = 5
     bq = BayesianQuadrature.from_problem(
         input_dim=input_dim,
@@ -206,6 +210,7 @@ def test_bq_from_problem_options_design_values_default(design):
 
 @pytest.mark.parametrize("design", _all_designs)
 def test_bq_from_problem_options_design_values_custom(design):
+    """Test if custom values in options dict related to design are set correctly."""
     input_dim = 5
     n_initial_design_nodes = 3
     assert int(input_dim * 5) != n_initial_design_nodes  # since this is the default
@@ -220,6 +225,7 @@ def test_bq_from_problem_options_design_values_custom(design):
 
 @pytest.mark.parametrize("policy", _all_acq_policies)
 def test_bq_from_problem_options_policy_values_default(policy):
+    """Test if default values in options dict related to policies are set correctly."""
     # n_candidates
     bq = BayesianQuadrature.from_problem(
         input_dim=2, domain=(0, 1), policy=policy + "_rand"
@@ -233,6 +239,7 @@ def test_bq_from_problem_options_policy_values_default(policy):
 
 @pytest.mark.parametrize("policy", _all_acq_policies)
 def test_bq_from_problem_options_policy_values_custom(policy):
+    """Test if custom values in options dict related to policies are set correctly."""
     # n_candidates for random policies
     n_candidates = 5
     bq = BayesianQuadrature.from_problem(
@@ -258,7 +265,7 @@ def test_bq_from_problem_options_policy_values_custom(policy):
 
 
 def test_bq_from_problem_wrong_inputs(input_dim):
-
+    """Exceptions raised in from-problem classmethod."""
     # neither measure nor domain is provided
     with pytest.raises(ValueError):
         BayesianQuadrature.from_problem(input_dim=input_dim)
