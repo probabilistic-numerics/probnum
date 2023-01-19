@@ -766,14 +766,18 @@ class LinearOperator(abc.ABC):
     @property
     def T(self) -> "LinearOperator":
         try:
-            return self._transpose()
+            transposed = self._transpose()
         except NotImplementedError:
-            pass
+            # This does not need caching, since the `TransposeLinearOperator`
+            # only accesses quantities (particularly `todense`), which are
+            # cached inside the origina`LinearOperator`.
+            transposed = TransposedLinearOperator(self)
 
-        # This does not need caching, since the `TransposeLinearOperator` only accesses
-        # quantities (particularly `todense`), which are cached inside the original
-        # `LinearOperator`.
-        return TransposedLinearOperator(self)
+        transposed.is_upper_triangular = self.is_lower_triangular
+        transposed.is_lower_triangular = self.is_upper_triangular
+        transposed.is_symmetric = self.is_symmetric
+        transposed.is_positive_definite = self.is_positive_definite
+        return transposed
 
     def transpose(self, *axes: Union[int, Tuple[int]]) -> "LinearOperator":
         """Transpose this linear operator.
@@ -1289,16 +1293,6 @@ class TransposedLinearOperator(LambdaLinearOperator):
             logabsdet=self._linop.logabsdet,
             trace=self._linop.trace,
         )
-
-        # Property Inference
-        self.is_symmetric = self._linop.is_symmetric
-        self.is_positive_definite = self._linop.is_positive_definite
-
-        if self._linop.is_lower_triangular:
-            self._linop.is_upper_triangular = True
-
-        if self._linop.is_upper_triangular:
-            self._linop.is_lower_triangular = True
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
