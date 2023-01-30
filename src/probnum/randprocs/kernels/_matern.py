@@ -1,13 +1,13 @@
 """Matérn kernel."""
 
-import functools
 import fractions
+import functools
 from typing import Optional, Tuple
 
 import numpy as np
 import scipy.special
 
-from probnum.typing import ScalarLike, ShapeLike, ArrayLike, ScalarType
+from probnum.typing import ArrayLike, ScalarLike, ScalarType, ShapeLike
 import probnum.utils as _utils
 
 from ._kernel import IsotropicMixin, Kernel

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import abc
 import functools
 import operator
-import abc
 from typing import Optional, Union
 
 import numpy as np

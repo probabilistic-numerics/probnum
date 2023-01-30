@@ -4,9 +4,8 @@ import numpy as np
 import pytest
 
 from probnum.randprocs import kernels
-from probnum.typing import ShapeType
-
 from probnum.randprocs.kernels._matern import _matern_bessel
+from probnum.typing import ShapeType
 
 
 @pytest.mark.parametrize("p", range(4))
