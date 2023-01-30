@@ -38,7 +38,7 @@ def fixture_input_shape(request) -> ShapeType:
             (pn.randprocs.kernels.Linear, {"constant": 1.0}),
             (pn.randprocs.kernels.WhiteNoise, {"sigma_sq": 1.0}),
             (pn.randprocs.kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
-            (pn.randprocs.kernels.ExpQuad, {"lengthscale": 1.5}),
+            (pn.randprocs.kernels.ExpQuad, {"lengthscales": 1.5}),
             (pn.randprocs.kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
             (pn.randprocs.kernels.Matern, {"lengthscales": 0.5, "nu": 0.5}),
             (pn.randprocs.kernels.Matern, {"lengthscales": 0.5, "nu": 1.5}),

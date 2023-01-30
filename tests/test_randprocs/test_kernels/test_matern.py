@@ -41,7 +41,7 @@ def test_nu_large_recovers_rbf_kernel(
 ):
     """Test whether a Matern kernel with nu large is close to an RBF kernel."""
     lengthscale = 1.25
-    rbf = kernels.ExpQuad(input_shape=input_shape, lengthscale=lengthscale)
+    rbf = kernels.ExpQuad(input_shape=input_shape, lengthscales=lengthscale)
     matern = kernels.Matern(input_shape=input_shape, lengthscales=lengthscale, nu=15)
 
     np.testing.assert_allclose(
