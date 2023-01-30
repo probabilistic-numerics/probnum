@@ -12,7 +12,7 @@ def test_kernel_matrix(input_dim, nu):
     """Check that the product Matérn kernel matrix is an elementwise product of 1D
     Matérn kernel matrices."""
     lengthscale = 1.25
-    matern = kernels.Matern(input_shape=(1,), lengthscale=lengthscale, nu=nu)
+    matern = kernels.Matern(input_shape=(1,), lengthscales=lengthscale, nu=nu)
     product_matern = kernels.ProductMatern(
         input_shape=(input_dim,), lengthscales=lengthscale, nus=nu
     )

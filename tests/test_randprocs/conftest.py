@@ -67,7 +67,7 @@ def fixture_mean(request, input_dim: int) -> Callable:
             (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
             (kernels.ExpQuad, {"lengthscale": 1.5}),
             (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
-            (kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
+            (kernels.Matern, {"lengthscales": 0.5, "nu": 1.5}),
         ]
     ],
     name="cov",
