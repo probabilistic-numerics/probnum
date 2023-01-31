@@ -110,7 +110,7 @@ class Matern(Kernel, IsotropicMixin):
             dtype=np.double,
         )
 
-        if np.any(lengthscales < 0):
+        if np.any(lengthscales <= 0):
             raise ValueError(f"All lengthscales l={lengthscales} must be positive.")
 
         np.broadcast_to(  # Check if the lengthscales broadcast to the input dimension

@@ -8,10 +8,26 @@ from probnum.randprocs.kernels._matern import _matern_bessel
 from probnum.typing import ShapeType
 
 
+@pytest.mark.parametrize("nu", [-1, -1.0, 0.0, 0])
+def test_nonpositive_nu_raises_exception(nu):
+    """Check whether a non-positive nu parameter raises a ValueError."""
+    with pytest.raises(ValueError):
+        kernels.Matern(input_shape=(), nu=nu)
+
+
+@pytest.mark.parametrize("lengthscales", (0.0, -1.0, (0.0, 1.0), (-0.2, 2.0)))
+def test_nonpositive_lengthscales_raises_exception(lengthscales):
+    """Check whether a non-positive `lengthscales` parameter raises a ValueError."""
+    with pytest.raises(ValueError):
+        kernels.Matern(np.shape(lengthscales), lengthscales=lengthscales)
+
+
 @pytest.mark.parametrize("p", range(4))
 def test_half_integer_impl_equals_naive_impl(
     input_shape: ShapeType, p: int, x0: np.ndarray, x1: np.ndarray
 ):
+    """Test whether the optimized half-integer implementation produces the same results
+    as the general implementation based on the Bessel function."""
     rng = np.random.default_rng(537892325)
 
     nu = p + 0.5
@@ -22,17 +38,12 @@ def test_half_integer_impl_equals_naive_impl(
     assert k.is_half_integer
     assert k.p == p
 
+    assert np.all(lengthscales > 0)
+
     # Compare against naive implementation
     k_naive = NaiveMatern(input_shape, nu=nu, lengthscales=lengthscales)
 
     np.testing.assert_allclose(k.matrix(x0, x1), k_naive.matrix(x0, x1))
-
-
-@pytest.mark.parametrize("nu", [-1, -1.0, 0.0, 0])
-def test_nonpositive_nu_raises_exception(nu):
-    """Check whether a non-positive nu parameter raises a ValueError."""
-    with pytest.raises(ValueError):
-        kernels.Matern(input_shape=(), nu=nu)
 
 
 def test_nu_large_recovers_rbf_kernel(
