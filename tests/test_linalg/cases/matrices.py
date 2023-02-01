@@ -31,7 +31,7 @@ def case_kernel_matrix(n: int, rng: np.random.Generator) -> np.ndarray:
     """Kernel Gram matrix."""
     x_min, x_max = (-4.0, 4.0)
     X = rng.uniform(x_min, x_max, (n, 1))
-    kern = kernels.ExpQuad(input_shape=1, lengthscale=1)
+    kern = kernels.ExpQuad(input_shape=1)
     return kern(X)
 
 

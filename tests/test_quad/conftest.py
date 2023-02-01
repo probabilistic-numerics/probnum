@@ -127,7 +127,7 @@ def fixture_measure(measure_params) -> IntegrationMeasure:
     params=[
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
-            (kernels.ExpQuad, {"lengthscale": 1.25}),
+            (kernels.ExpQuad, {"lengthscales": 1.25}),
         ]
     ],
     name="kernel",
@@ -178,7 +178,7 @@ def fixture_matern_nu(request) -> int:
 
 @pytest.fixture(
     params=[
-        pytest.param(matern_lengthscale, id=f"lengthscale={matern_lengthscale}")
+        pytest.param(matern_lengthscale, id=f"lengthscales={matern_lengthscale}")
         for matern_lengthscale in [0.8, 1.0, 1.25]
     ],
     name="matern_lengthscale",

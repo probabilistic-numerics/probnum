@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import abc
+import functools
+import operator
 from typing import Optional, Union
 
 import numpy as np
@@ -158,6 +160,11 @@ class Kernel(abc.ABC):
     def input_ndim(self) -> int:
         """Syntactic sugar for ``len(input_shape)``."""
         return self._input_ndim
+
+    @property
+    def input_size(self) -> int:
+        """Syntactic sugar for the product over the input size."""
+        return functools.reduce(operator.mul, self.input_shape, 1)
 
     @property
     def output_shape(self) -> ShapeType:
@@ -468,45 +475,59 @@ class Kernel(abc.ABC):
 class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
     r"""Mixin for isotropic kernels.
 
-    An isotropic kernel is a kernel which only depends on the Euclidean norm of the
-    distance between the arguments, i.e.
+    An isotropic kernel is a kernel which only depends on the norm of the difference of
+    the arguments, i.e.
 
     .. math ::
 
-        k(x_0, x_1) = k(\lVert x_0 - x_1 \rVert_2).
+        k(x_0, x_1) = k(\lVert x_0 - x_1 \rVert).
 
     Hence, all isotropic kernels are stationary.
     """
 
     def _squared_euclidean_distances(
-        self, x0: np.ndarray, x1: Optional[np.ndarray]
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
+        *,
+        scale_factors: Optional[np.ndarray] = None,
     ) -> np.ndarray:
-        """Implementation of the squared Euclidean distance, which supports scalar
-        inputs and an optional second argument."""
+        """Implementation of the squared (modified) Euclidean distance, which supports
+        scalar inputs, an optional second argument, and separate scale factors for each
+        input dimension."""
+
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[: x0.ndim - self._input_ndim],
             )
 
-        sqdiffs = (x0 - x1) ** 2
+        sqdiffs = x0 - x1
 
-        if self.input_ndim == 0:
-            return sqdiffs
+        if scale_factors is not None:
+            sqdiffs *= scale_factors
 
-        assert self.input_ndim == 1
+        sqdiffs *= sqdiffs
 
-        return np.sum(sqdiffs, axis=-1)
+        return np.sum(sqdiffs, axis=tuple(range(-self.input_ndim, 0)))
 
     def _euclidean_distances(
-        self, x0: np.ndarray, x1: Optional[np.ndarray]
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
+        *,
+        scale_factors: Optional[np.ndarray] = None,
     ) -> np.ndarray:
-        """Implementation of the Euclidean distance, which supports scalar inputs and an
-        optional second argument."""
+        """Implementation of the (modified) Euclidean distance, which supports scalar
+        inputs, an optional second argument, and separate scale factors for each input
+        dimension."""
+
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
                 shape=x0.shape[: x0.ndim - self._input_ndim],
             )
 
-        return np.sqrt(self._squared_euclidean_distances(x0, x1))
+        return np.sqrt(
+            self._squared_euclidean_distances(x0, x1, scale_factors=scale_factors)
+        )
