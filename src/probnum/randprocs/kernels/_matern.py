@@ -126,8 +126,12 @@ class Matern(Kernel, IsotropicMixin):
 
     @functools.cached_property
     def p(self) -> Optional[int]:
-        r"""Order :math:`p` of the polynomial part of the kernel if :math:`\nu` is a
-        half integer :math:`\nu = p + \frac{1}{2}`. Otherwise this is set to `None`."""
+        r"""Degree :math:`p` of the polynomial part of a Matérn kernel with half-integer
+        smoothness parameter :math:`\nu = p + \frac{1}{2}`. If :math:`\nu` is not a
+        half-integer, this is set to :data:`None`.
+
+        Sample paths of a Gaussian process with this covariance function are
+        :math:`p`-times continuously differentiable."""
         nu_minus_half = self._nu - 0.5
 
         # Half-integer values can be represented exactly in IEEE 754 floating point
@@ -184,20 +188,34 @@ class Matern(Kernel, IsotropicMixin):
     @staticmethod
     @functools.lru_cache(maxsize=None)
     def half_integer_coefficients(p: int) -> Tuple[fractions.Fraction]:
-        r"""Computes the rational coefficients of the polynomial part of a Matérn kernel
-        with half-integer smoothness parameter :math:`\nu = p + \frac{1}{2}`.
+        r"""Computes the rational coefficients :math:`c_i` of the polynomial part of a
+        Matérn kernel with half-integer smoothness parameter :math:`\nu = p +
+        \frac{1}{2}`.
+
+        We leverage the recursion
+
+        .. math::
+            :nowrap:
+
+            \begin{align}
+                c_{p - i}
+                & := \frac{p!}{(2p)!} \frac{(p + i)!}{i!(p - i)!} 2^{p - i} \\
+                & = \frac{2 (i + 1)}{(p + i + 1) (p - i)} c_{p - (i + 1)},
+            \end{align}
+
+        where :math:`c_0 = c_{p - p} = 1`.
 
         Parameters
         ----------
         p:
-            Order :math:`p` of the polynomial part.
+            Degree :math:`p` of the polynomial part.
 
         Returns
         -------
         coefficients:
             A tuple containing the exact rational coefficients of the polynomial part,
             where the entry at index :math:`i` contains the coefficient corresponding to
-            the monomial :math:`X^i`.
+            the monomial with degree :math:`i`.
         """
         coeffs = [fractions.Fraction(1, 1)]
 

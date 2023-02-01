@@ -493,8 +493,8 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         scale_factors: Optional[np.ndarray] = None,
     ) -> np.ndarray:
         """Implementation of the squared (modified) Euclidean distance, which supports
-        scalar inputs, an optional second argument, and different scale factors along
-        all input dimensions."""
+        scalar inputs, an optional second argument, and separate scale factors for each
+        input dimension."""
 
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
@@ -519,8 +519,8 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         scale_factors: Optional[np.ndarray] = None,
     ) -> np.ndarray:
         """Implementation of the (modified) Euclidean distance, which supports scalar
-        inputs, an optional second argument, and different scale factors along all input
-        dimensions."""
+        inputs, an optional second argument, and separate scale factors for each input
+        dimension."""
 
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
