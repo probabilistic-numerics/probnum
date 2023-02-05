@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+import functools
 from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
@@ -112,6 +113,13 @@ class LinearOperator(abc.ABC):
         """Data type of the linear operator."""
         return self.__dtype
 
+    @property
+    def _inexact_dtype(self) -> np.dtype:
+        if np.issubdtype(self.dtype, np.inexact):
+            return self.dtype
+
+        return np.double
+
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with "
@@ -120,7 +128,7 @@ class LinearOperator(abc.ABC):
         )
 
     def _apply(self, x: np.ndarray, axis: int) -> np.ndarray:
-        raise NotImplementedError()
+        return np.moveaxis(self @ np.moveaxis(x, axis, -2), -2, axis)
 
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         """Apply the linear operator to an input array along a specified
@@ -147,7 +155,8 @@ class LinearOperator(abc.ABC):
 
         if x.ndim == 1:
             return self @ x
-        elif x.ndim > 1:
+
+        if x.ndim > 1:
             if axis is None:
                 axis = -1
 
@@ -162,15 +171,13 @@ class LinearOperator(abc.ABC):
 
             if axis == (x.ndim - 1):
                 return (self @ x[..., np.newaxis])[..., 0]
-            elif axis == (x.ndim - 2):
+
+            if axis == (x.ndim - 2):
                 return self @ x
-            else:
-                try:
-                    return self._apply(x, axis)
-                except NotImplementedError:
-                    return np.moveaxis(self @ np.moveaxis(x, axis, -2), -2, axis)
-        else:
-            raise ValueError("The operand must be at least one dimensional.")
+
+            return self._apply(x, axis=axis)
+
+        raise ValueError("The operand must be at least one dimensional.")
 
     def astype(
         self,
@@ -216,8 +223,8 @@ class LinearOperator(abc.ABC):
     ) -> "LinearOperator":
         if self.dtype == dtype and not copy:
             return self
-        else:
-            return _TypeCastLinearOperator(self, dtype, order, casting, copy)
+
+        return _TypeCastLinearOperator(self, dtype, order, casting, copy)
 
     def _todense(self) -> np.ndarray:
         """Dense matrix representation of the linear operator.
@@ -229,7 +236,7 @@ class LinearOperator(abc.ABC):
         matrix : np.ndarray
             Matrix representation of the linear operator.
         """
-        raise NotImplementedError()
+        return self @ np.eye(self.shape[1], dtype=self.__dtype, order="F")
 
     def todense(self, cache: bool = True) -> np.ndarray:
         """Dense matrix representation of the linear operator.
@@ -243,10 +250,7 @@ class LinearOperator(abc.ABC):
             Matrix representation of the linear operator.
         """
         if self._todense_cache is None:
-            try:
-                dense = self._todense()
-            except NotImplementedError:
-                dense = self @ np.eye(self.shape[1], dtype=self.__dtype, order="F")
+            dense = self._todense()
 
             if not cache:
                 return dense
@@ -359,15 +363,12 @@ class LinearOperator(abc.ABC):
 
         You may implement this method in a subclass.
         """
-        raise NotImplementedError()
+        return np.linalg.matrix_rank(self.todense(cache=False))
 
     def rank(self) -> np.intp:
         """Rank of the linear operator."""
         if self._rank_cache is None:
-            try:
-                self._rank_cache = self._rank()
-            except NotImplementedError:
-                self._rank_cache = np.linalg.matrix_rank(self.todense(cache=False))
+            self._rank_cache = self._rank()
 
         return self._rank_cache
 
@@ -376,7 +377,7 @@ class LinearOperator(abc.ABC):
 
         You may implement this method in a subclass.
         """
-        raise NotImplementedError()
+        return np.linalg.eigvals(self.todense(cache=False))
 
     def eigvals(self) -> np.ndarray:
         """Eigenvalue spectrum of the linear operator."""
@@ -386,10 +387,7 @@ class LinearOperator(abc.ABC):
                     "Eigenvalues are only defined for square operators"
                 )
 
-            try:
-                self._eigvals_cache = self._eigvals()
-            except NotImplementedError:
-                self._eigvals_cache = np.linalg.eigvals(self.todense(cache=False))
+            self._eigvals_cache = self._eigvals()
 
             self._eigvals_cache.setflags(write=False)
 
@@ -428,7 +426,7 @@ class LinearOperator(abc.ABC):
         cond :
             The condition number of the linear operator. May be infinite.
         """
-        raise NotImplementedError()
+        return np.linalg.cond(self.todense(cache=False), p=p)
 
     def cond(self, p=None) -> np.inexact:
         """Compute the condition number of the linear operator.
@@ -468,14 +466,15 @@ class LinearOperator(abc.ABC):
                     "The condition number is only defined for square operators"
                 )
 
-            try:
-                self._cond_cache[p] = self._cond(p)
-            except NotImplementedError:
-                self._cond_cache[p] = np.linalg.cond(self.todense(cache=False), p=p)
+            self._cond_cache[p] = self._cond(p)
 
         return self._cond_cache[p]
 
-    def _det(self) -> np.number:
+    @functools.cached_property
+    def _slogdet(self) -> Tuple[np.inexact, np.inexact]:
+        return np.linalg.slogdet(self.todense(cache=False))
+
+    def _det(self) -> np.inexact:
         """Determinant of the linear operator.
 
         The linear operator is guaranteed to be square.
@@ -487,7 +486,8 @@ class LinearOperator(abc.ABC):
         det :
             The determinant of the linear operator.
         """
-        raise NotImplementedError()
+        sign, logabsdet = self._slogdet
+        return sign * np.exp(logabsdet)
 
     def det(self) -> np.inexact:
         """Determinant of the linear operator.
@@ -508,10 +508,7 @@ class LinearOperator(abc.ABC):
                     "The determinant is only defined for square operators"
                 )
 
-            try:
-                self._det_cache = self._det()
-            except NotImplementedError:
-                self._det_cache = np.linalg.det(self.todense(cache=False))
+            self._det_cache = self._det()
 
         return self._det_cache
 
@@ -527,7 +524,9 @@ class LinearOperator(abc.ABC):
         logabsdet :
             The log absolute determinant of the linear operator.
         """
-        raise NotImplementedError()
+
+        _, logabsdet = self._slogdet
+        return logabsdet
 
     def logabsdet(self) -> np.inexact:
         """Log absolute determinant of the linear operator.
@@ -548,18 +547,9 @@ class LinearOperator(abc.ABC):
                     "The determinant is only defined for square operators"
                 )
 
-            try:
-                self._logabsdet_cache = self._logabsdet()
-            except NotImplementedError:
-                self._logabsdet_cache = self._logabsdet_fallback()
+            self._logabsdet_cache = self._logabsdet()
 
         return self._logabsdet_cache
-
-    def _logabsdet_fallback(self) -> np.inexact:
-        if self.det() == 0:
-            return probnum.utils.as_numpy_scalar(-np.inf, dtype=self._inexact_dtype)
-        else:
-            return np.log(np.abs(self.det()))
 
     def _trace(self) -> np.number:
         r"""Trace of the linear operator.
@@ -576,7 +566,19 @@ class LinearOperator(abc.ABC):
         trace : float
             Trace of the linear operator.
         """
-        raise NotImplementedError()
+
+        vec = np.zeros(self.shape[1], dtype=self.dtype)
+
+        vec[0] = 1
+        trace = (self @ vec)[0]
+        vec[0] = 0
+
+        for i in range(1, self.shape[0]):
+            vec[i] = 1
+            trace += (self @ vec)[i]
+            vec[i] = 0
+
+        return trace
 
     def trace(self) -> np.number:
         r"""Trace of the linear operator.
@@ -600,26 +602,9 @@ class LinearOperator(abc.ABC):
                     "The trace is only defined for square operators."
                 )
 
-            try:
-                self._trace_cache = self._trace()
-            except NotImplementedError:
-                self._trace_cache = self._trace_fallback()
+            self._trace_cache = self._trace()
 
         return self._trace_cache
-
-    def _trace_fallback(self) -> np.number:
-        vec = np.zeros(self.shape[1], dtype=self.dtype)
-
-        vec[0] = 1
-        trace = (self @ vec)[0]
-        vec[0] = 0
-
-        for i in range(1, self.shape[0]):
-            vec[i] = 1
-            trace += (self @ vec)[i]
-            vec[i] = 0
-
-        return trace
 
     ####################################################################################
     # Matrix Decompositions
@@ -1092,19 +1077,6 @@ class LinearOperator(abc.ABC):
         """
         return np.vectorize(matmat, signature="(n,k)->(m,k)")
 
-    @property
-    def _inexact_dtype(self) -> np.dtype:
-        if np.issubdtype(self.dtype, np.inexact):
-            return self.dtype
-        else:
-            return np.double
-
-
-def _call_if_implemented(method: Optional[callable]) -> callable:
-    if method is not None:
-        return method
-    raise NotImplementedError()
-
 
 class LambdaLinearOperator(LinearOperator):
     r"""Convenience subclass of LinearOperator that lets you pass
@@ -1221,10 +1193,16 @@ class LambdaLinearOperator(LinearOperator):
         return self._matmul_fn(x)
 
     def _apply(self, x: np.ndarray, axis: int) -> np.ndarray:
-        return _call_if_implemented(self._apply_fn)(x, axis)
+        if self._apply_fn is None:
+            return super()._apply(x, axis=axis)
+
+        return self._apply_fn(x, axis)
 
     def _todense(self) -> np.ndarray:
-        return _call_if_implemented(self._todense_fn)()
+        if self._todense_fn is None:
+            return super()._todense()
+
+        return self._todense_fn()
 
     def _transpose(self) -> "LinearOperator":
         if self._transpose_fn is not None:
@@ -1241,27 +1219,48 @@ class LambdaLinearOperator(LinearOperator):
         raise NotImplementedError()
 
     def _inverse(self) -> "LinearOperator":
-        return _call_if_implemented(self._inverse_fn)()
+        if self._inverse_fn is None:
+            super()._inverse()
+
+        return self._inverse_fn()
 
     def _rank(self) -> np.intp:
-        return _call_if_implemented(self._rank_fn)()
+        if self._rank_fn is None:
+            return super()._rank()
+
+        return self._rank_fn()
 
     def _eigvals(self) -> np.ndarray:
-        return _call_if_implemented(self._eigvals_fn)()
+        if self._eigvals_fn is None:
+            return super()._eigvals()
+
+        return self._eigvals_fn()
 
     def _cond(
         self, p: Optional[Union[None, int, str, np.floating]] = None
     ) -> np.number:
-        return _call_if_implemented(self._cond_fn)(p)
+        if self._cond_fn is None:
+            return super()._cond(p)
+
+        return self._cond_fn(p)
 
     def _det(self) -> np.number:
-        return _call_if_implemented(self._det_fn)()
+        if self._det_fn is None:
+            return super()._det()
 
-    def _logabsdet(self) -> np.flexible:
-        return _call_if_implemented(self._logabsdet_fn)()
+        return self._det_fn()
+
+    def _logabsdet(self) -> np.floating:
+        if self._logabsdet_fn is None:
+            return super()._logabsdet()
+
+        return self._logabsdet_fn()
 
     def _trace(self) -> np.number:
-        return _call_if_implemented(self._trace_fn)()
+        if self._trace_fn is None:
+            return super()._trace()
+
+        return self._trace_fn()
 
 
 class TransposedLinearOperator(LambdaLinearOperator):
