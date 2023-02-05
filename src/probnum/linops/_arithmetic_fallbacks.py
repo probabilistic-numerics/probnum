@@ -36,7 +36,6 @@ class ScaledLinearOperator(LambdaLinearOperator):
             self._linop.shape,
             dtype=dtype,
             matmul=lambda x: self._scalar * (self._linop @ x),
-            rmatmul=lambda x: self._scalar * (x @ self._linop),
             todense=lambda: self._scalar * self._linop.todense(cache=False),
             transpose=lambda: self._scalar * self._linop.T,
             inverse=self._inv,
@@ -53,6 +52,9 @@ class ScaledLinearOperator(LambdaLinearOperator):
                 self.is_positive_definite = True
             else:
                 self.is_positive_definite = False
+
+    def _solve(self, B: np.ndarray) -> np.ndarray:
+        return self.inv() @ B
 
     def _inv(self) -> "ScaledLinearOperator":
         if self._scalar == 0:
@@ -98,9 +100,6 @@ class SumLinearOperator(LambdaLinearOperator):
             ),
             matmul=lambda x: functools.reduce(
                 operator.add, (summand @ x for summand in self._summands)
-            ),
-            rmatmul=lambda x: functools.reduce(
-                operator.add, (x @ summand for summand in self._summands)
             ),
             todense=lambda: functools.reduce(
                 operator.add,
@@ -188,9 +187,6 @@ class ProductLinearOperator(LambdaLinearOperator):
             matmul=lambda x: functools.reduce(
                 lambda vec, op: op @ vec, reversed(self._factors), x
             ),
-            rmatmul=lambda x: functools.reduce(
-                lambda vec, op: vec @ op, self._factors, x
-            ),
             todense=lambda: functools.reduce(
                 operator.matmul,
                 (factor.todense(cache=False) for factor in self._factors),
@@ -226,6 +222,9 @@ class ProductLinearOperator(LambdaLinearOperator):
         for s in self._factors:
             res += f"\t{s}, \n"
         return res + "]"
+
+    def _solve(self, B: np.ndarray) -> np.ndarray:
+        return functools.reduce(lambda vec, op: op @ vec, self._factors, B)
 
 
 def _matmul_fallback(

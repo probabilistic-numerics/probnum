@@ -179,6 +179,75 @@ def test_call(
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_solve_vector(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+    rng: np.random.Generator,
+):
+    vec = rng.normal(size=linop.shape[0])
+
+    if linop.is_square:
+        expected_exception = None
+
+        try:
+            np_linalg_solve = np.linalg.solve(matrix, vec)
+        except Exception as e:  # pylint: disable=broad-except
+            expected_exception = e
+
+        if expected_exception is None:
+            linop_solve = linop.solve(vec)
+
+            assert linop_solve.ndim == 1
+            assert linop_solve.shape == np_linalg_solve.shape
+            assert linop_solve.dtype == np_linalg_solve.dtype
+
+            np.testing.assert_allclose(linop_solve, np_linalg_solve)
+        else:
+            with pytest.raises(type(expected_exception)):
+                linop.solve(vec)
+    else:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.solve(vec)
+
+
+@pytest.mark.parametrize(
+    "batch_shape,ncols", [((), 1), ((), 5), ((1,), 2), ((3, 1), 3)]
+)
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_solve(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+    rng: np.random.Generator,
+    batch_shape: Tuple[int],
+    ncols: int,
+):
+    mat = rng.normal(size=batch_shape + (linop.shape[0], ncols))
+
+    if linop.is_square:
+        expected_exception = None
+
+        try:
+            np_linalg_solve = np.linalg.solve(matrix, mat)
+        except Exception as e:  # pylint: disable=broad-except
+            expected_exception = e
+
+        if expected_exception is None:
+            linop_solve = linop.solve(mat)
+
+            assert linop_solve.ndim == mat.ndim
+            assert linop_solve.shape == np_linalg_solve.shape
+            assert linop_solve.dtype == np_linalg_solve.dtype
+
+            np.testing.assert_allclose(linop_solve, np_linalg_solve)
+        else:
+            with pytest.raises(type(expected_exception)):
+                linop.solve(mat)
+    else:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.solve(mat)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_todense(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     linop_dense = linop.todense()
 
