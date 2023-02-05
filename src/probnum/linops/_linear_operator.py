@@ -1681,6 +1681,19 @@ class Identity(LambdaLinearOperator):
 
 
 class Selection(LambdaLinearOperator):
+    """Indexing into a vector at one or multiple indices, represented as a
+    :class:`LinearOperator`.
+
+    Parameters
+    ----------
+    indices:
+        Indices to select.
+    shape:
+        Shape of the linear operator.
+    dtype:
+        Data type of the linear operator.
+    """
+
     def __init__(self, indices, shape, dtype=np.double):
         if np.ndim(indices) > 1:
             raise ValueError(
@@ -1722,6 +1735,9 @@ def _selection_matmul(indices, M):
 
 
 class Embedding(LambdaLinearOperator):
+    """Embeds a vector into a higher-dimensional space by writing its entries to the
+    given indices of the result vector."""
+
     def __init__(
         self, take_indices, put_indices, shape, fill_value=0.0, dtype=np.double
     ):

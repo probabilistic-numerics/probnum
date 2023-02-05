@@ -328,6 +328,18 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
 
 class Zero(_linear_operator.LambdaLinearOperator):
+    """The zero matrix represented as a :class:`LinearOperator`.
+
+    Linear operator that maps all inputs to 0.
+
+    Parameters
+    ----------
+    shape :
+        Shape of the linear operator.
+    dtype :
+        Data type of the linear operator.
+    """
+
     def __init__(self, shape, dtype=np.float64):
         todense = lambda: np.zeros(shape=shape, dtype=dtype)
         rank = lambda: np.intp(0)

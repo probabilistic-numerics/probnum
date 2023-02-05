@@ -73,6 +73,8 @@ class ScaledLinearOperator(LambdaLinearOperator):
 
 
 class NegatedLinearOperator(ScaledLinearOperator):
+    """Negation of a given linear operator."""
+
     def __init__(self, linop: LinearOperator):
         super().__init__(linop, scalar=probnum.utils.as_numpy_scalar(-1, linop.dtype))
 
