@@ -23,7 +23,7 @@ BinaryOperandType = Union[
 # pylint: disable="too-many-lines"
 
 
-class LinearOperator(abc.ABC):
+class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
     r"""Abstract base class for `matrix-free` finite-dimensional linear operators.
 
     This class provides a way to define finite-dimensional linear operators without
@@ -1203,7 +1203,9 @@ class LinearOperator(abc.ABC):
     broadcast_matmat = staticmethod(_vectorize.vectorize_matmat)
 
 
-class LambdaLinearOperator(LinearOperator):
+class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
+    LinearOperator
+):
     r"""Convenience subclass of LinearOperator that lets you pass
     implementations of its methods as parameters instead of
     overriding them in a subclass.
