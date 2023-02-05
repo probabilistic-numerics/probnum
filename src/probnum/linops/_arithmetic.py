@@ -50,7 +50,7 @@ _AnyLinOp = [
 ]
 
 
-# pylint: disable=missing-function-docstring
+# pylint: disable=protected-access,missing-function-docstring
 
 
 def add(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:

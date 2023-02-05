@@ -1470,7 +1470,7 @@ class _InverseLinearOperator(LambdaLinearOperator):
                     pass
 
         return scipy.linalg.lu_solve(
-            self._linop._lu_factor(),
+            self._linop._lu_factor(),  # pylint: disable=protected-access
             B,
             trans=1,
             overwrite_b=False,
@@ -1789,6 +1789,7 @@ class Embedding(LambdaLinearOperator):
 
 
 def _embedding_matmul(embedding, M):
+    # pylint: disable=protected-access
     res_shape = np.array(M.shape)
     res_shape[-2] = embedding.shape[0]
     res = np.full(shape=tuple(res_shape), fill_value=embedding._fill_value)
