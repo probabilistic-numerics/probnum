@@ -149,14 +149,14 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return super()._cond(p)
 
-    def _det(self) -> np.number:
+    def _det(self) -> np.inexact:
         if self.A.is_square and self.B.is_square:
             # det(A (x) B) = det(A)^n * det(B)^m
             return self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
 
         return super()._det()
 
-    def _logabsdet(self) -> np.inexact:
+    def _logabsdet(self) -> np.floating:
         if self.A.is_square and self.B.is_square:
             # det(A (x) B) = det(A)^n * det(B)^m
             return (
@@ -464,7 +464,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         return super()._det()
 
-    def _logabsdet(self) -> np.inexact:
+    def _logabsdet(self) -> np.floating:
         if self.identical_factors:
             return 2 * self._n * self.A.logabsdet()
 

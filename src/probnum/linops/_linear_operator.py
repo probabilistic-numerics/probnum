@@ -535,7 +535,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 
     def _cond(
         self, p: Optional[Union[None, int, str, np.floating]] = None
-    ) -> np.number:
+    ) -> np.floating:
         """Compute the condition number of the linear operator.
 
         The condition number of the linear operator with respect to the ``p`` norm. It
@@ -568,7 +568,9 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         """
         return np.linalg.cond(self.todense(cache=False), p=p)
 
-    def cond(self, p=None) -> np.inexact:
+    def cond(
+        self, p: Optional[Union[None, int, str, np.floating]] = None
+    ) -> np.floating:
         """Compute the condition number of the linear operator.
 
         The condition number of the linear operator with respect to the ``p`` norm. It
@@ -611,7 +613,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         return self._cond_cache[p]
 
     @functools.cached_property
-    def _slogdet(self) -> Tuple[np.inexact, np.inexact]:
+    def _slogdet(self) -> Tuple[np.inexact, np.floating]:
         return np.linalg.slogdet(self.todense(cache=False))
 
     def _det(self) -> np.inexact:
@@ -652,7 +654,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 
         return self._det_cache
 
-    def _logabsdet(self) -> np.flexible:
+    def _logabsdet(self) -> np.floating:
         """Log absolute determinant of the linear operator.
 
         The linear operator is guaranteed to be square.
@@ -668,7 +670,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         _, logabsdet = self._slogdet
         return logabsdet
 
-    def logabsdet(self) -> np.inexact:
+    def logabsdet(self) -> np.floating:
         """Log absolute determinant of the linear operator.
 
         Returns
@@ -1283,15 +1285,15 @@ class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
         apply: Callable[[np.ndarray, int], np.ndarray] = None,
         solve: Callable[[np.ndarray], np.ndarray] = None,
         todense: Optional[Callable[[], np.ndarray]] = None,
-        transpose: Optional[Callable[[np.ndarray], "LinearOperator"]] = None,
-        inverse: Optional[Callable[[], "LinearOperator"]] = None,
+        transpose: Optional[Callable[[], LinearOperator]] = None,
+        inverse: Optional[Callable[[], LinearOperator]] = None,
         rank: Optional[Callable[[], np.intp]] = None,
         eigvals: Optional[Callable[[], np.ndarray]] = None,
         cond: Optional[
-            Callable[[Optional[Union[None, int, str, np.floating]]], np.number]
+            Callable[[Optional[Union[None, int, str, np.floating]]], np.floating]
         ] = None,
-        det: Optional[Callable[[], np.number]] = None,
-        logabsdet: Optional[Callable[[], np.flexible]] = None,
+        det: Optional[Callable[[], np.inexact]] = None,
+        logabsdet: Optional[Callable[[], np.floating]] = None,
         trace: Optional[Callable[[], np.number]] = None,
     ):
         super().__init__(shape, dtype)
@@ -1361,13 +1363,13 @@ class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
 
     def _cond(
         self, p: Optional[Union[None, int, str, np.floating]] = None
-    ) -> np.number:
+    ) -> np.floating:
         if self._cond_fn is None:
             return super()._cond(p)
 
         return self._cond_fn(p)
 
-    def _det(self) -> np.number:
+    def _det(self) -> np.inexact:
         if self._det_fn is None:
             return super()._det()
 
@@ -1417,7 +1419,7 @@ class TransposedLinearOperator(LambdaLinearOperator):
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
-    ) -> "LinearOperator":
+    ) -> LinearOperator:
         return self._linop.astype(dtype, order=order, casting=casting, copy=copy).T
 
     def __repr__(self) -> str:
@@ -1521,7 +1523,7 @@ class _TypeCastLinearOperator(LambdaLinearOperator):
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
-    ) -> "LinearOperator":
+    ) -> LinearOperator:
         if self.dtype == dtype and not copy:
             return self
 
@@ -1661,7 +1663,7 @@ class Identity(LambdaLinearOperator):
 
     def _cond(
         self, p: Optional[Union[None, int, str, np.floating]] = None
-    ) -> np.inexact:
+    ) -> np.floating:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
 

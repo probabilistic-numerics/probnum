@@ -267,7 +267,7 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
         return Scaling(1 / self._scalar, shape=self.shape)
 
-    def _cond_anisotropic(self, p: Union[None, int, float, str]) -> np.inexact:
+    def _cond_anisotropic(self, p: Union[None, int, float, str]) -> np.floating:
         abs_diag = np.abs(self._factors)
         abs_min = np.min(abs_diag)
 
@@ -298,7 +298,7 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
         return np.linalg.cond(self.todense(cache=False), p=p)
 
-    def _cond_isotropic(self, p: Union[None, int, float, str]) -> np.inexact:
+    def _cond_isotropic(self, p: Union[None, int, float, str]) -> np.floating:
         if self._scalar == 0:
             return self._inexact_dtype.type(np.inf)
 
