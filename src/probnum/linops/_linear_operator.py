@@ -178,6 +178,13 @@ class LinearOperator(abc.ABC):
         apply_result : np.ndarray
             Array resulting in the application of the linear operator
             to ``x`` along ``axis``.
+
+        Raises
+        ------
+        ValueError
+            If the shape of :code:`x` is invalid.
+        numpy.AxisError
+            If the axis argument is not within the valid range.
         """
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
             raise np.AxisError(axis, ndim=x.ndim)
@@ -323,6 +330,14 @@ class LinearOperator(abc.ABC):
             False is currently not supported for linear operators.
         copy:
             Whether to return a new linear operator, even if ``dtype`` is the same.
+
+        Raises
+        ------
+        TypeError
+            If the linear operator can not be cast to the desired ``dtype`` according to
+            the given :code:`casting` rule.
+        NotImplementedError
+            If :code:`subok` is set to :data:`True`.
         """
         dtype = np.dtype(dtype)
 
@@ -578,7 +593,7 @@ class LinearOperator(abc.ABC):
 
         Raises
         ------
-        LinAlgError :
+        numpy.linalg.LinAlgError
             If :meth:`cond` is called on a non-square matrix.
         """
         if p not in self._cond_cache:
@@ -620,7 +635,7 @@ class LinearOperator(abc.ABC):
 
         Raises
         ------
-        LinAlgError :
+        numpy.linalg.LinAlgError
             If :meth:`det` is called on a non-square matrix.
         """
         if self._det_cache is None:
@@ -659,7 +674,7 @@ class LinearOperator(abc.ABC):
 
         Raises
         ------
-        LinAlgError :
+        numpy.linalg.LinAlgError
             If :meth:`logabsdet` is called on a non-square matrix.
         """
         if self._logabsdet_cache is None:
@@ -714,7 +729,7 @@ class LinearOperator(abc.ABC):
 
         Raises
         ------
-        LinAlgError :
+        numpy.linalg.LinAlgError
             If :meth:`trace` is called on a non-square matrix.
         """
         if self._trace_cache is None:
@@ -952,6 +967,11 @@ class LinearOperator(abc.ABC):
         inv : LinearOperator
             Inverse of this linear operator, which is again
             a LinearOperator.
+
+        Raises
+        ------
+        numpy.linalg.LinAlgError
+            If :meth:`inv` is called on a non-square linear operator.
         """
         if not self.is_square:
             raise np.linalg.LinAlgError(
@@ -1085,7 +1105,6 @@ class LinearOperator(abc.ABC):
             A `np.ndarray` of shape `(..., M, K)` that is the result of
             `M = self @ x`.
         """
-        raise NotImplementedError()
 
     def __matmul__(
         self, other: BinaryOperandType
@@ -1106,6 +1125,11 @@ class LinearOperator(abc.ABC):
             A `np.matrix` or `np.ndarray` or `RandomVariable` with
             shape `(M,)` or `(M, 1)`,depending on the type and
             shape of the x argument.
+
+        Raises
+        ------
+        ValueError
+            If the shape of :code:`other` is invalid.
 
         Notes
         -----

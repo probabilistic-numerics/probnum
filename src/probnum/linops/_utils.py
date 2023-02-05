@@ -18,6 +18,11 @@ def aslinop(A: LinearOperatorLike) -> _linear_operator.LinearOperator:
         Argument to be represented as a linear operator. When `A` is an object it needs
         to have the attributes `.shape` and `.matvec`.
 
+    Raises
+    ------
+    TypeError
+        If :code:`A` can not be interpreted as a :class:`LinearOperator`.
+
     See Also
     --------
     LinearOperator : Class representing linear operators.
