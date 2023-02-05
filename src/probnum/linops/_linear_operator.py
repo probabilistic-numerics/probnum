@@ -135,6 +135,10 @@ class LinearOperator(abc.ABC):
 
     @property
     def size(self) -> int:
+        """Product of the :attr:`shape` entries.
+
+        Defined analogously to :attr:`numpy.ndarray.size`.
+        """
         return self.__shape[0] * self.__shape[1]
 
     @property
@@ -889,6 +893,7 @@ class LinearOperator(abc.ABC):
 
     @property
     def T(self) -> "LinearOperator":
+        """Transpose of the linear operator."""
         if self.is_symmetric:
             return self
 
@@ -1723,6 +1728,8 @@ class Selection(LambdaLinearOperator):
 
     @property
     def indices(self):
+        """Indices which will be selected when applying the linear operator to a
+        vector."""
         return self._indices
 
     def _todense(self):

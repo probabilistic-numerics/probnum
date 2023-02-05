@@ -50,6 +50,9 @@ _AnyLinOp = [
 ]
 
 
+# pylint: disable=missing-function-docstring
+
+
 def add(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:
     op1, op2 = _operands_to_compatible_linops(op1, op2)
 

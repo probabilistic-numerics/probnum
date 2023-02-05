@@ -344,6 +344,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
     @property
     def identical_factors(self) -> bool:
+        """Whether the two factors of the symmetric Kronecker product are identical."""
         return self._identical_factors
 
     def _astype(
@@ -493,7 +494,8 @@ class IdentityKronecker(Kronecker):
             self.is_symmetric = True
 
     @property
-    def num_blocks(self):
+    def num_blocks(self) -> int:
+        """Number of blocks on the diagonal."""
         return self._num_blocks
 
     def _transpose(self) -> "IdentityKronecker":
