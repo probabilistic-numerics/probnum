@@ -124,7 +124,7 @@ class Scaling(_linear_operator.LambdaLinearOperator):
             shape = 2 * self._factors.shape
             dtype = self._factors.dtype
 
-            matmul = lambda x: self._factors[:, np.newaxis] * x
+            matmul = lambda x: self._factors[:, None] * x
 
             apply = lambda x, axis: (
                 self._factors.reshape((-1,) + (x.ndim - (axis + 1)) * (1,)) * x
@@ -244,11 +244,11 @@ class Scaling(_linear_operator.LambdaLinearOperator):
     def _astype(self, dtype, order, casting, copy) -> "Scaling":
         if self.dtype == dtype and not copy:
             return self
-        else:
-            if self.is_isotropic:
-                return Scaling(self._scalar, shape=self.shape, dtype=dtype)
-            else:
-                return Scaling(self._factors, dtype=dtype)
+
+        if self.is_isotropic:
+            return Scaling(self._scalar, shape=self.shape, dtype=dtype)
+
+        return Scaling(self._factors, dtype=dtype)
 
     def _todense_isotropic(self) -> np.ndarray:
         dense = np.zeros(self.shape, dtype=self.dtype)
@@ -284,13 +284,14 @@ class Scaling(_linear_operator.LambdaLinearOperator):
             if p > 0:  # p in (2, 1, np.inf)
                 cond = abs_max / abs_min
             else:  # p in (-2, -1, -np.inf)
-                if abs_max > 0:
+                if abs_max > 0:  # pylint: disable=else-if-used
                     cond = abs_min / abs_max
                 else:
                     cond = np.double(np.inf)
 
             return cond.astype(self._inexact_dtype, copy=False)
-        elif p == "fro":
+
+        if p == "fro":
             norm = np.linalg.norm(self._factors, ord=2)
             norm_inv = np.linalg.norm(1 / self._factors, ord=2)
             return (norm * norm_inv).astype(self._inexact_dtype, copy=False)
@@ -303,12 +304,13 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
-        elif p == "fro":
+
+        if p == "fro":
             return probnum.utils.as_numpy_scalar(
                 min(self.shape), dtype=self._inexact_dtype
             )
-        else:
-            return np.linalg.cond(self.todense(cache=False), p=p)
+
+        return np.linalg.cond(self.todense(cache=False), p=p)
 
     def _cholesky(self, lower: bool = True) -> Scaling:
         if self._scalar is not None:

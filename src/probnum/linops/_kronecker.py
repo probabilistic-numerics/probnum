@@ -36,8 +36,8 @@ class Symmetrize(_linear_operator.LinearOperator):
     ) -> "Symmetrize":
         if self.dtype == dtype:
             return self
-        else:
-            return Symmetrize(self._n, dtype=dtype)
+
+        return Symmetrize(self._n, dtype=dtype)
 
     def _matmul(self, x: np.ndarray) -> np.ndarray:
         # vec(X) -> X, i.e. reshape into stack of matrices
@@ -356,7 +356,8 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
                 return self
 
             return SymmetricKronecker(A_astype)
-        elif np.issubdtype(dtype, np.floating):
+
+        if np.issubdtype(dtype, np.floating):
             A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
             B_astype = self.B.astype(dtype, order=order, casting=casting, copy=copy)
 
@@ -364,8 +365,8 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
                 return self
 
             return SymmetricKronecker(A_astype, B_astype)
-        else:
-            return super()._astype(dtype, order, casting, copy)
+
+        return super()._astype(dtype, order, casting, copy)
 
     def _matmul(self, x: np.ndarray) -> np.ndarray:
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where

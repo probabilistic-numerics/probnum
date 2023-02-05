@@ -443,7 +443,8 @@ def _operands_to_compatible_linops(
 ) -> Tuple[Optional[LinearOperator], Optional[LinearOperator]]:
     if not isinstance(op1, LinearOperator) and not isinstance(op2, LinearOperator):
         raise TypeError("At least one of the two operands must be a `LinearOperator`.")
-    elif not isinstance(op1, LinearOperator):
+
+    if not isinstance(op1, LinearOperator):
         op1 = _operand_to_linop(op1, shape=op2.shape)
     elif not isinstance(op2, LinearOperator):
         op2 = _operand_to_linop(op2, shape=op1.shape)

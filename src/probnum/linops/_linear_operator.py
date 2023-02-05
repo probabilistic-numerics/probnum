@@ -1135,10 +1135,10 @@ class LinearOperator(abc.ABC):
                 )
 
             return y
-        else:
-            from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
 
-            return matmul(self, other)
+        from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
+
+        return matmul(self, other)
 
     def __rmatmul__(
         self, other: BinaryOperandType
@@ -1161,10 +1161,10 @@ class LinearOperator(abc.ABC):
             assert y.shape[:-1] == x.shape[:-1]
 
             return y
-        else:
-            from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
 
-            return matmul(other, self)
+        from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
+
+        return matmul(other, self)
 
     ####################################################################################
     # Automatic `mat{vec,mat}`` to `matmul` Vectorization
@@ -1493,10 +1493,11 @@ class _TypeCastLinearOperator(LambdaLinearOperator):
     ) -> "LinearOperator":
         if self.dtype == dtype and not copy:
             return self
-        elif dtype == self._linop.dtype and not copy:
+
+        if dtype == self._linop.dtype and not copy:
             return self._linop
-        else:
-            return _TypeCastLinearOperator(self, dtype, order, casting, copy)
+
+        return _TypeCastLinearOperator(self, dtype, order, casting, copy)
 
 
 class Matrix(LambdaLinearOperator):
@@ -1632,20 +1633,21 @@ class Identity(LambdaLinearOperator):
     ) -> np.inexact:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
-        elif p == "fro":
+
+        if p == "fro":
             return probnum.utils.as_numpy_scalar(
                 self.shape[0], dtype=self._inexact_dtype
             )
-        else:
-            return np.linalg.cond(self.todense(cache=False), p=p)
+
+        return super()._cond(p)
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
     ) -> "Identity":
         if dtype == self.dtype and not copy:
             return self
-        else:
-            return Identity(self.shape, dtype=dtype)
+
+        return Identity(self.shape, dtype=dtype)
 
     def __eq__(self, other: LinearOperator) -> bool:
         return self._is_type_shape_dtype_equal(other)

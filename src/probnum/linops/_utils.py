@@ -38,13 +38,15 @@ def aslinop(A: LinearOperatorLike) -> _linear_operator.LinearOperator:
     """
     if isinstance(A, _linear_operator.LinearOperator):
         return A
-    elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
+
+    if isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
         return _linear_operator.Matrix(A=A)
-    elif isinstance(A, scipy.sparse.linalg.LinearOperator):
+
+    if isinstance(A, scipy.sparse.linalg.LinearOperator):
         return _linear_operator.LambdaLinearOperator(
             A.shape,
             A.dtype,
             matmul=_linear_operator.LinearOperator.broadcast_matmat(A.matmat),
         )
-    else:
-        raise TypeError(f"Cannot interpret {A} as a linear operator.")
+
+    raise TypeError(f"Cannot interpret {A} as a linear operator.")
