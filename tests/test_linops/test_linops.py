@@ -248,6 +248,30 @@ def test_solve(
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_solve_shape_mismatch(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+):
+    # Solve with scalar right-hand side
+    b = 42.0
+
+    with pytest.raises(Exception) as excinfo:
+        np.linalg.solve(matrix, b)
+
+    with pytest.raises(excinfo.type):
+        linop.solve(b)
+
+    # Solve with dimension mismatch
+    b = np.ones((2, matrix.shape[1] + 1, 2))
+
+    with pytest.raises(Exception) as excinfo:
+        np.linalg.solve(matrix, b)
+
+    with pytest.raises(excinfo.type):
+        linop.solve(b)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_todense(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     linop_dense = linop.todense()
 
