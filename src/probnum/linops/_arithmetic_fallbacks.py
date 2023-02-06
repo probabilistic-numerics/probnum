@@ -224,7 +224,7 @@ class ProductLinearOperator(LambdaLinearOperator):
         return res + "]"
 
     def _solve(self, B: np.ndarray) -> np.ndarray:
-        return functools.reduce(lambda vec, op: op @ vec, self._factors, B)
+        return functools.reduce(lambda b, op: op.solve(b), self._factors, B)
 
 
 def _matmul_fallback(
