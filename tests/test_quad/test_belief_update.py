@@ -20,7 +20,7 @@ def nevals(request) -> BQState:
 @pytest.fixture
 def bq_state(input_dim, nevals, rng):
     measure = LebesgueMeasure(input_dim=input_dim, domain=(0, 1))
-    kernel = ExpQuad(input_shape=(input_dim,), lengthscale=0.1)
+    kernel = ExpQuad(input_shape=(input_dim,), lengthscales=0.1)
     integral = Normal(0.0, KernelEmbedding(kernel, measure).kernel_variance())
     bq_state = BQState(measure=measure, kernel=kernel, integral_belief=integral)
 
