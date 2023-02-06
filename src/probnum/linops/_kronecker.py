@@ -10,7 +10,7 @@ from probnum.typing import DTypeLike, LinearOperatorLike, NotImplementedType
 from . import _linear_operator, _utils
 
 
-class Symmetrize(_linear_operator.LambdaLinearOperator):
+class Symmetrize(_linear_operator.LinearOperator):
     r"""Symmetrizes a vector in its matrix representation.
 
     Given a vector :math:`x=\operatorname{vec}(X)`
@@ -29,11 +29,7 @@ class Symmetrize(_linear_operator.LambdaLinearOperator):
     def __init__(self, n: int, dtype: DTypeLike = np.double):
         self._n = n
 
-        super().__init__(
-            shape=2 * (self._n**2,),
-            dtype=dtype,
-            matmul=self._matmul,
-        )
+        super().__init__(shape=2 * (self._n**2,), dtype=dtype)
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
@@ -65,7 +61,7 @@ class Symmetrize(_linear_operator.LambdaLinearOperator):
         )
 
 
-class Kronecker(_linear_operator.LambdaLinearOperator):
+class Kronecker(_linear_operator.LinearOperator):
     """Kronecker product of two linear operators.
 
     The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A`
@@ -109,54 +105,72 @@ class Kronecker(_linear_operator.LambdaLinearOperator):
         self.A = _utils.aslinop(A)
         self.B = _utils.aslinop(B)
 
-        if self.A.is_square and self.B.is_square:
-            # (A (x) B)^-1 = A^-1 (x) B^-1
-            inverse = lambda: Kronecker(A=self.A.inv(), B=self.B.inv())
-            cond = self._cond_square_factors
-            # det(A (x) B) = det(A)^n * det(B)^m
-            det = lambda: (
-                self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
-            )
-            logabsdet = lambda: (
-                self.B.shape[0] * self.A.logabsdet()
-                + self.A.shape[0] * self.B.logabsdet()
-            )
-            trace = lambda: self.A.trace() * self.B.trace()
-        else:
-            inverse = None
-            cond = None
-            det = None
-            logabsdet = None
-            trace = None
-
         super().__init__(
-            dtype=np.result_type(self.A.dtype, self.B.dtype),
             shape=(
                 self.A.shape[0] * self.B.shape[0],
                 self.A.shape[1] * self.B.shape[1],
             ),
-            matmul=lambda x: _kronecker_matmul(self.A, self.B, x),
-            todense=lambda: np.kron(
-                self.A.todense(cache=False), self.B.todense(cache=False)
-            ),
-            # (A (x) B)^T = A^T (x) B^T
-            transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
-            inverse=inverse,
-            rank=lambda: self.A.rank() * self.B.rank(),
-            cond=cond,
-            det=det,
-            logabsdet=logabsdet,
-            trace=trace,
+            dtype=np.result_type(self.A.dtype, self.B.dtype),
         )
 
         if self.A.is_symmetric and self.B.is_symmetric:
             self.is_symmetric = True
+
+    def _matmul(self, x: np.ndarray) -> np.ndarray:
+        return _kronecker_matmul(self.A, self.B, x)
 
     def _solve(self, B: np.ndarray) -> np.ndarray:
         if self.A.is_square and self.B.is_square:
             return self.inv() @ B
 
         return super()._solve(B)
+
+    def _todense(self) -> np.ndarray:
+        return np.kron(self.A.todense(cache=False), self.B.todense(cache=False))
+
+    def _transpose(self) -> "Kronecker":
+        # (A (x) B)^T = A^T (x) B^T
+        return Kronecker(A=self.A.T, B=self.B.T)
+
+    def _inverse(self) -> "Kronecker":
+        if self.A.is_square and self.B.is_square:
+            # (A (x) B)^-1 = A^-1 (x) B^-1
+            return Kronecker(A=self.A.inv(), B=self.B.inv())
+
+        return super()._inverse()
+
+    def _rank(self) -> np.intp:
+        return self.A.rank() * self.B.rank()
+
+    def _cond(self, p=None) -> np.floating:
+        if self.A.is_square and self.B.is_square:
+            if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
+                return self.A.cond(p=p) * self.B.cond(p=p)
+
+        return super()._cond(p)
+
+    def _det(self) -> np.number:
+        if self.A.is_square and self.B.is_square:
+            # det(A (x) B) = det(A)^n * det(B)^m
+            return self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
+
+        return super()._det()
+
+    def _logabsdet(self) -> np.inexact:
+        if self.A.is_square and self.B.is_square:
+            # det(A (x) B) = det(A)^n * det(B)^m
+            return (
+                self.B.shape[0] * self.A.logabsdet()
+                + self.A.shape[0] * self.B.logabsdet()
+            )
+
+        return super()._logabsdet()
+
+    def _trace(self) -> np.number:
+        if self.A.is_square and self.B.is_square:
+            return self.A.trace() * self.B.trace()
+
+        return super()._trace()
 
     def _astype(
         self, dtype: DTypeLike, order: str, casting: str, copy: bool
@@ -168,12 +182,6 @@ class Kronecker(_linear_operator.LambdaLinearOperator):
             return self
 
         return Kronecker(A_astype, B_astype)
-
-    def _cond_square_factors(self, p) -> np.inexact:
-        if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
-            return self.A.cond(p=p) * self.B.cond(p=p)
-
-        return np.linalg.cond(self.todense(cache=False), p=p)
 
     def _matmul_kronecker(self, other: "Kronecker") -> "Kronecker":
         if self.shape[1] != other.shape[0]:
@@ -265,7 +273,7 @@ def _kronecker_matmul(
     return y
 
 
-class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
+class SymmetricKronecker(_linear_operator.LinearOperator):
     """Symmetric Kronecker product of two linear operators.
 
     The symmetric Kronecker product [1]_ :math:`A \\otimes_{s} B` of two square linear
@@ -316,53 +324,20 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
         if B is None:
             self._identical_factors = True
 
-            self.B = self.A
-
+            B = self.A
             dtype = self.A.dtype
-            matmul = lambda x: _kronecker_matmul(self.A, self.A, x)
-            todense = self._todense_identical_factors
-            # (A (x)_s A)^T = A^T (x)_s A^T
-            transpose = lambda: SymmetricKronecker(A=self.A.T)
-            # (A (x)_s A)^-1 = (A (x) A)^-1 = A^-1 (x) A^-1
-            inverse = lambda: SymmetricKronecker(A=self.A.inv())
-            rank = lambda: self.A.rank() ** 2
-            cond = self._cond_identical_factors
-            det = lambda: self.A.det() ** (2 * self._n)
-            logabsdet = lambda: 2 * self._n * self.A.logabsdet()
         else:
             self._identical_factors = False
 
-            self.B = _utils.aslinop(B)
+            B = _utils.aslinop(B)
+            dtype = np.result_type(self.A.dtype, B.dtype, 0.5)
 
-            if self.A.shape != self.B.shape:
-                raise ValueError("`A` and `B` must have the same shape")
+        if B.shape != self.A.shape:
+            raise ValueError("`A` and `B` must have the same shape")
 
-            dtype = np.result_type(self.A.dtype, self.B.dtype, 0.5)
-            matmul = self._matmul_different_factors
-            todense = self._todense_different_factors
-            # (A (x)_s B)^T = A^T (x)_s B^T
-            transpose = lambda: SymmetricKronecker(A=self.A.T, B=self.B.T)
-            inverse = None
-            rank = None
-            cond = None
-            det = None
-            logabsdet = None
+        self.B = B
 
-        super().__init__(
-            dtype=dtype,
-            shape=2 * (self._n**2,),
-            matmul=matmul,
-            todense=todense,
-            transpose=transpose,
-            inverse=inverse,
-            rank=rank,
-            cond=cond,
-            det=det,
-            logabsdet=logabsdet,
-            trace=lambda: (
-                (self.A.trace() * self.B.trace()).astype(self.dtype, copy=False)
-            ),
-        )
+        super().__init__(shape=2 * (self._n**2,), dtype=dtype)
 
         if self.A.is_symmetric and self.B.is_symmetric:
             self.is_symmetric = True
@@ -392,10 +367,13 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
         else:
             return super()._astype(dtype, order, casting, copy)
 
-    def _matmul_different_factors(self, x: np.ndarray) -> np.ndarray:
+    def _matmul(self, x: np.ndarray) -> np.ndarray:
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
         vec is the column-wise normalized symmetric stacking operator.
         """
+        if self.identical_factors:
+            return _kronecker_matmul(self.A, self.A, x)
+
         # vec(X) -> X, i.e. reshape into stack of matrices
         y = np.swapaxes(x, -2, -1)
 
@@ -427,23 +405,35 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
 
         return super()._solve(B)
 
-    def _todense_identical_factors(self) -> np.ndarray:
+    def _todense(self) -> np.ndarray:
         """Dense representation of the symmetric Kronecker product."""
-        # 1/2 (A (x) B + B (x) A)
-        A_dense = self.A.todense(cache=False)
-        return np.kron(A_dense, A_dense)
+        if self.identical_factors:
+            A_dense = self.A.todense(cache=False)
+            return np.kron(A_dense, A_dense)
 
-    def _todense_different_factors(self) -> np.ndarray:
-        # 1/2 (A (x) B + B (x) A)
         A_dense = self.A.todense(cache=False)
         B_dense = self.B.todense(cache=False)
         return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
 
-    def _cond_identical_factors(self, p) -> np.inexact:
-        if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
-            return self.A.cond(p=p) * self.B.cond(p=p)
+    def _transpose(self) -> "SymmetricKronecker":
+        if self.identical_factors:
+            return SymmetricKronecker(self.A.T)
 
-        return np.linalg.cond(self.todense(cache=False), p=p)
+        return SymmetricKronecker(self.A.T, self.B.T)
+
+    def _inverse(self) -> _linear_operator.LinearOperator:
+        if self.identical_factors:
+            # (A (x)_s A)^-1 = (A (x) A)^-1 = A^-1 (x) A^-1
+            return SymmetricKronecker(self.A.inv())
+
+        return super()._inverse()
+
+    def _cond(self, p=None) -> np.floating:
+        if self.identical_factors:
+            if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
+                return self.A.cond(p=p) * self.B.cond(p=p)
+
+        return super()._cond(p)
 
     def _cholesky(self, lower: bool = True) -> _linear_operator.LinearOperator:
         if self._identical_factors:
@@ -460,8 +450,29 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
 
         return SymmetricKronecker(A=self.A.symmetrize(), B=self.B.symmetrize())
 
+    def _rank(self) -> np.intp:
+        if self.identical_factors:
+            return self.A.rank() ** 2
 
-class IdentityKronecker(_linear_operator.LambdaLinearOperator):
+        return super()._rank()
+
+    def _det(self) -> np.inexact:
+        if self.identical_factors:
+            return self.A.det() ** (2 * self._n)
+
+        return super()._det()
+
+    def _logabsdet(self) -> np.inexact:
+        if self.identical_factors:
+            return 2 * self._n * self.A.logabsdet()
+
+        return super()._logabsdet()
+
+    def _trace(self) -> np.number:
+        return (self.A.trace() * self.B.trace()).astype(self.dtype, copy=False)
+
+
+class IdentityKronecker(Kronecker):
     """Block-diagonal linear operator.
 
     Parameters
@@ -473,42 +484,9 @@ class IdentityKronecker(_linear_operator.LambdaLinearOperator):
     """
 
     def __init__(self, num_blocks: int, B: LinearOperatorLike):
-        self._num_blocks = num_blocks
-        self.A = _linear_operator.Identity(num_blocks)
-        self.B = _utils.aslinop(B)
+        self._num_blocks = int(num_blocks)
 
-        if self.B.is_square:
-            # det(A (x) B) = det(A)^n * det(B)^m
-            det = lambda: (self.B.det() ** self.A.shape[0])
-            logabsdet = lambda: (self.A.shape[0] * self.B.logabsdet())
-            trace = lambda: self.A.trace() * self.B.trace()
-        else:
-            det = None
-            logabsdet = None
-            trace = None
-
-        super().__init__(
-            dtype=np.result_type(self.A.dtype, self.B.dtype),
-            shape=(
-                num_blocks * self.B.shape[0],
-                num_blocks * self.B.shape[1],
-            ),
-            matmul=lambda x: _kronecker_matmul(
-                self.A, self.B, x
-            ),  # TODO: can be implemented more efficiently
-            todense=lambda: np.kron(
-                self.A.todense(cache=False), self.B.todense(cache=False)
-            ),
-            # (A (x) B)^T = A (x) B^T
-            transpose=lambda: IdentityKronecker(self._num_blocks, B=self.B.T),
-            # (A (x) B)^-1 = A^-1 (x) B^-1
-            inverse=lambda: IdentityKronecker(num_blocks, B=self.B.inv()),
-            rank=lambda: self.A.rank() * self.B.rank(),
-            cond=self._cond,
-            det=det,
-            logabsdet=logabsdet,
-            trace=trace,
-        )
+        super().__init__(_linear_operator.Identity(num_blocks), _utils.aslinop(B))
 
         if self.B.is_symmetric:
             self.is_symmetric = True
@@ -517,8 +495,27 @@ class IdentityKronecker(_linear_operator.LambdaLinearOperator):
     def num_blocks(self):
         return self._num_blocks
 
-    def _solve(self, B: np.ndarray) -> np.ndarray:
-        return self.inv() @ B
+    def _transpose(self) -> "IdentityKronecker":
+        # (I (x) B)^T = I (x) B^T
+        return IdentityKronecker(self._num_blocks, B=self.B.T)
+
+    def _inverse(self) -> "IdentityKronecker":
+        # (I (x) B)^-1 = I (x) B^-1
+        return IdentityKronecker(self.num_blocks, B=self.B.inv())
+
+    def _cholesky(self, lower: bool = True) -> IdentityKronecker:
+        return IdentityKronecker(
+            num_blocks=self.num_blocks,
+            B=self.B.cholesky(lower),
+        )
+
+    def _symmetrize(self) -> IdentityKronecker:
+        # In contrast to the implementation for the generic Kronecker product, this is
+        # not only an approximation of the closes symmetric matrix in the Frobenius norm
+        return IdentityKronecker(
+            num_blocks=self.num_blocks,
+            B=self.B.symmetrize(),
+        )
 
     def _matmul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
         if self.shape[1] != other.shape[0]:
@@ -551,25 +548,3 @@ class IdentityKronecker(_linear_operator.LambdaLinearOperator):
             return IdentityKronecker(num_blocks=self._num_blocks, B=self.B - other.B)
 
         return NotImplemented
-
-    def _cond(
-        self, p: Optional[Union[None, int, str, np.floating]] = None
-    ) -> np.number:
-        if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
-            return self.A.cond(p=p) * self.B.cond(p=p)
-
-        return np.linalg.cond(self.todense(cache=False), p=p)
-
-    def _cholesky(self, lower: bool = True) -> IdentityKronecker:
-        return IdentityKronecker(
-            num_blocks=self.num_blocks,
-            B=self.B.cholesky(lower),
-        )
-
-    def _symmetrize(self) -> IdentityKronecker:
-        # In contrast to the implementation for the generic Kronecker product, this is
-        # not only an approximation of the closes symmetric matrix in the Frobenius norm
-        return IdentityKronecker(
-            num_blocks=self.num_blocks,
-            B=self.B.symmetrize(),
-        )
