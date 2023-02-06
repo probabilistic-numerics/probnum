@@ -185,7 +185,8 @@ class LinearOperator(abc.ABC):
         """Solves linear systems :code:`A @ x = b`, where :code:`b` is either a vector
         or a (stack of) matrices.
 
-        This method behaves exactly like :code:`A.inv() @ b`.
+        This method broadcasts like :code:`A.inv() @ b`, but it might not produce the
+        exact same result.
 
         Parameters
         ----------
