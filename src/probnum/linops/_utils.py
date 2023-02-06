@@ -18,6 +18,11 @@ def aslinop(A: LinearOperatorLike) -> _linear_operator.LinearOperator:
         Argument to be represented as a linear operator. When `A` is an object it needs
         to have the attributes `.shape` and `.matvec`.
 
+    Raises
+    ------
+    TypeError
+        If :code:`A` can not be interpreted as a :class:`LinearOperator`.
+
     See Also
     --------
     LinearOperator : Class representing linear operators.
@@ -38,13 +43,15 @@ def aslinop(A: LinearOperatorLike) -> _linear_operator.LinearOperator:
     """
     if isinstance(A, _linear_operator.LinearOperator):
         return A
-    elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
+
+    if isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
         return _linear_operator.Matrix(A=A)
-    elif isinstance(A, scipy.sparse.linalg.LinearOperator):
+
+    if isinstance(A, scipy.sparse.linalg.LinearOperator):
         return _linear_operator.LambdaLinearOperator(
             A.shape,
             A.dtype,
             matmul=_linear_operator.LinearOperator.broadcast_matmat(A.matmat),
         )
-    else:
-        raise TypeError(f"Cannot interpret {A} as a linear operator.")
+
+    raise TypeError(f"Cannot interpret {A} as a linear operator.")

@@ -36,8 +36,8 @@ class Symmetrize(_linear_operator.LinearOperator):
     ) -> "Symmetrize":
         if self.dtype == dtype:
             return self
-        else:
-            return Symmetrize(self._n, dtype=dtype)
+
+        return Symmetrize(self._n, dtype=dtype)
 
     def _matmul(self, x: np.ndarray) -> np.ndarray:
         # vec(X) -> X, i.e. reshape into stack of matrices
@@ -149,14 +149,14 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return super()._cond(p)
 
-    def _det(self) -> np.number:
+    def _det(self) -> np.inexact:
         if self.A.is_square and self.B.is_square:
             # det(A (x) B) = det(A)^n * det(B)^m
             return self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
 
         return super()._det()
 
-    def _logabsdet(self) -> np.inexact:
+    def _logabsdet(self) -> np.floating:
         if self.A.is_square and self.B.is_square:
             # det(A (x) B) = det(A)^n * det(B)^m
             return (
@@ -344,6 +344,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
     @property
     def identical_factors(self) -> bool:
+        """Whether the two factors of the symmetric Kronecker product are identical."""
         return self._identical_factors
 
     def _astype(
@@ -356,7 +357,8 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
                 return self
 
             return SymmetricKronecker(A_astype)
-        elif np.issubdtype(dtype, np.floating):
+
+        if np.issubdtype(dtype, np.floating):
             A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
             B_astype = self.B.astype(dtype, order=order, casting=casting, copy=copy)
 
@@ -364,8 +366,8 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
                 return self
 
             return SymmetricKronecker(A_astype, B_astype)
-        else:
-            return super()._astype(dtype, order, casting, copy)
+
+        return super()._astype(dtype, order, casting, copy)
 
     def _matmul(self, x: np.ndarray) -> np.ndarray:
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
@@ -462,7 +464,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         return super()._det()
 
-    def _logabsdet(self) -> np.inexact:
+    def _logabsdet(self) -> np.floating:
         if self.identical_factors:
             return 2 * self._n * self.A.logabsdet()
 
@@ -492,7 +494,8 @@ class IdentityKronecker(Kronecker):
             self.is_symmetric = True
 
     @property
-    def num_blocks(self):
+    def num_blocks(self) -> int:
+        """Number of blocks on the diagonal."""
         return self._num_blocks
 
     def _transpose(self) -> "IdentityKronecker":

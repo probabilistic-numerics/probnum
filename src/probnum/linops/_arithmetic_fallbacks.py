@@ -73,6 +73,8 @@ class ScaledLinearOperator(LambdaLinearOperator):
 
 
 class NegatedLinearOperator(ScaledLinearOperator):
+    """Negation of a given linear operator."""
+
     def __init__(self, linop: LinearOperator):
         super().__init__(linop, scalar=probnum.utils.as_numpy_scalar(-1, linop.dtype))
 
@@ -126,6 +128,11 @@ class SumLinearOperator(LambdaLinearOperator):
         if all(summand.is_positive_definite for summand in self._summands):
             self.is_positive_definite = True
 
+    @property
+    def summands(self) -> Tuple[LinearOperator, ...]:
+        """The summands that make up this sum of :class:`LinearOperator`s."""
+        return self._summands
+
     def __neg__(self):
         return SumLinearOperator(*(-summand for summand in self._summands))
 
@@ -141,7 +148,7 @@ class SumLinearOperator(LambdaLinearOperator):
 
         for summand in summands:
             if isinstance(summand, SumLinearOperator):
-                expanded_summands.extend(summand._summands)
+                expanded_summands.extend(summand.summands)
             else:
                 expanded_summands.append(summand)
 
@@ -205,13 +212,18 @@ class ProductLinearOperator(LambdaLinearOperator):
             ),
         )
 
+    @property
+    def factors(self) -> Tuple[LinearOperator, ...]:
+        """The factors that make up this product of :class:`LinearOperator`s."""
+        return self._factors
+
     @staticmethod
     def _expand_prod_ops(*factors: LinearOperator) -> Tuple[LinearOperator, ...]:
         expanded_factors = []
 
         for factor in factors:
             if isinstance(factor, ProductLinearOperator):
-                expanded_factors.extend(factor._factors)
+                expanded_factors.extend(factor.factors)
             else:
                 expanded_factors.append(factor)
 
