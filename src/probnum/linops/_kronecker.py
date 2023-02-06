@@ -152,6 +152,12 @@ class Kronecker(_linear_operator.LambdaLinearOperator):
         if self.A.is_symmetric and self.B.is_symmetric:
             self.is_symmetric = True
 
+    def _solve(self, B: np.ndarray) -> np.ndarray:
+        if self.A.is_square and self.B.is_square:
+            return self.inv() @ B
+
+        return super()._solve(B)
+
     def _astype(
         self, dtype: DTypeLike, order: str, casting: str, copy: bool
     ) -> "Kronecker":
@@ -415,6 +421,12 @@ class SymmetricKronecker(_linear_operator.LambdaLinearOperator):
 
         return y
 
+    def _solve(self, B: np.ndarray) -> np.ndarray:
+        if self.identical_factors:
+            return self.inv() @ B
+
+        return super()._solve(B)
+
     def _todense_identical_factors(self) -> np.ndarray:
         """Dense representation of the symmetric Kronecker product."""
         # 1/2 (A (x) B + B (x) A)
@@ -504,6 +516,9 @@ class IdentityKronecker(_linear_operator.LambdaLinearOperator):
     @property
     def num_blocks(self):
         return self._num_blocks
+
+    def _solve(self, B: np.ndarray) -> np.ndarray:
+        return self.inv() @ B
 
     def _matmul_idkronecker(self, other: "IdentityKronecker") -> "IdentityKronecker":
         if self.shape[1] != other.shape[0]:

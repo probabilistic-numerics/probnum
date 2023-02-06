@@ -150,6 +150,7 @@ class Scaling(_linear_operator.LambdaLinearOperator):
             dtype,
             matmul=matmul,
             apply=apply,
+            solve=lambda B: self.inv() @ B,
             todense=todense,
             transpose=lambda: self,
             inverse=inverse,
