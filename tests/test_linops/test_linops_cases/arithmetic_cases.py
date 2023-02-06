@@ -6,6 +6,7 @@ import pytest_cases
 import probnum as pn
 from probnum.linops._arithmetic_fallbacks import (
     NegatedLinearOperator,
+    ProductLinearOperator,
     ScaledLinearOperator,
     SumLinearOperator,
 )
@@ -80,3 +81,20 @@ def case_sum_linop_positive_definite(
     B.is_symmetric = True
 
     return SumLinearOperator(A, B), matrix
+
+
+@pytest_cases.case(tags=("square"))
+@pytest_cases.parametrize("A,B", spd_matrix_pairs)
+def case_product_linop_square(
+    A: np.ndarray, B: np.ndarray
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    matrix = A @ B
+
+    A = pn.linops.aslinop(A)
+    B = pn.linops.aslinop(B)
+
+    linop = A @ B
+
+    assert isinstance(linop, ProductLinearOperator)
+
+    return linop, matrix
