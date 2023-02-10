@@ -21,13 +21,13 @@ class IntegralVarianceReduction(AcquisitionFunction):
 
     .. math::
         a(x) &= \mathfrak{v}^{-1}(\mathfrak{v} - \mathfrak{v}(x))\\
-             &= \frac{(\int k(x', x)p(x')\mathrm{d}x')^2}{\mathfrak{v} v(x)}\\
+             &= \frac{(\int \bar{k}(x', x)p(x')\mathrm{d}x')^2}{\mathfrak{v} v(x)}\\
              &= \rho^2(x)
 
     where :math:`\mathfrak{v}` is the current integral variance, :math:`\mathfrak{v}(x)`
     is the integral variance including a hypothetical observation at
     :math:`x`, :math:`v(x)` is the predictive variance for :math:`f(x)` and
-    :math:`k(x', x)` is the posterior kernel function.
+    :math:`\bar{k}(x', x)` is the posterior kernel function.
 
     The value :math:`a(x)` is equal to the squared correlation :math:`\rho^2(x)` between
     the hypothetical observation at :math:`x` and the integral value. [1]_
