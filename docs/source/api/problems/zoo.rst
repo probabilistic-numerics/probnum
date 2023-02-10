@@ -19,3 +19,8 @@ probnum.problems.zoo
     :hidden:
 
     zoo.linalg
+
+.. toctree::
+    :hidden:
+
+    zoo.quad
