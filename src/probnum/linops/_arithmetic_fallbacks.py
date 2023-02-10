@@ -36,7 +36,6 @@ class ScaledLinearOperator(LambdaLinearOperator):
             self._linop.shape,
             dtype=dtype,
             matmul=lambda x: self._scalar * (self._linop @ x),
-            rmatmul=lambda x: self._scalar * (x @ self._linop),
             todense=lambda: self._scalar * self._linop.todense(cache=False),
             transpose=lambda: self._scalar * self._linop.T,
             inverse=self._inv,
@@ -53,6 +52,9 @@ class ScaledLinearOperator(LambdaLinearOperator):
                 self.is_positive_definite = True
             else:
                 self.is_positive_definite = False
+
+    def _solve(self, B: np.ndarray) -> np.ndarray:
+        return self.inv() @ B
 
     def _inv(self) -> "ScaledLinearOperator":
         if self._scalar == 0:
@@ -71,6 +73,8 @@ class ScaledLinearOperator(LambdaLinearOperator):
 
 
 class NegatedLinearOperator(ScaledLinearOperator):
+    """Negation of a given linear operator."""
+
     def __init__(self, linop: LinearOperator):
         super().__init__(linop, scalar=probnum.utils.as_numpy_scalar(-1, linop.dtype))
 
@@ -99,9 +103,6 @@ class SumLinearOperator(LambdaLinearOperator):
             matmul=lambda x: functools.reduce(
                 operator.add, (summand @ x for summand in self._summands)
             ),
-            rmatmul=lambda x: functools.reduce(
-                operator.add, (x @ summand for summand in self._summands)
-            ),
             todense=lambda: functools.reduce(
                 operator.add,
                 (summand.todense(cache=False) for summand in self._summands),
@@ -127,6 +128,11 @@ class SumLinearOperator(LambdaLinearOperator):
         if all(summand.is_positive_definite for summand in self._summands):
             self.is_positive_definite = True
 
+    @property
+    def summands(self) -> Tuple[LinearOperator, ...]:
+        """The summands that make up this sum of :class:`LinearOperator`s."""
+        return self._summands
+
     def __neg__(self):
         return SumLinearOperator(*(-summand for summand in self._summands))
 
@@ -142,7 +148,7 @@ class SumLinearOperator(LambdaLinearOperator):
 
         for summand in summands:
             if isinstance(summand, SumLinearOperator):
-                expanded_summands.extend(summand._summands)
+                expanded_summands.extend(summand.summands)
             else:
                 expanded_summands.append(summand)
 
@@ -188,9 +194,6 @@ class ProductLinearOperator(LambdaLinearOperator):
             matmul=lambda x: functools.reduce(
                 lambda vec, op: op @ vec, reversed(self._factors), x
             ),
-            rmatmul=lambda x: functools.reduce(
-                lambda vec, op: vec @ op, self._factors, x
-            ),
             todense=lambda: functools.reduce(
                 operator.matmul,
                 (factor.todense(cache=False) for factor in self._factors),
@@ -209,13 +212,18 @@ class ProductLinearOperator(LambdaLinearOperator):
             ),
         )
 
+    @property
+    def factors(self) -> Tuple[LinearOperator, ...]:
+        """The factors that make up this product of :class:`LinearOperator`s."""
+        return self._factors
+
     @staticmethod
     def _expand_prod_ops(*factors: LinearOperator) -> Tuple[LinearOperator, ...]:
         expanded_factors = []
 
         for factor in factors:
             if isinstance(factor, ProductLinearOperator):
-                expanded_factors.extend(factor._factors)
+                expanded_factors.extend(factor.factors)
             else:
                 expanded_factors.append(factor)
 
@@ -226,6 +234,9 @@ class ProductLinearOperator(LambdaLinearOperator):
         for s in self._factors:
             res += f"\t{s}, \n"
         return res + "]"
+
+    def _solve(self, B: np.ndarray) -> np.ndarray:
+        return functools.reduce(lambda b, op: op.solve(b), self._factors, B)
 
 
 def _matmul_fallback(

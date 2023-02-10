@@ -8,7 +8,7 @@ from typing import Callable, Optional, Sequence, Union
 import numpy as np
 import scipy.sparse
 
-from probnum import linops, randvars
+from probnum import linops, quad, randvars
 from probnum.typing import FloatLike
 
 
@@ -225,51 +225,46 @@ class QuadratureProblem:
 
     Compute the integral
 
-        .. math::
-            \int_\Omega f(x) \, \text{d} \mu(x)
+    .. math::
+        \int_\Omega f(x) \, \text{d} \mu(x)
 
-    for a function :math:`f: \Omega \rightarrow \mathbb{R}`.
-    For the time being, :math:`\mu` is the Lebesgue measure.
-    Solved by quadrature rules in :mod:`probnum.quad`.
+    for a function :math:`f: \Omega \rightarrow \mathbb{R}` w.r.t. the measure
+    :math:`\mu`.
 
     Parameters
     ----------
-    integrand
-        Function to be integrated.
-    lower_bd
-        A number or a vector representing the lower bounds of the integrals.
-    upper_bd
-        A number or a vector representing the upper bounds of the integrals.
-    output_dim
-        Output dimension of the integrand.
+    fun
+        Function to be integrated. It needs to accept a shape=(n_eval, input_dim)
+        ``np.ndarray`` and return a shape=(n_eval,) ``np.ndarray``.
+    measure
+        The integration measure.
     solution
-        Closed form, analytic solution to the problem.
+        Analytic value of the integral or precise numerical solution.
         Used for testing and benchmarking.
 
     Examples
     --------
     >>> import numpy as np
-    >>> def integrand(x):
-    ...     return np.linalg.norm(x)**2
-    >>> lower_bd = 0.41
-    >>> upper_bd = 4.32
-    >>> qp1d = QuadratureProblem(integrand, lower_bd=lower_bd, upper_bd=upper_bd)
-    >>> np.round(qp1d.integrand(0.2), 2)
-    0.04
-    >>> qp1d.lower_bd
-    0.41
+    >>> from probnum.quad.integration_measures import LebesgueMeasure
     >>>
-    >>> lower_bd = [0., 0.]
-    >>> upper_bd = [1., 1.]
-    >>> qp2d = QuadratureProblem(integrand, lower_bd=lower_bd, upper_bd=upper_bd)
-    >>> qp2d.upper_bd
-    [1.0, 1.0]
+    >>> def fun(x):
+    ...     return np.linalg.norm(x, axis=1)**2
+    >>>
+    >>> measure1d = LebesgueMeasure(domain=(0, 1), input_dim=1)
+    >>> qp1d = QuadratureProblem(fun, measure=measure1d, solution=1/3)
+    >>> np.round(qp1d.fun(np.array([[0.2]]))[0], 2)
+    0.04
+    >>> measure2d = LebesgueMeasure(domain=(0, 1), input_dim=2)
+    >>> qp2d = QuadratureProblem(fun, measure=measure2d, solution=None)
+    >>> np.round(qp2d.fun(np.array([[0.2, 0.2]]))[0], 2)
+    0.08
     """
 
-    integrand: Callable[[np.ndarray], Union[float, np.ndarray]]
-    lower_bd: Union[FloatLike, np.ndarray]
-    upper_bd: Union[FloatLike, np.ndarray]
-    output_dim: Optional[int] = 1
+    fun: Callable[[np.ndarray], np.ndarray]
+    measure: quad.integration_measures.IntegrationMeasure
 
     # For testing and benchmarking
-    solution: Optional[Union[float, np.ndarray, randvars.RandomVariable]] = None
+    solution: Optional[Union[float, np.ndarray, randvars.RandomVariable]]
+
+    def __post_init__(self):
+        self.input_dim = self.measure.input_dim

@@ -12,6 +12,7 @@ from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
 from probnum.quad.solvers import BQState
 from probnum.quad.solvers.acquisition_functions import WeightedPredictiveVariance
 from probnum.quad.solvers.policies import (
+    MaxAcquisitionPolicy,
     RandomMaxAcquisitionPolicy,
     RandomPolicy,
     VanDerCorputPolicy,
@@ -27,7 +28,12 @@ def batch_size(request):
 @pytest.fixture(
     params=[
         pytest.param(name, id=name)
-        for name in ["RandomPolicy", "VanDerCorputPolicy", "RandomMaxAcquisitionPolicy"]
+        for name in [
+            "RandomPolicy",
+            "VanDerCorputPolicy",
+            "RandomMaxAcquisitionPolicy",
+            "MaxAcquisitionPolicy",
+        ]
     ]
 )
 def policy_name(request):
@@ -50,17 +56,23 @@ def policy_params(policy_name, input_dim, batch_size, rng):
             gram=np.eye(nevals),
             gram_cho_factor=(np.eye(nevals), False),
         )
-        return bq_state, bq_state_no_data
+        bq_state_gauss = BQState(
+            measure=GaussianMeasure(input_dim=ndim, mean=0.3, cov=1.2),
+            kernel=ExpQuad(input_shape=(ndim,)),
+        )
+        return bq_state, bq_state_no_data, bq_state_gauss
 
-    params = dict(name=policy_name, input_dim=input_dim)
-    params["bq_state"], params["bq_state_no_data"] = _get_bq_states(input_dim)
+    p = dict(name=policy_name, input_dim=input_dim)
+    p["bq_state"], p["bq_state_no_data"], p["bq_state_gauss"] = _get_bq_states(
+        input_dim
+    )
 
     if policy_name == "RandomPolicy":
         input_params = dict(
             batch_size=batch_size,
             sample_func=lambda batch_size, rng: np.ones([batch_size, input_dim]),
         )
-        params["requires_rng"] = True
+        p["requires_rng"] = True
     elif policy_name == "VanDerCorputPolicy":
         # Since VanDerCorputPolicy can only produce univariate nodes, this overrides
         # input_dim = 1 for all tests. This is a bit cheap, but pytest parametrization
@@ -69,9 +81,9 @@ def policy_params(policy_name, input_dim, batch_size, rng):
             batch_size=batch_size,
             measure=LebesgueMeasure(input_dim=1, domain=(0, 1)),
         )
-        params["bq_state"], params["bq_state_no_data"] = _get_bq_states(1)
-        params["input_dim"] = 1
-        params["requires_rng"] = False
+        p["bq_state"], p["bq_state_no_data"], p["bq_state_gauss"] = _get_bq_states(1)
+        p["input_dim"] = 1
+        p["requires_rng"] = False
     elif policy_name == "RandomMaxAcquisitionPolicy":
         # Since RandomMaxAcquisitionPolicy requires batch_size=1, we override it here.
         input_params = dict(
@@ -79,13 +91,21 @@ def policy_params(policy_name, input_dim, batch_size, rng):
             acquisition_func=WeightedPredictiveVariance(),
             n_candidates=10,
         )
-        params["requires_rng"] = True
+        p["requires_rng"] = True
+    elif policy_name == "MaxAcquisitionPolicy":
+        # Since MaxAcquisitionPolicy requires batch_size=1, we override it here.
+        input_params = dict(
+            batch_size=1,
+            acquisition_func=WeightedPredictiveVariance(),
+            n_restarts=3,
+        )
+        p["requires_rng"] = True
     else:
         raise NotImplementedError
 
-    params["input_params"] = input_params
+    p["input_params"] = input_params
 
-    return params
+    return p
 
 
 @pytest.fixture()
@@ -97,6 +117,7 @@ def policy(policy_params):
         RandomPolicy=RandomPolicy,
         VanDerCorputPolicy=VanDerCorputPolicy,
         RandomMaxAcquisitionPolicy=RandomMaxAcquisitionPolicy,
+        MaxAcquisitionPolicy=MaxAcquisitionPolicy,
     )
     return policy[name](**input_params), policy_params
 
@@ -106,21 +127,55 @@ def policy(policy_params):
 
 def test_policy_shapes(policy, rng):
     policy, params = policy
-    bq_state = params["bq_state"]
-    bq_state_no_data = params["bq_state_no_data"]
     input_dim = params["input_dim"]
     batch_size = params["input_params"]["batch_size"]
 
     # bq state contains data
-    assert policy(bq_state, rng).shape == (batch_size, input_dim)
+    assert policy(params["bq_state"], rng).shape == (batch_size, input_dim)
 
     # bq state contains no data yet
-    assert policy(bq_state_no_data, rng).shape == (batch_size, input_dim)
+    assert policy(params["bq_state_no_data"], rng).shape == (batch_size, input_dim)
+
+    # bq state contains gaussian measure (no data)
+    assert policy(params["bq_state_gauss"], rng).shape == (batch_size, input_dim)
 
 
 def test_policy_property_values(policy):
     policy, params = policy
     assert policy.requires_rng is params["requires_rng"]
+
+
+# Tests specific to MaxAcquisitionPolicy start here
+
+
+def test_max_acquisition_attribute_values():
+    n_restarts = 10
+    policy = MaxAcquisitionPolicy(
+        batch_size=1,
+        acquisition_func=WeightedPredictiveVariance(),
+        n_restarts=n_restarts,
+    )
+    assert policy.n_restarts == n_restarts
+
+
+def test_max_acquisition_raises():
+    # batch size larger than 1
+    with pytest.raises(ValueError):
+        wrong_batch_size = 2
+        MaxAcquisitionPolicy(
+            batch_size=wrong_batch_size,
+            acquisition_func=WeightedPredictiveVariance(),
+            n_restarts=3,
+        )
+
+    # n_restarts too small
+    with pytest.raises(ValueError):
+        wrong_n_restarts = 0
+        MaxAcquisitionPolicy(
+            batch_size=1,
+            acquisition_func=WeightedPredictiveVariance(),
+            n_restarts=wrong_n_restarts,
+        )
 
 
 # Tests specific to RandomMaxAcquisitionPolicy start here

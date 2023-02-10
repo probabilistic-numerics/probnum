@@ -124,7 +124,7 @@ class Scaling(_linear_operator.LambdaLinearOperator):
             shape = 2 * self._factors.shape
             dtype = self._factors.dtype
 
-            matmul = lambda x: self._factors[:, np.newaxis] * x
+            matmul = lambda x: self._factors[:, None] * x
 
             apply = lambda x, axis: (
                 self._factors.reshape((-1,) + (x.ndim - (axis + 1)) * (1,)) * x
@@ -150,6 +150,7 @@ class Scaling(_linear_operator.LambdaLinearOperator):
             dtype,
             matmul=matmul,
             apply=apply,
+            solve=lambda B: self.inv() @ B,
             todense=todense,
             transpose=lambda: self,
             inverse=inverse,
@@ -243,11 +244,11 @@ class Scaling(_linear_operator.LambdaLinearOperator):
     def _astype(self, dtype, order, casting, copy) -> "Scaling":
         if self.dtype == dtype and not copy:
             return self
-        else:
-            if self.is_isotropic:
-                return Scaling(self._scalar, shape=self.shape, dtype=dtype)
-            else:
-                return Scaling(self._factors, dtype=dtype)
+
+        if self.is_isotropic:
+            return Scaling(self._scalar, shape=self.shape, dtype=dtype)
+
+        return Scaling(self._factors, dtype=dtype)
 
     def _todense_isotropic(self) -> np.ndarray:
         dense = np.zeros(self.shape, dtype=self.dtype)
@@ -266,7 +267,7 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
         return Scaling(1 / self._scalar, shape=self.shape)
 
-    def _cond_anisotropic(self, p: Union[None, int, float, str]) -> np.inexact:
+    def _cond_anisotropic(self, p: Union[None, int, float, str]) -> np.floating:
         abs_diag = np.abs(self._factors)
         abs_min = np.min(abs_diag)
 
@@ -283,31 +284,33 @@ class Scaling(_linear_operator.LambdaLinearOperator):
             if p > 0:  # p in (2, 1, np.inf)
                 cond = abs_max / abs_min
             else:  # p in (-2, -1, -np.inf)
-                if abs_max > 0:
+                if abs_max > 0:  # pylint: disable=else-if-used
                     cond = abs_min / abs_max
                 else:
                     cond = np.double(np.inf)
 
             return cond.astype(self._inexact_dtype, copy=False)
-        elif p == "fro":
+
+        if p == "fro":
             norm = np.linalg.norm(self._factors, ord=2)
             norm_inv = np.linalg.norm(1 / self._factors, ord=2)
             return (norm * norm_inv).astype(self._inexact_dtype, copy=False)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
 
-    def _cond_isotropic(self, p: Union[None, int, float, str]) -> np.inexact:
+    def _cond_isotropic(self, p: Union[None, int, float, str]) -> np.floating:
         if self._scalar == 0:
             return self._inexact_dtype.type(np.inf)
 
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
-        elif p == "fro":
+
+        if p == "fro":
             return probnum.utils.as_numpy_scalar(
                 min(self.shape), dtype=self._inexact_dtype
             )
-        else:
-            return np.linalg.cond(self.todense(cache=False), p=p)
+
+        return np.linalg.cond(self.todense(cache=False), p=p)
 
     def _cholesky(self, lower: bool = True) -> Scaling:
         if self._scalar is not None:
@@ -325,10 +328,19 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
 
 class Zero(_linear_operator.LambdaLinearOperator):
-    def __init__(self, shape, dtype=np.float64):
+    """The zero matrix represented as a :class:`LinearOperator`.
 
-        matmul = lambda x: np.zeros(x.shape, np.result_type(x, self.dtype))
-        apply = lambda x, axis: np.zeros(x.shape, np.result_type(x, self.dtype))
+    Linear operator that maps all inputs to 0.
+
+    Parameters
+    ----------
+    shape :
+        Shape of the linear operator.
+    dtype :
+        Data type of the linear operator.
+    """
+
+    def __init__(self, shape, dtype=np.float64):
         todense = lambda: np.zeros(shape=shape, dtype=dtype)
         rank = lambda: np.intp(0)
         eigvals = lambda: np.zeros(shape=(shape[0],), dtype=dtype)
@@ -336,13 +348,17 @@ class Zero(_linear_operator.LambdaLinearOperator):
 
         trace = lambda: np.zeros(shape=(), dtype=dtype)
 
+        def matmul(x: np.ndarray) -> np.ndarray:
+            target_shape = list(x.shape)
+            target_shape[-2] = self.shape[0]
+            return np.zeros(target_shape, np.result_type(x, self.dtype))
+
         super().__init__(
             shape,
             dtype=dtype,
             matmul=matmul,
-            apply=apply,
             todense=todense,
-            transpose=lambda: self,
+            transpose=lambda: Zero(self.shape[::-1], self.dtype),
             rank=rank,
             eigvals=eigvals,
             det=det,

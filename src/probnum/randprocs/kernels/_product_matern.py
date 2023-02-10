@@ -90,7 +90,7 @@ class ProductMatern(Kernel):
         univariate_materns = []
         for dim in range(input_dim):
             univariate_materns.append(
-                Matern(input_shape=(), lengthscale=lengthscales[dim], nu=nus[dim])
+                Matern(input_shape=(), lengthscales=lengthscales[dim], nu=nus[dim])
             )
         self.univariate_materns = univariate_materns
         self.nus = nus
