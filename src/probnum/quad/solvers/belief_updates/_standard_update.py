@@ -126,3 +126,26 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
         else:
             raise ValueError(f"Scale estimation ({self.scale_estimation}) is unknown.")
         return new_scale_sq
+
+    @staticmethod
+    def predict_integrand(
+        x: np.ndarray, bq_state: BQState
+    ) -> Tuple[np.ndarray, np.ndarray]:
+
+        predictive_mean = np.zeros(x.shape[0])  # zero mean prior
+        predictive_var = bq_state.kernel(x, x)
+
+        nevals = bq_state.fun_evals.shape[0]
+        if nevals != 0:
+            kXx = bq_state.kernel.matrix(bq_state.nodes, x)
+            weights = BQStandardBeliefUpdate.gram_cho_solve(
+                bq_state.gram_cho_factor, kXx
+            )
+
+            # values (with zero mean prior at evals)
+            predictive_mean += weights.T @ (bq_state.fun_evals - np.zeros(nevals))
+
+            # variances
+            predictive_var -= np.sum(weights * kXx, axis=0)
+
+        return predictive_mean, bq_state.scale_sq * predictive_var

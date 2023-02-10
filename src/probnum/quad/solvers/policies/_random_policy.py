@@ -1,4 +1,4 @@
-"""Random policy for Bayesian Monte Carlo."""
+"""Random policy for Bayesian quadrature."""
 
 from __future__ import annotations
 
