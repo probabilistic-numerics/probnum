@@ -71,12 +71,16 @@ def bayesquad(
     policy
         Type of acquisition strategy to use. Defaults to 'bmc'. Options are
 
-        ============================================  ===========
-         Bayesian Monte Carlo [2]_                    ``bmc``
-         Van Der Corput points                        ``vdc``
-         Uncertainty Sampling with random candidates  ``us_rand``
-         Uncertainty Sampling with optimizer          ``us``
-        ============================================  ===========
+        ==================================================== ===========
+         Bayesian Monte Carlo [2]_                            ``bmc``
+         Van Der Corput points                                ``vdc``
+         Uncertainty Sampling with random candidates          ``us_rand``
+         Uncertainty Sampling with optimizer                  ``us``
+         Mutual information with random candidates            ``mi_rand``
+         Mutual information with optimizer                    ``mi``
+         Integral variance reduction with random candidates   ``ivr_rand``
+         Integral variance reduction with optimizer           ``ivr``
+        ==================================================== ===========
 
     initial_design
         The type of initial design to use. If ``None`` is given, no initial design is
@@ -115,13 +119,14 @@ def bayesquad(
             n_initial_design_nodes : Optional[IntLike]
                 The number of nodes created by the initial design. Defaults to
                 ``input_dim * 5`` if an initial design is given.
-            us_rand_n_candidates : Optional[IntLike]
-                The number of candidate nodes used by the policy 'us_rand'. Defaults
-                to 1e2.
-            us_n_restarts : Optional[IntLike]
+            n_candidates : Optional[IntLike]
+                The number of candidate nodes used by the policies that maximize an
+                acquisition function by drawing random candidates. Defaults to 1e2.
+                Applicable to policies 'us_rand', 'mi_rand' and 'ivr_rand'.
+            n_restarts : Optional[IntLike]
                 The number of restarts that the acquisition optimizer performs in
-                order to find the maximizer when policy 'us' is used. Defaults
-                to 10.
+                order to find the maximizer. Defaults to 10. Applicable to policies
+                'us', 'mi' and 'ivr'.
 
     Returns
     -------

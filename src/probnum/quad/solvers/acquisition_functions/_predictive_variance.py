@@ -1,4 +1,4 @@
-"""Uncertainty sampling for Bayesian Monte Carlo."""
+"""Uncertainty sampling for Bayesian quadrature."""
 
 from __future__ import annotations
 
@@ -25,6 +25,10 @@ class WeightedPredictiveVariance(AcquisitionFunction):
     where :math:`\operatorname{Var}(f(x))` is the predictive variance of the model and
     :math:`p(x)` is the density of the integration measure :math:`\mu`.
 
+    Notes
+    -----
+        The implementation scales :math:`a(x)` with the inverse of the squared kernel
+        scale for numerical stability.
     """
 
     @property
@@ -37,12 +41,9 @@ class WeightedPredictiveVariance(AcquisitionFunction):
         x: np.ndarray,
         bq_state: BQState,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        predictive_variance = bq_state.kernel(x, x)
-        if bq_state.fun_evals.shape != (0,):
-            kXx = bq_state.kernel.matrix(bq_state.nodes, x)
-            regression_weights = BQStandardBeliefUpdate.gram_cho_solve(
-                bq_state.gram_cho_factor, kXx
-            )
-            predictive_variance -= np.sum(regression_weights * kXx, axis=0)
-        values = bq_state.scale_sq * predictive_variance * bq_state.measure(x) ** 2
+
+        _, predictive_variance = BQStandardBeliefUpdate.predict_integrand(x, bq_state)
+        predictive_variance *= 1 / bq_state.scale_sq  # for numerical stability
+
+        values = predictive_variance * bq_state.measure(x) ** 2
         return values, None
