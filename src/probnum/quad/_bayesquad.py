@@ -318,7 +318,7 @@ def bayesquad_multilevel(
     where :math:`f_l` is an increasingly accurate but also increasingly expensive
     approximation to :math:`f`. Bayesian quadrature is subsequently applied to
     independently infer each of the :math:`L+1` integrals and the outputs are summed
-    to infer :math:`\int_\Omega f(x) d \mu(x)`.
+    to infer :math:`\int_\Omega f(x) d \mu(x)`. [1]_
 
     Parameters
     ----------
