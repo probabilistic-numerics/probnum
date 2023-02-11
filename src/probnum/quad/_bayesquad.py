@@ -323,7 +323,7 @@ def bayesquad_multilevel(
     Parameters
     ----------
     nodes
-        *shape=(n_level,)* -- Tuple containing the locations for each level at which
+        Tuple of length :math:`L+1` containing the locations for each level at which
         the functionn evaluations are available as ``fun_diff_evals``. Each element
         must be a shape=(n_eval, input_dim) ``np.ndarray``. If a tuple containing only
         one element is provided, it is inferred that the same nodes ``nodes[0]`` are
