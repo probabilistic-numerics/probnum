@@ -312,8 +312,8 @@ def bayesquad_multilevel(
     In multilevel Bayesian quadrature, the integral :math:`\int_\Omega f(x) d \mu(x)`
     is (approximately) decomposed as a telescoping sum over :math:`L+1` levels:
 
-    .. math:: \int_\Omega f(x) d \mu(x) \approx :math:`\int_\Omega f_0(x) d
-    \mu(x)` + \sum_{l=1}^L :math:`\int_\Omega [f_l(x) - f_{l-1}(x)] d \mu(x)`,
+    .. math:: \int_\Omega f(x) d \mu(x) \approx \int_\Omega f_0(x) d
+        \mu(x) + \sum_{l=1}^L \int_\Omega [f_l(x) - f_{l-1}(x)] d \mu(x),
 
     where :math:`f_l` is an increasingly accurate but also increasingly expensive
     approximation to :math:`f`. Bayesian quadrature is subsequently applied to
