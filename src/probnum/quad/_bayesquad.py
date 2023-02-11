@@ -374,12 +374,6 @@ def bayesquad_multilevel(
     UserWarning
         When ``domain`` is given but not used.
 
-    See Also
-    --------
-    bayesquad : Computes the integral using an acquisition policy.
-    bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
-                          nodes and function evaluations.
-
     References
     ----------
     .. [1] Li, K., et al., Multilevel Bayesian quadrature, *arXiv:2210.08329*, 2022.
