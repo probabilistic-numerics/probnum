@@ -298,7 +298,7 @@ def bayesquad_from_data(
     return integral_belief, info
 
 
-def bayesquad_multilevel(
+def multilevel_bayesquad_from_data(
     nodes: Tuple[np.ndarray, ...],
     fun_diff_evals: Tuple[np.ndarray, ...],
     kernels: Optional[Tuple[Kernel, ...]] = None,
@@ -316,9 +316,12 @@ def bayesquad_multilevel(
         \mu(x) + \sum_{l=1}^L \int_\Omega [f_l(x) - f_{l-1}(x)] d \mu(x),
 
     where :math:`f_l` is an increasingly accurate but also increasingly expensive
-    approximation to :math:`f`. Bayesian quadrature is subsequently applied to
-    independently infer each of the :math:`L+1` integrals and the outputs are summed
-    to infer :math:`\int_\Omega f(x) d \mu(x)`. [1]_
+    approximation to :math:`f`. It is not necessary that the highest level approximation
+    :math:`f_L` be equal to :math:`f`.
+
+    Bayesian quadrature is subsequently applied to independently infer each of the
+    :math:`L+1` integrals and the outputs are summed to infer
+    :math:`\int_\Omega f(x) d \mu(x)`. [1]_
 
     Parameters
     ----------
@@ -334,9 +337,8 @@ def bayesquad_multilevel(
         shape=(n_eval,) ``np.ndarray``. The zeroth element contains the evaluations of
         :math:`f_0`.
     kernels
-        Tuple containing the kernels used for the GP model at each level. If a tuple
-        containing only one element is provided, it is inferred that the same kernel
-        ``kernels[0]`` is used on every level. Defaults to the ``ExpQuad`` kernel.
+        Tuple containing the kernels used for the GP model at each level. The user must
+        input all kernels. Defaults to the ``ExpQuad`` kernel for each level.
     measure
         The integration measure. Defaults to the Lebesgue measure.
     domain
@@ -376,7 +378,7 @@ def bayesquad_multilevel(
 
     References
     ----------
-    .. [1] Li, K., et al., Multilevel Bayesian quadrature, *arXiv:2210.08329*, 2022.
+    .. [1] Li, K., et al., Multilevel Bayesian quadrature, AISTATS, 2023.
 
     Examples
     --------
@@ -393,19 +395,18 @@ def bayesquad_multilevel(
     ...     n_l = 2*l + 1
     ...     nodes += (np.reshape(np.linspace(0, 1, n_l), (n_l, input_dim)),)
     ...     fun_diff_evals += (np.reshape(fun(nodes[l], l), (n_l,)),)
-    >>> F, info = bayesquad_multilevel(nodes=nodes, fun_diff_evals=fun_diff_evals,
-    ...                                domain=domain)
+    >>> F, info = multilevel_bayesquad_from_data(nodes=nodes,
+    ...                                          fun_diff_evals=fun_diff_evals,
+    ...                                          domain=domain)
     >>> print(F.mean)
     0.7252421350019139
     """
 
+    n_level = len(fun_diff_evals)
     if kernels is None:
-        kernels = (None,)
-    n_level = np.max([len(nodes), len(fun_diff_evals), len(kernels)])
+        kernels = n_level * (None,)
     if len(nodes) == 1:
         nodes = n_level * (nodes[0],)
-    if len(kernels) == 1:
-        kernels = n_level * (kernels[0],)
     if len(fun_diff_evals) != n_level or len(kernels) != n_level:
         raise ValueError(
             "You must provide an equal number of kernels, vectors of "
