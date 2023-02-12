@@ -5,7 +5,7 @@ import pytest
 from scipy.integrate import quad as scipyquad
 
 from probnum.quad import bayesquad, bayesquad_from_data, multilevel_bayesquad_from_data
-from probnum.quad.integration_measures import LebesgueMeasure, GaussianMeasure
+from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
@@ -88,8 +88,8 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim, scale_estimatio
     """Test numerical integration of x**2 in higher dimensions."""
     # pylint: disable=invalid-name
     c = np.linspace(0.1, 2.2, input_dim)
-    fun = lambda x: np.sum(c * x ** 2, 1)
-    true_integral = np.sum(c * (measure.mean ** 2 + np.diag(measure.cov)))
+    fun = lambda x: np.sum(c * x**2, 1)
+    true_integral = np.sum(c * (measure.mean**2 + np.diag(measure.cov)))
     n_gh = 8  # Be very careful about increasing this - yields huge kernel matrices
     nodes, _ = gauss_hermite_tensor(
         n_points=n_gh, input_dim=input_dim, mean=measure.mean, cov=measure.cov

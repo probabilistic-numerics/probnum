@@ -395,9 +395,9 @@ def multilevel_bayesquad_from_data(
     ...     n_l = 2*l + 1
     ...     nodes += (np.reshape(np.linspace(0, 1, n_l), (n_l, input_dim)),)
     ...     fun_diff_evals += (np.reshape(fun(nodes[l], l), (n_l,)),)
-    >>> F, info = multilevel_bayesquad_from_data(nodes=nodes,
-    ...                                          fun_diff_evals=fun_diff_evals,
-    ...                                          domain=domain)
+    >>> F, infos = multilevel_bayesquad_from_data(nodes=nodes,
+    ...                                           fun_diff_evals=fun_diff_evals,
+    ...                                           domain=domain)
     >>> print(F.mean)
     0.7252421350019139
     """
