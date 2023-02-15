@@ -221,7 +221,7 @@ def test_zero_function_gives_zero_variance_with_mle(rng):
     assert bq_integral2.var == 0.0
 
 
-def test_multilevel_bayesquad_from_data_input_handling(kernel, measure, rng):
+def test_multilevel_bayesquad_from_data_output_types_and_shapes(kernel, measure, rng):
     """Test that inputs to multilevel BQ are handled properly."""
     n_level = 3
     ns_1 = (3, 7, 2)
