@@ -296,69 +296,40 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
     ) -> np.ndarray:
-        """A convenience function for computing a kernel matrix for two sets of inputs.
+        x0 = self._preprocess_linop_input(x0, argname="x0")
 
-        This is syntactic sugar for ``k(x0[:, None], x1[None, :])``. Hence, it
-        computes the matrix (stack) of pairwise covariances between two sets of input
-        points.
-        If ``k`` represents a single covariance function, then the resulting matrix will
-        be symmetric positive-(semi)definite for ``x0 == x1``.
+        if x1 is not None:
+            x1 = self._preprocess_linop_input(x1, argname="x1")
 
-        Parameters
-        ----------
-        x0
-            *shape=* ``(M,) +`` :attr:`input_shape` or :attr:`input_shape`
-            -- Stack of inputs for the first argument of the :class:`Kernel`.
-        x1
-            *shape=* ``(N,) +`` :attr:`input_shape` or :attr:`input_shape`
-            -- (Optional) stack of inputs for the second argument of the
-            :class:`Kernel`. If ``x1`` is not specified, the function behaves as if
-            ``x1 = x0`` (but it is implemented more efficiently).
+        k_matrix_x0_x1 = self._evaluate_matrix(x0, x1)
 
-        Returns
-        -------
-        kernmat :
-            *shape=* ``batch_shape +`` :attr:`output_shape` -- The matrix / stack of
-            matrices containing the pairwise evaluations of the (cross-)covariance
-            function(s) on ``x0`` and ``x1``.
-            Depending on the shape of the inputs, ``batch_shape`` is either ``(M, N)``,
-            ``(M,)``, ``(N,)``, or ``()``.
-
-        Raises
-        ------
-        ValueError
-            If the shapes of the inputs don't match the specification.
-
-        See Also
-        --------
-        __call__: Evaluate the kernel more flexibly.
-
-        Examples
-        --------
-        See documentation of class :class:`Kernel`.
-        """
-
-        x0 = np.asarray(x0)
-        x1 = x0 if x1 is None else np.asarray(x1)
-
-        # Shape checking
-        errmsg = (
-            "`{argname}` must have shape `({batch_dim},) + input_shape` or "
-            f"`input_shape`, where `input_shape` is `{self.input_shape}`, but an array "
-            "with shape `{shape}` was given."
+        assert isinstance(k_matrix_x0_x1, np.ndarray)
+        assert k_matrix_x0_x1.shape == (
+            self.output0_size * x0.shape[0],
+            self.output1_size * (x1.shape[0] if x1 is not None else x0.shape[0]),
         )
 
-        if not 0 <= x0.ndim - self.input_ndim <= 1:
-            raise ValueError(errmsg.format(argname="x0", batch_dim="M", shape=x0.shape))
+        return k_matrix_x0_x1
 
-        if not 0 <= x1.ndim - self.input_ndim <= 1:
-            raise ValueError(errmsg.format(argname="x1", batch_dim="N", shape=x1.shape))
+    def linop(
+        self,
+        x0: ArrayLike,
+        x1: Optional[ArrayLike] = None,
+    ) -> linops.LinearOperator:
+        x0 = self._preprocess_linop_input(x0, argname="x0")
 
-        # Pairwise kernel evaluation
-        if x0.ndim > self.input_ndim and x1.ndim > self.input_ndim:
-            return self(x0[:, None], x1[None, :])
+        if x1 is not None:
+            x1 = self._preprocess_linop_input(x1, argname="x1")
 
-        return self(x0, x1)
+        k_linop_x0_x1 = self._evaluate_linop(x0, x1)
+
+        assert isinstance(k_linop_x0_x1, linops.LinearOperator)
+        assert k_linop_x0_x1.shape == (
+            self.output0_size * x0.shape[0],
+            self.output1_size * (x1.shape[0] if x1 is not None else x0.shape[1]),
+        )
+
+        return k_linop_x0_x1
 
     @abc.abstractmethod
     def _evaluate(
@@ -388,6 +359,44 @@ class Kernel(abc.ABC):
             See "Returns" section in the docstring of :meth:`__call__`.
         """
         raise NotImplementedError
+
+    def _evaluate_matrix(
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
+    ) -> linops.LinearOperator:
+        assert x0.ndim == 1 + self.input_shape
+        assert x1 is None or x1.ndim == 1 + self.input_shape
+
+        k_x0_x1 = self(x0[:, None, ...], (x1 if x1 is not None else x0)[None, :, ...])
+
+        assert k_x0_x1.ndim == 2 + self.output0_ndim + self.output1_ndim
+
+        batch_shape = k_x0_x1.shape[:2]
+
+        assert k_x0_x1.shape == batch_shape + self.output0_shape + self.output1_shape
+
+        cov_x0_x1 = np.moveaxis(k_x0_x1, 1, -1)
+        cov_x0_x1 = np.moveaxis(cov_x0_x1, 0, 1 + self.output1_shape)
+
+        assert cov_x0_x1.shape == self.output0_shape + (
+            batch_shape[0],
+        ) + self.output1_shape + (batch_shape[1],)
+
+        return cov_x0_x1.reshape(
+            (
+                self.output0_size * batch_shape[0],
+                self.output1_size * batch_shape[1],
+            ),
+            order="C",
+        )
+
+    def _evaluate_linop(
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
+    ) -> linops.LinearOperator:
+        return linops.Matrix(self._evaluate_matrix(x0, x1))
 
     def _check_shapes(
         self,
@@ -449,6 +458,21 @@ class Kernel(abc.ABC):
                 raise ValueError(err_msg) from ve
 
         return broadcast_batch_shape
+
+    def _preprocess_linop_input(self, x: ArrayLike, argname: str) -> np.ndarray:
+        x = np.asarray(x)
+
+        if not (
+            x.ndim >= self.input_ndim
+            and x.shape[(x.ndim - self.input_ndim) :] == self.input_shape
+        ):
+            raise ValueError(
+                f"The shape of `{argname}` must must match the input shape "
+                f"`{self.input_shape}` of the kernel along its trailing dimensions, "
+                f"but an array with shape `{x.shape}` was given."
+            )
+
+        return x.reshape((-1,) + self.input_shape, order="C")
 
     def _euclidean_inner_products(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
