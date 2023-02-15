@@ -250,21 +250,28 @@ def test_multilevel_bayesquad_from_data_output_types_and_shapes(kernel, measure,
     )
     assert isinstance(F, Normal)
     assert len(infos) == n_level
-    # Wrong number inputs should throw error
-    kernels_2 = (kernel, kernel)
+
+
+def test_multilevel_bayesquad_from_data_wrong_inputs(kernel, measure, rng):
+    """Tests that wrong number inputs to multilevel BQ throw errors."""
+    n_level = 5
+    ns = (3, 7, 11)
+    nodes_1 = (measure.sample(n_sample=ns[0], rng=rng),)
+    fun_diff_evals = n_level * (np.zeros((ns[0],)),)
+    kernels = (kernel, kernel)
     with pytest.raises(ValueError):
         _, _ = multilevel_bayesquad_from_data(
             nodes=nodes_1,
-            fun_diff_evals=fun_diff_evals_2,
-            kernels=kernels_2,
+            fun_diff_evals=fun_diff_evals,
+            kernels=kernels,
             measure=measure,
         )
-    nodes_2 = (nodes_full[0], nodes_full[1])
+    nodes_2 = tuple([measure.sample((ns[l]), rng=rng) for l in range(2)])
     with pytest.raises(ValueError):
         _, _ = multilevel_bayesquad_from_data(
             nodes=nodes_2,
-            fun_diff_evals=fun_diff_evals_2,
-            kernels=kernels_2,
+            fun_diff_evals=fun_diff_evals,
+            kernels=kernels,
             measure=measure,
         )
 
@@ -305,11 +312,13 @@ def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_2d():
     n_level = 5
     measure = GaussianMeasure(np.full((input_dim,), 0.2), cov=0.6 * np.eye(input_dim))
     _gh = gauss_hermite_tensor
-    nodes = [_gh(l + 1, input_dim, measure.mean, measure.cov)[0] for l in range(n_level)]
+    nodes = [
+        _gh(l + 1, input_dim, measure.mean, measure.cov)[0] for l in range(n_level)
+    ]
     for i in range(n_level):
         jitter = 1e-5 * (i + 1.0)
         fun_diff_evals = [np.zeros(shape=(len(xs),)) for xs in nodes]
-        fun_evals =  np.sin(nodes[i][:, 0] * i) + (i + 1.0) * np.cos(nodes[i][:, 1])
+        fun_evals = np.sin(nodes[i][:, 0] * i) + (i + 1.0) * np.cos(nodes[i][:, 1])
         fun_diff_evals[i] = fun_evals
         mlbq_integral, _ = multilevel_bayesquad_from_data(
             nodes=tuple(nodes),
