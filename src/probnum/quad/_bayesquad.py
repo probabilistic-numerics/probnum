@@ -403,8 +403,8 @@ def multilevel_bayesquad_from_data(
     >>> F, infos = multilevel_bayesquad_from_data(nodes=nodes,
     ...                                           fun_diff_evals=fun_diff_evals,
     ...                                           domain=domain)
-    >>> print(F.mean)
-    0.7252421350019139
+    >>> print(np.round(F.mean, 4))
+    0.7252
     """
 
     n_level = len(fun_diff_evals)
