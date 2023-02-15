@@ -338,7 +338,7 @@ def multilevel_bayesquad_from_data(
         :math:`f_0`.
     kernels
         Tuple of length :math:`L+1` containing the kernels used for the GP model at each
-        level. The user must input all kernels. Defaults to the ``ExpQuad`` kernel for
+        level. See **Notes** for further details. Defaults to the ``ExpQuad`` kernel for
         each level.
     measure
         The integration measure. Defaults to the Lebesgue measure.
