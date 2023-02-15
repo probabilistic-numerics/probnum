@@ -9,7 +9,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum import utils as _pn_utils
+from probnum import linops, utils as _pn_utils
 from probnum.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
 
 BinaryOperandType = Union["Kernel", ScalarLike]
@@ -296,6 +296,37 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
     ) -> np.ndarray:
+        """Kernel matrix corresponding to the given input points.
+
+        Parameters
+        ----------
+        x0
+            *shape=* ``batch_shape_0 +`` :attr:`input_shape` -- (Batch of) input(s) for
+            the first argument of the :class:`Kernel`.
+        x1
+            *shape=* ``batch_shape_1 +`` :attr:`input_shape` -- (Batch of) input(s) for
+            the second argument of the :class:`Kernel`.
+            Can also be set to :data:`None`, in which case the function will behave as
+            if ``x1 == x0`` (potentially using a more efficient implementation for this
+            particular case).
+
+        Returns
+        -------
+        k_x0_x1
+            *shape=* ``(``:attr:`output0_size` ``* N0,`` :attr:`output1_size` ``* N1)``
+            *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
+            The kernel matrix corresponding to the given batches of input points.
+            The order of the rows and columns of the kernel matrix corresponds to the
+            order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
+            shapes :attr:`output0_shape` ``+ batch_shape_0`` and :attr:`output0_shape`
+            ``+ batch_shape_1`` in "C-order".
+
+        Raises
+        ------
+        ValueError
+            If the shape of either input is not of the form ``batch_shape_0 +``
+            :attr:`input_shape`.
+        """
         x0 = self._preprocess_linop_input(x0, argname="x0")
 
         if x1 is not None:
@@ -316,6 +347,51 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
     ) -> linops.LinearOperator:
+        """:class:`LinearOperator` representing the kernel matrix corresponding to the
+        given input points.
+
+        Representing a kernel matrix as a matrix-free :class:`LinearOperator` is often
+        more efficient than computing a dense kernel matrix, both in terms of memory and
+        computation time, particularly when using iterative methods to solve the
+        associated linear systems.
+
+        For instance, kernel matrices for separable kernels (e.g. tensor product
+        kernels or separable multi-output kernels) can often be represented as
+        :class:`linops.KroneckerProduct`\\ s of smaller kernel matrices and frameworks
+        like :mod:`pykeops<pykeops.numpy>` can be used to implement efficient
+        matrix-vector products with kernel matrices without needing to construct the
+        entire kernel matrix in memory.
+
+        Parameters
+        ----------
+        x0
+            *shape=* ``batch_shape_0 +`` :attr:`input_shape` -- (Batch of) input(s) for
+            the first argument of the :class:`Kernel`.
+        x1
+            *shape=* ``batch_shape_1 +`` :attr:`input_shape` -- (Batch of) input(s) for
+            the second argument of the :class:`Kernel`.
+            Can also be set to :data:`None`, in which case the function will behave as
+            if ``x1 == x0`` (potentially using a more efficient implementation for this
+            particular case).
+
+        Returns
+        -------
+        k_x0_x1
+            *shape=* ``(``:attr:`output0_size` ``* N0,`` :attr:`output1_size` ``* N1)``
+            *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
+            :class:`LinearOperator` representing the kernel matrix corresponding to the
+            given batches of input points.
+            The order of the rows and columns of the kernel matrix corresponds to the
+            order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
+            shapes :attr:`output0_shape` ``+ batch_shape_0`` and :attr:`output0_shape`
+            ``+ batch_shape_1`` in "C-order".
+
+        Raises
+        ------
+        ValueError
+            If the shape of either input is not of the form ``batch_shape_0 +``
+            :attr:`input_shape`.
+        """
         x0 = self._preprocess_linop_input(x0, argname="x0")
 
         if x1 is not None:
@@ -334,8 +410,8 @@ class Kernel(abc.ABC):
     @abc.abstractmethod
     def _evaluate(
         self,
-        x0: ArrayLike,
-        x1: Optional[ArrayLike],
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
     ) -> np.ndarray:
         """Implementation of the kernel evaluation which is called after input checking.
 
