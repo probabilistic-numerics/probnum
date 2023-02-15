@@ -138,18 +138,18 @@ class Kernel(abc.ABC):
     def __init__(
         self,
         input_shape: ShapeLike,
-        output_shape: ShapeLike = (),
+        output0_shape: ShapeLike = (),
+        output1_shape: ShapeLike = (),
     ):
         self._input_shape = _pn_utils.as_shape(input_shape)
-        self._input_ndim = len(self._input_shape)
 
         if self._input_ndim > 1:
             raise ValueError(
                 "Currently, we only support kernels with at most 1 input dimension."
             )
 
-        self._output_shape = _pn_utils.as_shape(output_shape)
-        self._output_ndim = len(self._output_shape)
+        self._output0_shape = _pn_utils.as_shape(output0_shape)
+        self._output1_shape = _pn_utils.as_shape(output1_shape)
 
     @property
     def input_shape(self) -> ShapeType:
@@ -167,7 +167,7 @@ class Kernel(abc.ABC):
         return functools.reduce(operator.mul, self.input_shape, 1)
 
     @property
-    def output_shape(self) -> ShapeType:
+    def output0_shape(self) -> ShapeType:
         """Shape of single, i.e. non-batched, return values of the covariance function.
 
         If :attr:`output_shape` is ``()``, the :class:`Kernel` instance represents a
@@ -175,18 +175,38 @@ class Kernel(abc.ABC):
         non-empty, the :class:`Kernel` instance represents a tensor of
         (cross-)covariance functions whose shape is given by ``output_shape``.
         """
-        return self._output_shape
+        return self._output0_shape
 
     @property
-    def output_ndim(self) -> int:
-        """Syntactic sugar for ``len(output_shape)``."""
-        return self._output_ndim
+    def output0_ndim(self) -> int:
+        """Syntactic sugar for ``len(output0_shape)``."""
+        return len(self.output0_shape)
+
+    @functools.cached_property
+    def output0_size(self) -> int:
+        """Syntactic sugar for the product over :attr:`output0_shape`."""
+        return functools.reduce(operator.mul, self.output0_shape, 1)
+
+    @property
+    def output1_shape(self) -> ShapeType:
+        return self._output1_shape
+
+    @property
+    def output1_ndim(self) -> int:
+        """Syntactic sugar for ``len(output1_shape)``."""
+        return len(self.output1_shape)
+
+    @functools.cached_property
+    def output1_size(self) -> int:
+        """Syntactic sugar for the product over :attr:`output1_shape`."""
+        return functools.reduce(operator.mul, self.output1_shape, 1)
 
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with"
-            f" input_shape={self.input_shape} and"
-            f" output_shape={self.output_shape}>"
+            f" input_shape={self.input_shape},"
+            f" output0_shape={self.output0_shape}, and"
+            f" output1_shape={self.output1_shape}>"
         )
 
     def __call__(
@@ -264,7 +284,10 @@ class Kernel(abc.ABC):
         # Evaluate the kernel
         k_x0_x1 = self._evaluate(x0, x1)
 
-        assert k_x0_x1.shape == broadcast_batch_shape + self._output_shape
+        assert (
+            k_x0_x1.shape
+            == broadcast_batch_shape + self._output0_shape + self._output1_shape
+        )
 
         return k_x0_x1
 

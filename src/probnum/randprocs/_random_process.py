@@ -105,11 +105,15 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
                     f"random process (`{cov.input_shape}` != `{self._input_shape}`)."
                 )
 
-            if cov.output_shape != 2 * self._output_shape:
+            if not (
+                cov.output0_shape != self._output_shape
+                and cov.output1_shape != self._output_shape
+            ):
                 raise ValueError(
-                    f"The `output_shape` of the covariance function must be given by "
-                    f"`2 * self.output_shape` (`{cov.output_shape}` != "
-                    f"`{2 * self._output_shape}`)."
+                    f"Both `output0_shape` and `output1_shape` of the covariance "
+                    f"function must be set to the `output_shape` {self.output_shape} "
+                    f"of the random process, but got kernel with output shapes "
+                    f"{cov.output0_shape} and {cov.output1_shape}, respectively."
                 )
 
         self._cov = cov
