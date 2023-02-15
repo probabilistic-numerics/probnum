@@ -408,10 +408,11 @@ def multilevel_bayesquad_from_data(
         kernels = n_level * (None,)
     if len(nodes) == 1:
         nodes = n_level * (nodes[0],)
-    if len(fun_diff_evals) != n_level or len(kernels) != n_level:
+    if not (len(nodes) == len(fun_diff_evals) == len(kernels)):
         raise ValueError(
-            "You must provide an equal number of kernels, vectors of "
-            "function evaluations and sets of nodes."
+            f"You must provide an equal number of kernels ({(len(kernels))}), "
+            f"vectors of function evaluations ({len(fun_diff_evals)}) "
+            f"and sets of nodes ({len(nodes)})."
         )
 
     integer_belief = Normal(mean=0.0, cov=0.0)
