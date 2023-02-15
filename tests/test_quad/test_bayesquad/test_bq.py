@@ -226,8 +226,8 @@ def test_multilevel_bayesquad_from_data_output_types_and_shapes(kernel, measure,
     """Test that inputs to multilevel BQ are handled properly."""
     n_level = 3
     ns_1 = (3, 7, 2)
-    fun_diff_evals_1 = tuple([np.zeros(ns_1[l]) for l in range(n_level)])
-    nodes_full = tuple([measure.sample((ns_1[l]), rng=rng) for l in range(n_level)])
+    fun_diff_evals_1 = tuple(np.zeros(ns_1[l]) for l in range(n_level))
+    nodes_full = tuple(measure.sample((ns_1[l]), rng=rng) for l in range(n_level))
 
     F, infos = multilevel_bayesquad_from_data(
         nodes=nodes_full,
@@ -266,7 +266,7 @@ def test_multilevel_bayesquad_from_data_wrong_inputs(kernel, measure, rng):
             kernels=kernels,
             measure=measure,
         )
-    nodes_2 = tuple([measure.sample((ns[l]), rng=rng) for l in range(2)])
+    nodes_2 = tuple(measure.sample((ns[l]), rng=rng) for l in range(2))
     with pytest.raises(ValueError):
         _, _ = multilevel_bayesquad_from_data(
             nodes=nodes_2,
