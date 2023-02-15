@@ -389,7 +389,6 @@ def multilevel_bayesquad_from_data(
     Examples
     --------
     >>> import numpy as np
-
     >>> input_dim = 1
     >>> domain = (0, 1)
     >>> n_level = 6
