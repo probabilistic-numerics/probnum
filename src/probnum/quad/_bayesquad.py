@@ -337,8 +337,9 @@ def multilevel_bayesquad_from_data(
         shape=(n_eval,) ``np.ndarray``. The zeroth element contains the evaluations of
         :math:`f_0`.
     kernels
-        Tuple containing the kernels used for the GP model at each level. The user must
-        input all kernels. Defaults to the ``ExpQuad`` kernel for each level.
+        Tuple of length :math:`L+1` containing the kernels used for the GP model at each
+        level. The user must input all kernels. Defaults to the ``ExpQuad`` kernel for
+        each level.
     measure
         The integration measure. Defaults to the Lebesgue measure.
     domain
@@ -435,7 +436,6 @@ def _check_domain_measure_compatibility(
     domain: Optional[DomainLike],
     measure: Optional[IntegrationMeasure],
 ) -> Tuple[int, Optional[DomainType], IntegrationMeasure]:
-
     input_dim = int(input_dim)
 
     # Neither domain nor measure given
