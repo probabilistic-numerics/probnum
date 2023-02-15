@@ -224,14 +224,10 @@ def test_zero_function_gives_zero_variance_with_mle(rng):
 def test_multilevel_bayesquad_from_data_input_handling(kernel, measure, rng):
     """Test that inputs to multilevel BQ are handled properly."""
     n_level = 3
-    fun_diff_evals_1 = ()
     ns_1 = (3, 7, 2)
-    for l in range(n_level):
-        fun_diff_evals_1 += (np.zeros((ns_1[l],)),)
-    # No kernels given so defaults to ExpQuad
-    nodes_full = ()
-    for l in range(n_level):
-        nodes_full += (measure.sample(n_sample=ns_1[l], rng=rng),)
+    fun_diff_evals_1 = tuple([np.zeros(ns_1[l]) for l in range(n_level)])
+    nodes_full = tuple([measure.sample((ns_1[l]), rng=rng) for l in range(n_level)])
+
     F, infos = multilevel_bayesquad_from_data(
         nodes=nodes_full,
         fun_diff_evals=fun_diff_evals_1,
