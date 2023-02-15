@@ -143,7 +143,7 @@ class Kernel(abc.ABC):
     ):
         self._input_shape = _pn_utils.as_shape(input_shape)
 
-        if self._input_ndim > 1:
+        if self.input_ndim > 1:
             raise ValueError(
                 "Currently, we only support kernels with at most 1 input dimension."
             )
@@ -159,9 +159,9 @@ class Kernel(abc.ABC):
     @property
     def input_ndim(self) -> int:
         """Syntactic sugar for ``len(input_shape)``."""
-        return self._input_ndim
+        return len(self._input_shape)
 
-    @property
+    @functools.cached_property
     def input_size(self) -> int:
         """Syntactic sugar for the product over the input size."""
         return functools.reduce(operator.mul, self.input_shape, 1)
@@ -348,14 +348,14 @@ class Kernel(abc.ABC):
             "with shape `{shape}` was given."
         )
 
-        if not 0 <= x0.ndim - self._input_ndim <= 1:
+        if not 0 <= x0.ndim - self.input_ndim <= 1:
             raise ValueError(errmsg.format(argname="x0", batch_dim="M", shape=x0.shape))
 
-        if not 0 <= x1.ndim - self._input_ndim <= 1:
+        if not 0 <= x1.ndim - self.input_ndim <= 1:
             raise ValueError(errmsg.format(argname="x1", batch_dim="N", shape=x1.shape))
 
         # Pairwise kernel evaluation
-        if x0.ndim > self._input_ndim and x1.ndim > self._input_ndim:
+        if x0.ndim > self.input_ndim and x1.ndim > self.input_ndim:
             return self(x0[:, None], x1[None, :])
 
         return self(x0, x1)
@@ -427,19 +427,19 @@ class Kernel(abc.ABC):
             "array with shape `{shape}` was given."
         )
 
-        if x0_shape[len(x0_shape) - self._input_ndim :] != self.input_shape:
+        if x0_shape[len(x0_shape) - self.input_ndim :] != self.input_shape:
             raise ValueError(err_msg.format(argname="x0", shape=x0_shape))
 
-        broadcast_batch_shape = x0_shape[: len(x0_shape) - self._input_ndim]
+        broadcast_batch_shape = x0_shape[: len(x0_shape) - self.input_ndim]
 
         if x1_shape is not None:
-            if x1_shape[len(x1_shape) - self._input_ndim :] != self.input_shape:
+            if x1_shape[len(x1_shape) - self.input_ndim :] != self.input_shape:
                 raise ValueError(err_msg.format(argname="x1", shape=x1_shape))
 
             try:
                 broadcast_batch_shape = np.broadcast_shapes(
                     broadcast_batch_shape,
-                    x1_shape[: len(x1_shape) - self._input_ndim],
+                    x1_shape[: len(x1_shape) - self.input_ndim],
                 )
             except ValueError as ve:
                 err_msg = (
@@ -522,7 +522,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                shape=x0.shape[: x0.ndim - self._input_ndim],
+                shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
         sqdiffs = x0 - x1
@@ -548,7 +548,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         if x1 is None:
             return np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 x0,
-                shape=x0.shape[: x0.ndim - self._input_ndim],
+                shape=x0.shape[: x0.ndim - self.input_ndim],
             )
 
         return np.sqrt(
