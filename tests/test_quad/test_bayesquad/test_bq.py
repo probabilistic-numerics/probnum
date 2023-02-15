@@ -316,12 +316,8 @@ def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_2d():
     input_dim = 2
     n_level = 5
     measure = GaussianMeasure(np.full((input_dim,), 0.2), cov=0.6 * np.eye(input_dim))
-    nodes = ()
-    for l in range(n_level):
-        n_gh_l = l + 1  # Be very careful about increasing this too much
-        nodes_l, _ = gauss_hermite_tensor(
-            n_points=n_gh_l, input_dim=input_dim, mean=measure.mean, cov=measure.cov
-        )
+    _gh = gauss_hermite_tensor
+    nodes = [_gh(l + 1, input_dim, measure.mean, measure.cov)[0] for l in range(n_level)]
         nodes += (nodes_l,)
     for i in range(n_level):
         jitter = 1e-5 * (i + 1.0)
