@@ -1,4 +1,5 @@
 """Test cases for Bayesian quadrature."""
+import copy
 
 import numpy as np
 import pytest
@@ -224,14 +225,10 @@ def test_zero_function_gives_zero_variance_with_mle(rng):
 def test_multilevel_bayesquad_from_data_input_handling(kernel, measure, rng):
     """Test that inputs to multilevel BQ are handled properly."""
     n_level = 3
-    fun_diff_evals_1 = ()
     ns_1 = (3, 7, 2)
-    for l in range(n_level):
-        fun_diff_evals_1 += (np.zeros((ns_1[l],)),)
-    # No kernels given so defaults to ExpQuad
-    nodes_full = ()
-    for l in range(n_level):
-        nodes_full += (measure.sample(n_sample=ns_1[l], rng=rng),)
+    fun_diff_evals_1 = tuple([np.zeros(ns_1[l]) for l in range(n_level)])
+    nodes_full = tuple([measure.sample((ns_1[l]), rng=rng) for l in range(n_level)])
+
     F, infos = multilevel_bayesquad_from_data(
         nodes=nodes_full,
         fun_diff_evals=fun_diff_evals_1,
@@ -240,7 +237,7 @@ def test_multilevel_bayesquad_from_data_input_handling(kernel, measure, rng):
     assert isinstance(F, Normal)
     assert len(infos) == n_level
     # Only one set of nodes
-    kernels_1 = n_level * (kernel,)
+    kernels_1 = tuple(copy.deepcopy(kernel) for l in range(n_level))
     ns_2 = (7, 7, 7)
     fun_diff_evals_2 = n_level * (np.zeros((ns_2[0],)),)
     kernels_full = n_level * (kernel,)
@@ -295,8 +292,8 @@ def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_1d():
         fun_evals = nodes[i][:, 0] ** (2 + 0.3 * i) + 1.2
         fun_diff_evals[i] = fun_evals
         mlbq_integral, _ = multilevel_bayesquad_from_data(
-            nodes=nodes,
-            fun_diff_evals=fun_diff_evals,
+            nodes=tuple(nodes),
+            fun_diff_evals=tuple(fun_diff_evals),
             domain=domain,
             options=dict(jitter=jitter),
         )
@@ -316,24 +313,16 @@ def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_2d():
     input_dim = 2
     n_level = 5
     measure = GaussianMeasure(np.full((input_dim,), 0.2), cov=0.6 * np.eye(input_dim))
-    nodes = ()
-    for l in range(n_level):
-        n_gh_l = l + 1  # Be very careful about increasing this too much
-        nodes_l, _ = gauss_hermite_tensor(
-            n_points=n_gh_l, input_dim=input_dim, mean=measure.mean, cov=measure.cov
-        )
-        nodes += (nodes_l,)
+    _gh = gauss_hermite_tensor
+    nodes = [_gh(l + 1, input_dim, measure.mean, measure.cov)[0] for l in range(n_level)]
     for i in range(n_level):
         jitter = 1e-5 * (i + 1.0)
         fun_diff_evals = [np.zeros(shape=(len(xs),)) for xs in nodes]
-        fun_evals = np.reshape(
-            np.sin(nodes[i][:, 0] * l) + (l + 1.0) * np.cos(nodes[i][:, 1]),
-            (len(nodes[i]),),
-        )
+        fun_evals =  np.sin(nodes[i][:, 0] * i) + (i + 1.0) * np.cos(nodes[i][:, 1])
         fun_diff_evals[i] = fun_evals
         mlbq_integral, _ = multilevel_bayesquad_from_data(
-            nodes=nodes,
-            fun_diff_evals=fun_diff_evals,
+            nodes=tuple(nodes),
+            fun_diff_evals=tuple(fun_diff_evals),
             measure=measure,
             options=dict(jitter=jitter),
         )
