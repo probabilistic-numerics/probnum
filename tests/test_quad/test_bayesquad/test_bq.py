@@ -292,7 +292,7 @@ def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_1d():
     for i in range(n_level):
         jitter = 1e-5 * (i + 1.0)
         fun_diff_evals = [np.zeros(shape=(len(xs),)) for xs in nodes]
-        fun_evals = np.reshape(nodes[i] ** (2 + 0.3 * l) + 1.2, (len(nodes[i]),))
+        fun_evals = nodes[i][:, 0] ** (2 + 0.3 * i) + 1.2
         fun_diff_evals[i] = fun_evals
         mlbq_integral, _ = multilevel_bayesquad_from_data(
             nodes=nodes,
