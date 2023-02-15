@@ -377,6 +377,11 @@ def multilevel_bayesquad_from_data(
     UserWarning
         When ``domain`` is given but not used.
 
+    Notes
+    -----
+    The tuple of kernels provided by the ``kernels`` parameter must contain distinct
+    kernel instances, i.e., ``kernels[i] is kernel[j]`` must return ``False`` for any
+    :math:`i\neq j`.
     References
     ----------
     .. [1] Li, K., et al., Multilevel Bayesian quadrature, AISTATS, 2023.
