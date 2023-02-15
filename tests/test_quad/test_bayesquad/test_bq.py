@@ -325,8 +325,8 @@ def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_2d():
         fun_evals =  np.sin(nodes[i][:, 0] * i) + (i + 1.0) * np.cos(nodes[i][:, 1])
         fun_diff_evals[i] = fun_evals
         mlbq_integral, _ = multilevel_bayesquad_from_data(
-            nodes=nodes,
-            fun_diff_evals=fun_diff_evals,
+            nodes=tuple(nodes),
+            fun_diff_evals=tuple(fun_diff_evals),
             measure=measure,
             options=dict(jitter=jitter),
         )
