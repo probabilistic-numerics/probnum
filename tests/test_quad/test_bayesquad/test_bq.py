@@ -295,8 +295,8 @@ def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_1d():
         fun_evals = nodes[i][:, 0] ** (2 + 0.3 * i) + 1.2
         fun_diff_evals[i] = fun_evals
         mlbq_integral, _ = multilevel_bayesquad_from_data(
-            nodes=nodes,
-            fun_diff_evals=fun_diff_evals,
+            nodes=tuple(nodes),
+            fun_diff_evals=tuple(fun_diff_evals),
             domain=domain,
             options=dict(jitter=jitter),
         )
