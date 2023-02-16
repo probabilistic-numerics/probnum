@@ -429,8 +429,8 @@ class Kernel(abc.ABC):
         x0: np.ndarray,
         x1: Optional[np.ndarray],
     ) -> linops.LinearOperator:
-        assert x0.ndim == 1 + self.input_shape
-        assert x1 is None or x1.ndim == 1 + self.input_shape
+        assert x0.ndim == 1 + self.input_ndim
+        assert x1 is None or x1.ndim == 1 + self.input_ndim
 
         k_x0_x1 = self(x0[:, None, ...], (x1 if x1 is not None else x0)[None, :, ...])
 
