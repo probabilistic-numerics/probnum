@@ -1,4 +1,4 @@
-"""Kernel / covariance function."""
+"""Abstract base class for (cross-)covariance functions."""
 
 from __future__ import annotations
 
@@ -124,7 +124,8 @@ class Kernel(abc.ABC):
 
         if self.input_ndim > 1:
             raise ValueError(
-                "Currently, we only support kernels with at most 1 input dimension."
+                "Currently, we only support covariance functions with at most 1 input "
+                "dimension."
             )
 
         self._output_shape_0 = _pn_utils.as_shape(output_shape_0)
@@ -262,7 +263,7 @@ class Kernel(abc.ABC):
             x0.shape, x1.shape if x1 is not None else None
         )
 
-        # Evaluate the kernel
+        # Evaluate the covariance function
         k_x0_x1 = self._evaluate(x0, x1)
 
         assert (
@@ -298,8 +299,8 @@ class Kernel(abc.ABC):
             *shape=* ``(``:attr:`output0_size` ``* N0,`` :attr:`output1_size` ``* N1)``
             *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
             The covariance matrix corresponding to the given batches of input points.
-            The order of the rows and columns of the kernel matrix corresponds to the
-            order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
+            The order of the rows and columns of the covariance matrix corresponds to
+            the order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
             shapes :attr:`output_shape_0` ``+ batch_shape_0`` and :attr:`output_shape_0`
             ``+ batch_shape_1`` in "C-order".
 
@@ -397,12 +398,14 @@ class Kernel(abc.ABC):
         x0: np.ndarray,
         x1: Optional[np.ndarray],
     ) -> np.ndarray:
-        """Implementation of the kernel evaluation which is called after input checking.
+        """Implementation of the covariance function, evaluation which is called after
+        input checking.
 
-        When implementing a particular kernel, the subclass should implement the kernel
-        computation by overwriting this method. It is called by the :meth:`__call__`
-        method after applying input checking. The implementation must return the array
-        described in the "Returns" section of the :meth:`__call__` method.
+        When implementing a particular covariance function, the subclass should
+        overwrite this method.
+        It is called by the :meth:`__call__` method after applying input checking.
+        The implementation must return the array described in the "Returns" section of
+        the :meth:`__call__` method.
         Note that the inputs are not automatically broadcast to a common shape, but it
         is guaranteed that this is possible.
 
@@ -418,7 +421,6 @@ class Kernel(abc.ABC):
         k_x0_x1 :
             See "Returns" section in the docstring of :meth:`__call__`.
         """
-        raise NotImplementedError
 
     def _evaluate_matrix(
         self,
@@ -492,8 +494,8 @@ class Kernel(abc.ABC):
 
         err_msg = (
             "The shape of the input array `{argname}` must match the `input_shape` "
-            f"`{self.input_shape}` of the kernel along its last dimension, but an "
-            "array with shape `{shape}` was given."
+            f"`{self.input_shape}` of the covariance function along its last "
+            "dimension, but an array with shape `{shape}` was given."
         )
 
         if x0_shape[len(x0_shape) - self.input_ndim :] != self.input_shape:
@@ -528,8 +530,8 @@ class Kernel(abc.ABC):
         ):
             raise ValueError(
                 f"The shape of `{argname}` must must match the input shape "
-                f"`{self.input_shape}` of the kernel along its trailing dimensions, "
-                f"but an array with shape `{x.shape}` was given."
+                f"`{self.input_shape}` of the covariance function along its trailing "
+                f"dimensions, but an array with shape `{x.shape}` was given."
             )
 
         return x.reshape((-1,) + self.input_shape, order="C")
