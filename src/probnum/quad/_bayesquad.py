@@ -332,7 +332,7 @@ def multilevel_bayesquad_from_data(
         one element is provided, it is inferred that the same nodes ``nodes[0]`` are
         used on every level.
     fun_diff_evals
-        Tuple of length :math:`L+1`  containing the evaluations of :math:`f_l - f_{l-1}`
+        Tuple of length :math:`L+1` containing the evaluations of :math:`f_l - f_{l-1}`
         for each level at the nodes provided in ``nodes``. Each element must be a
         shape=(n_eval,) ``np.ndarray``. The zeroth element contains the evaluations of
         :math:`f_0`.
@@ -382,6 +382,7 @@ def multilevel_bayesquad_from_data(
     The tuple of kernels provided by the ``kernels`` parameter must contain distinct
     kernel instances, i.e., ``kernels[i] is kernel[j]`` must return ``False`` for any
     :math:`i\neq j`.
+
     References
     ----------
     .. [1] Li, K., et al., Multilevel Bayesian quadrature, AISTATS, 2023.
