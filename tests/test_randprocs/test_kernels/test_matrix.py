@@ -35,10 +35,10 @@ def fixture_kernmat_naive(
 
         x1 = x0
 
-    if x0.ndim > kernel.input_ndim and x1.ndim > kernel.input_ndim:
-        return kernel_call_naive(x0=x0[:, None], x1=x1[None, :])
-
-    return kernel_call_naive(x0, x1)
+    return kernel_call_naive(
+        x0=x0.reshape((-1, 1) + kernel.input_shape, order="C"),
+        x1=x1.reshape((1, -1) + kernel.input_shape, order="C"),
+    )
 
 
 def test_type(kernmat: np.ndarray):
@@ -78,31 +78,6 @@ def test_kernel_matrix_against_naive(
 
 
 @pytest.mark.parametrize(
-    "x0_shape,x1_shape",
-    [
-        ((2, 5), (3, 5)),
-        ((4, 4), (4, 2)),
-    ],
-)
-def test_invalid_shape(
-    kernel: pn.randprocs.kernels.Kernel,
-    x0_shape: np.ndarray,
-    x1_shape: np.ndarray,
-):
-    """Test whether an error is raised if the inputs can not be broadcast to a common
-    shape."""
-
-    with pytest.raises(ValueError):
-        kernel.matrix(np.zeros(x0_shape + kernel.input_shape))
-
-    with pytest.raises(ValueError):
-        kernel.matrix(
-            np.zeros(x0_shape + kernel.input_shape),
-            np.ones(x1_shape + kernel.input_shape),
-        )
-
-
-@pytest.mark.parametrize(
     "shape",
     [
         (),
@@ -110,19 +85,17 @@ def test_invalid_shape(
         (10,),
     ],
 )
-def test_wrong_input_dimension(kernel: pn.randprocs.kernels.Kernel, shape: ShapeType):
-    """Test whether passing an input with the wrong input dimension raises an error."""
+def test_input_shape_mismatch(kernel: pn.randprocs.kernels.Kernel, shape: ShapeType):
+    """Test whether passing an input with the wrong input shape raises an error."""
 
-    if kernel.input_ndim == 0:
-        input_shape = shape + (4, 2)
-    else:
+    if kernel.input_ndim > 0:
         input_shape = shape + tuple(dim + 1 for dim in kernel.input_shape)
 
-    with pytest.raises(ValueError):
-        kernel.matrix(np.zeros(input_shape))
+        with pytest.raises(ValueError):
+            kernel.matrix(np.zeros(input_shape))
 
-    with pytest.raises(ValueError):
-        kernel.matrix(np.ones(input_shape), np.zeros(shape + kernel.input_shape))
+        with pytest.raises(ValueError):
+            kernel.matrix(np.ones(input_shape), np.zeros(shape + kernel.input_shape))
 
-    with pytest.raises(ValueError):
-        kernel.matrix(np.ones(shape + kernel.input_shape), np.zeros(input_shape))
+        with pytest.raises(ValueError):
+            kernel.matrix(np.ones(shape + kernel.input_shape), np.zeros(input_shape))
