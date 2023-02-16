@@ -62,7 +62,9 @@ class Kernel(abc.ABC):
     >>> k = Linear(input_shape=D)
     >>> k.input_shape
     (3,)
-    >>> k.output_shape
+    >>> k.output_shape_0
+    ()
+    >>> k.output_shape_1
     ()
 
     Generate some input data.

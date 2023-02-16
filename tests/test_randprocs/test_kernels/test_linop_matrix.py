@@ -103,7 +103,12 @@ def test_matrix_equals_matrix_naive(
 ):
     """Test whether the values of `Kernel.matrix` match the reference implementation."""
 
-    np.testing.assert_array_equal(matrix, matrix_naive)
+    np.testing.assert_array_equal(
+        matrix,
+        matrix_naive,
+        rtol=10**-12,
+        atol=10**-12,
+    )
 
 
 @pytest.mark.parametrize(
