@@ -21,6 +21,7 @@ from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import IntLike
 
+
 def bayesquad(
     fun: Callable,
     input_dim: IntLike,
