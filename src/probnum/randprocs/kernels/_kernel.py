@@ -160,12 +160,12 @@ class Kernel(abc.ABC):
         return self._output_shape_0
 
     @property
-    def output0_ndim(self) -> int:
+    def output_ndim_0(self) -> int:
         r"""Syntactic sugar for ``len(``\ :attr:`output_shape_0`\ ``)``."""
         return len(self.output_shape_0)
 
     @functools.cached_property
-    def output0_size(self) -> int:
+    def output_size_0(self) -> int:
         """Syntactic sugar for the product of all entries in :attr:`output_shape_0`."""
         return functools.reduce(operator.mul, self.output_shape_0, 1)
 
@@ -180,12 +180,12 @@ class Kernel(abc.ABC):
         return self._output_shape_1
 
     @property
-    def output1_ndim(self) -> int:
+    def output_ndim_1(self) -> int:
         r"""Syntactic sugar for ``len(``\ :attr:`output_shape_1`\ ``)``."""
         return len(self.output_shape_1)
 
     @functools.cached_property
-    def output1_size(self) -> int:
+    def output_size_1(self) -> int:
         """Syntactic sugar for the product of all entries in :attr:`output_shape_1`."""
         return functools.reduce(operator.mul, self.output_shape_1, 1)
 
@@ -278,7 +278,7 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
     ) -> np.ndarray:
-        """Matrix containing the pairwise covariances of evaluations of :math:`f_0` and
+        r"""Matrix containing the pairwise covariances of evaluations of :math:`f_0` and
         :math:`f_1` at the given input points.
 
         Parameters
@@ -296,7 +296,8 @@ class Kernel(abc.ABC):
         Returns
         -------
         k_x0_x1
-            *shape=* ``(``:attr:`output0_size` ``* N0,`` :attr:`output1_size` ``* N1)``
+            *shape=* ``(``\ :attr:`output_size_0` ``* N0,`` :attr:`output_size_1`
+            ``* N1)``
             *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
             The covariance matrix corresponding to the given batches of input points.
             The order of the rows and columns of the covariance matrix corresponds to
@@ -319,8 +320,8 @@ class Kernel(abc.ABC):
 
         assert isinstance(k_matrix_x0_x1, np.ndarray)
         assert k_matrix_x0_x1.shape == (
-            self.output0_size * x0.shape[0],
-            self.output1_size * (x1.shape[0] if x1 is not None else x0.shape[0]),
+            self.output_size_0 * x0.shape[0],
+            self.output_size_1 * (x1.shape[0] if x1 is not None else x0.shape[0]),
         )
 
         return k_matrix_x0_x1
@@ -362,7 +363,8 @@ class Kernel(abc.ABC):
         Returns
         -------
         k_x0_x1
-            *shape=* ``(``:attr:`output0_size` ``* N0,`` :attr:`output1_size` ``* N1)``
+            *shape=* ``(``\ :attr:`output_size_0` ``* N0,`` :attr:`output_size_1`
+            ``* N1)``
             *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
             :class:`~probnum.linops.LinearOperator` representing the covariance matrix
             corresponding to the given batches of input points.
@@ -386,8 +388,8 @@ class Kernel(abc.ABC):
 
         assert isinstance(k_linop_x0_x1, linops.LinearOperator)
         assert k_linop_x0_x1.shape == (
-            self.output0_size * x0.shape[0],
-            self.output1_size * (x1.shape[0] if x1 is not None else x0.shape[1]),
+            self.output_size_0 * x0.shape[0],
+            self.output_size_1 * (x1.shape[0] if x1 is not None else x0.shape[1]),
         )
 
         return k_linop_x0_x1
@@ -432,14 +434,14 @@ class Kernel(abc.ABC):
 
         k_x0_x1 = self(x0[:, None, ...], (x1 if x1 is not None else x0)[None, :, ...])
 
-        assert k_x0_x1.ndim == 2 + self.output0_ndim + self.output1_ndim
+        assert k_x0_x1.ndim == 2 + self.output_ndim_0 + self.output_ndim_1
 
         batch_shape = k_x0_x1.shape[:2]
 
         assert k_x0_x1.shape == batch_shape + self.output_shape_0 + self.output_shape_1
 
         cov_x0_x1 = np.moveaxis(k_x0_x1, 1, -1)
-        cov_x0_x1 = np.moveaxis(cov_x0_x1, 0, 1 + self.output_shape_1)
+        cov_x0_x1 = np.moveaxis(cov_x0_x1, 0, self.output_ndim_0)
 
         assert cov_x0_x1.shape == self.output_shape_0 + (
             batch_shape[0],
@@ -447,8 +449,8 @@ class Kernel(abc.ABC):
 
         return cov_x0_x1.reshape(
             (
-                self.output0_size * batch_shape[0],
-                self.output1_size * batch_shape[1],
+                self.output_size_0 * batch_shape[0],
+                self.output_size_1 * batch_shape[1],
             ),
             order="C",
         )
