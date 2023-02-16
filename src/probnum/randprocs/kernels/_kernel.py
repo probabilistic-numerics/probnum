@@ -47,10 +47,10 @@ class Kernel(abc.ABC):
         :class:`~probnum.randprocs.RandomProcess`\ es :math:`f_0` and :math:`f_1`.
         This defines the shape of the :class:`Kernel`\ 's inputs :math:`x_0` and
         :math:`x_1`.
-    output0_shape
+    output_shape_0
         :attr:`~probnum.randprocs.RandomProcess.output_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
-    output1_shape
+    output_shape_1
         :attr:`~probnum.randprocs.RandomProcess.output_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_1`.
 
@@ -117,8 +117,8 @@ class Kernel(abc.ABC):
     def __init__(
         self,
         input_shape: ShapeLike,
-        output0_shape: ShapeLike = (),
-        output1_shape: ShapeLike = (),
+        output_shape_0: ShapeLike = (),
+        output_shape_1: ShapeLike = (),
     ):
         self._input_shape = _pn_utils.as_shape(input_shape)
 
@@ -127,8 +127,8 @@ class Kernel(abc.ABC):
                 "Currently, we only support kernels with at most 1 input dimension."
             )
 
-        self._output0_shape = _pn_utils.as_shape(output0_shape)
-        self._output1_shape = _pn_utils.as_shape(output1_shape)
+        self._output_shape_0 = _pn_utils.as_shape(output_shape_0)
+        self._output_shape_1 = _pn_utils.as_shape(output_shape_1)
 
     @property
     def input_shape(self) -> ShapeType:
@@ -149,51 +149,51 @@ class Kernel(abc.ABC):
         return functools.reduce(operator.mul, self.input_shape, 1)
 
     @property
-    def output0_shape(self) -> ShapeType:
+    def output_shape_0(self) -> ShapeType:
         """:attr:`~probnum.randprocs.RandomProcess.output_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
 
         This defines the first part of the shape of a single, i.e. non-batched, return
         value of :meth:`__call__`.
         """
-        return self._output0_shape
+        return self._output_shape_0
 
     @property
     def output0_ndim(self) -> int:
-        r"""Syntactic sugar for ``len(``\ :attr:`output0_shape`\ ``)``."""
-        return len(self.output0_shape)
+        r"""Syntactic sugar for ``len(``\ :attr:`output_shape_0`\ ``)``."""
+        return len(self.output_shape_0)
 
     @functools.cached_property
     def output0_size(self) -> int:
-        """Syntactic sugar for the product of all entries in :attr:`output0_shape`."""
-        return functools.reduce(operator.mul, self.output0_shape, 1)
+        """Syntactic sugar for the product of all entries in :attr:`output_shape_0`."""
+        return functools.reduce(operator.mul, self.output_shape_0, 1)
 
     @property
-    def output1_shape(self) -> ShapeType:
+    def output_shape_1(self) -> ShapeType:
         """:attr:`~probnum.randprocs.RandomProcess.output_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_1`.
 
         This defines the second part of the shape of a single, i.e. non-batched, return
         value of :meth:`__call__`.
         """
-        return self._output1_shape
+        return self._output_shape_1
 
     @property
     def output1_ndim(self) -> int:
-        r"""Syntactic sugar for ``len(``\ :attr:`output1_shape`\ ``)``."""
-        return len(self.output1_shape)
+        r"""Syntactic sugar for ``len(``\ :attr:`output_shape_1`\ ``)``."""
+        return len(self.output_shape_1)
 
     @functools.cached_property
     def output1_size(self) -> int:
-        """Syntactic sugar for the product of all entries in :attr:`output1_shape`."""
-        return functools.reduce(operator.mul, self.output1_shape, 1)
+        """Syntactic sugar for the product of all entries in :attr:`output_shape_1`."""
+        return functools.reduce(operator.mul, self.output_shape_1, 1)
 
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with"
             f" input_shape={self.input_shape},"
-            f" output0_shape={self.output0_shape}, and"
-            f" output1_shape={self.output1_shape}>"
+            f" output_shape_0={self.output_shape_0}, and"
+            f" output_shape_1={self.output_shape_1}>"
         )
 
     def __call__(
@@ -220,8 +220,8 @@ class Kernel(abc.ABC):
         Returns
         -------
         k_x0_x1 :
-            *shape=* ``bcast_batch_shape +`` :attr:`output0_shape` ``+``
-            :attr:`output1_shape` --
+            *shape=* ``bcast_batch_shape +`` :attr:`output_shape_0` ``+``
+            :attr:`output_shape_1` --
             The (cross-)covariance function evaluated at ``(x0, x1)``.
             Since the function is vectorized over the batch shapes of the inputs, the
             output array contains the following entries:
@@ -267,7 +267,7 @@ class Kernel(abc.ABC):
 
         assert (
             k_x0_x1.shape
-            == broadcast_batch_shape + self._output0_shape + self._output1_shape
+            == broadcast_batch_shape + self._output_shape_0 + self._output_shape_1
         )
 
         return k_x0_x1
@@ -300,7 +300,7 @@ class Kernel(abc.ABC):
             The covariance matrix corresponding to the given batches of input points.
             The order of the rows and columns of the kernel matrix corresponds to the
             order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
-            shapes :attr:`output0_shape` ``+ batch_shape_0`` and :attr:`output0_shape`
+            shapes :attr:`output_shape_0` ``+ batch_shape_0`` and :attr:`output_shape_0`
             ``+ batch_shape_1`` in "C-order".
 
         Raises
@@ -367,7 +367,7 @@ class Kernel(abc.ABC):
             corresponding to the given batches of input points.
             The order of the rows and columns of the covariance matrix corresponds to
             the order of entries obtained by flattening :class:`~numpy.ndarray`\ s with
-            shapes :attr:`output0_shape` ``+ batch_shape_0`` and :attr:`output0_shape`
+            shapes :attr:`output_shape_0` ``+ batch_shape_0`` and :attr:`output_shape_0`
             ``+ batch_shape_1`` in "C-order".
 
         Raises
@@ -434,14 +434,14 @@ class Kernel(abc.ABC):
 
         batch_shape = k_x0_x1.shape[:2]
 
-        assert k_x0_x1.shape == batch_shape + self.output0_shape + self.output1_shape
+        assert k_x0_x1.shape == batch_shape + self.output_shape_0 + self.output_shape_1
 
         cov_x0_x1 = np.moveaxis(k_x0_x1, 1, -1)
-        cov_x0_x1 = np.moveaxis(cov_x0_x1, 0, 1 + self.output1_shape)
+        cov_x0_x1 = np.moveaxis(cov_x0_x1, 0, 1 + self.output_shape_1)
 
-        assert cov_x0_x1.shape == self.output0_shape + (
+        assert cov_x0_x1.shape == self.output_shape_0 + (
             batch_shape[0],
-        ) + self.output1_shape + (batch_shape[1],)
+        ) + self.output_shape_1 + (batch_shape[1],)
 
         return cov_x0_x1.reshape(
             (
