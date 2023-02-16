@@ -42,11 +42,19 @@ class Kernel(abc.ABC):
 
     Parameters
     ----------
+    input_shape_0
+        :attr:`~probnum.randprocs.RandomProcess.input_shape` of the :class:`~probnum.\
+        randprocs.RandomProcess` :math:`f_0`.
+        This defines the shape of the :class:`Kernel`\ 's first input :math:`x_0`.
+    input_shape_1
+        :attr:`~probnum.randprocs.RandomProcess.input_shape` of the :class:`~probnum.\
+        randprocs.RandomProcess` :math:`f_1`.
+        This defines the shape of the :class:`Kernel`\ 's second input :math:`x_1`.
     input_shape
-        :attr:`~probnum.randprocs.RandomProcess.input_shape` of the
-        :class:`~probnum.randprocs.RandomProcess`\ es :math:`f_0` and :math:`f_1`.
-        This defines the shape of the :class:`Kernel`\ 's inputs :math:`x_0` and
-        :math:`x_1`.
+        Convenience argument, which can be used to set ``input_shape_0 == input_shape_1
+        == input_shape``.
+        If ``input_shape`` is specified, then ``input_shape_{0,1}`` must be set to
+        :data:`None`.
     output_shape_0
         :attr:`~probnum.randprocs.RandomProcess.output_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
@@ -60,7 +68,9 @@ class Kernel(abc.ABC):
     >>> from probnum.randprocs.kernels import Linear
     >>> D = 3
     >>> k = Linear(input_shape=D)
-    >>> k.input_shape
+    >>> k.input_shape_0
+    (3,)
+    >>> k.input_shape_1
     (3,)
     >>> k.output_shape_0
     ()
@@ -118,37 +128,87 @@ class Kernel(abc.ABC):
 
     def __init__(
         self,
-        input_shape: ShapeLike,
+        *,
+        input_shape_0: Optional[ShapeLike] = None,
+        input_shape_1: Optional[ShapeLike] = None,
+        input_shape: Optional[ShapeLike] = None,
         output_shape_0: ShapeLike = (),
         output_shape_1: ShapeLike = (),
     ):
-        self._input_shape = _pn_utils.as_shape(input_shape)
+        assert (
+            input_shape_0 is not None and input_shape_1 is not None
+        ) or input_shape is not None, (
+            "Either `input_shape_0` and `input_shape_1` or `input_shape` must be given"
+        )
 
-        if self.input_ndim > 1:
-            raise ValueError(
-                "Currently, we only support covariance functions with at most 1 input "
-                "dimension."
+        if input_shape is not None:
+            assert input_shape_0 is None and input_shape_1 is None, (
+                "If `input_shape` is given, `input_shape_0` and `input_shape_1` must "
+                "be set to `None`."
             )
+
+            input_shape_0 = input_shape
+            input_shape_1 = input_shape
+
+        self._input_shape_0 = _pn_utils.as_shape(input_shape_0)
+        self._input_shape_1 = _pn_utils.as_shape(input_shape_1)
 
         self._output_shape_0 = _pn_utils.as_shape(output_shape_0)
         self._output_shape_1 = _pn_utils.as_shape(output_shape_1)
 
     @property
-    def input_shape(self) -> ShapeType:
+    def input_shape_0(self) -> ShapeType:
         r""":attr:`~probnum.randprocs.RandomProcess.input_shape` of the
-        :class:`~probnum.randprocs.RandomProcess`\ es :math:`f_0` and :math:`f_1`.
-        This defines the shape of the :class:`Kernel`\ 's inputs :math:`x_0` and
-        :math:`x_1`."""
-        return self._input_shape
+        :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
+        This defines the shape of a single, i.e. non-batched, first argument :math:`x_0`
+        of the :class:`Kernel`."""
+        return self._input_shape_0
+
+    @property
+    def input_ndim_0(self) -> int:
+        r"""Syntactic sugar for ``len(``\ :attr:`input_shape_0`\ ``)``."""
+        return len(self.input_shape_0)
+
+    @functools.cached_property
+    def input_size_0(self) -> int:
+        """Syntactic sugar for the product of all entries in :attr:`input_shape_0`."""
+        return functools.reduce(operator.mul, self.input_shape_0, 1)
+
+    @property
+    def input_shape_1(self) -> ShapeType:
+        r""":attr:`~probnum.randprocs.RandomProcess.input_shape` of the
+        :class:`~probnum.randprocs.RandomProcess` :math:`f_1`.
+        This defines the shape of a single, i.e. non-batched, second argument
+        :math:`x_1` of the :class:`Kernel`."""
+        return self._input_shape_1
+
+    @property
+    def input_ndim_1(self) -> int:
+        r"""Syntactic sugar for ``len(``\ :attr:`input_shape_1`\ ``)``."""
+        return len(self.input_shape_1)
+
+    @functools.cached_property
+    def input_size_1(self) -> int:
+        """Syntactic sugar for the product of all entries in :attr:`input_shape_1`."""
+        return functools.reduce(operator.mul, self.input_shape_1, 1)
+
+    @property
+    def input_shape(self) -> ShapeType:
+        r"""Shorthand for the input shape of a covariance function with
+        :attr:`input_shape_0` ``==`` :attr:`input_shape_1`."""
+        if self.input_shape_0 != self.input_shape_1:
+            raise ValueError("The input shapes of the `Kernel` are not equal.")
+
+        return self.input_shape_0
 
     @property
     def input_ndim(self) -> int:
         r"""Syntactic sugar for ``len(``\ :attr:`input_shape`\ ``)``."""
-        return len(self._input_shape)
+        return len(self.input_shape)
 
     @functools.cached_property
     def input_size(self) -> int:
-        """Syntactic sugar for the product of all entries in :attr:`input_size`."""
+        """Syntactic sugar for the product of all entries in :attr:`input_shape`."""
         return functools.reduce(operator.mul, self.input_shape, 1)
 
     @property
@@ -194,7 +254,8 @@ class Kernel(abc.ABC):
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with"
-            f" input_shape={self.input_shape},"
+            f" input_shape_0={self.input_shape_0},"
+            f" input_shape_1={self.input_shape_1},"
             f" output_shape_0={self.output_shape_0}, and"
             f" output_shape_1={self.output_shape_1}>"
         )
@@ -212,10 +273,10 @@ class Kernel(abc.ABC):
         Parameters
         ----------
         x0
-            *shape=* ``batch_shape_0 +`` :attr:`input_shape` -- (Batch of) input(s)
+            *shape=* ``batch_shape_0 +`` :attr:`input_shape_0` -- (Batch of) input(s)
             for the first argument of the :class:`Kernel`.
         x1
-            *shape=* ``batch_shape_1 +`` :attr:`input_shape` -- (Batch of) input(s)
+            *shape=* ``batch_shape_1 +`` :attr:`input_shape_1` -- (Batch of) input(s)
             for the second argument of the :class:`Kernel`.
             Can also be set to ``None``, in which case the function will behave as if
             ``x1 = x0`` (but it is implemented more efficiently).
@@ -233,15 +294,18 @@ class Kernel(abc.ABC):
 
                 k_x0_x1[batch_idx] = k(x0[batch_idx, ...], x1[batch_idx, ...])
 
-            where we assume that ``x0`` and ``x1`` have been broadcast to a common
-            shape ``bcast_batch_shape +`` :attr:`input_shape`, and where ``batch_idx``
+            where we assume that the batch shapes of ``x0`` and ``x1`` have been
+            broadcast to a common shape ``bcast_batch_shape``, and where ``batch_idx``
             is an index compatible with ``bcast_batch_shape``.
 
         Raises
         ------
         ValueError
-            If one of the input shapes is not of the form ``batch_shape_{0,1} +``
-            :attr:`input_shape`.
+            If the shape of :math:`x_0` is not of the form ``batch_shape_0 +``
+            :attr:`input_shape_0`.
+        ValueError
+            If the shape of :math:`x_1` is not of the form ``batch_shape_1 +``
+            :attr:`input_shape_1`.
         ValueError
             If the inputs can not be broadcast to a common shape.
 
@@ -286,11 +350,11 @@ class Kernel(abc.ABC):
         Parameters
         ----------
         x0
-            *shape=* ``batch_shape_0 +`` :attr:`input_shape` -- (Batch of) input(s) for
-            the first argument of the :class:`Kernel`.
+            *shape=* ``batch_shape_0 +`` :attr:`input_shape_0` -- (Batch of) input(s)
+            for the first argument of the :class:`Kernel`.
         x1
-            *shape=* ``batch_shape_1 +`` :attr:`input_shape` -- (Batch of) input(s) for
-            the second argument of the :class:`Kernel`.
+            *shape=* ``batch_shape_1 +`` :attr:`input_shape_1` -- (Batch of) input(s)
+            for the second argument of the :class:`Kernel`.
             Can also be set to :data:`None`, in which case the function will behave as
             if ``x1 == x0`` (potentially using a more efficient implementation for this
             particular case).
@@ -310,13 +374,16 @@ class Kernel(abc.ABC):
         Raises
         ------
         ValueError
-            If the shape of either input is not of the form ``batch_shape_0 +``
-            :attr:`input_shape`.
+            If the shape of :math:`x_0` is not of the form ``batch_shape_0 +``
+            :attr:`input_shape_0`.
+        ValueError
+            If the shape of :math:`x_1` is not of the form ``batch_shape_1 +``
+            :attr:`input_shape_1`.
         """
-        x0 = self._preprocess_linop_input(x0, argname="x0")
+        x0 = self._preprocess_linop_input(x0, argnum=0)
 
         if x1 is not None:
-            x1 = self._preprocess_linop_input(x1, argname="x1")
+            x1 = self._preprocess_linop_input(x1, argnum=1)
 
         k_matrix_x0_x1 = self._evaluate_matrix(x0, x1)
 
@@ -353,11 +420,11 @@ class Kernel(abc.ABC):
         Parameters
         ----------
         x0
-            *shape=* ``batch_shape_0 +`` :attr:`input_shape` -- (Batch of) input(s) for
-            the first argument of the :class:`Kernel`.
+            *shape=* ``batch_shape_0 +`` :attr:`input_shape_0` -- (Batch of) input(s)
+            for the first argument of the :class:`Kernel`.
         x1
-            *shape=* ``batch_shape_1 +`` :attr:`input_shape` -- (Batch of) input(s) for
-            the second argument of the :class:`Kernel`.
+            *shape=* ``batch_shape_1 +`` :attr:`input_shape_1` -- (Batch of) input(s)
+            for the second argument of the :class:`Kernel`.
             Can also be set to :data:`None`, in which case the function will behave as
             if ``x1 == x0`` (potentially using a more efficient implementation for this
             particular case).
@@ -378,13 +445,16 @@ class Kernel(abc.ABC):
         Raises
         ------
         ValueError
-            If the shape of either input is not of the form ``batch_shape_0 +``
-            :attr:`input_shape`.
+            If the shape of :math:`x_0` is not of the form ``batch_shape_0 +``
+            :attr:`input_shape_0`.
+        ValueError
+            If the shape of :math:`x_1` is not of the form ``batch_shape_1 +``
+            :attr:`input_shape_1`.
         """
-        x0 = self._preprocess_linop_input(x0, argname="x0")
+        x0 = self._preprocess_linop_input(x0, argnum=0)
 
         if x1 is not None:
-            x1 = self._preprocess_linop_input(x1, argname="x1")
+            x1 = self._preprocess_linop_input(x1, argnum=1)
 
         k_linop_x0_x1 = self._evaluate_linop(x0, x1)
 
@@ -431,8 +501,8 @@ class Kernel(abc.ABC):
         x0: np.ndarray,
         x1: Optional[np.ndarray],
     ) -> linops.LinearOperator:
-        assert x0.ndim == 1 + self.input_ndim
-        assert x1 is None or x1.ndim == 1 + self.input_ndim
+        assert x0.ndim == 1 + self.input_ndim_0
+        assert x1 is None or x1.ndim == 1 + self.input_ndim_1
 
         k_x0_x1 = self(x0[:, None, ...], (x1 if x1 is not None else x0)[None, :, ...])
 
@@ -490,31 +560,40 @@ class Kernel(abc.ABC):
         Raises
         -------
         ValueError
-            If one of the input shapes is not of the form ``batch_shape_{0,1} +``
-            :attr:`input_shape`.
+            If the shape of :math:`x_0` is not of the form ``batch_shape_0 +``
+            :attr:`input_shape_0`.
+        ValueError
+            If the shape of :math:`x_1` is not of the form ``batch_shape_1 +``
+            :attr:`input_shape_1`.
         ValueError
             If the inputs can not be broadcast to a common shape.
         """
 
         err_msg = (
-            "The shape of the input array `{argname}` must match the `input_shape` "
-            f"`{self.input_shape}` of the covariance function along its last "
-            "dimension, but an array with shape `{shape}` was given."
+            "The shape of the input array `x{argnum}` must match "
+            "`input_shape_{argnum}`, i.e. `{input_shape}`, along its trailing "
+            "dimensions, but an array with shape `{shape}` was given."
         )
 
-        if x0_shape[len(x0_shape) - self.input_ndim :] != self.input_shape:
-            raise ValueError(err_msg.format(argname="x0", shape=x0_shape))
+        if x0_shape[len(x0_shape) - self.input_ndim_0 :] != self.input_shape_0:
+            raise ValueError(
+                err_msg.format(argnum=0, input_shape=self.input_shape_0, shape=x0_shape)
+            )
 
-        broadcast_batch_shape = x0_shape[: len(x0_shape) - self.input_ndim]
+        broadcast_batch_shape = x0_shape[: len(x0_shape) - self.input_ndim_0]
 
         if x1_shape is not None:
-            if x1_shape[len(x1_shape) - self.input_ndim :] != self.input_shape:
-                raise ValueError(err_msg.format(argname="x1", shape=x1_shape))
+            if x1_shape[len(x1_shape) - self.input_ndim_1 :] != self.input_shape_1:
+                raise ValueError(
+                    err_msg.format(
+                        argnum=1, input_shape=self.input_shape_1, shape=x1_shape
+                    )
+                )
 
             try:
                 broadcast_batch_shape = np.broadcast_shapes(
                     broadcast_batch_shape,
-                    x1_shape[: len(x1_shape) - self.input_ndim],
+                    x1_shape[: len(x1_shape) - self.input_ndim_1],
                 )
             except ValueError as ve:
                 err_msg = (
@@ -525,17 +604,21 @@ class Kernel(abc.ABC):
 
         return broadcast_batch_shape
 
-    def _preprocess_linop_input(self, x: ArrayLike, argname: str) -> np.ndarray:
+    def _preprocess_linop_input(self, x: ArrayLike, argnum: int) -> np.ndarray:
         x = np.asarray(x)
 
+        assert argnum in (0, 1)
+
+        input_shape = self.input_shape_0 if argnum == 0 else self.input_shape_1
+        input_ndim = self.input_ndim_0 if argnum == 0 else self.input_ndim_1
+
         if not (
-            x.ndim >= self.input_ndim
-            and x.shape[(x.ndim - self.input_ndim) :] == self.input_shape
+            x.ndim >= input_ndim and x.shape[(x.ndim - input_ndim) :] == input_shape
         ):
             raise ValueError(
-                f"The shape of `{argname}` must must match the input shape "
-                f"`{self.input_shape}` of the covariance function along its trailing "
-                f"dimensions, but an array with shape `{x.shape}` was given."
+                f"The shape of `x{argnum}` must must match `input_shape_{argnum}`, "
+                f"i.e. `{self.input_shape}`, of the covariance function along its "
+                f"trailing dimensions, but an array with shape `{x.shape}` was given."
             )
 
         return x.reshape((-1,) + self.input_shape, order="C")
@@ -552,7 +635,7 @@ class Kernel(abc.ABC):
 
         assert self.input_ndim == 1
 
-        return np.sum(prods, axis=-1)
+        return np.sum(prods, axis=tuple(range(-self.input_ndim, 0)))
 
     ####################################################################################
     # Binary Arithmetic
