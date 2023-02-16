@@ -16,59 +16,43 @@ BinaryOperandType = Union["Kernel", ScalarLike]
 
 
 class Kernel(abc.ABC):
-    r"""(Cross-)covariance function(s)
+    r"""(Cross-)covariance function.
 
-    Abstract base class representing one or multiple (cross-)covariance function(s),
-    also known as kernels.
     A cross-covariance function
 
     .. math::
         :nowrap:
 
         \begin{equation}
-            k_{fg} \colon
-            \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}}
-            \to \mathbb{R}
+            k \colon
+            \mathbb{X}_0 \times \mathbb{X}_1
+            \to \mathbb{R}^{d^\text{out}_0 \times d^\text{out}_1},
+            (x_0, x_1) \mapsto \operatorname{Cov}[f_0(x_0), f_1(x_1)]
         \end{equation}
 
-    is a function of two arguments :math:`x_0` and :math:`x_1`, which represents the
-    covariance between two evaluations :math:`f(x_0)` and :math:`g(x_1)` of two
-    scalar-valued random processes :math:`f` and :math:`g` on a common probability space
-    (or, equivalently, two outputs :math:`h_i(x_0)` and :math:`h_j(x_1)` of a
-    vector-valued random process :math:`h`).
-    If :math:`f = g`, then the cross-covariance function is also referred to as a
-    covariance function, in which case it must be symmetric and positive
+    is a function of two arguments :math:`x_0 \in \mathbb{X}_0` and :math:`x_1 \in \
+    \mathbb{X}_1` (often :math:`\mathbb{X}_i \subset \mathbb{R}^{d^\text{in}_i}`), whose
+    output corresponds to the covariance (matrix) between two evaluations
+    :math:`f_0(x_0) \in \mathbb{R}^{d^\text{out}_0}` and :math:`f_1(x_1) \in \
+    \mathbb{R}^{d^\text{out}_1}` of two (vector-valued) :class:`~probnum.randprocs.\
+    RandomProcess`\ es :math:`f_0` and :math:`f_1`.
+    If :math:`f_0 = f_1`, then a cross-covariance function is also referred to as a
+    covariance function or a kernel, in which case it must be symmetric and positive
     (semi-)definite.
-
-    An instance of a :class:`Kernel` can compute multiple different (cross-)covariance
-    functions on the same pair of inputs simultaneously. For instance, it can be used to
-    compute the full covariance matrix
-
-    .. math::
-        :nowrap:
-
-        \begin{equation}
-            C^f \colon
-            \mathcal{X}^{d_\text{in}} \times \mathcal{X}^{d_\text{in}}
-            \to \mathbb{R}^{d_\text{out} \times d_\text{out}},
-            C^f_{i j}(x_0, x_1) := k_{f_i f_j}(x_0, x_1)
-        \end{equation}
-
-    of the vector-valued random process :math:`f`. To this end, we understand any
-    :class:`Kernel` as a tensor whose shape is given by :attr:`output_shape`, which
-    contains different (cross-)covariance functions as its entries.
 
     Parameters
     ----------
     input_shape
-        Shape of the :class:`Kernel`'s input.
-    output_shape
-        Shape of the :class:`Kernel`'s output.
-
-        If ``output_shape`` is set to ``()``, the :class:`Kernel` instance represents a
-        single (cross-)covariance function. Otherwise, i.e. if ``output_shape`` is a
-        non-empty tuple, the :class:`Kernel` instance represents a tensor of
-        (cross-)covariance functions whose shape is given by ``output_shape``.
+        :attr:`~probnum.randprocs.RandomProcess.input_shape` of the
+        :class:`~probnum.randprocs.RandomProcess`\ es :math:`f_0` and :math:`f_1`.
+        This defines the shape of the :class:`Kernel`\ 's inputs :math:`x_0` and
+        :math:`x_1`.
+    output0_shape
+        :attr:`~probnum.randprocs.RandomProcess.output_shape` of the
+        :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
+    output1_shape
+        :attr:`~probnum.randprocs.RandomProcess.output_shape` of the
+        :class:`~probnum.randprocs.RandomProcess` :math:`f_1`.
 
     Examples
     --------
@@ -93,7 +77,7 @@ class Kernel(abc.ABC):
            [0.54545455, 0.63636364, 0.72727273],
            [0.81818182, 0.90909091, 1.        ]])
 
-    We can compute kernel matrices like so.
+    We can compute covariance matrices of multiple evaluations like so.
 
     >>> k.matrix(xs)
     array([[0.04132231, 0.11570248, 0.19008264, 0.26446281],
@@ -101,8 +85,8 @@ class Kernel(abc.ABC):
            [0.19008264, 0.7107438 , 1.23140496, 1.75206612],
            [0.26446281, 1.00826446, 1.75206612, 2.49586777]])
 
-    The :meth:`Kernel.__call__` evaluations are vectorized over the "batch shapes" of
-    the inputs, applying standard NumPy broadcasting.
+    The :meth:`__call__` method is vectorized over the "batch shapes" of the inputs,
+    applying standard NumPy broadcasting.
 
     >>> k(xs[:, None], xs[None, :])  # same as `.matrix`
     array([[0.04132231, 0.11570248, 0.19008264, 0.26446281],
@@ -111,20 +95,15 @@ class Kernel(abc.ABC):
            [0.26446281, 1.00826446, 1.75206612, 2.49586777]])
 
     No broadcasting is applied if both inputs have the same shape. For instance, one can
-    efficiently compute just the diagonal of the kernel matrix via
+    efficiently compute the marginal variance of a set of data points via
 
     >>> k(xs, xs)
     array([0.04132231, 0.41322314, 1.23140496, 2.49586777])
     >>> k(xs, None)  # x1 = None is an efficient way to set x1 == x0
     array([0.04132231, 0.41322314, 1.23140496, 2.49586777])
 
-    and the diagonal above the main diagonal of the kernel matrix is retrieved through
-
-    >>> k(xs[:-1, :], xs[1:, :])
-    array([0.11570248, 0.7107438 , 1.75206612])
-
-    Kernels support basic arithmetic operations. For example we can add noise to the
-    kernel in the following fashion.
+    :class:`Kernel`\ s support basic arithmetic operations. For example, we can model
+    independent measurement noise as follows:
 
     >>> from probnum.randprocs.kernels import WhiteNoise
     >>> k_noise = k + 0.1 * WhiteNoise(input_shape=D)
@@ -153,52 +132,60 @@ class Kernel(abc.ABC):
 
     @property
     def input_shape(self) -> ShapeType:
-        """Shape of single, i.e. non-batched, arguments of the covariance function."""
+        r""":attr:`~probnum.randprocs.RandomProcess.input_shape` of the
+        :class:`~probnum.randprocs.RandomProcess`\ es :math:`f_0` and :math:`f_1`.
+        This defines the shape of the :class:`Kernel`\ 's inputs :math:`x_0` and
+        :math:`x_1`."""
         return self._input_shape
 
     @property
     def input_ndim(self) -> int:
-        """Syntactic sugar for ``len(input_shape)``."""
+        r"""Syntactic sugar for ``len(``\ :attr:`input_shape`\ ``)``."""
         return len(self._input_shape)
 
     @functools.cached_property
     def input_size(self) -> int:
-        """Syntactic sugar for the product over the input size."""
+        """Syntactic sugar for the product of all entries in :attr:`input_size`."""
         return functools.reduce(operator.mul, self.input_shape, 1)
 
     @property
     def output0_shape(self) -> ShapeType:
-        """Shape of single, i.e. non-batched, return values of the covariance function.
+        """:attr:`~probnum.randprocs.RandomProcess.output_shape` of the
+        :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
 
-        If :attr:`output_shape` is ``()``, the :class:`Kernel` instance represents a
-        single (cross-)covariance function. Otherwise, i.e. if :attr:`output_shape` is
-        non-empty, the :class:`Kernel` instance represents a tensor of
-        (cross-)covariance functions whose shape is given by ``output_shape``.
+        This defines the first part of the shape of a single, i.e. non-batched, return
+        value of :meth:`__call__`.
         """
         return self._output0_shape
 
     @property
     def output0_ndim(self) -> int:
-        """Syntactic sugar for ``len(output0_shape)``."""
+        r"""Syntactic sugar for ``len(``\ :attr:`output0_shape`\ ``)``."""
         return len(self.output0_shape)
 
     @functools.cached_property
     def output0_size(self) -> int:
-        """Syntactic sugar for the product over :attr:`output0_shape`."""
+        """Syntactic sugar for the product of all entries in :attr:`output0_shape`."""
         return functools.reduce(operator.mul, self.output0_shape, 1)
 
     @property
     def output1_shape(self) -> ShapeType:
+        """:attr:`~probnum.randprocs.RandomProcess.output_shape` of the
+        :class:`~probnum.randprocs.RandomProcess` :math:`f_1`.
+
+        This defines the second part of the shape of a single, i.e. non-batched, return
+        value of :meth:`__call__`.
+        """
         return self._output1_shape
 
     @property
     def output1_ndim(self) -> int:
-        """Syntactic sugar for ``len(output1_shape)``."""
+        r"""Syntactic sugar for ``len(``\ :attr:`output1_shape`\ ``)``."""
         return len(self.output1_shape)
 
     @functools.cached_property
     def output1_size(self) -> int:
-        """Syntactic sugar for the product over :attr:`output1_shape`."""
+        """Syntactic sugar for the product of all entries in :attr:`output1_shape`."""
         return functools.reduce(operator.mul, self.output1_shape, 1)
 
     def __repr__(self) -> str:
@@ -214,10 +201,10 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike],
     ) -> np.ndarray:
-        """Evaluate the (cross-)covariance function(s).
+        """Evaluate the (cross-)covariance function.
 
-        The evaluation of the (cross-covariance) function(s) is vectorized over the
-        batch shapes of the arguments, applying standard NumPy broadcasting.
+        The evaluation of the (cross-covariance) function is vectorized over the batch
+        shapes of the arguments, applying standard NumPy broadcasting.
 
         Parameters
         ----------
@@ -233,25 +220,19 @@ class Kernel(abc.ABC):
         Returns
         -------
         k_x0_x1 :
-            *shape=* ``bcast_batch_shape +`` :attr:`output_shape` -- The
-            (cross-)covariance function(s) evaluated at ``(x0, x1)``.
+            *shape=* ``bcast_batch_shape +`` :attr:`output0_shape` ``+``
+            :attr:`output1_shape` --
+            The (cross-)covariance function evaluated at ``(x0, x1)``.
             Since the function is vectorized over the batch shapes of the inputs, the
             output array contains the following entries:
 
             .. code-block:: python
 
-                k_x0_x1[batch_idx + output_idx] = k[output_idx](
-                    x0[batch_idx, ...],
-                    x1[batch_idx, ...],
-                )
+                k_x0_x1[batch_idx] = k(x0[batch_idx, ...], x1[batch_idx, ...])
 
             where we assume that ``x0`` and ``x1`` have been broadcast to a common
-            shape ``bcast_batch_shape +`` :attr:`input_shape`, and where ``output_idx``
-            and ``batch_idx`` are indices compatible with :attr:`output_shape` and
-            ``bcast_batch_shape``, respectively.
-            By ``k[output_idx]`` we refer to the covariance function at index
-            ``output_idx`` in the tensor of covariance functions represented by the
-            :class:`Kernel` instance.
+            shape ``bcast_batch_shape +`` :attr:`input_shape`, and where ``batch_idx``
+            is an index compatible with ``bcast_batch_shape``.
 
         Raises
         ------
@@ -263,8 +244,8 @@ class Kernel(abc.ABC):
 
         See Also
         --------
-        matrix: Convenience function to compute a kernel matrix, i.e. a matrix of
-            pairwise evaluations of the kernel on two sets of points.
+        matrix: Convenience function computing the full covariance matrix of evaluations
+            at two given sets of input points.
 
         Examples
         --------
@@ -296,7 +277,8 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
     ) -> np.ndarray:
-        """Kernel matrix corresponding to the given input points.
+        """Matrix containing the pairwise covariances of evaluations of :math:`f_0` and
+        :math:`f_1` at the given input points.
 
         Parameters
         ----------
@@ -315,7 +297,7 @@ class Kernel(abc.ABC):
         k_x0_x1
             *shape=* ``(``:attr:`output0_size` ``* N0,`` :attr:`output1_size` ``* N1)``
             *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
-            The kernel matrix corresponding to the given batches of input points.
+            The covariance matrix corresponding to the given batches of input points.
             The order of the rows and columns of the kernel matrix corresponds to the
             order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
             shapes :attr:`output0_shape` ``+ batch_shape_0`` and :attr:`output0_shape`
@@ -347,20 +329,22 @@ class Kernel(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
     ) -> linops.LinearOperator:
-        """:class:`LinearOperator` representing the kernel matrix corresponding to the
-        given input points.
+        r""":class:`~probnum.linops.LinearOperator` representing the pairwise
+        covariances of evaluations of :math:`f_0` and :math:`f_1` at the given input
+        points.
 
-        Representing a kernel matrix as a matrix-free :class:`LinearOperator` is often
-        more efficient than computing a dense kernel matrix, both in terms of memory and
-        computation time, particularly when using iterative methods to solve the
-        associated linear systems.
+        Representing the resulting covariance matrix as a matrix-free :class:`~probnum.\
+        linops.LinearOperator` is often more efficient than a representation as a
+        :class:`~numpy.ndarray`, both in terms of memory and computation time,
+        particularly when using iterative methods to solve the associated linear
+        systems.
 
-        For instance, kernel matrices for separable kernels (e.g. tensor product
-        kernels or separable multi-output kernels) can often be represented as
-        :class:`linops.KroneckerProduct`\\ s of smaller kernel matrices and frameworks
-        like :mod:`pykeops<pykeops.numpy>` can be used to implement efficient
-        matrix-vector products with kernel matrices without needing to construct the
-        entire kernel matrix in memory.
+        For instance, covariance matrices induced by separable covariance functions
+        (e.g. tensor products of covariance functions or separable multi-output kernels)
+        can often be represented as :class:`~probnum.linops.KroneckerProduct`\ s of
+        smaller covariance matrices and frameworks like :mod:`pykeops<pykeops.numpy>`
+        can be used to implement efficient matrix-vector products with covariance
+        matrices without needing to construct the entire matrix in memory.
 
         Parameters
         ----------
@@ -379,10 +363,10 @@ class Kernel(abc.ABC):
         k_x0_x1
             *shape=* ``(``:attr:`output0_size` ``* N0,`` :attr:`output1_size` ``* N1)``
             *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
-            :class:`LinearOperator` representing the kernel matrix corresponding to the
-            given batches of input points.
-            The order of the rows and columns of the kernel matrix corresponds to the
-            order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
+            :class:`~probnum.linops.LinearOperator` representing the covariance matrix
+            corresponding to the given batches of input points.
+            The order of the rows and columns of the covariance matrix corresponds to
+            the order of entries obtained by flattening :class:`~numpy.ndarray`\ s with
             shapes :attr:`output0_shape` ``+ batch_shape_0`` and :attr:`output0_shape`
             ``+ batch_shape_1`` in "C-order".
 
@@ -596,16 +580,16 @@ class Kernel(abc.ABC):
 
 
 class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
-    r"""Mixin for isotropic kernels.
+    r"""Mixin for isotropic covariance functions.
 
-    An isotropic kernel is a kernel which only depends on the norm of the difference of
-    the arguments, i.e.
+    An isotropic covariance function only depends on the norm of the difference of the
+    arguments, i.e.
 
     .. math ::
 
         k(x_0, x_1) = k(\lVert x_0 - x_1 \rVert).
 
-    Hence, all isotropic kernels are stationary.
+    Hence, all isotropic covariance functions are stationary.
     """
 
     def _squared_euclidean_distances(
