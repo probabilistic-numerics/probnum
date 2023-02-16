@@ -103,7 +103,7 @@ def test_matrix_equals_matrix_naive(
 ):
     """Test whether the values of `Kernel.matrix` match the reference implementation."""
 
-    np.testing.assert_array_equal(
+    np.testing.assert_allclose(
         matrix,
         matrix_naive,
         rtol=10**-12,
