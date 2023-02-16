@@ -8,7 +8,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import utils
+from probnum import linops, utils
 from probnum.typing import NotImplementedType, ScalarLike
 
 from ._kernel import BinaryOperandType, Kernel
@@ -56,6 +56,11 @@ class ScaledKernel(Kernel):
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         return self._scalar * self._kernel(x0, x1)
 
+    def _evaluate_linop(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> linops.LinearOperator:
+        return self._scalar * self._kernel.linop(x0, x1)
+
     def __repr__(self) -> str:
         return f"{self._scalar} * {self._kernel}"
 
@@ -98,6 +103,13 @@ class SumKernel(Kernel):
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
         return functools.reduce(
             operator.add, (summand(x0, x1) for summand in self._summands)
+        )
+
+    def _evaluate_linop(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> linops.LinearOperator:
+        return functools.reduce(
+            operator.add, (summand.linop(x0, x1) for summand in self._summands)
         )
 
     def __repr__(self):
