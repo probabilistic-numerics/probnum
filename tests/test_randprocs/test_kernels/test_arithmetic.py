@@ -15,8 +15,10 @@ def test_scalar_mul(kernel: kernels.Kernel):
     assert isinstance(kernel_rmul, ScaledKernel)
     assert kernel_mul.input_shape == kernel.input_shape
     assert kernel_rmul.input_shape == kernel.input_shape
-    assert kernel_mul.output_shape == kernel.output_shape
-    assert kernel_rmul.output_shape == kernel.output_shape
+    assert kernel_mul.output_shape_0 == kernel.output_shape_0
+    assert kernel_mul.output_shape_1 == kernel.output_shape_1
+    assert kernel_rmul.output_shape_0 == kernel.output_shape_0
+    assert kernel_rmul.output_shape_1 == kernel.output_shape_1
 
 
 def test_add(kernel: kernels.Kernel):
@@ -24,7 +26,8 @@ def test_add(kernel: kernels.Kernel):
     kernel_sum = kernel + k_whitenoise
     assert isinstance(kernel_sum, SumKernel)
     assert kernel_sum.input_shape == kernel.input_shape
-    assert kernel_sum.output_shape == kernel.output_shape
+    assert kernel_sum.output_shape_0 == kernel.output_shape_0
+    assert kernel_sum.output_shape_1 == kernel.output_shape_1
 
 
 def test_mul(kernel: kernels.Kernel):
@@ -32,4 +35,5 @@ def test_mul(kernel: kernels.Kernel):
     kernel_prod = kernel * k_poly
     assert isinstance(kernel_prod, ProductKernel)
     assert kernel_prod.input_shape == kernel.input_shape
-    assert kernel_prod.output_shape == kernel.output_shape
+    assert kernel_prod.output_shape_0 == kernel.output_shape_0
+    assert kernel_prod.output_shape_1 == kernel.output_shape_1

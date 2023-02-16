@@ -8,7 +8,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import utils
+from probnum import linops, utils
 from probnum.typing import NotImplementedType, ScalarLike
 
 from ._kernel import BinaryOperandType, Kernel
@@ -48,11 +48,18 @@ class ScaledKernel(Kernel):
         self._scalar = utils.as_numpy_scalar(scalar)
 
         super().__init__(
-            input_shape=kernel.input_shape, output_shape=kernel.output_shape
+            input_shape=kernel.input_shape,
+            output_shape_0=kernel.output_shape_0,
+            output_shape_1=kernel.output_shape_1,
         )
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         return self._scalar * self._kernel(x0, x1)
+
+    def _evaluate_linop(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> linops.LinearOperator:
+        return self._scalar * self._kernel.linop(x0, x1)
 
     def __repr__(self) -> str:
         return f"{self._scalar} * {self._kernel}"
@@ -79,7 +86,8 @@ class SumKernel(Kernel):
 
         if not all(
             (summand.input_shape == summands[0].input_shape)
-            and (summand.output_shape == summands[0].output_shape)
+            and (summand.output_shape_0 == summands[0].output_shape_0)
+            and (summand.output_shape_1 == summands[0].output_shape_1)
             for summand in summands
         ):
             raise ValueError("All summands must have the same in- and output shape.")
@@ -87,12 +95,21 @@ class SumKernel(Kernel):
         self._summands = SumKernel._expand_sum_kernels(*summands)
 
         super().__init__(
-            input_shape=summands[0].input_shape, output_shape=summands[0].output_shape
+            input_shape=summands[0].input_shape,
+            output_shape_0=summands[0].output_shape_0,
+            output_shape_1=summands[0].output_shape_1,
         )
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
         return functools.reduce(
             operator.add, (summand(x0, x1) for summand in self._summands)
+        )
+
+    def _evaluate_linop(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> linops.LinearOperator:
+        return functools.reduce(
+            operator.add, (summand.linop(x0, x1) for summand in self._summands)
         )
 
     def __repr__(self):
@@ -136,7 +153,8 @@ class ProductKernel(Kernel):
 
         if not all(
             (factor.input_shape == factors[0].input_shape)
-            and (factor.output_shape == factors[0].output_shape)
+            and (factor.output_shape_0 == factors[0].output_shape_0)
+            and (factor.output_shape_1 == factors[0].output_shape_1)
             for factor in factors
         ):
             raise ValueError("All factors must have the same in- and output shape.")
@@ -144,7 +162,9 @@ class ProductKernel(Kernel):
         self._factors = ProductKernel._expand_prod_kernels(*factors)
 
         super().__init__(
-            input_shape=factors[0].input_shape, output_shape=factors[0].output_shape
+            input_shape=factors[0].input_shape,
+            output_shape_0=factors[0].output_shape_0,
+            output_shape_1=factors[0].output_shape_1,
         )
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:
