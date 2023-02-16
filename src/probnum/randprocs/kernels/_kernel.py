@@ -303,7 +303,7 @@ class Kernel(abc.ABC):
             *with* ``N0 = prod(batch_shape_0)`` and ``N1 = prod(batch_shape_1)`` --
             The covariance matrix corresponding to the given batches of input points.
             The order of the rows and columns of the covariance matrix corresponds to
-            the order of entries obtained by flattening :class:`~numpy.ndarray`\\ s with
+            the order of entries obtained by flattening :class:`~numpy.ndarray`\ s with
             shapes :attr:`output_shape_0` ``+ batch_shape_0`` and :attr:`output_shape_0`
             ``+ batch_shape_1`` in "C-order".
 
@@ -402,7 +402,7 @@ class Kernel(abc.ABC):
         x0: np.ndarray,
         x1: Optional[np.ndarray],
     ) -> np.ndarray:
-        """Implementation of the covariance function, evaluation which is called after
+        """Implementation of the covariance function evaluation which is called after
         input checking.
 
         When implementing a particular covariance function, the subclass should

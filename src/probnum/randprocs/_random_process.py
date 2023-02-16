@@ -112,8 +112,9 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
                 raise ValueError(
                     f"Both `output_shape_0` and `output_shape_1` of the covariance "
                     f"function must be set to the `output_shape` {self.output_shape} "
-                    f"of the random process, but got kernel with output shapes "
-                    f"{cov.output_shape_0} and {cov.output_shape_1}, respectively."
+                    f"of the random process, but got covariance function with output "
+                    f"shapes {cov.output_shape_0} and {cov.output_shape_1}, "
+                    f"respectively."
                 )
 
         self._cov = cov
