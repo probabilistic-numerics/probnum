@@ -389,7 +389,7 @@ class Kernel(abc.ABC):
         assert isinstance(k_linop_x0_x1, linops.LinearOperator)
         assert k_linop_x0_x1.shape == (
             self.output_size_0 * x0.shape[0],
-            self.output_size_1 * (x1.shape[0] if x1 is not None else x0.shape[1]),
+            self.output_size_1 * (x1.shape[0] if x1 is not None else x0.shape[0]),
         )
 
         return k_linop_x0_x1
