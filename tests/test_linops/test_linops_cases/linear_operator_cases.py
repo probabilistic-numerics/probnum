@@ -63,6 +63,16 @@ def case_matrix_spd(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.nd
     return linop, matrix
 
 
+@pytest_cases.case(tags=("square", "symmetric"))
+def case_matrix_symmetric_indefinite() -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    matrix = np.diag((2.1, 1.3, -0.5))
+
+    linop = pn.linops.aslinop(matrix)
+    linop.is_symmetric = True
+
+    return linop, matrix
+
+
 @pytest_cases.case(tags=("square", "symmetric", "positive-definite"))
 @pytest.mark.parametrize("n", [3, 4, 8, 12, 15])
 def case_identity(n: int) -> Tuple[pn.linops.LinearOperator, np.ndarray]:

@@ -71,12 +71,16 @@ def bayesquad(
     policy
         Type of acquisition strategy to use. Defaults to 'bmc'. Options are
 
-        ============================================  ===========
-         Bayesian Monte Carlo [2]_                    ``bmc``
-         Van Der Corput points                        ``vdc``
-         Uncertainty Sampling with random candidates  ``us_rand``
-         Uncertainty Sampling with optimizer          ``us``
-        ============================================  ===========
+        ==================================================== ===========
+         Bayesian Monte Carlo [2]_                            ``bmc``
+         Van Der Corput points                                ``vdc``
+         Uncertainty Sampling with random candidates          ``us_rand``
+         Uncertainty Sampling with optimizer                  ``us``
+         Mutual information with random candidates            ``mi_rand``
+         Mutual information with optimizer                    ``mi``
+         Integral variance reduction with random candidates   ``ivr_rand``
+         Integral variance reduction with optimizer           ``ivr``
+        ==================================================== ===========
 
     initial_design
         The type of initial design to use. If ``None`` is given, no initial design is
@@ -115,13 +119,14 @@ def bayesquad(
             n_initial_design_nodes : Optional[IntLike]
                 The number of nodes created by the initial design. Defaults to
                 ``input_dim * 5`` if an initial design is given.
-            us_rand_n_candidates : Optional[IntLike]
-                The number of candidate nodes used by the policy 'us_rand'. Defaults
-                to 1e2.
-            us_n_restarts : Optional[IntLike]
+            n_candidates : Optional[IntLike]
+                The number of candidate nodes used by the policies that maximize an
+                acquisition function by drawing random candidates. Defaults to 1e2.
+                Applicable to policies 'us_rand', 'mi_rand' and 'ivr_rand'.
+            n_restarts : Optional[IntLike]
                 The number of restarts that the acquisition optimizer performs in
-                order to find the maximizer when policy 'us' is used. Defaults
-                to 10.
+                order to find the maximizer. Defaults to 10. Applicable to policies
+                'us', 'mi' and 'ivr'.
 
     Returns
     -------
@@ -154,7 +159,7 @@ def bayesquad(
     References
     ----------
     .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical
-        computation?, *Statistical Science 34.1*, 2019, 1-22, 2019
+        computation?, *Statistical Science 34.1*, 2019, 1-22.
     .. [2] Rasmussen, C. E., and Z. Ghahramani, Bayesian Monte Carlo, *Advances in
         Neural Information Processing Systems*, 2003, 505-512.
     .. [3] Mckay et al., A Comparison of Three Methods for Selecting Values of Input
@@ -163,7 +168,6 @@ def bayesquad(
     Examples
     --------
     >>> import numpy as np
-
     >>> input_dim = 1
     >>> domain = (0, 1)
     >>> def fun(x):
@@ -294,12 +298,150 @@ def bayesquad_from_data(
     return integral_belief, info
 
 
+def multilevel_bayesquad_from_data(
+    nodes: Tuple[np.ndarray, ...],
+    fun_diff_evals: Tuple[np.ndarray, ...],
+    kernels: Optional[Tuple[Kernel, ...]] = None,
+    measure: Optional[IntegrationMeasure] = None,
+    domain: Optional[DomainLike] = None,
+    options: Optional[dict] = None,
+) -> Tuple[Normal, Tuple[BQIterInfo, ...]]:
+    r"""Infer the value of an integral from given sets of nodes and function
+    evaluations using a multilevel method.
+
+    In multilevel Bayesian quadrature, the integral :math:`\int_\Omega f(x) d \mu(x)`
+    is (approximately) decomposed as a telescoping sum over :math:`L+1` levels:
+
+    .. math:: \int_\Omega f(x) d \mu(x) \approx \int_\Omega f_0(x) d
+        \mu(x) + \sum_{l=1}^L \int_\Omega [f_l(x) - f_{l-1}(x)] d \mu(x),
+
+    where :math:`f_l` is an increasingly accurate but also increasingly expensive
+    approximation to :math:`f`. It is not necessary that the highest level approximation
+    :math:`f_L` be equal to :math:`f`.
+
+    Bayesian quadrature is subsequently applied to independently infer each of the
+    :math:`L+1` integrals and the outputs are summed to infer
+    :math:`\int_\Omega f(x) d \mu(x)`. [1]_
+
+    Parameters
+    ----------
+    nodes
+        Tuple of length :math:`L+1` containing the locations for each level at which
+        the functionn evaluations are available as ``fun_diff_evals``. Each element
+        must be a shape=(n_eval, input_dim) ``np.ndarray``. If a tuple containing only
+        one element is provided, it is inferred that the same nodes ``nodes[0]`` are
+        used on every level.
+    fun_diff_evals
+        Tuple of length :math:`L+1` containing the evaluations of :math:`f_l - f_{l-1}`
+        for each level at the nodes provided in ``nodes``. Each element must be a
+        shape=(n_eval,) ``np.ndarray``. The zeroth element contains the evaluations of
+        :math:`f_0`.
+    kernels
+        Tuple of length :math:`L+1` containing the kernels used for the GP model at each
+        level. See **Notes** for further details. Defaults to the ``ExpQuad`` kernel for
+        each level.
+    measure
+        The integration measure. Defaults to the Lebesgue measure.
+    domain
+        The integration domain. Contains lower and upper bound as scalar or
+        ``np.ndarray``. Obsolete if ``measure`` is given.
+    options
+        A dictionary with the following optional solver settings
+
+            scale_estimation : Optional[str]
+                Estimation method to use to compute the scale parameter. Used
+                independently on each level. Defaults to 'mle'. Options are
+
+                ==============================  =======
+                 Maximum likelihood estimation  ``mle``
+                ==============================  =======
+
+            jitter : Optional[FloatLike]
+                Non-negative jitter to numerically stabilise kernel matrix
+                inversion. Same jitter is used on each level. Defaults to 1e-8.
+
+    Returns
+    -------
+    integral :
+        The integral belief subject to the provided measure or domain.
+    infos :
+        Information on the performance of the method for each level.
+
+    Raises
+    ------
+    ValueError
+        If ``nodes``, ``fun_diff_evals`` or ``kernels`` have different lengths.
+
+    Warns
+    -----
+    UserWarning
+        When ``domain`` is given but not used.
+
+    Notes
+    -----
+    The tuple of kernels provided by the ``kernels`` parameter must contain distinct
+    kernel instances, i.e., ``kernels[i] is kernel[j]`` must return ``False`` for any
+    :math:`i\neq j`.
+
+    References
+    ----------
+    .. [1] Li, K., et al., Multilevel Bayesian quadrature, AISTATS, 2023.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> input_dim = 1
+    >>> domain = (0, 1)
+    >>> n_level = 6
+    >>> def fun(x, l):
+    ...     return x.reshape(-1, ) / (l + 1.0)
+    >>> nodes = ()
+    >>> fun_diff_evals = ()
+    >>> for l in range(n_level):
+    ...     n_l = 2*l + 1
+    ...     nodes += (np.reshape(np.linspace(0, 1, n_l), (n_l, input_dim)),)
+    ...     fun_diff_evals += (np.reshape(fun(nodes[l], l), (n_l,)),)
+    >>> F, infos = multilevel_bayesquad_from_data(nodes=nodes,
+    ...                                           fun_diff_evals=fun_diff_evals,
+    ...                                           domain=domain)
+    >>> print(np.round(F.mean, 4))
+    0.7252
+    """
+
+    n_level = len(fun_diff_evals)
+    if kernels is None:
+        kernels = n_level * (None,)
+    if len(nodes) == 1:
+        nodes = n_level * (nodes[0],)
+    if not len(nodes) == len(fun_diff_evals) == len(kernels):
+        raise ValueError(
+            f"You must provide an equal number of kernels ({(len(kernels))}), "
+            f"vectors of function evaluations ({len(fun_diff_evals)}) "
+            f"and sets of nodes ({len(nodes)})."
+        )
+
+    integer_belief = Normal(mean=0.0, cov=0.0)
+    infos = ()
+    for level in range(n_level):
+        integer_belief_l, info_l = bayesquad_from_data(
+            nodes=nodes[level],
+            fun_evals=fun_diff_evals[level],
+            kernel=kernels[level],
+            measure=measure,
+            domain=domain,
+            options=options,
+        )
+        integer_belief += integer_belief_l
+        infos += (info_l,)
+
+    return integer_belief, infos
+
+
 def _check_domain_measure_compatibility(
     input_dim: IntLike,
     domain: Optional[DomainLike],
     measure: Optional[IntegrationMeasure],
 ) -> Tuple[int, Optional[DomainType], IntegrationMeasure]:
-
     input_dim = int(input_dim)
 
     # Neither domain nor measure given

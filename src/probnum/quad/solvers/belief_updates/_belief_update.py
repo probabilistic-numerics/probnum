@@ -101,3 +101,27 @@ class BQBeliefUpdate(abc.ABC):
 
         """
         return cho_solve(gram_cho_factor, z)
+
+    @staticmethod
+    @abc.abstractmethod
+    def predict_integrand(
+        x: np.ndarray, bq_state: BQState
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Predictive mean and variances of the integrand at given nodes.
+
+        Parameters
+        ----------
+        x
+            *shape=(n_nodes, input_dim)* -- The nodes where to predict.
+        bq_state
+            The BQ state.
+
+        Returns
+        -------
+        mean_prediction :
+            *shape=(n_nodes,)* -- The means of the predictions.
+        var_predictions :
+            *shape=(n_nodes,)* -- The variances of the predictions.
+
+        """
+        raise NotImplementedError
