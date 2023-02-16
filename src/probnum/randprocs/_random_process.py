@@ -106,14 +106,14 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
                 )
 
             if not (
-                cov.output0_shape != self._output_shape
-                and cov.output1_shape != self._output_shape
+                cov.output_shape_0 == self._output_shape
+                and cov.output_shape_1 == self._output_shape
             ):
                 raise ValueError(
-                    f"Both `output0_shape` and `output1_shape` of the covariance "
+                    f"Both `output_shape_0` and `output_shape_1` of the covariance "
                     f"function must be set to the `output_shape` {self.output_shape} "
                     f"of the random process, but got kernel with output shapes "
-                    f"{cov.output0_shape} and {cov.output1_shape}, respectively."
+                    f"{cov.output_shape_0} and {cov.output_shape_1}, respectively."
                 )
 
         self._cov = cov
