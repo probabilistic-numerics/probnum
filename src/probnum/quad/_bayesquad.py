@@ -21,7 +21,6 @@ from probnum.randprocs.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.typing import IntLike
 
-
 def bayesquad(
     fun: Callable,
     input_dim: IntLike,
@@ -156,6 +155,12 @@ def bayesquad(
     bayesquad_from_data : Computes the integral :math:`F` using a given dataset of
                           nodes and function evaluations.
 
+    Warnings
+    --------
+    Currently the method does not support tuning of the kernel parameters
+    other than the global kernel scale. Hence, the method may perform poorly unless the
+    kernel parameters are set to appropriate values by the user.
+
     References
     ----------
     .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical
@@ -259,6 +264,12 @@ def bayesquad_from_data(
     See Also
     --------
     bayesquad : Computes the integral using an acquisition policy.
+
+    Warnings
+    --------
+    Currently the method does not support tuning of the kernel parameters
+    other than the global kernel scale. Hence, the method may perform poorly unless the
+    kernel parameters are set to appropriate values by the user.
 
     Examples
     --------
@@ -382,6 +393,12 @@ def multilevel_bayesquad_from_data(
     The tuple of kernels provided by the ``kernels`` parameter must contain distinct
     kernel instances, i.e., ``kernels[i] is kernel[j]`` must return ``False`` for any
     :math:`i\neq j`.
+
+    Warnings
+    --------
+    Currently the method does not support tuning of the kernel parameters
+    other than the global kernel scale. Hence, the method may perform poorly unless the
+    kernel parameters are set to appropriate values by the user.
 
     References
     ----------
