@@ -57,13 +57,15 @@ def matrix_naive(
 
 
 def test_linop_type(linop: pn.linops.LinearOperator):
-    """Check whether a `CovarianceFunction.linop` evaluates to a `pn.linops.LinearOperator`."""
+    """Check whether a `CovarianceFunction.linop` evaluates to a
+    `pn.linops.LinearOperator`."""
 
     assert isinstance(linop, pn.linops.LinearOperator)
 
 
 def test_matrix_type(matrix: np.ndarray):
-    """Check whether a `CovarianceFunction.matrix` evaluates to a numpy scalar or array."""
+    """Check whether a `CovarianceFunction.matrix` evaluates to a numpy scalar or
+    array."""
 
     assert isinstance(matrix, (np.ndarray, np.number))
 
@@ -90,8 +92,8 @@ def test_linop_equals_matrix_naive(
     linop: pn.linops.LinearOperator,
     matrix_naive: np.ndarray,
 ):
-    """Test whether the values of `CovarianceFunction.linop(...).todense()` match the reference
-    implementation."""
+    """Test whether the values of `CovarianceFunction.linop(...).todense()` match the
+    reference implementation."""
 
     np.testing.assert_allclose(
         linop.todense(),
@@ -105,7 +107,8 @@ def test_matrix_equals_matrix_naive(
     matrix: np.ndarray,
     matrix_naive: np.ndarray,
 ):
-    """Test whether the values of `CovarianceFunction.matrix` match the reference implementation."""
+    """Test whether the values of `CovarianceFunction.matrix` match the reference
+    implementation."""
 
     np.testing.assert_allclose(
         matrix,
