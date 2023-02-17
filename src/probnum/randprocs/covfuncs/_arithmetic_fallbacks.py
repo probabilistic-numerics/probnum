@@ -1,4 +1,4 @@
-"""Fallback-implementations of Kernel arithmetic."""
+"""Fallback-implementations of covariance function arithmetic."""
 
 from __future__ import annotations
 
@@ -11,17 +11,17 @@ import numpy as np
 from probnum import linops, utils
 from probnum.typing import NotImplementedType, ScalarLike
 
-from ._kernel import BinaryOperandType, Kernel
+from ._covariance_function import BinaryOperandType, CovarianceFunction
 
 ########################################################################################
 # Generic Linear Operator Arithmetic (Fallbacks)
 ########################################################################################
 
 
-class ScaledKernel(Kernel):
-    r"""Kernel scaled with a (positive) scalar.
+class ScaledCovarianceFunction(CovarianceFunction):
+    r"""Covariance function scaled with a (positive) scalar.
 
-    Define a new kernel
+    Define a new covariance function
 
     .. math ::
         k(x_0, x_1) = o k'(x_0, x_1)
@@ -30,59 +30,58 @@ class ScaledKernel(Kernel):
 
     Parameters
     ----------
-    kernel
-        Kernel.
+    covfunc
+        Covariance function.
     scalar
         Scalar to multiply with.
     """
 
-    def __init__(self, kernel: Kernel, scalar: ScalarLike):
-
-        if not isinstance(kernel, Kernel):
-            raise TypeError("`kernel` must be a `Kernel`")
+    def __init__(self, covfunc: CovarianceFunction, scalar: ScalarLike):
+        if not isinstance(covfunc, CovarianceFunction):
+            raise TypeError("`covfunc` must be a `CovarianceFunction`")
 
         if np.ndim(scalar) != 0:
             raise TypeError("`scalar` must be a scalar.")
 
-        self._kernel = kernel
+        self._covfunc = covfunc
         self._scalar = utils.as_numpy_scalar(scalar)
 
         super().__init__(
-            input_shape=kernel.input_shape,
-            output_shape_0=kernel.output_shape_0,
-            output_shape_1=kernel.output_shape_1,
+            input_shape=covfunc.input_shape,
+            output_shape_0=covfunc.output_shape_0,
+            output_shape_1=covfunc.output_shape_1,
         )
 
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
-        return self._scalar * self._kernel(x0, x1)
+        return self._scalar * self._covfunc(x0, x1)
 
     def _evaluate_linop(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
     ) -> linops.LinearOperator:
-        return self._scalar * self._kernel.linop(x0, x1)
+        return self._scalar * self._covfunc.linop(x0, x1)
 
     def __repr__(self) -> str:
-        return f"{self._scalar} * {self._kernel}"
+        return f"{self._scalar} * {self._covfunc}"
 
 
-class SumKernel(Kernel):
-    r"""Sum of kernels.
+class SumCovarianceFunction(CovarianceFunction):
+    r"""Sum of covariance functions.
 
-    Define a new kernel
+    Define a new covariance function
 
     .. math ::
         k(x_0, x_1) = \sum_{i=1}^m k_i(x_0, x_1)
 
-    from a set of kernels :math:`k_i` via summation.
+    from a set of covariance functions :math:`k_i` via summation.
 
     Parameters
     ----------
     summands
-        Kernels to sum together. Must have the same ``input_shape`` and
+        Covariance functions to sum together. Must have the same ``input_shape`` and
         ``output_shape``.
     """
 
-    def __init__(self, *summands: Kernel):
+    def __init__(self, *summands: CovarianceFunction):
 
         if not all(
             (summand.input_shape == summands[0].input_shape)
@@ -92,7 +91,7 @@ class SumKernel(Kernel):
         ):
             raise ValueError("All summands must have the same in- and output shape.")
 
-        self._summands = SumKernel._expand_sum_kernels(*summands)
+        self._summands = SumCovarianceFunction._expand_sum_covfuncs(*summands)
 
         super().__init__(
             input_shape=summands[0].input_shape,
@@ -113,17 +112,19 @@ class SumKernel(Kernel):
         )
 
     def __repr__(self):
-        res = "SumKernel [\n\t"
+        res = "SumCovarianceFunction [\n\t"
         res += ",\n\t".join(repr(summand) for summand in self._summands)
         res += "\n]"
         return res
 
     @staticmethod
-    def _expand_sum_kernels(*summands: Kernel) -> Tuple[Kernel, ...]:
+    def _expand_sum_covfuncs(
+        *summands: CovarianceFunction,
+    ) -> Tuple[CovarianceFunction, ...]:
         expanded_summands = []
 
         for summand in summands:
-            if isinstance(summand, SumKernel):
+            if isinstance(summand, SumCovarianceFunction):
                 # pylint: disable="protected-access"
                 expanded_summands.extend(summand._summands)
             else:
@@ -132,24 +133,24 @@ class SumKernel(Kernel):
         return tuple(expanded_summands)
 
 
-class ProductKernel(Kernel):
-    r"""(Element-wise) Product of kernels.
+class ProductCovarianceFunction(CovarianceFunction):
+    r"""(Element-wise) Product of covariance functions.
 
-    Define a new kernel
+    Define a new covariance function
 
     .. math ::
         k(x_0, x_1) = \prod_{i=1}^m k_i(x_0, x_1)
 
-    from a set of kernels :math:`k_i` via multiplication.
+    from a set of covariance functions :math:`k_i` via multiplication.
 
     Parameters
     ----------
     factors
-        Kernels to multiply together. Must have the same ``input_shape`` and
-        ``output_shape``.
+        Covariance functions to multiply together. Must have the same ``input_shape``
+        and ``output_shape``.
     """
 
-    def __init__(self, *factors: Kernel):
+    def __init__(self, *factors: CovarianceFunction):
 
         if not all(
             (factor.input_shape == factors[0].input_shape)
@@ -159,7 +160,7 @@ class ProductKernel(Kernel):
         ):
             raise ValueError("All factors must have the same in- and output shape.")
 
-        self._factors = ProductKernel._expand_prod_kernels(*factors)
+        self._factors = ProductCovarianceFunction._expand_prod_covfuncs(*factors)
 
         super().__init__(
             input_shape=factors[0].input_shape,
@@ -173,17 +174,19 @@ class ProductKernel(Kernel):
         )
 
     def __repr__(self):
-        res = "ProductKernel [\n\t"
+        res = "ProductCovarianceFunction [\n\t"
         res += ",\n\t".join(repr(factor) for factor in self._factors)
         res += "\n]"
         return res
 
     @staticmethod
-    def _expand_prod_kernels(*factors: Kernel) -> Tuple[Kernel, ...]:
+    def _expand_prod_covfuncs(
+        *factors: CovarianceFunction,
+    ) -> Tuple[CovarianceFunction, ...]:
         expanded_factors = []
 
         for factor in factors:
-            if isinstance(factor, ProductKernel):
+            if isinstance(factor, ProductCovarianceFunction):
                 # pylint: disable="protected-access"
                 expanded_factors.extend(factor._factors)
             else:
@@ -194,15 +197,15 @@ class ProductKernel(Kernel):
 
 def _mul_fallback(
     op1: BinaryOperandType, op2: BinaryOperandType
-) -> Union[Kernel, NotImplementedType]:
+) -> Union[CovarianceFunction, NotImplementedType]:
     res = NotImplemented
 
-    if isinstance(op1, Kernel):
-        if isinstance(op2, Kernel):
-            res = ProductKernel(op1, op2)
+    if isinstance(op1, CovarianceFunction):
+        if isinstance(op2, CovarianceFunction):
+            res = ProductCovarianceFunction(op1, op2)
         elif np.ndim(op2) == 0:
-            res = ScaledKernel(kernel=op1, scalar=op2)
-    elif isinstance(op2, Kernel):
+            res = ScaledCovarianceFunction(op1, scalar=op2)
+    elif isinstance(op2, CovarianceFunction):
         if np.ndim(op1) == 0:
-            res = ScaledKernel(kernel=op2, scalar=op1)
+            res = ScaledCovarianceFunction(op2, scalar=op1)
     return res

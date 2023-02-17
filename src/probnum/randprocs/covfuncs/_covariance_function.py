@@ -12,10 +12,10 @@ import numpy as np
 from probnum import linops, utils as _pn_utils
 from probnum.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
 
-BinaryOperandType = Union["Kernel", ScalarLike]
+BinaryOperandType = Union["CovarianceFunction", ScalarLike]
 
 
-class Kernel(abc.ABC):
+class CovarianceFunction(abc.ABC):
     r"""(Cross-)covariance function.
 
     A cross-covariance function
@@ -45,11 +45,13 @@ class Kernel(abc.ABC):
     input_shape_0
         :attr:`~probnum.randprocs.RandomProcess.input_shape` of the :class:`~probnum.\
         randprocs.RandomProcess` :math:`f_0`.
-        This defines the shape of the :class:`Kernel`\ 's first input :math:`x_0`.
+        This defines the shape of the :class:`CovarianceFunction`\ 's first input
+        :math:`x_0`.
     input_shape_1
         :attr:`~probnum.randprocs.RandomProcess.input_shape` of the :class:`~probnum.\
         randprocs.RandomProcess` :math:`f_1`.
-        This defines the shape of the :class:`Kernel`\ 's second input :math:`x_1`.
+        This defines the shape of the :class:`CovarianceFunction`\ 's second input
+        :math:`x_1`.
     input_shape
         Convenience argument, which can be used to set ``input_shape_0 == input_shape_1
         == input_shape``.
@@ -65,7 +67,7 @@ class Kernel(abc.ABC):
     Examples
     --------
 
-    >>> from probnum.randprocs.kernels import Linear
+    >>> from probnum.randprocs.covfuncs import Linear
     >>> D = 3
     >>> k = Linear(input_shape=D)
     >>> k.input_shape_0
@@ -114,10 +116,10 @@ class Kernel(abc.ABC):
     >>> k(xs, None)  # x1 = None is an efficient way to set x1 == x0
     array([0.04132231, 0.41322314, 1.23140496, 2.49586777])
 
-    :class:`Kernel`\ s support basic arithmetic operations. For example, we can model
-    independent measurement noise as follows:
+    :class:`CovarianceFunction`\ s support basic arithmetic operations. For example, we
+    can model independent measurement noise as follows:
 
-    >>> from probnum.randprocs.kernels import WhiteNoise
+    >>> from probnum.randprocs.covfuncs import WhiteNoise
     >>> k_noise = k + 0.1 * WhiteNoise(input_shape=D)
     >>> k_noise.matrix(xs)
     array([[0.14132231, 0.11570248, 0.19008264, 0.26446281],
@@ -161,7 +163,7 @@ class Kernel(abc.ABC):
         r""":attr:`~probnum.randprocs.RandomProcess.input_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
         This defines the shape of a single, i.e. non-batched, first argument :math:`x_0`
-        of the :class:`Kernel`."""
+        of the :class:`CovarianceFunction`."""
         return self._input_shape_0
 
     @property
@@ -179,7 +181,7 @@ class Kernel(abc.ABC):
         r""":attr:`~probnum.randprocs.RandomProcess.input_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_1`.
         This defines the shape of a single, i.e. non-batched, second argument
-        :math:`x_1` of the :class:`Kernel`."""
+        :math:`x_1` of the :class:`CovarianceFunction`."""
         return self._input_shape_1
 
     @property
@@ -200,10 +202,12 @@ class Kernel(abc.ABC):
         Raises
         ------
         ValueError
-            If the input shapes of the :class:`Kernel` are not equal.
+            If the input shapes of the :class:`CovarianceFunction` are not equal.
         """
         if self.input_shape_0 != self.input_shape_1:
-            raise ValueError("The input shapes of the `Kernel` are not equal.")
+            raise ValueError(
+                "The input shapes of the `CovarianceFunction` are not equal."
+            )
 
         return self.input_shape_0
 
@@ -280,10 +284,10 @@ class Kernel(abc.ABC):
         ----------
         x0
             *shape=* ``batch_shape_0 +`` :attr:`input_shape_0` -- (Batch of) input(s)
-            for the first argument of the :class:`Kernel`.
+            for the first argument of the :class:`CovarianceFunction`.
         x1
             *shape=* ``batch_shape_1 +`` :attr:`input_shape_1` -- (Batch of) input(s)
-            for the second argument of the :class:`Kernel`.
+            for the second argument of the :class:`CovarianceFunction`.
             Can also be set to ``None``, in which case the function will behave as if
             ``x1 = x0`` (but it is implemented more efficiently).
 
@@ -322,7 +326,7 @@ class Kernel(abc.ABC):
 
         Examples
         --------
-        See documentation of class :class:`Kernel`.
+        See documentation of class :class:`CovarianceFunction`.
         """
 
         x0 = np.asarray(x0)
@@ -357,10 +361,10 @@ class Kernel(abc.ABC):
         ----------
         x0
             *shape=* ``batch_shape_0 +`` :attr:`input_shape_0` -- (Batch of) input(s)
-            for the first argument of the :class:`Kernel`.
+            for the first argument of the :class:`CovarianceFunction`.
         x1
             *shape=* ``batch_shape_1 +`` :attr:`input_shape_1` -- (Batch of) input(s)
-            for the second argument of the :class:`Kernel`.
+            for the second argument of the :class:`CovarianceFunction`.
             Can also be set to :data:`None`, in which case the function will behave as
             if ``x1 == x0`` (potentially using a more efficient implementation for this
             particular case).
@@ -427,10 +431,10 @@ class Kernel(abc.ABC):
         ----------
         x0
             *shape=* ``batch_shape_0 +`` :attr:`input_shape_0` -- (Batch of) input(s)
-            for the first argument of the :class:`Kernel`.
+            for the first argument of the :class:`CovarianceFunction`.
         x1
             *shape=* ``batch_shape_1 +`` :attr:`input_shape_1` -- (Batch of) input(s)
-            for the second argument of the :class:`Kernel`.
+            for the second argument of the :class:`CovarianceFunction`.
             Can also be set to :data:`None`, in which case the function will behave as
             if ``x1 == x0`` (potentially using a more efficient implementation for this
             particular case).
@@ -650,28 +654,28 @@ class Kernel(abc.ABC):
     __array_ufunc__ = None
     """
     This prevents numpy from calling elementwise arithmetic operations instead of
-    the arithmetic operations defined by `Kernel`.
+    the arithmetic operations defined by `CovarianceFunction`.
     """
 
-    def __add__(self, other: BinaryOperandType) -> Kernel:
+    def __add__(self, other: BinaryOperandType) -> CovarianceFunction:
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import add
 
         return add(self, other)
 
-    def __radd__(self, other: BinaryOperandType) -> Kernel:
+    def __radd__(self, other: BinaryOperandType) -> CovarianceFunction:
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import add
 
         return add(other, self)
 
-    def __mul__(self, other: BinaryOperandType) -> Kernel:
+    def __mul__(self, other: BinaryOperandType) -> CovarianceFunction:
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import mul
 
         return mul(self, other)
 
-    def __rmul__(self, other: BinaryOperandType) -> Kernel:
+    def __rmul__(self, other: BinaryOperandType) -> CovarianceFunction:
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import mul
 

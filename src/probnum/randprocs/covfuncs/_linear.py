@@ -9,11 +9,11 @@ import numpy as np
 from probnum.typing import ScalarLike, ShapeLike
 import probnum.utils as _utils
 
-from ._kernel import Kernel
+from ._covariance_function import CovarianceFunction
 
 
-class Linear(Kernel):
-    r"""Linear kernel.
+class Linear(CovarianceFunction):
+    r"""Linear covariance function.
 
     Linear covariance function defined by
 
@@ -23,7 +23,7 @@ class Linear(Kernel):
     Parameters
     ----------
     input_shape
-        Shape of the kernel's input.
+        Shape of the covariance function's input.
     constant
         Constant offset :math:`c`.
 
@@ -34,7 +34,7 @@ class Linear(Kernel):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.randprocs.kernels import Linear
+    >>> from probnum.randprocs.covfuncs import Linear
     >>> K = Linear(input_shape=2)
     >>> xs = np.array([[1, 2], [2, 3]])
     >>> K.matrix(xs)

@@ -1,4 +1,4 @@
-"""Product Matern kernel."""
+"""Tensor product of 1D Matérn covariance functions."""
 
 from typing import Optional, Union
 
@@ -7,39 +7,40 @@ import numpy as np
 from probnum import utils as _utils
 from probnum.typing import ScalarLike, ShapeLike
 
-from ._kernel import Kernel
+from ._covariance_function import CovarianceFunction
 from ._matern import Matern
 
 
-class ProductMatern(Kernel):
-    r"""Product Matern kernel.
+class ProductMatern(CovarianceFunction):
+    r"""Tensor product of one-dimensional Matérn covariance functions.
 
-    Covariance function defined as a product of one-dimensional Matern
-    kernels: :math:`k(x_0, x_1) = \prod_{i=1}^d k_i(x_{0,i}, x_{1,i})`,
+    Covariance function defined as a product of one-dimensional Matérn covariance
+    functions: :math:`k(x_0, x_1) = \prod_{i=1}^d k_i(x_{0,i}, x_{1,i})`,
     where :math:`x_0 = (x_{0,i}, \ldots, x_{0,d})` and :math:`x_0 = (x_{0,i}, \ldots,
-    x_{0,d})` and :math:`k_i` are one-dimensional Matern kernels.
+    x_{0,d})` and :math:`k_i` are one-dimensional Matérn covariance functions.
 
     Parameters
     ----------
     input_shape
-        Shape of the kernel's input.
+        Shape of the covariance function's input.
     lengthscales
-        Lengthscales of the one-dimensional Matern kernels. Describes the input scale on
-        which the process varies. If a scalar, the same lengthscale is used in each
-        dimension.
+        Lengthscales of the one-dimensional Matérn covariance functions. Describes the
+        input scale on which the process varies. If a scalar, the same lengthscale is
+        used in each dimension.
     nus
-        Hyperparameters controlling differentiability of the one-dimensional Matern
-        kernels. If a scalar, the same smoothness is used in each dimension.
+        Hyperparameters controlling differentiability of the one-dimensional Matérn
+        covariance functions. If a scalar, the same smoothness is used in each
+        dimension.
 
     See Also
     --------
-    Matern : Stationary Matern kernel.
-    ExpQuad : Exponentiated Quadratic / RBF kernel.
+    Matern : Stationary Matérn covariance function.
+    ExpQuad : Exponentiated Quadratic covariance function.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.randprocs.kernels import ProductMatern
+    >>> from probnum.randprocs.covfuncs import ProductMatern
     >>> lengthscales = np.array([0.1, 1.2])
     >>> nus = np.array([0.5, 3.5])
     >>> K = ProductMatern(input_shape=(2,), lengthscales=lengthscales, nus=nus)
@@ -52,7 +53,8 @@ class ProductMatern(Kernel):
     Raises
     ------
     ValueError
-        If kernel input is scalar, but  ``lengthscales`` or ``nus`` are not.
+        If covariance function input is scalar, but  ``lengthscales`` or ``nus`` are
+        not.
     """
 
     def __init__(
@@ -109,12 +111,12 @@ class ProductMatern(Kernel):
         # product case
         (input_dim,) = self.input_shape
 
-        kernel_eval = 1.0
+        k_x0_x1 = 1.0
         if x1 is None:
             for dim in range(input_dim):
-                kernel_eval *= self.univariate_materns[dim](x0[..., dim], None)
+                k_x0_x1 *= self.univariate_materns[dim](x0[..., dim], None)
         else:
             for dim in range(input_dim):
-                kernel_eval *= self.univariate_materns[dim](x0[..., dim], x1[..., dim])
+                k_x0_x1 *= self.univariate_materns[dim](x0[..., dim], x1[..., dim])
 
-        return kernel_eval
+        return k_x0_x1
