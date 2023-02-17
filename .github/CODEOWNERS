@@ -40,12 +40,12 @@
 /tests/test_quad/ @mmahsereci @tskarvone
 /tests/test_problems/test_zoo/test_quad/ @mmahsereci @tskarvone
 
-# Random Processes & Kernels
+# Random Processes & Covariance Functions
 /src/probnum/randprocs/ @marvinpfoertner @JonathanWenger
 /tests/test_randprocs/ @marvinpfoertner @JonathanWenger
 
 /benchmarks/randprocs.py @marvinpfoertner @JonathanWenger
-/benchmarks/kernels.py @marvinpfoertner @JonathanWenger
+/benchmarks/covfuncs.py @marvinpfoertner @JonathanWenger
 
 /src/probnum/randprocs/markov/ @pnkraemer @schmidtjonathan
 /tests/test_randprocs/test_markov/ @pnkraemer @schmidtjonathan
