@@ -163,6 +163,7 @@ load-plugins = [
     "pylint.extensions.docstyle",
     "pylint.extensions.overlapping_exceptions",
     "pylint.extensions.mccabe",
+    "pylint.extensions.no_self_use",
 ]
 
 [tool.pylint.messages_control]
