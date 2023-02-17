@@ -195,7 +195,13 @@ class Kernel(abc.ABC):
     @property
     def input_shape(self) -> ShapeType:
         r"""Shorthand for the input shape of a covariance function with
-        :attr:`input_shape_0` ``==`` :attr:`input_shape_1`."""
+        :attr:`input_shape_0` ``==`` :attr:`input_shape_1`.
+
+        Raises
+        ------
+        ValueError
+            If the input shapes of the :class:`Kernel` are not equal.
+        """
         if self.input_shape_0 != self.input_shape_1:
             raise ValueError("The input shapes of the `Kernel` are not equal.")
 

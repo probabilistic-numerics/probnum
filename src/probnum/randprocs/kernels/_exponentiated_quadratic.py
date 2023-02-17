@@ -69,7 +69,7 @@ class ExpQuad(Kernel, IsotropicMixin):
         return self._lengthscales
 
     @property
-    def lengthscale(self) -> np.ndarray:
+    def lengthscale(self) -> np.ndarray:  # pylint: disable=missing-raises-doc
         """Deprecated."""
         if self._lengthscales.shape == ():
             return self._lengthscales

@@ -101,6 +101,11 @@ class Configuration:
             The default value of the configuration option.
         description:
             A short description of the configuration option and what it controls.
+
+        Raises
+        ------
+        KeyError
+            If the configuration option already exists.
         """
         if key in self._options_registry:
             raise KeyError(

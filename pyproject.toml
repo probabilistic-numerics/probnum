@@ -181,6 +181,12 @@ disable = [
 [tool.pylint.format]
 max-line-length = "88"
 
+[tool.pylint.parameter_documentation]
+accept-no-param-doc = false
+accept-no-raise-doc = false
+accept-no-return-doc = false
+accept-no-yields-doc = false
+
 [tool.pylint.design]
 max-args = 10
 max-complexity = 14

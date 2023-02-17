@@ -384,6 +384,13 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         This method can be computationally very costly depending on the shape of the
         linear operator. Use with caution.
 
+        Parameters
+        ----------
+        cache
+            If this is set to :data:`True`, then the dense matrix representation will
+            be cached and subsequent calls will return the cached value (even if
+            :code:`dense` is set to :data:`False` in these subsequent calls).
+
         Returns
         -------
         matrix : np.ndarray
@@ -413,7 +420,14 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         """Whether the ``LinearOperator`` :math:`L` is symmetric, i.e. :math:`L = L^T`.
 
         If this is ``None``, it is unknown whether the operator is symmetric or not.
-        Only square operators can be symmetric."""
+        Only square operators can be symmetric.
+
+        Raises
+        ------
+        ValueError
+            When setting :attr:`is_symmetric` to :data:`True` on a non-square
+            :class:`LinearOperator`.
+        """
         return self._is_symmetric
 
     @is_symmetric.setter
@@ -458,6 +472,12 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 
         If this is ``None``, it is unknown whether the matrix is positive-definite or
         not. Only symmetric operators can be positive-definite.
+
+        Raises
+        ------
+        ValueError
+            When setting :attr:`is_positive_definite` to :data:`True` while
+            :attr:`is_symmetric` is :data:`False`.
         """
         return self._is_positive_definite
 
@@ -520,7 +540,13 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         return np.linalg.eigvals(self.todense(cache=False))
 
     def eigvals(self) -> np.ndarray:
-        """Eigenvalue spectrum of the linear operator."""
+        """Eigenvalue spectrum of the linear operator.
+
+        Raises
+        ------
+        numpy.linalg.LinAlgError
+            If :meth:`eigvals` is called on a non-square operator.
+        """
         if self._eigvals_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
@@ -911,6 +937,18 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         """Transpose this linear operator.
 
         Can be abbreviated self.T instead of self.transpose().
+
+        Parameters
+        ----------
+        *axes
+            Permutation of the axes of the :class:`LinearOperator`.
+
+        Raises
+        ------
+        ValueError
+            If the given axis indices do not constitute a valid permutation of the axes.
+        numpy.AxisError
+            If the axis indices are out of bounds.
         """
         if len(axes) > 0:
             if len(axes) == 1 and isinstance(axes[0], tuple):
@@ -1732,7 +1770,7 @@ class Selection(LambdaLinearOperator):
         )
 
     @property
-    def indices(self):
+    def indices(self) -> Tuple[int]:
         """Indices which will be selected when applying the linear operator to a
         vector."""
         return self._indices

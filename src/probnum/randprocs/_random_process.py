@@ -183,7 +183,13 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
     @property
     def mean(self) -> functions.Function:
-        r"""Mean function :math:`m(x) := \mathbb{E}[f(x)]` of the random process."""
+        r"""Mean function :math:`m(x) := \mathbb{E}[f(x)]` of the random process.
+
+        Raises
+        ------
+        NotImplementedError
+            If no mean function was assigned to the random process.
+        """
         if self._mean is None:
             raise NotImplementedError
 
@@ -202,6 +208,11 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
                     (f(x_1) - \mathbb{E}[f(x_1)])^\top
                 \right]
             \end{equation}
+
+        Raises
+        ------
+        NotImplementedError
+            If no covariance function was assigned to the random process.
         """
         if self._cov is None:
             raise NotImplementedError
