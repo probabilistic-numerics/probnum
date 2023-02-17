@@ -10,9 +10,9 @@ from probnum.typing import ArrayLike
 
 
 def atleast_1d(  # pylint: disable=missing-raises-doc
-    *rvs: Union[ArrayLike, scipy.sparse.spmatrix, probnum.randvars.RandomVariable],
+    *rvs: Union[ArrayLike, scipy.sparse.spmatrix, "probnum.randvars.RandomVariable"],
 ) -> Sequence[
-    Union[np.ndarray, scipy.sparse.spmatrix, probnum.randvars.RandomVariable]
+    Union[np.ndarray, scipy.sparse.spmatrix, "probnum.randvars.RandomVariable"]
 ]:
     """Convert arrays or random variables to arrays or random variables with at least
     one dimension.
