@@ -195,7 +195,13 @@ class Kernel(abc.ABC):
     @property
     def input_shape(self) -> ShapeType:
         r"""Shorthand for the input shape of a covariance function with
-        :attr:`input_shape_0` ``==`` :attr:`input_shape_1`."""
+        :attr:`input_shape_0` ``==`` :attr:`input_shape_1`.
+
+        Raises
+        ------
+        ValueError
+            If the input shapes of the :class:`Kernel` are not equal.
+        """
         if self.input_shape_0 != self.input_shape_1:
             raise ValueError("The input shapes of the `Kernel` are not equal.")
 
@@ -648,22 +654,26 @@ class Kernel(abc.ABC):
     """
 
     def __add__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import add
 
         return add(self, other)
 
     def __radd__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import add
 
         return add(other, self)
 
     def __mul__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import mul
 
         return mul(self, other)
 
     def __rmul__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import mul
 
         return mul(other, self)
 

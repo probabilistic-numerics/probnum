@@ -1,14 +1,19 @@
 """Utility functions for arrays and the like."""
 
-from typing import Union
+from typing import Sequence, Union
 
 import numpy as np
-import scipy
+import scipy.sparse
 
 import probnum.randvars
+from probnum.typing import ArrayLike
 
 
-def atleast_1d(*rvs):
+def atleast_1d(  # pylint: disable=missing-raises-doc
+    *rvs: Union[ArrayLike, scipy.sparse.spmatrix, "probnum.randvars.RandomVariable"],
+) -> Sequence[
+    Union[np.ndarray, scipy.sparse.spmatrix, "probnum.randvars.RandomVariable"]
+]:
     """Convert arrays or random variables to arrays or random variables with at least
     one dimension.
 

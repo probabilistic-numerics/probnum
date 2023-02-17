@@ -96,7 +96,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         if cov is not None:
             if not isinstance(cov, kernels.Kernel):
                 raise TypeError(
-                    "The covariance functions must be implemented as a " "`Kernel`."
+                    "The covariance functions must be implemented as a `Kernel`."
                 )
 
             if cov.input_shape != self._input_shape:
@@ -169,7 +169,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
             at the input(s).
         """
 
-    def marginal(self, args: InputType) -> randvars._RandomVariableList:
+    def marginal(self, args: InputType) -> "randvars._RandomVariableList":
         """Batch of random variables defining the marginal distributions at the inputs.
 
         Parameters
@@ -183,7 +183,13 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
     @property
     def mean(self) -> functions.Function:
-        r"""Mean function :math:`m(x) := \mathbb{E}[f(x)]` of the random process."""
+        r"""Mean function :math:`m(x) := \mathbb{E}[f(x)]` of the random process.
+
+        Raises
+        ------
+        NotImplementedError
+            If no mean function was assigned to the random process.
+        """
         if self._mean is None:
             raise NotImplementedError
 
@@ -202,6 +208,11 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
                     (f(x_1) - \mathbb{E}[f(x_1)])^\top
                 \right]
             \end{equation}
+
+        Raises
+        ------
+        NotImplementedError
+            If no covariance function was assigned to the random process.
         """
         if self._cov is None:
             raise NotImplementedError
@@ -304,6 +315,11 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
             i.e. callables are returned.
         size
             Size of the sample.
+
+        Raises
+        ------
+        NotImplementedError
+            General path sampling is currently not supported.
         """
         if args is None:
             raise NotImplementedError
