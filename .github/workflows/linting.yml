@@ -36,13 +36,3 @@ jobs:
         run: pip install tox
       - name: Run pylint through tox
         run: tox -e pylint
-
-  pylint-tox-config-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - name: Check if the list of disabled messages in the local and global linting passes in ./tox.ini are correctly synchronized
-        run: python .github/workflows/pylint_check.py
