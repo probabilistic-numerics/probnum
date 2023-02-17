@@ -1,4 +1,4 @@
-"""Test fixtures for kernels."""
+"""Test fixtures for covariance functions."""
 
 from typing import Callable, Optional
 
@@ -18,7 +18,7 @@ def fixture_rng(request):
     return np.random.default_rng(seed=request.param)
 
 
-# Kernel objects
+# `CovarianceFunction` objects
 @pytest.fixture(
     params=[
         pytest.param(input_shape, id=f"inshape{input_shape}")
@@ -35,48 +35,50 @@ def fixture_input_shape(request) -> ShapeType:
     params=[
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
-            (pn.randprocs.kernels.Linear, {"constant": 1.0}),
-            (pn.randprocs.kernels.WhiteNoise, {"sigma_sq": 1.0}),
-            (pn.randprocs.kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
-            (pn.randprocs.kernels.ExpQuad, {"lengthscales": 1.5}),
-            (pn.randprocs.kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
-            (pn.randprocs.kernels.Matern, {"lengthscales": 0.5, "nu": 0.5}),
-            (pn.randprocs.kernels.Matern, {"lengthscales": 0.5, "nu": 1.5}),
-            (pn.randprocs.kernels.Matern, {"lengthscales": 1.5, "nu": 2.5}),
-            (pn.randprocs.kernels.Matern, {"lengthscales": 2.5, "nu": 7.0}),
-            (pn.randprocs.kernels.ProductMatern, {"lengthscales": 0.5, "nus": 0.5}),
+            (pn.randprocs.covfuncs.Linear, {"constant": 1.0}),
+            (pn.randprocs.covfuncs.WhiteNoise, {"sigma_sq": 1.0}),
+            (pn.randprocs.covfuncs.Polynomial, {"constant": 1.0, "exponent": 3}),
+            (pn.randprocs.covfuncs.ExpQuad, {"lengthscales": 1.5}),
+            (pn.randprocs.covfuncs.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
+            (pn.randprocs.covfuncs.Matern, {"lengthscales": 0.5, "nu": 0.5}),
+            (pn.randprocs.covfuncs.Matern, {"lengthscales": 0.5, "nu": 1.5}),
+            (pn.randprocs.covfuncs.Matern, {"lengthscales": 1.5, "nu": 2.5}),
+            (pn.randprocs.covfuncs.Matern, {"lengthscales": 2.5, "nu": 7.0}),
+            (pn.randprocs.covfuncs.ProductMatern, {"lengthscales": 0.5, "nus": 0.5}),
         ]
     ],
-    name="kernel",
+    name="k",
 )
-def fixture_kernel(request, input_shape: ShapeType) -> pn.randprocs.kernels.Kernel:
-    """Kernel / covariance function."""
+def fixture_k(
+    request, input_shape: ShapeType
+) -> pn.randprocs.covfuncs.CovarianceFunction:
+    """Covariance function."""
     return request.param[0](input_shape=input_shape, **request.param[1])
 
 
-@pytest.fixture(name="kernel_call_naive")
-def fixture_kernel_call_naive(
-    kernel: pn.randprocs.kernels.Kernel,
+@pytest.fixture(name="covfunc_call_naive")
+def fixture_covfunc_call_naive(
+    k: pn.randprocs.covfuncs.CovarianceFunction,
 ) -> Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray]:
-    """Naive implementation of kernel broadcasting which applies the kernel function to
-    scalar arguments while looping over the first dimensions of the inputs explicitly.
+    """Naive implementation of covariance function vectorization which applies the
+    covariance function to scalar arguments while looping over the first dimensions of
+    the inputs explicitly.
 
-    Can be used as a reference implementation of `Kernel.__call__` vectorization.
+    Can be used as a reference implementation of `CovarianceFunction.__call__`
+    vectorization.
     """
 
-    if kernel.input_ndim == 0:
-        kernel_vectorized = np.vectorize(kernel, signature="(),()->()")
+    if k.input_ndim == 0:
+        k_vectorized = np.vectorize(k, signature="(),()->()")
     else:
-        assert kernel.input_ndim == 1
+        assert k.input_ndim == 1
 
-        kernel_vectorized = np.vectorize(kernel, signature="(d),(d)->()")
+        k_vectorized = np.vectorize(k, signature="(d),(d)->()")
 
-    return lambda x0, x1: (
-        kernel_vectorized(x0, x0) if x1 is None else kernel_vectorized(x0, x1)
-    )
+    return lambda x0, x1: (k_vectorized(x0, x0) if x1 is None else k_vectorized(x0, x1))
 
 
-# Test data for `Kernel.matrix`
+# Test data for `CovarianceFunction.matrix`
 @pytest.fixture(
     params=[
         pytest.param(shape, id=f"x0{shape}")
@@ -91,7 +93,7 @@ def fixture_kernel_call_naive(
     name="x0_batch_shape",
 )
 def fixture_x0_batch_shape(request) -> ShapeType:
-    """Batch shape of the first argument of ``Kernel.matrix``."""
+    """Batch shape of the first argument of ``CovarianceFunction.matrix``."""
     return request.param
 
 
@@ -109,8 +111,8 @@ def fixture_x0_batch_shape(request) -> ShapeType:
     name="x1_batch_shape",
 )
 def fixture_x1_batch_shape(request) -> Optional[ShapeType]:
-    """Batch shape of the second argument of ``Kernel.matrix`` or ``None`` if the second
-    argument is ``None``."""
+    """Batch shape of the second argument of ``CovarianceFunction.matrix`` or ``None``
+    if the second argument is ``None``."""
     return request.param
 
 

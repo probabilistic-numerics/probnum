@@ -153,7 +153,7 @@ def test_inconsistent_cov_shape_errors():
             input_shape=(42,),
             output_shape=(),
             dtype=np.double,
-            cov=randprocs.kernels.ExpQuad(
+            cov=randprocs.covfuncs.ExpQuad(
                 input_shape=(3,),
             ),
         )
@@ -163,7 +163,7 @@ def test_inconsistent_cov_shape_errors():
             input_shape=(),
             output_shape=(1,),
             dtype=np.double,
-            cov=randprocs.kernels.ExpQuad(
+            cov=randprocs.covfuncs.ExpQuad(
                 input_shape=(),
             ),
         )

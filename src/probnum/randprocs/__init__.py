@@ -6,7 +6,7 @@ function values in their covariance function. They can be used to model
 functions with stochastic output.
 """
 
-from . import covfuncs
+from . import covfuncs, kernels, markov
 from ._gaussian_process import GaussianProcess
 from ._random_process import RandomProcess
 
@@ -15,7 +15,6 @@ __all__ = [
     "RandomProcess",
     "GaussianProcess",
 ]
-from . import markov
 
 # Set correct module paths. Corrects links and module paths in documentation.
 RandomProcess.__module__ = "probnum.randprocs"

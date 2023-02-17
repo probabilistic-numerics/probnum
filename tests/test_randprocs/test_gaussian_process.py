@@ -4,37 +4,37 @@ import numpy as np
 import pytest
 
 from probnum import functions, randprocs, randvars
-from probnum.randprocs import kernels
+from probnum.randprocs import covfuncs
 
 
 def test_mean_not_function_raises_error():
     with pytest.raises(TypeError):
         randprocs.GaussianProcess(
             mean=np.zeros_like,
-            cov=kernels.ExpQuad(input_shape=(1,)),
+            cov=covfuncs.ExpQuad(input_shape=(1,)),
         )
 
 
-def test_cov_not_kernel_raises_error():
-    """Initializing a GP with a covariance function which is not a kernel raises a
-    TypeError."""
+def test_cov_not_covfunc_raises_error():
+    """Initializing a GP with a covariance function which is not a covariance function
+    raises a TypeError."""
     with pytest.raises(TypeError):
         randprocs.GaussianProcess(
             mean=functions.Zero(input_shape=(1,), output_shape=(1,)), cov=np.dot
         )
 
 
-def test_mean_kernel_shape_mismatch_raises_error():
+def test_mean_covfunc_shape_mismatch_raises_error():
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
             mean=functions.Zero(input_shape=(2,), output_shape=(1,)),
-            cov=kernels.ExpQuad(input_shape=(3,)),
+            cov=covfuncs.ExpQuad(input_shape=(3,)),
         )
 
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
             mean=functions.Zero(input_shape=(2,), output_shape=(2,)),
-            cov=kernels.ExpQuad(input_shape=(2,)),
+            cov=covfuncs.ExpQuad(input_shape=(2,)),
         )
 
 
@@ -42,13 +42,13 @@ def test_mean_wrong_input_shape_raises_error():
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
             mean=functions.Zero(input_shape=(2, 2), output_shape=(1,)),
-            cov=kernels.ExpQuad(input_shape=(2,)),
+            cov=covfuncs.ExpQuad(input_shape=(2,)),
         )
 
     with pytest.raises(ValueError):
         randprocs.GaussianProcess(
             mean=functions.Zero(input_shape=(2,), output_shape=(2, 1)),
-            cov=kernels.ExpQuad(input_shape=(2,)),
+            cov=covfuncs.ExpQuad(input_shape=(2,)),
         )
 
 
