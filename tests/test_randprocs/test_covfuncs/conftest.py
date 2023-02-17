@@ -56,8 +56,8 @@ def fixture_k(
     return request.param[0](input_shape=input_shape, **request.param[1])
 
 
-@pytest.fixture(name="covfunc_call_naive")
-def fixture_covfunc_call_naive(
+@pytest.fixture(name="k_call_naive")
+def fixture_k_call_naive(
     k: pn.randprocs.covfuncs.CovarianceFunction,
 ) -> Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray]:
     """Naive implementation of covariance function vectorization which applies the
