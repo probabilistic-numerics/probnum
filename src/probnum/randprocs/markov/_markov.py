@@ -39,7 +39,7 @@ class _MarkovBase(_random_process.RandomProcess):
             cov=_MarkovBase.Kernel(
                 self.__call__,
                 input_shape=input_shape,
-                output_shape=2 * output_shape,
+                output_shape=output_shape,
             ),
         )
 
@@ -92,7 +92,8 @@ class _MarkovBase(_random_process.RandomProcess):
 
             super().__init__(
                 input_shape=input_shape,
-                output_shape=output_shape,
+                output_shape_0=output_shape,
+                output_shape_1=output_shape,
             )
 
         def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray]) -> np.ndarray:

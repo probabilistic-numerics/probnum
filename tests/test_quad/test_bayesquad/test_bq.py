@@ -1,11 +1,12 @@
 """Test cases for Bayesian quadrature."""
+import copy
 
 import numpy as np
 import pytest
 from scipy.integrate import quad as scipyquad
 
-from probnum.quad import bayesquad, bayesquad_from_data
-from probnum.quad.integration_measures import LebesgueMeasure
+from probnum.quad import bayesquad, bayesquad_from_data, multilevel_bayesquad_from_data
+from probnum.quad.integration_measures import GaussianMeasure, LebesgueMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
 from probnum.randvars import Normal
 
@@ -219,3 +220,146 @@ def test_zero_function_gives_zero_variance_with_mle(rng):
     )
     assert bq_integral1.var == 0.0
     assert bq_integral2.var == 0.0
+
+
+def test_multilevel_bayesquad_from_data_output_types_and_shapes(kernel, measure, rng):
+    """Test correct output for different inputs to multilevel BQ."""
+
+    # full set of nodes
+    ns_1 = (3, 7, 2)
+    n_level_1 = len(ns_1)
+    fun_diff_evals_1 = tuple(np.zeros(ns_1[l]) for l in range(n_level_1))
+    nodes_full = tuple(measure.sample((ns_1[l]), rng=rng) for l in range(n_level_1))
+
+    # i) default kernel
+    F, infos = multilevel_bayesquad_from_data(
+        nodes=nodes_full,
+        fun_diff_evals=fun_diff_evals_1,
+        measure=measure,
+    )
+    assert isinstance(F, Normal)
+    assert len(infos) == n_level_1
+
+    # ii) full kernel list
+    kernels_full_1 = tuple(copy.deepcopy(kernel) for _ in range(n_level_1))
+    F, infos = multilevel_bayesquad_from_data(
+        nodes=nodes_full,
+        fun_diff_evals=fun_diff_evals_1,
+        kernels=kernels_full_1,
+        measure=measure,
+    )
+    assert isinstance(F, Normal)
+    assert len(infos) == n_level_1
+
+    # one set of nodes
+    n_level_2 = 3
+    ns_2 = n_level_2 * (7,)
+    fun_diff_evals_2 = tuple(np.zeros(ns_2[l]) for l in range(n_level_2))
+    nodes_1 = (measure.sample(n_sample=ns_2[0], rng=rng),)
+
+    # i) default kernel
+    F, infos = multilevel_bayesquad_from_data(
+        nodes=nodes_1,
+        fun_diff_evals=fun_diff_evals_2,
+        measure=measure,
+    )
+    assert isinstance(F, Normal)
+    assert len(infos) == n_level_2
+
+    # ii) full kernel list
+    kernels_full_2 = tuple(copy.deepcopy(kernel) for _ in range(n_level_2))
+    F, infos = multilevel_bayesquad_from_data(
+        nodes=nodes_1,
+        fun_diff_evals=fun_diff_evals_2,
+        kernels=kernels_full_2,
+        measure=measure,
+    )
+    assert isinstance(F, Normal)
+    assert len(infos) == n_level_2
+
+
+def test_multilevel_bayesquad_from_data_wrong_inputs(kernel, measure, rng):
+    """Tests that wrong number inputs to multilevel BQ throw errors."""
+    ns = (3, 7, 11)
+    n_level = len(ns)
+    fun_diff_evals = tuple(np.zeros(ns[l]) for l in range(n_level))
+
+    # number of nodes does not match the number of fun evals
+    wrong_n_nodes = 2
+    nodes_2 = tuple(measure.sample((ns[l]), rng=rng) for l in range(wrong_n_nodes))
+    with pytest.raises(ValueError):
+        multilevel_bayesquad_from_data(
+            nodes=nodes_2,
+            fun_diff_evals=fun_diff_evals,
+            measure=measure,
+        )
+
+    # number of kernels does not match number of fun evals
+    wrong_n_kernels = 2
+    kernels = tuple(copy.deepcopy(kernel) for _ in range(wrong_n_kernels))
+    nodes_1 = (measure.sample(n_sample=ns[0], rng=rng),)
+    with pytest.raises(ValueError):
+        multilevel_bayesquad_from_data(
+            nodes=nodes_1,
+            fun_diff_evals=fun_diff_evals,
+            kernels=kernels,
+            measure=measure,
+        )
+
+
+def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_1d():
+    """Test that multilevel BQ equals BQ when all but one level are given non-zero
+    function evaluations for 1D data."""
+    n_level = 5
+    domain = (0, 3.3)
+    nodes = tuple(np.linspace(0, 1, 2 * l + 1)[:, None] for l in range(n_level))
+    for i in range(n_level):
+        jitter = 1e-5 * (i + 1.0)
+        fun_evals = nodes[i][:, 0] ** (2 + 0.3 * i) + 1.2
+        fun_diff_evals = [np.zeros(shape=(len(xs),)) for xs in nodes]
+        fun_diff_evals[i] = fun_evals
+        mlbq_integral, _ = multilevel_bayesquad_from_data(
+            nodes=nodes,
+            fun_diff_evals=tuple(fun_diff_evals),
+            domain=domain,
+            options=dict(jitter=jitter),
+        )
+        bq_integral, _ = bayesquad_from_data(
+            nodes=nodes[i],
+            fun_evals=fun_evals,
+            domain=domain,
+            options=dict(jitter=jitter),
+        )
+        assert mlbq_integral.mean == bq_integral.mean
+        assert mlbq_integral.cov == bq_integral.cov
+
+
+def test_multilevel_bayesquad_from_data_equals_bq_with_trivial_data_2d():
+    """Test that multilevel BQ equals BQ when all but one level are given non-zero
+    function evaluations for 2D data."""
+    input_dim = 2
+    n_level = 5
+    measure = GaussianMeasure(np.full((input_dim,), 0.2), cov=0.6 * np.eye(input_dim))
+    _gh = gauss_hermite_tensor
+    nodes = tuple(
+        _gh(l + 1, input_dim, measure.mean, measure.cov)[0] for l in range(n_level)
+    )
+    for i in range(n_level):
+        jitter = 1e-5 * (i + 1.0)
+        fun_evals = np.sin(nodes[i][:, 0] * i) + (i + 1.0) * np.cos(nodes[i][:, 1])
+        fun_diff_evals = [np.zeros(shape=(len(xs),)) for xs in nodes]
+        fun_diff_evals[i] = fun_evals
+        mlbq_integral, _ = multilevel_bayesquad_from_data(
+            nodes=nodes,
+            fun_diff_evals=tuple(fun_diff_evals),
+            measure=measure,
+            options=dict(jitter=jitter),
+        )
+        bq_integral, _ = bayesquad_from_data(
+            nodes=nodes[i],
+            fun_evals=fun_evals,
+            measure=measure,
+            options=dict(jitter=jitter),
+        )
+        assert mlbq_integral.mean == bq_integral.mean
+        assert mlbq_integral.cov == bq_integral.cov

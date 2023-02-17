@@ -8,5 +8,5 @@ nbsphinx>=0.8.6,<0.8.7
 Jinja2<3.1
 
 # Dependencies
-matplotlib
+matplotlib<3.7
 pytest
