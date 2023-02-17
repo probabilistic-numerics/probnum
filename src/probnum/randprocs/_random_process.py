@@ -96,7 +96,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         if cov is not None:
             if not isinstance(cov, kernels.Kernel):
                 raise TypeError(
-                    "The covariance functions must be implemented as a " "`Kernel`."
+                    "The covariance functions must be implemented as a `Kernel`."
                 )
 
             if cov.input_shape != self._input_shape:

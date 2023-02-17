@@ -167,14 +167,12 @@ load-plugins = [
 
 [tool.pylint.messages_control]
 disable = [
-    # Exceptions suggested by Black:
-    # https://github.com/psf/black/blob/7f75fe3669ebf0627b1b0476a6d02047e909b959/docs/compatible_configs.md#black-compatible-configurations
-    "bad-continuation",
-    "bad-whitespace",
     # We allow TODO comments in the following format: `# TODO (#[ISSUE NUMBER]): This needs to be done.`
     "fixme",
     # We want to use "mathematical notation" to name some of our variables, e.g. `A` for matrices
     "invalid-name",
+    # Assigning lambda expressions to a variable is sometimes useful, e.g. for defining `LambdaLinearOperator`s
+    "unnecessary-lambda-assignment",
     # Temporary ignore, see https://github.com/probabilistic-numerics/probnum/discussions/470#discussioncomment-1998097 for an explanation
     "missing-return-doc",
     "missing-yield-doc",

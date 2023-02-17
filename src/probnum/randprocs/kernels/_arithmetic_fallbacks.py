@@ -113,10 +113,10 @@ class SumKernel(Kernel):
         )
 
     def __repr__(self):
-        res = "SumKernel [\n"
-        for s in self._summands:
-            res += f"\t{s}, \n"
-        return res + "]"
+        res = "SumKernel [\n\t"
+        res += ",\n\t".join(repr(summand) for summand in self._summands)
+        res += "\n]"
+        return res
 
     @staticmethod
     def _expand_sum_kernels(*summands: Kernel) -> Tuple[Kernel, ...]:
@@ -173,10 +173,10 @@ class ProductKernel(Kernel):
         )
 
     def __repr__(self):
-        res = "ProductKernel [\n"
-        for s in self._factors:
-            res += f"\t{s}, \n"
-        return res + "]"
+        res = "ProductKernel [\n\t"
+        res += ",\n\t".join(repr(factor) for factor in self._factors)
+        res += "\n]"
+        return res
 
     @staticmethod
     def _expand_prod_kernels(*factors: Kernel) -> Tuple[Kernel, ...]:

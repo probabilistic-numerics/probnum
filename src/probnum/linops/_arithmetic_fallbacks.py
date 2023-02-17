@@ -137,10 +137,10 @@ class SumLinearOperator(LambdaLinearOperator):
         return SumLinearOperator(*(-summand for summand in self._summands))
 
     def __repr__(self):
-        res = "SumLinearOperator [\n"
-        for s in self._summands:
-            res += f"\t{s}, \n"
-        return res + "]"
+        res = "SumLinearOperator [\n\t"
+        res += ",\n\t".join(repr(summand) for summand in self._summands)
+        res += "\n]"
+        return res
 
     @staticmethod
     def _expand_sum_ops(*summands: LinearOperator) -> Tuple[LinearOperator, ...]:
@@ -230,10 +230,10 @@ class ProductLinearOperator(LambdaLinearOperator):
         return tuple(expanded_factors)
 
     def __repr__(self):
-        res = "ProductLinearOperator [\n"
-        for s in self._factors:
-            res += f"\t{s}, \n"
-        return res + "]"
+        res = "ProductLinearOperator [\n\t"
+        res += ",\n\t".join(repr(factor) for factor in self._factors)
+        res += "\n]"
+        return res
 
     def _solve(self, B: np.ndarray) -> np.ndarray:
         return functools.reduce(lambda b, op: op.solve(b), self._factors, B)
