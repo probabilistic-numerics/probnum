@@ -163,18 +163,17 @@ load-plugins = [
     "pylint.extensions.docstyle",
     "pylint.extensions.overlapping_exceptions",
     "pylint.extensions.mccabe",
+    "pylint.extensions.no_self_use",
 ]
 
 [tool.pylint.messages_control]
 disable = [
-    # Exceptions suggested by Black:
-    # https://github.com/psf/black/blob/7f75fe3669ebf0627b1b0476a6d02047e909b959/docs/compatible_configs.md#black-compatible-configurations
-    "bad-continuation",
-    "bad-whitespace",
     # We allow TODO comments in the following format: `# TODO (#[ISSUE NUMBER]): This needs to be done.`
     "fixme",
     # We want to use "mathematical notation" to name some of our variables, e.g. `A` for matrices
     "invalid-name",
+    # Assigning lambda expressions to a variable is sometimes useful, e.g. for defining `LambdaLinearOperator`s
+    "unnecessary-lambda-assignment",
     # Temporary ignore, see https://github.com/probabilistic-numerics/probnum/discussions/470#discussioncomment-1998097 for an explanation
     "missing-return-doc",
     "missing-yield-doc",
@@ -183,13 +182,23 @@ disable = [
 [tool.pylint.format]
 max-line-length = "88"
 
+[tool.pylint.parameter_documentation]
+accept-no-param-doc = false
+accept-no-raise-doc = false
+accept-no-return-doc = false
+accept-no-yields-doc = false
+
 [tool.pylint.design]
 max-args = 10
 max-complexity = 14
 max-locals = 20
 
 [tool.pylint.similarities]
-ignore-imports = "yes"
+ignore-comments = true
+ignore-docstrings = true
+ignore-imports = true
+ignore-signatures = true
+min-similarity-lines = 4
 
 ################################################################################
 # Formatting Configuration                                                     #
