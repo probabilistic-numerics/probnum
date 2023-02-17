@@ -648,22 +648,26 @@ class Kernel(abc.ABC):
     """
 
     def __add__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import add
 
         return add(self, other)
 
     def __radd__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import add
 
         return add(other, self)
 
     def __mul__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import mul
 
         return mul(self, other)
 
     def __rmul__(self, other: BinaryOperandType) -> Kernel:
-        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import mul
 
         return mul(other, self)
 

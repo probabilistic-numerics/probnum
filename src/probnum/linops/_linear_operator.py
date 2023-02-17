@@ -10,7 +10,7 @@ import numpy as np
 import scipy.linalg
 import scipy.sparse
 
-from probnum import config
+from probnum import config  # pylint: disable=cyclic-import
 from probnum.typing import ArrayLike, DTypeLike, ScalarLike, ShapeLike
 import probnum.utils
 
@@ -871,9 +871,8 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
     ####################################################################################
 
     def __neg__(self) -> "LinearOperator":
-        from ._arithmetic import (  # pylint: disable=import-outside-toplevel
-            NegatedLinearOperator,
-        )
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import NegatedLinearOperator
 
         return NegatedLinearOperator(self)
 
@@ -1167,7 +1166,8 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 
             return y
 
-        from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import matmul
 
         return matmul(self, other)
 
@@ -1193,7 +1193,8 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 
             return y
 
-        from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import matmul
 
         return matmul(other, self)
 
