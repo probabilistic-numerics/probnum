@@ -138,7 +138,7 @@ class Kernel(abc.ABC):
         assert (
             input_shape_0 is not None and input_shape_1 is not None
         ) or input_shape is not None, (
-            "Either `input_shape_0` and `input_shape_1` or `input_shape` must be given"
+            "Either `input_shape_0` and `input_shape_1` or `input_shape` must be given."
         )
 
         if input_shape is not None:
