@@ -1,4 +1,4 @@
-"""Rational quadratic kernel."""
+"""Rational quadratic covariance function."""
 
 from typing import Optional
 
@@ -7,11 +7,11 @@ import numpy as np
 from probnum.typing import ScalarLike, ShapeLike
 import probnum.utils as _utils
 
-from ._kernel import IsotropicMixin, Kernel
+from ._covariance_function import CovarianceFunction, IsotropicMixin
 
 
-class RatQuad(Kernel, IsotropicMixin):
-    r"""Rational quadratic kernel.
+class RatQuad(CovarianceFunction, IsotropicMixin):
+    r"""Rational quadratic covariance function.
 
     Covariance function defined by
 
@@ -26,28 +26,28 @@ class RatQuad(Kernel, IsotropicMixin):
         \end{equation}
 
     where :math:`\alpha > 0`. For :math:`\alpha \rightarrow \infty` the rational
-    quadratic kernel converges to the :class:`~probnum.randprocs.kernels.ExpQuad`
-    kernel.
+    quadratic covariance function converges to the :class:`~probnum.randprocs.covfuncs.\
+    ExpQuad` covariance function.
 
     Parameters
     ----------
     input_shape
-        Shape of the kernel's input.
+        Shape of the covariance function's input.
     lengthscale
-        Lengthscale :math:`l` of the kernel. Describes the input scale on which the
-        process varies.
+        Lengthscale :math:`l` of the covariance function. Describes the input scale on
+        which the process varies.
     alpha
         Scale mixture :math:`\alpha`. Positive constant determining the weighting
         between different lengthscales.
 
     See Also
     --------
-    ExpQuad : Exponentiated Quadratic / RBF kernel.
+    ExpQuad : Exponentiated Quadratic / RBF covariance function.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.randprocs.kernels import RatQuad
+    >>> from probnum.randprocs.covfuncs import RatQuad
     >>> K = RatQuad(input_shape=1, lengthscale=0.1, alpha=3)
     >>> xs = np.linspace(0, 1, 3)[:, None]
     >>> K(xs[:, None, :], xs[None, :, :])

@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from probnum import functions, randprocs
-from probnum.randprocs import kernels
+from probnum.randprocs import covfuncs
 
 
 @pytest.fixture(
@@ -64,15 +64,15 @@ def fixture_mean(request, input_dim: int) -> Callable:
     params=[
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
-            (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
-            (kernels.ExpQuad, {"lengthscales": 1.5}),
-            (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
-            (kernels.Matern, {"lengthscales": 0.5, "nu": 1.5}),
+            (covfuncs.Polynomial, {"constant": 1.0, "exponent": 3}),
+            (covfuncs.ExpQuad, {"lengthscales": 1.5}),
+            (covfuncs.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
+            (covfuncs.Matern, {"lengthscales": 0.5, "nu": 1.5}),
         ]
     ],
     name="cov",
 )
-def fixture_cov(request, input_dim: int) -> kernels.Kernel:
+def fixture_cov(request, input_dim: int) -> covfuncs.CovarianceFunction:
     """Covariance function."""
     return request.param[0](**request.param[1], input_shape=(input_dim,))
 
@@ -85,7 +85,7 @@ def fixture_cov(request, input_dim: int) -> kernels.Kernel:
                 "gp",
                 randprocs.GaussianProcess(
                     mean=functions.Zero(input_shape=(1,)),
-                    cov=kernels.Matern(input_shape=(1,)),
+                    cov=covfuncs.Matern(input_shape=(1,)),
                 ),
             ),
         ]

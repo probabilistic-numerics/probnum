@@ -1,4 +1,4 @@
-"""White noise kernel."""
+"""White noise covariance function."""
 
 from typing import Optional
 
@@ -7,13 +7,13 @@ import numpy as np
 from probnum import utils as _utils
 from probnum.typing import ScalarLike, ShapeLike
 
-from ._kernel import Kernel
+from ._covariance_function import CovarianceFunction
 
 
-class WhiteNoise(Kernel):
-    r"""White noise kernel.
+class WhiteNoise(CovarianceFunction):
+    r"""White noise covariance function.
 
-    Kernel representing independent and identically distributed white noise
+    Covariance function representing independent and identically distributed white noise
 
     .. math ::
         k(x_0, x_1) = \sigma^2 \delta(x_0, x_1).
@@ -21,7 +21,7 @@ class WhiteNoise(Kernel):
     Parameters
     ----------
     input_shape
-        Shape of the kernel's input.
+        Shape of the covariance function's input.
     sigma_sq
         Noise level :math:`\sigma^2 \geq 0`.
     """

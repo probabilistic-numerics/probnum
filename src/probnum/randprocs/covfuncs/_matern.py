@@ -1,4 +1,4 @@
-"""Matérn kernel."""
+"""Matérn covariance function."""
 
 import fractions
 import functools
@@ -10,11 +10,11 @@ import scipy.special
 from probnum.typing import ArrayLike, ScalarLike, ScalarType, ShapeLike
 import probnum.utils as _utils
 
-from ._kernel import IsotropicMixin, Kernel
+from ._covariance_function import CovarianceFunction, IsotropicMixin
 
 
-class Matern(Kernel, IsotropicMixin):
-    r"""Matérn kernel.
+class Matern(CovarianceFunction, IsotropicMixin):
+    r"""Matérn covariance function.
 
     Covariance function defined by
 
@@ -36,15 +36,16 @@ class Matern(Kernel, IsotropicMixin):
         :=
         \sum_{i = 1}^d \frac{(x_{0,i} - x_{1,i})^2}{l_i}.
 
-    The Matérn kernel generalizes the :class:`~probnum.randprocs.kernels.ExpQuad` kernel
-    via its additional parameter :math:`\nu` controlling the smoothness of the functions
-    in the associated RKHS. For :math:`\nu \rightarrow \infty`, the Matérn kernel
-    converges to the :class:`~probnum.randprocs.kernels.ExpQuad` kernel. A Gaussian
-    process with Matérn covariance function is :math:`\lceil \nu \rceil - 1` times
-    differentiable.
+    The Matérn covariance function generalizes the :class:`~probnum.randprocs.covfuncs.\
+    ExpQuad` covariance function via its additional parameter :math:`\nu` controlling
+    the smoothness of the functions in the associated RKHS.
+    For :math:`\nu \rightarrow \infty`, the Matérn covariance function converges to the
+    :class:`~probnum.randprocs.covfuncs.ExpQuad` covariance function.
+    A Gaussian process with Matérn covariance function is :math:`\lceil \nu \rceil - 1`
+    times differentiable.
 
     If :math:`\nu` is a half-integer, i.e. :math:`\nu = p + \frac{1}{2}` for some
-    nonnegative integer :math:`p`, then the expression for the kernel function
+    nonnegative integer :math:`p`, then the expression for the covariance function
     simplifies to a product of an exponential and a polynomial
 
     .. math::
@@ -62,23 +63,25 @@ class Matern(Kernel, IsotropicMixin):
     Parameters
     ----------
     input_shape
-        Shape of the kernel's inputs.
+        Shape of the covariance function's inputs.
     nu
         Hyperparameter :math:`\nu` controlling differentiability.
     lengthscales
-        Lengthscales :math:`l_i` along the different input dimensions of the kernel.
+        Lengthscales :math:`l_i` along the different input dimensions of the covariance
+        function.
         Describes the input scales on which the process varies.
-        The lengthscales will be broadcast to the input shape of the kernel.
+        The lengthscales will be broadcast to the input shape of the covariance
+        function.
 
     See Also
     --------
-    ExpQuad : Exponentiated Quadratic / RBF kernel.
-    ProductMatern : Product Matern kernel.
+    ExpQuad : Exponentiated Quadratic covariance function.
+    ProductMatern : Tensor product of 1D Matérn covariance functions.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.randprocs.kernels import Matern
+    >>> from probnum.randprocs.covfuncs import Matern
     >>> K = Matern((), nu=2.5, lengthscales=0.1)
     >>> xs = np.linspace(0, 1, 3)
     >>> K.matrix(xs)
@@ -126,9 +129,9 @@ class Matern(Kernel, IsotropicMixin):
 
     @functools.cached_property
     def p(self) -> Optional[int]:
-        r"""Degree :math:`p` of the polynomial part of a Matérn kernel with half-integer
-        smoothness parameter :math:`\nu = p + \frac{1}{2}`. If :math:`\nu` is not a
-        half-integer, this is set to :data:`None`.
+        r"""Degree :math:`p` of the polynomial part of a Matérn covariance function with
+        half-integer smoothness parameter :math:`\nu = p + \frac{1}{2}`. If :math:`\nu`
+        is not a half-integer, this is set to :data:`None`.
 
         Sample paths of a Gaussian process with this covariance function are
         :math:`p`-times continuously differentiable."""
@@ -189,8 +192,8 @@ class Matern(Kernel, IsotropicMixin):
     @functools.lru_cache(maxsize=None)
     def half_integer_coefficients(p: int) -> Tuple[fractions.Fraction]:
         r"""Computes the rational coefficients :math:`c_i` of the polynomial part of a
-        Matérn kernel with half-integer smoothness parameter :math:`\nu = p +
-        \frac{1}{2}`.
+        Matérn covariance function with half-integer smoothness parameter :math:`\nu = \
+        p + \frac{1}{2}`.
 
         We leverage the recursion
 

@@ -1,4 +1,4 @@
-"""Exponentiated quadratic kernel."""
+"""Exponentiated quadratic covariance function."""
 
 import functools
 from typing import Optional
@@ -7,37 +7,37 @@ import numpy as np
 
 from probnum.typing import ArrayLike, ShapeLike
 
-from ._kernel import IsotropicMixin, Kernel
+from ._covariance_function import CovarianceFunction, IsotropicMixin
 
 
-class ExpQuad(Kernel, IsotropicMixin):
-    r"""Exponentiated quadratic / RBF kernel.
+class ExpQuad(CovarianceFunction, IsotropicMixin):
+    r"""Exponentiated quadratic covariance function.
 
     Covariance function defined by
 
     .. math ::
         k(x_0, x_1) = \exp \left( -\frac{\lVert x_0 - x_1 \rVert_2^2}{2 l^2} \right).
 
-    This kernel is also known as the squared
-    exponential or radial basis function kernel.
+    This covariance function is also known as the squared exponential (SE) or radial
+    basis function (RBF) kernel.
 
     Parameters
     ----------
     input_shape
-        Shape of the kernel's input.
+        Shape of the covariance function's input.
     lengthscale
-        Lengthscale :math:`l` of the kernel. Describes the input scale on which the
-        process varies.
+        Lengthscale :math:`l` of the covariance function. Describes the input scale on
+        which the process varies.
 
     See Also
     --------
-    RatQuad : Rational quadratic kernel.
-    Matern : Matern kernel.
+    RatQuad : Rational quadratic covariance function.
+    Matern : Matern covariance function.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.randprocs.kernels import ExpQuad
+    >>> from probnum.randprocs.covfuncs import ExpQuad
     >>> K = ExpQuad((), lengthscales=0.1)
     >>> xs = np.linspace(0, 1, 3)
     >>> K.matrix(xs)

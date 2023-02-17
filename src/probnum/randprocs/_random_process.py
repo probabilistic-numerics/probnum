@@ -8,7 +8,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 import numpy as np
 
 from probnum import functions, randvars, utils as _utils
-from probnum.randprocs import kernels
+from probnum.randprocs import covfuncs
 from probnum.typing import DTypeLike, ShapeLike, ShapeType
 
 InputType = TypeVar("InputType")
@@ -57,7 +57,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         output_shape: ShapeLike,
         dtype: DTypeLike,
         mean: Optional[functions.Function] = None,
-        cov: Optional[kernels.Kernel] = None,
+        cov: Optional[covfuncs.CovarianceFunction] = None,
     ):
         self._input_shape = _utils.as_shape(input_shape)
         self._input_ndim = len(self._input_shape)
@@ -94,9 +94,10 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
 
         # Covariance function
         if cov is not None:
-            if not isinstance(cov, kernels.Kernel):
+            if not isinstance(cov, covfuncs.CovarianceFunction):
                 raise TypeError(
-                    "The covariance functions must be implemented as a `Kernel`."
+                    "The covariance functions must be implemented as a "
+                    "`CovarianceFunction`."
                 )
 
             if cov.input_shape != self._input_shape:
@@ -196,7 +197,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
         return self._mean
 
     @property
-    def cov(self) -> kernels.Kernel:
+    def cov(self) -> covfuncs.CovarianceFunction:
         r"""Covariance function :math:`k(x_0, x_1)` of the random process.
 
         .. math::
@@ -222,7 +223,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
     def var(self, args: InputType) -> OutputType:
         """Variance function.
 
-        Returns the variance function which is the value of the covariance or kernel
+        Returns the variance function which is the value of the covariance function
         evaluated elementwise at ``args`` for each output dimension separately.
 
         Parameters

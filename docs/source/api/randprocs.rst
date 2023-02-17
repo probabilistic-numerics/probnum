@@ -9,5 +9,5 @@ probnum.randprocs
 .. toctree::
     :hidden:
 
+    randprocs/covfuncs
     randprocs/markov
-    randprocs/kernels

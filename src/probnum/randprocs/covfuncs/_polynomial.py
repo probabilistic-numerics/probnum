@@ -1,4 +1,4 @@
-"""Polynomial kernel."""
+"""Polynomial covariance function."""
 
 from typing import Optional
 
@@ -7,11 +7,11 @@ import numpy as np
 from probnum.typing import IntLike, ScalarLike, ShapeLike
 import probnum.utils as _utils
 
-from ._kernel import Kernel
+from ._covariance_function import CovarianceFunction
 
 
-class Polynomial(Kernel):
-    r"""Polynomial kernel.
+class Polynomial(CovarianceFunction):
+    r"""Polynomial covariance function.
 
     Covariance function defined by
 
@@ -21,7 +21,7 @@ class Polynomial(Kernel):
     Parameters
     ----------
     input_shape
-        Shape of the kernel's input.
+        Shape of the covariance function's input.
     constant
         Constant offset :math:`c`.
     exponent
@@ -34,7 +34,7 @@ class Polynomial(Kernel):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.randprocs.kernels import Polynomial
+    >>> from probnum.randprocs.covfuncs import Polynomial
     >>> K = Polynomial(input_shape=2, constant=1.0, exponent=3)
     >>> xs = np.array([[1, -1], [-1, 0]])
     >>> K.matrix(xs)
