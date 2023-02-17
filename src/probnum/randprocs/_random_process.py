@@ -169,7 +169,7 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
             at the input(s).
         """
 
-    def marginal(self, args: InputType) -> randvars._RandomVariableList:
+    def marginal(self, args: InputType) -> "randvars._RandomVariableList":
         """Batch of random variables defining the marginal distributions at the inputs.
 
         Parameters
@@ -304,6 +304,11 @@ class RandomProcess(Generic[InputType, OutputType], abc.ABC):
             i.e. callables are returned.
         size
             Size of the sample.
+
+        Raises
+        ------
+        NotImplementedError
+            General path sampling is currently not supported.
         """
         if args is None:
             raise NotImplementedError

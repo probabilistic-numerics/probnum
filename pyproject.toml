@@ -187,7 +187,11 @@ max-complexity = 14
 max-locals = 20
 
 [tool.pylint.similarities]
-ignore-imports = "yes"
+ignore-comments = true
+ignore-docstrings = true
+ignore-imports = true
+ignore-signatures = true
+min-similarity-lines = 4
 
 ################################################################################
 # Formatting Configuration                                                     #
