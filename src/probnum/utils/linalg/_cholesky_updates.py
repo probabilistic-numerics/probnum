@@ -85,6 +85,11 @@ def tril_to_positive_tril(tril_mat: np.ndarray) -> np.ndarray:
     In other words, make it a valid lower Cholesky factor.
 
     The name of the function is based on `np.tril`.
+
+    Parameters
+    ----------
+    tril_mat:
+        A lower-triangular matrix.
     """
     d = np.sign(np.diag(tril_mat))
 

@@ -17,6 +17,15 @@ def as_shape(x: ShapeLike, ndim: Optional[numbers.Integral] = None) -> ShapeType
     ----------
     x
         Shape representation.
+    ndim
+        The required number of dimensions in the shape.
+
+    Raises
+    ------
+    TypeError
+        If ``x`` is not a valid :const:`ShapeLike`.
+    TypeError
+        If ``x`` does not feature the required number of dimensions.
     """
     if isinstance(x, (int, numbers.Integral, np.integer)):
         shape = (int(x),)
@@ -51,6 +60,11 @@ def as_numpy_scalar(x: ScalarLike, dtype: DTypeLike = None) -> np.ndarray:
         Scalar value.
     dtype
         Data type of the scalar.
+
+    Raises
+    ------
+    ValueError
+        If :code:`x` can not be interpreted as a scalar.
     """
 
     if np.ndim(x) != 0:
