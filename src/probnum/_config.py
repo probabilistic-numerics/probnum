@@ -1,3 +1,5 @@
+"""ProbNum library configuration"""
+
 import contextlib
 import dataclasses
 from typing import Any
@@ -35,6 +37,9 @@ class Configuration:
 
     @dataclasses.dataclass
     class Option:
+        """Representation of a single configuration option as a key-value pair with a
+        default value and a description string for documentation purposes."""
+
         name: str
         default_value: Any
         description: str
@@ -49,7 +54,7 @@ class Configuration:
         # This is the equivalent of `self._options_registry = dict()`.
         # After rewriting the `__setattr__` method, we have to fall back on the
         # `__setattr__` method of the super class.
-        object.__setattr__(self, "_options_registry", dict())
+        object.__setattr__(self, "_options_registry", {})
 
     def __getattr__(self, key: str) -> Any:
         if key not in self._options_registry:
@@ -68,7 +73,7 @@ class Configuration:
     @contextlib.contextmanager
     def __call__(self, **kwargs) -> None:
         """Context manager used to set values of registered config options."""
-        old_options = dict()
+        old_options = {}
 
         for key, value in kwargs.items():
             if key not in self._options_registry:
@@ -156,5 +161,9 @@ _DEFAULT_CONFIG_OPTIONS = [
 ]
 
 # ... and register the default configuration options.
-for key, default_value, descr in _DEFAULT_CONFIG_OPTIONS:
-    _GLOBAL_CONFIG_SINGLETON.register(key, default_value, descr)
+def _register_defaults():
+    for key, default_value, descr in _DEFAULT_CONFIG_OPTIONS:
+        _GLOBAL_CONFIG_SINGLETON.register(key, default_value, descr)
+
+
+_register_defaults()
