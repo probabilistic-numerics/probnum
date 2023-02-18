@@ -24,6 +24,7 @@
     "install_command": ["python -mpip install --force-reinstall {wheel_file}"],
     // "uninstall_command": ["return-code=any python -mpip uninstall -y {project}"],
     "build_command": [
+        "python -m pip install build",
         "PIP_NO_BUILD_ISOLATION=false python -m pip wheel --no-deps --no-index -w {build_cache_dir} {build_dir}"
     ],
 
