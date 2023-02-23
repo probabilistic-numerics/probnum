@@ -9,8 +9,15 @@ from typing import Optional, Union
 
 import numpy as np
 
+try:
+    from pykeops.numpy import LazyTensor, Pm, Vi, Vj
+except ImportError:
+    pass
+
 from probnum import linops, utils as _pn_utils
 from probnum.typing import ArrayLike, ScalarLike, ShapeLike, ShapeType
+
+from ._covariance_linear_operator import CovarianceLinearOperator
 
 BinaryOperandType = Union["CovarianceFunction", ScalarLike]
 
@@ -409,6 +416,8 @@ class CovarianceFunction(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
+        *,
+        use_keops=True,
     ) -> linops.LinearOperator:
         r""":class:`~probnum.linops.LinearOperator` representing the pairwise
         covariances of evaluations of :math:`f_0` and :math:`f_1` at the given input
@@ -427,6 +436,10 @@ class CovarianceFunction(abc.ABC):
         can be used to implement efficient matrix-vector products with covariance
         matrices without needing to construct the entire matrix in memory.
 
+        By default, a KeOps-based matrix-free implementation will be used if available.
+        If there is no KeOps-based implementation, the standard implementation will be
+        used as a fallback.
+
         Parameters
         ----------
         x0
@@ -438,6 +451,9 @@ class CovarianceFunction(abc.ABC):
             Can also be set to :data:`None`, in which case the function will behave as
             if ``x1 == x0`` (potentially using a more efficient implementation for this
             particular case).
+        use_keops
+            Optional keyword flag to choose whether to use a KeOps-based implementation
+            or the standard implementation.
 
         Returns
         -------
@@ -449,7 +465,7 @@ class CovarianceFunction(abc.ABC):
             corresponding to the given batches of input points.
             The order of the rows and columns of the covariance matrix corresponds to
             the order of entries obtained by flattening :class:`~numpy.ndarray`\ s with
-            shapes :attr:`output_shape_0` ``+ batch_shape_0`` and :attr:`output_shape_0`
+            shapes :attr:`output_shape_0` ``+ batch_shape_0`` and :attr:`output_shape_1`
             ``+ batch_shape_1`` in "C-order".
 
         Raises
@@ -466,7 +482,7 @@ class CovarianceFunction(abc.ABC):
         if x1 is not None:
             x1 = self._preprocess_linop_input(x1, argnum=1)
 
-        k_linop_x0_x1 = self._evaluate_linop(x0, x1)
+        k_linop_x0_x1 = self._evaluate_linop(x0, x1, use_keops)
 
         assert isinstance(k_linop_x0_x1, linops.LinearOperator)
         assert k_linop_x0_x1.shape == (
@@ -506,6 +522,39 @@ class CovarianceFunction(abc.ABC):
             See "Returns" section in the docstring of :meth:`__call__`.
         """
 
+    def _keops_lazy_tensor(
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
+    ):
+        """:class:`~pykeops.numpy.LazyTensor` representing the lazy computation of the
+        pairwise covariances of evaluations of :math:`f_0` and :math:`f_1` at the given
+        input points.
+
+        If a subclass implements this method, it will be used by default for the
+        :class:`~probnum.linops.LinearOperator` returned by the :meth:`linop` method.
+
+        Parameters
+        ----------
+        x0
+            *shape=* ``(prod(batch_shape_0),) +`` :attr:`input_shape_0` -- (Batch of)
+            input(s) for the first argument of the :class:`CovarianceFunction`.
+        x1
+            *shape=* ``(prod(batch_shape_1),) +`` :attr:`input_shape_1` -- (Batch of)
+            input(s) for the second argument of the :class:`CovarianceFunction`.
+            Can also be set to :data:`None`, in which case the function will behave as
+            if ``x1 == x0`` (potentially using a more efficient implementation for this
+            particular case).
+
+        Returns
+        -------
+        k_x0_x1
+            :class:`~pykeops.numpy.LazyTensor` representing the covariance matrix
+            corresponding to the given batches of input points.
+            See :meth:`linop` for the shape and row/column order.
+        """
+        raise NotImplementedError()
+
     def _evaluate_matrix(
         self,
         x0: np.ndarray,
@@ -541,8 +590,24 @@ class CovarianceFunction(abc.ABC):
         self,
         x0: np.ndarray,
         x1: Optional[np.ndarray],
+        use_keops=True,
     ) -> linops.LinearOperator:
-        return linops.Matrix(self._evaluate_matrix(x0, x1))
+        try:
+            keops_lazy_tensor = self._keops_lazy_tensor(x0, x1) if use_keops else None
+        except (NotImplementedError, ModuleNotFoundError):
+            keops_lazy_tensor = None
+
+        shape = (
+            self.output_size_0 * x0.shape[0],
+            self.output_size_1 * (x1.shape[0] if x1 is not None else x0.shape[0]),
+        )
+        return CovarianceLinearOperator(
+            x0,
+            x1,
+            shape,
+            self._evaluate_matrix,
+            keops_lazy_tensor,
+        )
 
     def _check_shapes(
         self,
@@ -741,3 +806,43 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         return np.sqrt(
             self._squared_euclidean_distances(x0, x1, scale_factors=scale_factors)
         )
+
+    def _squared_euclidean_distances_keops(
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
+        *,
+        scale_factors: Optional[np.ndarray] = None,
+    ):
+        """KeOps-based implementation of the squared (modified) Euclidean distance,
+        which supports scalar inputs, an optional second argument, and separate scale
+        factors for each input dimension."""
+        if x1 is None:
+            x1 = x0
+        if len(x0.shape) < 2:
+            x0 = x0.reshape(-1, 1)
+        if len(x1.shape) < 2:
+            x1 = x1.reshape(-1, 1)
+
+        sqdiffs = Vi(x0) - Vj(x1)
+
+        if scale_factors is not None:
+            sqdiffs *= Pm(scale_factors)
+
+        sqdiffs *= sqdiffs
+
+        return sqdiffs.sum()
+
+    def _euclidean_distances_keops(
+        self,
+        x0: np.ndarray,
+        x1: Optional[np.ndarray],
+        *,
+        scale_factors: Optional[np.ndarray] = None,
+    ):
+        """KeOps-based implementation of the (modified) Euclidean distance, which
+        supports scalar inputs, an optional second argument, and separate scale factors
+        for each input dimension."""
+        return self._squared_euclidean_distances_keops(
+            x0, x1, scale_factors=scale_factors
+        ).sqrt()
