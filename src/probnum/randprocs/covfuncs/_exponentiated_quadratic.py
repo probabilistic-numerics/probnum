@@ -101,9 +101,9 @@ class ExpQuad(CovarianceFunction, IsotropicMixin):
 
     def _keops_lazy_tensor(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
-    ) -> "pykeops.numpy.LazyTensor":
+    ) -> "LazyTensor":
         if not _USE_KEOPS:
-            raise ModuleNotFoundError()
+            raise ImportError()
         return (
             -self._squared_euclidean_distances_keops(
                 x0, x1, scale_factors=self._scale_factors

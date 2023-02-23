@@ -52,7 +52,7 @@ class CovarianceLinearOperator(linops.LinearOperator):
         x1: Optional[np.ndarray],
         shape,
         evaluate_dense_matrix: callable,
-        keops_lazy_tensor: Optional["pykeops.numpy.LazyTensor"] = None,
+        keops_lazy_tensor: Optional["LazyTensor"] = None,
     ):
         self._x0 = x0
         self._x1 = x1
@@ -64,7 +64,7 @@ class CovarianceLinearOperator(linops.LinearOperator):
         super().__init__(shape, dtype)
 
     @property
-    def keops_lazy_tensor(self) -> "pykeops.numpy.LazyTensor":
+    def keops_lazy_tensor(self) -> "LazyTensor":
         """:class:`~pykeops.numpy.LazyTensor` representing the covariance matrix
         corresponding to the given batches of input points.
         When not using KeOps, this is set to :data:`None`.

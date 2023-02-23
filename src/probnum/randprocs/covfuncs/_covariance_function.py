@@ -10,7 +10,7 @@ from typing import Optional, Union
 import numpy as np
 
 try:
-    from pykeops.numpy import LazyTensor, Pm, Vi, Vj
+    from pykeops.numpy import LazyTensor
 except ImportError:
     pass
 
@@ -416,8 +416,6 @@ class CovarianceFunction(abc.ABC):
         self,
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
-        *,
-        use_keops=True,
     ) -> linops.LinearOperator:
         r""":class:`~probnum.linops.LinearOperator` representing the pairwise
         covariances of evaluations of :math:`f_0` and :math:`f_1` at the given input
@@ -451,9 +449,6 @@ class CovarianceFunction(abc.ABC):
             Can also be set to :data:`None`, in which case the function will behave as
             if ``x1 == x0`` (potentially using a more efficient implementation for this
             particular case).
-        use_keops
-            Optional keyword flag to choose whether to use a KeOps-based implementation
-            or the standard implementation.
 
         Returns
         -------
@@ -482,7 +477,7 @@ class CovarianceFunction(abc.ABC):
         if x1 is not None:
             x1 = self._preprocess_linop_input(x1, argnum=1)
 
-        k_linop_x0_x1 = self._evaluate_linop(x0, x1, use_keops)
+        k_linop_x0_x1 = self._evaluate_linop(x0, x1)
 
         assert isinstance(k_linop_x0_x1, linops.LinearOperator)
         assert k_linop_x0_x1.shape == (
@@ -526,7 +521,7 @@ class CovarianceFunction(abc.ABC):
         self,
         x0: np.ndarray,
         x1: Optional[np.ndarray],
-    ) -> "pykeops.numpy.LazyTensor":
+    ) -> "LazyTensor":
         """:class:`~pykeops.numpy.LazyTensor` representing the lazy computation of the
         pairwise covariances of evaluations of :math:`f_0` and :math:`f_1` at the given
         input points.
@@ -590,11 +585,10 @@ class CovarianceFunction(abc.ABC):
         self,
         x0: np.ndarray,
         x1: Optional[np.ndarray],
-        use_keops=True,
     ) -> linops.LinearOperator:
         try:
-            keops_lazy_tensor = self._keops_lazy_tensor(x0, x1) if use_keops else None
-        except (NotImplementedError, ModuleNotFoundError):
+            keops_lazy_tensor = self._keops_lazy_tensor(x0, x1)
+        except (NotImplementedError, ImportError):
             keops_lazy_tensor = None
 
         shape = (
@@ -813,10 +807,12 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         x1: Optional[np.ndarray],
         *,
         scale_factors: Optional[np.ndarray] = None,
-    ) -> "pykeops.numpy.LazyTensor":
+    ) -> "LazyTensor":
         """KeOps-based implementation of the squared (modified) Euclidean distance,
         which supports scalar inputs, an optional second argument, and separate scale
         factors for each input dimension."""
+        from pykeops.numpy import Pm, Vi, Vj
+
         if x1 is None:
             x1 = x0
         if len(x0.shape) < 2:
@@ -839,7 +835,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         x1: Optional[np.ndarray],
         *,
         scale_factors: Optional[np.ndarray] = None,
-    ) -> "pykeops.numpy.LazyTensor":
+    ) -> "LazyTensor":
         """KeOps-based implementation of the (modified) Euclidean distance, which
         supports scalar inputs, an optional second argument, and separate scale factors
         for each input dimension."""

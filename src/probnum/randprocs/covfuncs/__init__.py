@@ -9,6 +9,7 @@ and multiplication.
 """
 
 from ._covariance_function import CovarianceFunction, IsotropicMixin
+from ._covariance_linear_operator import CovarianceLinearOperator
 from ._exponentiated_quadratic import ExpQuad
 from ._linear import Linear
 from ._matern import Matern

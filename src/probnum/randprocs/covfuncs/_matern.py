@@ -14,7 +14,7 @@ from ._covariance_function import CovarianceFunction, IsotropicMixin
 
 _USE_KEOPS = True
 try:
-    from pykeops.numpy import LazyTensor, Vi, Vj
+    from pykeops.numpy import LazyTensor
 except ImportError:
     _USE_KEOPS = False
 
@@ -196,9 +196,9 @@ class Matern(CovarianceFunction, IsotropicMixin):
 
     def _keops_lazy_tensor(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
-    ) -> "pykeops.numpy.LazyTensor":
+    ) -> "LazyTensor":
         if not _USE_KEOPS:
-            raise ModuleNotFoundError()
+            raise ImportError()
 
         scaled_dists = self._euclidean_distances_keops(
             x0, x1, scale_factors=self._scale_factors
@@ -219,7 +219,8 @@ class Matern(CovarianceFunction, IsotropicMixin):
 
             return res
 
-        return super()._keops_lazy_tensor(x0, x1)
+        # TODO: Add KeOps implementation for non-half-integer case
+        raise NotImplementedError()
 
     @staticmethod
     @functools.lru_cache(maxsize=None)

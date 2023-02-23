@@ -1,5 +1,6 @@
 """Test cases for ``CovarianceFunction.matrix`` and ``CovarianceFunction.linop``"""
 
+import builtins
 from typing import Callable, Optional
 
 import numpy as np
@@ -35,7 +36,12 @@ def no_keops_linop(
     if x1 is None and np.prod(x0.shape[:-1]) >= 100:
         pytest.skip("Runs too long")
 
-    return k.linop(x0, x1, use_keops=False)
+    linop = k.linop(x0, x1)
+    if isinstance(linop, pn.randprocs.covfuncs.CovarianceLinearOperator):
+        # TODO: Find a more elegant way to make the linop believe that KeOps
+        # is not installed
+        linop._use_keops = False
+    return linop
 
 
 @pytest.fixture
