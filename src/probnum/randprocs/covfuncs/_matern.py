@@ -194,7 +194,9 @@ class Matern(CovarianceFunction, IsotropicMixin):
 
         return _matern_bessel(scaled_dists, nu=self._nu)
 
-    def _keops_lazy_tensor(self, x0: np.ndarray, x1: Optional[np.ndarray]):
+    def _keops_lazy_tensor(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> "pykeops.numpy.LazyTensor":
         if not _USE_KEOPS:
             raise ModuleNotFoundError()
 

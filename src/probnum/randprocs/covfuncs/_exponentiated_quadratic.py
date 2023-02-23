@@ -99,7 +99,9 @@ class ExpQuad(CovarianceFunction, IsotropicMixin):
             )
         )
 
-    def _keops_lazy_tensor(self, x0: np.ndarray, x1: Optional[np.ndarray]):
+    def _keops_lazy_tensor(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> "pykeops.numpy.LazyTensor":
         if not _USE_KEOPS:
             raise ModuleNotFoundError()
         return (

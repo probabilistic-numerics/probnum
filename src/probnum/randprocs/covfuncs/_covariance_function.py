@@ -526,7 +526,7 @@ class CovarianceFunction(abc.ABC):
         self,
         x0: np.ndarray,
         x1: Optional[np.ndarray],
-    ):
+    ) -> "pykeops.numpy.LazyTensor":
         """:class:`~pykeops.numpy.LazyTensor` representing the lazy computation of the
         pairwise covariances of evaluations of :math:`f_0` and :math:`f_1` at the given
         input points.
@@ -813,7 +813,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         x1: Optional[np.ndarray],
         *,
         scale_factors: Optional[np.ndarray] = None,
-    ):
+    ) -> "pykeops.numpy.LazyTensor":
         """KeOps-based implementation of the squared (modified) Euclidean distance,
         which supports scalar inputs, an optional second argument, and separate scale
         factors for each input dimension."""
@@ -839,7 +839,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         x1: Optional[np.ndarray],
         *,
         scale_factors: Optional[np.ndarray] = None,
-    ):
+    ) -> "pykeops.numpy.LazyTensor":
         """KeOps-based implementation of the (modified) Euclidean distance, which
         supports scalar inputs, an optional second argument, and separate scale factors
         for each input dimension."""
