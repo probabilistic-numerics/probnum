@@ -801,6 +801,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
             self._squared_euclidean_distances(x0, x1, scale_factors=scale_factors)
         )
 
+    # pylint: disable=no-self-use
     def _squared_euclidean_distances_keops(
         self,
         x0: np.ndarray,
