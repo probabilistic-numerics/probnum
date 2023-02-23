@@ -811,6 +811,7 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
         """KeOps-based implementation of the squared (modified) Euclidean distance,
         which supports scalar inputs, an optional second argument, and separate scale
         factors for each input dimension."""
+        # pylint: disable=import-outside-toplevel
         from pykeops.numpy import Pm, Vi, Vj
 
         if x1 is None:
