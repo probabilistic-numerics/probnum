@@ -21,8 +21,12 @@ extras_require["pls_calib"] = [
     # This is and should not be a ProbNum dependency.
     "matplotlib",
 ]
+extras_require["keops"] = ["pykeops>=2.1.1<3.0"]
 extras_require["full"] = (
-    extras_require["jax"] + extras_require["zoo"] + extras_require["pls_calib"]
+    extras_require["jax"]
+    + extras_require["zoo"]
+    + extras_require["pls_calib"]
+    + extras_require["keops"]
 )
 
 
