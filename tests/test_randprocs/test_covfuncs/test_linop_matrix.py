@@ -1,6 +1,5 @@
 """Test cases for ``CovarianceFunction.matrix`` and ``CovarianceFunction.linop``"""
 
-import builtins
 from typing import Callable, Optional
 
 import numpy as np
