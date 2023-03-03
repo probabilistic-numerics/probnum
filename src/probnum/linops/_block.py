@@ -12,19 +12,19 @@ from . import _linear_operator, _utils
 
 
 class BlockDiagonalMatrix(_linear_operator.LinearOperator):
-    r"""Forms a block diagonal matrix from the input linear operators.
+    """Forms a block diagonal matrix from the input linear operators.
 
     Given linear operators A, B, ..., Z, this represents the block linear
     operator
 
     .. math::
-    \\begin{bmatrix}
-    A & & & & \\\\
-    & B & & & \\\\
-    & & \\ddots & & \\\\
-    & & & \\ddots & \\\\
-    & & & & Z
-    \\end{bmatrix}
+        \\begin{bmatrix}
+        A & & & & \\\\
+        & B & & & \\\\
+        & & \\ddots & & \\\\
+        & & & \\ddots & \\\\
+        & & & & Z
+        \\end{bmatrix}
 
     Parameters
     ----------
