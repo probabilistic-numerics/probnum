@@ -304,7 +304,7 @@ def test_eigvals(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         assert linop_eigvals.shape == matrix_eigvals.shape
         assert linop_eigvals.dtype == matrix_eigvals.dtype
 
-        np.testing.assert_allclose(linop_eigvals, matrix_eigvals)
+        np.testing.assert_allclose(np.sort(linop_eigvals), np.sort(matrix_eigvals))
     else:
         with pytest.raises(np.linalg.LinAlgError):
             linop.eigvals()
