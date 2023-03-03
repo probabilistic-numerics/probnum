@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pytest
@@ -38,7 +38,7 @@ spd_matrices = (
     ],
 )
 def case_block_diagonal(
-    blocks: list[np.ndarray],
+    blocks: List[np.ndarray],
 ) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
     linop = pn.linops.BlockDiagonalMatrix(*blocks)
     matrix = block_diag(*blocks)

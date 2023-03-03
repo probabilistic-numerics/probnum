@@ -16,6 +16,7 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
 
     Given linear operators A, B, ..., Z, this represents the block linear
     operator
+
     .. math::
     \\begin{bmatrix}
     A & & & & \\\\
@@ -27,7 +28,7 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
 
     Parameters
     ----------
-    *blocks :
+    blocks :
         The (ordered!) input linear operators.
     """
 
