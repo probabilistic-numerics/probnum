@@ -24,6 +24,26 @@ def linop(
 
 
 @pytest.fixture
+def no_keops_linop(
+    k: pn.randprocs.covfuncs.CovarianceFunction,
+    x0: np.ndarray,
+    x1: Optional[np.ndarray],
+) -> pn.linops.LinearOperator:
+    """`LinearOperator` representation of the covariance matrix that does not use
+    KeOps."""
+
+    if x1 is None and np.prod(x0.shape[:-1]) >= 100:
+        pytest.skip("Runs too long")
+
+    linop = k.linop(x0, x1)
+    if isinstance(linop, pn.randprocs.covfuncs.CovarianceLinearOperator):
+        # TODO: Find a more elegant way to make the linop believe that KeOps
+        # is not installed
+        linop._use_keops = False
+    return linop
+
+
+@pytest.fixture
 def matrix(
     k: pn.randprocs.covfuncs.CovarianceFunction,
     x0: np.ndarray,
@@ -43,7 +63,7 @@ def matrix_naive(
     x0: np.ndarray,
     x1: Optional[np.ndarray],
 ) -> np.ndarray:
-    """Reference covariance matrix"""
+    """Reference covariance matrix."""
     if x1 is None:
         if np.prod(x0.shape[:-1]) >= 100:
             pytest.skip("Runs too long")
@@ -113,6 +133,22 @@ def test_matrix_equals_matrix_naive(
     np.testing.assert_allclose(
         matrix,
         matrix_naive,
+        rtol=10**-12,
+        atol=10**-12,
+    )
+
+
+def test_keops_equals_no_keops(
+    linop: pn.linops.LinearOperator,
+    no_keops_linop: pn.linops.LinearOperator,
+):
+    """Test whether the KeOps-based linop implementation matches the non-KeOps based
+    implementation."""
+    I = np.eye(linop.shape[1])
+
+    np.testing.assert_allclose(
+        linop @ I,
+        no_keops_linop @ I,
         rtol=10**-12,
         atol=10**-12,
     )

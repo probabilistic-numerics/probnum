@@ -9,6 +9,12 @@ from probnum.typing import ArrayLike, ShapeLike
 
 from ._covariance_function import CovarianceFunction, IsotropicMixin
 
+_USE_KEOPS = True
+try:
+    from pykeops.numpy import LazyTensor
+except ImportError:  # pragma: no cover
+    _USE_KEOPS = False
+
 
 class ExpQuad(CovarianceFunction, IsotropicMixin):
     r"""Exponentiated quadratic covariance function.
@@ -92,3 +98,14 @@ class ExpQuad(CovarianceFunction, IsotropicMixin):
                 x0, x1, scale_factors=self._scale_factors
             )
         )
+
+    def _keops_lazy_tensor(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> "LazyTensor":
+        if not _USE_KEOPS:  # pragma: no cover
+            raise ImportError()
+        return (
+            -self._squared_euclidean_distances_keops(
+                x0, x1, scale_factors=self._scale_factors
+            )
+        ).exp()

@@ -12,6 +12,12 @@ import probnum.utils as _utils
 
 from ._covariance_function import CovarianceFunction, IsotropicMixin
 
+_USE_KEOPS = True
+try:
+    from pykeops.numpy import LazyTensor
+except ImportError:  # pragma: no cover
+    _USE_KEOPS = False
+
 
 class Matern(CovarianceFunction, IsotropicMixin):
     r"""Matérn covariance function.
@@ -187,6 +193,34 @@ class Matern(CovarianceFunction, IsotropicMixin):
             return res
 
         return _matern_bessel(scaled_dists, nu=self._nu)
+
+    def _keops_lazy_tensor(
+        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    ) -> "LazyTensor":
+        if not _USE_KEOPS:  # pragma: no cover
+            raise ImportError()
+
+        scaled_dists = self._euclidean_distances_keops(
+            x0, x1, scale_factors=self._scale_factors
+        )
+
+        if self.is_half_integer:
+            # Evaluate the polynomial part using Horner's method
+            coeffs = Matern._half_integer_coefficients_floating(self.p)
+
+            res = coeffs[self.p]
+
+            for i in range(self.p - 1, -1, -1):
+                res *= scaled_dists
+                res += coeffs[i]
+
+            # Exponential part
+            res *= (-scaled_dists).exp()
+
+            return res
+
+        # TODO: Add KeOps implementation for non-half-integer case
+        raise NotImplementedError()
 
     @staticmethod
     @functools.lru_cache(maxsize=None)
