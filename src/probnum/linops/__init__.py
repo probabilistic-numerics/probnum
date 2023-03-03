@@ -12,6 +12,7 @@ Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate o
 :class:`~probnum.linops.LinearOperator` instances.
 """
 
+from ._block import BlockDiagonalMatrix
 from ._kronecker import IdentityKronecker, Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import (
     Embedding,
@@ -38,6 +39,7 @@ __all__ = [
     "Selection",
     "SymmetricKronecker",
     "Symmetrize",
+    "BlockDiagonalMatrix",
     "Zero",
 ]
 
@@ -53,6 +55,7 @@ Kronecker.__module__ = "probnum.linops"
 Selection.__module__ = "probnum.linops"
 SymmetricKronecker.__module__ = "probnum.linops"
 Symmetrize.__module__ = "probnum.linops"
+BlockDiagonalMatrix.__module__ = "probnum.linops"
 Zero.__module__ = "probnum.linops"
 
 aslinop.__module__ = "probnum.linops"
