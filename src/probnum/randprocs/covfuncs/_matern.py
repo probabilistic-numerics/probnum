@@ -15,7 +15,7 @@ from ._covariance_function import CovarianceFunction, IsotropicMixin
 _USE_KEOPS = True
 try:
     from pykeops.numpy import LazyTensor
-except ImportError:
+except ImportError:  # pragma: no cover
     _USE_KEOPS = False
 
 
@@ -197,7 +197,7 @@ class Matern(CovarianceFunction, IsotropicMixin):
     def _keops_lazy_tensor(
         self, x0: np.ndarray, x1: Optional[np.ndarray]
     ) -> "LazyTensor":
-        if not _USE_KEOPS:
+        if not _USE_KEOPS:  # pragma: no cover
             raise ImportError()
 
         scaled_dists = self._euclidean_distances_keops(

@@ -11,7 +11,7 @@ import numpy as np
 
 try:
     from pykeops.numpy import LazyTensor
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 from probnum import linops, utils as _pn_utils

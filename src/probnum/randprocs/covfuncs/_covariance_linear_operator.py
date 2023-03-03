@@ -10,7 +10,7 @@ from probnum import linops
 _USE_KEOPS = True
 try:
     from pykeops.numpy import LazyTensor
-except ImportError:
+except ImportError:  # pragma: no cover
     _USE_KEOPS = False
     warnings.warn(
         "KeOps is not installed and currently unavailable for Windows."
