@@ -1,4 +1,4 @@
-"""Operators that utilize block structure."""
+"""Operators with block structure."""
 from __future__ import annotations
 
 import functools
@@ -34,7 +34,8 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
 
     def __init__(self, *blocks: LinearOperatorLike):
         blocks = tuple(_utils.aslinop(block) for block in blocks)
-        assert len(blocks) > 0
+        if len(blocks) < 1:
+            raise ValueError("At least one block must be given.")
 
         dtype = functools.reduce(np.promote_types, (block.dtype for block in blocks))
         shape_0 = sum(block.shape[0] for block in blocks)
@@ -76,7 +77,7 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
         if all(block.is_square for block in self.blocks):
             return np.concatenate(
                 tuple(
-                    cur_block.inv() @ cur_x
+                    cur_block.solve(cur_x)
                     for cur_block, cur_x in zip(self.blocks, self._split_input(B))
                 ),
                 axis=-2,
