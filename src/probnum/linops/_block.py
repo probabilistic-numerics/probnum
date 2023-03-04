@@ -72,7 +72,7 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
     ) -> Optional[bool]:
         if all(property_fn(block) for block in self.blocks):
             return True
-        elif any(property_fn(block) is False for block in self.blocks):
+        if any(property_fn(block) is False for block in self.blocks):
             return False
         return None
 
