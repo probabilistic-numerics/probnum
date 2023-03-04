@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import functools
+from typing import Callable, Optional
 
 import numpy as np
 from scipy.linalg import block_diag
@@ -48,17 +49,32 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
 
         super().__init__((shape_0, shape_1), dtype)
 
-        self.is_symmetric = all(block.is_symmetric for block in blocks)
-        self.is_positive_definite = all(block.is_positive_definite for block in blocks)
-        self.is_upper_triangular = all(block.is_upper_triangular for block in blocks)
-        self.is_lower_triangular = all(block.is_lower_triangular for block in blocks)
-
         self._blocks = blocks
+
+        self.is_symmetric = self._infer_property(lambda block: block.is_symmetric)
+        self.is_positive_definite = self._infer_property(
+            lambda block: block.is_positive_definite
+        )
+        self.is_upper_triangular = self._infer_property(
+            lambda block: block.is_upper_triangular
+        )
+        self.is_lower_triangular = self._infer_property(
+            lambda block: block.is_lower_triangular
+        )
 
     @property
     def blocks(self) -> tuple[_linear_operator.LinearOperator]:
         """The linear operators that make up the diagonal (in order)."""
         return self._blocks
+
+    def _infer_property(
+        self, property_fn: Callable[[_linear_operator.LinearOperator], Optional[bool]]
+    ) -> Optional[bool]:
+        if all(property_fn(block) for block in self.blocks):
+            return True
+        elif any(property_fn(block) is False for block in self.blocks):
+            return False
+        return None
 
     def _split_input(self, x: np.ndarray) -> np.ndarray:
         return np.split(x, self.split_indices, axis=-2)
