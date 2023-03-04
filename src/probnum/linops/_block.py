@@ -14,8 +14,8 @@ from . import _linear_operator, _utils
 class BlockDiagonalMatrix(_linear_operator.LinearOperator):
     """Forms a block diagonal matrix from the input linear operators.
 
-    Given linear operators A, B, ..., Z, this represents the block linear
-    operator
+    Given square linear operators A, B, ..., Z, this represents the block
+    linear operator
 
     .. math::
         \\begin{bmatrix}
@@ -29,13 +29,15 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
     Parameters
     ----------
     blocks :
-        The (ordered!) input linear operators.
+        The (ordered!) input linear operators. Must all be square.
     """
 
     def __init__(self, *blocks: LinearOperatorLike):
         blocks = tuple(_utils.aslinop(block) for block in blocks)
         if len(blocks) < 1:
             raise ValueError("At least one block must be given.")
+        if not all(block.is_square for block in blocks):
+            raise ValueError("All blocks must be square.")
 
         dtype = functools.reduce(np.promote_types, (block.dtype for block in blocks))
         shape_0 = sum(block.shape[0] for block in blocks)
@@ -74,55 +76,37 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
         return BlockDiagonalMatrix(*[block.T for block in self.blocks])
 
     def _solve(self, B: np.ndarray) -> np.ndarray:
-        if all(block.is_square for block in self.blocks):
-            return np.concatenate(
-                tuple(
-                    cur_block.solve(cur_x)
-                    for cur_block, cur_x in zip(self.blocks, self._split_input(B))
-                ),
-                axis=-2,
-            )
-        return super()._solve(B)
+        return np.concatenate(
+            tuple(
+                cur_block.solve(cur_x)
+                for cur_block, cur_x in zip(self.blocks, self._split_input(B))
+            ),
+            axis=-2,
+        )
 
     def _inverse(self) -> BlockDiagonalMatrix:
-        if all(block.is_square for block in self.blocks):
-            return BlockDiagonalMatrix(*[block.inv() for block in self.blocks])
-        return super()._inverse()
+        return BlockDiagonalMatrix(*[block.inv() for block in self.blocks])
 
     def _todense(self) -> np.ndarray:
         return block_diag(*[block.todense() for block in self.blocks])
 
     def _det(self) -> np.inexact:
-        if all(block.is_square for block in self.blocks):
-            return np.prod([block.det() for block in self.blocks])
-        return super()._det()
+        return np.prod([block.det() for block in self.blocks])
 
     def _logabsdet(self) -> np.floating:
-        if all(block.is_square for block in self.blocks):
-            return np.sum([block.logabsdet() for block in self.blocks])
-        return super()._logabsdet()
+        return np.sum([block.logabsdet() for block in self.blocks])
 
     def _trace(self) -> np.number:
-        if all(block.is_square for block in self.blocks):
-            return np.sum([block.trace() for block in self.blocks])
-        return super()._trace()
+        return np.sum([block.trace() for block in self.blocks])
 
     def _eigvals(self) -> np.ndarray:
-        if all(block.is_square for block in self.blocks):
-            return np.concatenate([block.eigvals() for block in self.blocks])
-        return super()._eigvals()
+        return np.concatenate([block.eigvals() for block in self.blocks])
 
     def _rank(self) -> np.intp:
-        if all(block.is_square for block in self.blocks):
-            return np.sum([block.rank() for block in self.blocks])
-        return super()._rank()
+        return np.sum([block.rank() for block in self.blocks])
 
     def _cholesky(self, lower: bool) -> BlockDiagonalMatrix:
-        if all(block.is_square for block in self.blocks):
-            return BlockDiagonalMatrix(
-                *[block.cholesky(lower) for block in self.blocks]
-            )
-        return super()._cholesky(lower)
+        return BlockDiagonalMatrix(*[block.cholesky(lower) for block in self.blocks])
 
     def _astype(
         self, dtype: DTypeLike, order: str, casting: str, copy: bool
