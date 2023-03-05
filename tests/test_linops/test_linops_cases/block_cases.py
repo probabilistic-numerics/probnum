@@ -34,9 +34,9 @@ spd_matrices = (
             ]
         ),
         ([np.array([[4, 3], [2, 1]]), 5 * np.eye(4), np.array([[2]])]),
+        ([np.array([[8, 9]]), np.array([[3], [5]])]),
     ],
 )
-@pytest_cases.case(tags=["square"])
 def case_block_diagonal(
     blocks: List[np.ndarray],
 ) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
