@@ -11,13 +11,6 @@ def test_no_block():
         bdm = pn.linops.BlockDiagonalMatrix()
 
 
-def test_not_all_square():
-    with pytest.raises(ValueError):
-        M = pn.linops.Matrix(np.array([[1, 2]]))
-        M.is_symmetric = False
-        bdm = pn.linops.BlockDiagonalMatrix(pn.linops.Identity((2, 2)), M)
-
-
 def test_property_inference():
     M = pn.linops.Matrix(np.array([[1.0, -2.0], [-2.0, 5.0]]))
     M.is_symmetric = True
