@@ -1,6 +1,6 @@
 """LinearOperator that represents pairwise covariances of evaluations."""
 
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 import warnings
 
 import numpy as np
@@ -50,7 +50,7 @@ class CovarianceLinearOperator(linops.LinearOperator):
         self,
         x0: np.ndarray,
         x1: Optional[np.ndarray],
-        shape: tuple[int],
+        shape: Tuple[int],
         evaluate_dense_matrix: Callable[[np.ndarray, Optional[np.ndarray]], np.ndarray],
         keops_lazy_tensor_fn: Callable[
             [np.ndarray, Optional[np.ndarray]], Optional["LazyTensor"]
