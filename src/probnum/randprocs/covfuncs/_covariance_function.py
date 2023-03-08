@@ -586,10 +586,11 @@ class CovarianceFunction(abc.ABC):
         x0: np.ndarray,
         x1: Optional[np.ndarray],
     ) -> linops.LinearOperator:
-        try:
-            keops_lazy_tensor = self._keops_lazy_tensor(x0, x1)
-        except (NotImplementedError, ImportError):
-            keops_lazy_tensor = None
+        def keops_lazy_tensor(x0, x1):
+            try:
+                return self._keops_lazy_tensor(x0, x1)
+            except (NotImplementedError, ImportError):
+                return None
 
         shape = (
             self.output_size_0 * x0.shape[0],
