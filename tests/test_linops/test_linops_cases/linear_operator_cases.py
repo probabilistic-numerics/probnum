@@ -18,6 +18,12 @@ spd_matrices = [
     np.array([[1.0, -2.0], [-2.0, 5.0]]),
     random_spd_matrix(np.random.default_rng(597), dim=10),
 ]
+lower_triangular_matrices = [
+    np.array([[5.0]]),
+    np.array([[1.0, 0.0], [2.0, 3.0]]),
+    np.array([[4.0, 0.0, 0.0], [48.0, 60.0, 0.0], [21.0, 39.0, 7.0]]),
+]
+upper_triangular_matrices = [mat.T for mat in lower_triangular_matrices]
 
 
 @pytest.mark.parametrize("matrix", matrices)
@@ -59,6 +65,28 @@ def case_matrix(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarra
 def case_matrix_spd(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
     linop = pn.linops.Matrix(matrix)
     linop.is_symmetric = True
+
+    return linop, matrix
+
+
+@pytest_cases.case(tags=("square", "lower-triangular"))
+@pytest_cases.parametrize("matrix", lower_triangular_matrices)
+def case_matrix_lower_triangular(
+    matrix: np.ndarray,
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    linop = pn.linops.Matrix(matrix)
+    linop.is_lower_triangular = True
+
+    return linop, matrix
+
+
+@pytest_cases.case(tags=("square", "upper-triangular"))
+@pytest_cases.parametrize("matrix", upper_triangular_matrices)
+def case_matrix_upper_triangular(
+    matrix: np.ndarray,
+) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    linop = pn.linops.Matrix(matrix)
+    linop.is_upper_triangular = True
 
     return linop, matrix
 
