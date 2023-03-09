@@ -164,8 +164,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         return np.moveaxis(self @ np.moveaxis(x, axis, -2), -2, axis)
 
     def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
-        """Apply the linear operator to an input array along a specified
-        axis.
+        """Apply the linear operator to an input array along a specified axis.
 
         Parameters
         ----------
@@ -294,6 +293,10 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         """
         assert B.ndim == 2
 
+        if self.is_lower_triangular or self.is_upper_triangular:
+            return scipy.linalg.solve_triangular(
+                self.todense(), B, lower=self.is_lower_triangular, trans="N"
+            )
         if self.is_symmetric:
             if self.is_positive_definite is not False:
                 try:
