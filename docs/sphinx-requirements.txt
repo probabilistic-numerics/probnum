@@ -10,4 +10,4 @@ sphinx-automodapi
 sphinx-gallery
 
 # Markdown conversion
-myst-parser<0.20.0
+myst-parser<1.1.0
