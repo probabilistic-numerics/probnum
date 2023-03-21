@@ -15,18 +15,9 @@ extras_require["zoo"] = [
     "tqdm>=4.0",
     "requests>=2.0",
 ] + extras_require["jax"]
-extras_require["pls_calib"] = [
-    "GPy",
-    # GPy can't be imported without matplotlib.
-    # This is and should not be a ProbNum dependency.
-    "matplotlib",
-]
 extras_require["keops"] = ["pykeops>=2.1.1,<3.0"]
 extras_require["full"] = (
-    extras_require["jax"]
-    + extras_require["zoo"]
-    + extras_require["pls_calib"]
-    + extras_require["keops"]
+    extras_require["jax"] + extras_require["zoo"] + extras_require["keops"]
 )
 
 
