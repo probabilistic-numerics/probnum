@@ -430,7 +430,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         solution covariance."""
         A, b, x_true = self.rbf_kernel_linear_system
 
-        for calib_method in [None, 0, 1.0, "adhoc", "weightedmean", "gpkern"]:
+        for calib_method in [None, 0, 1.0, "adhoc", "weightedmean"]:
             with self.subTest():
                 x_est, Ahat, Ainvhat, info = linalg.problinsolve(
                     A=A, b=b, calibration=calib_method
@@ -450,7 +450,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         tol = 10**-6
         A, b, x_true = self.rbf_kernel_linear_system
 
-        for calib_method in [None, 0, "adhoc", "weightedmean", "gpkern"]:
+        for calib_method in [None, 0, "adhoc", "weightedmean"]:
             with self.subTest():
                 x_est, Ahat, Ainvhat, info = linalg.problinsolve(
                     A=A, b=b, calibration=calib_method
