@@ -4,7 +4,7 @@ This module defines commonly used types in the library. These are separated into
 different kinds, API types and argument types.
 
 **API types** (``*Type``) are aliases which define custom types
-used throughout the library. Objects ofthis type may be supplied as arguments
+used throughout the library. Objects of this type may be supplied as arguments
 or returned by a method.
 
 **Argument types** (``*Like``) are aliases which define commonly used method
