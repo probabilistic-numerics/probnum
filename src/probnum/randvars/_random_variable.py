@@ -72,7 +72,7 @@ class RandomVariable(Generic[ValueType]):
         and potentially by similar functions in subclasses.
 
         For instance, this method is useful if (``log``)
-        :meth:`~ContinousRandomVariable.cdf` and (``log``)
+        :meth:`~ContinuousRandomVariable.cdf` and (``log``)
         :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`numpy.float_`
         arguments, but we still want the user to be able to pass Python
         :class:`float`. Then :meth:`~RandomVariable.as_value_type`
