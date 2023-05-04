@@ -373,6 +373,20 @@ def _sub_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
     return op
 
 
+def _mul_scalar_zero(scalar: ScalarLike, z: Zero) -> Zero:
+    # pylint: disable=unused-argument
+    return z
+
+
+def _mul_zero_scalar(z: Zero, scalar: ScalarLike) -> Zero:
+    # pylint: disable=unused-argument
+    return z
+
+
+_mul_fns[(Zero, np.number)] = _mul_zero_scalar
+_mul_fns[(np.number, Zero)] = _mul_scalar_zero
+
+
 for op_type in _AnyLinOp:
     _matmul_fns[(Zero, op_type)] = _matmul_zero_anylinop
     _matmul_fns[(op_type, Zero)] = _matmul_anylinop_zero
