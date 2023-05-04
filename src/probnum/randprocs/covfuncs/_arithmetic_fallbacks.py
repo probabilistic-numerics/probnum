@@ -55,8 +55,8 @@ class ScaledCovarianceFunction(CovarianceFunction):
     def _evaluate(self, x0: np.ndarray, x1: Optional[np.ndarray] = None) -> np.ndarray:
         return self._scalar * self._covfunc(x0, x1)
 
-    def _evaluate_linop(
-        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    def linop(
+        self, x0: utils.ArrayLike, x1: Optional[utils.ArrayLike] = None
     ) -> linops.LinearOperator:
         return self._scalar * self._covfunc.linop(x0, x1)
 
@@ -82,7 +82,6 @@ class SumCovarianceFunction(CovarianceFunction):
     """
 
     def __init__(self, *summands: CovarianceFunction):
-
         if not all(
             (summand.input_shape == summands[0].input_shape)
             and (summand.output_shape_0 == summands[0].output_shape_0)
@@ -104,8 +103,8 @@ class SumCovarianceFunction(CovarianceFunction):
             operator.add, (summand(x0, x1) for summand in self._summands)
         )
 
-    def _evaluate_linop(
-        self, x0: np.ndarray, x1: Optional[np.ndarray]
+    def linop(
+        self, x0: utils.ArrayLike, x1: Optional[utils.ArrayLike] = None
     ) -> linops.LinearOperator:
         return functools.reduce(
             operator.add, (summand.linop(x0, x1) for summand in self._summands)
@@ -151,7 +150,6 @@ class ProductCovarianceFunction(CovarianceFunction):
     """
 
     def __init__(self, *factors: CovarianceFunction):
-
         if not all(
             (factor.input_shape == factors[0].input_shape)
             and (factor.output_shape_0 == factors[0].output_shape_0)
