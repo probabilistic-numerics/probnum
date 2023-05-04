@@ -374,10 +374,12 @@ def _sub_anylinop_zero(op: LinearOperator, z: Zero) -> Zero:
 
 
 def _mul_scalar_zero(scalar: ScalarLike, z: Zero) -> Zero:
+    # pylint: disable=unused-argument
     return z
 
 
 def _mul_zero_scalar(z: Zero, scalar: ScalarLike) -> Zero:
+    # pylint: disable=unused-argument
     return z
 
 
