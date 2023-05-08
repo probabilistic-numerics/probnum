@@ -172,6 +172,11 @@ class Kronecker(_linear_operator.LinearOperator):
 
         return super()._trace()
 
+    def _diagonal(self) -> np.ndarray:
+        if self.B.is_square:
+            return np.kron(self.A.diagonal(), self.B.diagonal())
+        return super()._diagonal()
+
     def _astype(
         self, dtype: DTypeLike, order: str, casting: str, copy: bool
     ) -> "Kronecker":
@@ -200,7 +205,6 @@ class Kronecker(_linear_operator.LinearOperator):
     def _add_kronecker(
         self, other: "Kronecker"
     ) -> Union[NotImplementedType, "Kronecker"]:
-
         if self.A is other.A or self.A == other.A:
             return Kronecker(A=self.A, B=self.B + other.B)
 
@@ -212,7 +216,6 @@ class Kronecker(_linear_operator.LinearOperator):
     def _sub_kronecker(
         self, other: "Kronecker"
     ) -> Union[NotImplementedType, "Kronecker"]:
-
         if self.A is other.A or self.A == other.A:
             return Kronecker(A=self.A, B=self.B - other.B)
 
@@ -537,7 +540,6 @@ class IdentityKronecker(Kronecker):
     def _add_idkronecker(
         self, other: "IdentityKronecker"
     ) -> Union[NotImplementedType, "IdentityKronecker"]:
-
         if self.A.shape == other.A.shape:
             return IdentityKronecker(num_blocks=self._num_blocks, B=self.B + other.B)
 
@@ -546,7 +548,6 @@ class IdentityKronecker(Kronecker):
     def _sub_idkronecker(
         self, other: "IdentityKronecker"
     ) -> Union[NotImplementedType, "IdentityKronecker"]:
-
         if self.A.shape == other.A.shape:
             return IdentityKronecker(num_blocks=self._num_blocks, B=self.B - other.B)
 

@@ -132,6 +132,11 @@ class BlockDiagonalMatrix(_linear_operator.LinearOperator):
             return np.sum([block.rank() for block in self.blocks])
         return super()._rank()
 
+    def _diagonal(self) -> np.ndarray:
+        if self._all_blocks_square:
+            return np.concatenate([block.diagonal() for block in self.blocks])
+        return super()._diagonal()
+
     def _cholesky(self, lower: bool) -> BlockDiagonalMatrix:
         if self._all_blocks_square:
             return BlockDiagonalMatrix(

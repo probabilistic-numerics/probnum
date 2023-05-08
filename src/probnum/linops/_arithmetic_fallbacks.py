@@ -40,6 +40,7 @@ class ScaledLinearOperator(LambdaLinearOperator):
             transpose=lambda: self._scalar * self._linop.T,
             inverse=self._inv,
             trace=lambda: self._scalar * self._linop.trace(),
+            diagonal=lambda: self._scalar * self._linop.diagonal(),
         )
 
         # Matrix properties
@@ -89,7 +90,6 @@ class SumLinearOperator(LambdaLinearOperator):
     """Sum of linear operators."""
 
     def __init__(self, *summands: LinearOperator):
-
         if not all(summand.shape == summands[0].shape for summand in summands):
             raise ValueError("All summands must have the same shape.")
 
@@ -112,6 +112,9 @@ class SumLinearOperator(LambdaLinearOperator):
             ),
             trace=lambda: functools.reduce(
                 operator.add, (summand.trace() for summand in self._summands)
+            ),
+            diagonal=lambda: functools.reduce(
+                operator.add, (summand.diagonal() for summand in self._summands)
             ),
         )
 
@@ -176,7 +179,6 @@ class ProductLinearOperator(LambdaLinearOperator):
     """(Operator) Product of linear operators."""
 
     def __init__(self, *factors: LinearOperator):
-
         if not all(
             lfactor.shape[1] == rfactor.shape[0]
             for lfactor, rfactor in zip(factors[:-1], factors[1:])

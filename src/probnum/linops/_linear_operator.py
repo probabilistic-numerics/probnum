@@ -109,6 +109,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         self._det_cache = None
         self._logabsdet_cache = None
         self._trace_cache = None
+        self._diagonal_cache = None
 
         self._lu_cache = None
         self._cholesky_cache = None
@@ -777,6 +778,22 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 
         return self._trace_cache
 
+    def _diagonal(self) -> np.ndarray:
+        """Diagonal of the linear operator.
+
+        You may implement this method in a subclass.
+        """
+        return np.diagonal(self.todense(cache=False))
+
+    def diagonal(self) -> np.ndarray:
+        """Diagonal of the linear operator."""
+        if self._diagonal_cache is None:
+            self._diagonal_cache = self._diagonal()
+
+            self._diagonal_cache.setflags(write=False)
+
+        return self._diagonal_cache
+
     ####################################################################################
     # Matrix Decompositions
     ####################################################################################
@@ -1337,6 +1354,7 @@ class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
         det: Optional[Callable[[], np.inexact]] = None,
         logabsdet: Optional[Callable[[], np.floating]] = None,
         trace: Optional[Callable[[], np.number]] = None,
+        diagonal: Optional[Callable[[], np.ndarray]] = None,
     ):
         super().__init__(shape, dtype)
 
@@ -1357,6 +1375,7 @@ class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
         self._det_fn = det
         self._logabsdet_fn = logabsdet
         self._trace_fn = trace
+        self._diagonal_fn = diagonal
 
     def _matmul(self, x: np.ndarray) -> np.ndarray:
         return self._matmul_fn(x)
@@ -1429,6 +1448,12 @@ class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
 
         return self._trace_fn()
 
+    def _diagonal(self) -> np.ndarray:
+        if self._diagonal_fn is None:
+            return super()._diagonal()
+
+        return self._diagonal_fn()
+
 
 class TransposedLinearOperator(LambdaLinearOperator):
     """Transposition of a linear operator."""
@@ -1457,6 +1482,7 @@ class TransposedLinearOperator(LambdaLinearOperator):
             det=self._linop.det,
             logabsdet=self._linop.logabsdet,
             trace=self._linop.trace,
+            diagonal=self._linop.diagonal,
         )
 
     def _astype(
@@ -1561,6 +1587,7 @@ class _TypeCastLinearOperator(LambdaLinearOperator):
             det=lambda: self._linop.det().astype(self._inexact_dtype),
             logabsdet=lambda: self._linop.logabsdet().astype(self._inexact_dtype),
             trace=lambda: self._linop.trace().astype(dtype),
+            diagonal=lambda: self._linop.diagonal().astype(dtype),
         )
 
     def _astype(
@@ -1691,6 +1718,7 @@ class Identity(LambdaLinearOperator):
             trace=lambda: probnum.utils.as_numpy_scalar(
                 self.shape[0], dtype=self.dtype
             ),
+            diagonal=lambda: np.ones(shape[0], dtype=self.dtype),
         )
 
         # Matrix properties
