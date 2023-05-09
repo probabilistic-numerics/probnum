@@ -738,19 +738,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         trace : float
             Trace of the linear operator.
         """
-
-        vec = np.zeros(self.shape[1], dtype=self.dtype)
-
-        vec[0] = 1
-        trace = (self @ vec)[0]
-        vec[0] = 0
-
-        for i in range(1, self.shape[0]):
-            vec[i] = 1
-            trace += (self @ vec)[i]
-            vec[i] = 0
-
-        return trace
+        return np.sum(self.diagonal())
 
     def trace(self) -> np.number:
         r"""Trace of the linear operator.
@@ -783,7 +771,16 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 
         You may implement this method in a subclass.
         """
-        return np.diagonal(self.todense(cache=False))
+        D = np.min(self.shape)
+        diag = np.zeros(D, dtype=self.dtype)
+        vec = np.zeros(self.shape[1], dtype=self.dtype)
+
+        for i in range(D):
+            vec[i] = 1
+            diag[i] = (self @ vec)[i]
+            vec[i] = 0
+
+        return diag
 
     def diagonal(self) -> np.ndarray:
         """Diagonal of the linear operator."""
@@ -1618,6 +1615,7 @@ class Matrix(LambdaLinearOperator):
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
             todense = self.A.toarray
             trace = lambda: self.A.diagonal().sum()
+            diagonal = lambda: self.A.diagonal()
         else:
             self.A = np.asarray(A)
             self.A.setflags(write=False)
@@ -1625,6 +1623,7 @@ class Matrix(LambdaLinearOperator):
             matmul = lambda x: self.A @ x
             todense = lambda: self.A
             trace = lambda: np.trace(self.A)
+            diagonal = lambda: np.diagonal(self.A)
 
         super().__init__(
             self.A.shape,
@@ -1632,6 +1631,7 @@ class Matrix(LambdaLinearOperator):
             matmul=matmul,
             todense=todense,
             trace=trace,
+            diagonal=diagonal,
         )
 
     def _transpose(self) -> "Matrix":
