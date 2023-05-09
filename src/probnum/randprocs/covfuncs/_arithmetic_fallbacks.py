@@ -9,7 +9,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 from probnum import linops, utils
-from probnum.typing import NotImplementedType, ScalarLike
+from probnum.typing import ArrayLike, NotImplementedType, ScalarLike
 
 from ._covariance_function import BinaryOperandType, CovarianceFunction
 
@@ -56,7 +56,7 @@ class ScaledCovarianceFunction(CovarianceFunction):
         return self._scalar * self._covfunc(x0, x1)
 
     def linop(
-        self, x0: utils.ArrayLike, x1: Optional[utils.ArrayLike] = None
+        self, x0: ArrayLike, x1: Optional[ArrayLike] = None
     ) -> linops.LinearOperator:
         return self._scalar * self._covfunc.linop(x0, x1)
 
@@ -104,7 +104,7 @@ class SumCovarianceFunction(CovarianceFunction):
         )
 
     def linop(
-        self, x0: utils.ArrayLike, x1: Optional[utils.ArrayLike] = None
+        self, x0: ArrayLike, x1: Optional[ArrayLike] = None
     ) -> linops.LinearOperator:
         return functools.reduce(
             operator.add, (summand.linop(x0, x1) for summand in self._summands)
