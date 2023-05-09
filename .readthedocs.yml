@@ -5,6 +5,14 @@
 # RTD configuration file version
 version: 2
 
+# Pin the build environment
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.8"
+  apt_packages:
+    - graphviz
+
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
   builder: html
@@ -16,7 +24,6 @@ formats: []
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
-  version: 3.8
   install:
     - method: pip
       path: .
