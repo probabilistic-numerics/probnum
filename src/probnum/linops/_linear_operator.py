@@ -1615,7 +1615,7 @@ class Matrix(LambdaLinearOperator):
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
             todense = self.A.toarray
             trace = lambda: self.A.diagonal().sum()
-            diagonal = lambda: self.A.diagonal()
+            diagonal = self.A.diagonal
         else:
             self.A = np.asarray(A)
             self.A.setflags(write=False)
