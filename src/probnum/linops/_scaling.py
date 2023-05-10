@@ -312,6 +312,9 @@ class Scaling(_linear_operator.LambdaLinearOperator):
 
         return np.linalg.cond(self.todense(cache=False), p=p)
 
+    def _diagonal(self) -> np.ndarray:
+        return self.factors
+
     def _cholesky(self, lower: bool = True) -> Scaling:
         if self._scalar is not None:
             if self._scalar <= 0:
@@ -347,6 +350,7 @@ class Zero(_linear_operator.LambdaLinearOperator):
         det = lambda: np.zeros(shape=(), dtype=dtype)
 
         trace = lambda: np.zeros(shape=(), dtype=dtype)
+        diagonal = lambda: np.zeros(shape=(np.min(shape),), dtype=dtype)
 
         def matmul(x: np.ndarray) -> np.ndarray:
             target_shape = list(x.shape)
@@ -363,6 +367,7 @@ class Zero(_linear_operator.LambdaLinearOperator):
             eigvals=eigvals,
             det=det,
             trace=trace,
+            diagonal=diagonal,
         )
 
         # Matrix properties

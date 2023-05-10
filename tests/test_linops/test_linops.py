@@ -382,6 +382,18 @@ def test_trace(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_diagonal(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    linop_diagonal = linop.diagonal()
+    matrix_diagonal = np.diagonal(matrix)
+
+    assert isinstance(linop_diagonal, np.ndarray)
+    assert linop_diagonal.shape == matrix_diagonal.shape
+    assert linop_diagonal.dtype == matrix_diagonal.dtype
+
+    np.testing.assert_allclose(linop_diagonal, matrix_diagonal)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_transpose(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     matrix_transpose = matrix.transpose()
 
