@@ -1,6 +1,9 @@
+from typing import Callable
+
 import numpy as np
 import pytest
 
+from probnum.problems import QuadratureProblem
 from probnum.problems.zoo.quad import (
     bratley1992,
     genz_continuous,
@@ -57,14 +60,16 @@ def test_genz_uniform_param_checks(genz_problem):
         roos_arnold,
     ],
 )
-def test_integrand_eval_checks(quad_problem_constructor):
+def test_integrand_eval_checks(
+    quad_problem_constructor: Callable[..., QuadratureProblem]
+):
     quad_problem = quad_problem_constructor(2)
 
     with pytest.raises(ValueError):
-        quad_problem.integrand(np.zeros((4, 3)))
+        quad_problem.fun(np.zeros((4, 3)))
 
     with pytest.raises(ValueError):
-        quad_problem.integrand(np.full((4, 2), -0.1))
+        quad_problem.fun(np.full((4, 2), -0.1))
 
 
 @pytest.mark.parametrize(
@@ -109,32 +114,32 @@ def test_genz_uniform(a, u, dim):
     # Test that all Monte Carlo estimators approximate the true value of the integral
     # (integration against uniform)
     np.testing.assert_allclose(
-        np.sum(quadprob_genz_continuous.integrand(x_unif)) / n,
+        np.sum(quadprob_genz_continuous.fun(x_unif)) / n,
         quadprob_genz_continuous.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_genz_cornerpeak.integrand(x_unif)) / n,
+        np.sum(quadprob_genz_cornerpeak.fun(x_unif)) / n,
         quadprob_genz_cornerpeak.solution,
         rtol=3e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_genz_discontinuous.integrand(x_unif)) / n,
+        np.sum(quadprob_genz_discontinuous.fun(x_unif)) / n,
         quadprob_genz_discontinuous.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_genz_gaussian.integrand(x_unif)) / n,
+        np.sum(quadprob_genz_gaussian.fun(x_unif)) / n,
         quadprob_genz_gaussian.solution,
         rtol=2e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_genz_oscillatory.integrand(x_unif)) / n,
+        np.sum(quadprob_genz_oscillatory.fun(x_unif)) / n,
         quadprob_genz_oscillatory.solution,
         rtol=9e-02,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_genz_productpeak.integrand(x_unif)) / n,
+        np.sum(quadprob_genz_productpeak.fun(x_unif)) / n,
         quadprob_genz_productpeak.solution,
         rtol=1e-03,
     )
@@ -167,27 +172,27 @@ def test_integrands_uniform(dim):
     # Test that all Monte Carlo estimators approximate the true value of the integral
     # (integration against uniform)
     np.testing.assert_allclose(
-        np.sum(quadprob_bratley1992.integrand(x_unif)) / n,
+        np.sum(quadprob_bratley1992.fun(x_unif)) / n,
         quadprob_bratley1992.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_roos_arnold.integrand(x_unif)) / n,
+        np.sum(quadprob_roos_arnold.fun(x_unif)) / n,
         quadprob_roos_arnold.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_gfunction.integrand(x_unif)) / n,
+        np.sum(quadprob_gfunction.fun(x_unif)) / n,
         quadprob_gfunction.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_morokoff_caflisch_1.integrand(x_unif)) / n,
+        np.sum(quadprob_morokoff_caflisch_1.fun(x_unif)) / n,
         quadprob_morokoff_caflisch_1.solution,
         rtol=1e-03,
     )
     np.testing.assert_allclose(
-        np.sum(quadprob_morokoff_caflisch_2.integrand(x_unif)) / n,
+        np.sum(quadprob_morokoff_caflisch_2.fun(x_unif)) / n,
         quadprob_morokoff_caflisch_2.solution,
         rtol=1e-03,
     )

@@ -7,6 +7,7 @@ from scipy import special
 from scipy.stats import norm
 
 from probnum.problems import QuadratureProblem
+from probnum.quad.integration_measures import GaussianMeasure
 from probnum.typing import FloatLike
 
 __all__ = [
@@ -65,13 +66,12 @@ def uniform_to_gaussian_quadprob(
        of the 14th Monte Carlo and Quasi-Monte Carlo Methods (MCQMC) conference 2020.
        arXiv:2006.07487.
     """
-
-    dim = len(quadprob.lower_bd)
+    lower_bd, upper_bd = quadprob.measure.domain
 
     # Check that the original quadrature problem was defined on [0,1]^d
-    if np.any(quadprob.lower_bd != 0.0):
+    if np.any(lower_bd != 0.0):
         raise ValueError("quadprob is not an integration problem over [0,1]^d")
-    if np.any(quadprob.upper_bd != 1.0):
+    if np.any(upper_bd != 1.0):
         raise ValueError("quadprob is not an integration problem over [0,1]^d")
 
     # Check that the original quadrature problem has a scalar valued solution
@@ -80,7 +80,7 @@ def uniform_to_gaussian_quadprob(
 
     # Construct transformation of the integrand
     def uniform_to_gaussian_integrand(
-        func: Callable[[np.ndarray], np.ndarray],
+        fun: Callable[[np.ndarray], np.ndarray],
         mean: FloatLike = 0.0,
         var: FloatLike = 1.0,
     ) -> Callable[[np.ndarray], np.ndarray]:
@@ -92,17 +92,14 @@ def uniform_to_gaussian_quadprob(
             raise TypeError("The variance should be a positive float.")
 
         def newfunc(x):
-            return func(norm.cdf((x - mean) / var))
+            return fun(norm.cdf((x - mean) / var))
 
         return newfunc
 
+    gaussian_measure = GaussianMeasure(mean=mean, cov=var)
     return QuadratureProblem(
-        integrand=uniform_to_gaussian_integrand(
-            func=quadprob.integrand, mean=mean, var=var
-        ),
-        lower_bd=np.broadcast_to(-np.Inf, dim),
-        upper_bd=np.broadcast_to(np.Inf, dim),
-        output_dim=None,
+        fun=uniform_to_gaussian_integrand(fun=quadprob.fun, mean=mean, var=var),
+        measure=gaussian_measure,
         solution=quadprob.solution,
     )
 
@@ -154,6 +151,18 @@ def sum_polynomials(
     if b is None:
         b = np.broadcast_to(1, (1, dim))
 
+    if len(a.shape) != 2:
+        raise ValueError(
+            f"Invalid shape {a.shape} for parameter `a`. "
+            f"Expected parameters of shape (p+1)xdim"
+        )
+
+    if len(b.shape) != 2:
+        raise ValueError(
+            f"Invalid shape {a.shape} for parameter `a`. "
+            f"Expected parameters of shape (p+1)xdim"
+        )
+
     # Check that the parameters have valid values and shape
     if a.shape[1] != dim:
         raise ValueError(
@@ -187,11 +196,11 @@ def sum_polynomials(
     delta = (np.remainder(b, 2) - 1) ** 2
     doublefact = special.factorial2(b - 1)
     solution = np.sum(np.prod(a * delta * (var**b) * doublefact, axis=1))
+    mean = np.zeros_like(dim)
 
+    gaussian_measure = GaussianMeasure(mean=mean, cov=var)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(-np.Inf, dim),
-        upper_bd=np.broadcast_to(np.Inf, dim),
-        output_dim=None,
+        fun=integrand,
+        measure=gaussian_measure,
         solution=solution,
     )

@@ -21,6 +21,8 @@ __all__ = [
     "morokoff_caflisch_2",
 ]
 
+from probnum.quad.integration_measures import LebesgueMeasure
+
 
 def genz_continuous(
     dim: int, a: np.ndarray = None, u: np.ndarray = None
@@ -77,7 +79,7 @@ def genz_continuous(
     if np.any(u < 0.0) or np.any(u > 1):
         raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         nonlocal a, u
         n = x.shape[0]
 
@@ -99,12 +101,12 @@ def genz_continuous(
         return f.reshape((n, 1))
 
     solution = np.prod((2.0 - np.exp(-1.0 * a * u) - np.exp(a * (u - 1))) / a)
-
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -153,7 +155,7 @@ def genz_cornerpeak(
     if np.any(u < 0.0) or np.any(u > 1):
         raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         nonlocal a, u
         n = x.shape[0]
 
@@ -182,11 +184,12 @@ def genz_cornerpeak(
             ) ** (-1)
     solution = solution / (np.prod(a) * np.math.factorial(dim))
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -240,7 +243,7 @@ def genz_discontinuous(
     if np.any(u < 0.0) or np.any(u > 1):
         raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         nonlocal a, u
         n = x.shape[0]
 
@@ -265,11 +268,12 @@ def genz_discontinuous(
     if dim > 1:
         solution = np.prod((np.exp(a * np.minimum(u, 1.0)) - 1.0) / a)
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -318,7 +322,7 @@ def genz_gaussian(
     if np.any(u < 0.0) or np.any(u > 1):
         raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         nonlocal a, u
         n = x.shape[0]
 
@@ -343,11 +347,12 @@ def genz_gaussian(
         (norm.cdf(np.sqrt(2) * a * (1.0 - u)) - norm.cdf(-np.sqrt(2) * a * u)) / a
     )
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -399,7 +404,7 @@ def genz_oscillatory(
     if np.any(u < 0.0) or np.any(u > 1):
         raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         nonlocal a, u
         n = x.shape[0]
 
@@ -443,11 +448,12 @@ def genz_oscillatory(
 
     solution = solution / np.prod(a)
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -497,7 +503,7 @@ def genz_productpeak(
     if np.any(u < 0.0) or np.any(u > 1.0):
         raise ValueError("The parameters `u` must lie in the interval [0.0, 1.0].")
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         nonlocal a, u
         n = x.shape[0]
 
@@ -520,11 +526,12 @@ def genz_productpeak(
 
     solution = np.prod(a * (np.arctan(a * (1.0 - u)) - np.arctan(-1.0 * a * u)))
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -549,7 +556,7 @@ def bratley1992(dim: int) -> QuadratureProblem:
     .. [2] https://www.sfu.ca/~ssurjano/bratleyetal92.html
     """
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -571,11 +578,12 @@ def bratley1992(dim: int) -> QuadratureProblem:
 
     solution = -(1.0 / 3) * (1.0 - ((-0.5) ** dim))
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -599,7 +607,7 @@ def roos_arnold(dim: int) -> QuadratureProblem:
     .. [2] https://www.sfu.ca/~ssurjano/roosarn63.html
     """
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -618,11 +626,12 @@ def roos_arnold(dim: int) -> QuadratureProblem:
 
     solution = 1.0
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -647,7 +656,7 @@ def gfunction(dim: int) -> QuadratureProblem:
     .. [2] https://www.sfu.ca/~ssurjano/gfunc.html
     """
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -667,11 +676,12 @@ def gfunction(dim: int) -> QuadratureProblem:
 
     solution = 1.0
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -697,7 +707,7 @@ def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
     .. [3] https://www.sfu.ca/~ssurjano/morcaf95a.html
     """
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -716,11 +726,12 @@ def morokoff_caflisch_1(dim: int) -> QuadratureProblem:
 
     solution = 1.0
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
 
@@ -744,7 +755,7 @@ def morokoff_caflisch_2(dim: int) -> QuadratureProblem:
     .. [2] https://www.sfu.ca/~ssurjano/morcaf95b.html
     """
 
-    def integrand(x: np.ndarray) -> np.ndarray:
+    def fun(x: np.ndarray) -> np.ndarray:
         n = x.shape[0]
 
         # Check that the input points have valid values
@@ -763,10 +774,11 @@ def morokoff_caflisch_2(dim: int) -> QuadratureProblem:
 
     solution = 1.0
 
+    lower_bd = np.broadcast_to(0.0, dim)
+    upper_bd = np.broadcast_to(1.0, dim)
+    uniform_measure = LebesgueMeasure(domain=(lower_bd, upper_bd), input_dim=dim)
     return QuadratureProblem(
-        integrand=integrand,
-        lower_bd=np.broadcast_to(0.0, dim),
-        upper_bd=np.broadcast_to(1.0, dim),
-        output_dim=None,
+        fun=fun,
+        measure=uniform_measure,
         solution=solution,
     )
