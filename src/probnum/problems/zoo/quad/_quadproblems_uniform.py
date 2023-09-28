@@ -264,7 +264,7 @@ def genz_discontinuous(
         return f.reshape(n, 1)
 
     if dim == 1:
-        solution = (np.exp(a * u) - 1.0) / a
+        solution = ((np.exp(a * u) - 1.0) / a).item()
     if dim > 1:
         solution = np.prod((np.exp(a * np.minimum(u, 1.0)) - 1.0) / a)
 

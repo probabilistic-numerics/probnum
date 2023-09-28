@@ -1,7 +1,9 @@
+from itertools import product
 from typing import Callable
 
 import numpy as np
 import pytest
+from pytest_cases import parametrize_with_cases
 
 from probnum.problems import QuadratureProblem
 from probnum.problems.zoo.quad import (
@@ -16,6 +18,10 @@ from probnum.problems.zoo.quad import (
     morokoff_caflisch_1,
     morokoff_caflisch_2,
     roos_arnold,
+)
+from tests.test_problems.test_zoo.test_quad.test_quadproblems_uniform_cases import (
+    GenzUniformCases,
+    OtherIntegrandsUniformCases,
 )
 
 
@@ -72,21 +78,39 @@ def test_integrand_eval_checks(
         quad_problem.fun(np.full((4, 2), -0.1))
 
 
-@pytest.mark.parametrize(
-    "a, u, dim",
-    [
-        (None, None, 3),
-        (5, 0.5, 1),
-        (5.0, 1.0, 1),
-        (2.0, 0.8, 1),
-        (5, 0.5, 4),
-        (5.0, 1.0, 4),
-        (2.0, 0.8, 4),
-    ],
+dim_values = [1, 2]
+quad_prob_constructor_values = [
+    bratley1992,
+    genz_continuous,
+    genz_cornerpeak,
+    genz_discontinuous,
+    genz_gaussian,
+    genz_oscillatory,
+    genz_productpeak,
+    gfunction,
+    morokoff_caflisch_1,
+    morokoff_caflisch_2,
+    roos_arnold,
+]
+param_combinations = list(product(dim_values, quad_prob_constructor_values))
+
+
+@pytest.mark.parametrize("dim, quad_prob_constructor", param_combinations)
+def test_integrand_solution_float(
+    dim: int, quad_prob_constructor: Callable[..., QuadratureProblem]
+):
+    quadprob = quad_prob_constructor(dim)
+    if np.ndim(quadprob.solution) != 0:
+        raise ValueError(f"The solution of {quadprob} is not a scalar.")
+
+
+@parametrize_with_cases(
+    "quadprob, rtol",
+    cases=(GenzUniformCases, OtherIntegrandsUniformCases),
 )
-def test_genz_uniform(a, u, dim):
-    """Compare a Monte Carlo estimator with a very large number of samples to the true
-    value of the integral.
+def test_quadprob_uniform_with_mc(quadprob, rtol):
+    """Compare a Monte Carlo estimator against uniform measure with a very large number
+    of samples to the true value of the integral.
 
     The former should be an approximation of the latter.
     """
@@ -94,105 +118,14 @@ def test_genz_uniform(a, u, dim):
     # Number of Monte Carlo samples for the test
     n = 10000000
 
-    # Define parameters a and u
-    a_vec = np.repeat(a, dim) if a is not None else None
-    u_vec = np.repeat(u, dim) if u is not None else None
-
-    quadprob_genz_continuous = genz_continuous(dim=dim, a=a_vec, u=u_vec)
-    quadprob_genz_cornerpeak = genz_cornerpeak(dim=dim, a=a_vec, u=u_vec)
-    quadprob_genz_discontinuous = genz_discontinuous(dim=dim, a=a_vec, u=u_vec)
-    quadprob_genz_gaussian = genz_gaussian(dim=dim, a=a_vec, u=u_vec)
-    quadprob_genz_oscillatory = genz_oscillatory(dim=dim, a=a_vec, u=u_vec)
-    quadprob_genz_productpeak = genz_productpeak(dim=dim, a=a_vec, u=u_vec)
-
-    # generate some uniformly distributed points on [0,1]^d
-    np.random.seed(0)
-    x_unif = np.random.uniform(
-        low=0.0, high=1.0, size=(n, dim)
-    )  # Monte Carlo samples x_1,...,x_n
+    # generate some uniformly distributed points from [0, 1]
+    rng = np.random.default_rng(0)
+    x_uniform = quadprob.measure.sample(n, rng=rng)  # Monte Carlo samples x_1,...,x_n
 
     # Test that all Monte Carlo estimators approximate the true value of the integral
-    # (integration against uniform)
+    # (integration against [0, 1])
     np.testing.assert_allclose(
-        np.sum(quadprob_genz_continuous.fun(x_unif)) / n,
-        quadprob_genz_continuous.solution,
-        rtol=1e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_genz_cornerpeak.fun(x_unif)) / n,
-        quadprob_genz_cornerpeak.solution,
-        rtol=3e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_genz_discontinuous.fun(x_unif)) / n,
-        quadprob_genz_discontinuous.solution,
-        rtol=1e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_genz_gaussian.fun(x_unif)) / n,
-        quadprob_genz_gaussian.solution,
-        rtol=2e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_genz_oscillatory.fun(x_unif)) / n,
-        quadprob_genz_oscillatory.solution,
-        rtol=9e-02,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_genz_productpeak.fun(x_unif)) / n,
-        quadprob_genz_productpeak.solution,
-        rtol=1e-03,
-    )
-
-
-@pytest.mark.parametrize("dim", [(1), (4), (10)])
-def test_integrands_uniform(dim):
-    """Compare a Monte Carlo estimator with a very large number of samples to the true
-    value of the integral.
-
-    The former should be an approximation of the latter.
-    """
-
-    # Number of Monte Carlo samples for the test
-    n = 10000000
-
-    # generate some uniformly distributed points on [0,1]^d
-    np.random.seed(0)
-    x_unif = np.random.uniform(
-        low=0.0, high=1.0, size=(n, dim)
-    )  # Monte Carlo samples x_1,...,x_n
-
-    # Set the integrands to test
-    quadprob_bratley1992 = bratley1992(dim=dim)
-    quadprob_roos_arnold = roos_arnold(dim=dim)
-    quadprob_gfunction = gfunction(dim=dim)
-    quadprob_morokoff_caflisch_1 = morokoff_caflisch_1(dim=dim)
-    quadprob_morokoff_caflisch_2 = morokoff_caflisch_2(dim=dim)
-
-    # Test that all Monte Carlo estimators approximate the true value of the integral
-    # (integration against uniform)
-    np.testing.assert_allclose(
-        np.sum(quadprob_bratley1992.fun(x_unif)) / n,
-        quadprob_bratley1992.solution,
-        rtol=1e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_roos_arnold.fun(x_unif)) / n,
-        quadprob_roos_arnold.solution,
-        rtol=1e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_gfunction.fun(x_unif)) / n,
-        quadprob_gfunction.solution,
-        rtol=1e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_morokoff_caflisch_1.fun(x_unif)) / n,
-        quadprob_morokoff_caflisch_1.solution,
-        rtol=1e-03,
-    )
-    np.testing.assert_allclose(
-        np.sum(quadprob_morokoff_caflisch_2.fun(x_unif)) / n,
-        quadprob_morokoff_caflisch_2.solution,
-        rtol=1e-03,
+        np.sum(quadprob.fun(x_uniform)) / n,
+        quadprob.solution,
+        rtol=rtol,
     )

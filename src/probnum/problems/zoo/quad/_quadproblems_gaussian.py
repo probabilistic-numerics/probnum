@@ -1,6 +1,6 @@
 """Test problems for integration against a Gaussian measure."""
 
-from typing import Callable
+from typing import Callable, Union
 
 import numpy as np
 from scipy import special
@@ -16,8 +16,35 @@ __all__ = [
 ]
 
 
+# Construct transformation of the integrand
+def uniform_to_gaussian_integrand(
+    fun: Callable[[np.ndarray], np.ndarray],
+    mean: Union[float, np.floating, np.ndarray] = 0.0,
+    std: Union[float, np.floating, np.ndarray] = 1.0,
+) -> Callable[[np.ndarray], np.ndarray]:
+    # mean and var should be either one-dimensional
+    if isinstance(mean, np.ndarray):
+        if len(mean.shape) != 1:
+            raise TypeError(
+                "The mean parameter should be a float or a d-dimensional array."
+            )
+
+    if isinstance(std, np.ndarray):
+        if len(std.shape) != 1:
+            raise TypeError(
+                "The std parameter should be a float or a d-dimensional array."
+            )
+
+    def new_func(x):
+        return fun(norm.cdf(x, loc=mean, scale=std))
+
+    return new_func
+
+
 def uniform_to_gaussian_quadprob(
-    quadprob: QuadratureProblem, mean: FloatLike = 0.0, var: FloatLike = 1.0
+    quadprob: QuadratureProblem,
+    mean: Union[float, np.floating, np.ndarray] = 0.0,
+    std: Union[float, np.floating, np.ndarray] = 1.0,
 ) -> QuadratureProblem:
     r"""Creates a new QuadratureProblem for integration against a Gaussian on
     :math:`\mathbb{R}^d` by using an existing QuadratureProblem whose integrand is
@@ -39,9 +66,12 @@ def uniform_to_gaussian_quadprob(
     quadprob
         A QuadratureProblem instance which includes an integrand defined on [0,1]^d
     mean
-        Mean of the Gaussian distribution.
-    var
-        Diagonal element for the covariance matrix of the Gaussian distribution.
+        Mean of the Gaussian distribution. If `float`, mean is set to the same value
+        across all dimensions. Else, specifies the mean as a d-dimensional array.
+    std
+        Diagonal element for the covariance matrix of the Gaussian distribution. If
+        `float`, the covariance matrix has the same diagonal value for all dimensions.
+        Else, specifies the covariance matrix via a d-dimensional array.
 
     Returns
     -------
@@ -78,27 +108,14 @@ def uniform_to_gaussian_quadprob(
     if np.ndim(quadprob.solution) != 0:
         raise ValueError("The solution of quadprob is not a scalar.")
 
-    # Construct transformation of the integrand
-    def uniform_to_gaussian_integrand(
-        fun: Callable[[np.ndarray], np.ndarray],
-        mean: FloatLike = 0.0,
-        var: FloatLike = 1.0,
-    ) -> Callable[[np.ndarray], np.ndarray]:
-        # mean and var should be either one-dimensional, or an array of dimension d
-        if isinstance(mean, float) is False:
-            raise TypeError("The mean parameter should be a float.")
+    dim = lower_bd.shape[0]
 
-        if isinstance(var, float) is False or var <= 0.0:
-            raise TypeError("The variance should be a positive float.")
-
-        def newfunc(x):
-            return fun(norm.cdf((x - mean) / var))
-
-        return newfunc
-
-    gaussian_measure = GaussianMeasure(mean=mean, cov=var)
+    cov = std**2
+    if isinstance(std, np.ndarray):
+        cov = np.eye(dim) * cov
+    gaussian_measure = GaussianMeasure(mean=mean, cov=cov, input_dim=dim)
     return QuadratureProblem(
-        fun=uniform_to_gaussian_integrand(fun=quadprob.fun, mean=mean, var=var),
+        fun=uniform_to_gaussian_integrand(fun=quadprob.fun, mean=mean, std=std),
         measure=gaussian_measure,
         solution=quadprob.solution,
     )
@@ -159,7 +176,7 @@ def sum_polynomials(
 
     if len(b.shape) != 2:
         raise ValueError(
-            f"Invalid shape {a.shape} for parameter `a`. "
+            f"Invalid shape {b.shape} for parameter `b`. "
             f"Expected parameters of shape (p+1)xdim"
         )
 
@@ -196,9 +213,12 @@ def sum_polynomials(
     delta = (np.remainder(b, 2) - 1) ** 2
     doublefact = special.factorial2(b - 1)
     solution = np.sum(np.prod(a * delta * (var**b) * doublefact, axis=1))
-    mean = np.zeros_like(dim)
+    if isinstance(var, float):
+        mean = 0.0
+    else:
+        mean = np.zeros(dim)
 
-    gaussian_measure = GaussianMeasure(mean=mean, cov=var)
+    gaussian_measure = GaussianMeasure(mean=mean, cov=var, input_dim=dim)
     return QuadratureProblem(
         fun=integrand,
         measure=gaussian_measure,
