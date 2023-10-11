@@ -59,7 +59,7 @@ def uniform_to_gaussian_quadprob(
 
     where :math:`h(x)=f(\Phi((x-mean)/var))`, :math:`\phi(x)` is the Gaussian
     probability density function and :math:`\Phi(x)` an elementwise application of the
-    Gaussian cummulative distribution function. See [1]_.
+    Gaussian cumulative distribution function. See [1]_.
 
     Parameters
     ----------
@@ -87,7 +87,12 @@ def uniform_to_gaussian_quadprob(
 
     Example
     -------
-        uniform_to_gaussian_quadprob(genz_continuous(1))
+    Convert the uniform continuous Genz problem to a Gaussian quadrature problem.
+    >>> import numpy as np
+    >>> from probnum.problems.zoo.quad import genz_continuous
+    >>> gaussian_quadprob = uniform_to_gaussian_quadprob(genz_continuous(1))
+    >>> gaussian_quadprob.fun(np.array([[0.]]))
+    array([[1.]])
 
     References
     ----------

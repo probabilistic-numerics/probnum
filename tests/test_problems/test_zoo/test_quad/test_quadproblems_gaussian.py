@@ -172,7 +172,7 @@ def test_negative_values_for_b_in_sum_polynomials_raises():
         OtherIntegrandsGaussianCases,
     ),
 )
-def test_genz_gaussian(quadprob: QuadratureProblem, rtol: float):
+def test_gaussian_quadprob(quadprob: QuadratureProblem, rtol: float):
     """Compare a Monte Carlo estimator against Gaussian measure with a very large number
     of samples to the true value of the integral.
 
