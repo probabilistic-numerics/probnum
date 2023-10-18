@@ -1,4 +1,4 @@
 # Dependencies for code linting
 
-pylint~=2.17.5
+pylint~=2.17.7
 # mypy
