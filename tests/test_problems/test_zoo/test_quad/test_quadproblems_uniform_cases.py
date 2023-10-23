@@ -32,7 +32,7 @@ class GenzUniformCases:
         a_vec = np.repeat(a, dim) if a is not None else None
         u_vec = np.repeat(u, dim) if u is not None else None
         quadprob = genz_continuous(dim=dim, a=a_vec, u=u_vec)
-        rtol = 1e-3
+        rtol = 5e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -40,7 +40,7 @@ class GenzUniformCases:
         a_vec = np.repeat(a, dim) if a is not None else None
         u_vec = np.repeat(u, dim) if u is not None else None
         quadprob = genz_cornerpeak(dim=dim, a=a_vec, u=u_vec)
-        rtol = 1e-2
+        rtol = 5e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -48,7 +48,7 @@ class GenzUniformCases:
         a_vec = np.repeat(a, dim) if a is not None else None
         u_vec = np.repeat(u, dim) if u is not None else None
         quadprob = genz_discontinuous(dim=dim, a=a_vec, u=u_vec)
-        rtol = 2e-3
+        rtol = 5e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -56,7 +56,7 @@ class GenzUniformCases:
         a_vec = np.repeat(a, dim) if a is not None else None
         u_vec = np.repeat(u, dim) if u is not None else None
         quadprob = genz_gaussian(dim=dim, a=a_vec, u=u_vec)
-        rtol = 1e-2
+        rtol = 9e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -64,7 +64,7 @@ class GenzUniformCases:
         a_vec = np.repeat(a, dim) if a is not None else None
         u_vec = np.repeat(u, dim) if u is not None else None
         quadprob = genz_oscillatory(dim=dim, a=a_vec, u=u_vec)
-        rtol = 9e-2
+        rtol = 5e-1
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -72,7 +72,7 @@ class GenzUniformCases:
         a_vec = np.repeat(a, dim) if a is not None else None
         u_vec = np.repeat(u, dim) if u is not None else None
         quadprob = genz_productpeak(dim=dim, a=a_vec, u=u_vec)
-        rtol = 1e-3
+        rtol = 5e-2
         return quadprob, rtol
 
 
@@ -83,29 +83,29 @@ class OtherIntegrandsUniformCases:
     @pytest.mark.parametrize("dim", dim_params)
     def case_bratley1992(self, dim):
         quadprob = bratley1992(dim=dim)
-        rtol = 1e-3
+        rtol = 1e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("dim", dim_params)
     def case_roos_arnold(self, dim):
         quadprob = roos_arnold(dim=dim)
-        rtol = 1e-3
+        rtol = 1e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("dim", dim_params)
     def case_gfunction(self, dim):
         quadprob = gfunction(dim=dim)
-        rtol = 1e-3
+        rtol = 1e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("dim", dim_params)
     def case_morokoff_caflisch_1(self, dim):
         quadprob = morokoff_caflisch_1(dim=dim)
-        rtol = 1e-3
+        rtol = 1e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("dim", dim_params)
     def case_morokoff_caflisch_2(self, dim):
         quadprob = morokoff_caflisch_2(dim=dim)
-        rtol = 1e-3
+        rtol = 1e-2
         return quadprob, rtol

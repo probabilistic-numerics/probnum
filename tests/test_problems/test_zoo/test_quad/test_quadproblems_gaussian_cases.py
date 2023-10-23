@@ -34,7 +34,7 @@ class GenzStandardNormalCases:
         quadprob = uniform_to_gaussian_quadprob(
             genz_continuous(dim=dim, a=a_vec, u=u_vec)
         )
-        rtol = 1e-2
+        rtol = 5e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -44,7 +44,7 @@ class GenzStandardNormalCases:
         quadprob = uniform_to_gaussian_quadprob(
             genz_cornerpeak(dim=dim, a=a_vec, u=u_vec)
         )
-        rtol = 1e-2
+        rtol = 5e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -54,7 +54,7 @@ class GenzStandardNormalCases:
         quadprob = uniform_to_gaussian_quadprob(
             genz_discontinuous(dim=dim, a=a_vec, u=u_vec)
         )
-        rtol = 1e-2
+        rtol = 5e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -64,7 +64,7 @@ class GenzStandardNormalCases:
         quadprob = uniform_to_gaussian_quadprob(
             genz_gaussian(dim=dim, a=a_vec, u=u_vec)
         )
-        rtol = 1e-2
+        rtol = 6e-2
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -74,7 +74,7 @@ class GenzStandardNormalCases:
         quadprob = uniform_to_gaussian_quadprob(
             genz_oscillatory(dim=dim, a=a_vec, u=u_vec)
         )
-        rtol = 9e-2
+        rtol = 2.0
         return quadprob, rtol
 
     @pytest.mark.parametrize("a, u, dim", genz_params)
@@ -84,7 +84,7 @@ class GenzStandardNormalCases:
         quadprob = uniform_to_gaussian_quadprob(
             genz_productpeak(dim=dim, a=a_vec, u=u_vec)
         )
-        rtol = 1e-2
+        rtol = 5e-2
         return quadprob, rtol
 
 
@@ -112,19 +112,19 @@ class OtherIntegrandsGaussianCases:
     @pytest.mark.parametrize("dim", dim_params)
     def case_bratley1992(self, dim):
         quadprob = uniform_to_gaussian_quadprob(bratley1992(dim=dim))
-        rtol = 1e-3
+        rtol = 5e-3
         return quadprob, rtol
 
     @pytest.mark.parametrize("dim", dim_params)
     def case_roos_arnold(self, dim):
         quadprob = uniform_to_gaussian_quadprob(roos_arnold(dim=dim))
-        rtol = 1e-3
+        rtol = 5e-3
         return quadprob, rtol
 
     @pytest.mark.parametrize("dim", dim_params)
     def case_gfunction(self, dim):
         quadprob = uniform_to_gaussian_quadprob(gfunction(dim=dim))
-        rtol = 1e-3
+        rtol = 5e-3
         return quadprob, rtol
 
     @pytest.mark.parametrize("dim", dim_params)

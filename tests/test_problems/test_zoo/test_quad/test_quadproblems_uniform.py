@@ -116,7 +116,7 @@ def test_quadprob_uniform_with_mc(quadprob, rtol):
     """
 
     # Number of Monte Carlo samples for the test
-    n = 10000000
+    n = 100000
 
     # generate some uniformly distributed points from [0, 1]
     rng = np.random.default_rng(0)

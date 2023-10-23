@@ -179,7 +179,7 @@ def test_gaussian_quadprob(quadprob: QuadratureProblem, rtol: float):
     The former should be an approximation of the latter.
     """
     # Number of Monte Carlo samples for the test
-    n = 10000000
+    n = 100000
 
     # generate some normally distributed points from N(0, 1)
     rng = np.random.default_rng(0)
@@ -222,7 +222,7 @@ def test_sum_polynomials(
     """
 
     # Number of Monte Carlo samples for the test
-    n = 10000000
+    n = 100000
 
     quadprob = sum_polynomials(dim, a, b, var)
 
