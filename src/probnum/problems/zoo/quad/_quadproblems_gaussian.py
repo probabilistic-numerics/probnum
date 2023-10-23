@@ -88,6 +88,7 @@ def uniform_to_gaussian_quadprob(
     Example
     -------
     Convert the uniform continuous Genz problem to a Gaussian quadrature problem.
+    
     >>> import numpy as np
     >>> from probnum.problems.zoo.quad import genz_continuous
     >>> gaussian_quadprob = uniform_to_gaussian_quadprob(genz_continuous(1))
