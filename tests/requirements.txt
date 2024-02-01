@@ -1,5 +1,5 @@
 # Dependencies needed to run the tests
-pytest>=4.6,<8.0.0; python_version>"3.8.10"
+pytest>=4.6,<9.0.0; python_version>"3.8.10"
 pytest>=6.1.1,<6.2.0; python_version<="3.8.10"
 pytest-cov
 pytest-cases>=3.6.9,<4.0.0
