@@ -452,6 +452,26 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
             scipy.stats.norm.entropy(loc=self.mean, scale=self.std),
             dtype=np.float_,
         )
+    
+    def _multivariate_sample(
+            self,
+            rng: np.random.Generator,
+            size: ShapeType = (),
+        ) -> Union[np.floating, np.ndarray]:
+
+        if self.cov_cholesky is None:
+            raise ValueError('Cholesky factor of the covariance operator is not available.')
+        
+        if self.mean.ndim != 1:
+            raise ValueError('Mean must be a vector.')
+
+        sample = scipy.stats.norm().rvs(
+            size=self.shape + _utils.as_shape(size),
+            random_state=rng,
+        )
+        sample = self.cov_cholesky @ sample
+        sample += self.mean[..., np.newaxis]
+        return sample.T
 
     # Multi- and matrixvariate Gaussians
     def dense_cov_cholesky(

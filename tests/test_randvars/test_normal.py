@@ -213,6 +213,23 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 ),
             )
 
+    def test_multivariate_sample_zero_cov(self):
+        """Draw sample from distribution with zero kernels and check whether it equals the mean."""
+        mean = np.random.rand(10)
+        cov = np.zeros((10, 10))
+        rv = randvars.Normal(mean=mean, cov=0*cov, cov_cholesky=0*cov)
+        rv_sample = rv.sample(rng=self.rng, size=1)
+        self.assertAllClose(rv.mean, rv_sample)
+        
+    def test_multivariate_sample_shape(self):
+        """Test whether the shape of the sample is correct."""
+        N, n_blocks, size = 10, 4, 36
+        mean = np.random.rand(n_blocks*N)
+        cov = cov_sqrt = linops.BlockDiagonalMatrix(*[np.eye(N) for _ in range(n_blocks)])
+        rv = randvars.Normal(mean=mean, cov=cov, cov_cholesky=cov_sqrt)
+        rv_sample = rv._multivariate_sample(rng=self.rng, size=size)
+        self.assertEqual((size, N*n_blocks), rv_sample.shape)
+
     def test_indexing(self):
         """Indexing with Python integers yields a univariate normal distribution."""
         for mean, cov in self.normal_params:
