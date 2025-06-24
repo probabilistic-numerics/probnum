@@ -1,4 +1,5 @@
 """Tests for linear solvers."""
+
 import os
 import unittest
 
@@ -333,8 +334,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_searchdir_conjugacy(self):
-        """Search directions should remain A-conjugate up to machine precision,
-        i.e. s_i^T A s_j = 0 for i != j."""
+        """Search directions should remain A-conjugate up to machine precision, i.e.
+        s_i^T A s_j = 0 for i != j."""
         searchdirs = []
 
         # Define callback function to obtain search directions
@@ -382,7 +383,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Conjugate gradient method
         xhat_cg, info_cg = scipy.sparse.linalg.cg(
-            A=A, b=b, x0=x0, tol=10**-6, callback=callback_iterates_CG
+            A=A, b=b, x0=x0, rtol=10**-6, callback=callback_iterates_CG
         )
         cg_iters_arr = np.array([x0] + cg_iterates)
 
@@ -413,7 +414,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     Ainv0=Ainv0,
                     A0=A0,
                     callback=callback_iterates_PLS,
-                    **kwargs
+                    **kwargs,
                 )
                 pls_iters_arr = np.array([x0] + pls_iterates)
 
