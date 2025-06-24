@@ -1,6 +1,7 @@
 """Test problems for integration against the Lebesgue measure."""
 
 import itertools
+import math
 
 import numpy as np
 from scipy.stats import norm
@@ -182,7 +183,7 @@ def genz_cornerpeak(
             solution = solution + ((-1.0) ** (k + dim)) * (
                 1.0 + np.sum(a) - np.sum(a_subset)
             ) ** (-1)
-    solution = solution / (np.prod(a) * np.math.factorial(dim))
+    solution = solution / (np.prod(a) * math.factorial(dim))
 
     lower_bd = np.broadcast_to(0.0, dim)
     upper_bd = np.broadcast_to(1.0, dim)
