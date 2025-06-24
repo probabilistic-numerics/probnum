@@ -187,11 +187,11 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         ------
         ValueError
             If the shape of :code:`x` is invalid.
-        numpy.AxisError
+        numpy.exceptions.AxisError
             If the axis argument is not within the valid range.
         """
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
-            raise np.AxisError(axis, ndim=x.ndim)
+            raise np.exceptions.AxisError(axis, ndim=x.ndim)
 
         if x.ndim == 1:
             return self @ x
@@ -964,7 +964,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         ------
         ValueError
             If the given axis indices do not constitute a valid permutation of the axes.
-        numpy.AxisError
+        numpy.exceptions.AxisError
             If the axis indices are out of bounds.
         """
         if len(axes) > 0:
@@ -983,7 +983,7 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
                 axis = int(axis)
 
                 if not -2 <= axis <= 1:
-                    raise np.AxisError(axis, ndim=2)
+                    raise np.exceptions.AxisError(axis, ndim=2)
 
                 if axis < 0:
                     axis += 2
@@ -1099,10 +1099,11 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
     ####################################################################################
 
     __array_ufunc__ = None
-    """
-    This prevents numpy from calling elementwise arithmetic operations allowing
+    """This prevents numpy from calling elementwise arithmetic operations allowing
     expressions like `y = np.array([1, 1]) + linop` to call the arithmetic operations
-    defined by `LinearOperator` instead of elementwise. Thus no array of
+    defined by `LinearOperator` instead of elementwise.
+
+    Thus no array of
     `LinearOperator`s but a `LinearOperator` with the correct shape is returned.
     """
 
@@ -1264,9 +1265,8 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
 class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
     LinearOperator
 ):
-    r"""Convenience subclass of LinearOperator that lets you pass
-    implementations of its methods as parameters instead of
-    overriding them in a subclass.
+    r"""Convenience subclass of LinearOperator that lets you pass implementations of its
+    methods as parameters instead of overriding them in a subclass.
 
     ``shape``, ``dtype`` and ``matmul`` must be passed, the other
     parameters are optional.
