@@ -104,7 +104,7 @@ class ArithmeticTestCase(RandomVariableTestCase):
 
     def test_rv_addition(self):
         """Addition with random variables."""
-        for (x, rv) in list(itertools.product(self.arrays2d, self.randvars2d)):
+        for x, rv in list(itertools.product(self.arrays2d, self.randvars2d)):
             with self.subTest():
                 z1 = x + rv
                 z2 = rv + x
@@ -115,7 +115,7 @@ class ArithmeticTestCase(RandomVariableTestCase):
 
     def test_rv_scalarmult(self):
         """Multiplication of random variables with scalar constants."""
-        for (alpha, rv) in list(itertools.product(self.scalars, self.randvars2d)):
+        for alpha, rv in list(itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
                 if np.isinf(alpha):
                     with self.assertWarns(RuntimeWarning):
@@ -199,7 +199,7 @@ class ShapeTestCase(RandomVariableTestCase):
             for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
                 with self.subTest():
                     try:
-                        reshaped_rv = rv.reshape(newshape=shape)
+                        reshaped_rv = rv.reshape(shape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
                         self.assertEqual(
@@ -211,7 +211,7 @@ class ShapeTestCase(RandomVariableTestCase):
             for shape in [(2, 1), (2,), (1, 2)]:
                 with self.subTest():
                     try:
-                        reshaped_rv = rv.reshape(newshape=shape)
+                        reshaped_rv = rv.reshape(shape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
                         self.assertEqual(

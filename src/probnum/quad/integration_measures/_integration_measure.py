@@ -73,5 +73,5 @@ class IntegrationMeasure(abc.ABC):
         # pylint: disable=no-member
         return np.reshape(
             self.random_variable.sample(size=n_sample, rng=rng),
-            newshape=(n_sample, self.input_dim),
+            shape=(n_sample, self.input_dim),
         )

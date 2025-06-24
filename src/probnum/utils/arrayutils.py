@@ -48,7 +48,7 @@ def atleast_1d(  # pylint: disable=missing-raises-doc
 
 
 def as_colvec(
-    vec: Union[np.ndarray, "probnum.randvars.RandomVariable"]
+    vec: Union[np.ndarray, "probnum.randvars.RandomVariable"],
 ) -> Union[np.ndarray, "probnum.randvars.RandomVariable"]:
     """Transform the given vector or random variable to column format. Given a vector
     (or random variable) of dimension (n,) return an array with dimensions (n, 1)
@@ -61,7 +61,7 @@ def as_colvec(
     """
     if isinstance(vec, probnum.randvars.RandomVariable):
         if vec.shape != (vec.shape[0], 1):
-            vec.reshape(newshape=(vec.shape[0], 1))
+            vec.reshape(shape=(vec.shape[0], 1))
     elif vec.ndim == 1:
         return vec[:, None]
     return vec
