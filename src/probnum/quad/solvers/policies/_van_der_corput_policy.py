@@ -50,7 +50,7 @@ class VanDerCorputPolicy(Policy):
 
         domain_a = measure.domain[0]
         domain_b = measure.domain[1]
-        if np.Inf in np.hstack([abs(domain_a), abs(domain_b)]):
+        if np.inf in np.hstack([abs(domain_a), abs(domain_b)]):
             raise ValueError("Policy 'vdc' works only for bounded domains.")
 
         self.domain_a = domain_a

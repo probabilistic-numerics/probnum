@@ -162,7 +162,7 @@ def test_lebesgue_domain_input_dim_mismatch_raises(input_dim, domain):
         LebesgueMeasure(input_dim=input_dim, domain=domain)
 
 
-@pytest.mark.parametrize("domain", [(0, np.Inf), (-np.Inf, 0), (-np.Inf, np.Inf)])
+@pytest.mark.parametrize("domain", [(0, np.inf), (-np.inf, 0), (-np.inf, np.inf)])
 def test_lebesgue_normalization_raises(domain, input_dim: int):
     """Check that exception is raised when normalization is not possible."""
     with pytest.raises(ValueError):

@@ -1,6 +1,5 @@
 """The Lebesgue measure."""
 
-
 from __future__ import annotations
 
 from typing import Optional
@@ -43,7 +42,7 @@ class LebesgueMeasure(IntegrationMeasure):
         else:
             normalization_constant = 1.0
 
-        if normalization_constant in [0, np.Inf, -np.Inf]:
+        if normalization_constant in [0, np.inf, -np.inf]:
             raise ValueError(
                 "Normalization constant is too small or too large. "
                 "Consider setting normalized = False."

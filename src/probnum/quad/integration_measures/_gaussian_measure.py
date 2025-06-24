@@ -1,6 +1,5 @@
 """The Gaussian measure."""
 
-
 from __future__ import annotations
 
 from typing import Optional, Union
@@ -55,7 +54,7 @@ class GaussianMeasure(IntegrationMeasure):
             input_dim = mean.size
 
         # Set domain as whole R^n
-        domain = (np.full((input_dim,), -np.Inf), np.full((input_dim,), np.Inf))
+        domain = (np.full((input_dim,), -np.inf), np.full((input_dim,), np.inf))
         super().__init__(input_dim=input_dim, domain=domain)
 
         # Exploit random variables to carry out mean and covariance checks

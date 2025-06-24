@@ -222,7 +222,7 @@ def test_van_der_corput_multi_d_error():
         VanDerCorputPolicy(1, measure)
 
 
-@pytest.mark.parametrize("domain", [(-np.Inf, 0), (1, np.Inf), (-np.Inf, np.Inf)])
+@pytest.mark.parametrize("domain", [(-np.inf, 0), (1, np.inf), (-np.inf, np.inf)])
 def test_van_der_corput_infinite_error(domain):
     """Check that van der Corput policy fails on infinite domains."""
     measure = LebesgueMeasure(input_dim=1, domain=domain)
