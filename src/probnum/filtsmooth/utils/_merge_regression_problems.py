@@ -1,6 +1,5 @@
 """Utility functions for filtering and smoothing."""
 
-
 from typing import Tuple
 
 import numpy as np
@@ -103,7 +102,7 @@ def merge_regression_problems(
     )
 
     # Merge time locations
-    if np.any(np.in1d(locs1, locs2)):
+    if np.any(np.isin(locs1, locs2)):
         raise ValueError("Regression problems must not share time locations.")
     new_locs = np.sort(np.concatenate((locs1, locs2)))
     locs1_in_new_locs = np.searchsorted(new_locs, locs1)
