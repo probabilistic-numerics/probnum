@@ -11,14 +11,14 @@ from ._interface import InitializationRoutine
 # pylint: disable="import-outside-toplevel"
 try:
     import jax
-    from jax.config import config
+    from jax import config
     from jax.experimental.jet import jet
     import jax.numpy as jnp
 
     config.update("jax_enable_x64", True)
 
     JAX_IS_AVAILABLE = True
-except ImportError as JAX_IMPORT_ERROR:
+except ImportError:
     JAX_IS_AVAILABLE = False
     JAX_IMPORT_ERROR_MSG = (
         "Cannot perform Jax-based initialization without the optional "
@@ -31,7 +31,7 @@ class _AutoDiffBase(InitializationRoutine):
     def __init__(self):
 
         if not JAX_IS_AVAILABLE:
-            raise ImportError(JAX_IMPORT_ERROR_MSG) from JAX_IMPORT_ERROR
+            raise ImportError(JAX_IMPORT_ERROR_MSG)
 
         super().__init__(is_exact=True, requires_jax=True)
 
@@ -70,12 +70,12 @@ class _AutoDiffBase(InitializationRoutine):
         Turn the ODE into a format that is more convenient to handle with automatic
         differentiation. This has no effect on the ODE itself. It is purely internal.
         """
-        y0_autonomous = jnp.concatenate([ivp.y0, jnp.array([ivp.t0])])
+        y0_autonomous = jnp.concatenate([ivp.y0, jnp.asarray([ivp.t0])])
 
         def f_autonomous(y):
             x, t = y[:-1], y[-1]
             fx = ivp.f(t, x)
-            return jnp.concatenate([fx, jnp.array([1.0])])
+            return jnp.concatenate([fx, jnp.asarray([1.0])])
 
         return f_autonomous, y0_autonomous
 
