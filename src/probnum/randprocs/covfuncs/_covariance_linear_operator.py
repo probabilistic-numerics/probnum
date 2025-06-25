@@ -20,9 +20,8 @@ except ImportError:  # pragma: no cover
 
 
 class CovarianceLinearOperator(linops.LinearOperator):
-    """:class:`~probnum.linops.LinearOperator` representing the pairwise
-    covariances of evaluations of :math:`f_0` and :math:`f_1` at the given input
-    points.
+    """:class:`~probnum.linops.LinearOperator` representing the pairwise covariances of
+    evaluations of :math:`f_0` and :math:`f_1` at the given input points.
 
     Supports both KeOps-based and standard implementations, but will prefer KeOps-based
     implementations by default.
@@ -68,6 +67,7 @@ class CovarianceLinearOperator(linops.LinearOperator):
     def keops_lazy_tensor(self) -> Optional["LazyTensor"]:
         """:class:`~pykeops.numpy.LazyTensor` representing the covariance matrix
         corresponding to the given batches of input points.
+
         When not using KeOps, this is set to :data:`None`.
         """
         return self._keops_lazy_tensor

@@ -1,6 +1,5 @@
 """Test for utility functions for odefilter problem conversion."""
 
-
 import numpy as np
 import pytest
 

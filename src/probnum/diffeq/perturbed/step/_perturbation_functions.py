@@ -1,4 +1,5 @@
 """Perturbation functions to perturb the stepsize."""
+
 from typing import Optional, Union
 
 import numpy as np

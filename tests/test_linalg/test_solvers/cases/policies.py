@@ -1,4 +1,5 @@
 """Test cases defined by policies."""
+
 from pytest_cases import case
 
 from probnum.linalg.solvers import policies

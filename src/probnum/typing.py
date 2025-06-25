@@ -58,8 +58,8 @@ ScalarType = np.ndarray
 """Type defining a scalar."""
 
 MatrixType = Union[np.ndarray, "probnum.linops.LinearOperator"]
-"""Type defining a matrix, i.e. a linear map between \
-finite-dimensional vector spaces."""
+"""Type defining a matrix, i.e. a linear map between \ finite-dimensional vector
+spaces."""
 
 ########################################################################################
 # Argument Types
@@ -70,13 +70,15 @@ IntLike = Union[int, numbers.Integral, np.integer]
 """Object that can be converted to an integer.
 
 Arguments of type :attr:`IntLike` should always be converted
-into :class:`int`\\ s before further internal processing."""
+into :class:`int`\\ s before further internal processing.
+"""
 
 FloatLike = Union[float, numbers.Real, np.floating]
 """Object that can be converted to a float.
 
 Arguments of type :attr:`FloatLike` should always be converted
-into :class:`float`\\ s before further internal processing."""
+into :class:`float`\\ s before further internal processing.
+"""
 
 # Array Utilities
 ShapeLike = Union[IntLike, Iterable[IntLike]]
@@ -84,13 +86,15 @@ ShapeLike = Union[IntLike, Iterable[IntLike]]
 
 Arguments of type :attr:`ShapeLike` should always be converted
 into :class:`ShapeType` using the function :func:`probnum.utils.as_shape`
-before further internal processing."""
+before further internal processing.
+"""
 
 DTypeLike = _NumPyDTypeLike
 """Object that can be converted to an array dtype.
 
 Arguments of type :attr:`DTypeLike` should always be converted
-into :class:`numpy.dtype`\\ s before further internal processing."""
+into :class:`numpy.dtype`\\ s before further internal processing.
+"""
 
 _ArrayIndexLike = Union[
     int,
@@ -105,7 +109,8 @@ ArrayIndicesLike = Union[_ArrayIndexLike, Tuple[_ArrayIndexLike, ...]]
 
 Type of the argument to the :meth:`__getitem__` method of a NumPy-like array type
 such as :class:`numpy.ndarray`, :class:`probnum.linops.LinearOperator` or
-:class:`probnum.randvars.RandomVariable`."""
+:class:`probnum.randvars.RandomVariable`.
+"""
 
 # Scalars, Arrays and Matrices
 ScalarLike = Union[int, float, complex, numbers.Number, np.number]
@@ -113,14 +118,16 @@ ScalarLike = Union[int, float, complex, numbers.Number, np.number]
 
 Arguments of type :attr:`ScalarLike` should always be converted
 into :class:`numpy.number`\\ s using the function :func:`probnum.utils.as_scalar`
-before further internal processing."""
+before further internal processing.
+"""
 
 ArrayLike = _NumPyArrayLike
 """Object that can be converted to an array.
 
 Arguments of type :attr:`ArrayLike` should always be converted
 into :class:`numpy.ndarray`\\ s using the function :func:`np.asarray`
-before further internal processing."""
+before further internal processing.
+"""
 
 LinearOperatorLike = Union[
     ArrayLike,
@@ -132,7 +139,8 @@ LinearOperatorLike = Union[
 Arguments of type :attr:`LinearOperatorLike` should always be converted
 into :class:`~probnum.linops.\\
 LinearOperator`\\ s using the function :func:`probnum.linops.aslinop` before further
-internal processing."""
+internal processing.
+"""
 
 ########################################################################################
 # Other Types

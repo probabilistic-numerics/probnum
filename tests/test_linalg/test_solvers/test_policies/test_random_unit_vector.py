@@ -1,4 +1,5 @@
 """Tests for a policy returning random unit vectors."""
+
 import pathlib
 
 import numpy as np

@@ -1,4 +1,5 @@
 """Tests for beliefs about quantities of interest of a linear system."""
+
 import numpy as np
 import pytest
 

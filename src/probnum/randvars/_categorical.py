@@ -1,4 +1,5 @@
 """Categorical random variables."""
+
 from typing import Optional
 
 import numpy as np

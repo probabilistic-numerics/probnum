@@ -1,4 +1,5 @@
 """Utility functions for random variables."""
+
 from typing import Any
 
 import numpy as np

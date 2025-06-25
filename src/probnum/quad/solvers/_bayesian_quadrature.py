@@ -74,8 +74,6 @@ class BayesianQuadrature:
     :func:`bayesquad_from_data <probnum.quad.bayesquad_from_data>` :
         Computes the integral :math:`F` using a given dataset of nodes and function
         evaluations.
-
-
     """
 
     def __init__(
@@ -112,7 +110,6 @@ class BayesianQuadrature:
         initial_design: Optional[str] = None,
         options: Optional[dict] = None,
     ) -> "BayesianQuadrature":
-
         r"""Creates an instance of this class from a problem description.
 
         Parameters
@@ -176,7 +173,6 @@ class BayesianQuadrature:
         --------
         :func:`bayesquad <probnum.quad.bayesquad>` :
             For details on options for ``policy`` and ``initial_design``.
-
         """
 
         input_dim = int(input_dim)
@@ -423,7 +419,6 @@ class BayesianQuadrature:
         may not obey the stopping criterion. For example, if stopping is induced via a
         maximum number of evaluations (``max_evals``) smaller than the batch size of the
         initial design, the initial design will be evaluated nevertheless.
-
         """
 
         # Check if integrand function is provided
@@ -523,7 +518,7 @@ class BayesianQuadrature:
         info = BQIterInfo.from_bq_state(bq_state)
 
         # run loop
-        for (_, bq_state, info) in self.bq_iterator(bq_state, info, fun, rng):
+        for _, bq_state, info in self.bq_iterator(bq_state, info, fun, rng):
             pass
 
         return bq_state.integral_belief, bq_state, info

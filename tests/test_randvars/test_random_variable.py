@@ -199,7 +199,7 @@ class ShapeTestCase(RandomVariableTestCase):
             for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
                 with self.subTest():
                     try:
-                        reshaped_rv = rv.reshape(shape=shape)
+                        reshaped_rv = rv.reshape(newshape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
                         self.assertEqual(
@@ -211,7 +211,7 @@ class ShapeTestCase(RandomVariableTestCase):
             for shape in [(2, 1), (2,), (1, 2)]:
                 with self.subTest():
                     try:
-                        reshaped_rv = rv.reshape(shape=shape)
+                        reshaped_rv = rv.reshape(newshape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
                         self.assertEqual(

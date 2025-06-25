@@ -1,4 +1,5 @@
 """Test cases for Bayesian quadrature."""
+
 import copy
 
 import numpy as np
@@ -197,8 +198,8 @@ def test_domain_ignored_if_lebesgue(input_dim, measure, rng):
 
 
 def test_zero_function_gives_zero_variance_with_mle(rng):
-    """Test that BQ variance is zero for zero function when MLE is used to set the
-    scale parameter."""
+    """Test that BQ variance is zero for zero function when MLE is used to set the scale
+    parameter."""
     input_dim = 1
     domain = (0, 1)
     fun = lambda x: np.zeros(x.shape[0])

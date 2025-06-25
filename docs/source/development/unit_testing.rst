@@ -60,7 +60,7 @@ check out the following guides:
 .. code:: ipython3
 
     from IPython.display import Image
-    
+
     display(Image(url='https://code.visualstudio.com/assets/docs/python/testing/test-results.png', embed=True))
 
 
@@ -86,7 +86,7 @@ test. Here is a simple example.
 
     def add(x, y):
         return x + y
-    
+
     def test_symmetric():
         assert add(3, 5) == add(5, 3)
 
@@ -96,7 +96,7 @@ You can do so by parametrizing tests via a decorator.
 .. code:: ipython3
 
     import pytest
-    
+
     @pytest.mark.parametrize("x,y", [(3, 5), (-1, 1), (0, 1.2)])
     def test_symmetric(x, y):
         assert add(x, y) == add(y, x)

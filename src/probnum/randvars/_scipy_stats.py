@@ -128,7 +128,7 @@ def wrap_scipy_rv(
     scipy_rv: Union[
         scipy.stats._distn_infrastructure.rv_frozen,
         scipy.stats._multivariate.multi_rv_frozen,
-    ]
+    ],
 ) -> _random_variable.RandomVariable:
     """Transform SciPy distributions to ProbNum :class:`RandomVariable`s.
 

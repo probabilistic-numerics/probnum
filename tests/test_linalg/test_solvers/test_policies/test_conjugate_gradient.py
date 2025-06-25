@@ -1,4 +1,5 @@
 """Tests for a policy returning random unit vectors."""
+
 import copy
 import pathlib
 

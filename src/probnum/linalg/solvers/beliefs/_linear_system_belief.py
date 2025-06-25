@@ -1,7 +1,7 @@
 """Linear system belief.
 
-Class defining a belief about the quantities of interest of a linear system such
-as its solution or the matrix inverse and any associated hyperparameters.
+Class defining a belief about the quantities of interest of a linear system such as its
+solution or the matrix inverse and any associated hyperparameters.
 """
 
 from functools import cached_property

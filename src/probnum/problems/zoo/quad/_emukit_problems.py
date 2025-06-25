@@ -30,7 +30,6 @@ def hennig1d() -> QuadratureProblem:
     References
     ----------
     .. [1] Emukit docs on `hennig1d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.hennig1D.hennig1D/>`__.
-
     """  # pylint: disable=line-too-long
 
     def fun(x):
@@ -63,7 +62,6 @@ def hennig2d(c: Optional[np.ndarray] = None) -> QuadratureProblem:
     References
     ----------
     .. [1] Emukit docs on `hennig2d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.hennig2D.hennig2D/>`__ .
-
     """  # pylint: disable=line-too-long
 
     solution = None
@@ -86,8 +84,7 @@ def hennig2d(c: Optional[np.ndarray] = None) -> QuadratureProblem:
 
 
 def sombrero2d(w: Optional[FloatLike] = None) -> QuadratureProblem:
-    r"""The two-dimensional sombrero function integrated wrt the Lebesgue
-    measure. [1]_
+    r"""The two-dimensional sombrero function integrated wrt the Lebesgue measure. [1]_
 
     The integrand is
 
@@ -110,7 +107,6 @@ def sombrero2d(w: Optional[FloatLike] = None) -> QuadratureProblem:
     References
     ----------
     .. [1] Emukit docs on `sombrero2d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.sombrero2D.sombrero2D/>`__ .
-
     """  # pylint: disable=line-too-long
 
     solution = None
@@ -136,8 +132,7 @@ def sombrero2d(w: Optional[FloatLike] = None) -> QuadratureProblem:
 def circulargaussian2d(
     m: Optional[FloatLike] = None, v: Optional[FloatLike] = None
 ) -> QuadratureProblem:
-    r"""The two-dimensional circular Gaussian integrated wrt the Lebesgue
-    measure. [1]_
+    r"""The two-dimensional circular Gaussian integrated wrt the Lebesgue measure. [1]_
 
     The integrand is
 
@@ -164,7 +159,6 @@ def circulargaussian2d(
     References
     ----------
     .. [1] Emukit docs on `circulargaussian2d <https://emukit.readthedocs.io/en/latest/api/emukit.test_functions.quadrature.html#emukit.test_functions.quadrature.circular_gaussian.circular_gaussian/>`__ .
-
     """  # pylint: disable=line-too-long
 
     _v = 1.0

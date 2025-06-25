@@ -102,8 +102,10 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
     # pylint: disable=no-self-use
     def _estimate_kernel(self, kernel: Kernel) -> Tuple[Kernel, bool]:
-        """Estimate the intrinsic kernel parameters. That is, all parameters except the
-        scale."""
+        """Estimate the intrinsic kernel parameters.
+
+        That is, all parameters except the scale.
+        """
         new_kernel = kernel
         kernel_was_updated = False
         return new_kernel, kernel_was_updated

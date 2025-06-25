@@ -1,4 +1,5 @@
 """Covariance function arithmetic."""
+
 from ._arithmetic_fallbacks import SumCovarianceFunction, _mul_fallback
 from ._covariance_function import BinaryOperandType, CovarianceFunction
 

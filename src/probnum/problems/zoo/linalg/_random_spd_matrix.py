@@ -1,4 +1,5 @@
 """Random symmetric positive definite matrices."""
+
 from __future__ import annotations
 
 from typing import Sequence
@@ -52,7 +53,7 @@ def random_spd_matrix(
 
     Check for symmetry and positive definiteness.
 
-    >>> np.all(mat == mat.T)
+    >>> np.all(mat == mat.T).item()
     True
     >>> np.linalg.eigvals(mat)
     array([ 8.09147328, 12.7635956 , 10.84504988, 10.73086331, 10.78143272])
@@ -135,8 +136,8 @@ def random_sparse_spd_matrix(
     >>> rng = np.random.default_rng(42)
     >>> sparsemat = random_sparse_spd_matrix(rng, dim=5, density=0.1)
     >>> sparsemat
-    <5x5 sparse matrix of type '<class 'numpy.float64'>'
-        with 9 stored elements in Compressed Sparse Row format>
+    <Compressed Sparse Row sparse matrix of dtype 'float64'
+        with 9 stored elements and shape (5, 5)>
     >>> sparsemat.todense()
     matrix([[1.        , 0.        , 0.87273813, 0.        , 0.        ],
             [0.        , 1.        , 0.        , 0.        , 0.        ],

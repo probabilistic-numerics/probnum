@@ -1,5 +1,6 @@
 """Test cases describing different belief updates over quantities of interest of a
 linear system."""
+
 from pytest_cases import parametrize
 
 from probnum.linalg.solvers.belief_updates import matrix_based, solution_based

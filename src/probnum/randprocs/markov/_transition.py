@@ -61,8 +61,8 @@ class Transition(abc.ABC):
     def forward_rv(
         self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
-        r"""Forward-pass of a state, according to the transition. In other words,
-        return a description of
+        r"""Forward-pass of a state, according to the transition. In other words, return
+        a description of.
 
         .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t)),
 
@@ -116,8 +116,8 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        r"""Forward-pass of a realization of a state, according to the transition.
-        In other words, return a description of
+        r"""Forward-pass of a realization of a state, according to the transition. In
+        other words, return a description of.
 
         .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t)=\xi),
 
@@ -168,8 +168,8 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        r"""Backward-pass of a state, according to the transition. In other words,
-        return a description of
+        r"""Backward-pass of a state, according to the transition. In other words, return
+        a description of.
 
         .. math::
             p(x(t) \,|\, z_{\mathcal{G}_t})
@@ -242,8 +242,8 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        r"""Backward-pass of a realisation of a state, according to the transition.
-        In other words, return a description of
+        r"""Backward-pass of a realisation of a state, according to the transition. In
+        other words, return a description of.
 
         .. math::
             p(x(t) \,|\, {\mathcal{G}_t(x(t)) = \xi})

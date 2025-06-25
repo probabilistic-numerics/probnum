@@ -1,6 +1,5 @@
 """Continuous-time transition utility functions."""
 
-
 import numpy as np
 import scipy.linalg
 

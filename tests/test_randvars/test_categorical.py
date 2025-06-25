@@ -1,6 +1,5 @@
 """Tests for the categorical random variable."""
 
-
 import string
 
 import numpy as np

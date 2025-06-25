@@ -170,7 +170,7 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
 
     @staticmethod
     def _binary_operator_factory(
-        operator: Callable[[ValueType, ValueType], ValueType]
+        operator: Callable[[ValueType, ValueType], ValueType],
     ) -> Callable[["Constant", "Constant"], "Constant"]:
         def _constant_rv_binary_operator(
             constant_rv1: Constant, constant_rv2: Constant

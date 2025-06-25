@@ -21,7 +21,6 @@ class InitialDesign(abc.ABC):
         The number of nodes to be designed.
     measure
         The integration measure.
-
     """
 
     def __init__(self, n_nodes: IntLike, measure: IntegrationMeasure) -> None:

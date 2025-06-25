@@ -9,7 +9,7 @@ from probnum.quad.integration_measures import LebesgueMeasure
 
 @pytest.fixture(params=[hennig1d, hennig2d, sombrero2d, circulargaussian2d])
 def problem(request):
-    """quad problems with default values"""
+    """Quad problems with default values."""
     return request.param()
 
 
@@ -22,7 +22,7 @@ def problem(request):
     ids=["hennig2d", "circulargaussian2d", "sombrero2d"],
 )
 def problem_parametrized(request):
-    """quad problems with custom parameters"""
+    """Quad problems with custom parameters."""
     return request.param[0](**request.param[1])
 
 

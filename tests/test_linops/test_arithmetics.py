@@ -1,4 +1,5 @@
 """Tests for linear operator arithmetics."""
+
 # pylint: disable=consider-iterating-dictionary
 
 import itertools
@@ -34,7 +35,10 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 
 
 def _aslist(arg):
-    """Converts anything to a list. Non-iterables become single-element lists."""
+    """Converts anything to a list.
+
+    Non-iterables become single-element lists.
+    """
     try:
         return list(arg)
     except TypeError:  # excepts TypeError: '<type>' object is not iterable
@@ -105,7 +109,7 @@ def get_linop(linop_type):
 
 def test_matmul():
 
-    for (l_type, r_type) in _matmul_fns.keys():
+    for l_type, r_type in _matmul_fns.keys():
         if (
             l_type is Selection
             or l_type is Embedding
@@ -118,7 +122,7 @@ def test_matmul():
         linops1 = get_linop(l_type)
         linops2 = get_linop(r_type)
 
-        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
+        for linop1, linop2 in itertools.product(_aslist(linops1), _aslist(linops2)):
 
             if linop1.shape[1] != linop2.shape[0]:
                 with pytest.raises(ValueError):
@@ -137,7 +141,7 @@ def test_matmul():
 
 
 def test_mul():
-    for (l_type, r_type) in _mul_fns.keys():
+    for l_type, r_type in _mul_fns.keys():
         if (
             l_type is Selection
             or l_type is Embedding
@@ -150,7 +154,7 @@ def test_mul():
         linops1 = get_linop(l_type)
         linops2 = get_linop(r_type)
 
-        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
+        for linop1, linop2 in itertools.product(_aslist(linops1), _aslist(linops2)):
 
             if l_type is np.number:
                 res_linop = linop1 * linop2
@@ -168,7 +172,7 @@ def test_mul():
 
 def test_add():
 
-    for (l_type, r_type) in _add_fns.keys():
+    for l_type, r_type in _add_fns.keys():
         if (
             l_type is Selection
             or l_type is Embedding
@@ -181,7 +185,7 @@ def test_add():
         linops1 = get_linop(l_type)
         linops2 = get_linop(r_type)
 
-        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
+        for linop1, linop2 in itertools.product(_aslist(linops1), _aslist(linops2)):
 
             if linop1.shape != linop2.shape:
                 with pytest.raises(ValueError):
@@ -193,7 +197,7 @@ def test_add():
 
 def test_sub():
 
-    for (l_type, r_type) in _sub_fns.keys():
+    for l_type, r_type in _sub_fns.keys():
         if (
             l_type is Selection
             or l_type is Embedding
@@ -206,7 +210,7 @@ def test_sub():
         linops1 = get_linop(l_type)
         linops2 = get_linop(r_type)
 
-        for (linop1, linop2) in itertools.product(_aslist(linops1), _aslist(linops2)):
+        for linop1, linop2 in itertools.product(_aslist(linops1), _aslist(linops2)):
 
             if linop1.shape != linop2.shape:
                 with pytest.raises(ValueError):

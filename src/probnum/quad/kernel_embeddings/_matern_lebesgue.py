@@ -1,6 +1,5 @@
 """Kernel embedding of Matern kernels with Lebesgue integration measure."""
 
-
 from typing import Tuple, Union
 
 import numpy as np

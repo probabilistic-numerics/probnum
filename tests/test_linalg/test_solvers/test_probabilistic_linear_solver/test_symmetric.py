@@ -1,4 +1,5 @@
 """Tests for probabilistic linear solvers applied to symmetric linear systems."""
+
 import pathlib
 
 import numpy as np

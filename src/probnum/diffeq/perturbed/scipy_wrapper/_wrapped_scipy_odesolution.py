@@ -1,4 +1,5 @@
 """Make a ProbNum ODE solution out of a scipy ODE solution."""
+
 import numpy as np
 from scipy.integrate._ivp.common import OdeSolution
 

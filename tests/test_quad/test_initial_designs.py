@@ -1,6 +1,5 @@
 """Test cases for initial designs."""
 
-
 # New designs need to be added to the fixture 'design'.
 
 

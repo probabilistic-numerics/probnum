@@ -130,8 +130,8 @@ def uniform_to_gaussian_quadprob(
 def sum_polynomials(
     dim: int, a: np.ndarray = None, b: np.ndarray = None, var: FloatLike = 1.0
 ) -> QuadratureProblem:
-    r"""Quadrature problem with an integrand taking the form of a sum of polynomials
-    over :math:`\mathbb{R}^d`.
+    r"""Quadrature problem with an integrand taking the form of a sum of polynomials over
+    :math:`\mathbb{R}^d`.
 
     .. math::  f(x) = \sum_{j=0}^p \prod_{i=1}^dim a_{ji} x_i^{b_ji}
 

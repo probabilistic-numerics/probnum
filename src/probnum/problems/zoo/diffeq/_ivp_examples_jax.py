@@ -96,7 +96,7 @@ def _import_jax():
 
     try:
         import jax
-        from jax.config import config
+        from jax import config
         import jax.numpy as jnp
 
         config.update("jax_enable_x64", True)
@@ -107,8 +107,8 @@ def _import_jax():
 
 
 def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
-    r"""Initial value problem (IVP) based on the Van der Pol Oscillator,
-    implemented in `jax`.
+    r"""Initial value problem (IVP) based on the Van der Pol Oscillator, implemented in
+    `jax`.
 
     This function implements the second-order Van-der-Pol Oscillator as a system
     of first-order ODEs.

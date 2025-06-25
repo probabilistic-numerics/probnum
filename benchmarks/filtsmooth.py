@@ -1,4 +1,5 @@
 """Benchmarks for Gaussian filtering."""
+
 import functools
 
 import numpy as np

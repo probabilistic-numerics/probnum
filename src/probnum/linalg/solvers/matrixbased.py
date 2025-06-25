@@ -1,8 +1,9 @@
 """Matrix-based probabilistic linear solvers.
 
-Implementations of matrix-based linear solvers which perform inference
-on the matrix or its inverse given linear observations.
+Implementations of matrix-based linear solvers which perform inference on the matrix or
+its inverse given linear observations.
 """
+
 import abc
 import warnings
 

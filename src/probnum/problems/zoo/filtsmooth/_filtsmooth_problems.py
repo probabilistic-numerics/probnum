@@ -92,7 +92,6 @@ def car_tracking(
     ----------
     .. [1] Särkkä, Simo. Bayesian Filtering and Smoothing. Cambridge University Press,
         2013.
-
     """
     state_dim = 2
     model_dim = state_dim * (num_prior_derivatives + 1)
@@ -318,7 +317,6 @@ def pendulum(
     ----------
     .. [1] Särkkä, Simo. Bayesian Filtering and Smoothing. Cambridge University Press,
         2013.
-
     """
 
     # Graviational constant
@@ -561,7 +559,6 @@ def logistic_ode(
     See Also
     --------
     :py:class:`probnum.diffeq.ODEFilter`
-
     """
 
     if y0 is None:

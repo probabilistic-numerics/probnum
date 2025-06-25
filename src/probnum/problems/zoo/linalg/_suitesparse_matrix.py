@@ -48,7 +48,7 @@ def suitesparse_matrix(
     >>> ssmat = suitesparse_matrix(name="ash85", group="HB")
     >>> ssmat
     <SuiteSparseMatrix with shape=(85, 85) and dtype=float64>
-    >>> ssmat.trace()
+    >>> ssmat.trace().item()
     85.0
     """
     # Get database index

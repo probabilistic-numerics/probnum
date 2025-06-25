@@ -1,4 +1,5 @@
 """Tests for constant random variables."""
+
 import unittest
 
 import numpy as np

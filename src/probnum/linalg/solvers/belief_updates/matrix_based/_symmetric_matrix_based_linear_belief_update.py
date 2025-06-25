@@ -1,5 +1,6 @@
 """Belief update in a matrix-based inference view assuming symmetry where the
 information is given by matrix-vector multiplication."""
+
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"

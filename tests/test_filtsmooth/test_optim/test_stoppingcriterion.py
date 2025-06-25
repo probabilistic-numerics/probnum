@@ -1,6 +1,5 @@
 """Test Kalman utility functions."""
 
-
 import numpy as np
 import pytest
 

@@ -1,4 +1,5 @@
 """Normally distributed / Gaussian random variables."""
+
 from __future__ import annotations
 
 from functools import cached_property
@@ -238,8 +239,8 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
 
     @property
     def cov_cholesky(self) -> ValueType:
-        """Cholesky factor :math:`L` of the covariance
-        :math:`\\operatorname{Cov}(X) =LL^\\top`."""
+        """Cholesky factor :math:`L` of the covariance :math:`\\operatorname{Cov}(X)
+        =LL^\\top`."""
 
         if not self.cov_cholesky_is_precomputed:
             self.precompute_cov_cholesky()

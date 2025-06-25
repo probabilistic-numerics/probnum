@@ -1,4 +1,5 @@
 """Stopping criteria for iterated filtering and smoothing."""
+
 import numpy as np
 
 from probnum import StoppingCriterion

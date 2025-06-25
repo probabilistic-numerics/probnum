@@ -67,7 +67,7 @@ def test_genz_uniform_param_checks(genz_problem):
     ],
 )
 def test_integrand_eval_checks(
-    quad_problem_constructor: Callable[..., QuadratureProblem]
+    quad_problem_constructor: Callable[..., QuadratureProblem],
 ):
     quad_problem = quad_problem_constructor(2)
 

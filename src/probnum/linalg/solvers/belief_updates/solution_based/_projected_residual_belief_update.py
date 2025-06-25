@@ -1,5 +1,6 @@
 """Belief update in a solution-based inference view where the information is given by
 projecting the current residual to a subspace."""
+
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"

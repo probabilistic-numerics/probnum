@@ -1,4 +1,5 @@
 """Operators of Kronecker-type or related."""
+
 from __future__ import annotations
 
 from typing import Optional, Union
@@ -252,9 +253,8 @@ def _kronecker_matmul(
     B: _linear_operator.LinearOperator,
     x: np.ndarray,
 ):
-    """Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the
-    row-wise vectorization operator.
-    """
+    """Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the row-
+    wise vectorization operator."""
     # vec(X) -> X, i.e. reshape into stack of matrices
     y = np.swapaxes(x, -2, -1)
 
@@ -374,8 +374,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
     def _matmul(self, x: np.ndarray) -> np.ndarray:
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
-        vec is the column-wise normalized symmetric stacking operator.
-        """
+        vec is the column-wise normalized symmetric stacking operator."""
         if self.identical_factors:
             return _kronecker_matmul(self.A, self.A, x)
 

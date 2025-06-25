@@ -1,6 +1,5 @@
 """Diffusion models and their calibration."""
 
-
 import abc
 from typing import Union
 
@@ -12,8 +11,8 @@ from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike
 
 
 class Diffusion(abc.ABC):
-    r"""Interface for diffusion models
-    :math:`\sigma: \mathbb{R} \rightarrow \mathbb{R}^d` and their calibration."""
+    r"""Interface for diffusion models :math:`\sigma: \mathbb{R} \rightarrow
+    \mathbb{R}^d` and their calibration."""
 
     def __repr__(self):
         raise NotImplementedError

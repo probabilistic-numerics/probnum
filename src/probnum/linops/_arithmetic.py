@@ -1,4 +1,5 @@
 """Linear operator arithmetic."""
+
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
@@ -97,6 +98,7 @@ _matmul_fns: _BinaryOperatorRegistryType = {}
 # Fill Arithmetics Registries
 ########################################################################################
 
+
 # Scaling
 def _mul_scalar_scaling(scalar: ScalarLike, scaling: Scaling) -> Scaling:
     if scaling.is_isotropic:
@@ -118,6 +120,7 @@ _add_fns[(Scaling, Scaling)] = Scaling._add_scaling
 _sub_fns[(Scaling, Scaling)] = Scaling._sub_scaling
 _mul_fns[(Scaling, Scaling)] = Scaling._mul_scaling
 _matmul_fns[(Scaling, Scaling)] = Scaling._matmul_scaling
+
 
 # ScaledLinearOperator
 def _matmul_scaled_op(scaled, anylinop):
@@ -233,9 +236,9 @@ def _mul_idkronecker_scalar(
     )
 
 
-_matmul_fns[
-    (IdentityKronecker, IdentityKronecker)
-] = IdentityKronecker._matmul_idkronecker
+_matmul_fns[(IdentityKronecker, IdentityKronecker)] = (
+    IdentityKronecker._matmul_idkronecker
+)
 _add_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._add_idkronecker
 _sub_fns[(IdentityKronecker, IdentityKronecker)] = IdentityKronecker._sub_idkronecker
 
@@ -246,6 +249,7 @@ _matmul_fns[(Scaling, IdentityKronecker)] = _matmul_scaling_idkronecker
 
 _matmul_fns[(Kronecker, IdentityKronecker)] = Kronecker._matmul_kronecker
 _matmul_fns[(IdentityKronecker, Kronecker)] = Kronecker._matmul_kronecker
+
 
 # Matrix
 def _matmul_scaling_matrix(scaling: Scaling, matrix: Matrix) -> Matrix:
@@ -329,6 +333,7 @@ def _matmul_selection_embedding(
 
 _matmul_fns[(Selection, Embedding)] = _matmul_selection_embedding
 # Embedding @ Selection would be Projection
+
 
 # Zero
 def _matmul_zero_anylinop(z: Zero, op: LinearOperator) -> Zero:

@@ -267,7 +267,6 @@ def probsolve_ivp(
      [0.97]
      [0.98]
      [0.99]]
-
     """
 
     # Create IVP object

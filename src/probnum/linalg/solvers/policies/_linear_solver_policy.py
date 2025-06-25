@@ -1,4 +1,5 @@
 """Base class for policies of probabilistic linear solvers returning actions."""
+
 import abc
 from typing import Optional
 

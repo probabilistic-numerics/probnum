@@ -94,7 +94,6 @@ class MaxAcquisitionPolicy(Policy):
     The policy uses SciPy's 'Nelder-Mead' optimizer when gradients are unavailable.
     This is the current standard setting since ``probnum`` does not provide gradients
     yet.
-
     """
 
     def __init__(

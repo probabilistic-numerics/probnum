@@ -2,8 +2,8 @@
 
 This object is returned by ODESolver.solve().
 
-Provides dense output (by being callable), is sliceable,
-and collects the time-grid as well as the discrete-time solution.
+Provides dense output (by being callable), is sliceable, and collects the time-grid as
+well as the discrete-time solution.
 """
 
 from typing import Optional

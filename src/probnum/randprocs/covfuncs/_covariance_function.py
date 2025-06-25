@@ -169,8 +169,10 @@ class CovarianceFunction(abc.ABC):
     def input_shape_0(self) -> ShapeType:
         r""":attr:`~probnum.randprocs.RandomProcess.input_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_0`.
+
         This defines the shape of a single, i.e. non-batched, first argument :math:`x_0`
-        of the :class:`CovarianceFunction`."""
+        of the :class:`CovarianceFunction`.
+        """
         return self._input_shape_0
 
     @property
@@ -187,8 +189,10 @@ class CovarianceFunction(abc.ABC):
     def input_shape_1(self) -> ShapeType:
         r""":attr:`~probnum.randprocs.RandomProcess.input_shape` of the
         :class:`~probnum.randprocs.RandomProcess` :math:`f_1`.
+
         This defines the shape of a single, i.e. non-batched, second argument
-        :math:`x_1` of the :class:`CovarianceFunction`."""
+        :math:`x_1` of the :class:`CovarianceFunction`.
+        """
         return self._input_shape_1
 
     @property
@@ -417,9 +421,8 @@ class CovarianceFunction(abc.ABC):
         x0: ArrayLike,
         x1: Optional[ArrayLike] = None,
     ) -> linops.LinearOperator:
-        r""":class:`~probnum.linops.LinearOperator` representing the pairwise
-        covariances of evaluations of :math:`f_0` and :math:`f_1` at the given input
-        points.
+        r""":class:`~probnum.linops.LinearOperator` representing the pairwise covariances
+        of evaluations of :math:`f_0` and :math:`f_1` at the given input points.
 
         Representing the resulting covariance matrix as a matrix-free :class:`~probnum.\
         linops.LinearOperator` is often more efficient than a representation as a
@@ -711,10 +714,8 @@ class CovarianceFunction(abc.ABC):
     ####################################################################################
 
     __array_ufunc__ = None
-    """
-    This prevents numpy from calling elementwise arithmetic operations instead of
-    the arithmetic operations defined by `CovarianceFunction`.
-    """
+    """This prevents numpy from calling elementwise arithmetic operations instead of the
+    arithmetic operations defined by `CovarianceFunction`."""
 
     def __add__(self, other: BinaryOperandType) -> CovarianceFunction:
         # pylint: disable=import-outside-toplevel,cyclic-import
@@ -817,17 +818,26 @@ class IsotropicMixin(abc.ABC):  # pylint: disable=too-few-public-methods
 
         if x1 is None:
             x1 = x0
+
+        def convert_for_keops(arr):
+            """Convert array to KeOps-compatible format."""
+            # Ensure contiguous memory layout and explicit dtype
+            arr = np.ascontiguousarray(arr, dtype=np.float64)
+            return arr
+
         if len(x0.shape) < 2:
             x0 = x0.reshape(-1, 1)
         if len(x1.shape) < 2:
             x1 = x1.reshape(-1, 1)
 
-        sqdiffs = Vi(x0) - Vj(x1)
+        x0 = convert_for_keops(x0)
+        x1 = convert_for_keops(x1)
+
+        sqdiffs = (Vi(x0) - Vj(x1)) ** 2
 
         if scale_factors is not None:
-            sqdiffs *= Pm(scale_factors)
-
-        sqdiffs *= sqdiffs
+            scale_factors = convert_for_keops(scale_factors)
+            sqdiffs = sqdiffs * Pm(scale_factors**2)
 
         return sqdiffs.sum()
 

@@ -1,5 +1,6 @@
 """Belief update in a matrix-based inference view where the information is given by
 matrix-vector multiplication."""
+
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"
@@ -10,8 +11,8 @@ from .._linear_solver_belief_update import LinearSolverBeliefUpdate
 
 
 class MatrixBasedLinearBeliefUpdate(LinearSolverBeliefUpdate):
-    r"""Gaussian belief update in a matrix-based inference framework assuming
-    linear information.
+    r"""Gaussian belief update in a matrix-based inference framework assuming linear
+    information.
 
     Updates the belief over the quantities of interest of a linear system :math:`Ax=b`
     given matrix-variate Gaussian beliefs with Kronecker covariance structure and

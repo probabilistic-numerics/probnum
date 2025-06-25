@@ -1,4 +1,5 @@
 """Benchmarks for probabilistic IVP solvers."""
+
 import numpy as np
 
 from probnum.diffeq import probsolve_ivp

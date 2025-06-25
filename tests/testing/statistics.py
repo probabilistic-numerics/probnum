@@ -1,6 +1,5 @@
 """This module implements some test statistics that are used in multiple test suites."""
 
-
 import numpy as np
 
 __all__ = ["chi_squared_statistic"]

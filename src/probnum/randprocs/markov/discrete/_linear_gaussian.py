@@ -1,4 +1,5 @@
 """Discrete, linear Gaussian transitions."""
+
 import typing
 from typing import Callable, Tuple
 import warnings

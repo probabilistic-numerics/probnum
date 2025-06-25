@@ -1,4 +1,5 @@
 """Definitions of problems currently solved by probabilistic numerical methods."""
+
 from __future__ import annotations
 
 from collections import abc
@@ -158,7 +159,7 @@ class InitialValueProblem:
     >>> ivp = InitialValueProblem(f, t0=0., tmax=3., y0=0.1)
     >>> ivp.t0, ivp.tmax, ivp.y0
     (0.0, 3.0, 0.1)
-    >>> np.round(ivp.f(ivp.t0, ivp.y0), 2)
+    >>> np.round(ivp.f(ivp.t0, ivp.y0), 2).item()
     0.09
     """
 
@@ -252,11 +253,11 @@ class QuadratureProblem:
     >>>
     >>> measure1d = LebesgueMeasure(domain=(0, 1), input_dim=1)
     >>> qp1d = QuadratureProblem(fun, measure=measure1d, solution=1/3)
-    >>> np.round(qp1d.fun(np.array([[0.2]]))[0], 2)
+    >>> np.round(qp1d.fun(np.array([[0.2]]))[0], 2).item()
     0.04
     >>> measure2d = LebesgueMeasure(domain=(0, 1), input_dim=2)
     >>> qp2d = QuadratureProblem(fun, measure=measure2d, solution=None)
-    >>> np.round(qp2d.fun(np.array([[0.2, 0.2]]))[0], 2)
+    >>> np.round(qp2d.fun(np.array([[0.2, 0.2]]))[0], 2).item()
     0.08
     """
 

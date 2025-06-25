@@ -1,4 +1,5 @@
 """Auxiliary functions used in tests for quadrature methods."""
+
 from typing import Optional, Tuple, Union
 
 import numpy as np

@@ -14,9 +14,8 @@ def _kernel_mean_expquad_lebesgue(
     x: np.ndarray, kernel: ExpQuad, measure: LebesgueMeasure
 ) -> np.ndarray:
     r"""Kernel mean of the ExpQuad kernel with lenghtscale :math:`l` w.r.t. its first
-    argument against a Lebesgue measure on the hyper-rectangle
-    :math:`[a_1, b_1] \times \cdots \times [a_D, b_D]`. For unnormalised Lebesgue
-    measure the kernel mean is
+    argument against a Lebesgue measure on the hyper-rectangle :math:`[a_1, b_1] \times
+    \cdots \times [a_D, b_D]`. For unnormalised Lebesgue measure the kernel mean is.
 
     .. math::
 
@@ -64,9 +63,8 @@ def _kernel_variance_expquad_lebesgue(
     kernel: ExpQuad, measure: LebesgueMeasure
 ) -> float:
     r"""Kernel variance of the ExpQuad kernel with lenghtscale :math:`l` w.r.t. both
-    arguments against a Lebesgue measure on the hyper-rectangle
-    :math:`[a_1, b_1] \times \cdots \times [a_D, b_D]`. For unnormalised Lebesgue
-    measure the kernel variance is
+    arguments against a Lebesgue measure on the hyper-rectangle :math:`[a_1, b_1] \times
+    \cdots \times [a_D, b_D]`. For unnormalised Lebesgue measure the kernel variance is.
 
     .. math::
 

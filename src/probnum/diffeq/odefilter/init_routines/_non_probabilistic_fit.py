@@ -1,7 +1,6 @@
 """Initialization routines based on fitting the prior to (a few steps of a) non-
 probabilistc solver."""
 
-
 from typing import Optional
 
 import numpy as np

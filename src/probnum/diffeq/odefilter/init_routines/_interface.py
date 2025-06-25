@@ -1,6 +1,5 @@
 """Interface for initialization routines."""
 
-
 import abc
 
 from probnum import problems, randprocs, randvars

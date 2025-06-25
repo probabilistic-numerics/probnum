@@ -1,6 +1,5 @@
 """Tests for IntegratedOrnsteinUhlenbeckProcessTransitions."""
 
-
 import numpy as np
 import pytest
 

@@ -70,8 +70,8 @@ def test_cholesky(linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bo
 def test_cholesky_is_symmetric_not_true(
     linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool
 ):  # pylint: disable=unused-argument
-    """Tests whether computing the Cholesky decomposition of a ``LinearOperator``
-    whose ``is_symmetric`` property is not set to ``True`` results in an error."""
+    """Tests whether computing the Cholesky decomposition of a ``LinearOperator`` whose
+    ``is_symmetric`` property is not set to ``True`` results in an error."""
 
     if linop.is_symmetric is not True:
         with pytest.raises(np.linalg.LinAlgError):
@@ -86,8 +86,8 @@ def test_cholesky_is_symmetric_not_true(
 def test_cholesky_is_positive_definite_false(
     linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool
 ):  # pylint: disable=unused-argument
-    """Tests whether computing the Cholesky decomposition of a ``LinearOperator``
-    whose ``is_symmetric`` property is not set to ``True`` results in an error."""
+    """Tests whether computing the Cholesky decomposition of a ``LinearOperator`` whose
+    ``is_symmetric`` property is not set to ``True`` results in an error."""
 
     if linop.is_positive_definite is False:
         with pytest.raises(np.linalg.LinAlgError):
@@ -111,7 +111,7 @@ def test_cholesky_not_positive_definite(
     linop: pn.linops.LinearOperator, matrix: np.ndarray, lower: bool
 ):
     """Tests whether computing the Cholesky decomposition of a symmetric, but not
-    positive definite matrix results in an error"""
+    positive definite matrix results in an error."""
 
     expected_exception = None
 

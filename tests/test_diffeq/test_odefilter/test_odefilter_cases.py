@@ -1,6 +1,5 @@
 """Test-cases for ODE filters."""
 
-
 import pytest_cases
 
 from probnum import diffeq, randprocs

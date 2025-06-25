@@ -1,6 +1,5 @@
 """Stacking-based initialization routines."""
 
-
 import numpy as np
 
 from probnum import problems, randprocs, randvars

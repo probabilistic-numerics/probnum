@@ -1,4 +1,5 @@
 """LTI SDE models as transitions."""
+
 import functools
 
 import numpy as np

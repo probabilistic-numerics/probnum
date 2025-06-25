@@ -3,6 +3,7 @@
 Dense-output can not be used for DOP853, if you use other RK-methods, make sure, that
 the current implementation works for them.
 """
+
 import numpy as np
 from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution

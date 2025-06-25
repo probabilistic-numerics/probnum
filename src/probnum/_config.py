@@ -1,4 +1,4 @@
-"""ProbNum library configuration"""
+"""ProbNum library configuration."""
 
 import contextlib
 import dataclasses
@@ -164,6 +164,7 @@ _DEFAULT_CONFIG_OPTIONS = [
         ),
     ),
 ]
+
 
 # ... and register the default configuration options.
 def _register_defaults():

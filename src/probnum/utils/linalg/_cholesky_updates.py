@@ -1,6 +1,5 @@
 """Cholesky updates."""
 
-
 import typing
 
 import numpy as np
@@ -11,8 +10,8 @@ __all__ = ["cholesky_update", "tril_to_positive_tril"]
 def cholesky_update(
     S1: np.ndarray, S2: typing.Optional[np.ndarray] = None
 ) -> np.ndarray:
-    r"""Compute Cholesky update/factorization :math:`L` such that
-    :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` holds.
+    r"""Compute Cholesky update/factorization :math:`L` such that :math:`L L^\top = S_1
+    S_1^\top + S_2 S_2^\top` holds.
 
     This can be used in various ways.
     For example, :math:`S_1` and :math:`S_2` do not need to be Cholesky factors; any

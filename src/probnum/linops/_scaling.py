@@ -1,4 +1,5 @@
 """Scaling linear operator."""
+
 from __future__ import annotations
 
 from typing import Optional, Union
@@ -35,7 +36,6 @@ class Scaling(_linear_operator.LambdaLinearOperator):
         Shape of the linear operator.
     dtype :
         Data type of the linear operator.
-
     """
 
     def __init__(

@@ -1,6 +1,5 @@
 """Tests for ODE filters."""
 
-
 import pytest
 import pytest_cases
 

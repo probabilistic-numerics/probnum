@@ -3,6 +3,7 @@
 The tests in here go through probsolve_ivp(), but do not directly test the interface,
 but the implementation. Therefore this test module is named w.r.t. ivpfiltsmooth.py.
 """
+
 import numpy as np
 import pytest
 

@@ -116,7 +116,7 @@ class ProbabilisticLinearSolver(
     Solve the linear system using the custom solver.
 
     >>> belief, solver_state = pls.solve(prior=prior, problem=linsys)
-    >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b) / np.linalg.norm(linsys.b)
+    >>> (np.linalg.norm(linsys.A @ belief.x.mean - linsys.b) / np.linalg.norm(linsys.b)).item()
     7.1886e-06
     """
 

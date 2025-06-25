@@ -1,4 +1,5 @@
 """Fixtures for random variable arithmetic."""
+
 import numpy as np
 import pytest
 

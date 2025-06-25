@@ -1,4 +1,5 @@
 """Generate random linear systems as test problems."""
+
 from __future__ import annotations
 
 from typing import Any, Callable, Optional, Union
@@ -60,9 +61,8 @@ def random_linear_system(
     >>> import scipy.stats
     >>> unitary_matrix = scipy.stats.unitary_group.rvs(dim=5, random_state=rng)
     >>> linsys_unitary = random_linear_system(rng, unitary_matrix)
-    >>> np.abs(np.linalg.det(linsys_unitary.A))
+    >>> np.abs(np.linalg.det(linsys_unitary.A)).item()
     1.0
-
     Linear system with random symmetric positive-definite matrix.
 
     >>> from probnum.problems.zoo.linalg import random_spd_matrix

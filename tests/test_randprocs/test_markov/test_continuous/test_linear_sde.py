@@ -65,14 +65,14 @@ class TestLinearSDE(test_sde.TestSDE):
         assert isinstance(out, randvars.Normal)
 
     def test_forward_realization_value_error_caught(self, some_normal_rv1):
-        """the forward realization only works if a time-increment dt is provided."""
+        """The forward realization only works if a time-increment dt is provided."""
         with pytest.raises(ValueError):
             self.transition.forward_realization(some_normal_rv1.mean, t=0.0)
 
     def test_backward_realization_value_error_caught(
         self, some_normal_rv1, some_normal_rv2
     ):
-        """the backward realization only works if a time-increment dt is provided."""
+        """The backward realization only works if a time-increment dt is provided."""
         with pytest.raises(ValueError):
             out, _ = self.transition.backward_realization(
                 some_normal_rv1.mean,
@@ -155,7 +155,7 @@ def test_solve_mde_forward_sqrt_values(
     v_const,
     diffusion,
 ):
-    """mde forward values in sqrt-implementation and classic implementation should be
+    """Mde forward values in sqrt-implementation and classic implementation should be
     equal."""
     out_linear, _ = ltisde_as_linearsde.forward_realization(
         v_const, t=0.0, dt=0.1, _diffusion=diffusion

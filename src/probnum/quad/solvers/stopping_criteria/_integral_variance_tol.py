@@ -1,4 +1,4 @@
-"""Stopping criterion based on the absolute value of the integral variance"""
+"""Stopping criterion based on the absolute value of the integral variance."""
 
 from __future__ import annotations
 

@@ -30,7 +30,7 @@ def vectorize_matmat(
     """
 
     def _vectorize_matmat(
-        matmat: Callable[[np.ndarray], np.ndarray]
+        matmat: Callable[[np.ndarray], np.ndarray],
     ) -> Callable[[np.ndarray], np.ndarray]:
         np_vectorize_obj = np.vectorize(
             matmat,
@@ -71,7 +71,7 @@ def vectorize_matvec(
     """
 
     def _vectorize_matvec(
-        matvec: Callable[[np.ndarray], np.ndarray]
+        matvec: Callable[[np.ndarray], np.ndarray],
     ) -> Callable[[np.ndarray], np.ndarray]:
         @functools.wraps(matvec)
         def vectorized_matvec(*args) -> np.ndarray:

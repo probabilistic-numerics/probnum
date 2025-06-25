@@ -1,6 +1,5 @@
 """Test fixtures for filtering and smoothing."""
 
-
 import numpy as np
 import pytest
 

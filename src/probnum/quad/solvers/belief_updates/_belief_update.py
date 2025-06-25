@@ -60,7 +60,7 @@ class BQBeliefUpdate(abc.ABC):
 
     def compute_gram_cho_factor(self, gram: np.ndarray) -> Tuple[np.ndarray, bool]:
         """Compute the Cholesky decomposition of a positive-definite Gram matrix for use
-        in scipy.linalg.cho_solve
+        in scipy.linalg.cho_solve.
 
         .. warning::
             Uses scipy.linalg.cho_factor. The returned matrix is only to be used in
@@ -98,7 +98,6 @@ class BQBeliefUpdate(abc.ABC):
         -------
         solution :
             The solution ``x`` to the linear system ``gram x = z``.
-
         """
         return cho_solve(gram_cho_factor, z)
 
@@ -122,6 +121,5 @@ class BQBeliefUpdate(abc.ABC):
             *shape=(n_nodes,)* -- The means of the predictions.
         var_predictions :
             *shape=(n_nodes,)* -- The variances of the predictions.
-
         """
         raise NotImplementedError

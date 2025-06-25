@@ -1,4 +1,5 @@
 """Integrated Ornstein-Uhlenbeck processes."""
+
 import warnings
 
 import numpy as np
@@ -73,6 +74,7 @@ class IntegratedOrnsteinUhlenbeckProcess(_markov.MarkovProcess):
     >>> print(ioup4)
     <IntegratedOrnsteinUhlenbeckProcess with input_shape=(), output_shape=(5,), dtype=float64>
     """  # pylint: disable=line-too-long
+
     # Doctest/Example blocks in the docstring above cannot be made to comply with line
     # length rule because adding newlines in them will cause rendered page to have
     # unwanted newlines.

@@ -1,6 +1,5 @@
 """Tests for discrete event handlers."""
 
-
 import dataclasses
 
 import pytest

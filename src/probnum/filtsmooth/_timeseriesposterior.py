@@ -13,9 +13,8 @@ from probnum.typing import ArrayIndicesLike, ArrayLike, FloatLike, IntLike, Shap
 DenseOutputValueType = Union[randvars.RandomVariable, randvars._RandomVariableList]
 """Output type of interpolation.
 
-Dense evaluation of a TimeSeriesPosterior returns a RandomVariable
-if evaluated at a single location,
-and a _RandomVariableList if evaluated at an array of locations.
+Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a
+single location, and a _RandomVariableList if evaluated at an array of locations.
 """
 
 

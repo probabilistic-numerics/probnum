@@ -1,11 +1,11 @@
 """Bayesian Filtering and Smoothing.
 
-This package provides different kinds of Bayesian filters and smoothers
-which estimate the distribution over observed and hidden variables in a
-sequential model. The two operations differ by what information they
-use. Filtering considers all observations up to a given point, while
-smoothing takes the entire set of observations into account.
+This package provides different kinds of Bayesian filters and smoothers which estimate
+the distribution over observed and hidden variables in a sequential model. The two
+operations differ by what information they use. Filtering considers all observations up
+to a given point, while smoothing takes the entire set of observations into account.
 """
+
 from . import gaussian, particle, utils
 from ._bayesfiltsmooth import BayesFiltSmooth
 from ._kalman_filter_smoother import filter_kalman, smooth_rts

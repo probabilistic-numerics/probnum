@@ -140,7 +140,8 @@ class Matern(CovarianceFunction, IsotropicMixin):
         is not a half-integer, this is set to :data:`None`.
 
         Sample paths of a Gaussian process with this covariance function are
-        :math:`p`-times continuously differentiable."""
+        :math:`p`-times continuously differentiable.
+        """
         nu_minus_half = self._nu - 0.5
 
         # Half-integer values can be represented exactly in IEEE 754 floating point

@@ -1,4 +1,5 @@
 """Random Variables."""
+
 from __future__ import annotations
 
 from functools import cached_property
@@ -198,7 +199,9 @@ class RandomVariable(Generic[ValueType]):
     @property
     def moment_dtype(self) -> np.dtype:
         """The dtype of any (function of a) moment of the random variable, e.g. its
-        :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. It will be set to the
+        :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`.
+
+        It will be set to the
         dtype arising from the multiplication of values with dtypes :attr:`dtype`
         and :class:`numpy.float_`. This is motivated by the mathematical definition of a
         moment as a sum or an integral over products of probabilities and values of the
@@ -291,7 +294,8 @@ class RandomVariable(Generic[ValueType]):
 
     @cached_property
     def cov(self) -> ValueType:
-        """Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the random variable.
+        """Covariance :math:`\\operatorname{Cov}(X) =
+        \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the random variable.
 
         To learn about the dtype of the covariance, see :attr:`moment_dtype`.
         """  # pylint: disable=line-too-long
@@ -951,7 +955,7 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
     array([1, 0, 1])
     >>> x.pmf(2)
     array(0.)
-    >>> x.mean
+    >>> x.mean.item()
     0.0
     """
 
@@ -1165,7 +1169,7 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
     array([0.77395605, 0.43887844, 0.85859792])
     >>> u.pdf(0.5)
     array(1.)
-    >>> u.var
+    >>> u.var.item()
     0.08333333333333333
     """
 

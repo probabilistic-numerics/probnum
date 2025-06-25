@@ -1,11 +1,11 @@
 """Covariance functions.
 
-Covariance functions describe the spatial or temporal variation of a random process.
-If evaluated at two sets of points, a covariance function computes the covariance of the
+Covariance functions describe the spatial or temporal variation of a random process. If
+evaluated at two sets of points, a covariance function computes the covariance of the
 values of the random process at these locations.
 
-Covariance functions support basic algebraic operations, including scaling, addition
-and multiplication.
+Covariance functions support basic algebraic operations, including scaling, addition and
+multiplication.
 """
 
 from ._covariance_function import CovarianceFunction, IsotropicMixin

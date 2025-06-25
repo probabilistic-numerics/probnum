@@ -41,8 +41,11 @@ from probnum.typing import ShapeType
 def fixture_input_shapes(
     request, input_shape: ShapeType
 ) -> Tuple[ShapeType, Optional[ShapeType]]:
-    """Shapes for the first and second argument of the covariance function. The second
-    shape is ``None`` if the second argument to the covariance function is ``None``."""
+    """Shapes for the first and second argument of the covariance function.
+
+    The second
+    shape is ``None`` if the second argument to the covariance function is ``None``.
+    """
 
     x0_shape, x1_shape = request.param
 

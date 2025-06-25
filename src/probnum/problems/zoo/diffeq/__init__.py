@@ -1,6 +1,5 @@
 """Test problems involving ordinary differential equations."""
 
-
 from ._ivp_examples import (
     fitzhughnagumo,
     logistic,

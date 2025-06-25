@@ -13,7 +13,7 @@ def _kernel_mean_expquad_gauss(
 ) -> np.ndarray:
     r"""Kernel mean of the ExpQuad kernel with lenghtscale :math:`l` w.r.t. its first
     argument against a Gaussian measure with mean vector :math:`\mu` and covariance
-    matrix :math:`\Sigma`. The kernel mean is
+    matrix :math:`\Sigma`. The kernel mean is.
 
     .. math::
 
@@ -67,7 +67,7 @@ def _kernel_mean_expquad_gauss(
 def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) -> float:
     r"""Kernel variance of the ExpQuad kernel with lenghtscale :math:`l` w.r.t. both
     arguments against a :math:`D`-dimensional Gaussian measure with mean vector
-    :math:`\mu` and covariance matrix :math:`\Sigma`. The kernel variance is
+    :math:`\mu` and covariance matrix :math:`\Sigma`. The kernel variance is.
 
     .. math::
 

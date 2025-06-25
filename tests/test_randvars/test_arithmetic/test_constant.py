@@ -1,4 +1,5 @@
 """Tests for random variable arithmetic for constants."""
+
 import operator
 from typing import Callable
 

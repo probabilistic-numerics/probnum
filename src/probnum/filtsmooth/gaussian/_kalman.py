@@ -1,6 +1,5 @@
 """Gaussian filtering and smoothing."""
 
-
 from typing import Iterable, Optional, Union
 
 import numpy as np

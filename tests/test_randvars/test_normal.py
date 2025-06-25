@@ -1,4 +1,5 @@
 """Tests for the normal distribution."""
+
 import itertools
 import unittest
 

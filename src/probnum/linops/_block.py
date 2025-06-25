@@ -1,4 +1,5 @@
 """Operators with block structure."""
+
 from __future__ import annotations
 
 import functools

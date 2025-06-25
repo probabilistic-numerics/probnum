@@ -133,7 +133,7 @@ def probsolve_qp(
 
 
 def _choose_prior(
-    fun_params0: Union[randvars.RandomVariable, np.ndarray, None]
+    fun_params0: Union[randvars.RandomVariable, np.ndarray, None],
 ) -> randvars.RandomVariable:
     """Initialize the prior distribution over the parameters.
 

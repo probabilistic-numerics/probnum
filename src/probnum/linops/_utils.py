@@ -1,4 +1,5 @@
 """Utility functions for linear operators."""
+
 from __future__ import annotations
 
 import numpy as np

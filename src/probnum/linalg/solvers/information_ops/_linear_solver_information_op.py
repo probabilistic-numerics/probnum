@@ -1,4 +1,5 @@
 """Base class for linear solver information operators."""
+
 import abc
 
 import numpy as np

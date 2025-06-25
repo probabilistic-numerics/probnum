@@ -1,6 +1,5 @@
 """Discrete, linear, time-invariant Gaussian transitions."""
 
-
 from probnum import randvars
 from probnum.randprocs.markov.discrete import _linear_gaussian
 from probnum.typing import ArrayLike, LinearOperatorLike

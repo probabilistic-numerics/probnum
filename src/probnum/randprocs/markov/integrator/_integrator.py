@@ -93,7 +93,6 @@ class IntegratorTransition:
         --------
         :attr:`Integrator._convert_coordwise_to_derivwise`
         :attr:`Integrator._convert_derivwise_to_coordwise`
-
         """
         dim = (self.num_derivatives + 1) * self.wiener_process_dimension
         projmat = np.zeros((dim, dim))
@@ -130,6 +129,5 @@ class IntegratorTransition:
         --------
         :attr:`Integrator._convert_coordwise_to_derivwise`
         :attr:`Integrator._convert_derivwise_to_coordwise`
-
         """
         return self._derivwise2coordwise_projmat.T

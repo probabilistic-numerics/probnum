@@ -174,8 +174,8 @@ def test_bq_from_problem_options_values_default():
 
 
 def test_bq_from_problem_options_values_custom():
-    """Test if custom values of the options dictionary are set correctly
-    (apart from design and policy options)."""
+    """Test if custom values of the options dictionary are set correctly (apart from
+    design and policy options)."""
 
     # batch_size manual value
     batch_size = 3

@@ -33,10 +33,9 @@ def bayesquad(
     rng: Optional[np.random.Generator] = None,
     options: Optional[dict] = None,
 ) -> Tuple[Normal, BQIterInfo]:
-    r"""Infer the solution of the uni- or multivariate integral
-    :math:`\int_\Omega f(x) d \mu(x)`
-    on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`
-    or :math:`\Omega = \mathbb{R}^D`.
+    r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d
+    \mu(x)` on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D,
+    b_D]` or :math:`\Omega = \mathbb{R}^D`.
 
     Bayesian quadrature (BQ) infers integrals of the form
 
@@ -318,8 +317,8 @@ def multilevel_bayesquad_from_data(
     domain: Optional[DomainLike] = None,
     options: Optional[dict] = None,
 ) -> Tuple[Normal, Tuple[BQIterInfo, ...]]:
-    r"""Infer the value of an integral from given sets of nodes and function
-    evaluations using a multilevel method.
+    r"""Infer the value of an integral from given sets of nodes and function evaluations
+    using a multilevel method.
 
     In multilevel Bayesian quadrature, the integral :math:`\int_\Omega f(x) d \mu(x)`
     is (approximately) decomposed as a telescoping sum over :math:`L+1` levels:

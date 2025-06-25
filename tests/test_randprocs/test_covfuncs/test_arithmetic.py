@@ -1,4 +1,5 @@
 """Tests for covariance function arithmetic."""
+
 from probnum.randprocs import covfuncs
 from probnum.randprocs.covfuncs._arithmetic_fallbacks import (
     ProductCovarianceFunction,

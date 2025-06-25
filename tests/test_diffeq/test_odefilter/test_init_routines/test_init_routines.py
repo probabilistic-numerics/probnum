@@ -1,6 +1,5 @@
 """Tests for initialization routines."""
 
-
 import numpy as np
 import pytest
 import pytest_cases

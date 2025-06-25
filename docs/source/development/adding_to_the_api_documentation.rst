@@ -17,7 +17,7 @@ detail its functionality. This package uses the `NumPy docstring
 format <https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring-guide%3E>`__.
 As a rule, all functions which are exposed to the user *must* have
 appropriate docstrings. Below is an example of a docstring for a
-probabilistic numerical method 
+probabilistic numerical method
 named ``problinsolve`` defined in ``_problinsolve.py`` in the ``linalg`` subpackage.
 
 .. literalinclude:: ../../../src/probnum/linalg/_problinsolve.py
@@ -103,7 +103,7 @@ documentation. You can configure Sphinx itself or its extensions in the
 .. code:: ipython3
 
     from IPython.display import Image
-    
+
     display(Image(filename="../assets/img/developer_guides/sphinx_logo.png", embed=True))
 
 

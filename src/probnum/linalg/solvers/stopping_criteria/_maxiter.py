@@ -1,4 +1,5 @@
 """Stopping criterion based on a maximum number of iterations."""
+
 from typing import Optional
 
 import probnum  # pylint: disable="unused-import"

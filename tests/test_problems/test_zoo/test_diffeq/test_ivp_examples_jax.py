@@ -6,7 +6,7 @@ import probnum.problems.zoo.diffeq as diffeq_zoo
 # pylint: disable=unused-import
 try:
     import jax
-    from jax.config import config
+    from jax import config
     import jax.numpy as jnp
 
     config.update("jax_enable_x64", True)
@@ -50,6 +50,7 @@ def test_ddf(ivp_jax):
 
 
 # Tests for when JAX is not available
+# These tests are now skipped when JAX is available since it's installed in tox
 
 
 @only_if_jax_is_not_available
@@ -62,3 +63,24 @@ def test_threebody():
 def test_vanderpol():
     with pytest.raises(ImportError):
         diffeq_zoo.vanderpol_jax()
+
+
+# Additional tests for when JAX is available
+@only_if_jax_available
+def test_threebody_available():
+    """Test that threebody_jax works when JAX is available."""
+    ivp = diffeq_zoo.threebody_jax()
+    assert ivp is not None
+    assert hasattr(ivp, "f")
+    assert hasattr(ivp, "df")
+    assert hasattr(ivp, "ddf")
+
+
+@only_if_jax_available
+def test_vanderpol_available():
+    """Test that vanderpol_jax works when JAX is available."""
+    ivp = diffeq_zoo.vanderpol_jax()
+    assert ivp is not None
+    assert hasattr(ivp, "f")
+    assert hasattr(ivp, "df")
+    assert hasattr(ivp, "ddf")

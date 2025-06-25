@@ -1,6 +1,5 @@
 """Tests for Matern processes."""
 
-
 import numpy as np
 import pytest
 

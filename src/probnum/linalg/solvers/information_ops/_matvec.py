@@ -1,4 +1,5 @@
 """Information operator returning a matrix-vector product with the matrix."""
+
 import numpy as np
 
 import probnum  # pylint: disable="unused-import"

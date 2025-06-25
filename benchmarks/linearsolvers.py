@@ -1,4 +1,5 @@
 """Benchmarks for linear solvers."""
+
 import numpy as np
 
 from probnum import linops, problems, randvars

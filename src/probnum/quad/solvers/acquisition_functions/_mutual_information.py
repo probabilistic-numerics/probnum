@@ -33,7 +33,6 @@ class MutualInformation(AcquisitionFunction):
     ----------
     .. [1] Gessner et al. Active Multi-Information Source Bayesian Quadrature,
        *UAI*, 2019
-
     """
 
     @property
