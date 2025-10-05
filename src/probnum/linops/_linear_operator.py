@@ -1322,7 +1322,7 @@ class LambdaLinearOperator(  # pylint: disable=too-many-instance-attributes
     ... def mv(v):
     ...     return np.array([2 * v[0] - v[1], 3 * v[1]])
 
-    >>> A = LambdaLinearOperator(shape=(2, 2), dtype=np.float_, matmul=mv)
+    >>> A = LambdaLinearOperator(shape=(2, 2), dtype=np.float64, matmul=mv)
     >>> A
     <LambdaLinearOperator with shape=(2, 2) and dtype=float64>
 

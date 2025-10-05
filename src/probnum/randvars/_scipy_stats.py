@@ -74,12 +74,12 @@ class WrappedSciPyDiscreteRandomVariable(
 
         rv_kwargs["pmf"] = _return_numpy(
             getattr(scipy_rv, "pmf", None),
-            dtype=np.float_,
+            dtype=np.float64,
         )
 
         rv_kwargs["logpmf"] = _return_numpy(
             getattr(scipy_rv, "logpmf", None),
-            dtype=np.float_,
+            dtype=np.float64,
         )
 
         super().__init__(**rv_kwargs)
@@ -113,12 +113,12 @@ class WrappedSciPyContinuousRandomVariable(
 
         rv_kwargs["pdf"] = _return_numpy(
             getattr(scipy_rv, "pdf", None),
-            dtype=np.float_,
+            dtype=np.float64,
         )
 
         rv_kwargs["logpdf"] = _return_numpy(
             getattr(scipy_rv, "logpdf", None),
-            dtype=np.float_,
+            dtype=np.float64,
         )
 
         super().__init__(**rv_kwargs)
@@ -211,8 +211,8 @@ def _rv_init_kwargs_from_scipy_rv(
     shape = sample.shape
     dtype = sample.dtype
 
-    median_dtype = np.promote_types(dtype, np.float_)
-    moments_dtype = np.promote_types(dtype, np.float_)
+    median_dtype = np.promote_types(dtype, np.float64)
+    moments_dtype = np.promote_types(dtype, np.float64)
 
     # Support of univariate random variables
     if isinstance(scipy_rv, scipy.stats._distn_infrastructure.rv_frozen):
@@ -238,8 +238,8 @@ def _rv_init_kwargs_from_scipy_rv(
         "dtype": dtype,
         "sample": _return_numpy(sample_wrapper, dtype),
         "in_support": in_support,
-        "cdf": _return_numpy(getattr(scipy_rv, "cdf", None), np.float_),
-        "logcdf": _return_numpy(getattr(scipy_rv, "logcdf", None), np.float_),
+        "cdf": _return_numpy(getattr(scipy_rv, "cdf", None), np.float64),
+        "logcdf": _return_numpy(getattr(scipy_rv, "logcdf", None), np.float64),
         "quantile": _return_numpy(getattr(scipy_rv, "ppf", None), dtype),
         "mode": None,  # not offered by scipy.stats
         "median": _return_numpy(getattr(scipy_rv, "median", None), median_dtype),
@@ -247,7 +247,7 @@ def _rv_init_kwargs_from_scipy_rv(
         "cov": _return_numpy(getattr(scipy_rv, "cov", None), moments_dtype),
         "var": _return_numpy(getattr(scipy_rv, "var", None), moments_dtype),
         "std": _return_numpy(getattr(scipy_rv, "std", None), moments_dtype),
-        "entropy": _return_numpy(getattr(scipy_rv, "entropy", None), np.float_),
+        "entropy": _return_numpy(getattr(scipy_rv, "entropy", None), np.float64),
     }
 
 

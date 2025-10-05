@@ -65,7 +65,7 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
         self._support = support
 
         support_floating = self._support.astype(
-            np.promote_types(self._support.dtype, np.float_)
+            np.promote_types(self._support.dtype, np.float64)
         )
 
         if config.matrix_free:
@@ -95,8 +95,8 @@ class Constant(_random_variable.DiscreteRandomVariable[ValueType]):
             parameters={"support": self._support},
             sample=self._sample,
             in_support=lambda x: np.all(x == self._support),
-            pmf=lambda x: np.float_(1.0 if np.all(x == self._support) else 0.0),
-            cdf=lambda x: np.float_(1.0 if np.all(x >= self._support) else 0.0),
+            pmf=lambda x: np.float64(1.0 if np.all(x == self._support) else 0.0),
+            cdf=lambda x: np.float64(1.0 if np.all(x >= self._support) else 0.0),
             mode=lambda: self._support,
             median=lambda: support_floating,
             mean=lambda: support_floating,
