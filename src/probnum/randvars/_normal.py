@@ -85,7 +85,13 @@ class Normal(_random_variable.ContinuousRandomVariable[ValueType]):
         dtype = np.promote_types(mean.dtype, cov.dtype)
 
         if not np.issubdtype(dtype, np.floating):
-            dtype = np.dtype(np.double)
+            # dtype = np.dtype(np.double)
+            # MODIFICATION: Support complex dtypes for complex-valued Normal distributions
+            if np.issubdtype(dtype, np.complexfloating):
+                dtype = np.dtype(np.complex128)
+            else:
+                dtype = np.dtype(np.double)
+            # END MODIFICATION
 
         mean = mean.astype(dtype, order="C", casting="safe", copy=False)
         cov = cov.astype(dtype, order="C", casting="safe", copy=False)
