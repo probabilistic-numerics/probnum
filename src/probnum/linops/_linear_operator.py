@@ -90,8 +90,11 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         if not np.issubdtype(self.__dtype, np.number):
             raise TypeError("The dtype of a linear operator must be numeric.")
 
-        if np.issubdtype(self.__dtype, np.complexfloating):
-            raise TypeError("Linear operators do not support complex dtypes.")
+        # MODIFICATION: Commented out complex dtype check to support complex linear operators
+        # Original code that was commented out:
+        # if np.issubdtype(self.__dtype, np.complexfloating):
+        #     raise TypeError("Linear operators do not support complex dtypes.")
+        # END MODIFICATION
 
         # Matrix properties
         self._is_symmetric = None
@@ -151,6 +154,12 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
     def _inexact_dtype(self) -> np.dtype:
         if np.issubdtype(self.dtype, np.inexact):
             return self.dtype
+
+        # MODIFICATION: Return complex128 for complex integer types, otherwise double
+        # This ensures proper handling of complex types in derived operations
+        if np.issubdtype(self.dtype, np.complexfloating):
+            return np.complex128
+        # END MODIFICATION
 
         return np.double
 
@@ -508,7 +517,11 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         if curr_value is not None:
             assert isinstance(curr_value, bool)
 
-            raise ValueError(f"Can not change the value of the matrix property {name}.")
+            # raise ValueError(f"Can not change the value of the matrix property {name}.")
+            # MODIFICATION: Allow changing property from True to False when factorizations fail
+            if not (curr_value is True and value is False and name == "positive_definite"):
+                raise ValueError(f"Can not change the value of the matrix property {name}.")
+            # END MODIFICATION
 
         if not isinstance(value, bool):
             raise TypeError(
@@ -872,6 +885,13 @@ class LinearOperator(abc.ABC):  # pylint: disable=too-many-instance-attributes
         return self._cholesky_cache.T
 
     def _cholesky(self, lower: bool) -> LinearOperator:
+        # MODIFICATION: Handle complex matrices which require special treatment
+        if np.issubdtype(self.dtype, np.complexfloating):
+            raise np.linalg.LinAlgError(
+                "Cholesky decomposition is not defined for complex matrices. "
+                "Consider using LU or QR decomposition instead."
+            )
+        # END MODIFICATION
         return Matrix(
             scipy.linalg.cholesky(
                 self.todense(), lower=lower, overwrite_a=False, check_finite=True
