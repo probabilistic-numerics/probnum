@@ -67,7 +67,7 @@ class GaussianProcess(_random_process.RandomProcess[ArrayLike, np.ndarray]):
         super().__init__(
             input_shape=mean.input_shape,
             output_shape=mean.output_shape,
-            dtype=np.dtype(np.float_),
+            dtype=np.dtype(np.float64),
             mean=mean,
             cov=cov,
         )

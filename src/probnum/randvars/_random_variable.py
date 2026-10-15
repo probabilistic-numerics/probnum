@@ -110,8 +110,8 @@ class RandomVariable(Generic[ValueType]):
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeType], ValueType]] = None,
         in_support: Optional[Callable[[ValueType], bool]] = None,
-        cdf: Optional[Callable[[ValueType], np.float_]] = None,
-        logcdf: Optional[Callable[[ValueType], np.float_]] = None,
+        cdf: Optional[Callable[[ValueType], np.float64]] = None,
+        logcdf: Optional[Callable[[ValueType], np.float64]] = None,
         quantile: Optional[Callable[[FloatLike], ValueType]] = None,
         mode: Optional[Callable[[], ValueType]] = None,
         median: Optional[Callable[[], ValueType]] = None,
@@ -119,7 +119,7 @@ class RandomVariable(Generic[ValueType]):
         cov: Optional[Callable[[], ValueType]] = None,
         var: Optional[Callable[[], ValueType]] = None,
         std: Optional[Callable[[], ValueType]] = None,
-        entropy: Optional[Callable[[], np.float_]] = None,
+        entropy: Optional[Callable[[], np.float64]] = None,
         as_value_type: Optional[Callable[[Any], ValueType]] = None,
     ):
         # pylint: disable=too-many-arguments,too-many-locals
@@ -370,7 +370,7 @@ class RandomVariable(Generic[ValueType]):
         return std
 
     @cached_property
-    def entropy(self) -> np.float_:
+    def entropy(self) -> np.float64:
         """Information-theoretic entropy :math:`H(X)` of the random variable."""
         if self.__entropy is None:
             raise NotImplementedError
@@ -424,7 +424,7 @@ class RandomVariable(Generic[ValueType]):
 
         return self.__sample(rng=rng, size=_utils.as_shape(size))
 
-    def cdf(self, x: ValueType) -> np.float_:
+    def cdf(self, x: ValueType) -> np.float64:
         """Cumulative distribution function.
 
         Parameters
@@ -442,7 +442,7 @@ class RandomVariable(Generic[ValueType]):
 
         if self.__logcdf is not None:
             cdf = np.exp(self.logcdf(self._as_value_type(x)))
-            assert isinstance(cdf, np.float_)
+            assert isinstance(cdf, np.float64)
             return cdf
 
         raise NotImplementedError(
@@ -450,7 +450,7 @@ class RandomVariable(Generic[ValueType]):
             f"with type `{type(self).__name__}` is implemented."
         )
 
-    def logcdf(self, x: ValueType) -> np.float_:
+    def logcdf(self, x: ValueType) -> np.float64:
         """Log-cumulative distribution function.
 
         Parameters
@@ -468,7 +468,7 @@ class RandomVariable(Generic[ValueType]):
 
         if self.__cdf is not None:
             logcdf = np.log(self.__cdf(x))
-            assert isinstance(logcdf, np.float_)
+            assert isinstance(logcdf, np.float64)
             return logcdf
 
         raise NotImplementedError(
@@ -779,7 +779,7 @@ class RandomVariable(Generic[ValueType]):
         value_dtype :
             Dtype of a value.
         """
-        return np.promote_types(value_dtype, np.float_)
+        return np.promote_types(value_dtype, np.float64)
 
     def _as_value_type(self, x: Any) -> ValueType:
         if self.__as_value_type is not None:
@@ -811,26 +811,26 @@ class RandomVariable(Generic[ValueType]):
     @classmethod
     def _ensure_numpy_float(
         cls, name: str, value: Any, force_scalar: bool = False
-    ) -> Union[np.float_, np.ndarray]:
+    ) -> Union[np.float64, np.ndarray]:
         if np.isscalar(value):
-            if not isinstance(value, np.float_):
+            if not isinstance(value, np.float64):
                 try:
-                    value = _utils.as_numpy_scalar(value, dtype=np.float_)
+                    value = _utils.as_numpy_scalar(value, dtype=np.float64)
                 except TypeError as err:
                     raise TypeError(
                         f"The function `{name}` specified via the constructor of "
                         f"`{cls.__name__}` must return a scalar value that can be "
-                        f"converted to a `np.float_`, which is not possible for "
+                        f"converted to a `np.float64`, which is not possible for "
                         f"{value} of type {type(value)}."
                     ) from err
         elif not force_scalar:
             try:
-                value = np.asarray(value, dtype=np.float_)
+                value = np.asarray(value, dtype=np.float64)
             except TypeError as err:
                 raise TypeError(
                     f"The function `{name}` specified via the constructor of "
                     f"`{cls.__name__}` must return a value that can be converted "
-                    f"to a `np.ndarray` of type `np.float_`, which is not possible "
+                    f"to a `np.ndarray` of type `np.float64`, which is not possible "
                     f"for {value} of type {type(value)}."
                 ) from err
         else:
@@ -840,7 +840,7 @@ class RandomVariable(Generic[ValueType]):
                 f"{type(value)} is not scalar."
             )
 
-        assert isinstance(value, (np.float_, np.ndarray))
+        assert isinstance(value, (np.float64, np.ndarray))
 
         return value
 
@@ -962,10 +962,10 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeLike], ValueType]] = None,
         in_support: Optional[Callable[[ValueType], bool]] = None,
-        pmf: Optional[Callable[[ValueType], np.float_]] = None,
-        logpmf: Optional[Callable[[ValueType], np.float_]] = None,
-        cdf: Optional[Callable[[ValueType], np.float_]] = None,
-        logcdf: Optional[Callable[[ValueType], np.float_]] = None,
+        pmf: Optional[Callable[[ValueType], np.float64]] = None,
+        logpmf: Optional[Callable[[ValueType], np.float64]] = None,
+        cdf: Optional[Callable[[ValueType], np.float64]] = None,
+        logcdf: Optional[Callable[[ValueType], np.float64]] = None,
         quantile: Optional[Callable[[FloatLike], ValueType]] = None,
         mode: Optional[Callable[[], ValueType]] = None,
         median: Optional[Callable[[], ValueType]] = None,
@@ -973,7 +973,7 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
         cov: Optional[Callable[[], ValueType]] = None,
         var: Optional[Callable[[], ValueType]] = None,
         std: Optional[Callable[[], ValueType]] = None,
-        entropy: Optional[Callable[[], np.float_]] = None,
+        entropy: Optional[Callable[[], np.float64]] = None,
         as_value_type: Optional[Callable[[Any], ValueType]] = None,
     ):
         # Probability mass function
@@ -999,7 +999,7 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
             as_value_type=as_value_type,
         )
 
-    def pmf(self, x: ValueType) -> np.float_:
+    def pmf(self, x: ValueType) -> np.float64:
         """Probability mass function.
 
         Computes the probability of the random variable being equal to the given
@@ -1024,7 +1024,7 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
 
         if self.__logpmf is not None:
             pmf = np.exp(self.__logpmf(x))
-            assert isinstance(pmf, np.float_)
+            assert isinstance(pmf, np.float64)
             return pmf
 
         raise NotImplementedError(
@@ -1032,7 +1032,7 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
             f"object with type `{type(self).__name__}` is implemented."
         )
 
-    def logpmf(self, x: ValueType) -> np.float_:
+    def logpmf(self, x: ValueType) -> np.float64:
         """Natural logarithm of the probability mass function.
 
         Parameters
@@ -1050,7 +1050,7 @@ class DiscreteRandomVariable(RandomVariable[ValueType]):
 
         if self.__pmf is not None:
             logpmf = np.log(self.__pmf(self._as_value_type(x)))
-            assert isinstance(logpmf, np.float_)
+            assert isinstance(logpmf, np.float64)
             return logpmf
 
         raise NotImplementedError(
@@ -1176,10 +1176,10 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[np.random.Generator, ShapeLike], ValueType]] = None,
         in_support: Optional[Callable[[ValueType], bool]] = None,
-        pdf: Optional[Callable[[ValueType], np.float_]] = None,
-        logpdf: Optional[Callable[[ValueType], np.float_]] = None,
-        cdf: Optional[Callable[[ValueType], np.float_]] = None,
-        logcdf: Optional[Callable[[ValueType], np.float_]] = None,
+        pdf: Optional[Callable[[ValueType], np.float64]] = None,
+        logpdf: Optional[Callable[[ValueType], np.float64]] = None,
+        cdf: Optional[Callable[[ValueType], np.float64]] = None,
+        logcdf: Optional[Callable[[ValueType], np.float64]] = None,
         quantile: Optional[Callable[[FloatLike], ValueType]] = None,
         mode: Optional[Callable[[], ValueType]] = None,
         median: Optional[Callable[[], ValueType]] = None,
@@ -1187,7 +1187,7 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
         cov: Optional[Callable[[], ValueType]] = None,
         var: Optional[Callable[[], ValueType]] = None,
         std: Optional[Callable[[], ValueType]] = None,
-        entropy: Optional[Callable[[], np.float_]] = None,
+        entropy: Optional[Callable[[], np.float64]] = None,
         as_value_type: Optional[Callable[[Any], ValueType]] = None,
     ):
         # Probability density function
@@ -1213,7 +1213,7 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
             as_value_type=as_value_type,
         )
 
-    def pdf(self, x: ValueType) -> np.float_:
+    def pdf(self, x: ValueType) -> np.float64:
         """Probability density function.
 
         The area under the curve defined by the probability density function
@@ -1240,7 +1240,7 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
         if self.__logpdf is not None:
             pdf = np.exp(self.__logpdf(self._as_value_type(x)))
 
-            assert isinstance(pdf, np.float_)
+            assert isinstance(pdf, np.float64)
 
             return pdf
         raise NotImplementedError(
@@ -1248,7 +1248,7 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
             f"object with type `{type(self).__name__}` is implemented."
         )
 
-    def logpdf(self, x: ValueType) -> np.float_:
+    def logpdf(self, x: ValueType) -> np.float64:
         """Natural logarithm of the probability density function.
 
         Parameters
@@ -1266,7 +1266,7 @@ class ContinuousRandomVariable(RandomVariable[ValueType]):
 
         if self.__pdf is not None:
             logpdf = np.log(self.__pdf(self._as_value_type(x)))
-            assert isinstance(logpdf, np.float_)
+            assert isinstance(logpdf, np.float64)
             return logpdf
 
         raise NotImplementedError(

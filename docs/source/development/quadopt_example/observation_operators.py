@@ -10,7 +10,7 @@ from probnum.typing import FloatLike
 
 def function_evaluation(
     fun: Callable[[FloatLike], FloatLike], action: FloatLike
-) -> np.float_:
+) -> np.float64:
     """Observe a (noisy) function evaluation of the quadratic objective.
 
     Parameters

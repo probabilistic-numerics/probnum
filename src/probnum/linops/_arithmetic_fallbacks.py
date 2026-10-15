@@ -97,9 +97,7 @@ class SumLinearOperator(LambdaLinearOperator):
 
         super().__init__(
             shape=summands[0].shape,
-            dtype=np.find_common_type(
-                [summand.dtype for summand in self._summands], []
-            ),
+            dtype=functools.reduce(np.result_type, [summand.dtype for summand in self._summands]),
             matmul=lambda x: functools.reduce(
                 operator.add, (summand @ x for summand in self._summands)
             ),
@@ -192,7 +190,7 @@ class ProductLinearOperator(LambdaLinearOperator):
 
         super().__init__(
             shape=(self._factors[0].shape[0], self._factors[-1].shape[1]),
-            dtype=np.find_common_type([factor.dtype for factor in self._factors], []),
+            dtype=functools.reduce(np.result_type, [factor.dtype for factor in self._factors]),
             matmul=lambda x: functools.reduce(
                 lambda vec, op: op @ vec, reversed(self._factors), x
             ),

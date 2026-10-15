@@ -30,7 +30,7 @@ class _MarkovBase(_random_process.RandomProcess):
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
-            dtype=np.dtype(np.float_),
+            dtype=np.dtype(np.float64),
             mean=functions.LambdaFunction(
                 lambda x: self.__call__(args=x).mean,
                 input_shape=input_shape,
